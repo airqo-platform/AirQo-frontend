@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
 import {
   Button,
@@ -14,7 +14,11 @@ import {
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqEye } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import { toast } from '@/shared/components/ui/toast';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackSubmission } from '@/shared/types/api';
 
@@ -42,7 +46,8 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   pending:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  reviewed:
+    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   archived:
@@ -74,6 +79,18 @@ const APP_OPTIONS = [
   { value: 'vertex', label: 'vertex' },
 ];
 
+const ACTIONABLE_OPTIONS = [
+  { value: 'all', label: 'All items' },
+  { value: 'true', label: 'Actionable' },
+  { value: 'false', label: 'Not actionable' },
+];
+
+const BULK_STATUS_OPTIONS = [
+  { value: 'reviewed', label: 'Mark as Reviewed' },
+  { value: 'resolved', label: 'Mark as Resolved' },
+  { value: 'archived', label: 'Mark as Archived' },
+];
+
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString('en-US', {
     year: 'numeric',
@@ -87,9 +104,14 @@ const getStatusLabel = (status: string) => STATUS_LABELS[status] || status;
 
 const FeedbackListContent: React.FC = () => {
   const router = useRouter();
+  const { mutate: globalMutate } = useSWRConfig();
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [appFilter, setAppFilter] = useState('all');
+  const [actionableFilter, setActionableFilter] = useState('all');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState('reviewed');
 
   const fetchAllFeedbacks = async (opts: {
     status?: string | null;
@@ -132,9 +154,12 @@ const FeedbackListContent: React.FC = () => {
       const matchesCategory =
         categoryFilter === 'all' || feedback.category === categoryFilter;
       const matchesApp = appFilter === 'all' || feedback.app === appFilter;
-      return matchesStatus && matchesCategory && matchesApp;
+      const matchesActionable =
+        actionableFilter === 'all' ||
+        String(feedback.actionable ?? false) === actionableFilter;
+      return matchesStatus && matchesCategory && matchesApp && matchesActionable;
     });
-  }, [appFilter, categoryFilter, feedbacks, statusFilter]);
+  }, [appFilter, categoryFilter, feedbacks, statusFilter, actionableFilter]);
 
   const tableData = useMemo<FeedbackRow[]>(
     () =>
@@ -153,9 +178,17 @@ const FeedbackListContent: React.FC = () => {
         if (feedback.status === 'reviewed') counts.reviewed += 1;
         if (feedback.status === 'resolved') counts.resolved += 1;
         if (feedback.status === 'archived') counts.archived += 1;
+        if (feedback.actionable) counts.actionable += 1;
         return counts;
       },
-      { total: 0, pending: 0, reviewed: 0, resolved: 0, archived: 0 }
+      {
+        total: 0,
+        pending: 0,
+        reviewed: 0,
+        resolved: 0,
+        archived: 0,
+        actionable: 0,
+      }
     );
   }, [filteredFeedbacks]);
 
@@ -166,6 +199,40 @@ const FeedbackListContent: React.FC = () => {
     [router]
   );
 
+  const handleBulkStatusUpdate = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+
+    setIsBulkUpdating(true);
+    try {
+      const result = await feedbackService.bulkUpdateStatus({
+        feedback_ids: Array.from(selectedIds),
+        status: bulkStatus,
+      });
+
+      const { summary } = result.data;
+      if (summary.failed > 0) {
+        toast.error(
+          `${summary.succeeded} updated, ${summary.failed} failed`
+        );
+      } else {
+        toast.success(
+          `${summary.succeeded} feedback items updated to ${getStatusLabel(bulkStatus)}`
+        );
+      }
+
+      setSelectedIds(new Set());
+      try {
+        await globalMutate('feedback/submissions');
+      } catch {
+        // swallow
+      }
+    } catch (updateError) {
+      toast.error(getUserFriendlyErrorMessage(updateError));
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedIds, bulkStatus, globalMutate]);
+
   const columns = useMemo(
     () => [
       {
@@ -174,12 +241,19 @@ const FeedbackListContent: React.FC = () => {
         minWidth: '240px',
         maxWidth: '360px',
         render: (_value: unknown, item: FeedbackRow) => (
-          <p
-            className="font-medium text-foreground truncate"
-            title={item.subject}
-          >
-            {item.subject}
-          </p>
+          <div className="flex items-center gap-2">
+            <p
+              className="font-medium text-foreground truncate"
+              title={item.subject}
+            >
+              {item.subject}
+            </p>
+            {item.actionable && (
+              <span className="inline-flex shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+                Actionable
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -239,10 +313,17 @@ const FeedbackListContent: React.FC = () => {
         label: 'Submitted',
         minWidth: '190px',
         cellClassName: 'whitespace-nowrap',
-        render: (value: unknown) => (
-          <span className="text-sm text-muted-foreground">
-            {formatDateTime(String(value))}
-          </span>
+        render: (_value: unknown, item: FeedbackRow) => (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm text-muted-foreground">
+              {formatDateTime(String(_value))}
+            </span>
+            {item.reminderCount != null && item.reminderCount > 0 && (
+              <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                Reminded {item.reminderCount}×
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -272,6 +353,11 @@ const FeedbackListContent: React.FC = () => {
       title: 'Total',
       value: statusCounts.total,
       description: 'All feedback submissions',
+    },
+    {
+      title: 'Actionable',
+      value: statusCounts.actionable,
+      description: 'Require follow-up',
     },
     {
       title: 'Pending',
@@ -318,7 +404,7 @@ const FeedbackListContent: React.FC = () => {
         subtitle="Review user-flagged bugs, feature requests, praise, and support messages."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {summaryCards.map(card => (
           <Card key={card.title} className="p-4">
             <p className="text-sm text-muted-foreground">{card.title}</p>
@@ -332,7 +418,7 @@ const FeedbackListContent: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Select
           label="Status filter"
           value={statusFilter}
@@ -375,7 +461,55 @@ const FeedbackListContent: React.FC = () => {
             </option>
           ))}
         </Select>
+
+        <Select
+          label="Actionable filter"
+          value={actionableFilter}
+          onChange={event =>
+            setActionableFilter(String(event.target.value || 'all'))
+          }
+          containerClassName="md:max-w-xs"
+        >
+          {ACTIONABLE_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       </div>
+
+      {selectedIds.size > 0 && (
+        <Card className="flex flex-wrap items-center gap-4 p-4">
+          <span className="text-sm font-medium text-foreground">
+            {selectedIds.size} item{selectedIds.size !== 1 ? 's' : ''} selected
+          </span>
+          <Select
+            label=""
+            value={bulkStatus}
+            onChange={event => setBulkStatus(String(event.target.value))}
+            containerClassName="!mb-0 md:max-w-xs"
+          >
+            {BULK_STATUS_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+          <Button
+            loading={isBulkUpdating}
+            onClick={() => void handleBulkStatusUpdate()}
+          >
+            Apply
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedIds(new Set())}
+            disabled={isBulkUpdating}
+          >
+            Clear selection
+          </Button>
+        </Card>
+      )}
 
       <ServerSideTable
         title="Feedback submissions"
@@ -384,6 +518,11 @@ const FeedbackListContent: React.FC = () => {
         loading={false}
         showClientPagination={true}
         compactRows={false}
+        multiSelect={true}
+        selectedItems={Array.from(selectedIds)}
+        onSelectedItemsChange={ids =>
+          setSelectedIds(new Set(ids.map(String)))
+        }
       />
     </div>
   );

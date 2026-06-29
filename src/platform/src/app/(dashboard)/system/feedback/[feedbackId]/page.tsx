@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
@@ -13,12 +13,21 @@ import {
   LoadingState,
   PageHeading,
 } from '@/shared/components/ui';
+import { Input } from '@/shared/components/ui/input';
+import { TextInput } from '@/shared/components/ui/text-input';
 import { AqArrowLeft } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
 import { toast } from '@/shared/components/ui/toast';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
-import type { FeedbackSubmission } from '@/shared/types/api';
+import type {
+  FeedbackSubmission,
+  FeedbackReply,
+  FeedbackWatcher,
+} from '@/shared/types/api';
 
 const STATUS_OPTIONS = ['pending', 'reviewed', 'resolved', 'archived'] as const;
 
@@ -32,7 +41,8 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   pending:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  reviewed:
+    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   archived:
@@ -107,6 +117,19 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
+  const [replyMessage, setReplyMessage] = useState('');
+  const [isSendingReply, setIsSendingReply] = useState(false);
+
+  const [adminNotes, setAdminNotes] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+
+  const [assigneeId, setAssigneeId] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  const [watcherEmail, setWatcherEmail] = useState('');
+  const [watcherName, setWatcherName] = useState('');
+  const [isAddingWatcher, setIsAddingWatcher] = useState(false);
+
   const {
     data,
     error,
@@ -124,6 +147,13 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   );
 
   const feedback = data?.feedback as FeedbackSubmission | undefined;
+
+  useEffect(() => {
+    if (feedback) {
+      setAdminNotes(feedback.adminNotes || '');
+      setAssigneeId(feedback.assignedTo?._id || '');
+    }
+  }, [feedback]);
 
   const metadataEntries = useMemo(() => {
     if (!feedback?.metadata) {
@@ -189,6 +219,17 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     feedback?.createdAt || new Date().toISOString()
   )}`;
 
+  const refreshAll = useCallback(async () => {
+    try {
+      await Promise.allSettled([
+        refreshFeedback(),
+        globalMutate('feedback/submissions'),
+      ]);
+    } catch {
+      // swallow
+    }
+  }, [refreshFeedback, globalMutate]);
+
   const handleBack = () => {
     router.push('/system/feedback');
   };
@@ -203,22 +244,96 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     try {
       await feedbackService.updateFeedbackStatus(feedbackId, status);
       toast.success('Feedback status updated successfully');
-
-      // Refresh caches best-effort; do not convert refresh failures into
-      // status-update failures.
-      try {
-        await Promise.allSettled([
-          refreshFeedback(),
-          globalMutate('feedback/submissions'),
-        ]);
-      } catch {
-        // swallow - Promise.allSettled should not throw, but keep safe.
-      }
+      await refreshAll();
     } catch (updateError) {
       toast.error(getUserFriendlyErrorMessage(updateError));
     } finally {
       setIsUpdating(false);
       setPendingStatus(null);
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!feedbackId || !replyMessage.trim()) return;
+
+    setIsSendingReply(true);
+    try {
+      await feedbackService.replyToFeedback(feedbackId, {
+        replyMessage: replyMessage.trim(),
+      });
+      toast.success('Reply sent successfully');
+      setReplyMessage('');
+      await refreshAll();
+    } catch (replyError) {
+      toast.error(getUserFriendlyErrorMessage(replyError));
+    } finally {
+      setIsSendingReply(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!feedbackId) return;
+
+    setIsSavingNotes(true);
+    try {
+      await feedbackService.updateAdminNotes(feedbackId, {
+        adminNotes: adminNotes.trim(),
+      });
+      toast.success('Admin notes saved');
+      await refreshAll();
+    } catch (notesError) {
+      toast.error(getUserFriendlyErrorMessage(notesError));
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!feedbackId) return;
+
+    setIsAssigning(true);
+    try {
+      await feedbackService.assignFeedback(feedbackId, {
+        userId: assigneeId || null,
+      });
+      toast.success(assigneeId ? 'Feedback assigned' : 'Assignment removed');
+      await refreshAll();
+    } catch (assignError) {
+      toast.error(getUserFriendlyErrorMessage(assignError));
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleAddWatcher = async () => {
+    if (!feedbackId || !watcherEmail.trim()) return;
+
+    setIsAddingWatcher(true);
+    try {
+      await feedbackService.addWatcher(feedbackId, {
+        email: watcherEmail.trim(),
+        name: watcherName.trim() || undefined,
+      });
+      toast.success('Watcher added');
+      setWatcherEmail('');
+      setWatcherName('');
+      await refreshAll();
+    } catch (watcherError) {
+      toast.error(getUserFriendlyErrorMessage(watcherError));
+    } finally {
+      setIsAddingWatcher(false);
+    }
+  };
+
+  const handleRemoveWatcher = async (email: string) => {
+    if (!feedbackId) return;
+
+    try {
+      await feedbackService.removeWatcher(feedbackId, email);
+      toast.success('Watcher removed');
+      await refreshAll();
+    } catch (watcherError) {
+      toast.error(getUserFriendlyErrorMessage(watcherError));
     }
   };
 
@@ -250,6 +365,9 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
       </Card>
     );
   }
+
+  const replies = feedback.replies || [];
+  const watchers = feedback.watchers || [];
 
   return (
     <div className="space-y-6">
@@ -289,6 +407,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               {feedback.app}
             </span>
           ) : null}
+          {feedback.actionable && (
+            <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+              Actionable
+            </span>
+          )}
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
             <span className="flex items-center gap-1 text-amber-500">
               {Array.from({ length: 5 }, (_, index) =>
@@ -356,6 +479,16 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                   {item.value}
                 </DetailPanel>
               ))}
+              {feedback.reminderCount != null && feedback.reminderCount > 0 && (
+                <DetailPanel label="Reminders sent" valueClassName="font-medium">
+                  {feedback.reminderCount}×
+                  {feedback.reminderSentAt && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      (last: {formatDateTime(feedback.reminderSentAt)})
+                    </span>
+                  )}
+                </DetailPanel>
+              )}
             </div>
           </div>
         </Card>
@@ -489,6 +622,219 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
           )}
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <Card className="p-6">
+          <div className="space-y-4">
+            <SectionHeader
+              title="Reply to submitter"
+              description="Send a reply email directly to the person who submitted this feedback."
+            />
+
+            <TextInput
+              id="reply-message"
+              label="Reply message"
+              placeholder="Type your reply..."
+              value={replyMessage}
+              onChange={e =>
+                setReplyMessage(
+                  (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+                )
+              }
+              rows={4}
+            />
+
+            <Button
+              loading={isSendingReply}
+              disabled={!replyMessage.trim()}
+              onClick={() => void handleSendReply()}
+            >
+              Send reply
+            </Button>
+
+            {replies.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Previous replies ({replies.length})
+                </p>
+                {replies.map((reply: FeedbackReply, index: number) => (
+                  <div
+                    key={`${reply.sentAt}-${index}`}
+                    className="rounded-md border bg-muted/20 p-3"
+                  >
+                    <p className="whitespace-pre-wrap text-sm text-foreground">
+                      {reply.message}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{reply.adminEmail}</span>
+                      <span>·</span>
+                      <span>{formatDateTime(reply.sentAt)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="space-y-4">
+            <SectionHeader
+              title="Admin notes"
+              description="Internal notes for the team. These are never shown to the submitter."
+            />
+
+            <TextInput
+              id="admin-notes"
+              label="Notes"
+              placeholder="Add internal notes about this feedback..."
+              value={adminNotes}
+              onChange={e =>
+                setAdminNotes(
+                  (e as React.ChangeEvent<HTMLTextAreaElement>).target.value
+                )
+              }
+              rows={4}
+            />
+
+            <Button
+              loading={isSavingNotes}
+              onClick={() => void handleSaveNotes()}
+            >
+              Save notes
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <Card className="p-6">
+          <div className="space-y-4">
+            <SectionHeader
+              title="Assignment"
+              description="Assign this feedback to a team member. They will receive an email notification."
+            />
+
+            <div className="flex items-end gap-3">
+              <Input
+                id="assignee-id"
+                label="Assignee user ID"
+                placeholder="Enter user ID"
+                value={assigneeId}
+                onChange={e =>
+                  setAssigneeId(
+                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                  )
+                }
+                containerClassName="!mb-0 flex-1"
+              />
+              <Button
+                loading={isAssigning}
+                onClick={() => void handleAssign()}
+              >
+                {assigneeId ? 'Assign' : 'Unassign'}
+              </Button>
+            </div>
+
+            {feedback.assignedTo && (
+              <div className="rounded-md border bg-muted/20 p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Currently assigned to
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {feedback.assignedTo.firstName} {feedback.assignedTo.lastName}{' '}
+                  ({feedback.assignedTo.email})
+                </p>
+                {feedback.assignedAt && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Assigned on {formatDateTime(feedback.assignedAt)}
+                    {feedback.assignedBy && (
+                      <> by {feedback.assignedBy.email}</>
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="space-y-4">
+            <SectionHeader
+              title="Watchers"
+              description="Stakeholders who receive email notifications on status changes and replies."
+            />
+
+            <div className="space-y-3">
+              <Input
+                id="watcher-email"
+                label="Watcher email"
+                placeholder="email@example.com"
+                value={watcherEmail}
+                onChange={e =>
+                  setWatcherEmail(
+                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                  )
+                }
+              />
+              <Input
+                id="watcher-name"
+                label="Watcher name (optional)"
+                placeholder="Product Manager"
+                value={watcherName}
+                onChange={e =>
+                  setWatcherName(
+                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                  )
+                }
+              />
+              <Button
+                loading={isAddingWatcher}
+                disabled={!watcherEmail.trim()}
+                onClick={() => void handleAddWatcher()}
+              >
+                Add watcher
+              </Button>
+            </div>
+
+            {watchers.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Current watchers ({watchers.length})
+                </p>
+                {watchers.map((watcher: FeedbackWatcher) => (
+                  <div
+                    key={watcher.email}
+                    className="flex items-center justify-between rounded-md border bg-muted/20 p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {watcher.name || watcher.email}
+                      </p>
+                      {watcher.name && (
+                        <p className="text-xs text-muted-foreground">
+                          {watcher.email}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      paddingStyles="h-7 px-2"
+                      onClick={() => void handleRemoveWatcher(watcher.email)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No watchers added yet.
+              </p>
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
