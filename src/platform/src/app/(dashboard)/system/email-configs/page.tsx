@@ -549,7 +549,6 @@ const EmailConfigContent: React.FC = () => {
   return (
     <PermissionGuard
       requiredPermissions={['SUPER_ADMIN']}
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
       customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need the SUPER_ADMIN permission and an @airqo.net super-admin account to manage email configs."

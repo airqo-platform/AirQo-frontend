@@ -514,15 +514,14 @@ export const METADATA_CONFIGS = {
     },
   },
   beacon: {
-    title:
-      'AirQo Beacon | Device Health and Collocation Management for Air Quality Networks',
+    title: 'Beacon | Device Health Monitoring for Air Quality Sensor Networks',
     description:
-      'Monitor device health, collocation performance, uptime, MTBF, MTTR, and operational reliability across air quality sensor networks with AirQo Beacon.',
+      'Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
     keywords:
-      'AirQo Beacon, device health monitoring, air quality network operations, sensor uptime monitoring, collocation management, MTBF, MTTR, maintenance dashboard, sensor network reliability, air quality device performance',
+      'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
     image: {
-      url: '/assets/images/products/beacon/beacon-device-render.webp',
+      url: '/assets/images/products/beacon/beacon-home.webp',
       alt: 'AirQo Beacon device render mounted under a solar panel',
       width: 1536,
       height: 1024,
@@ -530,12 +529,11 @@ export const METADATA_CONFIGS = {
     },
   },
   vertex: {
-    title:
-      'AirQo Vertex | Open Device Deployment and Public Air Quality Data Sharing',
+    title: 'Vertex | Open Air Quality Data Sharing Platform',
     description:
-      'Add air quality monitors, track maintenance, and share sensor data publicly through AirQo. Vertex supports devices from any manufacturer and helps teams join an open monitoring network.',
+      'Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
     keywords:
-      'AirQo Vertex, device deployment platform, public air quality data sharing, open sensor network, multi-manufacturer support, sensor onboarding, air quality device maintenance, air monitoring data sharing',
+      'open air quality data sharing platform, open air quality data, public air quality data, open data platform, air quality monitoring network, connect air quality monitors, low-cost air quality sensors, sensor network management, device health monitoring, open air quality network',
     url: '/products/vertex',
     image: {
       url: '/assets/images/products/vertex/bring-device.webp',

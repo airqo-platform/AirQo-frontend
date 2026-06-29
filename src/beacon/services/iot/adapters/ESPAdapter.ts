@@ -6,6 +6,7 @@ export class ESPAdapter implements DeviceAdapter {
   private writer: WritableStreamDefaultWriter | null = null;
   private logCallback: ((data: string) => void) | null = null;
   private isReading = false;
+  private lastWrite: Promise<void> = Promise.resolve();
 
   async connect(): Promise<void> {
     if (!('serial' in navigator)) {
@@ -106,17 +107,23 @@ export class ESPAdapter implements DeviceAdapter {
   }
 
   async write(data: string | Uint8Array): Promise<void> {
-    if (!this.port || !this.port.writable) throw new Error('Port not writable');
-    
-    const encoder = new TextEncoderStream();
-    const writableStreamClosed = encoder.readable.pipeTo(this.port.writable);
-    this.writer = encoder.writable.getWriter();
-    
-    try {
-      await this.writer.write(typeof data === 'string' ? data : new TextDecoder().decode(data));
-    } finally {
-      this.writer.releaseLock();
-    }
+    const nextWrite = this.lastWrite.then(async () => {
+      if (!this.port || !this.port.writable) throw new Error('Port not writable');
+      
+      const encoder = new TextEncoderStream();
+      const writableStreamClosed = encoder.readable.pipeTo(this.port.writable);
+      this.writer = encoder.writable.getWriter();
+      
+      try {
+        await this.writer.write(typeof data === 'string' ? data : new TextDecoder().decode(data));
+      } finally {
+        this.writer.releaseLock();
+        this.writer = null;
+      }
+    });
+
+    this.lastWrite = nextWrite.catch(() => {});
+    return nextWrite;
   }
 
   async reboot(): Promise<void> {

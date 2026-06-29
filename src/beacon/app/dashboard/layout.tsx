@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import type React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
+import { RefreshCw } from "lucide-react"
 import authService from "@/services/api-service"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
-import { GroupProvider } from "@/lib/group-context"
+import { GroupProvider, useGroup } from "@/lib/group-context"
 
 type User = {
   id?: number
@@ -209,9 +210,60 @@ export default function DashboardLayout({
           />
 
           {/* Main Content - Scrollable behind top nav */}
-          <main className="flex-1 overflow-y-auto p-4 pr-4 pt-20">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 pr-4 pt-20">
+            <GroupRouteGuard>{children}</GroupRouteGuard>
+          </main>
         </div>
       </div>
     </GroupProvider>
   )
+}
+
+function GroupRouteGuard({ children }: { children: React.ReactNode }) {
+  const { activeGroup, isActiveGroupAdmin, loading } = useGroup()
+  const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (loading || !pathname) return
+
+    const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
+    const hideOtherItems = isAirqoGroup && !isActiveGroupAdmin
+
+    // Path definitions
+    const isOverview = pathname === '/dashboard' || pathname === '/dashboard/'
+    const isRestrictedAirqoOnly = 
+      pathname.startsWith('/dashboard/collocation') ||
+      pathname.startsWith('/dashboard/firmware') ||
+      pathname.startsWith('/dashboard/category') ||
+      pathname.startsWith('/dashboard/stock')
+      
+    const isRestrictedNonAdmin =
+      pathname.startsWith('/dashboard/analytics') ||
+      pathname.startsWith('/dashboard/maintenance') ||
+      pathname.startsWith('/dashboard/reports')
+
+    if (isOverview || isRestrictedAirqoOnly) {
+      if (!(isAirqoGroup && isActiveGroupAdmin)) {
+        router.replace('/dashboard/devices')
+      }
+    } else if (isRestrictedNonAdmin) {
+      if (hideOtherItems) {
+        router.replace('/dashboard/devices')
+      }
+    }
+  }, [activeGroup, isActiveGroupAdmin, loading, pathname, router])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-2">
+          <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-sm text-slate-500 font-medium">Updating active group...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return <>{children}</>
 }

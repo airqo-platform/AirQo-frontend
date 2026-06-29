@@ -135,7 +135,14 @@ export default function LoginPage() {
     } else {
       // Check if user is authenticated
       if (authService.isAuthenticated()) {
-        router.push("/dashboard/devices")
+        const isAirqoAdminCookie = typeof document !== 'undefined'
+          ? document.cookie.split('; ').find(row => row.startsWith('isAirqoAdmin='))?.split('=')[1] === 'true'
+          : false;
+        if (isAirqoAdminCookie) {
+          router.push("/dashboard")
+        } else {
+          router.push("/dashboard/devices")
+        }
       }
 
     }
@@ -196,17 +203,19 @@ export default function LoginPage() {
       })
       
       // Check for HTML response (indicates API route issue)
-      if (typeof response === 'string' && response.includes('<!DOCTYPE')) {
+      if (typeof response === 'string' && (response as string).includes('<!DOCTYPE')) {
         setError("Service temporarily unavailable. Please try again later.")
         return
       }
       
       // Handle successful authentication
       if (response?.token || response?.success) {
+        const token = response.token || authService.getToken() || ""
+
         // Set authentication cookie for middleware
-        if (response.token) {
+        if (token) {
           const maxAge = 24 * 60 * 60 // 1 day
-          document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Strict`
+          document.cookie = `token=${token}; path=/; max-age=${maxAge}; SameSite=Strict`
         }
         
         // Clear form
@@ -217,9 +226,44 @@ export default function LoginPage() {
         setIsLoading(false)
         setIsTransitioning(true)
         
+        // Fetch user groups to check if they are an AirQo admin
+        let redirectTarget = "/dashboard/devices"
+        try {
+          const userResponse = await fetch("/api/auth/user", {
+            method: "GET",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          })
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            const user = userData.users?.[0]
+            const groups = user?.groups || []
+            
+            // Check if user is an AirQo Admin
+            const isAirqoAdmin = groups.some((g: any) => {
+              if (g.grp_title?.toLowerCase() === 'airqo') {
+                const roleName = g.role?.role_name?.toLowerCase() || ''
+                return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+              }
+              return false
+            })
+            
+            if (isAirqoAdmin) {
+              redirectTarget = "/dashboard"
+              document.cookie = `isAirqoAdmin=true; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`
+            } else {
+              document.cookie = `isAirqoAdmin=false; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`
+            }
+          }
+        } catch (err) {
+          console.error("Error checking user groups on login:", err)
+        }
+        
         // Small delay to show transition, then redirect
         setTimeout(() => {
-          router.push("/dashboard/devices")
+          router.push(redirectTarget)
           router.refresh()
         }, 1500)
         

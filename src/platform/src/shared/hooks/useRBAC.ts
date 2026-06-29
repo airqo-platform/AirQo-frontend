@@ -219,21 +219,6 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user is admin (has any admin role)
-   */
-  const isAdmin = (): boolean => {
-    const adminRoles = ['ADMIN'];
-    return allRoles.some(role => adminRoles.includes(role.toUpperCase()));
-  };
-
-  /**
-   * Check if user is super admin
-   */
-  const isSuperAdmin = (): boolean => {
-    return allRoles.some(role => role.toUpperCase() === 'SUPER_ADMIN');
-  };
-
-  /**
    * Check if user has a specific permission in the active group
    */
   const hasPermissionInActiveGroup = (permission: string): boolean => {
@@ -276,40 +261,22 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user can access admin panel (AIRQO_ADMIN or AIRQO_SUPER_ADMIN role + @airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission)
+   * Check if user can access admin panel (@airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission in active group)
    */
   const canAccessAdminPanel = (): boolean => {
-    const hasAirQoAdmin = allRoles.some(
-      role => role.toUpperCase() === 'AIRQO_ADMIN'
-    );
-    const hasAirQoSuperAdmin = allRoles.some(
-      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
-    );
-    const hasSystemAdmin = allPermissions.some(
-      perm => perm.toUpperCase() === 'SYSTEM_ADMIN'
-    );
-    const hasSuperAdmin = allPermissions.some(
-      perm => perm.toUpperCase() === 'SUPER_ADMIN'
-    );
-    const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
-
     return (
-      (hasAirQoAdmin || hasAirQoSuperAdmin) &&
-      hasValidEmail &&
-      (hasSystemAdmin || hasSuperAdmin)
+      hasEmailDomain('@airqo.net') &&
+      hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
     );
   };
 
+
   /**
-   * Check if user is AIRQO_SUPER_ADMIN with @airqo.net email
+   * Check if user email ends with a specific domain
    */
-  const isAirQoSuperAdminWithEmail = useCallback((): boolean => {
-    const hasRole = allRoles.some(
-      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
-    );
-    const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
-    return hasRole && hasValidEmail;
-  }, [allRoles, user?.email]);
+  const hasEmailDomain = useCallback((domain: string): boolean => {
+    return !!user?.email?.toLowerCase().endsWith(domain.toLowerCase());
+  }, [user?.email]);
 
   const isLoading = userLoading || rolesLoading;
 
@@ -343,10 +310,8 @@ export const useRBAC = () => {
     // Utility functions
     getUserGroups,
     getUserNetworks,
-    isAdmin,
-    isSuperAdmin,
     canAccessAdminPanel,
-    isAirQoSuperAdminWithEmail,
+    hasEmailDomain,
 
     // Active group permission checks
     hasPermissionInActiveGroup,

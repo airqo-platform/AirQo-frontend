@@ -43,6 +43,7 @@ import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 import { useUser } from '@/shared/hooks/useUser';
+import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 
@@ -95,6 +96,8 @@ const DataExportPage = () => {
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userLoading } = useUser();
   const { switchGroup } = useUserActions();
+  const { hasPermission } = useRBAC();
+  const canDownload = hasPermission('DATA_EXPORT');
 
   // Determine if this is org flow based on pathname
   const isOrgFlow = pathname.includes('/org/');
@@ -714,7 +717,7 @@ const DataExportPage = () => {
       const savedLabel = format.toUpperCase();
       const savedMessage =
         format === 'pdf'
-          ? 'Your professional PDF report has been saved.'
+          ? 'Your professional PDF summary has been saved.'
           : format === 'xlsx'
             ? 'Your Excel workbook has been saved with one sheet per location.'
             : format === 'csv'
@@ -883,6 +886,7 @@ const DataExportPage = () => {
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
               isGroupSyncing={isGroupSyncing}
+              canDownload={canDownload}
               onRefresh={handleRefreshCurrentTab}
               isRefreshing={isRefreshing}
               onTabChange={wrappedHandleTabChange}

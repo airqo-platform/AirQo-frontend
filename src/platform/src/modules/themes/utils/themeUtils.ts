@@ -101,21 +101,59 @@ export function clearStoredTheme(groupId?: string): void {
 }
 
 /**
- * Apply theme to DOM immediately
+ * Convert hex color to RGB triplet string
+ */
+function hexToRgb(hex: string): string {
+  const clean = hex.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) {
+    return '22 73 229';
+  }
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return `${r} ${g} ${b}`;
+}
+
+/**
+ * Lighten an RGB triplet by a given amount (0-1)
+ */
+function lightenRgb(rgb: string, amount: number): string {
+  return rgb
+    .split(' ')
+    .map(c => Math.round(Number(c) + (255 - Number(c)) * amount))
+    .join(' ');
+}
+
+/**
+ * Darken an RGB triplet by a given amount (0-1)
+ */
+function darkenRgb(rgb: string, amount: number): string {
+  return rgb
+    .split(' ')
+    .map(c => Math.round(Number(c) * (1 - amount)))
+    .join(' ');
+}
+
+/**
+ * Apply theme to DOM immediately — sets --primary, --ring, derived color
+ * shades, and the dark mode class.
  */
 export function applyThemeImmediately(theme: ThemeData): void {
   if (typeof document === 'undefined') return;
 
   const { mode, primaryColor } = theme;
 
-  // Apply primary color CSS variable
-  const rgb =
-    primaryColor
-      .replace('#', '')
-      .match(/.{2}/g)
-      ?.map(c => parseInt(c, 16))
-      .join(' ') || '20 95 255';
+  // Convert primary color to RGB and set core variables
+  const rgb = hexToRgb(primaryColor);
   document.documentElement.style.setProperty('--primary', rgb);
+  document.documentElement.style.setProperty('--ring', rgb);
+
+  // Derive lighter / darker shades from the primary color
+  document.documentElement.style.setProperty('--primary-50', lightenRgb(rgb, 0.92));
+  document.documentElement.style.setProperty('--primary-100', lightenRgb(rgb, 0.82));
+  document.documentElement.style.setProperty('--primary-700', darkenRgb(rgb, 0.25));
+  document.documentElement.style.setProperty('--primary-800', darkenRgb(rgb, 0.38));
+  document.documentElement.style.setProperty('--primary-900', darkenRgb(rgb, 0.50));
 
   // Apply theme mode
   if (mode === 'dark') {
@@ -177,24 +215,79 @@ export function injectThemeScript(): void {
 }
 
 /**
- * Get the theme script content as a string for server-side injection
+ * Get the theme script content as a string for server-side injection.
+ * Reads the active group from persisted Redux state and applies the
+ * correct group-scoped theme before React hydration.
  */
 export function getThemeScript(): string {
   return `
     (function() {
       try {
-        var theme = localStorage.getItem('theme');
-        if (theme) {
-          var data = JSON.parse(theme);
-          var mode = data.mode || 'light';
-          var primaryColor = data.primaryColor || '#1649e5';
+        var themeData = null;
 
-          // Apply primary color
-          var rgb = primaryColor.replace('#', '').match(/.{2}/g);
-          if (rgb) {
-            rgb = rgb.map(function(c) { return parseInt(c, 16); }).join(' ');
-            document.documentElement.style.setProperty('--primary', rgb);
+        // Try to find the active group from persisted Redux state
+        try {
+          var userRaw = localStorage.getItem('persist:user');
+          if (userRaw) {
+            var userPersist = JSON.parse(userRaw);
+            if (userPersist.activeGroup) {
+              var activeGroup = JSON.parse(userPersist.activeGroup);
+              if (activeGroup && activeGroup.id) {
+                var groupKey = 'theme_group_' + activeGroup.id;
+                var groupTheme = localStorage.getItem(groupKey);
+                if (groupTheme) {
+                  themeData = JSON.parse(groupTheme);
+                }
+              }
+            }
           }
+        } catch (e) {}
+
+        // Fallback to general theme key
+        if (!themeData) {
+          var generalTheme = localStorage.getItem('theme');
+          if (generalTheme) {
+            themeData = JSON.parse(generalTheme);
+          }
+        }
+
+        if (themeData) {
+          var mode = themeData.mode || 'light';
+          var primaryColor = themeData.primaryColor || '#1649e5';
+
+          // Apply primary color as RGB
+          var hex = primaryColor.replace('#', '');
+          if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+            hex = '1649e5';
+          }
+          var r = parseInt(hex.substring(0, 2), 16);
+          var g = parseInt(hex.substring(2, 4), 16);
+          var b = parseInt(hex.substring(4, 6), 16);
+          var rgb = r + ' ' + g + ' ' + b;
+          document.documentElement.style.setProperty('--primary', rgb);
+          document.documentElement.style.setProperty('--ring', rgb);
+
+          // Derive lighter shades from primary color
+          function lighten(rgbStr, amount) {
+            var parts = rgbStr.split(' ').map(Number);
+            return parts.map(function(c) {
+              return Math.round(c + (255 - c) * amount);
+            }).join(' ');
+          }
+
+          // Derive darker shades from primary color
+          function darken(rgbStr, amount) {
+            var parts = rgbStr.split(' ').map(Number);
+            return parts.map(function(c) {
+              return Math.round(c * (1 - amount));
+            }).join(' ');
+          }
+
+          document.documentElement.style.setProperty('--primary-50', lighten(rgb, 0.92));
+          document.documentElement.style.setProperty('--primary-100', lighten(rgb, 0.82));
+          document.documentElement.style.setProperty('--primary-700', darken(rgb, 0.25));
+          document.documentElement.style.setProperty('--primary-800', darken(rgb, 0.38));
+          document.documentElement.style.setProperty('--primary-900', darken(rgb, 0.50));
 
           // Apply theme mode
           if (mode === 'dark') {
@@ -202,7 +295,6 @@ export function getThemeScript(): string {
           } else if (mode === 'light') {
             document.documentElement.classList.remove('dark');
           } else {
-            // system preference
             var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (prefersDark) {
               document.documentElement.classList.add('dark');

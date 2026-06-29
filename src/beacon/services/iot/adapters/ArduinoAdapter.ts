@@ -5,6 +5,7 @@ export class ArduinoAdapter implements DeviceAdapter {
   private portName: string;
   private logListener: ((data: any) => void) | null = null;
   private userLogCallback: ((data: string) => void) | null = null;
+  private lastWrite: Promise<void> = Promise.resolve();
 
   constructor(portName: string) {
     this.portName = portName;
@@ -70,14 +71,19 @@ export class ArduinoAdapter implements DeviceAdapter {
   }
 
   async write(data: string | Uint8Array): Promise<void> {
-    // Convert Uint8Array to string for WebSocket transmission if needed, or send as binary array
-    const payload = typeof data === 'string' ? data : Array.from(data);
-    
-    localAgent.send({
-      type: 'write_serial',
-      port: this.portName,
-      data: payload
+    const nextWrite = this.lastWrite.then(async () => {
+      // Convert Uint8Array to string for WebSocket transmission if needed, or send as binary array
+      const payload = typeof data === 'string' ? data : Array.from(data);
+      
+      localAgent.send({
+        type: 'write_serial',
+        port: this.portName,
+        data: payload
+      });
     });
+
+    this.lastWrite = nextWrite.catch(() => {});
+    return nextWrite;
   }
 
   async reboot(): Promise<void> {

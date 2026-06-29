@@ -29,7 +29,7 @@ class FeatureFlagService with UiLoggy {
     try {
       await Posthog().reloadFeatureFlags();
       for (final flag in AppFeatureFlag.values) {
-        _flags[flag] = await Posthog().isFeatureEnabled(flag.key);
+        _flags[flag] = await Posthog().isFeatureEnabled(flag.key) ?? false;
       }
       loggy.info('Feature flags reloaded: $_flags');
     } catch (e, stackTrace) {

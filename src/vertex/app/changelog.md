@@ -2,8 +2,8 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.9
-**Released:** June 24, 2026
+## Version 2.0.10
+**Released:** June 29, 2026
 
 ### RBAC Architecture Migration — Permission-Based Access Control
 
@@ -44,8 +44,8 @@ Introduced the foundational infrastructure for a dynamic, capability-driven auth
 
 ---
 
-## Version 2.0.8
-**Released:** June 23, 2026
+## Version 2.0.9
+**Released:** June 29, 2026
 
 ### Admin Panel Access Control — Primary Sidebar Permission Gate
 
@@ -57,6 +57,58 @@ Replaced the static role-name check that guarded the Administrative Panel entry 
 - **Permission-based gate**: Removed the `allowedRoles` array (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) and replaced `canViewAdminPanel` with a `useHasAnyPermission` check against `SYSTEM.SUPER_ADMIN`, `SYSTEM.SYSTEM_ADMIN`, `ORGANIZATION.VIEW`, and `NETWORK.VIEW`.
 - **Context enforcement preserved**: The `isPersonalContext` guard remains — the Administrative Panel entry is never shown when the user is operating under an external organisation.
 - **Hook consolidation**: Eliminated a redundant second `useUserContext()` call; `isPersonalContext` and `activeGroup` are now destructured from the same call as `getContextPermissions`.
+
+</details>
+
+---
+
+## Version 2.0.8
+**Released:** June 28, 2026
+
+### Comprehensive Unit Testing & CI Integration
+
+Introduced a robust unit testing infrastructure using Vitest and React Testing Library, alongside comprehensive CI/CD pipeline integration. This release focuses on improving code quality, ensuring robust component rendering, and validating API proxy behavior through extensive boundary testing.
+
+<details>
+<summary><strong>Test Infrastructure & CI Integration (3)</strong></summary>
+
+- **Vitest & React Testing Library**: Replaced legacy test runners with a fast, modern Vitest setup configured to work seamlessly with Next.js App Router and absolute imports.
+- **CI/CD Pipeline**: Added dedicated GitHub Actions workflows for automated type checking (`tsc --noEmit`) and unit testing (`vitest run --coverage`) on pull requests.
+- **Testing Guidelines**: Introduced `TESTING.md` internal documentation to standardize component rendering, user-event interactions, and mocking strategies across the team.
+
+</details>
+
+<details>
+<summary><strong>UI & Shared Component Testing (3)</strong></summary>
+
+- **Core UI Components**: Added comprehensive tests for 30+ shadcn/radix UI components (Dialogs, Accords, Tooltips, Buttons, Inputs, Forms, etc.) verifying accessibility and interaction states without snapshot testing.
+- **Shared Abstractions**: Extracted and tested shared wrappers including `ReusableTable`, `ReusableSelectInput`, `ReusableButton`, and `ReusableFileUpload`, ensuring robust prop forwarding and DOM nesting compliance.
+- **Warning Resolutions**: Proactively fixed React DOM nesting warnings (e.g., `<a>` cannot appear as a descendant of `<a>`) and accessibility label warnings across components during test implementation.
+
+</details>
+
+<details>
+<summary><strong>Service & API Boundary Testing (2)</strong></summary>
+
+- **Mock Factories**: Created `apiResponseFactory.ts` and NextAuth session mocks to simulate full HTTP environments locally without hitting live staging endpoints or needing `axios-mock-adapter`.
+- **Proxy Validation**: Validated both the Next.js App Router API handlers (`proxyClient`) and client-side Axios instances (`secureApiProxyClient`), verifying `JWT` vs `API_TOKEN` injection, error normalization, and custom event dispatching (`vertex-network-degraded`, `auth-token-expired`).
+
+</details>
+
+<details>
+<summary><strong>Files Modified & Added (40+)</strong></summary>
+
+- `package.json` [MODIFIED]
+- `vitest.config.ts` [NEW]
+- `.github/workflows/test.yml` [NEW]
+- `src/vertex/app/_docs/internal/TESTING.md` [NEW]
+- `src/vertex/components/ui/*.test.tsx` (30+ files) [NEW]
+- `src/vertex/components/shared/**/*.test.tsx` [NEW]
+- `src/vertex/core/services/*.test.ts` [NEW]
+- `src/vertex/core/utils/*.test.ts` [NEW]
+- `src/vertex/test/factories/apiResponseFactory.ts` [NEW]
+- `src/vertex/test/mocks/nextAuth.ts` [NEW]
+- `src/vertex/vitest.setup.ts` [NEW]
 
 </details>
 

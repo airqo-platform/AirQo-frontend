@@ -35,7 +35,7 @@ export default function HomePage() {
         <InfoBanner
           title="All data on this platform is open and publicly available. View,
           explore, and download air quality data for your own analysis,
-          reporting, or advocacy."
+          presentation, or advocacy."
           className="mt-4"
         />
 

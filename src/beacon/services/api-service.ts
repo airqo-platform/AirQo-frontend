@@ -133,6 +133,10 @@ class AuthService {
       // Also try without Secure flag in case of local development
       document.cookie = `${this.TOKEN_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`
       
+      // Clear isAirqoAdmin cookie
+      document.cookie = `isAirqoAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`
+      document.cookie = `isAirqoAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      
       // Try removing from all possible paths
       document.cookie = `${this.TOKEN_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       document.cookie = `${this.TOKEN_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`
@@ -142,16 +146,18 @@ class AuthService {
   /**
    * Clears all authentication data from all storage locations
    */
-  private clearAllAuthData(): void {
+  public clearAllAuthData(): void {
     if (!isBrowser()) return
 
     // Clear from localStorage
     localStorage.removeItem(this.TOKEN_KEY)
     localStorage.removeItem(this.USER_DATA_KEY)
+    localStorage.removeItem('isAirqoAdmin')
     
     // Clear from sessionStorage
     sessionStorage.removeItem(this.TOKEN_KEY)
     sessionStorage.removeItem(this.USER_DATA_KEY)
+    sessionStorage.removeItem('isAirqoAdmin')
     
     // Clear any other auth-related items
     const keysToRemove: string[] = []

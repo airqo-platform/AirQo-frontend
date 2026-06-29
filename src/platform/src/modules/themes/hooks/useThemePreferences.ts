@@ -110,23 +110,26 @@ export const useThemePreferences = () => {
   );
 
   /**
-   * Initialize theme from API on successful authentication
+   * Initialize theme from API on successful authentication.
+   * Compares API data with localStorage and applies if different.
    */
   const initializeThemeFromApi = useCallback(async () => {
     const { current: initState } = initializationRef;
 
-    // Prevent multiple initializations or initialization loops
+    // Guard: prevent concurrent initializations
+    if (initState.isInitializing) return;
+
+    // Guard: skip if already initialized for this exact user+group combo
     if (
-      initState.isInitializing ||
-      (initState.isInitialized &&
-        initState.lastUserId === userId &&
-        initState.lastGroupId === activeGroup?.id) ||
-      !userId ||
-      !activeGroup?.id ||
-      status !== 'authenticated'
+      initState.isInitialized &&
+      initState.lastUserId === userId &&
+      initState.lastGroupId === activeGroup?.id
     ) {
       return;
     }
+
+    // Guard: need auth and group to proceed
+    if (!userId || !activeGroup?.id || status !== 'authenticated') return;
 
     // Mark as initializing
     initState.isInitializing = true;
@@ -143,7 +146,6 @@ export const useThemePreferences = () => {
           JSON.stringify(themeData) !== JSON.stringify(storedTheme);
 
         if (hasChanges) {
-          // Apply the theme
           applyThemeToApp(themeData);
         }
 
@@ -151,8 +153,6 @@ export const useThemePreferences = () => {
         initState.isInitialized = true;
         initState.lastUserId = userId;
         initState.lastGroupId = activeGroup?.id;
-      } else if (userThemeError) {
-        // If API call failed, ensure we have a theme applied
       }
     } catch (error) {
       console.error('Failed to initialize theme from API:', error);
@@ -170,7 +170,6 @@ export const useThemePreferences = () => {
     activeGroup?.id,
     status,
     userThemeData,
-    userThemeError,
     convertApiThemeToThemeData,
     applyThemeToApp,
   ]);
@@ -261,23 +260,23 @@ export const useThemePreferences = () => {
   );
 
   // Initialize theme when user logs in, changes, or active group changes.
-  // Keep a short delay so that SWR has a chance to return stale cache data
-  // synchronously before we call initializeThemeFromApi; but the primary
-  // reactive path is the userThemeData effect below.
+  // The primary initialization path is the userThemeData effect below which
+  // fires reactively when SWR delivers data (from cache or network).
+  // This effect handles the case where SWR already has cached data synchronously
+  // by waiting one tick for the userThemeData effect to run first.
   useEffect(() => {
     if (status === 'authenticated' && userId && activeGroup?.id) {
       const timer = setTimeout(() => {
         initializeThemeFromApi();
-      }, 100);
+      }, 0);
 
       return () => clearTimeout(timer);
     }
   }, [status, userId, activeGroup?.id, initializeThemeFromApi]);
 
   // React to SWR theme data arriving (after cache invalidation on group switch).
-  // The setTimeout above fires BEFORE the network response is available, so
-  // initializeThemeFromApi does nothing. This effect provides the missing
-  // reactive callback that applies the theme once the data lands.
+  // This is the primary reactive path — when SWR delivers fresh data for the
+  // new group, we apply it immediately.
   useEffect(() => {
     if (
       userThemeData?.success &&
@@ -286,32 +285,22 @@ export const useThemePreferences = () => {
       activeGroup?.id &&
       status === 'authenticated'
     ) {
-      const { current: initState } = initializationRef;
-      // Apply only when the theme hasn't been initialized for this group yet.
-      if (
-        !initState.isInitialized ||
-        initState.lastGroupId !== activeGroup?.id
-      ) {
-        initializeThemeFromApi();
-      }
+      initializeThemeFromApi();
     }
   }, [userThemeData, userId, activeGroup?.id, status, initializeThemeFromApi]);
 
-  // Reset initialization when user changes, logs out, or group changes
+  // Reset initialization when user logs out or group changes.
+  // This forces a fresh theme fetch+apply for the new context.
   useEffect(() => {
     const { current: initState } = initializationRef;
 
-    if (
-      status === 'unauthenticated' ||
-      initState.lastUserId !== userId ||
-      initState.lastGroupId !== activeGroup?.id
-    ) {
-      // Clear initialization flags when group changes to force refetch
+    const groupChanged = initState.lastGroupId !== activeGroup?.id;
+    const userChanged = initState.lastUserId !== userId;
+    const loggedOut = status === 'unauthenticated';
+
+    if (loggedOut || groupChanged || userChanged) {
       initState.isInitialized = false;
       initState.isInitializing = false;
-
-      // Update tracking values; initializeThemeFromApi will be called via the
-      // userThemeData effect above once SWR delivers fresh data for the new group.
       initState.lastUserId = userId || null;
       initState.lastGroupId = activeGroup?.id || null;
     }
