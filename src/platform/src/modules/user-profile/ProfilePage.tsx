@@ -41,6 +41,9 @@ const ProfilePage: React.FC = () => {
     if (tabParam === 'subscription') {
       setActiveTab(3);
     }
+    if (tabParam === 'api') {
+      setActiveTab(2);
+    }
   }, [searchParams]);
 
   if (status === 'loading') {
