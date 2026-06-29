@@ -105,6 +105,8 @@ const WebhookForm: React.FC<{
           <Input
             id="webhook-secret"
             label="Secret"
+            type="password"
+            autoComplete="new-password"
             placeholder="Min 16 characters"
             value={secret}
             onChange={e =>
@@ -323,6 +325,7 @@ const WebhooksContent: React.FC = () => {
 
       {(showForm || editingWebhook) && (
         <WebhookForm
+          key={editingWebhook?._id ?? 'new'}
           initialData={editingWebhook}
           onSubmit={editingWebhook ? handleUpdate : handleCreate}
           onCancel={() => {

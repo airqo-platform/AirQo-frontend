@@ -39,6 +39,8 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
+    aria-label={title}
+    aria-pressed={isActive}
     className={cn(
       'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
       'hover:bg-primary/10 hover:text-primary',
@@ -59,9 +61,10 @@ const ToolbarDivider: React.FC = () => (
 
 interface ToolbarProps {
   editor: Editor | null;
+  disabled?: boolean;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
+const Toolbar: React.FC<ToolbarProps> = ({ editor, disabled = false }) => {
   const setLink = useCallback(() => {
     if (!editor) return;
 
@@ -90,6 +93,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         isActive={editor.isActive('bold')}
+        disabled={disabled}
         title="Bold"
       >
         <BiBold className="h-4 w-4" />
@@ -98,6 +102,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleItalic().run()}
         isActive={editor.isActive('italic')}
+        disabled={disabled}
         title="Italic"
       >
         <BiItalic className="h-4 w-4" />
@@ -106,6 +111,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleUnderline().run()}
         isActive={editor.isActive('underline')}
+        disabled={disabled}
         title="Underline"
       >
         <BiUnderline className="h-4 w-4" />
@@ -114,6 +120,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleStrike().run()}
         isActive={editor.isActive('strike')}
+        disabled={disabled}
         title="Strikethrough"
       >
         <BiStrikethrough className="h-4 w-4" />
@@ -124,6 +131,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         isActive={editor.isActive('bulletList')}
+        disabled={disabled}
         title="Bullet list"
       >
         <BiListUl className="h-4 w-4" />
@@ -132,6 +140,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         isActive={editor.isActive('orderedList')}
+        disabled={disabled}
         title="Numbered list"
       >
         <BiListOl className="h-4 w-4" />
@@ -142,6 +151,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         isActive={editor.isActive('blockquote')}
+        disabled={disabled}
         title="Quote"
       >
         <BiSolidQuoteLeft className="h-4 w-4" />
@@ -150,6 +160,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleCode().run()}
         isActive={editor.isActive('code')}
+        disabled={disabled}
         title="Inline code"
       >
         <BiCode className="h-4 w-4" />
@@ -158,6 +169,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor }) => {
       <ToolbarButton
         onClick={setLink}
         isActive={editor.isActive('link')}
+        disabled={disabled}
         title="Insert link"
       >
         <BiLink className="h-4 w-4" />
@@ -241,7 +253,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
             error && 'border-destructive focus-within:border-destructive focus-within:ring-destructive'
           )}
         >
-          <Toolbar editor={editor} />
+          <Toolbar editor={editor} disabled={disabled} />
           <EditorContent
             editor={editor}
             className={cn(

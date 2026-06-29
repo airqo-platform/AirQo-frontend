@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
@@ -170,6 +170,14 @@ const FeedbackListContent: React.FC = () => {
     [filteredFeedbacks]
   );
 
+  useEffect(() => {
+    const visibleIds = new Set(tableData.map(row => row.id));
+    setSelectedIds(prev => {
+      const next = new Set(Array.from(prev).filter(id => visibleIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [tableData]);
+
   const statusCounts = useMemo(() => {
     return filteredFeedbacks.reduce(
       (counts, feedback) => {
@@ -222,7 +230,12 @@ const FeedbackListContent: React.FC = () => {
 
       setSelectedIds(new Set());
       try {
-        await globalMutate('feedback/submissions');
+        await globalMutate(
+          (key: unknown) =>
+            Array.isArray(key) && key[0] === 'feedback/submissions',
+          undefined,
+          { revalidate: true }
+        );
       } catch {
         // swallow
       }

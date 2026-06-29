@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
@@ -17,6 +17,7 @@ import { Input } from '@/shared/components/ui/input';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
 import { AqArrowLeft } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
+import DOMPurify from 'dompurify';
 import { toast } from '@/shared/components/ui/toast';
 import {
   getUserFriendlyErrorMessage,
@@ -55,6 +56,9 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   resolved: ['archived'],
   archived: [],
 };
+
+const isHtmlEmpty = (html: string): boolean =>
+  !html || html.replace(/<[^>]*>/g, '').trim().length === 0;
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: 'General',
@@ -148,13 +152,15 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   );
 
   const feedback = data?.feedback as FeedbackSubmission | undefined;
+  const prevFeedbackIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (feedback) {
+    if (feedback && feedbackId !== prevFeedbackIdRef.current) {
+      prevFeedbackIdRef.current = feedbackId;
       setAdminNotes(feedback.adminNotes || '');
       setAssigneeId(feedback.assignedTo?._id || '');
     }
-  }, [feedback]);
+  }, [feedback, feedbackId]);
 
   const metadataEntries = useMemo(() => {
     if (!feedback?.metadata) {
@@ -256,12 +262,12 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   };
 
   const handleSendReply = async () => {
-    if (!feedbackId || !replyMessage.trim()) return;
+    if (!feedbackId || isHtmlEmpty(replyMessage)) return;
 
     setIsSendingReply(true);
     try {
       await feedbackService.replyToFeedback(feedbackId, {
-        message: replyMessage.trim(),
+        message: replyMessage,
       });
       toast.success('Reply sent successfully');
       setReplyMessage('');
@@ -279,7 +285,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     setIsSavingNotes(true);
     try {
       await feedbackService.updateAdminNotes(feedbackId, {
-        adminNotes: adminNotes.trim(),
+        adminNotes: adminNotes,
       });
       toast.success('Admin notes saved');
       setIsEditingNotes(false);
@@ -641,7 +647,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
 
             <Button
               loading={isSendingReply}
-              disabled={!replyMessage.trim()}
+              disabled={isHtmlEmpty(replyMessage)}
               onClick={() => void handleSendReply()}
             >
               Send reply
@@ -660,7 +666,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     >
                       <div
                         className="prose prose-sm max-w-none text-sm text-foreground"
-                        dangerouslySetInnerHTML={{ __html: reply.message }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.message) }}
                       />
                       <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{reply.adminEmail}</span>
@@ -707,6 +713,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 <div className="flex gap-3">
                   <Button
                     loading={isSavingNotes}
+                    disabled={isHtmlEmpty(adminNotes)}
                     onClick={() => void handleSaveNotes()}
                   >
                     Save notes
@@ -727,7 +734,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               <div className="rounded-md border bg-muted/20 p-4">
                 <div
                   className="prose prose-sm max-w-none text-sm text-foreground"
-                  dangerouslySetInnerHTML={{ __html: feedback.adminNotes }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(feedback.adminNotes) }}
                 />
               </div>
             ) : (
