@@ -20,7 +20,13 @@ exports.default = async function notarizing(context) {
   const teamId = process.env.APPLE_TEAM_ID;
 
   if (!appleId || !appleIdPassword || !teamId) {
-    console.log('Skipping notarization: Apple credentials not configured.');
+    if (process.env.CI) {
+      throw new Error(
+        'Notarization failed: APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, and APPLE_TEAM_ID ' +
+        'must all be set in CI. An unnotarized macOS build would be blocked by Gatekeeper.'
+      );
+    }
+    console.log('Skipping notarization: Apple credentials not configured (local build).');
     return;
   }
 
