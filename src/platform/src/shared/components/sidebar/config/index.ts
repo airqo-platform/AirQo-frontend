@@ -292,6 +292,20 @@ const systemSidebarConfig: NavGroup[] = [
         label: 'Feedback',
         href: '/system/feedback',
         icon: AqMessageCheckCircle,
+        subroutes: [
+          {
+            id: 'system-feedback-list',
+            label: 'Feedback List',
+            href: '/system/feedback',
+            description: 'Review user feedback and flagged issues',
+          },
+          {
+            id: 'system-feedback-webhooks',
+            label: 'Webhooks',
+            href: '/system/feedback/webhooks',
+            description: 'Manage feedback event webhook endpoints',
+          },
+        ],
       },
     ],
   },

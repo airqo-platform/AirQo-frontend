@@ -12,6 +12,7 @@ import {
   AqArrowNarrowLeft,
   AqCpuChip01,
   AqServer03,
+  AqSignal01,
 } from '@airqo/icons-react';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import {
@@ -60,6 +61,12 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
       icon: AqServer03,
       href: getEnvironmentAwareUrl('https://vertex.airqo.net/'),
       color: 'bg-yellow-600',
+    },
+    {
+      name: 'Beacon',
+      icon: AqSignal01,
+      href: getEnvironmentAwareUrl('https://beacon.airqo.net/'),
+      color: 'bg-teal-600',
     },
     {
       name: 'API Docs',
