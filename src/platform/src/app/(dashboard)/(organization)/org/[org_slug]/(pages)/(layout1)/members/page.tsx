@@ -355,6 +355,7 @@ const MembersPage: React.FC = () => {
 
   // Check for MEMBER_INVITE permission for invite button visibility
   const canInviteMembers = hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
+  const canAssignRoles = hasAnyPermissionInActiveGroup(['ROLE_ASSIGNMENT']);
 
   return (
     <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
@@ -381,7 +382,7 @@ const MembersPage: React.FC = () => {
               }
             />
             <div className="flex items-center gap-2 flex-wrap">
-              {selectedMembers.length > 0 && (
+              {canAssignRoles && selectedMembers.length > 0 && (
                 <Button
                   onClick={() => setShowBulkRoleDialog(true)}
                   variant="outlined"
@@ -492,66 +493,68 @@ const MembersPage: React.FC = () => {
           )}
 
           {/* Bulk Role Assignment Dialog */}
-          <Dialog
-            isOpen={showBulkRoleDialog}
-            onClose={() => setShowBulkRoleDialog(false)}
-            title={`Assign Role to ${selectedMembers.length} Member${selectedMembers.length > 1 ? 's' : ''}`}
-            primaryAction={{
-              label: 'Assign Role',
-              onClick: handleBulkAssignRole,
-              disabled: assignUsersToRole.isMutating || !selectedRoleId,
-              loading: assignUsersToRole.isMutating,
-            }}
-            secondaryAction={{
-              label: 'Cancel',
-              onClick: () => setShowBulkRoleDialog(false),
-              disabled: assignUsersToRole.isMutating,
-              variant: 'outlined',
-            }}
-          >
-            <div className="space-y-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Selected members:
-                </p>
-                <div className="max-h-32 overflow-y-auto space-y-1 mb-4">
-                  {selectedMembers.map(memberId => {
-                    const member = group?.grp_users?.find(
-                      u => u._id === memberId
-                    );
-                    return member ? (
-                      <div key={memberId} className="text-sm">
-                        {member.firstName} {member.lastName} ({member.email})
-                      </div>
-                    ) : null;
-                  })}
+          {canAssignRoles && (
+            <Dialog
+              isOpen={showBulkRoleDialog}
+              onClose={() => setShowBulkRoleDialog(false)}
+              title={`Assign Role to ${selectedMembers.length} Member${selectedMembers.length > 1 ? 's' : ''}`}
+              primaryAction={{
+                label: 'Assign Role',
+                onClick: handleBulkAssignRole,
+                disabled: assignUsersToRole.isMutating || !selectedRoleId,
+                loading: assignUsersToRole.isMutating,
+              }}
+              secondaryAction={{
+                label: 'Cancel',
+                onClick: () => setShowBulkRoleDialog(false),
+                disabled: assignUsersToRole.isMutating,
+                variant: 'outlined',
+              }}
+            >
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Selected members:
+                  </p>
+                  <div className="max-h-32 overflow-y-auto space-y-1 mb-4">
+                    {selectedMembers.map(memberId => {
+                      const member = group?.grp_users?.find(
+                        u => u._id === memberId
+                      );
+                      return member ? (
+                        <div key={memberId} className="text-sm">
+                          {member.firstName} {member.lastName} ({member.email})
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Select Role *
+                  </label>
+                  <Select
+                    value={selectedRoleId}
+                    onChange={e => setSelectedRoleId(e.target.value as string)}
+                    placeholder="Choose a role..."
+                    disabled={rolesLoading}
+                  >
+                    {roles.map(role => (
+                      <option key={role._id} value={role._id}>
+                        {role.role_name}
+                      </option>
+                    ))}
+                  </Select>
+                  {rolesLoading && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Loading roles...
+                    </p>
+                  )}
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Select Role *
-                </label>
-                <Select
-                  value={selectedRoleId}
-                  onChange={e => setSelectedRoleId(e.target.value as string)}
-                  placeholder="Choose a role..."
-                  disabled={rolesLoading}
-                >
-                  {roles.map(role => (
-                    <option key={role._id} value={role._id}>
-                      {role.role_name}
-                    </option>
-                  ))}
-                </Select>
-                {rolesLoading && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Loading roles...
-                  </p>
-                )}
-              </div>
-            </div>
-          </Dialog>
+            </Dialog>
+          )}
 
           {/* Remove User Confirmation Dialog */}
           <Dialog

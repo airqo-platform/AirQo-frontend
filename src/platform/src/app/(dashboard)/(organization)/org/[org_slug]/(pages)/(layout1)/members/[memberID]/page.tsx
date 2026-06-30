@@ -379,6 +379,8 @@ const MemberDetailsPage: React.FC = () => {
                             disabled={unassignUsersFromRole.isMutating}
                             Icon={AqXClose}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                            aria-label={`Unassign ${role.role_name} role`}
+                            title={`Unassign ${role.role_name} role`}
                           />
                         )}
                       </div>
