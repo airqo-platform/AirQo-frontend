@@ -540,24 +540,23 @@ const SubscriptionSection: React.FC = () => {
       const maxWaitMs = 10_000;
       const pollMs = 250;
       let waited = 0;
-
-      while (
+      const isPaddleReady = () =>
         typeof window !== 'undefined' &&
-        (!window.Paddle?.Checkout?.open ||
-          typeof window.Paddle.Initialize !== 'function') &&
-        waited < maxWaitMs
-      ) {
+        Boolean(window.Paddle?.Checkout?.open) &&
+        typeof window.Paddle?.Initialize === 'function';
+
+      while (!isPaddleReady() && waited < maxWaitMs) {
         await delay(pollMs);
         waited += pollMs;
       }
 
-      if (typeof window === 'undefined' || !window.Paddle?.Checkout?.open) {
+      if (!isPaddleReady()) {
         throw new Error(
           'The payment provider failed to load. Please refresh the page and try again.'
         );
       }
 
-      window.Paddle.Checkout.open({
+      window.Paddle!.Checkout.open({
         transactionId: sessionId,
       });
     } catch (error) {
