@@ -3,7 +3,7 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ## Version 2.0.10
-**Released:** June 29, 2026
+**Released:** June 30, 2026
 
 ### RBAC Architecture Migration — Permission-Based Access Control
 
@@ -19,15 +19,6 @@ Introduced the foundational infrastructure for a dynamic, capability-driven auth
 </details>
 
 <details>
-<summary><strong>New: `PermissionGuard` Component (`components/shared/PermissionGuard.tsx`)</strong></summary>
-
-- **Inline component-level permission gate** complementing the existing `RouteGuard` (page-level). Use to protect buttons, modals, and feature sections inside already-protected pages.
-- Supports `requiredPermissions` (ANY), `requiredAllPermissions` (ALL), and active-group-scoped variants of both.
-- `loadingComponent` prop prevents UI flicker while permissions resolve. `fallback` for fully custom denied state. Default denied state is a lightweight inline message — no navigation elements.
-
-</details>
-
-<details>
 <summary><strong>Admin Route Guard (`admin/layout.tsx`)</strong></summary>
 
 - Replaced `roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN", "AIRQO_NETWORK_ADMIN"]}` with `permissions={[SYSTEM.SUPER_ADMIN, SYSTEM.SYSTEM_ADMIN, ORGANIZATION.VIEW, NETWORK.VIEW]}` on `RouteGuard`.
@@ -38,7 +29,7 @@ Introduced the foundational infrastructure for a dynamic, capability-driven auth
 <details>
 <summary><strong>Deprecation: `ROLES` object (`core/permissions/constants.ts`)</strong></summary>
 
-- Added `@deprecated` JSDoc to the `ROLES` object. The object is kept for reference but must not be used for access control — check capabilities (`PERMISSIONS.*`) via `useRBAC` or `PermissionGuard` instead.
+- Added `@deprecated` JSDoc to the `ROLES` object. The object is kept for reference but must not be used for access control — check capabilities (`PERMISSIONS.*`) via `useRBAC` instead.
 
 </details>
 
