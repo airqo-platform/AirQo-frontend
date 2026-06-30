@@ -60,12 +60,16 @@ const PaddleProvider = () => {
     initializePaddle();
   }, [initializePaddle]);
 
+  if (!paymentClientToken) {
+    return null;
+  }
+
   return (
     <Script
       id={PADDLE_SCRIPT_ID}
       src={PADDLE_SCRIPT_SRC}
       strategy="afterInteractive"
-      onLoad={paymentClientToken ? initializePaddle : undefined}
+      onLoad={initializePaddle}
     />
   );
 };

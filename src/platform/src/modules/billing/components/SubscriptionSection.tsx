@@ -542,7 +542,7 @@ const SubscriptionSection: React.FC = () => {
       let waited = 0;
       const isPaddleReady = () =>
         typeof window !== 'undefined' &&
-        Boolean(window.Paddle?.Checkout?.open) &&
+        typeof window.Paddle?.Checkout?.open === 'function' &&
         typeof window.Paddle?.Initialize === 'function';
 
       while (!isPaddleReady() && waited < maxWaitMs) {
