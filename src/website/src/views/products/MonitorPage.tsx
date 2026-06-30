@@ -7,6 +7,7 @@ import { BiDownload } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
+import { useImpactNumbers } from '@/hooks/useApiHooks';
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -43,6 +44,9 @@ const MONITORING_SOLUTIONS_DOC_URL =
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1773140737/website/docs/AirQo_Air_Quality_Monitoring_Solution_rtiz2c.pdf';
 
 const MonitorPage = () => {
+  const { data: impactNumbersResponse } = useImpactNumbers();
+  const impactNumbers = impactNumbersResponse?.[0] ?? null;
+
   const openMonitoringSolutionsDoc = () => {
     window.open(MONITORING_SOLUTIONS_DOC_URL, '_blank', 'noopener,noreferrer');
   };
@@ -231,7 +235,9 @@ const MonitorPage = () => {
             variants={cardVariants}
           >
             <h3 className="font-bold text-2xl mb-4">
-              350+ Air quality monitors installed in 8 major African cities
+              {impactNumbers?.deployed_monitors ?? 350}+ Air quality monitors
+              installed in {impactNumbers?.african_cities ?? 8} major African
+              cities
             </h3>
             <p className="text-lg text-gray-700 mb-4">
               To effectively tackle air pollution, access to data and contextual
