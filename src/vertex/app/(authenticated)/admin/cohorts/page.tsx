@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts, useUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
@@ -185,7 +186,7 @@ export default function CohortsPage() {
   ];
 
   return (
-    <RouteGuard permission="DEVICE_VIEW">
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>

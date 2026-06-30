@@ -107,15 +107,10 @@ export const PERMISSIONS = {
   },
 } as const;
 
-/**
- * @deprecated Do not use ROLES for access control in the UI.
- * The frontend should only check capabilities (PERMISSIONS.*), not role names.
- * Role-to-permission mappings are owned by the backend and can change without
- * a frontend deploy. Use useRBAC() or PermissionGuard instead.
- *
- * This object is kept for reference only and will be removed in a future release.
- */
-export const ROLES = {
+// ROLES intentionally removed — do not re-add.
+// All access control must go through PERMISSIONS.* constants.
+// See core/permissions/adminAccess.ts for the admin panel policy.
+const _ROLES_REMOVED = {
   AIRQO_SUPER_ADMIN: {
     name: 'AIRQO_SUPER_ADMIN',
     displayName: 'AirQo Super Administrator',
@@ -314,7 +309,7 @@ export type Permission =
   | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS]
   | typeof PERMISSIONS.SHIPPING[keyof typeof PERMISSIONS.SHIPPING];
 
-export type RoleName = keyof typeof ROLES;
+type RoleName = keyof typeof _ROLES_REMOVED;
 export type PermissionCategory = keyof typeof PERMISSION_CATEGORIES; 
 
 // Legacy permission mapping to new permissions
