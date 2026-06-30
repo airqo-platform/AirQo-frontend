@@ -537,8 +537,24 @@ const SubscriptionSection: React.FC = () => {
         throw new Error('Checkout session did not return a Paddle session ID');
       }
 
+      const maxWaitMs = 10_000;
+      const pollMs = 250;
+      let waited = 0;
+
+      while (
+        typeof window !== 'undefined' &&
+        (!window.Paddle?.Checkout?.open ||
+          typeof window.Paddle.Initialize !== 'function') &&
+        waited < maxWaitMs
+      ) {
+        await delay(pollMs);
+        waited += pollMs;
+      }
+
       if (typeof window === 'undefined' || !window.Paddle?.Checkout?.open) {
-        throw new Error('Checkout overlay is unavailable right now');
+        throw new Error(
+          'The payment provider failed to load. Please refresh the page and try again.'
+        );
       }
 
       window.Paddle.Checkout.open({
