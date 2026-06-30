@@ -267,13 +267,15 @@ const MembersPage: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() =>
-                    router.push(`/org/${org_slug}/members/${member._id}`)
-                  }
-                >
-                  View Details
-                </DropdownMenuItem>
+                {hasAnyPermissionInActiveGroup(['MEMBER_VIEW']) && (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(`/org/${org_slug}/members/${member._id}`)
+                    }
+                  >
+                    View Details
+                  </DropdownMenuItem>
+                )}
                 {hasAnyPermissionInActiveGroup(['MEMBER_REMOVE']) &&
                   !isManager && (
                     <DropdownMenuItem

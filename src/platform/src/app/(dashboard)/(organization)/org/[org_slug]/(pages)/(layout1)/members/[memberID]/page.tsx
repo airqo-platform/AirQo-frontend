@@ -35,6 +35,7 @@ const MemberDetailsPage: React.FC = () => {
   const memberId = params.memberID as string;
   const { groups } = useUser();
   const { hasAnyPermissionInActiveGroup } = useRBAC();
+  const canAssignRoles = hasAnyPermissionInActiveGroup(['ROLE_ASSIGNMENT']);
 
   // Get the current organization from slug
   const currentOrg = useMemo(() => {
@@ -219,7 +220,7 @@ const MemberDetailsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* User Information */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="bg-card rounded-lg border p-6">
+              <div className="bg-card rounded-lg border p-4 sm:p-6">
                 <h3 className="text-lg font-semibold mb-4">User Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -333,18 +334,20 @@ const MemberDetailsPage: React.FC = () => {
 
             {/* Roles Management */}
             <div className="space-y-4">
-              <div className="bg-card rounded-lg border p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Group Roles</h3>
-                  <Button
-                    size="sm"
-                    onClick={() => setShowAssignRoleDialog(true)}
-                    Icon={AqPlus}
-                    loading={rolesLoading}
-                    disabled={rolesLoading}
-                  >
-                    Assign Role
-                  </Button>
+              <div className="bg-card rounded-lg border p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h3 className="text-lg font-semibold truncate">Group Roles</h3>
+                  {canAssignRoles && (
+                    <Button
+                      size="sm"
+                      onClick={() => setShowAssignRoleDialog(true)}
+                      Icon={AqPlus}
+                      loading={rolesLoading}
+                      disabled={rolesLoading}
+                    >
+                      Assign Role
+                    </Button>
+                  )}
                 </div>
 
                 {userRoles.length > 0 ? (
@@ -352,25 +355,29 @@ const MemberDetailsPage: React.FC = () => {
                     {userRoles.map(role => (
                       <div
                         key={role._id}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                        className="flex items-start sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg"
                       >
-                        <div className="flex items-center gap-3">
-                          <AqShield02 size={16} className="text-primary" />
-                          <div>
-                            <p className="font-medium">{role.role_name}</p>
-                            <p className="text-xs text-muted-foreground">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <AqShield02 size={16} className="text-primary mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium break-words" title={role.role_name}>
+                              {role.role_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground break-words">
                               {role.role_description}
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUnassignRole(role._id)}
-                          disabled={unassignUsersFromRole.isMutating}
-                          Icon={AqXClose}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        />
+                        {canAssignRoles && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnassignRole(role._id)}
+                            disabled={unassignUsersFromRole.isMutating}
+                            Icon={AqXClose}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -389,92 +396,96 @@ const MemberDetailsPage: React.FC = () => {
         )}
 
         {/* Assign Role Dialog */}
-        <Dialog
-          isOpen={showAssignRoleDialog}
-          onClose={() => setShowAssignRoleDialog(false)}
-          title="Assign Role"
-          primaryAction={{
-            label: 'Assign Role',
-            onClick: handleAssignRole,
-            disabled: assignUsersToRole.isMutating || !selectedRoleId,
-            loading: assignUsersToRole.isMutating,
-          }}
-          secondaryAction={{
-            label: 'Cancel',
-            onClick: () => {
-              setShowAssignRoleDialog(false);
-              setSelectedRoleId('');
-            },
-            disabled: assignUsersToRole.isMutating,
-            variant: 'outlined',
-          }}
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Select Role *
-              </label>
-              <Select
-                value={selectedRoleId}
-                onChange={e => setSelectedRoleId(e.target.value as string)}
-                placeholder="Choose a role..."
-                disabled={rolesLoading}
-              >
-                {roles
-                  .filter(role => !userRoleIds.includes(role._id))
-                  .map(role => (
-                    <option key={role._id} value={role._id}>
-                      {role.role_name}
-                    </option>
-                  ))}
-              </Select>
-              {rolesLoading && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Loading roles...
-                </p>
-              )}
+        {canAssignRoles && (
+          <Dialog
+            isOpen={showAssignRoleDialog}
+            onClose={() => setShowAssignRoleDialog(false)}
+            title="Assign Role"
+            primaryAction={{
+              label: 'Assign Role',
+              onClick: handleAssignRole,
+              disabled: assignUsersToRole.isMutating || !selectedRoleId,
+              loading: assignUsersToRole.isMutating,
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => {
+                setShowAssignRoleDialog(false);
+                setSelectedRoleId('');
+              },
+              disabled: assignUsersToRole.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Role *
+                </label>
+                <Select
+                  value={selectedRoleId}
+                  onChange={e => setSelectedRoleId(e.target.value as string)}
+                  placeholder="Choose a role..."
+                  disabled={rolesLoading}
+                >
+                  {roles
+                    .filter(role => !userRoleIds.includes(role._id))
+                    .map(role => (
+                      <option key={role._id} value={role._id}>
+                        {role.role_name}
+                      </option>
+                    ))}
+                </Select>
+                {rolesLoading && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Loading roles...
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </Dialog>
+          </Dialog>
+        )}
 
         {/* Unassign Role Confirmation Dialog */}
-        <Dialog
-          isOpen={showUnassignConfirmDialog}
-          onClose={() => setShowUnassignConfirmDialog(false)}
-          title="Confirm Role Unassignment"
-          primaryAction={{
-            label: 'Unassign Role',
-            onClick: confirmUnassignRole,
-            disabled: unassignUsersFromRole.isMutating,
-            loading: unassignUsersFromRole.isMutating,
-          }}
-          secondaryAction={{
-            label: 'Cancel',
-            onClick: () => {
-              setShowUnassignConfirmDialog(false);
-              setRoleToUnassign('');
-            },
-            disabled: unassignUsersFromRole.isMutating,
-            variant: 'outlined',
-          }}
-        >
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to unassign this role from the user? This
-              action cannot be undone.
-            </p>
-            {roleToUnassign && (
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium">
-                  Role: {roles.find(r => r._id === roleToUnassign)?.role_name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {roles.find(r => r._id === roleToUnassign)?.role_description}
-                </p>
-              </div>
-            )}
-          </div>
-        </Dialog>
+        {canAssignRoles && (
+          <Dialog
+            isOpen={showUnassignConfirmDialog}
+            onClose={() => setShowUnassignConfirmDialog(false)}
+            title="Confirm Role Unassignment"
+            primaryAction={{
+              label: 'Unassign Role',
+              onClick: confirmUnassignRole,
+              disabled: unassignUsersFromRole.isMutating,
+              loading: unassignUsersFromRole.isMutating,
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => {
+                setShowUnassignConfirmDialog(false);
+                setRoleToUnassign('');
+              },
+              disabled: unassignUsersFromRole.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to unassign this role from the user? This
+                action cannot be undone.
+              </p>
+              {roleToUnassign && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">
+                    Role: {roles.find(r => r._id === roleToUnassign)?.role_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {roles.find(r => r._id === roleToUnassign)?.role_description}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Dialog>
+        )}
 
         {/* Remove User Confirmation Dialog */}
         <Dialog
