@@ -139,8 +139,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                                     key={app.name}
                                     type="button"
                                     onClick={() => handleAppClick(app)}
-                                    className="flex w-full items-center gap-3 px-3 py-2.5 hover:bg-muted focus:outline-none transition-colors text-left"
-                                    aria-label={app.name}
+                                    className="flex w-full items-center gap-3 px-3 py-2.5 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-colors text-left"
                                 >
                                     <div
                                         className={`flex-shrink-0 w-9 h-9 ${app.color} rounded-lg flex items-center justify-center shadow-sm`}
