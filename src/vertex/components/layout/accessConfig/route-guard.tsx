@@ -85,32 +85,3 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   return <>{children}</>;
 };
-
-// Higher-order component for route-level permission protection
-export const withRoutePermission = (
-  permission: Permission,
-  redirectTo?: string,
-  resourceContext?: RouteGuardProps["resourceContext"]
-) => {
-  return <P extends object>(Component: React.ComponentType<P>) => {
-    const WrappedComponent = (props: P) => {
-      const hasPermission = useHasAnyPermission([permission], { resourceContext });
-      const router = useRouter();
-
-      useEffect(() => {
-        if (!hasPermission) {
-          router.push(redirectTo || "/unauthorized");
-        }
-      }, [hasPermission, router]);
-
-      if (!hasPermission) {
-        return null;
-      }
-
-      return <Component {...props} />;
-    };
-
-    WrappedComponent.displayName = `withRoutePermission(${Component.displayName || Component.name})`;
-    return WrappedComponent;
-  };
-};
