@@ -440,22 +440,10 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       icon: AqGlobe05,
     },
     {
-      id: 'favorites',
-      label: 'Favorites',
-      href: '/user/favorites',
-      icon: AqStar06,
-    },
-    {
       id: 'bulk-export',
       label: 'Export',
       href: '/user/data-export',
       icon: AqUpload01,
-    },
-    {
-      id: 'data-visualizer',
-      label: 'Visualizer',
-      href: '/user/data-visualizer',
-      icon: AqPresentationChart02,
     },
   ],
   organization: [
@@ -465,19 +453,6 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       href: '/org/dashboard', // Will be replaced with slug
       icon: AqHomeSmile,
     },
-
-    {
-      id: 'bulk-export',
-      label: 'Export',
-      href: '/org/data-export', // Will be replaced with slug
-      icon: AqDownload01,
-    },
-    {
-      id: 'data-visualizer',
-      label: 'Dataset Visualizer',
-      href: '/org/data-visualizer', // Will be replaced with slug
-      icon: AqPresentationChart02,
-    },
     {
       id: 'map',
       label: 'Map',
@@ -485,10 +460,10 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       icon: AqGlobe05,
     },
     {
-      id: 'profile',
-      label: 'Profile',
-      href: '/org/profile', // Will be replaced with slug
-      icon: AqUser03,
+      id: 'bulk-export',
+      label: 'Export',
+      href: '/org/data-export', // Will be replaced with slug
+      icon: AqDownload01,
     },
   ],
 };

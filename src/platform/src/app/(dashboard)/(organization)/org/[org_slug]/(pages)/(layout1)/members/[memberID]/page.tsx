@@ -188,6 +188,7 @@ const MemberDetailsPage: React.FC = () => {
             size="sm"
             onClick={() => router.push(`/org/${org_slug}/members`)}
             Icon={AqChevronLeft}
+            showTextOnMobile
           >
             Back to Members
           </Button>
@@ -207,6 +208,7 @@ const MemberDetailsPage: React.FC = () => {
                 onClick={handleRemoveUser}
                 Icon={AqTrash03}
                 className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-600"
+                showTextOnMobile
               >
                 Remove from Group
               </Button>
@@ -344,6 +346,7 @@ const MemberDetailsPage: React.FC = () => {
                       Icon={AqPlus}
                       loading={rolesLoading}
                       disabled={rolesLoading}
+                      showTextOnMobile
                     >
                       Assign Role
                     </Button>

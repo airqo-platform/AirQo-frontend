@@ -196,24 +196,24 @@ const MembersPage: React.FC = () => {
         render: (value: unknown, member: GroupMember) => {
           const isManager = group?.grp_manager?._id === member._id;
           return (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                 <span className="text-sm font-medium text-primary">
                   {member.firstName?.[0] || '?'}
                   {member.lastName?.[0] || ''}
                 </span>
               </div>
-              <div>
-                <div className="font-medium flex items-center gap-2">
-                  {member.firstName} {member.lastName}
+              <div className="min-w-0">
+                <div className="font-medium flex items-center gap-2 flex-wrap">
+                  <span className="truncate">{member.firstName} {member.lastName}</span>
                   {isManager && (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full">
+                    <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full whitespace-nowrap">
                       <AqShield02 size={12} />
                       Manager
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground truncate">
                   {member.email}
                 </div>
               </div>
@@ -226,7 +226,7 @@ const MembersPage: React.FC = () => {
         label: 'Status',
         render: (value: unknown, member: GroupMember) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+            className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
               member.isActive
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
@@ -240,7 +240,7 @@ const MembersPage: React.FC = () => {
         key: 'lastLogin',
         label: 'Last Login',
         render: (value: unknown, member: GroupMember) => (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
             {member.lastLogin
               ? formatWithPattern(member.lastLogin, 'MMM dd, yyyy')
               : 'Never'}
@@ -251,7 +251,7 @@ const MembersPage: React.FC = () => {
         key: 'country',
         label: 'Country',
         render: (value: unknown, member: GroupMember) => (
-          <div className="text-sm">{member.country || '--'}</div>
+          <div className="text-sm whitespace-nowrap">{member.country || '--'}</div>
         ),
       },
       {
@@ -371,7 +371,7 @@ const MembersPage: React.FC = () => {
       ) : (
         <>
           {/* Page Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <PageHeading
               title={`${(group?.grp_title || 'Group').toUpperCase()} MEMBERS`}
               subtitle={
@@ -380,17 +380,18 @@ const MembersPage: React.FC = () => {
                   : undefined
               }
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {selectedMembers.length > 0 && (
                 <Button
                   onClick={() => setShowBulkRoleDialog(true)}
                   variant="outlined"
+                  showTextOnMobile
                 >
                   Assign Role ({selectedMembers.length})
                 </Button>
               )}
               {canInviteMembers && (
-                <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
+                <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus} showTextOnMobile>
                   Send Invites
                 </Button>
               )}
