@@ -25,7 +25,24 @@ export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
 };
 
 /**
- * Hook to check if user has a specific permission
+ * Hook to check if user has a specific permission.
+ *
+ * Scoping behaviour — activeGroup fallback:
+ * `activeOrganization` defaults to the Redux `activeGroup`. This means
+ * permissionService.checkPermission step-0 fast-paths on the active org's
+ * role permissions, and step-2 (getEffectivePermissions) filters to that org only.
+ *
+ * In personal context (AirQo group is active), activeGroup IS the AirQo group, so
+ * the check correctly validates against AirQo group permissions.
+ *
+ * Hidden fallback inside permissionService: when a user is in personal context but
+ * has no explicit activeGroup set, permissionService.getAirQoGroup() is used as a
+ * fallback — see permissionService.ts. This fallback is NOT visible at the hook layer,
+ * so do not remove the `activeGroup ?? undefined` pass-through here to "fix" a bug;
+ * the fallback handles the null case internally.
+ *
+ * If you need a global check across ALL orgs (not scoped to active), pass
+ * `activeOrganization: undefined` explicitly in the context arg.
  */
 export const usePermission = (permission: Permission, context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
@@ -40,15 +57,10 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 
     if (!user) return false;
 
-    // Standard permission check using the active context
-    // For AirQo staff in Personal Mode, activeGroup will be set to 'AirQo'
-    // For regular users in Personal Mode, activeGroup will be null (correct)
-    const effectiveContext = context;
-
     return permissionService.hasPermission(user, permission, {
-      ...effectiveContext,
-      activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
-      activeNetwork: effectiveContext?.activeNetwork ?? activeNetwork ?? undefined,
+      ...context,
+      activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
+      activeNetwork: context?.activeNetwork ?? activeNetwork ?? undefined,
     });
   }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 
@@ -210,7 +222,10 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
 };
 
 /**
- * Hook to check if user has any of the specified permissions
+ * Hook to check if user has any of the specified permissions.
+ * Inherits the same activeGroup scoping and fallback behaviour as usePermission —
+ * see that hook's JSDoc for details.
+ * Used by RouteGuard as its single permission-resolution entry point.
  */
 export const useHasAnyPermission = (permissions: Permission[], context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);

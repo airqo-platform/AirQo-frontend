@@ -6,11 +6,19 @@ import { useUserContext } from '@/core/hooks/useUserContext';
 import { MOCK_PERMISSIONS_ENABLED, MOCK_PERMISSIONS } from '@/core/hooks/usePermissions';
 
 /**
- * Unified RBAC hook for vertex.
+ * @deprecated Use the hooks from `core/hooks/usePermissions.ts` instead.
  *
- * Matches the platform's useRBAC API surface so usage is consistent across
- * both apps. Internals read from Redux (permissionService) instead of making
- * a separate roles API call — the data is already embedded in userDetails.
+ * - For single/any/all permission checks → `usePermission`, `useHasAnyPermission`, `useHasAllPermissions`
+ * - For active-group-scoped checks → pass `activeOrganization` explicitly via the context arg
+ * - For loading/error state → `useUserContext()`
+ *
+ * Semantic difference to be aware of:
+ * `usePermission` in usePermissions.ts passes `activeOrganization` to permissionService,
+ * scoping the check to the active org by default. This hook's `hasPermission` omits it,
+ * checking all orgs the user belongs to (global). The scoped behaviour from usePermissions.ts
+ * is the canonical approach for new code.
+ *
+ * This hook has no consumers and will be removed in a future release.
  */
 export const useRBAC = () => {
   const { isLoading, error } = useUserContext();
