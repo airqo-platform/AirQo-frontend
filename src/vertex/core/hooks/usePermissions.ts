@@ -41,8 +41,10 @@ export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
  * so do not remove the `activeGroup ?? undefined` pass-through here to "fix" a bug;
  * the fallback handles the null case internally.
  *
- * If you need a global check across ALL orgs (not scoped to active), pass
- * `activeOrganization: undefined` explicitly in the context arg.
+ * Both this hook and useHasAnyPermission use the same spread-last merge pattern:
+ * defaults (activeGroup/activeNetwork) are set first, then `...context` is spread
+ * on top. This means an explicit `activeOrganization: undefined` in context IS
+ * honoured and produces a global (all-orgs) check, which is the intended escape hatch.
  */
 export const usePermission = (permission: Permission, context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
@@ -58,9 +60,9 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
     if (!user) return false;
 
     return permissionService.hasPermission(user, permission, {
+      activeOrganization: activeGroup ?? undefined,
+      activeNetwork: activeNetwork ?? undefined,
       ...context,
-      activeOrganization: context?.activeOrganization ?? activeGroup ?? undefined,
-      activeNetwork: context?.activeNetwork ?? activeNetwork ?? undefined,
     });
   }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 

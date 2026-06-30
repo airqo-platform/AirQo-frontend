@@ -40,8 +40,8 @@ describe('ACCESS_MATRIX — admin panel entry', () => {
     // (which tests ADMIN_PANEL_PERMISSIONS directly). Here we only assert the two
     // things the matrix adds on top: that it spreads the full constant (length match)
     // and that it enforces the personal context requirement.
-    it('adminPanel.any has the same length as ADMIN_PANEL_PERMISSIONS', () => {
-        expect(ACCESS_MATRIX.adminPanel.any.length).toBe(ADMIN_PANEL_PERMISSIONS.length);
+    it('adminPanel.any contains exactly the same permissions as ADMIN_PANEL_PERMISSIONS', () => {
+        expect([...ACCESS_MATRIX.adminPanel.any]).toEqual([...ADMIN_PANEL_PERMISSIONS]);
     });
 
     it('adminPanel.context is personal', () => {
@@ -74,11 +74,11 @@ describe('ACCESS_MATRIX — feature entries reference correct permissions', () =
         expect(ACCESS_MATRIX.cohorts.any).toContain(PERMISSIONS.DEVICE.VIEW);
     });
 
-    it('shipping requires SHIPPING.VIEW or NETWORK.VIEW', () => {
-        const perms = ACCESS_MATRIX.shipping.any as readonly string[];
-        const hasEither =
-            perms.includes(PERMISSIONS.SHIPPING.VIEW) ||
-            perms.includes(PERMISSIONS.NETWORK.VIEW);
-        expect(hasEither).toBe(true);
+    it('shipping requires SHIPPING.VIEW', () => {
+        expect(ACCESS_MATRIX.shipping.any).toContain(PERMISSIONS.SHIPPING.VIEW);
+    });
+
+    it('shipping requires NETWORK.VIEW', () => {
+        expect(ACCESS_MATRIX.shipping.any).toContain(PERMISSIONS.NETWORK.VIEW);
     });
 });

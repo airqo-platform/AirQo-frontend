@@ -31,7 +31,14 @@ type CohortRow = {
 
 export default function CohortsPage() {
   usePageTitle({ title: "Cohorts", section: "Administrative Panel" });
+  return (
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
+      <CohortsContent />
+    </RouteGuard>
+  );
+}
 
+function CohortsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -186,9 +193,8 @@ export default function CohortsPage() {
   ];
 
   return (
-    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
-      <div>
-        <div className="flex justify-between items-center mb-3">
+    <div>
+      <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-2xl font-semibold">Cohorts</h1>
             <p className="text-sm text-muted-foreground">
@@ -301,7 +307,6 @@ export default function CohortsPage() {
           initialSelectedCohortIds={selectedCohortIds}
         />
 
-      </div>
-    </RouteGuard>
+    </div>
   );
 }
