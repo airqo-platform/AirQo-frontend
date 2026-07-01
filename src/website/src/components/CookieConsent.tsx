@@ -91,24 +91,24 @@ export default function CookieConsent() {
                 </p>
               </div>
 
-              <div className="flex flex-row items-center gap-3 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <Button
                   onClick={() => setShowDetails(true)}
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 text-sm font-medium whitespace-nowrap"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 text-sm font-medium"
                 >
                   Customize
                 </Button>
                 <Button
                   onClick={handleAcceptNecessary}
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 text-sm font-medium whitespace-nowrap"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 text-sm font-medium"
                 >
                   Necessary Only
                 </Button>
                 <CustomButton
                   onClick={handleAcceptAll}
-                  className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 whitespace-nowrap"
+                  className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2"
                 >
                   Accept All
                 </CustomButton>
@@ -194,7 +194,7 @@ export default function CookieConsent() {
                 </div>
               </div>
 
-              <div className="flex flex-row gap-3 pt-4 border-t border-gray-200 justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 justify-start">
                 <Button
                   onClick={() => setShowDetails(false)}
                   variant="outline"
