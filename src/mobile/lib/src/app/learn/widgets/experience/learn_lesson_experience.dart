@@ -55,7 +55,6 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
   final List<bool> _gradedResults = [];
   String? _freeTextResponse;
   LearnLessonResult? _result;
-  bool _presentingCompletion = false;
 
   @override
   void initState() {
@@ -67,20 +66,13 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       slot: widget.slot,
       apiLesson: widget.apiLesson,
     );
-    final saved = _progress.furthestStep(widget.slot.progressKey);
-    _activityIndex = saved.clamp(0, _script.length - 1);
+    // Already-complete lessons start from step 0 so the user can replay.
+    // In-progress lessons resume from their furthest step.
     if (_progress.isLessonComplete(widget.slot.progressKey)) {
-      _result = LearnLessonResult(
-        stars: _progress.lessonStars(widget.slot.progressKey).clamp(1, 3),
-        pointsEarned: _progress.lessonPoints(widget.slot.progressKey),
-        quizScoreRatio: _progress.lessonQuizScore(widget.slot.progressKey),
-        freeTextResponse: _progress.lessonFreeText(widget.slot.progressKey),
-      );
-      _presentingCompletion = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _presentCompletionSheet();
-      });
+      _activityIndex = 0;
+    } else {
+      final saved = _progress.furthestStep(widget.slot.progressKey);
+      _activityIndex = saved.clamp(0, _script.length - 1);
     }
   }
 
@@ -200,10 +192,6 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   @override
   Widget build(BuildContext context) {
-    if (_presentingCompletion) {
-      return const SizedBox.shrink();
-    }
-
     final lessonTitle =
         learnDisplayTitle(widget.apiLesson?.title ?? widget.slot.plainTitleKey);
 

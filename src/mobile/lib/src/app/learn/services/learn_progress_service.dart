@@ -9,6 +9,7 @@ class LearnProgressService {
   static final LearnProgressService instance = LearnProgressService._();
 
   static const _pilotSeedKey = 'learn_pilot_seeded_v3';
+  static const _pilotCleanupDoneKey = 'learn_pilot_cleanup_v1';
   static const _stepPrefix = 'learn_step_';
   static const _completePrefix = 'learn_complete_';
   static const _courseDemoKey = 'learn_course_demo_shown_';
@@ -107,6 +108,23 @@ class LearnProgressService {
 
   static int catalogTotalLessons(List<LearnCourseViewModel> courses) {
     return courses.fold(0, (s, c) => s + c.totalLessons);
+  }
+
+  /// One-time migration: removes any progress data that was seeded by the
+  /// pilot demo seeder, so real users start with a clean slate.
+  Future<void> clearPilotSeedIfNeeded() async {
+    await ensureInitialized();
+    if (_prefs!.getBool(_pilotCleanupDoneKey) == true) return;
+    if (_prefs!.getBool(_pilotSeedKey) == true) {
+      await _clearLearnProgressKeys();
+    }
+    await _prefs!.setBool(_pilotCleanupDoneKey, true);
+    _notify();
+  }
+
+  /// Runs the legacy-API → catalog-id migration for all users.
+  void syncLegacyApiProgress(List<LearnCourseViewModel> courses) {
+    _syncLegacyApiProgressToCatalog(courses);
   }
 
   bool hasShownCourseDemo(String courseId) {

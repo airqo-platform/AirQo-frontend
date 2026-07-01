@@ -201,7 +201,7 @@ class LocationServiceManager with UiLoggy {
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 5),
         ),
       );
       final placemarks =

@@ -177,6 +177,13 @@ class SurveyRepository extends BaseRepository with UiLoggy {
           : cachedResponses;
 
       try {
+        final userId =
+            await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+        if (userId == null) {
+          // Guest users have no server-side responses to sync.
+          return responses;
+        }
+
         final queryParams = <String, String>{};
         if (surveyId != null) {
           queryParams['surveyId'] = surveyId;

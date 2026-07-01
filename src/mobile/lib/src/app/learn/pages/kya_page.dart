@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
@@ -72,7 +73,13 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
         '${apiLessons.length}:${apiLessons.map((l) => l.id).join('|')}';
     if (_lastSeedFingerprint == fingerprint) return;
     _lastSeedFingerprint = fingerprint;
-    _progress.ensurePilotLearnDemosV3(courses: courses);
+
+    _progress.clearPilotSeedIfNeeded();
+    _progress.syncLegacyApiProgress(courses);
+
+    if (kDebugMode) {
+      _progress.ensurePilotLearnDemosV3(courses: courses);
+    }
   }
 
   @override
