@@ -202,6 +202,14 @@ const Navbar: React.FC = () => {
             >
               Blogs
             </Link>
+            <a
+              href="https://ai.airqo.net/map"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element"
+            >
+              Map
+            </a>
             <CustomButton
               onClick={() => {
                 trackEvent({
@@ -363,6 +371,17 @@ const Navbar: React.FC = () => {
                 Latest
               </span>
             </Link>
+            <a
+              href="https://ai.airqo.net/map"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleLinkClick}
+              className="flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
+            >
+              <span className="text-sm font-semibold text-gray-800 translate-element">
+                Map
+              </span>
+            </a>
           </div>
 
           {/* Drawer Footer CTAs */}
