@@ -317,6 +317,13 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                   if (!_hasRequestedUserLoad) {
                     _hasRequestedUserLoad = true;
                     context.read<UserBloc>().add(LoadUser());
+                    AuthHelper.refreshTokenIfNeeded().then((token) {
+                      if (token != null) {
+                        LearnSyncService.instance
+                            .linkProgressToAccount(token)
+                            .catchError((_) {});
+                      }
+                    }).catchError((_) {});
                   }
                 } else if (authState is GuestUser ||
                     authState is AuthLoadingError ||

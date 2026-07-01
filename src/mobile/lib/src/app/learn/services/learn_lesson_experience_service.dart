@@ -199,6 +199,9 @@ class LearnLessonExperienceService {
     }
   }
 
+  static int? _toInt(dynamic v) =>
+      v is int ? v : (v is String ? int.tryParse(v) : null);
+
   static LearnQuizPayload? _parseV2Quiz(Map<String, dynamic> p) {
     final question = p['question'] as String? ?? '';
     if (question.isEmpty) return null;
@@ -206,11 +209,11 @@ class LearnLessonExperienceService {
     final format = LearnQuizFormat.fromApiKey(p['format'] as String? ?? '');
     final rawOptions = p['options'] as List? ?? [];
     final options = rawOptions.map((o) => o.toString()).toList();
-    final correctIndex = p['correct_index'] as int?;
+    final correctIndex = _toInt(p['correct_index']);
     final rawIndices = p['correct_indices'] as List?;
-    final correctIndices = rawIndices?.map((i) => i as int).toSet();
+    final correctIndices = rawIndices?.map(_toInt).whereType<int>().toSet();
     final rawOrder = p['correct_order'] as List?;
-    final correctOrder = rawOrder?.map((i) => i as int).toList();
+    final correctOrder = rawOrder?.map(_toInt).whereType<int>().toList();
 
     return LearnQuizPayload(
       format: format,

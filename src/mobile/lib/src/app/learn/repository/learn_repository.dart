@@ -57,8 +57,12 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
         loggy.info('Fetching fresh Learn v2 catalog from API');
 
         final token = dotenv.env['AIRQO_API_TOKEN'];
-        final queryParams =
-            token != null ? {'token': token} : <String, String>{};
+        if (token == null) {
+          loggy.error('AIRQO_API_TOKEN is not configured');
+          if (cachedData != null) return cachedData.data;
+          throw StateError('AIRQO_API_TOKEN is not configured');
+        }
+        final queryParams = {'token': token};
 
         final response =
             await createGetRequest(ApiUtils.learnCatalog, queryParams)
@@ -120,8 +124,11 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
     try {
       loggy.info('Background refresh of Learn v2 catalog');
       final token = dotenv.env['AIRQO_API_TOKEN'];
-      final queryParams =
-          token != null ? {'token': token} : <String, String>{};
+      if (token == null) {
+        loggy.error('AIRQO_API_TOKEN is not configured for background refresh');
+        return;
+      }
+      final queryParams = {'token': token};
       final response =
           await createGetRequest(ApiUtils.learnCatalog, queryParams)
               .timeout(const Duration(seconds: 30));

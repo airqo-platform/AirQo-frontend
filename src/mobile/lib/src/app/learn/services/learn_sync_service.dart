@@ -117,7 +117,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
             body['guest_id'] as String? ?? body['session_id'] as String?;
         if (guestId != null) {
           await _prefs!.setString(_guestIdKey, guestId);
-          loggy.info('Guest Learn session created: $guestId');
+          loggy.info('Guest Learn session created');
         }
       }
     } catch (e) {
@@ -145,6 +145,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        await syncPendingProgress();
         await _prefs!.remove(_guestIdKey);
         loggy.info('Guest Learn progress linked to account');
       }
@@ -175,7 +176,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
     try {
       final headers = await _guestHeaders();
       final response = await http.put(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgress}/$lessonId'),
+        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgress}/${Uri.encodeComponent(lessonId)}'),
         body: json.encode(body),
         headers: headers,
       ).timeout(const Duration(seconds: 10));

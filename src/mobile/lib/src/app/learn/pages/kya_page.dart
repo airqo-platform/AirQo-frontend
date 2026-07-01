@@ -160,6 +160,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
         final LearnV2CatalogResponse? catalog = switch (state) {
           LessonsLoaded s => s.model,
           LessonsLoadingError s => s.cachedModel,
+          LessonsRefreshing s => s.currentModel,
           _ => null,
         };
 

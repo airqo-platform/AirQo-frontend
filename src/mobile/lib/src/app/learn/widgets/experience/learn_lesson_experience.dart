@@ -212,6 +212,8 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   @override
   Widget build(BuildContext context) {
+    if (_script.isEmpty) return const SizedBox.shrink();
+
     final lessonTitle = learnDisplayTitle(
       widget.slot.v2Lesson?.title ??
           widget.apiLesson?.title ??
