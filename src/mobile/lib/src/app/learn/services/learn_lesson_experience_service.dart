@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
+import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 
 class LearnLessonExperienceService {
@@ -128,6 +129,116 @@ class LearnLessonExperienceService {
         ),
       ),
     ];
+  }
+
+  static List<LearnLessonActivity> buildFromV2Lesson({
+    required LearnV2Lesson lesson,
+  }) {
+    final activities = <LearnLessonActivity>[];
+    for (var i = 0; i < lesson.activities.length; i++) {
+      final v2 = lesson.activities[i];
+      final activity = _v2ActivityToLearnActivity(v2, i);
+      if (activity != null) activities.add(activity);
+    }
+    return activities;
+  }
+
+  static LearnLessonActivity? _v2ActivityToLearnActivity(
+      LearnV2Activity v2, int index) {
+    final p = v2.payload;
+    switch (v2.type) {
+      case 'article':
+        final body = p['body'] as String? ?? '';
+        if (body.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.article,
+          title: p['title'] as String? ?? 'Read',
+          article: LearnArticlePayload(
+            body: body,
+            audioText: p['audio_text'] as String?,
+          ),
+        );
+      case 'video':
+        final url = p['url'] as String? ?? '';
+        if (url.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.video,
+          title: p['title'] as String? ?? 'Watch',
+          video: LearnVideoPayload(
+            videoUrl: url,
+            description: p['description'] as String? ?? '',
+            posterUrl: p['poster_url'] as String?,
+          ),
+        );
+      case 'image':
+        final url = p['url'] as String? ?? '';
+        if (url.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.image,
+          title: p['title'] as String? ?? 'Look',
+          image: LearnImagePayload(
+            imageUrl: url,
+            caption: p['caption'] as String? ?? '',
+            subtitle: p['subtitle'] as String?,
+          ),
+        );
+      case 'quiz':
+        final quiz = _parseV2Quiz(p);
+        if (quiz == null) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.quiz,
+          title: p['title'] as String? ?? 'Quiz',
+          quiz: quiz,
+        );
+      default:
+        return null;
+    }
+  }
+
+  static LearnQuizPayload? _parseV2Quiz(Map<String, dynamic> p) {
+    final question = p['question'] as String? ?? '';
+    if (question.isEmpty) return null;
+
+    final format = _parseQuizFormat(p['format'] as String? ?? '');
+    final rawOptions = p['options'] as List? ?? [];
+    final options = rawOptions.map((o) => o.toString()).toList();
+    final correctIndex = p['correct_index'] as int?;
+    final rawIndices = p['correct_indices'] as List?;
+    final correctIndices = rawIndices?.map((i) => i as int).toSet();
+    final rawOrder = p['correct_order'] as List?;
+    final correctOrder = rawOrder?.map((i) => i as int).toList();
+
+    return LearnQuizPayload(
+      format: format,
+      question: question,
+      options: options,
+      correctIndex: correctIndex,
+      correctIndices: correctIndices,
+      correctOrder: correctOrder,
+      correctFeedback: p['correct_feedback'] as String? ?? 'Correct!',
+      incorrectFeedback: p['incorrect_feedback'] as String? ??
+          'Not quite — try reviewing the lesson.',
+      hint: p['hint'] as String?,
+    );
+  }
+
+  static LearnQuizFormat _parseQuizFormat(String raw) {
+    switch (raw) {
+      case 'single_choice':
+        return LearnQuizFormat.singleChoice;
+      case 'multi_choice':
+        return LearnQuizFormat.multiChoice;
+      case 'ranking':
+        return LearnQuizFormat.ranking;
+      case 'free_text':
+        return LearnQuizFormat.freeText;
+      default:
+        return LearnQuizFormat.singleChoice;
+    }
   }
 
   static String activityTypeKey(LearnLessonActivity activity) {

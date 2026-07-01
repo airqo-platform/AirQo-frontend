@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
-import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
@@ -20,6 +19,8 @@ class KyaImpl extends KyaRepository with UiLoggy {
 
   final CacheManager _cacheManager = CacheManager();
   static const String _lessonsCacheKey = 'kya_lessons';
+  // Retired API endpoint kept here so kya_repository.dart compiles without _fetchLessonsPath.
+  static const String _fetchLessonsPath = '/api/v2/devices/kya/lessons';
 
   @override
   Future<LessonResponseModel> fetchLessons({bool forceRefresh = false}) async {
@@ -65,7 +66,7 @@ class KyaImpl extends KyaRepository with UiLoggy {
         }
 
         Response response =
-            await createGetRequest(ApiUtils.fetchLessons, {"token": token})
+            await createGetRequest(_fetchLessonsPath, {"token": token})
                 .timeout(
           const Duration(seconds: 15),
           onTimeout: () {
@@ -162,7 +163,7 @@ class KyaImpl extends KyaRepository with UiLoggy {
       }
 
       Response response =
-          await createGetRequest(ApiUtils.fetchLessons, {"token": token})
+          await createGetRequest(_fetchLessonsPath, {"token": token})
               .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {

@@ -6,6 +6,7 @@ import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
+import 'package:airqo/src/app/learn/services/learn_sync_service.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_article_activity.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_experience_shell.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_image_activity.dart';
@@ -53,26 +54,34 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
   late int _activityIndex;
   final _progress = LearnProgressService.instance;
   final List<bool> _gradedResults = [];
+  final List<QuizAttemptData> _quizAttempts = [];
   String? _freeTextResponse;
   LearnLessonResult? _result;
 
   @override
   void initState() {
     super.initState();
-    final lessonTitle = widget.apiLesson?.title ?? widget.slot.plainTitleKey;
-    _script = LearnLessonExperienceService.buildDemoScript(
-      lessonTitle: lessonTitle,
-      unitTitle: widget.unitPlainTitle,
-      slot: widget.slot,
-      apiLesson: widget.apiLesson,
-    );
-    // Already-complete lessons start from step 0 so the user can replay.
+    if (widget.slot.v2Lesson != null) {
+      _script = LearnLessonExperienceService.buildFromV2Lesson(
+        lesson: widget.slot.v2Lesson!,
+      );
+    } else {
+      final lessonTitle =
+          widget.apiLesson?.title ?? widget.slot.plainTitleKey;
+      _script = LearnLessonExperienceService.buildDemoScript(
+        lessonTitle: lessonTitle,
+        unitTitle: widget.unitPlainTitle,
+        slot: widget.slot,
+        apiLesson: widget.apiLesson,
+      );
+    }
+    // Already-complete lessons replay from step 0.
     // In-progress lessons resume from their furthest step.
     if (_progress.isLessonComplete(widget.slot.progressKey)) {
       _activityIndex = 0;
     } else {
       final saved = _progress.furthestStep(widget.slot.progressKey);
-      _activityIndex = saved.clamp(0, _script.length - 1);
+      _activityIndex = _script.isEmpty ? 0 : saved.clamp(0, _script.length - 1);
     }
   }
 
@@ -109,6 +118,12 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       quizScoreRatio: result.quizScoreRatio,
       freeText: result.freeTextResponse,
     );
+    LearnSyncService.instance.reportCompletion(
+      widget.slot.progressKey,
+      totalActivities: _script.length,
+      quizAttempts: List.unmodifiable(_quizAttempts),
+      freeTextResponse: _freeTextResponse,
+    ).catchError((_) {});
     _result = result;
     _presentCompletionSheet();
   }
@@ -152,6 +167,24 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     if (_current.type != LearnActivityType.quiz) return;
     if (_current.quiz?.format == LearnQuizFormat.freeText) return;
     _gradedResults.add(grade.isCorrect);
+    _quizAttempts.add(QuizAttemptData(
+      activityId: _current.index.toString(),
+      format: _quizFormatKey(_current.quiz!.format),
+      isCorrect: grade.isCorrect,
+    ));
+  }
+
+  String _quizFormatKey(LearnQuizFormat format) {
+    switch (format) {
+      case LearnQuizFormat.singleChoice:
+        return 'single_choice';
+      case LearnQuizFormat.multiChoice:
+        return 'multi_choice';
+      case LearnQuizFormat.ranking:
+        return 'ranking';
+      case LearnQuizFormat.freeText:
+        return 'free_text';
+    }
   }
 
   Widget _buildActivityBody() {
@@ -192,8 +225,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   @override
   Widget build(BuildContext context) {
-    final lessonTitle =
-        learnDisplayTitle(widget.apiLesson?.title ?? widget.slot.plainTitleKey);
+    final lessonTitle = learnDisplayTitle(
+      widget.slot.v2Lesson?.title ??
+          widget.apiLesson?.title ??
+          widget.slot.plainTitleKey,
+    );
 
     return SizedBox.expand(
       child: LearnExperienceShell(

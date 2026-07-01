@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
+import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
@@ -7,19 +8,24 @@ class LearnLessonSlot {
   final String catalogId;
   final String plainTitleKey;
   final KyaLesson? apiLesson;
+  final LearnV2Lesson? v2Lesson;
 
   const LearnLessonSlot({
     required this.catalogId,
     required this.plainTitleKey,
     this.apiLesson,
+    this.v2Lesson,
   });
 
   String get progressKey => catalogId;
 
-  bool get hasContent => apiLesson != null && apiLesson!.tasks.isNotEmpty;
+  bool get hasContent => v2Lesson != null
+      ? v2Lesson!.activities.isNotEmpty
+      : (apiLesson != null && apiLesson!.tasks.isNotEmpty);
 
-  /// Scripted demo flow activity count.
-  int get activityCount => LearnLessonExperienceService.demoActivityCount;
+  int get activityCount => v2Lesson != null
+      ? v2Lesson!.activities.length
+      : LearnLessonExperienceService.demoActivityCount;
 }
 
 class LearnUnitViewModel {
@@ -53,6 +59,7 @@ class LearnCourseViewModel {
   final int courseNumber;
   final String title;
   final String plainTitleKey;
+  final String? coverImageUrl;
   final List<LearnUnitViewModel> units;
 
   const LearnCourseViewModel({
@@ -60,6 +67,7 @@ class LearnCourseViewModel {
     required this.courseNumber,
     required this.title,
     required this.plainTitleKey,
+    this.coverImageUrl,
     required this.units,
   });
 
@@ -270,6 +278,43 @@ class LearnCatalog {
         units: unitsForCourse('syn_course_4', course4Units),
       ),
     ];
+  }
+
+  static List<LearnCourseViewModel> buildFromV2Catalog(
+      List<LearnV2Course> v2Courses) {
+    return v2Courses.map((course) {
+      final coverImage = course.coverImageUrl ?? _deriveCoverImage(course);
+      return LearnCourseViewModel(
+        id: course.id,
+        courseNumber: course.courseNumber,
+        title: course.title,
+        plainTitleKey: course.plainTitleKey,
+        coverImageUrl: coverImage,
+        units: course.units.map((unit) {
+          return LearnUnitViewModel(
+            id: unit.id,
+            title: unit.title,
+            plainTitleKey: unit.title,
+            lessons: unit.lessons
+                .map((lesson) => LearnLessonSlot(
+                      catalogId: lesson.id,
+                      plainTitleKey: lesson.title,
+                      v2Lesson: lesson,
+                    ))
+                .toList(),
+          );
+        }).toList(),
+      );
+    }).toList();
+  }
+
+  static String? _deriveCoverImage(LearnV2Course course) {
+    for (final unit in course.units) {
+      for (final lesson in unit.lessons) {
+        if (lesson.coverImageUrl != null) return lesson.coverImageUrl;
+      }
+    }
+    return null;
   }
 
   static bool isCourseUnlocked(

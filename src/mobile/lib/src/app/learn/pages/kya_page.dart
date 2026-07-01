@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
+import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/pages/learn_surveys_page.dart';
@@ -65,17 +65,12 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     });
   }
 
-  void _onLessonsReady(
-    List<LearnCourseViewModel> courses,
-    List<KyaLesson> apiLessons,
-  ) {
-    final fingerprint =
-        '${apiLessons.length}:${apiLessons.map((l) => l.id).join('|')}';
+  void _onLessonsReady(List<LearnCourseViewModel> courses) {
+    final fingerprint = courses.map((c) => c.id).join('|');
     if (_lastSeedFingerprint == fingerprint) return;
     _lastSeedFingerprint = fingerprint;
 
     _progress.clearPilotSeedIfNeeded();
-    _progress.syncLegacyApiProgress(courses);
 
     if (kDebugMode) {
       _progress.ensurePilotLearnDemosV3(courses: courses);
@@ -162,20 +157,23 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           );
         }
 
-        final List<KyaLesson> apiLessons = switch (state) {
-          LessonsLoaded s => s.model.kyaLessons,
-          LessonsLoadingError s => s.cachedModel?.kyaLessons ?? const <KyaLesson>[],
-          _ => const <KyaLesson>[],
+        final LearnV2CatalogResponse? catalog = switch (state) {
+          LessonsLoaded s => s.model,
+          LessonsLoadingError s => s.cachedModel,
+          _ => null,
         };
 
-        if (state is LessonsLoadingError && apiLessons.isEmpty) {
+        if (state is LessonsLoadingError && catalog == null) {
           return _buildErrorState(state);
         }
 
-        final courses = LearnCatalog.buildFromLessons(apiLessons);
-        if (state is LessonsLoaded || apiLessons.isNotEmpty) {
+        final courses = catalog != null
+            ? LearnCatalog.buildFromV2Catalog(catalog.courses)
+            : const <LearnCourseViewModel>[];
+
+        if (state is LessonsLoaded || catalog != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _onLessonsReady(courses, apiLessons);
+            _onLessonsReady(courses);
           });
         }
 
@@ -225,10 +223,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                     return LearnCoursePortraitCard(
                       course: course,
                       locked: locked,
-                      coverImageUrl: LearnCatalog.courseCoverImage(
-                        course,
-                        apiLessons,
-                      ),
+                      coverImageUrl: course.coverImageUrl,
                       onTap: () => LearnBottomSheets.showCourseDetail(
                         context,
                         course: course,

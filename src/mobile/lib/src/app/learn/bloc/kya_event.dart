@@ -18,10 +18,10 @@ class LoadLessons extends KyaEvent {
 }
 
 class RefreshLessons extends KyaEvent {
-  final LessonResponseModel? currentModel;
-  
+  final LearnV2CatalogResponse? currentModel;
+
   const RefreshLessons({this.currentModel});
-  
+
   @override
   List<Object?> get props => [currentModel];
 }

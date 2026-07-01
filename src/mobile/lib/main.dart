@@ -14,7 +14,8 @@ import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
-import 'package:airqo/src/app/learn/repository/kya_repository.dart';
+import 'package:airqo/src/app/learn/repository/learn_repository.dart';
+import 'package:airqo/src/app/learn/services/learn_sync_service.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/repository/map_repository.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
@@ -89,7 +90,7 @@ void main() async {
           authRepository: authImpl,
           socialAuthRepository: authImpl,
           userRepository: UserImpl(),
-          kyaRepository: KyaImpl(),
+          kyaRepository: LearnRepositoryImpl(),
           themeRepository: ThemeImpl(),
           mapRepository: MapImpl(),
           forecastRepository: ForecastImpl(),
@@ -113,7 +114,7 @@ class AirqoMobile extends StatelessWidget {
   final UserRepository userRepository;
   final MapRepository mapRepository;
   final ThemeRepository themeRepository;
-  final KyaRepository kyaRepository;
+  final LearnRepository kyaRepository;
   final GooglePlacesRepository googlePlacesRepository;
   final DashboardRepository dashboardRepository;
 
@@ -248,7 +249,14 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AutoUpdateService().initialize(navigatorKey);
       _fetchCountries();
+      _initLearnGuestSession();
     });
+  }
+
+  void _initLearnGuestSession() {
+    LearnSyncService.instance.ensureGuestSession().then((_) {
+      LearnSyncService.instance.syncPendingProgress();
+    }).catchError((_) {});
   }
 
   void _fetchCountries() async {
