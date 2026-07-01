@@ -2,6 +2,45 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.9
+**Released:** June 30, 2026
+
+### Download Page — Navigation Bar & Apps Menu Redesign
+
+Introduced a persistent top navigation bar on the `/download` page and overhauled the Apps Menu dropdown to a Docker-style list layout with per-app descriptions.
+
+<details>
+<summary><strong>Download Page Topbar (`components/layout/DownloadTopbar.tsx`)</strong></summary>
+
+- **New lightweight topbar** for the public `/download` page. Intentionally separate from the authenticated `Topbar` — no Redux, no NextAuth session, no `OrganizationPicker` or logout dependencies.
+- **Logo repositioned**: moved from the `DownloadHero` body to the top-left of the new nav bar, matching the positioning on airqo.net.
+- **Sign in button** on the right routes to `/login`.
+- **`AppDropdown`** (9-dot grid) integrated on the right, next to the Sign in button.
+
+</details>
+
+<details>
+<summary><strong>Apps Menu Redesign (`components/layout/AppDropdown.tsx`)</strong></summary>
+
+- Replaced the 3-column icon grid with a vertical list layout (`w-72`) matching the Docker Desktop apps menu pattern.
+- Each entry now shows a coloured icon on the left with the app title and a concise one-line description alongside it.
+- Added `description` field to all 7 app entries (Analytics, Calibrate, Website, Vertex, API Docs, Mobile App, AI Platform).
+- Removed the redundant "AirQo Apps" section header.
+
+</details>
+
+<details>
+<summary><strong>Files Modified & Added (3)</strong></summary>
+
+- `src/vertex/components/layout/DownloadTopbar.tsx` [NEW]
+- `src/vertex/components/layout/AppDropdown.tsx` [MODIFIED]
+- `src/vertex/components/features/download/DownloadHero.tsx` [MODIFIED]
+- `src/vertex/app/download/page.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.8
 **Released:** June 28, 2026
 

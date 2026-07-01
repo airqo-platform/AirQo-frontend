@@ -22,6 +22,7 @@ import {
 
 interface App {
     name: string;
+    description: string;
     icon: React.ComponentType<{ className?: string }>;
     href?: string;
     type?: 'qr';
@@ -50,42 +51,49 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     const apps: App[] = [
         {
             name: 'Analytics',
+            description: 'View air quality dashboards',
             icon: AqBarChartSquarePlus,
             href: getUrl('https://analytics.airqo.net/'),
             color: 'bg-green-500',
         },
         {
             name: 'Calibrate',
+            description: 'Calibrate low-cost sensors',
             icon: AqCalibration,
             href: getUrl('https://airqalibrate.airqo.net/'),
             color: 'bg-blue-500',
         },
         {
             name: 'Website',
+            description: 'AirQo\'s mission and research',
             icon: AqGlobe02Maps_Travel,
             href: 'https://airqo.net/',
             color: 'bg-purple-500',
         },
         {
             name: 'Vertex',
+            description: 'Manage device deployment',
             icon: AqServer03,
             href: getUrl('https://vertex.airqo.net/'),
             color: 'bg-yellow-600',
         },
         {
             name: 'API Docs',
+            description: 'Build with AirQo\'s REST API',
             icon: AqBookOpen01,
             href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
             color: 'bg-orange-500',
         },
         {
             name: 'Mobile App',
+            description: 'Monitor air quality on the go',
             icon: AqPhone01,
             type: 'qr',
             color: 'bg-indigo-500',
         },
         {
-            name: 'AI platform',
+            name: 'AI Platform',
+            description: 'AI-powered air quality forecasts',
             icon: AqCpuChip01,
             href: 'https://ai.airqo.net',
             color: 'bg-pink-500',
@@ -119,30 +127,33 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent
-                className="w-auto border-none shadow-lg z-[10000]"
+                className="w-72 border shadow-lg z-[10000]"
                 align="end"
             >
                 {!showQRCode ? (
-                    <div className="p-2 grid grid-cols-3 gap-3">
+                    <div className="py-1">
                         {apps.map(app => {
                             const Icon = app.icon;
                             return (
                                 <button
                                     key={app.name}
                                     type="button"
-                                    title={app.name}
                                     onClick={() => handleAppClick(app)}
-                                    className="flex flex-col items-center gap-3 p-3 rounded-md hover:bg-muted focus:outline-none transition-colors"
-                                    aria-label={app.name}
+                                    className="flex w-full items-center gap-3 px-3 py-2.5 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-colors text-left"
                                 >
                                     <div
-                                        className={`w-12 h-12 ${app.color} rounded-md flex items-center justify-center shadow-sm`}
+                                        className={`flex-shrink-0 w-9 h-9 ${app.color} rounded-lg flex items-center justify-center shadow-sm`}
                                     >
-                                        <Icon className="w-6 h-6 text-white" />
+                                        <Icon className="w-5 h-5 text-white" />
                                     </div>
-                                    <span className="text-sm font-medium text-center leading-tight">
-                                        {app.name}
-                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-foreground leading-tight">
+                                            {app.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+                                            {app.description}
+                                        </p>
+                                    </div>
                                 </button>
                             );
                         })}
