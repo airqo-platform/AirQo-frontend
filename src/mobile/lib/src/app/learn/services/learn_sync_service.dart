@@ -62,12 +62,27 @@ class _ProgressBuffer with UiLoggy {
 }
 
 // ---------------------------------------------------------------------------
-// Public service — three distinct concerns composed here.
+// Public interface — callers depend on this, not on the impl.
 // ---------------------------------------------------------------------------
 
-class LearnSyncService extends BaseRepository with UiLoggy {
-  static final LearnSyncService instance = LearnSyncService._();
-  LearnSyncService._();
+abstract class LearnSyncService {
+  static final LearnSyncService instance = _LearnSyncServiceImpl._();
+
+  Future<void> ensureGuestSession();
+  Future<void> linkProgressToAccount(String authToken);
+  Future<void> reportCompletion(
+    String lessonId, {
+    required int totalActivities,
+    List<QuizAttemptData> quizAttempts,
+    String? freeTextResponse,
+  });
+  Future<void> syncPendingProgress();
+}
+
+class _LearnSyncServiceImpl extends BaseRepository
+    with UiLoggy
+    implements LearnSyncService {
+  _LearnSyncServiceImpl._();
 
   static const _guestIdKey = 'learn_guest_id';
 
@@ -94,6 +109,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
 
   // ---- Guest session management ------------------------------------------
 
+  @override
   Future<void> ensureGuestSession() async {
     await _ensurePrefs();
     if (_prefs!.getString(_guestIdKey) != null) return;
@@ -125,6 +141,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
     }
   }
 
+  @override
   Future<void> linkProgressToAccount(String authToken) async {
     await _ensurePrefs();
     final guestId = _prefs!.getString(_guestIdKey);
@@ -156,6 +173,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
 
   // ---- Progress reporting -------------------------------------------------
 
+  @override
   Future<void> reportCompletion(
     String lessonId, {
     required int totalActivities,
@@ -196,6 +214,7 @@ class LearnSyncService extends BaseRepository with UiLoggy {
 
   // ---- Offline sync -------------------------------------------------------
 
+  @override
   Future<void> syncPendingProgress() async {
     await _ensurePrefs();
     final pending = _buffer!.drain();

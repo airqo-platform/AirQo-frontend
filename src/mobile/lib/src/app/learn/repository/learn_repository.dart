@@ -10,6 +10,7 @@ abstract class LearnRepository extends BaseRepository {
   Future<LearnV2CatalogResponse> fetchCatalog({bool forceRefresh = false});
   Future<LearnV2CatalogResponse?> getCachedCatalog();
   Future<void> clearCache();
+  bool get isOffline;
 }
 
 class LearnRepositoryImpl extends LearnRepository with UiLoggy {
@@ -19,6 +20,36 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
 
   final CacheManager _cacheManager = CacheManager();
   static const String _catalogCacheKey = 'learn_v2_catalog';
+
+  @override
+  bool get isOffline => !_cacheManager.isConnected;
+
+  String? _getToken() => dotenv.env['AIRQO_API_TOKEN'];
+
+  Future<LearnV2CatalogResponse> _fetchAndCache(
+      {Duration timeout = const Duration(seconds: 20)}) async {
+    final token = _getToken();
+    if (token == null) throw StateError('AIRQO_API_TOKEN is not configured');
+
+    final response = await createGetRequest(
+      ApiUtils.learnCatalog,
+      {'token': token},
+    ).timeout(timeout);
+
+    if (response.statusCode != 200) {
+      throw Exception('Learn catalog API returned ${response.statusCode}');
+    }
+
+    final catalog = learnV2CatalogResponseFromJson(response.body);
+    await _cacheManager.put<LearnV2CatalogResponse>(
+      boxName: CacheBoxName.location,
+      key: _catalogCacheKey,
+      data: catalog,
+      toJson: (data) => jsonDecode(learnV2CatalogResponseToJson(data)),
+      etag: response.headers['etag'],
+    );
+    return catalog;
+  }
 
   @override
   Future<LearnV2CatalogResponse> fetchCatalog(
@@ -31,62 +62,29 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
       fromJson: (json) => learnV2CatalogResponseFromJson(jsonEncode(json)),
     );
 
-    final refreshPolicy = RefreshPolicy(
-      wifiInterval: const Duration(days: 1),
-      mobileInterval: const Duration(days: 3),
-    );
-
     final shouldRefresh = _cacheManager.shouldRefresh(
       boxName: CacheBoxName.location,
       key: _catalogCacheKey,
-      policy: refreshPolicy,
+      policy: RefreshPolicy(
+        wifiInterval: const Duration(days: 1),
+        mobileInterval: const Duration(days: 3),
+      ),
       cachedData: cachedData,
       forceRefresh: forceRefresh,
     );
 
     if (cachedData != null && !shouldRefresh) {
       loggy.info('Using cached Learn v2 catalog');
-      if (_cacheManager.isConnected && !forceRefresh) {
-        _refreshInBackground();
-      }
+      if (!isOffline && !forceRefresh) _refreshInBackground();
       return cachedData.data;
     }
 
-    if (_cacheManager.isConnected) {
+    if (!isOffline) {
       try {
         loggy.info('Fetching fresh Learn v2 catalog from API');
-
-        final token = dotenv.env['AIRQO_API_TOKEN'];
-        if (token == null) {
-          loggy.error('AIRQO_API_TOKEN is not configured');
-          if (cachedData != null) return cachedData.data;
-          throw StateError('AIRQO_API_TOKEN is not configured');
-        }
-        final queryParams = {'token': token};
-
-        final response =
-            await createGetRequest(ApiUtils.learnCatalog, queryParams)
-                .timeout(const Duration(seconds: 20));
-
-        if (response.statusCode == 200) {
-          final catalog = learnV2CatalogResponseFromJson(response.body);
-          await _cacheManager.put<LearnV2CatalogResponse>(
-            boxName: CacheBoxName.location,
-            key: _catalogCacheKey,
-            data: catalog,
-            toJson: (data) => jsonDecode(learnV2CatalogResponseToJson(data)),
-            etag: response.headers['etag'],
-          );
-          loggy.info(
-              'Learn v2 catalog cached (${catalog.courses.length} courses)');
-          return catalog;
-        } else {
-          loggy.warning(
-              'Learn catalog API returned ${response.statusCode}');
-          if (cachedData != null) return cachedData.data;
-          throw Exception(
-              'Failed to fetch Learn catalog: ${response.statusCode}');
-        }
+        final catalog = await _fetchAndCache();
+        loggy.info('Learn v2 catalog cached (${catalog.courses.length} courses)');
+        return catalog;
       } catch (e) {
         loggy.error('Error fetching Learn catalog: $e');
         if (cachedData != null) {
@@ -123,26 +121,8 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
   Future<void> _refreshInBackground() async {
     try {
       loggy.info('Background refresh of Learn v2 catalog');
-      final token = dotenv.env['AIRQO_API_TOKEN'];
-      if (token == null) {
-        loggy.error('AIRQO_API_TOKEN is not configured for background refresh');
-        return;
-      }
-      final queryParams = {'token': token};
-      final response =
-          await createGetRequest(ApiUtils.learnCatalog, queryParams)
-              .timeout(const Duration(seconds: 30));
-      if (response.statusCode == 200) {
-        final catalog = learnV2CatalogResponseFromJson(response.body);
-        await _cacheManager.put<LearnV2CatalogResponse>(
-          boxName: CacheBoxName.location,
-          key: _catalogCacheKey,
-          data: catalog,
-          toJson: (data) => jsonDecode(learnV2CatalogResponseToJson(data)),
-          etag: response.headers['etag'],
-        );
-        loggy.info('Background Learn catalog refresh done');
-      }
+      await _fetchAndCache(timeout: const Duration(seconds: 30));
+      loggy.info('Background Learn catalog refresh done');
     } catch (e) {
       loggy.error('Background Learn catalog refresh failed: $e');
     }

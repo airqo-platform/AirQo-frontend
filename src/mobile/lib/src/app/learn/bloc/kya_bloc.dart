@@ -1,6 +1,5 @@
 import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/repository/learn_repository.dart';
-import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -10,7 +9,6 @@ part 'kya_state.dart';
 
 class KyaBloc extends Bloc<KyaEvent, KyaState> with UiLoggy {
   final LearnRepository repository;
-  final CacheManager _cacheManager = CacheManager();
 
   KyaBloc(this.repository) : super(KyaInitial()) {
     on<LoadLessons>(_onLoadLessons);
@@ -36,13 +34,13 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> with UiLoggy {
         emit(LessonsLoadingError(
           message: e.toString(),
           cachedModel: cachedModel,
-          isOffline: !_cacheManager.isConnected,
+          isOffline: repository.isOffline,
         ));
       } catch (cacheError) {
         loggy.error('Error fetching cached catalog: $cacheError');
         emit(LessonsLoadingError(
           message: e.toString(),
-          isOffline: !_cacheManager.isConnected,
+          isOffline: repository.isOffline,
         ));
       }
     }
@@ -69,7 +67,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> with UiLoggy {
         emit(LessonsLoadingError(
           message: e.toString(),
           cachedModel: cachedModel,
-          isOffline: !_cacheManager.isConnected,
+          isOffline: repository.isOffline,
         ));
       }
     }
