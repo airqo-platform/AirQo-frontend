@@ -1,7 +1,7 @@
 name: remove-deploy-previews
 
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - staging
     types:
@@ -28,8 +28,16 @@ jobs:
         env:
           RAW: ${{ steps.string.outputs.lowercase }}
         run: |
-          CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
-          echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
+          SANITIZED=$(echo "$RAW" | sed 's/[^a-z0-9]/-/g; s/-\+/-/g; s/^-//; s/-$//')
+          if [ -z "$SANITIZED" ]; then
+            SANITIZED="pr${{ github.event.pull_request.number }}"
+          fi
+          if [[ ! "$SANITIZED" =~ ^[a-z] ]]; then
+            SANITIZED="a${SANITIZED}"
+          fi
+          SANITIZED="${SANITIZED:0:12}"
+          SANITIZED="${SANITIZED%-}"
+          echo "sanitized=$SANITIZED" >> $GITHUB_OUTPUT
 
   remove-previews:
     name: remove all previews for branch
@@ -49,7 +57,22 @@ jobs:
             APP="${BRANCH}-${SERVICE}-preview"
             echo "Attempting to delete $APP..."
             az containerapp delete \
-              --name $APP \
+              --name "$APP" \
               --resource-group ${{ env.RG }} \
               --yes 2>/dev/null || echo "$APP not found, skipping"
           done
+
+      - name: Fallback - delete any remaining previews matching this branch
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          echo "Checking for any remaining apps starting with $BRANCH..."
+          az containerapp list \
+            --resource-group ${{ env.RG }} \
+            --query "[?starts_with(name, '${BRANCH}') && ends_with(name, 'preview')].name" \
+            -o tsv | while read APP; do
+              echo "Found leftover: $APP — deleting..."
+              az containerapp delete \
+                --name "$APP" \
+                --resource-group ${{ env.RG }} \
+                --yes || true
+            done
