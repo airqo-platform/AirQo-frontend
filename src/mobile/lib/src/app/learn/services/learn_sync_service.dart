@@ -53,7 +53,9 @@ class _ProgressBuffer with UiLoggy {
     if (raw == null) return null;
     try {
       return json.decode(raw) as List;
-    } catch (_) {
+    } catch (e) {
+      loggy.warning('Corrupt Learn progress buffer, clearing: $e');
+      _prefs.remove(_key);
       return null;
     }
   }
