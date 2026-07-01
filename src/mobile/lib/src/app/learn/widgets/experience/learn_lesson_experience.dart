@@ -169,22 +169,9 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     _gradedResults.add(grade.isCorrect);
     _quizAttempts.add(QuizAttemptData(
       activityId: _current.index.toString(),
-      format: _quizFormatKey(_current.quiz!.format),
+      format: _current.quiz!.format.apiKey,
       isCorrect: grade.isCorrect,
     ));
-  }
-
-  String _quizFormatKey(LearnQuizFormat format) {
-    switch (format) {
-      case LearnQuizFormat.singleChoice:
-        return 'single_choice';
-      case LearnQuizFormat.multiChoice:
-        return 'multi_choice';
-      case LearnQuizFormat.ranking:
-        return 'ranking';
-      case LearnQuizFormat.freeText:
-        return 'free_text';
-    }
   }
 
   Widget _buildActivityBody() {

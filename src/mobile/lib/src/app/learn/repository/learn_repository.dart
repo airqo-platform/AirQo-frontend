@@ -8,6 +8,7 @@ import 'package:loggy/loggy.dart';
 
 abstract class LearnRepository extends BaseRepository {
   Future<LearnV2CatalogResponse> fetchCatalog({bool forceRefresh = false});
+  Future<LearnV2CatalogResponse?> getCachedCatalog();
   Future<void> clearCache();
 }
 
@@ -100,6 +101,7 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
     }
   }
 
+  @override
   Future<LearnV2CatalogResponse?> getCachedCatalog() async {
     try {
       final cached = await _cacheManager.get<LearnV2CatalogResponse>(

@@ -203,7 +203,7 @@ class LearnLessonExperienceService {
     final question = p['question'] as String? ?? '';
     if (question.isEmpty) return null;
 
-    final format = _parseQuizFormat(p['format'] as String? ?? '');
+    final format = LearnQuizFormat.fromApiKey(p['format'] as String? ?? '');
     final rawOptions = p['options'] as List? ?? [];
     final options = rawOptions.map((o) => o.toString()).toList();
     final correctIndex = p['correct_index'] as int?;
@@ -224,21 +224,6 @@ class LearnLessonExperienceService {
           'Not quite — try reviewing the lesson.',
       hint: p['hint'] as String?,
     );
-  }
-
-  static LearnQuizFormat _parseQuizFormat(String raw) {
-    switch (raw) {
-      case 'single_choice':
-        return LearnQuizFormat.singleChoice;
-      case 'multi_choice':
-        return LearnQuizFormat.multiChoice;
-      case 'ranking':
-        return LearnQuizFormat.ranking;
-      case 'free_text':
-        return LearnQuizFormat.freeText;
-      default:
-        return LearnQuizFormat.singleChoice;
-    }
   }
 
   static String activityTypeKey(LearnLessonActivity activity) {

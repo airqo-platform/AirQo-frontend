@@ -77,7 +77,7 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> with UiLoggy {
 
   Future<LearnV2CatalogResponse?> _getCachedCatalog() async {
     try {
-      return await (repository as LearnRepositoryImpl).getCachedCatalog();
+      return await repository.getCachedCatalog();
     } catch (e) {
       loggy.error('Error getting cached Learn catalog: $e');
       return null;
