@@ -61,18 +61,3 @@ jobs:
               --resource-group ${{ env.RG }} \
               --yes 2>/dev/null || echo "$APP not found, skipping"
           done
-
-      - name: Fallback - delete any remaining previews matching this branch
-        run: |
-          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
-          echo "Checking for any remaining apps starting with $BRANCH..."
-          az containerapp list \
-            --resource-group ${{ env.RG }} \
-            --query "[?starts_with(name, '${BRANCH}') && ends_with(name, 'preview')].name" \
-            -o tsv | while read APP; do
-              echo "Found leftover: $APP — deleting..."
-              az containerapp delete \
-                --name "$APP" \
-                --resource-group ${{ env.RG }} \
-                --yes || true
-            done
