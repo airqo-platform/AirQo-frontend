@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
@@ -71,10 +70,6 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     _lastSeedFingerprint = fingerprint;
 
     _progress.clearPilotSeedIfNeeded();
-
-    if (kDebugMode) {
-      _progress.ensurePilotLearnDemosV3(courses: courses);
-    }
   }
 
   @override

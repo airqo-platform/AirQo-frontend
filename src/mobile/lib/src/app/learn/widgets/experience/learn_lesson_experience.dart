@@ -2,7 +2,6 @@ import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
@@ -17,7 +16,6 @@ import 'package:flutter/material.dart';
 
 class LearnLessonExperience extends StatefulWidget {
   final LearnLessonSlot slot;
-  final KyaLesson? apiLesson;
   final LearnCourseViewModel course;
   final int unitIndex;
   final int lessonIndex;
@@ -40,7 +38,6 @@ class LearnLessonExperience extends StatefulWidget {
     required this.lessonsInUnit,
     required this.onClose,
     required this.completionContext,
-    this.apiLesson,
     this.allCourses,
     this.continuation,
   });
@@ -61,20 +58,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
   @override
   void initState() {
     super.initState();
-    if (widget.slot.v2Lesson != null) {
-      _script = LearnLessonExperienceService.buildFromV2Lesson(
-        lesson: widget.slot.v2Lesson!,
-      );
-    } else {
-      final lessonTitle =
-          widget.apiLesson?.title ?? widget.slot.plainTitleKey;
-      _script = LearnLessonExperienceService.buildDemoScript(
-        lessonTitle: lessonTitle,
-        unitTitle: widget.unitPlainTitle,
-        slot: widget.slot,
-        apiLesson: widget.apiLesson,
-      );
-    }
+    _script = widget.slot.v2Lesson != null
+        ? LearnLessonExperienceService.buildFromV2Lesson(
+            lesson: widget.slot.v2Lesson!,
+          )
+        : const [];
     // Already-complete lessons replay from step 0.
     // In-progress lessons resume from their furthest step.
     if (_progress.isLessonComplete(widget.slot.progressKey)) {
@@ -215,9 +203,7 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     if (_script.isEmpty) return const SizedBox.shrink();
 
     final lessonTitle = learnDisplayTitle(
-      widget.slot.v2Lesson?.title ??
-          widget.apiLesson?.title ??
-          widget.slot.plainTitleKey,
+      widget.slot.v2Lesson?.title ?? widget.slot.plainTitleKey,
     );
 
     return SizedBox.expand(
