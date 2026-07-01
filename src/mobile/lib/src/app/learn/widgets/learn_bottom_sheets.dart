@@ -1,7 +1,6 @@
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/pages/learn_course_detail_page.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_course_certificate.dart';
@@ -258,7 +257,6 @@ class LearnBottomSheets {
               ),
               child: LearnLessonExperience(
                 slot: slot,
-                apiLesson: slot.apiLesson,
                 course: course,
                 unitIndex: unitIndex,
                 lessonIndex: lessonIndex,
@@ -277,66 +275,4 @@ class LearnBottomSheets {
     );
   }
 
-  /// Legacy entry for flat KYA list cards.
-  static Future<void> showLesson(
-    BuildContext context, {
-    required KyaLesson lesson,
-    String? progressKey,
-    String? unitPlainTitle,
-    int lessonNumberInUnit = 1,
-    int lessonsInUnit = 1,
-    LearnLessonContinuation? continuation,
-    List<LearnCourseViewModel>? allCourses,
-  }) {
-    final slot = LearnLessonSlot(
-      catalogId: progressKey ?? lesson.id,
-      plainTitleKey: lesson.title,
-      apiLesson: lesson,
-    );
-
-    if (allCourses != null && continuation != null) {
-      final course =
-          allCourses.firstWhere((c) => c.id == continuation.learnCourseId);
-      return showLessonExperience(
-        context,
-        slot: slot,
-        course: course,
-        unitIndex: continuation.unitIndex,
-        lessonIndex: continuation.lessonIndex,
-        unitPlainTitle: unitPlainTitle ?? continuation.unitPlainTitle,
-        lessonNumberInUnit: lessonNumberInUnit,
-        lessonsInUnit: lessonsInUnit,
-        allCourses: allCourses,
-        continuation: continuation,
-      );
-    }
-
-    final legacyCourse = LearnCourseViewModel(
-      id: 'legacy_kya',
-      courseNumber: 1,
-      title: lesson.title,
-      plainTitleKey: lesson.title,
-      units: [
-        LearnUnitViewModel(
-          id: 'legacy_u1',
-          title: 'Lesson',
-          plainTitleKey: unitPlainTitle ?? 'Lesson',
-          lessons: [slot],
-        ),
-      ],
-    );
-
-    return showLessonExperience(
-      context,
-      slot: slot,
-      course: legacyCourse,
-      unitIndex: 0,
-      lessonIndex: 0,
-      unitPlainTitle: unitPlainTitle ?? 'Lesson',
-      lessonNumberInUnit: lessonNumberInUnit,
-      lessonsInUnit: lessonsInUnit,
-      allCourses: null,
-      continuation: continuation,
-    );
-  }
 }

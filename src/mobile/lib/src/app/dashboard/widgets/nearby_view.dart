@@ -204,7 +204,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   Future<void> _updateNearbyLocations() async {
     if (_userPosition == null) {
-      loggy.warning('Cannot filter nearby locations: user position unavailable');
+      loggy.info('Skipping nearby filter: position not yet available');
       return;
     }
     

@@ -12,27 +12,27 @@ class KyaInitial extends KyaState {}
 class LessonsLoading extends KyaState {}
 
 class LessonsRefreshing extends KyaState {
-  final LessonResponseModel? currentModel;
-  
+  final LearnV2CatalogResponse? currentModel;
+
   const LessonsRefreshing({this.currentModel});
-  
+
   @override
   List<Object?> get props => [currentModel];
 }
 
 class LessonsLoaded extends KyaState {
-  final LessonResponseModel model;
+  final LearnV2CatalogResponse model;
   final bool fromCache;
-  
+
   const LessonsLoaded(this.model, {this.fromCache = false});
-  
+
   @override
   List<Object> get props => [model, fromCache];
 }
 
 class LessonsLoadingError extends KyaState {
   final String message;
-  final LessonResponseModel? cachedModel;
+  final LearnV2CatalogResponse? cachedModel;
   final bool isOffline;
 
   const LessonsLoadingError({
