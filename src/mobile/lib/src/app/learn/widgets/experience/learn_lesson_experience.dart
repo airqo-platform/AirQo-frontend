@@ -2,10 +2,10 @@ import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
+import 'package:airqo/src/app/learn/services/learn_sync_service.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_article_activity.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_experience_shell.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_image_activity.dart';
@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 
 class LearnLessonExperience extends StatefulWidget {
   final LearnLessonSlot slot;
-  final KyaLesson? apiLesson;
   final LearnCourseViewModel course;
   final int unitIndex;
   final int lessonIndex;
@@ -39,7 +38,6 @@ class LearnLessonExperience extends StatefulWidget {
     required this.lessonsInUnit,
     required this.onClose,
     required this.completionContext,
-    this.apiLesson,
     this.allCourses,
     this.continuation,
   });
@@ -53,34 +51,25 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
   late int _activityIndex;
   final _progress = LearnProgressService.instance;
   final List<bool> _gradedResults = [];
+  final List<QuizAttemptData> _quizAttempts = [];
   String? _freeTextResponse;
   LearnLessonResult? _result;
-  bool _presentingCompletion = false;
 
   @override
   void initState() {
     super.initState();
-    final lessonTitle = widget.apiLesson?.title ?? widget.slot.plainTitleKey;
-    _script = LearnLessonExperienceService.buildDemoScript(
-      lessonTitle: lessonTitle,
-      unitTitle: widget.unitPlainTitle,
-      slot: widget.slot,
-      apiLesson: widget.apiLesson,
-    );
-    final saved = _progress.furthestStep(widget.slot.progressKey);
-    _activityIndex = saved.clamp(0, _script.length - 1);
+    _script = widget.slot.v2Lesson != null
+        ? LearnLessonExperienceService.buildFromV2Lesson(
+            lesson: widget.slot.v2Lesson!,
+          )
+        : const [];
+    // Already-complete lessons replay from step 0.
+    // In-progress lessons resume from their furthest step.
     if (_progress.isLessonComplete(widget.slot.progressKey)) {
-      _result = LearnLessonResult(
-        stars: _progress.lessonStars(widget.slot.progressKey).clamp(1, 3),
-        pointsEarned: _progress.lessonPoints(widget.slot.progressKey),
-        quizScoreRatio: _progress.lessonQuizScore(widget.slot.progressKey),
-        freeTextResponse: _progress.lessonFreeText(widget.slot.progressKey),
-      );
-      _presentingCompletion = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _presentCompletionSheet();
-      });
+      _activityIndex = 0;
+    } else {
+      final saved = _progress.furthestStep(widget.slot.progressKey);
+      _activityIndex = _script.isEmpty ? 0 : saved.clamp(0, _script.length - 1);
     }
   }
 
@@ -117,6 +106,12 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       quizScoreRatio: result.quizScoreRatio,
       freeText: result.freeTextResponse,
     );
+    LearnSyncService.instance.reportCompletion(
+      widget.slot.progressKey,
+      totalActivities: _script.length,
+      quizAttempts: List.unmodifiable(_quizAttempts),
+      freeTextResponse: _freeTextResponse,
+    ).catchError((_) {});
     _result = result;
     _presentCompletionSheet();
   }
@@ -160,6 +155,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     if (_current.type != LearnActivityType.quiz) return;
     if (_current.quiz?.format == LearnQuizFormat.freeText) return;
     _gradedResults.add(grade.isCorrect);
+    _quizAttempts.add(QuizAttemptData(
+      activityId: _current.index.toString(),
+      format: _current.quiz!.format.apiKey,
+      isCorrect: grade.isCorrect,
+    ));
   }
 
   Widget _buildActivityBody() {
@@ -200,12 +200,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   @override
   Widget build(BuildContext context) {
-    if (_presentingCompletion) {
-      return const SizedBox.shrink();
-    }
+    if (_script.isEmpty) return const SizedBox.shrink();
 
-    final lessonTitle =
-        learnDisplayTitle(widget.apiLesson?.title ?? widget.slot.plainTitleKey);
+    final lessonTitle = learnDisplayTitle(
+      widget.slot.v2Lesson?.title ?? widget.slot.plainTitleKey,
+    );
 
     return SizedBox.expand(
       child: LearnExperienceShell(

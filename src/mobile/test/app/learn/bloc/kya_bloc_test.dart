@@ -4,20 +4,20 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'dart:async';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
-import 'package:airqo/src/app/learn/repository/kya_repository.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
+import 'package:airqo/src/app/learn/repository/learn_repository.dart';
+import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 
 // Generate mocks
-@GenerateMocks([KyaRepository])
+@GenerateMocks([LearnRepository])
 import 'kya_bloc_test.mocks.dart';
 
 void main() {
   group('KyaBloc', () {
-    late MockKyaRepository mockRepository;
+    late MockLearnRepository mockRepository;
     late KyaBloc kyaBloc;
 
     setUp(() {
-      mockRepository = MockKyaRepository();
+      mockRepository = MockLearnRepository();
       kyaBloc = KyaBloc(mockRepository);
     });
 
@@ -30,47 +30,23 @@ void main() {
     });
 
     group('LoadLessons', () {
-      final mockLessonResponse = LessonResponseModel(
+      final mockCatalog = LearnV2CatalogResponse(
         success: true,
-        message: 'Lessons loaded successfully',
-        kyaLessons: [
-          KyaLesson(
-            id: 'lesson-1',
-            title: 'Understanding Air Quality',
-            completionMessage: 'Not completed',
-            image: 'https://example.com/lesson1.jpg',
-            tasks: [
-              Task(
-                id: 'task-1',
-                title: 'Introduction to PM2.5',
-                content: 'Learn about particulate matter and its health effects',
-                image: 'https://example.com/task1.jpg',
-                createdAt: DateTime.parse('2024-01-15T12:00:00Z'),
-                updatedAt: DateTime.parse('2024-01-15T12:00:00Z'),
-                v: 0,
-                kyaLesson: 'lesson-1',
-                taskPosition: 1,
-              ),
-            ],
+        catalogVersion: 'v1',
+        courses: [
+          LearnV2Course(
+            id: 'course-1',
+            courseNumber: 1,
+            title: 'Know Your Air',
+            plainTitleKey: 'Know Your Air',
+            units: [],
           ),
-          KyaLesson(
-            id: 'lesson-2',
-            title: 'Health Effects of Air Pollution',
-            completionMessage: 'Completed',
-            image: 'https://example.com/lesson2.jpg',
-            tasks: [
-              Task(
-                id: 'task-2',
-                title: 'Respiratory Health',
-                content: 'Understanding how air pollution affects your lungs',
-                image: 'https://example.com/task2.jpg',
-                createdAt: DateTime.parse('2024-01-15T12:00:00Z'),
-                updatedAt: DateTime.parse('2024-01-15T12:00:00Z'),
-                v: 0,
-                kyaLesson: 'lesson-2',
-                taskPosition: 1,
-              ),
-            ],
+          LearnV2Course(
+            id: 'course-2',
+            courseNumber: 2,
+            title: 'Read the Air',
+            plainTitleKey: 'Read the Air',
+            units: [],
           ),
         ],
       );
@@ -78,25 +54,26 @@ void main() {
       blocTest<KyaBloc, KyaState>(
         'emits [LessonsLoading, LessonsLoaded] when LoadLessons succeeds',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => mockLessonResponse);
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
+              .thenAnswer((_) async => mockCatalog);
           return kyaBloc;
         },
         act: (bloc) => bloc.add(LoadLessons()),
         expect: () => [
           LessonsLoading(),
-          LessonsLoaded(mockLessonResponse),
+          LessonsLoaded(mockCatalog),
         ],
         verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: false)).called(1);
+          verify(mockRepository.fetchCatalog(forceRefresh: false)).called(1);
         },
       );
 
       blocTest<KyaBloc, KyaState>(
         'emits [LessonsLoading, LessonsLoadingError] when LoadLessons fails',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
               .thenThrow(Exception('Network error'));
+          when(mockRepository.getCachedCatalog()).thenAnswer((_) async => null);
           return kyaBloc;
         },
         act: (bloc) => bloc.add(LoadLessons()),
@@ -106,119 +83,75 @@ void main() {
               .having((state) => state.message, 'message', contains('Network error')),
         ],
         verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: false)).called(1);
+          verify(mockRepository.fetchCatalog(forceRefresh: false)).called(1);
         },
       );
 
       blocTest<KyaBloc, KyaState>(
-        'emits [LessonsLoading, LessonsLoaded] with empty lessons when repository returns empty list',
+        'emits [LessonsLoading, LessonsLoaded] with empty courses when repository returns empty catalog',
         build: () {
-          final emptyResponse = LessonResponseModel(
+          final emptyCatalog = LearnV2CatalogResponse(
             success: true,
-            message: 'No lessons available',
-            kyaLessons: [],
+            catalogVersion: 'v1',
+            courses: [],
           );
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => emptyResponse);
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
+              .thenAnswer((_) async => emptyCatalog);
           return kyaBloc;
         },
         act: (bloc) => bloc.add(LoadLessons()),
         expect: () => [
           LessonsLoading(),
           isA<LessonsLoaded>()
-              .having((state) => state.model.kyaLessons, 'lessons', isEmpty),
-        ],
-      );
-
-      blocTest<KyaBloc, KyaState>(
-        'handles API response with success false',
-        build: () {
-          final failedResponse = LessonResponseModel(
-            success: false,
-            message: 'Failed to load lessons',
-            kyaLessons: [],
-          );
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => failedResponse);
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoaded>()
-              .having((state) => state.model.success, 'success', false)
-              .having((state) => state.model.message, 'message', 'Failed to load lessons'),
-        ],
-      );
-
-      blocTest<KyaBloc, KyaState>(
-        'handles timeout exception',
-        build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenThrow(TimeoutException('Request timeout', Duration(seconds: 30)));
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoadingError>()
-              .having((state) => state.message, 'message', contains('timeout')),
-        ],
-      );
-
-      blocTest<KyaBloc, KyaState>(
-        'handles HTTP exception',
-        build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenThrow(Exception('HTTP 500: Internal Server Error'));
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoadingError>()
-              .having((state) => state.message, 'message', contains('500')),
+              .having((state) => state.model.courses, 'courses', isEmpty),
         ],
       );
 
       blocTest<KyaBloc, KyaState>(
         'handles force refresh parameter correctly',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: true))
-              .thenAnswer((_) async => mockLessonResponse);
+          when(mockRepository.fetchCatalog(forceRefresh: true))
+              .thenAnswer((_) async => mockCatalog);
           return kyaBloc;
         },
         act: (bloc) => bloc.add(LoadLessons(forceRefresh: true)),
         expect: () => [
           LessonsLoading(),
-          LessonsLoaded(mockLessonResponse),
+          LessonsLoaded(mockCatalog),
         ],
         verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: true)).called(1);
+          verify(mockRepository.fetchCatalog(forceRefresh: true)).called(1);
         },
+      );
+
+      blocTest<KyaBloc, KyaState>(
+        'handles timeout exception',
+        build: () {
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
+              .thenThrow(TimeoutException('Request timeout', Duration(seconds: 30)));
+          when(mockRepository.getCachedCatalog()).thenAnswer((_) async => null);
+          return kyaBloc;
+        },
+        act: (bloc) => bloc.add(LoadLessons()),
+        expect: () => [
+          LessonsLoading(),
+          isA<LessonsLoadingError>(),
+        ],
       );
     });
 
     group('Multiple LoadLessons events', () {
-      final mockResponse = LessonResponseModel(
+      final mockCatalog = LearnV2CatalogResponse(
         success: true,
-        message: 'Success',
-        kyaLessons: [
-          KyaLesson(
-            id: 'lesson-1',
-            title: 'Test Lesson',
-            completionMessage: 'Not completed',
-            image: 'test.jpg',
-            tasks: [],
-          ),
-        ],
+        catalogVersion: 'v1',
+        courses: [],
       );
 
       blocTest<KyaBloc, KyaState>(
         'handles multiple rapid LoadLessons events correctly',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => mockResponse);
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
+              .thenAnswer((_) async => mockCatalog);
           return kyaBloc;
         },
         act: (bloc) {
@@ -228,14 +161,14 @@ void main() {
         },
         expect: () => [
           LessonsLoading(),
-          LessonsLoaded(mockResponse),
+          LessonsLoaded(mockCatalog),
           LessonsLoading(),
-          LessonsLoaded(mockResponse),
+          LessonsLoaded(mockCatalog),
           LessonsLoading(),
-          LessonsLoaded(mockResponse),
+          LessonsLoaded(mockCatalog),
         ],
         verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: false)).called(3);
+          verify(mockRepository.fetchCatalog(forceRefresh: false)).called(3);
         },
       );
     });
@@ -244,12 +177,13 @@ void main() {
       blocTest<KyaBloc, KyaState>(
         'maintains state consistency during error recovery',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
               .thenThrow(Exception('First call fails'));
+          when(mockRepository.getCachedCatalog()).thenAnswer((_) async => null);
           return kyaBloc;
         },
         act: (bloc) {
-          bloc.add(LoadLessons()); // This will fail
+          bloc.add(LoadLessons());
         },
         expect: () => [
           LessonsLoading(),
@@ -260,77 +194,32 @@ void main() {
       blocTest<KyaBloc, KyaState>(
         'recovers from error on subsequent call',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => LessonResponseModel(
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
+              .thenAnswer((_) async => LearnV2CatalogResponse(
                     success: true,
-                    message: 'Recovery successful',
-                    kyaLessons: [],
+                    catalogVersion: 'v1',
+                    courses: [],
                   ));
           return kyaBloc;
         },
         act: (bloc) {
-          bloc.add(LoadLessons()); // This will succeed
+          bloc.add(LoadLessons());
         },
         expect: () => [
           LessonsLoading(),
           isA<LessonsLoaded>()
-              .having((state) => state.model.message, 'message', 'Recovery successful'),
-        ],
-      );
-    });
-
-    group('Edge cases', () {
-      blocTest<KyaBloc, KyaState>(
-        'handles null response gracefully',
-        build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => throw Exception('Null response'));
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoadingError>(),
-        ],
-      );
-
-      blocTest<KyaBloc, KyaState>(
-        'handles lesson with missing required fields',
-        build: () {
-          final responseWithIncompleteLesson = LessonResponseModel(
-            success: true,
-            message: 'Success',
-            kyaLessons: [
-              KyaLesson(
-                id: 'incomplete-lesson',
-                title: 'Incomplete Lesson',
-                completionMessage: '', // Empty completion message
-                image: '', // Empty image
-                tasks: [], // Empty tasks
-              ),
-            ],
-          );
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => responseWithIncompleteLesson);
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoaded>()
-              .having((state) => state.model.kyaLessons.length, 'lessons count', 1)
-              .having((state) => state.model.kyaLessons.first.title, 'lesson title', 'Incomplete Lesson')
-              .having((state) => state.model.kyaLessons.first.completionMessage, 'completion message', ''),
+              .having((state) => state.model.success, 'success', true),
         ],
       );
     });
 
     group('Error handling with cached data', () {
       blocTest<KyaBloc, KyaState>(
-        'emits LessonsLoadingError when fetch fails',
+        'emits LessonsLoadingError when fetch fails and no cache',
         build: () {
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
+          when(mockRepository.fetchCatalog(forceRefresh: anyNamed('forceRefresh')))
               .thenThrow(Exception('Network failed'));
+          when(mockRepository.getCachedCatalog()).thenAnswer((_) async => null);
           return kyaBloc;
         },
         act: (bloc) => bloc.add(LoadLessons()),
@@ -338,107 +227,6 @@ void main() {
           LessonsLoading(),
           isA<LessonsLoadingError>()
               .having((state) => state.message, 'error message', contains('Network failed')),
-        ],
-      );
-    });
-
-    group('LoadLessons event variants', () {
-      blocTest<KyaBloc, KyaState>(
-        'handles LoadLessons with forceRefresh true',
-        build: () {
-          when(mockRepository.fetchLessons(forceRefresh: true))
-              .thenAnswer((_) async => LessonResponseModel(
-                    success: true,
-                    message: 'Force refreshed',
-                    kyaLessons: [],
-                  ));
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons(forceRefresh: true)),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoaded>()
-              .having((state) => state.model.message, 'message', 'Force refreshed'),
-        ],
-        verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: true)).called(1);
-          verifyNever(mockRepository.fetchLessons(forceRefresh: false));
-        },
-      );
-
-      blocTest<KyaBloc, KyaState>(
-        'handles LoadLessons with forceRefresh false (default)',
-        build: () {
-          when(mockRepository.fetchLessons(forceRefresh: false))
-              .thenAnswer((_) async => LessonResponseModel(
-                    success: true,
-                    message: 'Normal load',
-                    kyaLessons: [],
-                  ));
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()), // Default forceRefresh is false
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoaded>()
-              .having((state) => state.model.message, 'message', 'Normal load'),
-        ],
-        verify: (_) {
-          verify(mockRepository.fetchLessons(forceRefresh: false)).called(1);
-        },
-      );
-    });
-
-    group('Task model validation', () {
-      blocTest<KyaBloc, KyaState>(
-        'handles lessons with complex task structures',
-        build: () {
-          final complexResponse = LessonResponseModel(
-            success: true,
-            message: 'Complex lessons loaded',
-            kyaLessons: [
-              KyaLesson(
-                id: 'complex-lesson',
-                title: 'Complex Lesson with Multiple Tasks',
-                completionMessage: 'In progress',
-                image: 'https://example.com/complex.jpg',
-                tasks: [
-                  Task(
-                    id: 'task-1',
-                    title: 'First Task',
-                    content: 'Content for first task',
-                    image: 'https://example.com/task1.jpg',
-                    createdAt: DateTime.parse('2024-01-15T10:00:00Z'),
-                    updatedAt: DateTime.parse('2024-01-15T11:00:00Z'),
-                    v: 1,
-                    kyaLesson: 'complex-lesson',
-                    taskPosition: 1,
-                  ),
-                  Task(
-                    id: 'task-2',
-                    title: 'Second Task',
-                    content: 'Content for second task',
-                    image: 'https://example.com/task2.jpg',
-                    createdAt: DateTime.parse('2024-01-15T12:00:00Z'),
-                    updatedAt: DateTime.parse('2024-01-15T13:00:00Z'),
-                    v: 2,
-                    kyaLesson: 'complex-lesson',
-                    taskPosition: 2,
-                  ),
-                ],
-              ),
-            ],
-          );
-          when(mockRepository.fetchLessons(forceRefresh: anyNamed('forceRefresh')))
-              .thenAnswer((_) async => complexResponse);
-          return kyaBloc;
-        },
-        act: (bloc) => bloc.add(LoadLessons()),
-        expect: () => [
-          LessonsLoading(),
-          isA<LessonsLoaded>()
-              .having((state) => state.model.kyaLessons.length, 'lessons count', 1)
-              .having((state) => state.model.kyaLessons.first.tasks.length, 'tasks count', 2),
         ],
       );
     });

@@ -1,13 +1,11 @@
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_lesson_experience.dart';
 import 'package:flutter/material.dart';
 
 /// Hosts [LearnLessonExperience] inside a modal sheet or full-screen route.
 class LessonPage extends StatelessWidget {
   final LearnLessonSlot slot;
-  final KyaLesson? apiLesson;
   final LearnCourseViewModel course;
   final int unitIndex;
   final int lessonIndex;
@@ -25,7 +23,6 @@ class LessonPage extends StatelessWidget {
     required this.unitIndex,
     required this.lessonIndex,
     required this.unitPlainTitle,
-    this.apiLesson,
     this.lessonNumberInUnit = 1,
     this.lessonsInUnit = 1,
     this.allCourses,
@@ -37,7 +34,6 @@ class LessonPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final experience = LearnLessonExperience(
       slot: slot,
-      apiLesson: apiLesson ?? slot.apiLesson,
       course: course,
       unitIndex: unitIndex,
       lessonIndex: lessonIndex,

@@ -1,6 +1,26 @@
 enum LearnActivityType { article, video, image, quiz }
 
-enum LearnQuizFormat { singleChoice, multiChoice, ranking, freeText }
+enum LearnQuizFormat {
+  singleChoice,
+  multiChoice,
+  ranking,
+  freeText;
+
+  String get apiKey => switch (this) {
+        LearnQuizFormat.singleChoice => 'single_choice',
+        LearnQuizFormat.multiChoice => 'multi_choice',
+        LearnQuizFormat.ranking => 'ranking',
+        LearnQuizFormat.freeText => 'free_text',
+      };
+
+  static LearnQuizFormat fromApiKey(String raw) => switch (raw) {
+        'single_choice' => LearnQuizFormat.singleChoice,
+        'multi_choice' => LearnQuizFormat.multiChoice,
+        'ranking' => LearnQuizFormat.ranking,
+        'free_text' => LearnQuizFormat.freeText,
+        _ => LearnQuizFormat.singleChoice,
+      };
+}
 
 class LearnArticlePayload {
   final String body;

@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
+import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/translated_tooltip.dart';
 import 'package:flutter/material.dart';
@@ -169,20 +170,28 @@ class _ViewSelectorState extends State<ViewSelector> {
             ),
           ],
           SizedBox(width: 8),
-          ...sortedCountries.map((country) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _buildCountryButton(
-                  context,
-                  flag: country.flag,
-                  name: country.countryName,
-                  isSelected: widget.currentView == DashboardView.country &&
-                      widget.selectedCountry == country.countryName,
-                  onTap: () => widget.onViewChanged(DashboardView.country,
-                      country: country.countryName),
-                  isUserCountry: widget.userCountry?.toLowerCase() ==
-                      country.countryName.toLowerCase(),
-                ),
-              )),
+          if (widget.activeCountries == null) ...[
+            const SizedBox(width: 8),
+            ShimmerContainer(height: 40, borderRadius: 30, width: 90),
+            const SizedBox(width: 8),
+            ShimmerContainer(height: 40, borderRadius: 30, width: 110),
+            const SizedBox(width: 8),
+            ShimmerContainer(height: 40, borderRadius: 30, width: 100),
+          ] else
+            ...sortedCountries.map((country) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _buildCountryButton(
+                    context,
+                    flag: country.flag,
+                    name: country.countryName,
+                    isSelected: widget.currentView == DashboardView.country &&
+                        widget.selectedCountry == country.countryName,
+                    onTap: () => widget.onViewChanged(DashboardView.country,
+                        country: country.countryName),
+                    isUserCountry: widget.userCountry?.toLowerCase() ==
+                        country.countryName.toLowerCase(),
+                  ),
+                )),
         ],
       ),
     );
