@@ -28,4 +28,4 @@ app:
   name: airqo-beacon
   label: beacon
   namespace: production
-  secret: prod-env-beacon
+  secret: prod-env-beacon-web
