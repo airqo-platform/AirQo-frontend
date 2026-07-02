@@ -1,20 +1,23 @@
 # Add an AirQo Device
 
-Adding a device registers it under your personal or organizational workspace, granting you ownership and management rights.
+Adding a device registers it under your personal or organizational workspace by importing the Cohort your AirQo network support contact assigns to you when your device is transferred to you.
 
 ## Prerequisites
 
 Before you begin, ensure you have:
-* The physical AirQo device or its packaging.
-* The **Device ID** or the **QR code** located on the device label.
-* A stable 2.4GHz Wi-Fi connection at the installation site.
+* The **Cohort ID** provided by your AirQo network support contact during your device transfer. If you don't have one yet, email [integrations@airqo.net](mailto:integrations@airqo.net) to request it.
+* Access to the correct workspace — your Personal Workspace, or the right Organization Workspace if adding on behalf of a team.
 
 ## Steps to Add
 
-1. In the left sidebar of the Vertex dashboard, click **Add Device**.
-2. Under the **Add Your Devices** section, locate the **Add Single Device** card and click **Start Setup →**.
-3. Follow the on-screen prompts to either enter the Device ID manually or use your camera to scan the QR code.
-4. Verify the device details and click **Confirm** to complete the Add.
+1. On the **My Devices** page, click **Add AirQo Device**.
+2. Select **Import from Cohort**.
+3. Enter the **Cohort ID** and continue. Vertex verifies the ID and shows the cohort name.
+4. Confirm the import to add the cohort's device(s) to your assets.
 
 > [!NOTE]
-> If you are Adding a device on behalf of an organization, ensure you have selected the correct Organization Workspace from the dropdown menu in the top right corner before starting the Add process.
+> If you're adding a device on behalf of an organization, ensure you've selected the correct Organization Workspace from the dropdown menu in the top right corner before starting.
+
+## What's Next
+
+- [**Deploy a Device to a Site**](./deploy-to-site.md) — Activate the device by linking it to a physical location.
