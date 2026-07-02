@@ -6,13 +6,12 @@ import Link from '@docusaurus/Link';
 
 # Overview
 
-Vertex is a robust, open device deployment and data sharing platform built by AirQo. It can help you:
+Vertex is AirQo's device deployment and data sharing platform. It can help you:
 
-- **Maintain a live inventory:** Track every device and physical site in a comprehensive registry with full metadata, giving you a single control room for your entire network.
-- **Manage logical groupings:** Organize your devices into cohorts to easily monitor, deploy, and configure specific clusters of sensors together.
-- **Control configurations remotely:** Oversee network-wide administrative controls and manage device configurations centrally, without needing to touch devices directly.
-- **Work offline or on local networks:** Use the dedicated desktop client designed for field engineers who need to manage devices without reliable internet access.
-- **Scale to any sensor deployment:** Adapt the device, site, and cohort models to any IoT scenario—from air quality to agriculture, utilities, and smart buildings—acting as a generic sensor network operations console.
+- **Maintain a live inventory:** Track every device and physical site in one registry, with full metadata for your fleet.
+- **Manage logical groupings:** Organize devices into cohorts to monitor, deploy, and configure clusters of sensors together.
+- **Bring in devices from any manufacturer:** Import and manage third-party sensors (like AirGradient) alongside your AirQo devices.
+- **Use a native desktop app:** Manage your devices from the Vertex Desktop app instead of a browser tab.
 
 <br />
 
