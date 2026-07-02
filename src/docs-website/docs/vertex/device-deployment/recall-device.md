@@ -18,4 +18,4 @@ Once recalled, the device's deployment status changes to **Recalled**, and it's 
 
 ## What's Next
 
-- [**Configuration**](../data-visibility/configuration.md) — Control whether your devices are visible on the public AirQo Map.
+- [**Public Visibility**](../data-visibility/public-visibility.md) — Control whether your devices are visible on the public AirQo Map.
