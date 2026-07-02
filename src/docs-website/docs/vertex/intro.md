@@ -1,6 +1,9 @@
 ---
 sidebar_position: 1
 ---
+
+import Link from '@docusaurus/Link';
+
 # Overview
 
 Vertex is a robust, open device deployment and data sharing platform built by AirQo. It can help you:
@@ -13,6 +16,6 @@ Vertex is a robust, open device deployment and data sharing platform built by Ai
 
 <br />
 
-<a className="button button--primary button--lg" href="./getting-started/for-individuals.md">Get started with Vertex</a>
+<Link className="button button--primary button--lg" style={{color: '#ffffff'}} to="/vertex/quickstart">Get started with Vertex</Link>
 
 
