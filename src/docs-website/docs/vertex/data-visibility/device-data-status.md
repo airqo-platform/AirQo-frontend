@@ -3,7 +3,7 @@ sidebar_position: 2
 ---
 # Device Data Status
 
-A device's data status shows whether it's currently sending data and whether that data is ready to use. This is separate from its deployment status and from its [public visibility](./public-visibility.md) — a Deployed, Private device can still show as Not Transmitting if it stops sending data.
+A device's data status shows whether it's currently sending data and whether that data is ready to use. This is separate from its deployment status and from [public visibility](./public-visibility.md) — a Deployed device in a Private cohort can still show as Not Transmitting if it stops sending data.
 
 ## The Four Statuses
 
@@ -25,5 +25,5 @@ A device's data status shows whether it's currently sending data and whether tha
 
 ## What's Next
 
-- [**Public Visibility**](./public-visibility.md) — Control whether a device's data is publicly visible, separate from whether it's currently available.
+- [**Public Visibility**](./public-visibility.md) — Control whether the cohort's data is publicly visible, separate from whether it's currently available.
 - [**Import Devices**](../third-party-sensors/import-devices.md) — Add a sensor from a different manufacturer to monitor alongside your AirQo devices.
