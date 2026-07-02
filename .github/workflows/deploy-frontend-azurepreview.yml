@@ -34,8 +34,16 @@ jobs:
         env:
           RAW: ${{ steps.string.outputs.lowercase }}
         run: |
-          CLEAN=$(printf '%s' "${RAW:0:12}" | sed 's/-*$//')
-          echo "sanitized=$CLEAN" >> $GITHUB_OUTPUT
+          SANITIZED=$(echo "$RAW" | sed 's/[^a-z0-9]/-/g; s/-\+/-/g; s/^-//; s/-$//')
+          if [ -z "$SANITIZED" ]; then
+            SANITIZED="pr${{ github.event.pull_request.number }}"
+          fi
+          if [[ ! "$SANITIZED" =~ ^[a-z] ]]; then
+            SANITIZED="a${SANITIZED}"
+          fi
+          SANITIZED="${SANITIZED:0:12}"
+          SANITIZED="${SANITIZED%-}"
+          echo "sanitized=$SANITIZED" >> $GITHUB_OUTPUT
 
   #########################################
   # DETECT CHANGED SERVICES

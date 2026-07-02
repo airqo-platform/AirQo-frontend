@@ -3,7 +3,7 @@ import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:airqo/src/app/auth/repository/social_auth_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
-import 'package:airqo/src/app/learn/repository/kya_repository.dart';
+import 'package:airqo/src/app/learn/repository/learn_repository.dart';
 import 'package:airqo/src/app/map/repository/map_repository.dart';
 import 'package:airqo/src/app/other/places/repository/google_places_repository.dart';
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
@@ -132,7 +132,7 @@ void main() {
                 authRepository: TestAuthRepository(),
                 socialAuthRepository: TestSocialAuthRepository(),
                 userRepository: UserImpl(),
-                kyaRepository: KyaImpl(),
+                kyaRepository: LearnRepositoryImpl(),
                 themeRepository: ThemeImpl(),
                 mapRepository: MapImpl(),
                 forecastRepository: ForecastImpl(),
@@ -158,7 +158,7 @@ void main() {
         authRepository: TestAuthRepository(),
         socialAuthRepository: TestSocialAuthRepository(),
         userRepository: UserImpl(),
-        kyaRepository: KyaImpl(),
+        kyaRepository: LearnRepositoryImpl(),
         themeRepository: ThemeImpl(),
         mapRepository: MapImpl(),
         forecastRepository: ForecastImpl(),
@@ -168,7 +168,7 @@ void main() {
 
       expect(widget.authRepository, isA<AuthRepository>());
       expect(widget.userRepository, isA<UserRepository>());
-      expect(widget.kyaRepository, isA<KyaRepository>());
+      expect(widget.kyaRepository, isA<LearnRepository>());
       expect(widget.themeRepository, isA<ThemeRepository>());
       expect(widget.mapRepository, isA<MapRepository>());
       expect(widget.forecastRepository, isA<ForecastRepository>());
