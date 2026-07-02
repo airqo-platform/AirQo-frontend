@@ -1,6 +1,6 @@
 {
   "name": "vertex-desktop",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "author": "AirQo",
   "repository": {
@@ -59,8 +59,8 @@
       "entitlements": "assets/entitlements.mac.plist",
       "entitlementsInherit": "assets/entitlements.mac.plist",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] },
-        { "target": "zip", "arch": ["x64", "arm64"] }
+        "dmg",
+        "zip"
       ]
     },
     "linux": {
