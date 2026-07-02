@@ -1,22 +1,21 @@
 # For Individuals (Personal Workspace)
 
-Every Vertex user automatically gets a **Personal Workspace**. Think of this as your private control center. Your Personal Workspace is the perfect sandbox to manage your devices and experiment before scaling up to a team environment.
+Every Vertex user automatically gets a Personal Workspace. It's the default, individual view tied to your account — separate from any Organization Workspace you might join or create later — and it's where you manage devices on your own, without needing a team.
 
-## Best Use Cases
-Your personal workspace is designed to help you:
-* **Contribute to open environmental data:** Deploy an outdoor monitor on your balcony or backyard and share your air quality data globally through AirQo's open data channels.
-* **Monitor indoor air quality:** Track the particulate matter in your own living space to understand your environment or even trigger smart home purifiers.
-* **Test and experiment with hardware:** Use this space as a sandbox to test custom data pipelines or connect third-party sensors before rolling them out to a larger organizational deployment.
+## What You Can Do with a Personal Workspace
 
-## How to Use Your Workspace
-Getting started as an individual is streamlined so you can connect your hardware in minutes.
+* **Contribute to open environmental data:** Deploy an outdoor monitor on your balcony or backyard and share the readings through AirQo's open data channels.
+* **Monitor indoor air quality:** Track particulate matter in your own space, or use the readings to trigger smart home purifiers.
+* **Test hardware before a larger rollout:** Validate a device or a sensor from a different manufacturer in your Personal Workspace before deploying it as part of an organization's fleet.
 
-1. **Verify Your Context:** Check the dropdown in the top right corner of the dashboard. Ensure that the **"AIRQO"** organization is selected, as this is where your Personal Workspace is located.
-2. **Deploy Your First Device:** Navigate to the device registry. You can either [Add an AirQo Device](../device-deployment/add-airqo-device.md) or [Import a Third-Party Sensor](../third-party-sensors/import-devices.md).
-3. **Pin a Location (Site):** For your sensor data to make sense, assign your device to a physical Site (e.g., "My Backyard" or "Living Room"). 
-4. **Group it Up:** Create a Cohort (like "Home Devices") and assign your device to it. This makes it easier to manage configurations, especially if you add a second sensor later.
+## Getting Started
 
-## 💡 Practical Tips
-* **Control Your Privacy:** Testing a sensor inside your living room? Keep the data visibility set to **Private**. Placing it outside on your roof? Change the visibility to **Public** to contribute your data globally through AirQo's open data channels.
-* **Future-Proofing:** Even if you only have one device right now, get into the habit of using Cohorts and Sites. If your project grows, you'll already have the right structure in place.
-* **Ready to Grow?** If your local community wants to pitch in and you need to invite collaborators, you can easily spin up an **Organization Workspace** and migrate your workflow there.
+1. **Confirm you're in your Personal Workspace:** Check the workspace dropdown in the top right corner of the dashboard. Your Personal Workspace is your default, individual view — if an Organization Workspace is selected instead, switch back.
+2. **Add your device:** Go to **My Devices** and [Add an AirQo Device](../device-deployment/add-airqo-device.md) by importing the Cohort ID your AirQo network support contact assigns you during your device transfer, or add a sensor from a different sensor manufacturer via [Import a Device](../third-party-sensors/import-devices.md).
+3. **Deploy the device:** [Deploy it to a Site](../device-deployment/deploy-to-site.md) to activate it. Deploying links the device to a physical location, e.g. "Home Backyard" or "Living Room," and changes its status to **Deployed**.
+
+## Ready to Scale Up?
+
+If you need to invite collaborators or manage devices as a team, create an Organization Workspace and migrate your setup there.
+
+- [**For Organizations**](./for-organizations.md) — Set up team access and manage a device fleet collaboratively.
