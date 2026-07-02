@@ -10,13 +10,7 @@ An Organization Workspace is built for teams that manage a fleet of devices coll
 
 ## Getting Started
 1. **Switch to your Organization Workspace:** Select your organization from the workspace dropdown in the top right corner of Vertex. *(If your organization doesn't exist yet, you'll need to initialize it through the AirQo Analytics platform first.)*
-2. **Invite your team and assign roles from AirQo Analytics:** Team management isn't done in Vertex — it's handled on the AirQo Analytics platform. Under your organization's **Management** section, open **Members** to invite people by email, and use **Roles & Permissions** to set their access level:
-
-   | Role | Access |
-   |---|---|
-   | **Organization Admin** | Full access to all settings and management features. |
-   | **Member** | Basic access to data and visualization tools. |
-   | **Viewer** | Read-only access to dashboards and data. |
+2. **Invite your team and assign roles from AirQo Analytics:** Team management isn't done in Vertex — it's handled on the AirQo Analytics platform. Under your organization's **Management** section, open **Members** to invite people by email, and use **Roles & Permissions** to create roles and control what each person can access. See the Analytics [Roles & Permissions guide](../../analytics/how-tos/platform-user-guide.md) for details.
 
 ## What to Do Next
 With your team invited and your workspace configured, you're ready to start managing hardware.
