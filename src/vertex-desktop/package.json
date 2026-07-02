@@ -5,7 +5,7 @@
   "author": "AirQo",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BwanikaRobert/AirQo-frontend.git"
+    "url": "https://github.com/airqo-platform/AirQo-frontend.git"
   },
   "description": "Electron desktop wrapper for AirQo Vertex",
   "main": "dist/main/index.js",
