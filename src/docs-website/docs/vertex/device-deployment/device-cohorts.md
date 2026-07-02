@@ -3,48 +3,44 @@ sidebar_position: 1
 ---
 # Device Cohorts
 
-As your fleet grows, managing devices individually becomes difficult. Vertex solves this using **Cohorts**.
+A Cohort is a named group of devices. Grouping devices this way lets you manage and share access to several of them at once, instead of one at a time.
 
----
+## What Is a Cohort
 
-## Explanation: Understanding Cohorts
-
-This section explains the concepts behind cohorts and how they fit into the Vertex architecture.
-
-### What is a Cohort?
-A Cohort is simply a logical group of devices. Unlike a "Site" (which groups devices by their physical geographic location), a Cohort groups devices based on your organizational needs. 
-
-For example, you might create cohorts for:
+Unlike a Site, which groups devices by physical location, a Cohort groups devices by your own organizational needs. For example, you might create cohorts for:
 * "School Project 2026"
 * "Low-Cost Sensors"
 * "Devices requiring maintenance"
 
-### Hierarchy and Ownership
-**Organizations own Cohorts, and Cohorts contain Devices.**
-Yes, a single Organization can have multiple Cohorts. Devices themselves are technically attached to the Organization, but the Cohort acts as a secondary layer that allows you to organize those devices into manageable clusters.
+## Cohort Ownership
 
-### Why use Cohorts?
-Grouping devices into cohorts allows you to perform bulk actions efficiently. Instead of changing the visibility settings of 50 individual devices, you can apply the setting to the entire cohort at once. Cohorts also make it easier to share specific slices of your data with external partners.
+Organizations own Cohorts, and Cohorts contain Devices. A single Organization can have multiple Cohorts, and a device can belong to more than one Cohort at a time. Devices themselves are attached to the Organization directly — the Cohort is a secondary layer for organizing them into manageable clusters.
 
----
+## Why Use Cohorts
 
-## How-To: Managing Cohorts
+Grouping devices into cohorts lets you perform bulk actions instead of updating devices one at a time. For example, instead of changing the visibility settings of 50 individual devices, you can apply the setting to the entire cohort at once. Cohorts also make it easier to share a defined slice of your data with external partners.
 
-This section provides actionable steps for interacting with cohorts in the Vertex dashboard.
+## Create a Cohort
 
-### Create a Cohort
 1. In the left sidebar under Data Access & Visibility, click **Cohorts**.
-2. Click the **Create Cohort** button.
-3. Enter a descriptive name for the cohort.
-4. Select the specific devices from your fleet that you want to include in this group.
-5. Click **Save** to create the cohort.
+2. Click **Create Cohort**.
+3. Select a **Sensor Manufacturer** — this determines which of your devices are available to add.
+4. (Optional) Add **Tags** to describe the cohort, e.g. Organizational, Individual, Hardware. Selecting the **Organizational** tag replaces the name field with **City**, **Project Name**, and an optional **Funder**, which Vertex combines into the cohort's name automatically.
+5. If you didn't select the Organizational tag, enter a **Cohort Name** directly.
+6. Select the devices to include, or paste in a list of device names to match them automatically.
+7. Click **Review & Create**, check the summary, then **Confirm & Create**.
 
 > [!TIP]
-> You can add a single device to multiple cohorts simultaneously.
+> You can add a single device to multiple cohorts at the same time.
 
-### Edit a Cohort
-If you need to modify an existing group, you can update it at any time.
+## Edit a Cohort
+
 1. Navigate to the **Cohorts** page from the left sidebar.
 2. Locate the cohort you wish to modify in the list and click on it.
-3. On the Cohort Details page, click the **Edit** button to add or remove devices, or change the name.
-4. Click **Save** to apply your changes.
+3. On the Cohort Details page, click **Edit**.
+4. Update the tags or name. If you rename a cohort tagged **Organizational**, you'll also need to enter an **Update Reason** before saving.
+5. Click **Save** to apply your changes.
+
+## What's Next
+
+- [**Add an AirQo Device**](./add-airqo-device.md) — Register a device under your workspace.
