@@ -28,4 +28,4 @@ app:
   name: airqo-stage-beacon
   label: beacon
   namespace: staging
-  secret: sta-env-beacon
+  secret: sta-env-beacon-web
