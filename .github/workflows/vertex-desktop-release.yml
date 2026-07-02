@@ -75,11 +75,7 @@ jobs:
       - name: Build and publish release artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          npx electron-builder --win nsis --publish always \
-            -c.publish.0.owner="${{ github.repository_owner }}" \
-            -c.publish.0.repo="${{ github.event.repository.name }}"
+        run: npx electron-builder --win nsis --publish always
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -152,10 +148,7 @@ jobs:
       - name: Build and publish release artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx electron-builder --mac --x64 --arm64 --publish always \
-            -c.publish.0.owner="${{ github.repository_owner }}" \
-            -c.publish.0.repo="${{ github.event.repository.name }}"
+        run: npx electron-builder --mac --x64 --arm64 --publish always
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
