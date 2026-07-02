@@ -2,6 +2,43 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.11
+**Released:** July 2, 2026
+
+### Vertex Desktop — macOS Code Signing, Notarization & CI Release Pipeline
+
+Added full macOS distribution support to the Vertex Desktop Electron app. Builds are now signed with a Developer ID certificate, notarized via Apple's notarytool, and published as downloadable `.dmg` artifacts through GitHub Actions on every `vertex-desktop-v*` tag push.
+
+<details>
+<summary><strong>macOS Code Signing & Notarization (2)</strong></summary>
+
+- **`scripts/notarize.js`** [NEW]: electron-builder `afterSign` hook that submits the signed `.app` to Apple's notarytool for notarization. Skips silently on local builds when Apple credentials are absent; throws in CI if any of `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, or `APPLE_TEAM_ID` are missing so an unnotarized build can never be published accidentally.
+- **electron-builder config**: Wired `notarize.js` as the `afterSign` hook and configured `CSC_LINK` / `CSC_KEY_PASSWORD` for Developer ID certificate injection at build time.
+
+</details>
+
+<details>
+<summary><strong>CI Release Pipeline (1)</strong></summary>
+
+- **`.github/workflows/vertex-desktop-release.yml`** [NEW]: Triggers on `vertex-desktop-v*` tag pushes (and `workflow_dispatch` for manual re-runs). Runs two parallel jobs — `build-and-publish-windows` (NSIS `.exe`) and `build-and-publish-macos` (signed + notarized `.dmg`) — both publishing artifacts to a GitHub Release at the triggering tag.
+
+</details>
+
+<details>
+<summary><strong>Required CI Secrets (macOS job)</strong></summary>
+
+| Secret | Purpose |
+|---|---|
+| `APPLE_ID` | Apple developer account email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarytool |
+| `APPLE_TEAM_ID` | 10-character Apple Developer Team ID |
+| `CSC_LINK` | Base64-encoded Developer ID `.p12` certificate |
+| `CSC_KEY_PASSWORD` | Password for the `.p12` |
+
+</details>
+
+---
+
 ## Version 2.0.9
 **Released:** June 30, 2026
 
