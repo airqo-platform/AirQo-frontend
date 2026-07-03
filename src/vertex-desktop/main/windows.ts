@@ -39,11 +39,6 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     window.show();
   });
 
-  window.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: "deny" };
-  });
-
   const appOrigin = new URL(startUrl).origin;
   window.webContents.on("will-navigate", (event, url) => {
     try {
