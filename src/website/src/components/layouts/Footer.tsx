@@ -269,7 +269,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="https://docs.airqo.net/airqo-rest-api-documentation/"
+                  href="https://platform.airqo.net/docs/api/intro/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-600 hover:underline"
