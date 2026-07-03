@@ -2,12 +2,37 @@ import path from "node:path";
 import { BrowserWindow, shell } from "electron";
 import { handleDeepLink } from "./deeplinks";
 
+const resolveApiOrigin = (): string | null => {
+  const raw =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    '';
+  try {
+    return raw ? new URL(raw).origin : null;
+  } catch {
+    return null;
+  }
+};
+
+const isOAuthUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    const apiOrigin = resolveApiOrigin();
+    const trustedOrigin = apiOrigin
+      ? parsed.origin === apiOrigin
+      : parsed.hostname === 'airqo.net' || parsed.hostname.endsWith('.airqo.net');
+    return trustedOrigin && parsed.pathname.includes('/users/auth/');
+  } catch {
+    return false;
+  }
+};
+
 export const setupAuthWindowHandler = (
   mainWindow: BrowserWindow,
   startUrl: string
 ): void => {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.includes("/users/auth/")) {
+    if (isOAuthUrl(url)) {
       const iconPath = process.env.VERTEX_DESKTOP_ICON_PATH
         ?? path.join(__dirname, "..", "..", "assets", "icon.png");
       return {
@@ -27,7 +52,7 @@ export const setupAuthWindowHandler = (
         },
       };
     }
-    shell.openExternal(url);
+    shell.openExternal(url).catch(() => { /* no-op: best-effort external open */ });
     return { action: "deny" };
   });
 
