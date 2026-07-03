@@ -314,25 +314,25 @@ const Footer = () => {
 
             <div className="flex flex-col gap-3">
               <Link
-                href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1776942291/website/docs/v1.0.3_-_AirQo_Researchers_Guide_jkmvkm.pdf"
+                href="https://platform.airqo.net/docs/data-access/researchers-guide/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 transition hover:border-blue-200 hover:text-blue-700"
               >
                 <span className="font-medium">Researchers Guide</span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 group-hover:text-blue-600">
-                  View PDF
+                  View Guide
                 </span>
               </Link>
               <Link
-                href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1776942291/website/docs/AirQo_Fair_Usage_Policy_ox4o6b.pdf"
+                href="https://platform.airqo.net/docs/data-access/fair-usage-policy/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 transition hover:border-blue-200 hover:text-blue-700"
               >
                 <span className="font-medium">Fair Usage Policy</span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 group-hover:text-blue-600">
-                  View PDF
+                  View Policy
                 </span>
               </Link>
             </div>

@@ -41,7 +41,10 @@ import {
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
-import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
+import {
+  trackFeatureUsage,
+  trackDataDownload,
+} from '@/shared/utils/enhancedAnalytics';
 import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
@@ -706,6 +709,30 @@ const DataExportPage = () => {
         active_tab: download.activeTab,
         save_format: format,
         fallback_applied: download.fallbackApplied,
+      });
+
+      trackDataDownload(posthog, {
+        dataType: dataType as 'calibrated' | 'raw',
+        fileType: format as 'csv' | 'json',
+        frequency: frequency as 'hourly' | 'daily' | 'monthly',
+        pollutants: selectedPollutants,
+        locationCount: download.locationCount,
+        startDate: dateRange?.from?.toISOString() || '',
+        endDate: dateRange?.to?.toISOString() || '',
+        durationDays: download.summaryItems.find(
+          item => item.label === 'Date range'
+        )
+          ? 1
+          : 0,
+        source: activeTab as 'sites' | 'devices' | 'countries' | 'cities',
+        datasetLabel: download.summaryItems.find(
+          item => item.label === 'Source'
+        )?.value,
+        timePeriodType:
+          download.summaryItems.find(item => item.label === 'Frequency')
+            ?.value === 'daily'
+            ? 'historical'
+            : 'real_time',
       });
 
       trackEvent('data_export_saved', {

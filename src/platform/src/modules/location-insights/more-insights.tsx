@@ -41,6 +41,8 @@ import { InfoBanner } from '@/shared/components/ui/banner';
 import { useUser } from '@/shared/hooks/useUser';
 import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
+import { usePostHog } from 'posthog-js/react';
+import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { toast } from '@/shared/components/ui/toast';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
@@ -54,6 +56,7 @@ const INITIAL_VISIBLE_SITES = 5; // Number of sites to show initially when dialo
 
 export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const dispatch = useDispatch();
+  const posthog = usePostHog();
 
   // Get state from Redux
   const selectedSites = useSelector(selectSelectedSites);
@@ -449,6 +452,21 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         };
 
         await downloadData(request);
+
+        trackDataDownload(posthog, {
+          dataType: dataTypeToUse,
+          fileType: 'csv',
+          frequency: frequency as 'hourly' | 'daily' | 'monthly',
+          pollutants: [pollutant],
+          locationCount: selectedSites.length,
+          startDate: startDateTime,
+          endDate: endDateTime,
+          durationDays: Math.ceil(
+            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+          ),
+          source: 'sites',
+        });
+
         toast.success(
           'Download Started',
           `Your ${dataTypeToUse} data download has been initiated successfully. The file will be downloaded shortly.`
@@ -461,7 +479,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         );
       }
     },
-    [selectedSites, dateRange, dataType, frequency, pollutant, downloadData]
+    [selectedSites, dateRange, dataType, frequency, pollutant, downloadData, posthog]
   );
 
   // Chart data will be handled internally via API calls
