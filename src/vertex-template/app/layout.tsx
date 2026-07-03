@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import logger from '@/lib/logger';
 import { vertexConfig } from '@/vertex.config';
+import { isAuthDisabled, createMockSession } from '@/core/auth/auth-mode';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -72,10 +73,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   let session = null;
-  try {
-    session = await getServerSession(options);
-  } catch (error) {
-    logger.error("Failed to fetch session:", { error });
+  if (isAuthDisabled) {
+    session = createMockSession();
+  } else {
+    try {
+      session = await getServerSession(options);
+    } catch (error) {
+      logger.error("Failed to fetch session:", { error });
+    }
   }
 
   const primaryRgb = hexToRgbValues(vertexConfig.org.primaryColor);

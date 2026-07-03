@@ -7,14 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
 import {
-  setUserDetails,
-  setActiveNetwork,
-  setActiveGroup,
-  setAvailableNetworks,
-  setUserGroups,
-  setInitialized,
   logout as logoutAction,
-  setUserContext,
   initializeUserData,
 } from '@/core/redux/slices/userSlice';
 import { users } from '@/core/apis/users';
@@ -32,10 +25,11 @@ import type {
   UserDetailsResponse,
   UserDetails,
 } from '@/app/types/users';
-import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
+import { adapter } from '@/core/adapters';
+import { isAuthDisabled, createMockSession } from './auth-mode';
 
 // --- Helper Functions ---
 
@@ -679,6 +673,82 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * Bootstraps the app when auth is disabled (auth.provider "none").
+ * Loads the current user from the configured adapter, hydrates the
+ * user store, and keeps auth-only routes out of reach.
+ */
+function NoAuthBootstrap({ children }: { children: React.ReactNode }) {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isInitialized, userContext, activeGroup } = useAppSelector(
+    (state) => state.user
+  );
+
+  // Login/auth-error pages have no purpose without an auth provider.
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
+  useEffect(() => {
+    if (isAuthRoute) {
+      router.replace('/home');
+    }
+  }, [isAuthRoute, router]);
+
+  useEffect(() => {
+    if (isInitialized) return;
+    let cancelled = false;
+
+    adapter
+      .getCurrentUser('current')
+      .then((data: UserDetailsResponse) => {
+        if (cancelled) return;
+
+        const userInfo = data?.users?.[0];
+        if (!userInfo) {
+          logger.error('[NoAuthBootstrap] Adapter returned no current user');
+          return;
+        }
+
+        const { groups, networks } = filterGroupsAndNetworks(userInfo);
+        const { defaultGroup, defaultNetwork, initialUserContext } =
+          determineInitialUserSetup(
+            userInfo,
+            groups,
+            networks,
+            userContext,
+            activeGroup,
+            getLastActiveGroupId(userInfo._id)
+          );
+
+        dispatch(
+          initializeUserData({
+            userDetails: userInfo,
+            groups,
+            availableNetworks: networks,
+            activeGroup: defaultGroup || null,
+            activeNetwork: defaultNetwork,
+            userContext: initialUserContext,
+          })
+        );
+      })
+      .catch((error: unknown) => {
+        logger.error('[NoAuthBootstrap] Failed to load current user', {
+          error: getApiErrorMessage(error),
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, isInitialized, userContext, activeGroup]);
+
+  if (isAuthRoute) {
+    return <SessionLoadingState />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
  * Main AuthProvider component
  */
 export function AuthProvider({
@@ -688,6 +758,21 @@ export function AuthProvider({
   children: React.ReactNode;
   session?: Session | null;
 }) {
+  if (isAuthDisabled) {
+    // Keep SessionProvider so useSession() consumers work, but with a
+    // static synthetic session: no token handoff, session refresh,
+    // route protection, or auto-logout.
+    return (
+      <SessionProvider
+        session={session ?? createMockSession()}
+        refetchOnWindowFocus={false}
+        refetchInterval={0}
+      >
+        <NoAuthBootstrap>{children}</NoAuthBootstrap>
+      </SessionProvider>
+    );
+  }
+
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
       <TokenHandoffHandler>

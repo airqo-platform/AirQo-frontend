@@ -4,6 +4,7 @@ import type { Site } from "@/app/types/sites";
 import type { UserDetails } from "@/app/types/users";
 import type { Network } from "@/core/apis/networks";
 import type { DeviceActivity } from "@/core/apis/devices";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const now = "2026-05-30T09:00:00.000Z";
 const yesterday = "2026-05-29T09:00:00.000Z";
@@ -19,15 +20,20 @@ export const mockPaginationMeta: PaginationMeta = {
   usedCache: false,
 };
 
+// Grant the demo admin every permission except system-level ones so the
+// whole app is explorable in mock mode. Derived from the RBAC constants
+// so the permission strings cannot drift out of sync.
+const demoPermissions = Object.entries(PERMISSIONS)
+  .filter(([group]) => group !== "SYSTEM")
+  .flatMap(([, group]) => Object.values(group));
+
 export const mockRole = {
   _id: "role-demo-admin",
   role_name: "DEMO_ADMIN",
-  role_permissions: [
-    { _id: "perm-device-view", permission: "DEVICE.VIEW" },
-    { _id: "perm-device-deploy", permission: "DEVICE.DEPLOY" },
-    { _id: "perm-site-view", permission: "SITE.VIEW" },
-    { _id: "perm-site-create", permission: "SITE.CREATE" },
-  ],
+  role_permissions: demoPermissions.map((permission) => ({
+    _id: `perm-${permission.toLowerCase().replace(/_/g, "-")}`,
+    permission,
+  })),
 };
 
 export const mockNetworks: Network[] = [

@@ -347,6 +347,148 @@ export const mockAdapter: VertexAdapter = (() => {
     async getNetworks() {
       return clone(mockNetworks);
     },
+
+    async getDevicesByCohorts(params, signal) {
+      assertNotAborted(signal);
+      const { cohort_ids, limit = 100, skip = 0, ...rest } = params;
+      const devices = filterDevices(rest).filter((device) =>
+        device.cohorts?.some(
+          (cohort) => typeof cohort === "string" && cohort_ids.includes(cohort),
+        ),
+      );
+
+      return {
+        success: true,
+        message: "Mock cohort devices loaded successfully",
+        devices: clone(paginate(devices, limit, skip)),
+        meta: createMeta(devices.length, limit, skip),
+      };
+    },
+
+    async getSitesByCohorts(params, signal) {
+      assertNotAborted(signal);
+      const { cohort_ids, limit = 100, skip = 0, ...rest } = params;
+      const cohortSiteIds = new Set(
+        mockDevices
+          .filter((device) =>
+            device.cohorts?.some(
+              (cohort) =>
+                typeof cohort === "string" && cohort_ids.includes(cohort),
+            ),
+          )
+          .map((device) => device.site_id)
+          .filter(Boolean),
+      );
+      const sites = filterSites(rest).filter((site) =>
+        cohortSiteIds.has(site._id),
+      );
+
+      return {
+        success: true,
+        message: "Mock cohort sites loaded successfully",
+        sites: clone(paginate(sites, limit, skip)),
+        meta: createMeta(sites.length, limit, skip),
+      };
+    },
+
+    async getCohortsSummary(params = {}, signal) {
+      assertNotAborted(signal);
+      const cohorts = filterCohorts(params);
+      const limit = params.limit ?? 100;
+      const skip = params.skip ?? 0;
+
+      return {
+        success: true,
+        message: "Mock cohorts loaded successfully",
+        cohorts: clone(paginate(cohorts, limit, skip)),
+        meta: createMeta(cohorts.length, limit, skip),
+      };
+    },
+
+    async getUserCohortsSummary(params = {}, signal) {
+      assertNotAborted(signal);
+      const cohorts = filterCohorts(params);
+      const limit = params.limit ?? 100;
+      const skip = params.skip ?? 0;
+
+      return {
+        success: true,
+        message: "Mock user cohorts loaded successfully",
+        cohorts: clone(paginate(cohorts, limit, skip)),
+        meta: createMeta(cohorts.length, limit, skip),
+      };
+    },
+
+    async getCohortDetailsApi(cohortId) {
+      const cohort = mockCohorts.find(
+        (item) => item._id === cohortId || item.name === cohortId,
+      );
+
+      if (!cohort) {
+        throw new Error(`Mock cohort not found: ${cohortId}`);
+      }
+
+      return {
+        success: true,
+        message: "Mock cohort loaded successfully",
+        cohorts: [clone(cohort)],
+      };
+    },
+
+    async verifyCohortIdApi(cohortId) {
+      const cohort = mockCohorts.find(
+        (item) => item._id === cohortId || item.name === cohortId,
+      );
+
+      if (!cohort) {
+        throw new Error(`Mock cohort not found: ${cohortId}`);
+      }
+
+      return {
+        success: true,
+        message: "Mock cohort verified successfully",
+        cohort: clone(cohort),
+      };
+    },
+
+    async getGroupCohorts() {
+      return {
+        success: true,
+        message: "Mock group cohorts loaded successfully",
+        data: mockCohorts.map((cohort) => cohort._id),
+      };
+    },
+
+    async getPersonalUserCohorts() {
+      return {
+        success: true,
+        message: "Mock personal cohorts loaded successfully",
+        cohorts: mockCohorts.map((cohort) => cohort._id),
+      };
+    },
+
+    async getGroupsApi() {
+      return {
+        success: true,
+        message: "Mock groups loaded successfully",
+        groups: clone(mockUser.groups ?? []),
+      };
+    },
+
+    async getGroupDetailsApi(groupId) {
+      const group =
+        mockUser.groups?.find((item) => item._id === groupId) ??
+        mockUser.groups?.[0];
+
+      return {
+        success: true,
+        message: "Mock group loaded successfully",
+        group: {
+          ...clone(group),
+          onboarding_checklist: { completed_steps: [], is_dismissed: false },
+        },
+      };
+    },
   };
 
   return new Proxy(coreMocks as VertexAdapter, {
