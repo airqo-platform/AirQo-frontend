@@ -38,7 +38,7 @@ export const networkService = {
         throw new Error("NOT_FOUND");
       }
       
-      const err: any = new Error(message);
+      const err = new Error(message) as Error & { status?: number };
       err.status = status;
       throw err;
     }
@@ -53,14 +53,14 @@ export const networkService = {
     notes: string, 
     token: string, 
     adminSecret: string
-  ): Promise<any> => {
+  ): Promise<unknown> => {
     try {
       const baseUrl = getApiBaseUrl();
       // Try putting admin_secret in both URL and body to be safe, 
-      // as some AirQo endpoints require it in one or the other.
+      // as some backend endpoints require it in one or the other.
       const url = `${baseUrl}/devices/network-creation-requests/${id}/${action}?admin_secret=${adminSecret.trim()}`;
       
-      const payload: Record<string, any> = {
+      const payload: Record<string, string> = {
         admin_secret: adminSecret.trim(),
       };
 
@@ -83,7 +83,7 @@ export const networkService = {
 
       logger.error(`Error updating network request status: ${message}`, { status, data });
       
-      const err = new Error(message) as Error & { status?: number; data?: any };
+      const err = new Error(message) as Error & { status?: number; data?: unknown };
       err.status = status;
       err.data = data;
       throw err;

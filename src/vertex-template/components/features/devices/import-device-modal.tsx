@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { EXPECTED_FIELDS } from "./import-steps/types";
 import type { ImportDeviceFormData } from "./import-steps/types";
 import dynamic from "next/dynamic";
+import { adapter } from '@/core/adapters';
 
 const StepLoader = () => (
   <div className="flex justify-center items-center py-12">
@@ -486,8 +487,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       user_id: userId,
       ...(selectedCohortId && { cohort_id: selectedCohortId }),
       ...(formData.network && { network_override: formData.network }),
-      devices: transformedPreview
-    };
+      devices: transformedPreview,
+    } as Parameters<typeof adapter.importBulkDevicesJSON>[0];
 
     bulkImport.mutate(
       { type: 'json', payload },

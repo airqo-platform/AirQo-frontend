@@ -7,6 +7,7 @@ import {
   CohortsSummaryResponse,
   GroupCohortsResponse,
 } from '@/app/types/cohorts';
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 interface ErrorResponse {
   message: string;
@@ -143,7 +144,7 @@ export const usePersonalUserCohorts = (
         const result = verifyResults[idx];
         if (!result) return false;
         const name = (result?.cohort?.name || '').toLowerCase();
-        return name !== 'airqo';
+        return !isSystemGroupTitle(name);
       });
 
       return filteredIds;

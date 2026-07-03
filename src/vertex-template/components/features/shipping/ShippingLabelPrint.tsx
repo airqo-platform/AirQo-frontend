@@ -2,6 +2,7 @@ import React from 'react';
 import { ShippingLabel } from '@/app/types/devices';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import Image from 'next/image';
+import { vertexConfig } from '@/vertex.config';
 
 interface ShippingLabelPrintProps {
     labels: ShippingLabel[];
@@ -23,7 +24,7 @@ const ShippingLabelPrint: React.FC<ShippingLabelPrintProps> = ({ labels }) => {
             {labels.map((label, index) => (
                 <div key={index} className="shipping-label">
                     <div className="label-header">
-                        <h2>AirQo Air Quality Monitor</h2>
+                        <h2>{`${vertexConfig.org.name} Monitor`}</h2>
                     </div>
 
                     <div className="device-info">

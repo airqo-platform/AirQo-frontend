@@ -1,6 +1,5 @@
 import type {
   Device,
-  DeviceClaimRequest,
   MaintenanceLogData,
   PaginationMeta,
 } from "@/app/types/devices";
@@ -21,8 +20,6 @@ import {
 } from "./mock-fixtures";
 import type {
   CreateDeviceInput,
-  CreateSiteInput,
-  DateRange,
   DeviceDeployInput,
   DeviceRecallInput,
 
@@ -119,7 +116,7 @@ export const mockAdapter: VertexAdapter = (() => {
         users: [clone(mockUser)],
       };
     },
-    async login(credentials) {
+    async login() {
       return {
         success: true,
         message: "Mock login successful",
@@ -348,6 +345,54 @@ export const mockAdapter: VertexAdapter = (() => {
       return clone(mockNetworks);
     },
 
+    async getMyDevices(userId, groupIds, cohortIds) {
+      let devices = mockDevices;
+
+      if (cohortIds && cohortIds.length > 0) {
+        devices = devices.filter((device) =>
+          device.cohorts?.some(
+            (cohort) => typeof cohort === "string" && cohortIds.includes(cohort),
+          ),
+        );
+      } else if (groupIds && groupIds.length > 0) {
+        devices = devices.filter((device) =>
+          device.groups?.some((group) => groupIds.includes(group)),
+        );
+      }
+
+      return {
+        success: true,
+        message: "Mock my-devices loaded successfully",
+        devices: clone(devices),
+        total_devices: devices.length,
+        deployed_devices: devices.filter(
+          (device) => device.status === "deployed",
+        ).length,
+      };
+    },
+
+    async getSitesSummaryCount(params = {}) {
+      const sites = filterSites(params);
+
+      return {
+        message: "Mock site count loaded successfully",
+        summary: {
+          total_sites: sites.length,
+          operational: sites.filter((site) => site.isOnline).length,
+          transmitting: sites.filter((site) => site.isOnline).length,
+          not_transmitting: sites.filter((site) => !site.isOnline).length,
+          data_available: sites.length,
+        },
+      };
+    },
+
+    async getDeviceStatusFeed() {
+      return {
+        isCache: false,
+        created_at: new Date().toISOString(),
+      };
+    },
+
     async getDevicesByCohorts(params, signal) {
       assertNotAborted(signal);
       const { cohort_ids, limit = 100, skip = 0, ...rest } = params;
@@ -491,15 +536,24 @@ export const mockAdapter: VertexAdapter = (() => {
     },
   };
 
+  // Unimplemented methods fail loudly so contributors can tell what the
+  // mock adapter actually supports. Add missing methods to coreMocks above.
   return new Proxy(coreMocks as VertexAdapter, {
     get(target, prop, receiver) {
       if (prop in target) {
         return Reflect.get(target, prop, receiver);
       }
-      return async (...args: any[]) => {
-        console.warn(`[Mock Adapter] Method '${String(prop)}' is not implemented.`);
-        return { success: true, message: `Mocked call to ${String(prop)}` };
+      // Runtime protocol probes (e.g. awaiting the adapter, serialization)
+      // must not turn into fake adapter methods.
+      if (typeof prop === "symbol" || prop === "then" || prop === "toJSON") {
+        return undefined;
+      }
+      return async () => {
+        throw new Error(
+          `[Mock Adapter] '${String(prop)}' is not implemented. ` +
+            "Implement it in core/adapters/mock.ts to support this feature in mock mode.",
+        );
       };
-    }
+    },
   });
 })();

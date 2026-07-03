@@ -20,12 +20,12 @@ export const metadata: Metadata = {
     template: `%s | ${vertexConfig.org.name}`,
     default: vertexConfig.org.name,
   },
-  description: vertexConfig.org.name + " is a leading air quality monitoring platform.",
+  description: vertexConfig.org.name + " is a platform for managing IoT sensor networks.",
   keywords: [
-    'air quality',
+    'iot',
+    'sensors',
     'monitoring',
     'analytics',
-    'environment',
     'data',
     'management',
     'device',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   publisher: vertexConfig.org.name,
   openGraph: {
     title: vertexConfig.org.name,
-    description: "Leading air quality device management platform",
+    description: "IoT device management platform",
     type: 'website',
     url: vertexConfig.org.websiteUrl,
     images: [
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: vertexConfig.org.name,
-    description: "Leading air quality device management platform",
+    description: "IoT device management platform",
     images: ['/favicon.ico'],
   },
   icons: {

@@ -30,6 +30,7 @@ import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
 import { adapter } from '@/core/adapters';
 import { isAuthDisabled, createMockSession } from './auth-mode';
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 // --- Helper Functions ---
 
@@ -37,7 +38,7 @@ function filterGroupsAndNetworks(
   userInfo: UserDetails
 ): { groups: Group[]; networks: Network[] } {
   // Return all groups and networks regardless of staff status
-  // AirQo should be visible to all users as the default organization
+  // The system group should be visible to all users as the default organization
   return {
     groups: userInfo.groups || [],
     networks: userInfo.networks || [],
@@ -60,8 +61,8 @@ function determineInitialUserSetup(
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
-    if (airqoGroup) {
+    const systemGroup = filteredGroups.find((g) => isSystemGroupTitle(g.grp_title));
+    if (systemGroup) {
       // Logic for manual personal mode
     } else {
       return { initialUserContext: 'personal' };
@@ -86,9 +87,9 @@ function determineInitialUserSetup(
     }
   }
 
-  // 3. Fallback to AirQo or first available group
+  // 3. Fallback to the system group or first available group
   if (!defaultGroup && !activeGroup) {
-    defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
+    defaultGroup = filteredGroups.find((g) => isSystemGroupTitle(g.grp_title)) || filteredGroups[0];
   } else if (!defaultGroup) {
     defaultGroup = filteredGroups[0];
   }
@@ -100,7 +101,7 @@ function determineInitialUserSetup(
 
   let initialUserContext: 'personal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
+    if (isSystemGroupTitle(defaultGroup.grp_title)) {
       initialUserContext = 'personal';
     } else {
       initialUserContext = 'external-org';

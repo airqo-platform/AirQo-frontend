@@ -259,7 +259,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                     <div className="space-y-3">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Add Device Names</label>
                         <div className="flex gap-2">
-                            <div className="flex-1"><ReusableInputField value={currentInput} onChange={(e) => setCurrentInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Enter device name (e.g. airqo_g5241) and press Enter or Add" className="w-full" /></div>
+                            <div className="flex-1"><ReusableInputField value={currentInput} onChange={(e) => setCurrentInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Enter device name (e.g. sensor_g5241) and press Enter or Add" className="w-full" /></div>
                             <ReusableButton Icon={AqPlus} onClick={handleAddDevice} disabled={!currentInput.trim()} variant="outlined">Add</ReusableButton>
                             <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileImport} className="hidden" />
                             <ReusableButton Icon={AqUploadCloud02} onClick={() => fileInputRef.current?.click()} disabled={isImporting} loading={isImporting} variant="outlined">Import</ReusableButton>

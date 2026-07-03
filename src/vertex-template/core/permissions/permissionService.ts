@@ -1,5 +1,6 @@
 import { UserDetails, Network, Group } from "@/app/types/users";
 import { PERMISSIONS, Permission, mapLegacyPermission } from "./constants";
+import { isSystemGroupTitle } from "@/core/config/system-group";
 
 // Access context for permission checking
 export interface AccessContext {
@@ -226,15 +227,13 @@ class PermissionService {
   }
 
   /**
-   * Get user's AirQo group (if they have one)
-   * This is useful for private context permission checks
+   * Get the user's system group (if they belong to one).
+   * This is useful for private context permission checks.
    */
-  getAirQoGroup(user: UserDetails): Group | undefined {
+  getSystemGroup(user: UserDetails): Group | undefined {
     if (!user.groups) return undefined;
-    
-    return user.groups.find((group) => 
-      group.grp_title.toLowerCase() === 'airqo'
-    );
+
+    return user.groups.find((group) => isSystemGroupTitle(group.grp_title));
   }
 
   /**
@@ -400,7 +399,7 @@ class PermissionService {
       [PERMISSIONS.DEVICE.MAINTAIN]: "Perform device maintenance",
       [PERMISSIONS.DEVICE.UPDATE]: "Update device configuration",
       [PERMISSIONS.DEVICE.DELETE]: "Delete device records",
-      [PERMISSIONS.DEVICE.CLAIM]: "Add AirQo device",
+      [PERMISSIONS.DEVICE.CLAIM]: "Add device",
 
       [PERMISSIONS.SITE.VIEW]: "View site information",
       [PERMISSIONS.SITE.CREATE]: "Create new sites",

@@ -5,6 +5,7 @@ import { ShippingLabel } from '@/app/types/devices';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import { Printer } from 'lucide-react';
 import Image from 'next/image';
+import { vertexConfig } from '@/vertex.config';
 
 interface ShippingLabelPrintModalProps {
     labels: ShippingLabel[];
@@ -46,7 +47,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Shipping Labels - AirQo</title>
+                <title>Shipping Labels - ${vertexConfig.org.shortName}</title>
                 <style>
                     * {
                         margin: 0;
@@ -156,7 +157,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                     ${labels.map(label => `
                         <div class="shipping-label">
                             <div class="label-header">
-                                <h2>AirQo Air Quality Monitor</h2>
+                                <h2>${vertexConfig.org.name} Monitor</h2>
                             </div>
                             <div class="device-info">
                                 <p><strong>Device ID:</strong> ${escapeHtml(label.device_id)}</p>
@@ -218,7 +219,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                 {labels.map((label, index) => (
                     <div key={index} className="shipping-label">
                         <div className="label-header">
-                            <h2 className="text-xl font-bold">AirQo Air Quality Monitor</h2>
+                            <h2 className="text-xl font-bold">{`${vertexConfig.org.name} Monitor`}</h2>
                         </div>
 
                         <div className="device-info my-4">

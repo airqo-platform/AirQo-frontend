@@ -86,7 +86,7 @@ export const defaultVertexConfig: VertexConfigInput = {
     name: "Vertex Demo",
     shortName: "Vertex",
     slug: "vertex-demo",
-    logo: "/images/airqo_logo.svg",
+    logo: "/images/vertex_logo.svg",
     primaryColor: "#145FFF",
     supportEmail: "support@example.org",
     websiteUrl: "",

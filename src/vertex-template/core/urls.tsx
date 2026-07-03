@@ -1,11 +1,7 @@
 import { stripTrailingSlash } from "@/lib/utils";
+import { vertexConfig } from "@/vertex.config";
 
-const isProduction =
-  process.env.NEXT_PUBLIC_ENV === "production" ||
-  process.env.NODE_ENV === "production";
-const DEFAULT_ANALYTICS_BASE_URL = isProduction 
-  ? "https://analytics.airqo.net" 
-  : "https://staging-analytics.airqo.net";
+const DEFAULT_ANALYTICS_BASE_URL = vertexConfig.links.analyticsUrl || "";
 
 export const BASE_API_URL = stripTrailingSlash(
   process.env.NEXT_PUBLIC_API_URL || ""

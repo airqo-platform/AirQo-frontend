@@ -1,4 +1,4 @@
-// Permission constants for AirQo RBAC system
+// Permission constants for the Vertex RBAC system
 export const PERMISSIONS = {
   // System-level permissions
   SYSTEM: {
@@ -111,7 +111,7 @@ export const PERMISSIONS = {
 export const ROLES = {
   AIRQO_SUPER_ADMIN: {
     name: 'AIRQO_SUPER_ADMIN',
-    displayName: 'AirQo Super Administrator',
+    displayName: 'System Super Administrator',
     permissions: Object.values(PERMISSIONS).flat(),
     canOverrideOrganization: true,
     systemWide: true,
@@ -121,7 +121,7 @@ export const ROLES = {
   
   AIRQO_ADMIN: {
     name: 'AIRQO_ADMIN',
-    displayName: 'AirQo Administrator',
+    displayName: 'System Administrator',
     permissions: [
       ...Object.values(PERMISSIONS.ORGANIZATION),
       ...Object.values(PERMISSIONS.GROUP),
@@ -161,7 +161,7 @@ export const ROLES = {
 
   AIRQO_NETWORK_ADMIN: {
     name: 'AIRQO_NETWORK_ADMIN',
-    displayName: 'AirQo Network Administrator',
+    displayName: 'System Network Administrator',
     permissions: [
       ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.DEVICE),

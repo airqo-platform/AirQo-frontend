@@ -254,7 +254,7 @@ export default function LoginPage() {
                 <span className="block">Share your data</span>
               </h1>
               <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Add your devices and stream live air quality data through {vertexConfig.org.name}&apos;s open data channels.
+                Add your devices and stream live sensor data through {vertexConfig.org.name}&apos;s open data channels.
               </p>
             </div>
 

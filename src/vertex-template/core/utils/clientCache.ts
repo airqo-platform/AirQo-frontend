@@ -1,9 +1,9 @@
 "use client";
 
 const CLIENT_CACHE_VERSION = "2026-04-30.1";
-const CLIENT_CACHE_VERSION_KEY = "airqo:vertex:client-cache:version";
-const QUERY_CACHE_PREFIX = "airqo:vertex:react-query:";
-const CACHE_VERSION_MISMATCH_LOG_KEY = "airqo:vertex:cache-version-mismatch:last";
+const CLIENT_CACHE_VERSION_KEY = "vertex:client-cache:version";
+const QUERY_CACHE_PREFIX = "vertex:react-query:";
+const CACHE_VERSION_MISMATCH_LOG_KEY = "vertex:cache-version-mismatch:last";
 
 const ENABLE_PERSISTED_CLIENT_CACHE = true;
 

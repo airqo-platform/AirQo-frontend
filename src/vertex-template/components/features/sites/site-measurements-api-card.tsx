@@ -4,6 +4,9 @@ import { Copy } from "lucide-react";
 import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
+import { vertexConfig } from '@/vertex.config';
+const MEASUREMENTS_API_BASE = (vertexConfig.api.publicMeasurementsBaseUrl || "https://api.example.com").replace(/\/$/, "");
+
 interface SiteMeasurementsApiCardProps {
     siteId: string;
 }
@@ -17,14 +20,14 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                 <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Recent Measurements API</div>
                 <div className="flex items-center gap-2">
                     <div className="text-sm font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-                        {`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`}
+                        {`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`}
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
                         className="hover:bg-transparent"
                         onClick={() => {
-                            navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`);
+                            navigator.clipboard.writeText(`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/sites/${siteId}/recent?token=YOUR_TOKEN`);
                             ReusableToast({ message: "Copied", type: "SUCCESS" });
                         }}
                     >
@@ -37,14 +40,14 @@ const SiteMeasurementsApiCard: React.FC<SiteMeasurementsApiCardProps> = ({ siteI
                 <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Historical Measurements API</div>
                 <div className="flex items-center gap-2">
                     <div className="text-sm font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-                        {`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`}
+                        {`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`}
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
                         className="hover:bg-transparent"
                         onClick={() => {
-                            navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`);
+                            navigator.clipboard.writeText(`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/sites/${siteId}/historical?token=YOUR_TOKEN`);
                             ReusableToast({ message: "Copied", type: "SUCCESS" });
                         }}
                     >

@@ -6,6 +6,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01 } from "@airqo/icons-react";
 import { Grid } from "@/app/types/grids";
 import { useClipboard } from "@/core/hooks/useClipboard";
+import { vertexConfig } from '@/vertex.config';
 
 interface GridMeasurementsApiCardProps {
     grid: Grid;
@@ -19,7 +20,7 @@ const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid,
         return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
 
-    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.airqo.net").replace(/\/$/, "");
+    const apiBase = (vertexConfig.api.publicMeasurementsBaseUrl || "https://api.example.com").replace(/\/$/, "");
     const recentApiUrl = `${apiBase}/api/v2/devices/measurements/${grid._id}`;
     const historicalApiUrl = `${apiBase}/api/v2/devices/measurements/grids/${grid._id}`;
 

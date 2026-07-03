@@ -9,8 +9,9 @@ import React, {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { vertexConfig } from '@/vertex.config';
 
-const APP_TITLE = "AirQo Vertex";
+const APP_TITLE = vertexConfig.org.name;
 
 interface PageTitleValue {
   title: string;

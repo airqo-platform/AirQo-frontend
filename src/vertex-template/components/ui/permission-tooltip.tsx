@@ -1,5 +1,6 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { vertexConfig } from '@/vertex.config';
 
 interface PermissionTooltipProps {
   permission?: string;
@@ -12,7 +13,7 @@ interface PermissionTooltipProps {
 const PermissionTooltip: React.FC<PermissionTooltipProps> = ({
   permission,
   permissions,
-  learnMoreUrl = "https://docs.airqo.net/platform/access-control", // Default docs link
+  learnMoreUrl = vertexConfig.links.docsUrl || "#", // Default docs link
   children,
   message = "You need permissions for this action.",
 }) => {

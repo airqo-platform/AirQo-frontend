@@ -20,6 +20,7 @@ import { useDevices, DeviceListingOptions } from "@/core/hooks/useDevices";
 import { getColumns, type TableDevice } from "./utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import BulkEditDevicesModal from "./bulk-edit-device-details-modal";
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 interface DevicesTableProps {
   itemsPerPage?: number;
@@ -41,7 +42,7 @@ export default function DevicesTable({
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [bulkEditDeviceIds, setBulkEditDeviceIds] = useState<string[]>([]);
   const { userContext, activeGroup } = useUserContext();
-  const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
+  const isInternalView = userContext === "personal" && isSystemGroupTitle(activeGroup?.grp_title);
 
   const searchParams = useSearchParams();
   const status = searchParams.get("status");

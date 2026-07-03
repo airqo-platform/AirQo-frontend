@@ -2,6 +2,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useMemo } from "react";
+import type { Group, UserDetails } from "@/app/types/users";
 
 export interface SidebarConfig {
   title: string;
@@ -24,8 +25,8 @@ export interface UserContextState {
   userContext: 'personal' | 'external-org' | null;
   userScope: 'personal' | 'organisation' | null;
   canSwitchContext: boolean;
-  activeGroup: any;
-  userDetails: any;
+  activeGroup: Group | null;
+  userDetails: UserDetails | null;
   
   // Loading states
   isLoading: boolean;
@@ -44,7 +45,7 @@ export interface UserContextState {
   
   // Methods
   getSidebarConfig: () => SidebarConfig;
-  getContextPermissions: () => any;
+  getContextPermissions: () => Record<string, boolean | undefined>;
 }
 
 export const useUserContext = (): UserContextState => {
@@ -115,14 +116,14 @@ export const useUserContext = (): UserContextState => {
 
   // Determine user scope based on permissions
   // External orgs ALWAYS use organisation scope
-  // Only AirQo uses permission-based personal vs organisation scope
+  // Only the system group uses permission-based personal vs organisation scope
   const userScope = useMemo(() => {
     // External organisations ALWAYS use organisation scope
     if (userContext === 'external-org') {
       return 'organisation';
     }
     
-    // AirQo internal context and Personal context use personal scope
+    // System-group internal context and Personal context use personal scope
     // We treat 'personal' context as personal scope regardless of permissions for now
     // Permissions just toggle sidebar visibility
     return 'personal';

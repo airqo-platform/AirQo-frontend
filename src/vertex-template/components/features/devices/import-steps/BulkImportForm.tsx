@@ -7,6 +7,7 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEVICE_CATEGORIES, DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import type { ImportDeviceFormData } from "./types";
 import type { Network } from "@/core/apis/networks";
+import { isSystemNetworkName } from '@/core/config/system-group';
 
 interface BulkImportFormProps {
   bulkFile: File | null;
@@ -65,7 +66,7 @@ export const BulkImportForm: React.FC<BulkImportFormProps> = ({
             disabled={isLoadingNetworks}
           >
             {networks
-              .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+              .filter((network) => !isSystemNetworkName(network.net_name))
               .map((network) => (
                 <option key={network.net_name} value={network.net_name}>
                   {network.net_name}

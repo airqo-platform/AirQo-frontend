@@ -10,7 +10,7 @@ const config: VertexConfigInput = {
     name: "KCCA Air Quality",
     shortName: "KCCA",
     slug: "kcca-air",
-    logo: "/logo.png",
+    logo: "/images/vertex_logo.svg",
     primaryColor: "#00A86B",
     supportEmail: "support@kcca.go.ug",
     websiteUrl: "https://www.kcca.go.ug",
