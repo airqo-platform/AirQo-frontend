@@ -4,7 +4,7 @@
 
 ---
 
-## Version 0.1.9
+## Version 0.1.11
 **Released:** July 03, 2026
 
 ### Social OAuth in Electron Window

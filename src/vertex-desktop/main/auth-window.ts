@@ -57,6 +57,11 @@ export const setupAuthWindowHandler = (
   });
 
   mainWindow.webContents.on("did-create-window", (childWindow) => {
+    childWindow.webContents.setWindowOpenHandler(({ url }) => {
+      shell.openExternal(url).catch(() => {});
+      return { action: "deny" };
+    });
+
     const interceptDeepLink = (event: { preventDefault: () => void }, url: string) => {
       if (!url.startsWith("vertex://")) return;
       event.preventDefault();

@@ -51,7 +51,5 @@ export const createMainWindow = ({ startUrl, preloadPath }: CreateWindowArgs): B
     }
   });
 
-  window.loadURL(startUrl);
-
   return window;
 };

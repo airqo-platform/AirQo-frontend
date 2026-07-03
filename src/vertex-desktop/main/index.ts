@@ -36,6 +36,7 @@ const createWindow = (): void => {
   process.env.VERTEX_DESKTOP_ICON_PATH = getAssetPath("icon.png");
   mainWindow = createMainWindow({ startUrl, preloadPath });
   setupAuthWindowHandler(mainWindow, startUrl);
+  void mainWindow.loadURL(startUrl);
   setAutoUpdateWindow(mainWindow);
   const offlinePagePath = getAssetPath("offline.html");
 
