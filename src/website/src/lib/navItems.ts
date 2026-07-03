@@ -103,7 +103,7 @@ export const NAV_ITEMS: NavMenuSection = {
     {
       title: 'Documentation',
       description: 'API guides and technical resources',
-      href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
+      href: 'https://platform.airqo.net/docs/api/intro/',
       newTab: true,
     },
     {
