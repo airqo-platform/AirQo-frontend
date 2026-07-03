@@ -1,6 +1,6 @@
 {
   "name": "vertex-desktop",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "private": true,
   "author": "AirQo",
   "repository": {
@@ -50,6 +50,7 @@
         "nsis"
       ]
     },
+    "afterSign": "scripts/notarize.js",
     "mac": {
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
@@ -85,6 +86,7 @@
     "electron-updater": "^6.6.2"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "@types/node": "^20.19.11",
     "concurrently": "^9.2.1",
     "electron": "^37.2.6",

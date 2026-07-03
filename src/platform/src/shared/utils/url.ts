@@ -42,6 +42,11 @@ export const getEnvironmentAwareUrl = (baseUrl: string): string => {
       return parsed.toString();
     }
 
+    if (host === 'beacon.airqo.net') {
+      parsed.hostname = 'staging-beacon.airqo.net';
+      return parsed.toString();
+    }
+
     if (host === 'airqo.net' || host === 'www.airqo.net') {
       parsed.hostname = 'staging.airqo.net';
       return parsed.toString();

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01, AqDataflow01, AqArrowRight, AqCube02, AqDatabase01 } from '@airqo/icons-react';
+import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01, AqDataflow01, AqArrowRight, AqDatabase01 } from '@airqo/icons-react';
 import styles from './styles.module.css';
 
 type ProductItem = {
@@ -50,12 +50,6 @@ const ProductList: ProductItem[] = [
         link: '/mobile-app/intro',
         Icon: AqPhone01,
         disabled: true,
-    },
-    {
-        title: 'Cross-Product Features',
-        description: 'Features that span across multiple products',
-        link: '/cross-product/concepts/access-control',
-        Icon: AqCube02,
     },
     {
         title: 'Data Access',

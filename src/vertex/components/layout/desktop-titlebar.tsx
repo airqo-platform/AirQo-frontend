@@ -27,6 +27,7 @@ type AppRegionStyle = React.CSSProperties & { WebkitAppRegion?: AppRegion };
 
 export default function DesktopTitleBar() {
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMac, setIsMac] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +37,7 @@ export default function DesktopTitleBar() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.vertexDesktop) {
       setIsDesktop(true);
+      setIsMac(document.documentElement.classList.contains('vertex-platform-mac'));
 
       // Check initial back-button state
       window.vertexDesktop.canGoBack().then(setCanGoBack).catch(() => setCanGoBack(false));
@@ -132,9 +134,10 @@ export default function DesktopTitleBar() {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    paddingLeft: 12,
-    // Reserve space for the native Windows OS controls on the right
-    paddingRight: 148,
+    // On macOS the traffic lights sit on the left (~80px); on Windows the
+    // native minimize/maximize/close controls are on the right (~148px).
+    paddingLeft: isMac ? 80 : 12,
+    paddingRight: isMac ? 12 : 148,
     background: bg,
     borderBottom: 'none',
     zIndex: 2147483647,

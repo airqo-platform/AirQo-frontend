@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { Monitor, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -26,20 +25,6 @@ export default function DownloadHero() {
     <section className="bg-primary-50 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
       <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
         <div className="max-w-3xl">
-          <div className="mb-7 flex items-center gap-2 sm:mb-8">
-            <Image
-              src={vertexConfig.org.logo}
-              alt={`${vertexConfig.org.name} logo`}
-              width={120}
-              height={32}
-              className="h-6 w-auto"
-              priority
-            />
-            <span className="text-lg font-medium tracking-tight text-foreground">
-              {vertexConfig.org.name}
-            </span>
-          </div>
-
           <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-normal text-heading sm:text-5xl lg:text-6xl">
             Deploy Devices. Share Air Data
           </h1>

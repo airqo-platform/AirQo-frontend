@@ -31,6 +31,11 @@ const applyDesktopStyles = (): void => {
   );
   document.documentElement.classList.add("vertex-desktop-enabled");
 
+  // Inject platform class so the web layer can adapt layout per OS
+  // (e.g. title bar padding for macOS traffic lights vs Windows controls).
+  const platformClass = process.platform === 'darwin' ? 'vertex-platform-mac' : 'vertex-platform-win';
+  document.documentElement.classList.add(platformClass);
+
   // Dispatch a custom event each time navigation completes so the
   // DesktopTitleBar React component can re-check canGoBack().
   const dispatchNavigated = () => {
