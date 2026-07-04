@@ -1,5 +1,3 @@
-const path = require('path');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
@@ -49,17 +47,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-
-  webpack: (config) => {
-    // Force all modules to use the project's main React instance to avoid
-    // duplicate-React errors from linked or hoisted packages.
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      react: path.resolve(__dirname, 'node_modules/react'),
-      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-    };
-    return config;
   },
 };
 
