@@ -5,8 +5,8 @@ import {
   WebElement,
   Key,
   Actions,
-} from "selenium-webdriver";
-import { Config } from "../config";
+} from 'selenium-webdriver';
+import { Config } from '../config';
 
 export class BasePage {
   protected driver: WebDriver;
@@ -41,13 +41,18 @@ export class BasePage {
   async click(locator: By, timeout?: number): Promise<void> {
     const waitTimeout = timeout || this.timeout;
     const element = await this.driver.wait(
-      until.elementIsVisible(await this.driver.wait(until.elementLocated(locator), waitTimeout * 1000)),
+      until.elementIsVisible(
+        await this.driver.wait(
+          until.elementLocated(locator),
+          waitTimeout * 1000
+        )
+      ),
       waitTimeout * 1000
     );
     try {
       await element.click();
     } catch {
-      await this.driver.executeScript("arguments[0].click();", element);
+      await this.driver.executeScript('arguments[0].click();', element);
     }
   }
 
@@ -66,7 +71,12 @@ export class BasePage {
 
   async isDisplayed(locator: By, timeout = 5): Promise<boolean> {
     try {
-      await this.driver.wait(until.elementIsVisible(await this.driver.wait(until.elementLocated(locator), timeout * 1000)), timeout * 1000);
+      await this.driver.wait(
+        until.elementIsVisible(
+          await this.driver.wait(until.elementLocated(locator), timeout * 1000)
+        ),
+        timeout * 1000
+      );
       return true;
     } catch {
       return false;
@@ -78,7 +88,10 @@ export class BasePage {
   }
 
   async waitForText(locator: By, text: string, timeout = 10): Promise<void> {
-    await this.driver.wait(until.elementTextIs(await this.find(locator), text), timeout * 1000);
+    await this.driver.wait(
+      until.elementTextIs(await this.find(locator), text),
+      timeout * 1000
+    );
   }
 
   async scrollTo(locator: By): Promise<void> {
@@ -104,11 +117,11 @@ export class BasePage {
 
   async takeScreenshot(name: string): Promise<void> {
     const image = await this.driver.takeScreenshot();
-    const fs = require("fs");
-    const path = require("path");
-    const dir = path.resolve(__dirname, "./screenshots");
+    const fs = require('fs');
+    const path = require('path');
+    const dir = path.resolve(__dirname, './screenshots');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const safeName = name.replace(/[^a-zA-Z0-9-_]/g, "_");
-    fs.writeFileSync(path.join(dir, `${safeName}.png`), image, "base64");
+    const safeName = name.replace(/[^a-zA-Z0-9-_]/g, '_');
+    fs.writeFileSync(path.join(dir, `${safeName}.png`), image, 'base64');
   }
 }

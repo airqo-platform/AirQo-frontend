@@ -107,10 +107,7 @@ const sanitizeNumericString = (value: unknown): unknown => {
   let cleaned = value;
 
   // Strip leading &apos; or &#39; (HTML entity for apostrophe)
-  while (
-    cleaned.startsWith('&apos;') ||
-    cleaned.startsWith('&#39;')
-  ) {
+  while (cleaned.startsWith('&apos;') || cleaned.startsWith('&#39;')) {
     cleaned = cleaned.slice(cleaned.startsWith('&apos;') ? 6 : 5);
   }
 

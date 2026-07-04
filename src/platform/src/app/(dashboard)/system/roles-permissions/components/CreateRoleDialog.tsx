@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Dialog, Input } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
@@ -77,7 +83,9 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
     }
 
     if (!/^[A-Z0-9_]+$/.test(roleName.trim())) {
-      toast.error('Role name must contain only uppercase letters, numbers, and underscores');
+      toast.error(
+        'Role name must contain only uppercase letters, numbers, and underscores'
+      );
       return;
     }
 
@@ -140,7 +148,11 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
           </label>
           <Input
             value={roleName}
-            onChange={e => setRoleName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+            onChange={e =>
+              setRoleName(
+                e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_')
+              )
+            }
             placeholder="EXAMPLE_ROLE_NAME"
             className="w-full"
           />
@@ -187,7 +199,12 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 

@@ -479,7 +479,15 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         );
       }
     },
-    [selectedSites, dateRange, dataType, frequency, pollutant, downloadData, posthog]
+    [
+      selectedSites,
+      dateRange,
+      dataType,
+      frequency,
+      pollutant,
+      downloadData,
+      posthog,
+    ]
   );
 
   // Chart data will be handled internally via API calls

@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
@@ -42,8 +48,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   pending:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  reviewed:
-    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   archived:
@@ -489,7 +494,10 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 </DetailPanel>
               ))}
               {feedback.reminderCount != null && feedback.reminderCount > 0 && (
-                <DetailPanel label="Reminders sent" valueClassName="font-medium">
+                <DetailPanel
+                  label="Reminders sent"
+                  valueClassName="font-medium"
+                >
                   {feedback.reminderCount}×
                   {feedback.reminderSentAt && (
                     <span className="ml-2 text-xs text-muted-foreground">
@@ -666,7 +674,9 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     >
                       <div
                         className="prose prose-sm max-w-none text-sm text-foreground"
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.message) }}
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(reply.message),
+                        }}
                       />
                       <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{reply.adminEmail}</span>
@@ -734,7 +744,9 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               <div className="rounded-md border bg-muted/20 p-4">
                 <div
                   className="prose prose-sm max-w-none text-sm text-foreground"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(feedback.adminNotes) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(feedback.adminNotes),
+                  }}
                 />
               </div>
             ) : (
@@ -770,10 +782,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 }
                 containerClassName="!mb-0 flex-1"
               />
-              <Button
-                loading={isAssigning}
-                onClick={() => void handleAssign()}
-              >
+              <Button loading={isAssigning} onClick={() => void handleAssign()}>
                 {assigneeId ? 'Assign' : 'Unassign'}
               </Button>
             </div>

@@ -16,7 +16,11 @@ import {
   selectGroups,
   selectLoggingOut,
 } from '@/shared/store/selectors';
-import { useLogout, CROSS_TAB_LOGOUT_KEY, CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
+import {
+  useLogout,
+  CROSS_TAB_LOGOUT_KEY,
+  CROSS_TAB_LOGIN_KEY,
+} from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
@@ -328,7 +332,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     // Check both _id and id — vertex sets account_deleted_user_identifier with id
     const userId =
       (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
-      (typeof currentUser?.id === 'string' && currentUser.id.trim()) || '';
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) ||
+      '';
     if (userId) {
       return `id:${userId}`;
     }

@@ -19,10 +19,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   className,
 }) => {
   const pathname = usePathname();
-  const {
-    canAccessAdminPanel,
-    hasAnyPermissionInActiveGroup,
-  } = useRBAC();
+  const { canAccessAdminPanel, hasAnyPermissionInActiveGroup } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -124,12 +121,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [
-    flow,
-    orgSlug,
-    canAccessAdminPanel,
-    hasAnyPermissionInActiveGroup,
-  ]);
+  }, [flow, orgSlug, canAccessAdminPanel, hasAnyPermissionInActiveGroup]);
 
   const shouldShowFeedbackAction = !pathname.startsWith('/system/feedback');
 

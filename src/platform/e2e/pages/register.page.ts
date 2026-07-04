@@ -1,26 +1,45 @@
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class RegisterPage extends BasePage {
-  protected static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
-  protected static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
-  protected static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
-  protected static readonly PASSWORD = By.css('input[placeholder="Create password"]');
+  protected static readonly FIRST_NAME = By.css(
+    'input[placeholder="Enter your first name"]'
+  );
+  protected static readonly LAST_NAME = By.css(
+    'input[placeholder="Enter your last name"]'
+  );
+  protected static readonly EMAIL = By.css(
+    'input[placeholder="Enter your email"]'
+  );
+  protected static readonly PASSWORD = By.css(
+    'input[placeholder="Create password"]'
+  );
   protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  protected static readonly LOGIN_LINK = By.linkText("Log in");
-  protected static readonly PASSWORD_HINT = By.xpath("//p[contains(text(), 'Must be at least 8 characters')]");
-  protected static readonly GOOGLE_AUTH = By.css('button[aria-label="Continue with Google"]');
-  protected static readonly GITHUB_AUTH = By.css('button[aria-label="Continue with GitHub"]');
+  protected static readonly LOGIN_LINK = By.linkText('Log in');
+  protected static readonly PASSWORD_HINT = By.xpath(
+    "//p[contains(text(), 'Must be at least 8 characters')]"
+  );
+  protected static readonly GOOGLE_AUTH = By.css(
+    'button[aria-label="Continue with Google"]'
+  );
+  protected static readonly GITHUB_AUTH = By.css(
+    'button[aria-label="Continue with GitHub"]'
+  );
 
   constructor(driver: WebDriver) {
     super(driver);
   }
 
   async navigateToRegister(): Promise<void> {
-    await this.navigateTo("/user/creation/individual/register");
+    await this.navigateTo('/user/creation/individual/register');
   }
 
-  async fillForm(firstName: string, lastName: string, email: string, password: string): Promise<void> {
+  async fillForm(
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ): Promise<void> {
     await this.typeText(RegisterPage.FIRST_NAME, firstName);
     await this.typeText(RegisterPage.LAST_NAME, lastName);
     await this.typeText(RegisterPage.EMAIL, email);
@@ -31,7 +50,12 @@ export class RegisterPage extends BasePage {
     await this.click(RegisterPage.SUBMIT_BUTTON);
   }
 
-  async register(firstName: string, lastName: string, email: string, password: string): Promise<void> {
+  async register(
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ): Promise<void> {
     await this.fillForm(firstName, lastName, email, password);
     await this.submitRegistration();
   }
@@ -54,7 +78,7 @@ export class RegisterPage extends BasePage {
   }
 
   async hasSocialAuthProviders(): Promise<boolean> {
-    return (await this.isDisplayed(RegisterPage.GOOGLE_AUTH, 3));
+    return await this.isDisplayed(RegisterPage.GOOGLE_AUTH, 3);
   }
 
   async getFormFieldCount(): Promise<number> {

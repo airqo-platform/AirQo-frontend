@@ -46,8 +46,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   pending:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  reviewed:
-    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   archived:
@@ -157,7 +156,9 @@ const FeedbackListContent: React.FC = () => {
       const matchesActionable =
         actionableFilter === 'all' ||
         String(feedback.actionable ?? false) === actionableFilter;
-      return matchesStatus && matchesCategory && matchesApp && matchesActionable;
+      return (
+        matchesStatus && matchesCategory && matchesApp && matchesActionable
+      );
     });
   }, [appFilter, categoryFilter, feedbacks, statusFilter, actionableFilter]);
 
@@ -219,9 +220,7 @@ const FeedbackListContent: React.FC = () => {
 
       const { summary } = result.data;
       if (summary.failed > 0) {
-        toast.error(
-          `${summary.succeeded} updated, ${summary.failed} failed`
-        );
+        toast.error(`${summary.succeeded} updated, ${summary.failed} failed`);
       } else {
         toast.success(
           `${summary.succeeded} feedback items updated to ${getStatusLabel(bulkStatus)}`
@@ -533,9 +532,7 @@ const FeedbackListContent: React.FC = () => {
         compactRows={false}
         multiSelect={true}
         selectedItems={Array.from(selectedIds)}
-        onSelectedItemsChange={ids =>
-          setSelectedIds(new Set(ids.map(String)))
-        }
+        onSelectedItemsChange={ids => setSelectedIds(new Set(ids.map(String)))}
       />
     </div>
   );

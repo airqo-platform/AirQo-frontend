@@ -129,7 +129,10 @@ export const GlobalSidebar: React.FC = () => {
         .filter(item => {
           // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
           if (item.id === 'system-management') {
-            return hasEmailDomain('@airqo.net') && hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN']);
+            return (
+              hasEmailDomain('@airqo.net') &&
+              hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
+            );
           }
           // Only show admin-panel if user has GROUP_MANAGEMENT permission
           if (item.id === 'admin-panel') {
@@ -161,7 +164,13 @@ export const GlobalSidebar: React.FC = () => {
           };
         })
     );
-  }, [flow, orgSlug, hasPermission, hasAnyPermissionInActiveGroup, hasEmailDomain]);
+  }, [
+    flow,
+    orgSlug,
+    hasPermission,
+    hasAnyPermissionInActiveGroup,
+    hasEmailDomain,
+  ]);
   const isProtectedSidebarRoute =
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||
