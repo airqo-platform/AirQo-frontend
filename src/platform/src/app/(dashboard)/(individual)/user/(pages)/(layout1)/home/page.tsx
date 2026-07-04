@@ -10,12 +10,15 @@ import { Tooltip } from 'flowbite-react';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
 import { InfoBanner } from '@/shared/components/ui/banner';
-import { getEnvironmentAwareUrl } from '@/shared/utils/url';
+import { useEnvironmentAwareUrl } from '@/shared/hooks';
 
 export default function HomePage() {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDataAccessOpen, setIsDataAccessOpen] = useState(false);
+
+  const fairUsagePolicyUrl = useEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/fair-usage-policy/');
+  const researchersGuideUrl = useEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/researchers-guide/');
 
   const handleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -157,7 +160,7 @@ export default function HomePage() {
           <ul className="list-disc pl-6 space-y-2">
             <li>
               <a
-                href={getEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/fair-usage-policy/')}
+                href={fairUsagePolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline"
@@ -167,7 +170,7 @@ export default function HomePage() {
             </li>
             <li>
               <a
-                href={getEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/researchers-guide/')}
+                href={researchersGuideUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline"

@@ -62,8 +62,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
             {shouldShowAuthControls && !isMobile && <OrganizationSelector />}
-            <AppDropdown />
             <InfoDropdown />
+            <AppDropdown />
             {shouldShowAuthControls && <ProfileDropdown />}
           </div>
         </div>
