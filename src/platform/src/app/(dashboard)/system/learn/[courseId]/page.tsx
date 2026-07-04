@@ -283,6 +283,7 @@ const CourseDetailPage: React.FC = () => {
           variant="ghost"
           size="sm"
           Icon={AqTrash01}
+          disabled={!!course?.published}
           onClick={() =>
             openDeleteDialog(
               'unit',
@@ -328,6 +329,7 @@ const CourseDetailPage: React.FC = () => {
           variant="ghost"
           size="sm"
           Icon={AqTrash01}
+          disabled={!!course?.published}
           onClick={() =>
             openDeleteDialog(
               'lesson',
@@ -363,6 +365,7 @@ const CourseDetailPage: React.FC = () => {
           variant="ghost"
           size="sm"
           Icon={AqTrash01}
+          disabled={!!course?.published}
           onClick={() =>
             openDeleteDialog(
               'activity',
@@ -705,6 +708,7 @@ const CourseDetailPage: React.FC = () => {
               variant="danger"
               size="sm"
               Icon={AqTrash01}
+              disabled={course.published}
               onClick={() =>
                 openDeleteDialog(
                   'course',

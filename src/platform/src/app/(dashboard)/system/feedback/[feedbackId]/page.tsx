@@ -62,8 +62,11 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   archived: [],
 };
 
+const normalizeNbsp = (text: string): string =>
+  text.replace(/&nbsp;/gi, ' ').replace(/\u00a0/g, ' ');
+
 const isHtmlEmpty = (html: string): boolean =>
-  !html || html.replace(/<[^>]*>/g, '').trim().length === 0;
+  !html || normalizeNbsp(html.replace(/<[^>]*>/g, '')).trim().length === 0;
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: 'General',

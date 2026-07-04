@@ -141,11 +141,14 @@ export const isPublishedCourse = (course: Course | undefined): boolean => {
   return Boolean(course?.published);
 };
 
+const normalizeNbsp = (text: string): string =>
+  text.replace(/&nbsp;/gi, ' ').replace(/\u00a0/g, ' ');
+
 export const isHtmlEmpty = (html: string): boolean =>
-  !html || html.replace(/<[^>]*>/g, '').trim().length === 0;
+  !html || normalizeNbsp(html.replace(/<[^>]*>/g, '')).trim().length === 0;
 
 export const stripHtmlTags = (html: string): string =>
-  html.replace(/<[^>]*>/g, '').trim();
+  normalizeNbsp(html.replace(/<[^>]*>/g, '')).trim();
 
 export const getPlainTextPreview = (text: string, maxLength = 120): string => {
   if (!text) return '';

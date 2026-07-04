@@ -69,7 +69,7 @@ const CourseCoverImage: React.FC<CourseCoverImageProps> = ({
           <span className="max-w-[80%] text-center text-xs text-muted-foreground">
             {state === 'error' ? 'Image failed to load' : 'No cover image'}
           </span>
-          {state === 'error' && src && (
+          {state === 'error' && src && /^https?:\/\//i.test(src) && (
             <a
               href={src}
               target="_blank"
