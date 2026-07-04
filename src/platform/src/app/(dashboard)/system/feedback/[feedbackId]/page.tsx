@@ -12,6 +12,7 @@ import {
   Card,
   LoadingState,
   PageHeading,
+  Select,
 } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
@@ -150,6 +151,18 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
       dedupingInterval: 5000,
     }
   );
+
+  const { data: staffData, isLoading: staffLoading } = useSWR(
+    'feedback/staff',
+    () => feedbackService.getFeedbackStaff(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  const staffMembers = staffData?.staff || [];
 
   const feedback = data?.feedback as FeedbackSubmission | undefined;
   const prevFeedbackIdRef = useRef<string | undefined>(undefined);
@@ -758,18 +771,36 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
             />
 
             <div className="flex items-end gap-3">
-              <Input
-                id="assignee-id"
-                label="Assignee user ID"
-                placeholder="Enter user ID"
+              <Select
+                label="Assignee"
                 value={assigneeId}
                 onChange={e =>
                   setAssigneeId(
-                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                    (e as React.ChangeEvent<HTMLSelectElement>).target
+                      .value as string
                   )
                 }
+                placeholder={
+                  staffLoading
+                    ? 'Loading staff...'
+                    : 'Select a team member'
+                }
+                disabled={staffLoading || isAssigning}
                 containerClassName="!mb-0 flex-1"
-              />
+              >
+                {staffMembers.map(
+                  (member: {
+                    _id: string;
+                    firstName: string;
+                    lastName: string;
+                    email: string;
+                  }) => (
+                    <option key={member._id} value={member._id}>
+                      {member.firstName} {member.lastName} ({member.email})
+                    </option>
+                  )
+                )}
+              </Select>
               <Button
                 loading={isAssigning}
                 onClick={() => void handleAssign()}
