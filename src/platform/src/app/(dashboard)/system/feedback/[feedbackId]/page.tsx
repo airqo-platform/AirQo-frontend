@@ -158,6 +158,8 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
       dedupingInterval: 60000,
     }
   );

@@ -46,7 +46,7 @@ const TeamMembersContent: React.FC = () => {
 
   const filteredMembers = useMemo(() => {
     if (!search.trim()) return allMembers;
-    const q = search.toLowerCase();
+    const q = search.trim().toLowerCase();
     return allMembers.filter(
       (member: FeedbackStaffMember) =>
         `${member.firstName} ${member.lastName} ${member.email} ${member.userName}`

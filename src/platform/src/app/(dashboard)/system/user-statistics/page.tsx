@@ -79,6 +79,7 @@ const UserStatisticsPage: React.FC = () => {
   // Reset page to 1 when search changes
   useEffect(() => {
     setPage(1);
+    setSelectedUsers([]);
   }, [search]);
 
   const handleViewDetails = useCallback(
@@ -384,6 +385,7 @@ const UserStatisticsPage: React.FC = () => {
                 setActiveTab(card.id as 'all' | 'active' | 'api');
                 setPage(1);
                 setSearch('');
+                setSelectedUsers([]);
               }}
               className={`cursor-pointer p-6 transition-all ${
                 isActive ? 'border-primary bg-primary/5' : 'hover:shadow-md'

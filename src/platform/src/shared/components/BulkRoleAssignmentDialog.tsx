@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUser } from '@/shared/hooks/useUser';
 import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks';
@@ -26,7 +26,9 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [roleSearch, setRoleSearch] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const {
     data: rolesData,
@@ -51,6 +53,18 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
     });
   }, [availableRoles, roleSearch]);
 
+  const selectedRole = useMemo(
+    () => availableRoles.find(role => role._id === selectedRoleId),
+    [availableRoles, selectedRoleId]
+  );
+
+  const selectRole = useCallback((roleId: string) => {
+    setSelectedRoleId(roleId);
+    setRoleSearch('');
+    setIsDropdownOpen(false);
+    setHighlightedIndex(-1);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -58,12 +72,14 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsDropdownOpen(false);
+        setHighlightedIndex(-1);
       }
     };
 
     if (isDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isDropdownOpen]);
 
@@ -72,17 +88,22 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
       setSelectedRoleId('');
       setRoleSearch('');
       setIsDropdownOpen(false);
+      setHighlightedIndex(-1);
     }
   }, [isOpen]);
 
-  const selectedRole = useMemo(
-    () => availableRoles.find(role => role._id === selectedRoleId),
-    [availableRoles, selectedRoleId]
-  );
+  useEffect(() => {
+    if (isDropdownOpen && highlightedIndex >= 0 && listRef.current) {
+      const highlightedElement = listRef.current.children[
+        highlightedIndex
+      ] as HTMLElement | undefined;
+      highlightedElement?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isDropdownOpen, highlightedIndex]);
 
   const handleAssign = async () => {
-    if (!selectedRoleId) {
-      toast.error('Please select a role');
+    if (!selectedRole) {
+      toast.error('Please select a valid role');
       return;
     }
 
@@ -93,7 +114,7 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
 
     try {
       await assignUsersToRole.trigger({
-        roleId: selectedRoleId,
+        roleId: selectedRole._id,
         user_ids: userIds,
       });
       toast.success(`Role assigned to ${userCount} user(s)`);
@@ -105,7 +126,10 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
   };
 
   const canAssign =
-    !rolesLoading && availableRoles.length > 0 && !rolesError;
+    !!activeGroup?.id &&
+    !rolesLoading &&
+    availableRoles.length > 0 &&
+    !rolesError;
 
   return (
     <Dialog
@@ -115,8 +139,7 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
       primaryAction={{
         label: 'Assign Role',
         onClick: handleAssign,
-        disabled:
-          assignUsersToRole.isMutating || !selectedRoleId || !canAssign,
+        disabled: assignUsersToRole.isMutating || !selectedRole || !canAssign,
         loading: assignUsersToRole.isMutating,
       }}
       secondaryAction={{
@@ -131,6 +154,11 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
           <p className="text-sm text-muted-foreground mb-4">
             Selected users: {userCount}
           </p>
+          {!activeGroup?.id && (
+            <p className="text-sm text-destructive">
+              No active group selected. Please select a group first.
+            </p>
+          )}
         </div>
 
         <div ref={dropdownRef}>
@@ -139,39 +167,78 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
           </label>
           <input
             type="text"
+            role="combobox"
+            aria-expanded={isDropdownOpen}
+            aria-controls="bulk-role-listbox"
+            aria-activedescendant={
+              highlightedIndex >= 0
+                ? `bulk-role-option-${filteredRoles[highlightedIndex]?._id}`
+                : undefined
+            }
             value={roleSearch}
             onChange={e => {
               setRoleSearch(e.target.value);
               setIsDropdownOpen(true);
+              setHighlightedIndex(-1);
             }}
             onFocus={() => setIsDropdownOpen(true)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsDropdownOpen(false);
+                setHighlightedIndex(-1);
+              } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setIsDropdownOpen(true);
+                setHighlightedIndex(prev =>
+                  prev < filteredRoles.length - 1 ? prev + 1 : 0
+                );
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setIsDropdownOpen(true);
+                setHighlightedIndex(prev =>
+                  prev > 0 ? prev - 1 : filteredRoles.length - 1
+                );
+              } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+                e.preventDefault();
+                const role = filteredRoles[highlightedIndex];
+                if (role) {
+                  selectRole(role._id);
+                }
+              }
+            }}
             placeholder="Search and select a role..."
-            disabled={rolesLoading || !!rolesError}
+            disabled={rolesLoading || !!rolesError || !activeGroup?.id}
             className="w-full px-3 py-2.5 border rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:bg-muted disabled:text-muted-foreground"
           />
 
           {isDropdownOpen && (
             <div className="mt-1 w-full bg-popover rounded-md shadow-lg border border-primary max-h-[200px] overflow-y-auto">
-              <ul role="listbox" className="py-1">
+              <ul
+                ref={listRef}
+                id="bulk-role-listbox"
+                role="listbox"
+                className="py-1"
+              >
                 {filteredRoles.length > 0 ? (
-                  filteredRoles.map(role => (
+                  filteredRoles.map((role, index) => (
                     <li
                       key={role._id}
+                      id={`bulk-role-option-${role._id}`}
                       role="option"
+                      tabIndex={-1}
                       aria-selected={selectedRoleId === role._id}
-                      onClick={() => {
-                        setSelectedRoleId(role._id);
-                        setRoleSearch('');
-                        setIsDropdownOpen(false);
-                      }}
+                      onClick={() => selectRole(role._id)}
+                      onMouseEnter={() => setHighlightedIndex(index)}
                       className={`cursor-pointer px-3 py-2 text-sm transition-colors duration-150 hover:bg-primary/10 ${
                         selectedRoleId === role._id
                           ? 'bg-primary/20 text-primary font-medium'
                           : 'text-foreground'
+                      } ${
+                        highlightedIndex === index ? 'bg-primary/10' : ''
                       }`}
                     >
-                      {role.role_name} -{' '}
-                      {role.group?.grp_title || 'No group'}
+                      {role.role_name} - {role.group?.grp_title || 'No group'}
                     </li>
                   ))
                 ) : (

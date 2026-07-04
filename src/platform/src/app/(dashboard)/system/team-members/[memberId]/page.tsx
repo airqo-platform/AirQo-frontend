@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSWRConfig } from 'swr';
 import {
   Button,
   Card,
@@ -49,6 +50,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
   memberId,
 }) => {
   const router = useRouter();
+  const { mutate: globalMutate } = useSWRConfig();
   const { activeGroup } = useUser();
 
   const {
@@ -71,7 +73,9 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [roleSearch, setRoleSearch] = useState('');
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [highlightedRoleIndex, setHighlightedRoleIndex] = useState(-1);
   const roleDropdownRef = useRef<HTMLDivElement>(null);
+  const roleListRef = useRef<HTMLUListElement>(null);
 
   const user = userResponse?.users?.[0];
   const availableRoles = useMemo(
@@ -96,6 +100,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
         !roleDropdownRef.current.contains(event.target as Node)
       ) {
         setIsRoleDropdownOpen(false);
+        setHighlightedRoleIndex(-1);
       }
     };
 
@@ -106,14 +111,29 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
     }
   }, [isRoleDropdownOpen]);
 
+  useEffect(() => {
+    if (
+      isRoleDropdownOpen &&
+      highlightedRoleIndex >= 0 &&
+      roleListRef.current
+    ) {
+      const highlightedElement = roleListRef.current.children[
+        highlightedRoleIndex
+      ] as HTMLElement | undefined;
+      highlightedElement?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isRoleDropdownOpen, highlightedRoleIndex]);
+
   const primaryRoleId = useMemo(() => {
-    return (
-      user?.networks?.[0]?.role?._id ||
-      user?.groups?.[0]?.role?._id ||
-      availableRoles[0]?._id ||
-      ''
-    );
-  }, [availableRoles, user]);
+    const activeGroupRoleId = user?.groups?.find(
+      group => group._id === activeGroup?.id
+    )?.role?._id;
+
+    return activeGroupRoleId &&
+      availableRoles.some(role => role._id === activeGroupRoleId)
+      ? activeGroupRoleId
+      : '';
+  }, [activeGroup?.id, availableRoles, user?.groups]);
 
   const currentRoleEntries = useMemo(() => {
     const entries: Array<{
@@ -170,25 +190,37 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
     setSelectedRoleId(primaryRoleId);
     setRoleSearch('');
     setIsRoleDropdownOpen(false);
+    setHighlightedRoleIndex(-1);
     setIsRoleDialogOpen(true);
   }, [primaryRoleId]);
 
+  const selectRole = useCallback((roleId: string) => {
+    setSelectedRoleId(roleId);
+    setRoleSearch('');
+    setIsRoleDropdownOpen(false);
+    setHighlightedRoleIndex(-1);
+  }, []);
+
   const handleUpdateRole = async () => {
-    if (!selectedRoleId) {
-      toast.error('Please select a role');
+    if (!selectedRole) {
+      toast.error('Please select a valid role');
       return;
     }
 
     try {
       await updateUserRole.trigger({
         userId: memberId,
-        roleId: selectedRoleId,
+        roleId: selectedRole._id,
       });
 
       toast.success('User role updated successfully');
       setIsRoleDialogOpen(false);
       setIsRoleDropdownOpen(false);
-      await Promise.all([mutateUser(), mutateRoles()]);
+      await Promise.all([
+        mutateUser(),
+        mutateRoles(),
+        globalMutate('feedback/staff'),
+      ]);
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
     }
@@ -495,7 +527,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
         primaryAction={{
           label: 'Update Role',
           onClick: handleUpdateRole,
-          disabled: updateUserRole.isMutating || !selectedRoleId,
+          disabled: updateUserRole.isMutating || !selectedRole,
           loading: updateUserRole.isMutating,
         }}
         secondaryAction={{
@@ -512,12 +544,46 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
             </label>
             <input
               type="text"
+              role="combobox"
+              aria-expanded={isRoleDropdownOpen}
+              aria-controls="role-listbox"
+              aria-activedescendant={
+                highlightedRoleIndex >= 0
+                  ? `role-option-${filteredRoles[highlightedRoleIndex]?._id}`
+                  : undefined
+              }
               value={roleSearch}
               onChange={e => {
                 setRoleSearch(e.target.value);
                 setIsRoleDropdownOpen(true);
+                setHighlightedRoleIndex(-1);
               }}
               onFocus={() => setIsRoleDropdownOpen(true)}
+              onKeyDown={e => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setIsRoleDropdownOpen(false);
+                  setHighlightedRoleIndex(-1);
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setIsRoleDropdownOpen(true);
+                  setHighlightedRoleIndex(prev =>
+                    prev < filteredRoles.length - 1 ? prev + 1 : 0
+                  );
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setIsRoleDropdownOpen(true);
+                  setHighlightedRoleIndex(prev =>
+                    prev > 0 ? prev - 1 : filteredRoles.length - 1
+                  );
+                } else if (e.key === 'Enter' && highlightedRoleIndex >= 0) {
+                  e.preventDefault();
+                  const role = filteredRoles[highlightedRoleIndex];
+                  if (role) {
+                    selectRole(role._id);
+                  }
+                }
+              }}
               placeholder="Search and select a role..."
               disabled={rolesLoading}
               className="w-full px-3 py-2.5 border rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:bg-muted disabled:text-muted-foreground"
@@ -525,22 +591,30 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
 
             {isRoleDropdownOpen && (
               <div className="mt-1 w-full bg-popover rounded-md shadow-lg border border-primary max-h-[200px] overflow-y-auto">
-                <ul role="listbox" className="py-1">
+                <ul
+                  ref={roleListRef}
+                  id="role-listbox"
+                  role="listbox"
+                  className="py-1"
+                >
                   {filteredRoles.length > 0 ? (
-                    filteredRoles.map(role => (
+                    filteredRoles.map((role, index) => (
                       <li
                         key={role._id}
+                        id={`role-option-${role._id}`}
                         role="option"
+                        tabIndex={-1}
                         aria-selected={selectedRoleId === role._id}
-                        onClick={() => {
-                          setSelectedRoleId(role._id);
-                          setRoleSearch('');
-                          setIsRoleDropdownOpen(false);
-                        }}
+                        onClick={() => selectRole(role._id)}
+                        onMouseEnter={() => setHighlightedRoleIndex(index)}
                         className={`cursor-pointer px-3 py-2 text-sm transition-colors duration-150 hover:bg-primary/10 ${
                           selectedRoleId === role._id
                             ? 'bg-primary/20 text-primary font-medium'
                             : 'text-foreground'
+                        } ${
+                          highlightedRoleIndex === index
+                            ? 'bg-primary/10'
+                            : ''
                         }`}
                       >
                         {role.role_name} - {role.group?.grp_title || 'No group'}
