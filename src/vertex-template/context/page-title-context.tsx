@@ -38,10 +38,16 @@ const titleCase = (value: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
+// APP_TITLE is configurable branding (vertexConfig.org.name), so it must be
+// escaped before interpolation into a RegExp — names like "Acme (IoT)" would
+// otherwise break the pattern.
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const cleanDocumentTitle = () => {
   if (typeof document === "undefined") return "";
   return document.title
-    .replace(new RegExp(`\\s*\\|\\s*${APP_TITLE}$`), "")
+    .replace(new RegExp(`\\s*\\|\\s*${escapeRegExp(APP_TITLE)}$`), "")
     .trim();
 };
 
