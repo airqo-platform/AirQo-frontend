@@ -9,7 +9,7 @@ export function ReduxProvider({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <PersistGate
-        loading={<LoadingOverlay delayMs={0} />}
+        loading={<LoadingOverlay delayMs={150} />}
         persistor={persistor}
       >
         {children}

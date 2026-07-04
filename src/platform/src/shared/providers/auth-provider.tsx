@@ -699,11 +699,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
 
-  // While session is being fetched, show a loading overlay immediately (delayMs=0).
-  // Using the default 120ms delay would create a blank window before the overlay appears.
+  // While session is being fetched, show a loading overlay with a short delay.
+  // A small delay prevents double-glitch with app/loading.tsx Suspense boundary
+  // that also renders a LoadingOverlay during page transitions.
   // Exception: For public routes, don't show loading overlay (let them render immediately)
   if (status === 'loading' && !isPublicRoute) {
-    return <LoadingOverlay delayMs={0} />;
+    return <LoadingOverlay delayMs={150} />;
   }
 
   // For public routes, allow rendering even if unauthenticated
@@ -713,7 +714,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   // For protected routes, require authentication
   if (!session) {
-    return <LoadingOverlay delayMs={0} />;
+    return <LoadingOverlay delayMs={150} />;
   }
 
   return (
@@ -845,7 +846,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (bootstrapSession === undefined) {
-    return <LoadingOverlay delayMs={0} />;
+    return <LoadingOverlay delayMs={150} />;
   }
 
   return (
