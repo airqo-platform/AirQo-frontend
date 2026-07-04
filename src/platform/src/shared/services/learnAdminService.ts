@@ -33,28 +33,23 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
 
 const encodeId = (id: string): string => encodeURIComponent(id);
 
-const API_PATH = '/devices/learn';
-
 export class LearnAdminService {
-  private client: ApiClient;
+  private authenticatedClient: ApiClient;
 
   constructor() {
-    this.client = createAuthenticatedClient();
+    this.authenticatedClient = createAuthenticatedClient();
   }
 
-  private async ensureAuth() {
-    await syncClientSessionToken(this.client);
+  private async ensureAuthenticated() {
+    await syncClientSessionToken(this.authenticatedClient);
   }
 
-  private path(subpath: string): string {
-    return `${API_PATH}${subpath}`;
-  }
-
+  // Courses
   async getCourses(): Promise<CourseSummary[]> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.get<CourseListResponse>(
-      this.path('/admin/courses')
+    const response = await this.authenticatedClient.get<CourseListResponse>(
+      '/devices/learn/admin/courses'
     );
 
     const data = extractResponseData(response.data, 'Failed to load courses');
@@ -63,10 +58,10 @@ export class LearnAdminService {
   }
 
   async getCourseById(courseId: string): Promise<Course> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.get<CourseResponse>(
-      this.path(`/admin/courses/${encodeId(courseId)}`)
+    const response = await this.authenticatedClient.get<CourseResponse>(
+      `/devices/learn/admin/courses/${encodeId(courseId)}`
     );
 
     const data = extractResponseData(
@@ -82,10 +77,10 @@ export class LearnAdminService {
   }
 
   async createCourse(payload: CreateCourseRequest): Promise<Course> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.post<CourseResponse>(
-      this.path('/admin/courses'),
+    const response = await this.authenticatedClient.post<CourseResponse>(
+      '/devices/learn/admin/courses',
       payload
     );
 
@@ -102,10 +97,10 @@ export class LearnAdminService {
     courseId: string,
     payload: UpdateCourseRequest
   ): Promise<Course> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.patch<CourseResponse>(
-      this.path(`/admin/courses/${encodeId(courseId)}`),
+    const response = await this.authenticatedClient.patch<CourseResponse>(
+      `/devices/learn/admin/courses/${encodeId(courseId)}`,
       payload
     );
 
@@ -119,23 +114,24 @@ export class LearnAdminService {
   }
 
   async deleteCourse(courseId: string): Promise<void> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.delete<DeleteResponse>(
-      this.path(`/admin/courses/${encodeId(courseId)}`)
+    const response = await this.authenticatedClient.delete<DeleteResponse>(
+      `/devices/learn/admin/courses/${encodeId(courseId)}`
     );
 
     extractResponseData(response.data, 'Failed to delete course');
   }
 
+  // Units
   async createUnit(
     courseId: string,
     payload: CreateUnitRequest
   ): Promise<UnitResponse['unit']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.post<UnitResponse>(
-      this.path(`/admin/courses/${encodeId(courseId)}/units`),
+    const response = await this.authenticatedClient.post<UnitResponse>(
+      `/devices/learn/admin/courses/${encodeId(courseId)}/units`,
       payload
     );
 
@@ -152,10 +148,10 @@ export class LearnAdminService {
     unitId: string,
     payload: UpdateUnitRequest
   ): Promise<UnitResponse['unit']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.patch<UnitResponse>(
-      this.path(`/admin/units/${encodeId(unitId)}`),
+    const response = await this.authenticatedClient.patch<UnitResponse>(
+      `/devices/learn/admin/units/${encodeId(unitId)}`,
       payload
     );
 
@@ -169,23 +165,24 @@ export class LearnAdminService {
   }
 
   async deleteUnit(unitId: string): Promise<void> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.delete<DeleteResponse>(
-      this.path(`/admin/units/${encodeId(unitId)}`)
+    const response = await this.authenticatedClient.delete<DeleteResponse>(
+      `/devices/learn/admin/units/${encodeId(unitId)}`
     );
 
     extractResponseData(response.data, 'Failed to delete unit');
   }
 
+  // Lessons
   async createLesson(
     unitId: string,
     payload: CreateLessonRequest
   ): Promise<LessonResponse['lesson']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.post<LessonResponse>(
-      this.path(`/admin/units/${encodeId(unitId)}/lessons`),
+    const response = await this.authenticatedClient.post<LessonResponse>(
+      `/devices/learn/admin/units/${encodeId(unitId)}/lessons`,
       payload
     );
 
@@ -202,10 +199,10 @@ export class LearnAdminService {
     lessonId: string,
     payload: UpdateLessonRequest
   ): Promise<LessonResponse['lesson']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.patch<LessonResponse>(
-      this.path(`/admin/lessons/${encodeId(lessonId)}`),
+    const response = await this.authenticatedClient.patch<LessonResponse>(
+      `/devices/learn/admin/lessons/${encodeId(lessonId)}`,
       payload
     );
 
@@ -219,23 +216,24 @@ export class LearnAdminService {
   }
 
   async deleteLesson(lessonId: string): Promise<void> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.delete<DeleteResponse>(
-      this.path(`/admin/lessons/${encodeId(lessonId)}`)
+    const response = await this.authenticatedClient.delete<DeleteResponse>(
+      `/devices/learn/admin/lessons/${encodeId(lessonId)}`
     );
 
     extractResponseData(response.data, 'Failed to delete lesson');
   }
 
+  // Activities
   async createActivity(
     lessonId: string,
     payload: CreateActivityRequest
   ): Promise<ActivityResponse['activity']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.post<ActivityResponse>(
-      this.path(`/admin/lessons/${encodeId(lessonId)}/activities`),
+    const response = await this.authenticatedClient.post<ActivityResponse>(
+      `/devices/learn/admin/lessons/${encodeId(lessonId)}/activities`,
       payload
     );
 
@@ -255,10 +253,10 @@ export class LearnAdminService {
     activityId: string,
     payload: UpdateActivityRequest
   ): Promise<ActivityResponse['activity']> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.patch<ActivityResponse>(
-      this.path(`/admin/activities/${encodeId(activityId)}`),
+    const response = await this.authenticatedClient.patch<ActivityResponse>(
+      `/devices/learn/admin/activities/${encodeId(activityId)}`,
       payload
     );
 
@@ -275,10 +273,10 @@ export class LearnAdminService {
   }
 
   async deleteActivity(activityId: string): Promise<void> {
-    await this.ensureAuth();
+    await this.ensureAuthenticated();
 
-    const response = await this.client.delete<DeleteResponse>(
-      this.path(`/admin/activities/${encodeId(activityId)}`)
+    const response = await this.authenticatedClient.delete<DeleteResponse>(
+      `/devices/learn/admin/activities/${encodeId(activityId)}`
     );
 
     extractResponseData(response.data, 'Failed to delete activity');

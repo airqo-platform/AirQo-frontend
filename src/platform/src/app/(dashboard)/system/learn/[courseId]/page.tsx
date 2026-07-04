@@ -670,205 +670,142 @@ const CourseDetailPage: React.FC = () => {
       accessDeniedMessage="You need system administrator permissions to manage courses."
     >
       <div className="space-y-6">
-        <div
-          className="relative w-full overflow-hidden rounded-xl"
-          style={{ aspectRatio: '21/9' }}
-        >
-          <CourseCoverImage
-            src={coverUrl}
-            alt={course.title}
-            aspectRatio="21/9"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-          <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span
-                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur-md ${statusTone}`}
-              >
-                {course.published ? 'Published' : 'Draft'}
-              </span>
-              <span className="inline-flex rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
-                #{course.course_number}
-              </span>
-              <span className="inline-flex rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
-                {counts.unitCount} units · {counts.lessonCount} lessons ·{' '}
-                {counts.activityCount} activities
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
-              {course.title}
-            </h1>
-            {course.plain_title_key && (
-              <p className="mt-1 text-sm text-white/70">
-                {course.plain_title_key}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-start">
+        <div className="flex items-center justify-between gap-4">
           <Button variant="ghost" Icon={AqArrowLeft} onClick={handleBack}>
             Back
           </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              Icon={AqRefreshCw05}
+              onClick={handleRefresh}
+              loading={courseLoading}
+            >
+              Refresh
+            </Button>
+            <Button
+              variant="outlined"
+              size="sm"
+              Icon={AqEdit05}
+              onClick={() => setDialog({ type: 'course', item: course })}
+            >
+              Edit
+            </Button>
+            <Button
+              variant={course.published ? 'danger' : 'filled'}
+              size="sm"
+              onClick={handlePublishToggle}
+              loading={isProcessing}
+            >
+              {course.published ? 'Unpublish' : 'Publish'}
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              Icon={AqTrash01}
+              onClick={() =>
+                openDeleteDialog(
+                  'course',
+                  course,
+                  handleDeleteCourse,
+                  course.published
+                    ? 'Unpublish the course before deleting.'
+                    : undefined
+                )
+              }
+            >
+              Delete
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button
-            variant="outlined"
-            Icon={AqRefreshCw05}
-            onClick={handleRefresh}
-            loading={courseLoading}
-          >
-            Refresh
-          </Button>
-          <Button
-            variant="outlined"
-            Icon={AqEdit05}
-            onClick={() => setDialog({ type: 'course', item: course })}
-          >
-            Edit course
-          </Button>
-          <Button
-            variant={course.published ? 'danger' : 'filled'}
-            onClick={handlePublishToggle}
-            loading={isProcessing}
-          >
-            {course.published ? 'Unpublish' : 'Publish'}
-          </Button>
-          <Button
-            variant="danger"
-            Icon={AqTrash01}
-            onClick={() =>
-              openDeleteDialog(
-                'course',
-                course,
-                handleDeleteCourse,
-                course.published
-                  ? 'This course is published. Unpublish it first to delete it.'
-                  : undefined
-              )
-            }
-          >
-            Delete course
-          </Button>
-        </div>
+        <Card className="overflow-hidden p-0">
+          <div className="flex flex-col sm:flex-row">
+            <div className="relative w-full flex-shrink-0 overflow-hidden sm:w-52 md:w-64">
+              <CourseCoverImage
+                src={coverUrl}
+                alt={course.title}
+                aspectRatio="3/4"
+                className="h-full"
+              />
+            </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          <div className="space-y-6">
-            <Card className="p-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Course content
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Manage units, lessons, and activities for this course.
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  Icon={AqPlus}
-                  onClick={() => setDialog({ type: 'unit', item: null })}
+            <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusTone}`}
                 >
-                  Add unit
-                </Button>
+                  {course.published ? 'Published' : 'Draft'}
+                </span>
+                <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+                  #{course.course_number}
+                </span>
               </div>
 
-              <div className="mt-5">{renderTree()}</div>
-            </Card>
-          </div>
+              <h1 className="mt-3 text-xl font-bold text-foreground sm:text-2xl">
+                {course.title}
+              </h1>
 
-          <div className="space-y-6">
-            <Card className="p-6">
+              {course.plain_title_key && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {course.plain_title_key}
+                </p>
+              )}
+
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                <div className="rounded-lg border border-border bg-muted/15 p-3 text-center">
+                  <p className="text-lg font-semibold text-foreground">
+                    {counts.unitCount}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Units</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/15 p-3 text-center">
+                  <p className="text-lg font-semibold text-foreground">
+                    {counts.lessonCount}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Lessons</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/15 p-3 text-center">
+                  <p className="text-lg font-semibold text-foreground">
+                    {counts.activityCount}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Activities</p>
+                </div>
+              </div>
+
+              <div className="mt-auto flex flex-wrap items-center gap-4 pt-4 text-xs text-muted-foreground">
+                <span>Created {formatDateTime(course.created_at)}</span>
+                <span>Updated {formatDateTime(course.updated_at)}</span>
+                {course.catalog_version && (
+                  <span>Catalog {course.catalog_version}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
               <h3 className="text-lg font-semibold text-foreground">
-                Course overview
+                Course content
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Metadata and publishing status.
+                Manage units, lessons, and activities.
               </p>
-
-              <div className="mt-4">
-                <CourseCoverImage
-                  src={coverUrl}
-                  alt={`${course.title} cover`}
-                  aspectRatio="16/9"
-                  className="rounded-lg"
-                />
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Status
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
-                    {course.published ? 'Published' : 'Draft'}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Course number
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
-                    #{course.course_number}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Catalog version
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
-                    {course.catalog_version || '—'}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Content counts
-                  </p>
-                  <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm">
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {counts.unitCount}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Units</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {counts.lessonCount}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Lessons</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {counts.activityCount}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Activities
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Created
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
-                    {formatDateTime(course.created_at)}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/15 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Updated
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
-                    {formatDateTime(course.updated_at)}
-                  </p>
-                </div>
-              </div>
-            </Card>
+            </div>
+            <Button
+              size="sm"
+              Icon={AqPlus}
+              onClick={() => setDialog({ type: 'unit', item: null })}
+            >
+              Add unit
+            </Button>
           </div>
-        </div>
+
+          <div className="mt-5">{renderTree()}</div>
+        </Card>
 
         {dialog?.type === 'course' && (
           <CourseFormDialog
