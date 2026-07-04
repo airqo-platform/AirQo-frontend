@@ -28,6 +28,21 @@ For those needing programmatic access, our API allows you to pull raw and calibr
 
 ---
 
+## Where to Start
+
+| I want to... | Go to... |
+|--------------|----------|
+| Sign up or log in | [Creating an Account](./getting-started/creating-an-account.md) |
+| Understand the interface and workflows | [Navigating the Platform](./getting-started/navigating-the-platform.md) |
+| View my dashboard or interpret readings | [Home Dashboard](./monitoring-air-quality/home-dashboard.md) |
+| Explore sites on a map | [Interactive Map](./monitoring-air-quality/interactive-map.md) |
+| Save locations for quick access | [Favorite Locations](./managing-locations/favorite-locations.md) |
+| Download air quality data | [Exporting Air Quality Data](./exporting-data/data-export.md) |
+| Upload and visualize my own data | [Dataset Visualizer](./visualizing-data/dataset-visualizer.md) |
+| Manage my organization's team | [Organisation Management](./organization-management/managing-members.md) |
+
+---
+
 ## Questions?
 
 We’re always happy to help with technical implementation, data interpretation, or any other questions you might have!

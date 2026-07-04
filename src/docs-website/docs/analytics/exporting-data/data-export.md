@@ -234,3 +234,10 @@ Click **Watch Tutorial** in the help banner at the top of the page to open a wal
 | BAM data shows only raw data | Reference monitors use raw data type | This is expected — BAM data is already high-quality |
 | Mobile devices only show Raw frequency | Mobile devices don't support aggregation | Use Raw frequency for mobile device exports |
 | Excel option unavailable | Only one location selected | Select 2+ locations to enable Excel export |
+
+---
+
+## Related Guides
+
+- [Using the Dataset Visualizer](../visualizing-data/dataset-visualizer.md) — upload and visualize your own data files
+- [Managing Favorite Locations](../managing-locations/favorite-locations.md) — save monitoring sites for quick access

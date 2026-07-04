@@ -263,3 +263,10 @@ Click **Watch tutorial** at the top of the visualizer page to open a walkthrough
 | Large file takes long to parse | File exceeds 50,000 rows | Wait for parsing to complete, or split into smaller files |
 | Draft not restored | Browser storage was cleared | Re-upload your files |
 | Sheet switch fails | Source file reference lost | Re-upload the file and select the desired sheet |
+
+---
+
+## Related Guides
+
+- [Exporting Air Quality Data](../exporting-data/data-export.md) — download platform data for offline analysis
+- [Managing Favorite Locations](../managing-locations/favorite-locations.md) — save monitoring sites to your dashboard

@@ -41,5 +41,13 @@ Once your favorites are set, the AirQo Analytics platform displays graphical ana
 ## Tips
 
 - **Updating Favorites:** You can change your favorite locations at any time by repeating the customize process.
-- **Data Export:** If you need data for more than four locations, use the [Data Export](../data-export/data-export.md) feature to select a broader range of cities or countries.
+- **Data Export:** If you need data for more than four locations, use the [Data Export](../exporting-data/data-export.md) feature to select a broader range of cities or countries.
 - **Profile Settings:** Manage general preferences and your user profile on the **Settings** page.
+
+---
+
+## Related Guides
+
+- [Home Dashboard](../monitoring-air-quality/home-dashboard.md) — see your favorite locations on the dashboard
+- [Interactive Map](../monitoring-air-quality/interactive-map.md) — find and save sites directly from the map
+- [Exporting Air Quality Data](../exporting-data/data-export.md) — download data for your favorite locations
