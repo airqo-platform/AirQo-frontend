@@ -394,7 +394,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                 onClick={openRoleDialog}
                 fullWidth
                 loading={rolesLoading}
-                disabled={rolesLoading || availableRoles.length === 0}
+                disabled={rolesLoading || availableRoles.length === 0 || !activeGroup?.id}
               >
                 Change Role
               </Button>
@@ -674,10 +674,11 @@ const TeamMemberDetailPage: React.FC = () => {
   const router = useRouter();
   const memberId = params?.memberId;
 
-  if (!memberId) {
-    router.push('/system/team-members');
-    return null;
-  }
+  useEffect(() => {
+    if (!memberId) {
+      router.push('/system/team-members');
+    }
+  }, [memberId, router]);
 
   return (
     <PermissionGuard

@@ -790,6 +790,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 disabled={staffLoading || isAssigning}
                 containerClassName="!mb-0 flex-1"
               >
+                <option value="">Unassigned</option>
                 {staffMembers.map(
                   (member: {
                     _id: string;

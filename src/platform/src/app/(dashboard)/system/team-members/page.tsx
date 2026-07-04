@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
@@ -24,6 +24,10 @@ const TeamMembersContent: React.FC = () => {
   const [showBulkRoleDialog, setShowBulkRoleDialog] = useState(false);
 
   const { mutate } = useSWRConfig();
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize, setPage]);
 
   const {
     data: staffData,
