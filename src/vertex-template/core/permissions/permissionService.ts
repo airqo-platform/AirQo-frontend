@@ -75,12 +75,11 @@ class PermissionService {
       };
     }
 
-    // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override)
+    // 1. Super admin permission is a system-wide override
     if (this.isSuperAdmin(user)) {
       return {
         hasPermission: true,
-        reason: "User has AIRQO_SUPER_ADMIN role with system-wide access",
-        role: "AIRQO_SUPER_ADMIN",
+        reason: "User has the SUPER_ADMIN permission with system-wide access",
         canOverride: true,
       };
     }
@@ -207,23 +206,13 @@ class PermissionService {
    * Check if user is super admin
    */
   isSuperAdmin(user: UserDetails): boolean {
-    if (!user.networks && !user.groups) return false;
+    const hasSuperAdminPermission = (rolePermissions?: Array<{ permission?: string }>) =>
+      !!rolePermissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN);
 
-    // Check if user has SUPER_ADMIN permission in any network
-    if (user.networks) {
-      return user.networks.some((network) =>
-        network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
-
-    // Check if user has SUPER_ADMIN permission in any group
-    if (user.groups) {
-      return user.groups.some((group) =>
-        group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
-
-    return false;
+    return (
+      !!user.networks?.some((network) => hasSuperAdminPermission(network.role?.role_permissions)) ||
+      !!user.groups?.some((group) => hasSuperAdminPermission(group.role?.role_permissions))
+    );
   }
 
   /**

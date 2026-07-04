@@ -20,12 +20,15 @@ export const mockPaginationMeta: PaginationMeta = {
   usedCache: false,
 };
 
-// Grant the demo admin every permission except system-level ones so the
-// whole app is explorable in mock mode. Derived from the RBAC constants
-// so the permission strings cannot drift out of sync.
+// Grant the demo admin every permission except the SUPER_ADMIN override
+// and database administration, so the whole app (including the admin
+// panel via SYSTEM_ADMIN) is explorable in mock mode while permission
+// denials remain observable. Derived from the RBAC constants so the
+// permission strings cannot drift out of sync.
 const demoPermissions = Object.entries(PERMISSIONS)
   .filter(([group]) => group !== "SYSTEM")
-  .flatMap(([, group]) => Object.values(group));
+  .flatMap(([, group]) => Object.values(group))
+  .concat(PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
 
 export const mockRole = {
   _id: "role-demo-admin",
