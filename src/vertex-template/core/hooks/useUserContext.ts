@@ -8,7 +8,6 @@ export interface SidebarConfig {
   title: string;
   showNetworkMap: boolean;
   showSites: boolean;
-  showGrids: boolean;
   showCohorts: boolean;
   showUserManagement: boolean;
   showAccessControl: boolean;
@@ -17,7 +16,6 @@ export interface SidebarConfig {
   showClaimDevice: boolean;
   showDeployDevice: boolean;
   showNetworks: boolean;
-  showShipping: boolean;
 }
 
 export interface UserContextState {
@@ -62,7 +60,6 @@ export const useUserContext = (): UserContextState => {
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
   const canViewNetworks = usePermission(PERMISSIONS.NETWORK.VIEW);
-  const canViewShipping = usePermission(PERMISSIONS.SHIPPING.VIEW);
 
   // Determine loading states
   const isLoading = useMemo(() => {
@@ -138,7 +135,6 @@ export const useUserContext = (): UserContextState => {
         title: 'Loading...',
         showNetworkMap: false,
         showSites: false,
-        showGrids: false,
         showCohorts: false,
         showUserManagement: false,
         showAccessControl: false,
@@ -147,7 +143,6 @@ export const useUserContext = (): UserContextState => {
         showClaimDevice: true,
         showDeployDevice: true,
         showNetworks: false,
-        showShipping: false,
       };
     }
 
@@ -157,7 +152,6 @@ export const useUserContext = (): UserContextState => {
           title: 'My Monitors',
           showNetworkMap: false,
           showSites: canViewSites, // Permission based
-          showGrids: canViewSites,
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
@@ -166,7 +160,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: canViewNetworks,
-          showShipping: canViewShipping,
         };
 
       case 'external-org':
@@ -174,7 +167,6 @@ export const useUserContext = (): UserContextState => {
           title: activeGroup?.grp_title || 'Organization',
           showNetworkMap: false,
           showSites: canViewSites,
-          showGrids: false,
           showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
@@ -184,7 +176,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
-          showShipping: false,
         };
 
       default:
@@ -192,7 +183,6 @@ export const useUserContext = (): UserContextState => {
           title: 'My Monitors',
           showNetworkMap: true,
           showSites: false,
-          showGrids: false,
           showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
@@ -201,7 +191,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
-          showShipping: false,
         };
     }
   };
@@ -215,7 +204,6 @@ export const useUserContext = (): UserContextState => {
         canViewAccessControl: false,
         canViewOrganizations: false,
         canViewNetworks: false,
-        canViewShipping: false,
       };
     }
 
@@ -238,7 +226,6 @@ export const useUserContext = (): UserContextState => {
       canViewUserManagement,
       canViewAccessControl,
       canViewNetworks,
-      canViewShipping,
     };
   };
 

@@ -241,7 +241,6 @@ class PermissionService {
       ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.SETTINGS),
-      ...Object.values(PERMISSIONS.SHIPPING),
     ];
 
     return orgPermissions.includes(permission);
@@ -410,11 +409,6 @@ class PermissionService {
       [PERMISSIONS.SETTINGS.VIEW]: "View system settings",
       [PERMISSIONS.SETTINGS.EDIT]: "Edit system settings",
       [PERMISSIONS.SETTINGS.GROUP_SETTINGS]: "Manage group-specific settings",
-
-      [PERMISSIONS.SHIPPING.VIEW]: "View shipping information",
-      [PERMISSIONS.SHIPPING.CREATE]: "Create shipping requests",
-      [PERMISSIONS.SHIPPING.EDIT]: "Edit shipping details",
-      [PERMISSIONS.SHIPPING.DELETE]: "Delete shipping records",
     };
 
     return descriptions[permission] || "Permission description not available";

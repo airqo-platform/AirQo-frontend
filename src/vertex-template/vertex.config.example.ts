@@ -68,7 +68,6 @@ const config: VertexConfigInput = {
 
     // Operator-specific surfaces, off by default in the template.
     appLauncher: false,
-    shipping: false,
     networkRequests: false,
   },
 

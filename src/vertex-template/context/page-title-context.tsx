@@ -64,8 +64,6 @@ const getFallbackTitle = (pathname: string | null): PageTitleValue => {
     },
     "/admin/cohorts": { title: "Cohorts", section: "Administrative Panel" },
     "/admin/sites": { title: "Sites", section: "Administrative Panel" },
-    "/admin/grids": { title: "Grids", section: "Administrative Panel" },
-    "/admin/shipping": { title: "Shipping", section: "Administrative Panel" },
   };
 
   if (exactRouteTitles[pathname]) return exactRouteTitles[pathname];
@@ -93,11 +91,6 @@ const getFallbackTitle = (pathname: string | null): PageTitleValue => {
     [
       /^\/admin\/networks\/[^/]+$/,
       { title: "Sensor Manufacturer Details", section: "Sensor Manufacturers" },
-    ],
-    [/^\/admin\/grids\/[^/]+$/, { title: "Grid Details", section: "Grids" }],
-    [
-      /^\/admin\/shipping\/[^/]+$/,
-      { title: "Shipping Batch", section: "Shipping" },
     ],
     [
       /^\/devices\/overview\/[^/]+$/,

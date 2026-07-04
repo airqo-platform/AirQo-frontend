@@ -283,40 +283,6 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                     isActive={pathname.startsWith(ROUTE_LINKS.SITES)}
                   />
                 )}
-
-                {vertexConfig.features.siteManagement && (
-                  <AdminDropdownItem
-                    permission={!!permissions.canViewSites}
-                    permissionCode={PERMISSIONS.SITE.VIEW}
-                    tooltipMessage="This action requires site view permission"
-                     onClick={() => {
-                      navigateWithShimmer(ROUTE_LINKS.GRIDS, () => {
-                        handleModuleChange('admin', ROUTE_LINKS.GRIDS);
-                        setIsDropdownOpen(false);
-                      });
-                    }}
-                    label="Grids"
-                    subLabel="Configure spatial grids"
-                    isActive={pathname.startsWith(ROUTE_LINKS.GRIDS)}
-                  />
-                )}
-
-                {vertexConfig.features.shipping && (
-                  <AdminDropdownItem
-                    permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
-                    permissionCode={PERMISSIONS.SHIPPING.VIEW}
-                    tooltipMessage="This action requires shipping or network view permission"
-                     onClick={() => {
-                      navigateWithShimmer(ROUTE_LINKS.ADMIN_SHIPPING, () => {
-                        handleModuleChange('admin', ROUTE_LINKS.ADMIN_SHIPPING);
-                        setIsDropdownOpen(false);
-                      });
-                    }}
-                    label="Shipping"
-                    subLabel="Track device logistics"
-                    isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
-                  />
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

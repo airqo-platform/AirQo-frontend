@@ -35,7 +35,6 @@ const config: VertexConfigInput = {
     userManagement: false,
 
     appLauncher: false,
-    shipping: false,
     networkRequests: false,
   },
   map: {

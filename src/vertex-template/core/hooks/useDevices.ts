@@ -33,13 +33,7 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
-  PrepareDeviceResponse,
-  BulkPrepareResponse,
-  GenerateLabelsResponse,
-  ShippingStatusResponse,
   OrphanedDevicesResponse,
-  ShippingBatchesResponse,
-  ShippingBatchDetailsResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
 import { isSystemGroupTitle } from '@/core/config/system-group';
@@ -742,108 +736,12 @@ export const useDecryptDeviceKeys = () => {
   });
 };
 
-interface UsePrepareDeviceForShippingOptions {
-  onSuccess?: (data: PrepareDeviceResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const usePrepareDeviceForShipping = (options?: UsePrepareDeviceForShippingOptions) => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    PrepareDeviceResponse,
-    AxiosError<ErrorResponse>,
-    { deviceName: string; tokenType?: 'hex' | 'readable' }
-  >({
-    mutationFn: ({ deviceName, tokenType }) =>
-      adapter.prepareDeviceForShipping(deviceName, tokenType),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-interface UsePrepareBulkDevicesForShippingOptions {
-  onSuccess?: (data: BulkPrepareResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const usePrepareBulkDevicesForShipping = (options?: UsePrepareBulkDevicesForShippingOptions) => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    BulkPrepareResponse,
-    AxiosError<ErrorResponse>,
-    { deviceNames: string[]; tokenType?: 'hex' | 'readable'; batchName?: string }
-  >({
-    mutationFn: ({ deviceNames, tokenType, batchName }) =>
-      adapter.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-interface UseGenerateShippingLabelsOptions {
-  onSuccess?: (data: GenerateLabelsResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const useGenerateShippingLabels = (options?: UseGenerateShippingLabelsOptions) => {
-  return useMutation<
-    GenerateLabelsResponse,
-    AxiosError<ErrorResponse>,
-    string[]
-  >({
-    mutationFn: (deviceNames) => adapter.generateShippingLabels(deviceNames),
-    onSuccess: (data) => {
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-export const useShippingStatus = (deviceNames?: string[]) => {
-  return useQuery<ShippingStatusResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingStatus', deviceNames],
-    queryFn: () => adapter.getShippingStatus(deviceNames),
-    staleTime: 60000,
-  });
-};
-
 export const useOrphanedDevices = (userId: string) => {
   return useQuery<OrphanedDevicesResponse, AxiosError>({
     queryKey: ['orphanedDevices', userId],
     queryFn: () => adapter.getOrphanedDevices(userId),
     enabled: !!userId,
     staleTime: 300_000, // 5 minutes
-  });
-};
-
-export const useShippingBatches = (params: { limit?: number; skip?: number } = {}) => {
-  return useQuery<ShippingBatchesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingBatches', params],
-    queryFn: () => adapter.getShippingBatches(params),
-    staleTime: 60_000,
-  });
-};
-
-export const useShippingBatchDetails = (batchId: string) => {
-  return useQuery<ShippingBatchDetailsResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingBatchDetails', batchId],
-    queryFn: () => adapter.getShippingBatchDetails(batchId),
-    enabled: !!batchId,
-    staleTime: 60_000,
   });
 };
 

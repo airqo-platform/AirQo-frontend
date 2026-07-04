@@ -5,8 +5,6 @@ export const ROUTE_LINKS = {
   ADMIN_NETWORK_REQUESTS: '/admin/networks/requests',
   COHORTS: '/admin/cohorts',
   SITES: '/admin/sites',
-  GRIDS: '/admin/grids',
-  ADMIN_SHIPPING: '/admin/shipping',
   MY_DEVICES: '/devices/my-devices',
   ORG_OVERVIEW: '/home',
   ORG_ASSETS: '/devices/overview',

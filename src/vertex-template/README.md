@@ -41,7 +41,7 @@ Use [`vertex.config.example.ts`](./vertex.config.example.ts) as the annotated re
 | `api.baseUrl`, `api.publicMeasurementsBaseUrl` | Reserved for real adapters; the public base also fills the copy-paste measurement API examples |
 | `auth.provider` | `"none"` is the only valid value in v1 |
 | `auth.systemGroupSlug` | Group title treated as the operator's own "system" organization — members get the internal/staff experience |
-| `features.*` | Feature flags (device map, bulk deploy, site management, CSV export, reading history, user management, app launcher, shipping, network requests) |
+| `features.*` | Feature flags (device map, bulk deploy, site management, CSV export, reading history, user management, app launcher, network requests) |
 | `map.defaultCenter`, `map.defaultZoom`, `map.tileProvider` | Map defaults; `"openstreetmap"` needs no token, `"mapbox"` requires `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` |
 | `links.*` | Docs, privacy policy, cookie policy, and analytics URLs (empty string hides the link) |
 

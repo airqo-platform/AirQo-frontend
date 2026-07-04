@@ -8,9 +8,7 @@ import {
   AqCpuChip01,
   AqMonitor,
   AqMarkerPin01,
-  AqPackagePlus,
   AqCollocation,
-  AqBezierCurve02,
   AqFileQuestion02,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
@@ -260,25 +258,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   icon: AqMarkerPin01,
                   label: 'Sites',
                   disabled: !contextPermissions.canViewSites,
-                }}
-                isCollapsed={isCollapsed}
-              />
-
-              <NavItem
-                item={{
-                  href: ROUTE_LINKS.GRIDS,
-                  icon: AqBezierCurve02,
-                  label: 'Grids',
-                  disabled: !contextPermissions.canViewSites,
-                }}
-                isCollapsed={isCollapsed}
-              />
-
-              <NavItem
-                item={{
-                  href: ROUTE_LINKS.ADMIN_SHIPPING,
-                  icon: AqPackagePlus,
-                  label: 'Shipping',
                 }}
                 isCollapsed={isCollapsed}
               />

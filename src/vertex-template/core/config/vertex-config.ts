@@ -49,7 +49,6 @@ const vertexConfigSchema = z
       userManagement: z.boolean(),
 
       appLauncher: z.boolean(),
-      shipping: z.boolean(),
       networkRequests: z.boolean(),
     }),
     map: z.object({
@@ -109,7 +108,6 @@ export const defaultVertexConfig: VertexConfigInput = {
     userManagement: false,
 
     appLauncher: false,
-    shipping: false,
     networkRequests: false,
   },
   map: {

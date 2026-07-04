@@ -98,13 +98,6 @@ export const PERMISSIONS = {
     GROUP_SETTINGS: 'GROUP_SETTINGS',
   },
 
-  // Shipping permissions
-  SHIPPING: {
-    VIEW: 'SHIPPING_VIEW',
-    CREATE: 'SHIPPING_CREATE',
-    EDIT: 'SHIPPING_EDIT',
-    DELETE: 'SHIPPING_DELETE',
-  },
 } as const;
 
 // Permission categories for UI grouping
@@ -148,8 +141,7 @@ export type Permission =
   | typeof PERMISSIONS.SITE[keyof typeof PERMISSIONS.SITE]
   | typeof PERMISSIONS.ANALYTICS[keyof typeof PERMISSIONS.ANALYTICS]
   | typeof PERMISSIONS.NETWORK[keyof typeof PERMISSIONS.NETWORK]
-  | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS]
-  | typeof PERMISSIONS.SHIPPING[keyof typeof PERMISSIONS.SHIPPING];
+  | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS];
 
 export type PermissionCategory = keyof typeof PERMISSION_CATEGORIES; 
 

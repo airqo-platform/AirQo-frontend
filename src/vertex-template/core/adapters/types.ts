@@ -3,7 +3,6 @@ import { sites } from "../apis/sites";
 import { cohorts } from "../apis/cohorts";
 import { networks } from "../apis/networks";
 import { users } from "../apis/users";
-import { grids } from "../apis/grids";
 import { groupsApi } from "../apis/organizations";
 import { permissions } from "../apis/permissions";
 import { roles } from "../apis/roles";
@@ -14,7 +13,6 @@ type BaseApis = typeof devices &
   typeof cohorts &
   typeof networks &
   typeof users &
-  typeof grids &
   typeof groupsApi &
   typeof permissions &
   typeof roles &
