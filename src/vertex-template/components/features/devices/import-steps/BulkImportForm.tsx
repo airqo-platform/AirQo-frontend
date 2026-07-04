@@ -6,7 +6,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEVICE_CATEGORIES, DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
 import type { ImportDeviceFormData } from "./types";
-import type { Network } from "@/core/apis/networks";
+import type { Network } from "@/core/adapters/types";
 import { isSystemNetworkName } from '@/core/config/system-group';
 
 interface BulkImportFormProps {

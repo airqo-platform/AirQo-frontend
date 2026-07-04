@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { AqCopy01, AqChevronDown, AqChevronUp, AqMonitor } from "@airqo/icons-react";
-import { DeviceActivity } from "@/core/apis/devices";
+import { DeviceActivity } from "@/core/adapters/types";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useClipboard } from "@/core/hooks/useClipboard";
 

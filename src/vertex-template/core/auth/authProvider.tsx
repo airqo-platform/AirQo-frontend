@@ -10,7 +10,6 @@ import {
   logout as logoutAction,
   initializeUserData,
 } from '@/core/redux/slices/userSlice';
-import { users } from '@/core/apis/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
@@ -151,7 +150,7 @@ function useUserDetails(userId: string | null) {
 
   return useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
-    queryFn: () => users.getUserDetails(userId!),
+    queryFn: () => adapter.getUserDetails(userId!),
     enabled: !!userId,
     networkMode: 'offlineFirst',
     retry: isDevelopment ? 0 : 1,

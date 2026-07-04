@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { feedbackService } from "@/core/apis/feedback";
+import { feedbackService } from "@/core/services/feedback";
 import {
   getLoginFeedbackRecord,
   setLoginFeedbackRecord,

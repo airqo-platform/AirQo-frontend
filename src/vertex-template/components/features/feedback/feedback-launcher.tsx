@@ -14,8 +14,8 @@ import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput'
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { useBanner } from '@/context/banner-context';
 
-import { feedbackService } from '@/core/apis/feedback';
-import { uploadToCloudinary } from '@/core/apis/cloudinary';
+import { feedbackService } from '@/core/services/feedback';
+import { uploadToCloudinary } from '@/core/services/cloudinary';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { vertexConfig } from '@/vertex.config';

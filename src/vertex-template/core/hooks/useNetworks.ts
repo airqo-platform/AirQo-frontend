@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { Network } from "@/core/apis/networks";
+import { Manufacturer as Network } from "@/core/adapters/types";
 import { DeviceListingOptions } from "./useDevices";
 import { adapter } from "../adapters";
 import { AxiosError } from "axios";

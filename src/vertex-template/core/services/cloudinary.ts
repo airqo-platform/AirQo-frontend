@@ -27,7 +27,7 @@ export interface CloudinaryUploadOptions {
 export interface CloudinaryUploadResult {
   secure_url: string;
   public_id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];

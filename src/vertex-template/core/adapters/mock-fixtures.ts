@@ -2,8 +2,8 @@ import type { Cohort } from "@/app/types/cohorts";
 import type { Device, PaginationMeta } from "@/app/types/devices";
 import type { Site } from "@/app/types/sites";
 import type { UserDetails } from "@/app/types/users";
-import type { Network } from "@/core/apis/networks";
-import type { DeviceActivity } from "@/core/apis/devices";
+import type { Manufacturer } from "./contracts/manufacturers";
+import type { DeviceActivity } from "./contracts/devices";
 import { PERMISSIONS } from "@/core/permissions/constants";
 
 const now = "2026-05-30T09:00:00.000Z";
@@ -39,7 +39,7 @@ export const mockRole = {
   })),
 };
 
-export const mockNetworks: Network[] = [
+export const mockNetworks: Manufacturer[] = [
   {
     _id: "network-demo",
     net_status: "active",

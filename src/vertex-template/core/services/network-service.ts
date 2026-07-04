@@ -1,4 +1,4 @@
-import { NetworkCreationRequest, NetworkRequestActionResponse } from "@/core/apis/networks";
+import { ManufacturerCreationRequest as NetworkCreationRequest, ManufacturerRequestActionResponse as NetworkRequestActionResponse } from "@/core/adapters/types";
 import { NetworkRequestValues } from "@/components/features/networks/schema";
 import { getApiBaseUrl } from "@/lib/envConstants";
 import logger from "@/lib/logger";

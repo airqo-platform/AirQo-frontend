@@ -69,7 +69,7 @@ Mock mode needs none. All are optional:
 ## Project layout
 
 - `app/` — Next.js App Router pages (public: login/auth-error; authenticated: home, devices, sites, cohorts, admin).
-- `core/adapters/` — adapter registry, mock adapter, and fixtures. This is where mock data lives.
+- `core/adapters/` — the adapter contract (`contracts/`: capability interfaces for devices, sites, cohorts, manufacturers, users, organizations, access control), the registry, the mock adapter, and its fixtures. There is no separate HTTP client layer — adapters own their transport.
 - `core/config/` — config schema and the system-group helper.
 - `core/permissions/` — permission constants and the permission service.
 - `core/auth/` — auth-mode switch and the (inert in v1) NextAuth provider.

@@ -5,10 +5,10 @@ import {
   SitesSummaryResponse,
   CreateSiteResponse,
   SiteRefreshResponse,
-} from "../apis/sites";
+  DeviceActivitiesResponse,
+} from "../adapters/types";
 import { adapter } from '../adapters';
 import { isSystemGroupTitle } from '@/core/config/system-group';
-import { DeviceActivitiesResponse } from "../apis/devices";
 
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";

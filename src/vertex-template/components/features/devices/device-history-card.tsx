@@ -5,7 +5,7 @@ import DeviceActivityItem from "@/components/features/devices/device-activity-it
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import type { DevicePreviousSite, DeviceSite } from "@/app/types/devices";
-import type { DeviceActivity } from "@/core/apis/devices";
+import type { DeviceActivity } from "@/core/adapters/types";
 
 const shortId = (id: string) =>
     id.length > 12 ? `${id.slice(0, 6)}…${id.slice(-4)}` : id;

@@ -3,7 +3,7 @@
 import ReusableTable, {
   TableColumn,
 } from "@/components/shared/table/ReusableTable";
-import { NetworkCreationRequest } from "@/core/apis/networks";
+import { NetworkCreationRequest } from "@/core/adapters/types";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Eye, MoreHorizontal } from "lucide-react";
 import {

@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { users } from '@/core/apis/users';
+import { adapter } from '@/core/adapters';
 import { jwtDecode } from 'jwt-decode';
 import type {
   LoginCredentials,
@@ -241,7 +241,7 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const loginResponse = (await users.loginWithDetails({
+          const loginResponse = (await adapter.login({
             userName: credentials.userName,
             password: credentials.password,
             captchaToken: hcaptchaEnabled ? captchaToken : undefined,

@@ -6,7 +6,7 @@ import {
   useGroupCohorts,
   usePersonalUserCohorts,
 } from '@/core/hooks/useCohorts';
-import { cohorts as cohortsApi } from '@/core/apis/cohorts';
+import { adapter as cohortsApi } from '@/core/adapters';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { PERMISSIONS } from '@/core/permissions/constants';

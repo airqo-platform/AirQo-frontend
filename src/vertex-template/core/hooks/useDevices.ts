@@ -11,7 +11,7 @@ import {
   GetDevicesSummaryParams,
   DeviceCountResponse,
   type DeviceActivitiesResponse,
-} from '../apis/devices';
+} from '../adapters/types';
 import { adapter } from '../adapters';
 import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';

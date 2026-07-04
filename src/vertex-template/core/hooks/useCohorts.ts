@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryFunctionContext } from '@tanstack/react-query';
-import type { GetCohortsSummaryParams } from '../apis/cohorts';
+import type { GetCohortsSummaryParams } from '../adapters/types';
 import { adapter as cohortsApi } from '../adapters';
 import { AxiosError } from 'axios';
 import {

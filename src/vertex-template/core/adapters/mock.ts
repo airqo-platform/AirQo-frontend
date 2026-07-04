@@ -5,9 +5,9 @@ import type {
 } from "@/app/types/devices";
 import type { Site } from "@/app/types/sites";
 import type { Cohort } from "@/app/types/cohorts";
-import type { GetDevicesSummaryParams } from "@/core/apis/devices";
-import type { GetSitesSummaryParams } from "@/core/apis/sites";
-import type { GetCohortsSummaryParams } from "@/core/apis/cohorts";
+import type { GetDevicesSummaryParams } from "./contracts/devices";
+import type { GetSitesSummaryParams } from "./contracts/sites";
+import type { GetCohortsSummaryParams } from "./contracts/cohorts";
 import {
   mockCohorts,
   mockDeviceActivities,
