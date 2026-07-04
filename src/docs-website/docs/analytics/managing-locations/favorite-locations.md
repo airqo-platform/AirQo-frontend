@@ -1,53 +1,94 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 sidebar_label: Favorite Locations
 ---
 
-# Managing Favorite Locations
+# Favorite Locations
 
-The Favorites feature allows you to save up to four specific monitoring locations, making it easy to visualize trends and analyze data immediately upon logging in.
+Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow this page is called **My Favorites**; in the Organization workflow the same view is called **Dashboard**.
 
 ---
 
 ## Accessing Favorites
 
-1. Log in to the AirQo Analytics platform at [analytics.airqo.net](https://analytics.airqo.net).
-2. Navigate to the **Analytics** page from the main navigation menu.
-3. Locate the **Customize** button in the top right area of the interface.
+| Workflow | Sidebar Item | Web Address |
+|----------|--------------|-------------|
+| **Individual** | **My Favorites** | `https://analytics.airqo.net/user/favorites` |
+| **Organization** | **Dashboard** | `https://analytics.airqo.net/org/<your-org>/dashboard` |
+
+You can also reach the Individual Favorites page from the [Home page](https://analytics.airqo.net/user/home) by selecting **My Favorites** or **Start here**.
 
 ---
 
-## Setting Your Favorite Locations
+## Add Favorite Locations
 
-1. Click the **Customize** button to open the location management settings.
-2. Use the search field to find cities or specific monitor sites.
-3. Check the boxes next to the locations you want to save.
+1. Open the **My Favorites** page (Individual) or **Dashboard** page (Organization).
+2. Select **Manage Favorites**. The Add Favorites dialog opens.
+3. Use the search field or browse the **Sites** table to find monitoring locations.
+4. Select the checkboxes next to the sites you want to follow.
+5. The sidebar shows your selected favorites and the count (for example, "Selected Favorites (2/4)").
+6. Select **Save Favorites**.
 
-:::note
-You can save up to **four** favorite locations at a time. These locations will be saved to your profile and will be the default view every time you log in.
+:::caution Maximum of 4 favorites
+You can save up to four favorite locations at a time. If you select more than four, the dialog shows an error and the **Save Favorites** button is disabled until you deselect the extra locations.
 :::
 
 ---
 
-## Visualizing Favorite Data
+## Manage Favorite Locations
 
-Once your favorites are set, the AirQo Analytics platform displays graphical analysis and trends for these locations directly on your dashboard:
+### Remove a Favorite
 
-- **Quick View** — See real-time or historical trends for PM₂.₅ or PM₁₀ across your selected areas.
-- **Deep Dive** — Click the **More** link on any visualization chart to access the **Explore** page for deeper analysis and data export.
+In the Add Favorites dialog, find the site in the **Selected Favorites** sidebar and select the **×** next to it. Then select **Save Favorites**.
+
+### Clear All Favorites
+
+In the Add Favorites dialog, select **Clear** to remove all selected locations. Then select **Save Favorites**.
+
+### Refresh the Site List
+
+Select the **Refresh** button in the dialog header to reload the available sites and your current preferences.
+
+---
+
+## Sites Table
+
+The Add Favorites dialog lists sites with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| **Location** | The site location name |
+| **City** | The city where the site is located |
+| **Country** | The country where the site is located |
+| **Owner** | The organization or entity that owns the site |
+
+Use the column headers to sort, and use the pagination controls at the bottom to browse more sites.
+
+---
+
+## View Favorite Data
+
+Once favorites are saved, the dashboard displays:
+
+- **Quick Access cards** — one tile per favorite showing the current reading and air quality icon
+- **Air Pollution Trends Over Time** — a line chart comparing your favorites
+- **Air Pollution Levels Distribution** — a bar chart showing level distribution across your favorites
+
+Select any location card or chart's **More Insights** option to explore the site in more detail.
 
 ---
 
 ## Tips
 
-- **Updating Favorites:** You can change your favorite locations at any time by repeating the customize process.
-- **Data Export:** If you need data for more than four locations, use the [Data Export](../exporting-data/data-export.md) feature to select a broader range of cities or countries.
-- **Profile Settings:** Manage general preferences and your user profile on the **Settings** page.
+- **Updating favorites:** You can change your favorite locations at any time by opening **Manage Favorites** again.
+- **Exporting data:** If you need data for more than four locations, use the [Export Air Quality Data](../exporting-data/data-export.md) feature to select a broader range of sites, devices, cities, or countries.
+- **Profile settings:** Manage your account preferences and security settings on the **Profile** page.
 
 ---
 
 ## Related Guides
 
-- [Home Dashboard](../monitoring-air-quality/home-dashboard.md) — see your favorite locations on the dashboard
-- [Interactive Map](../monitoring-air-quality/interactive-map.md) — find and save sites directly from the map
-- [Exporting Air Quality Data](../exporting-data/data-export.md) — download data for your favorite locations
+- [Analytics Dashboard](../monitoring-air-quality/analytics-dashboard.md)
+- [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md)
+- [Interactive Map](../monitoring-air-quality/interactive-map.md)
+- [Export Air Quality Data](../exporting-data/data-export.md)

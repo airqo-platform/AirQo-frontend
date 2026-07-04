@@ -12,7 +12,7 @@ Users can request to join your organization through the AirQo Analytics platform
 ## Viewing Join Requests
 
 1. Switch to your organization workspace using the header dropdown.
-2. Click **Members** in the sidebar.
+2. Select **Members** in the sidebar.
 3. Open the **Member Requests** tab.
 4. You will see a list of pending requests with the applicant's name, email, and request date.
 
@@ -25,7 +25,7 @@ Viewing and managing join requests requires the `MEMBER_INVITE` permission.
 ## Approving a Request
 
 1. Find the request you want to approve.
-2. Click **Approve**.
+2. Select **Approve**.
 3. The user is added to the organization, usually with the default member role.
 4. Optionally, go to the **Members** page and assign additional roles to the new member.
 
@@ -34,7 +34,7 @@ Viewing and managing join requests requires the `MEMBER_INVITE` permission.
 ## Rejecting a Request
 
 1. Find the request you want to decline.
-2. Click **Reject**.
+2. Select **Reject**.
 3. The request is removed from the list and the user is not added to the organization.
 
 :::caution

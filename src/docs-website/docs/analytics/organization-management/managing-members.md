@@ -12,7 +12,7 @@ Organization administrators can view, invite, and remove members from the organi
 ## Viewing Members
 
 1. Navigate to your organization using the header dropdown.
-2. Click **Members** in the sidebar.
+2. Select **Members** in the sidebar.
 3. You will see a paginated list of all members with their names, emails, and assigned roles.
 
 :::note Requires MEMBER_VIEW
@@ -23,7 +23,7 @@ This action requires the `MEMBER_VIEW` permission.
 
 ## Viewing Member Details
 
-1. Click on any member's name in the members list.
+1. Select on any member's name in the members list.
 2. The detail page shows the member's profile information and all roles currently assigned to them.
 
 :::note Requires MEMBER_VIEW
@@ -37,11 +37,11 @@ This action requires the `MEMBER_VIEW` permission.
 ### Email Invitation (Admin-Initiated)
 
 1. Navigate to the **Members** page.
-2. Click the **Send Invites** button.
+2. Select the **Send Invites** button.
 3. Enter the email addresses of the people you want to invite (one per line or comma-separated).
-4. Click **Send**.
+4. Select **Send**.
 
-The invitees will receive an email with a link to join your organization. When they click the link:
+The invitees will receive an email with a link to join your organization. When they select the link:
 
 - If they already have an AirQo account, they will be added to the organization after confirming.
 - If they do not have an account, they will be prompted to create one first.
@@ -60,16 +60,16 @@ When a newly invited member joins, they are typically assigned the organization'
 
 ### Single Assignment
 
-1. Go to the **Members** page and click on the member's name.
+1. Go to the **Members** page and select on the member's name.
 2. On the member detail page, find the **Roles** section.
 3. Use the dropdown to select a role to assign.
-4. Click **Assign**.
+4. Select **Assign**.
 
 ### Bulk Assignment
 
 1. Go to the **Members** page.
 2. Select multiple members using the checkboxes in the table.
-3. Click the **Assign Role** button that appears.
+3. Select the **Assign Role** button that appears.
 4. Choose the role from the dropdown.
 5. Confirm the assignment.
 
@@ -77,7 +77,7 @@ When a newly invited member joins, they are typically assigned the organization'
 
 1. Open the member's detail page.
 2. Find the role you want to remove.
-3. Click the **Unassign** or remove button next to the role.
+3. Select the **Unassign** or remove button next to the role.
 4. Confirm the action.
 
 :::note
@@ -89,12 +89,12 @@ You can only assign roles that exist within the same organization.
 ## Removing a Member
 
 1. Navigate to the **Members** page.
-2. Click the **Remove** button next to the member you want to remove.
+2. Select the **Remove** button next to the member you want to remove.
 3. Confirm the removal in the dialog that appears.
 
 Alternatively, from the member detail page:
 
-1. Click **Remove from Organization**.
+1. Select **Remove from Organization**.
 2. Confirm the action.
 
 :::caution
@@ -108,7 +108,7 @@ You cannot remove the organization's Group Manager. You must reassign the manage
 If you have pending invitations from other organizations:
 
 - A notification banner will appear at the top of your dashboard showing the number of pending invitations.
-- Click **View invitation(s)** to see all pending invites.
+- Select **View invitation(s)** to see all pending invites.
 - From there, you can **Accept** or **Reject** each invitation.
 
 ---
@@ -135,4 +135,4 @@ If you have pending invitations from other organizations:
 
 - [Member Requests](./member-requests.md) — approve or reject join requests
 - [Roles & Permissions](./roles-and-permissions.md) — create and manage roles
-- [Organisation Settings](./organization-settings.md) — configure the organization workspace
+- [Organization Settings](./organization-settings.md) — configure the organization workspace

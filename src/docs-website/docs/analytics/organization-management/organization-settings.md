@@ -1,9 +1,9 @@
 ---
 sidebar_position: 4
-sidebar_label: Organisation Settings
+sidebar_label: Organization Settings
 ---
 
-# Organisation Settings
+# Organization Settings
 
 Organization settings allow administrators to configure the workspace appearance, basic information, and primary manager.
 
@@ -12,7 +12,7 @@ Organization settings allow administrators to configure the workspace appearance
 ## Accessing Organization Settings
 
 1. Switch to your organization workspace using the header dropdown.
-2. Click **Organization Settings** in the sidebar.
+2. Select **Organization Settings** in the sidebar.
 3. You will see two tabs: **Theme** and **Group Details**.
 
 :::note Requires GROUP_MANAGEMENT
@@ -88,10 +88,10 @@ If your team does not yet have an organization workspace:
 
 ## Leaving an Organization
 
-1. Click on your profile icon and go to **Profile**.
+1. Select on your profile icon and go to **Profile**.
 2. Navigate to the **Security** tab.
 3. Scroll to the **Leave Organization** section at the bottom.
-4. Click **Leave Organization**.
+4. Select **Leave Organization**.
 5. Confirm your decision in the dialog.
 
 :::caution

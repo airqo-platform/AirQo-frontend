@@ -19,7 +19,7 @@ When you first join the AirQo Analytics platform, you are assigned to a default 
 
 ## How Roles & Permissions Work
 
-AirQo uses a **permission-based Role-Based Access Control (RBAC)** system:
+AirQo uses a **roles and permissions system** to control what each member can do:
 
 ```
 Organization
@@ -40,7 +40,7 @@ Access is determined by the *permissions* your roles grant, not by the role name
 
 ## How Roles Are Named
 
-All organization-scoped roles are prefixed with the organisation's **normalised title** (uppercased, with special characters stripped). For example, an organization called `"Clean Air Network"` uses the prefix `CLEAN_AIR_NETWORK`.
+All organization-scoped roles are prefixed with the organization's **normalized title** (uppercased, with special characters stripped). For example, an organization called `"Clean Air Network"` uses the prefix `CLEAN_AIR_NETWORK`.
 
 Role codes mirror role names (uppercased and underscored).
 
@@ -52,11 +52,11 @@ When an organization is created, the following roles are created automatically.
 
 ### 1. `ADMIN`
 
-Created immediately when the group record is saved and assigned to the user who created the organization.
+Created immediately when the organization is created and assigned to the user who created it.
 
 | Permission | Description |
 |------------|-------------|
-| `MEMBER_VIEW` | View group members |
+| `MEMBER_VIEW` | View organization members |
 | `MEMBER_INVITE` | Invite new members |
 | `MEMBER_SEARCH` | Search members |
 | `MEMBER_EXPORT` | Export member data |
@@ -100,7 +100,7 @@ Baseline role for regular organization members.
 | Permission | Description |
 |------------|-------------|
 | `API_ACCESS` | Access the AirQo API |
-| `TOKEN_GENERATE` | Generate API tokens |
+| `TOKEN_GENERATE` | Generate access keys for the AirQo API |
 | `ANALYTICS_VIEW` | View analytics |
 | `GROUP_VIEW` | View group details |
 | `MEMBER_VIEW` | View group members |
@@ -144,10 +144,10 @@ In addition to the default roles, organization administrators can create custom 
 ### Creating a New Role
 
 1. Navigate to **Roles & Permissions** in the sidebar.
-2. Click **Create New Role**.
+2. Select **Create New Role**.
 3. Enter a **Role Name** (for example, "Data Analyst" or "Field Technician").
 4. Optionally add a **Description** explaining what the role is for.
-5. Click **Create**.
+5. Select **Create**.
 
 :::note Requires ROLE_CREATE
 This action requires the `ROLE_CREATE` permission.
@@ -155,10 +155,10 @@ This action requires the `ROLE_CREATE` permission.
 
 ### Editing Role Permissions
 
-1. Go to **Roles & Permissions** and click on the role you want to edit.
+1. Go to **Roles & Permissions** and select on the role you want to edit.
 2. You will see a checklist of all available permissions.
 3. Check or uncheck permissions to add or remove them from the role.
-4. Click **Save** to apply changes.
+4. Select **Save** to apply changes.
 
 :::note Requires ROLE_EDIT
 This action requires the `ROLE_EDIT` permission.
@@ -180,16 +180,16 @@ This action requires the `ROLE_EDIT` permission.
 
 ### Single Assignment
 
-1. Go to the **Members** page and click on the member's name.
+1. Go to the **Members** page and select on the member's name.
 2. On the member detail page, find the **Roles** section.
 3. Use the dropdown to select a role to assign.
-4. Click **Assign**.
+4. Select **Assign**.
 
 ### Bulk Assignment
 
 1. Go to the **Members** page.
 2. Select multiple members using the checkboxes in the table.
-3. Click the **Assign Role** button that appears.
+3. Select the **Assign Role** button that appears.
 4. Choose the role from the dropdown.
 5. Confirm the assignment.
 
@@ -197,7 +197,7 @@ This action requires the `ROLE_EDIT` permission.
 
 1. Open the member's detail page.
 2. Find the role you want to remove.
-3. Click the **Unassign** or remove button next to the role.
+3. Select the **Unassign** or remove button next to the role.
 4. Confirm the action.
 
 :::note
@@ -263,4 +263,4 @@ You can only assign roles that exist within the same organization.
 
 - [Managing Members](./managing-members.md) — invite, assign roles, and remove members
 - [Member Requests](./member-requests.md) — approve or reject join requests
-- [Organisation Settings](./organization-settings.md) — configure the organization workspace
+- [Organization Settings](./organization-settings.md) — configure the organization workspace

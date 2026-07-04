@@ -5,56 +5,45 @@ sidebar_label: Creating an Account
 
 # Creating an Account
 
-This guide walks you through setting up your AirQo Analytics account, logging in, and recovering access if you forget your password.
+Create a free AirQo Analytics account to explore air quality data, save favorite locations, and collaborate with your organization.
 
 ---
 
-## What Is AirQo Analytics?
+## Before You Start
 
-AirQo Analytics is a web platform for monitoring, analyzing, and exporting air quality data across Africa. It provides interactive maps, trend charts, data export tools, and dataset visualization — all accessible through a browser at [analytics.airqo.net](https://analytics.airqo.net).
+AirQo Analytics supports two workflows:
 
-The platform supports two distinct workflows:
+| Workflow | Best For | Web Address |
+|----------|----------|-------------|
+| **Individual** | Personal research, analysis, and exploration | `https://analytics.airqo.net/user/*` |
+| **Organization** | Teams, government agencies, and NGOs managing sensor networks | `https://analytics.airqo.net/org/<your-org>/*` |
 
-| Flow | Who It's For | URL Pattern |
-|------|-------------|-------------|
-| **Individual** | Researchers, analysts, and individual users | `analytics.airqo.net/user/*` |
-| **Organization** | Teams, government agencies, and NGOs managing sensor networks | `analytics.airqo.net/org/<your-org>/*` |
-
-Your account starts in the **Individual** flow. If you belong to an organization, you can switch to it from the header.
+New accounts begin in the **Individual** workflow. You can switch to an organization from the header once you have been invited.
 
 ---
 
-## Creating an Account
+## Sign Up
 
-1. Go to [analytics.airqo.net](https://analytics.airqo.net).
-2. Click **Sign Up** on the login page.
-3. Fill in your details and submit the registration form.
-4. Check your email for a verification link and confirm your account.
-5. You are redirected to the Home page.
+1. Go to [AirQo Analytics](https://analytics.airqo.net).
+2. Select **Sign Up** on the welcome page, or open the [registration page](https://analytics.airqo.net/user/creation/individual/register).
+3. Enter the following details:
+   - **First name**
+   - **Last name**
+   - **Email address**
+   - **Password** — must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character such as `#?!@$%^&*`.
+4. Read and accept the [Terms of Service](https://airqo.net/legal/terms-of-service) and [Privacy Policy](https://airqo.net/legal/privacy-policy).
+5. Select **Continue**.
+6. Check your email for a verification message and select the confirmation link.
+7. Once verified, return to AirQo Analytics and [log in](https://analytics.airqo.net/user/login).
 
----
-
-## Logging In
-
-1. Go to [analytics.airqo.net](https://analytics.airqo.net).
-2. Enter your email and password.
-3. Click **Login**.
-
-You can also log in with Google, GitHub, or other supported OAuth providers if they are enabled for your account.
-
----
-
-## Forgot Password
-
-1. On the login page, click **Forgot Password**.
-2. Enter your email address.
-3. Check your inbox for a reset link.
-4. Click the link and set a new password.
+:::tip Can’t find the email?
+Check your spam or junk folder. If it is not there after a few minutes, try signing up again.
+:::
 
 ---
 
 ## Next Steps
 
-- Learn how to move around the platform in [Navigating the Platform](./navigating-the-platform.md).
-- Start monitoring air quality from your [Home Dashboard](../monitoring-air-quality/home-dashboard.md).
-- Explore monitoring sites on the [Interactive Map](../monitoring-air-quality/interactive-map.md).
+- [Log in to your account](./logging-in.md)
+- [Reset your password](./resetting-your-password.md) if you forget it
+- [Learn how to move around the platform](./navigating-the-platform.md)

@@ -11,11 +11,11 @@ The Dataset Visualizer lets you upload air quality data files (CSV or Excel), au
 
 ## Accessing the Visualizer
 
-1. Log in to the AirQo Analytics platform at [analytics.airqo.net](https://analytics.airqo.net).
-2. Open the sidebar and click **Dataset Visualizer** under the Analytics section.
-3. You can also access it directly at:
-   - **Personal workspace:** `analytics.airqo.net/user/data-visualizer`
-   - **Organization workspace:** `analytics.airqo.net/org/<your-org>/data-visualizer`
+1. Log in to [AirQo Analytics](https://analytics.airqo.net).
+2. Open the sidebar and select **Dataset Visualizer** under the Data & Analysis section.
+3. Direct links:
+   - **Individual workflow:** [analytics.airqo.net/user/data-visualizer](https://analytics.airqo.net/user/data-visualizer)
+   - **Organization workflow:** `https://analytics.airqo.net/org/<your-org>/data-visualizer`
 
 ---
 
@@ -34,7 +34,7 @@ For large CSV files, the parser streams rows progressively. You'll see friendly 
 
 ### How to Upload
 
-1. Click **Choose files** or drag and drop files onto the upload area.
+1. Select **Choose files** or drag and drop files onto the upload area.
 2. You can upload **multiple files at once** for side-by-side comparison.
 3. For Excel workbooks with multiple sheets, you'll be prompted to select which sheet to use after upload.
 
@@ -62,7 +62,7 @@ The visualizer classifies every column into one of these kinds:
 | **mixed** | Gray | Contains both text and numbers — usable but may need review |
 | **empty** | Gray | No usable data — skipped in charts |
 
-You can view detected fields by clicking **Review data** → **Show fields** in the toolbar.
+You can view detected fields by selecting **Review data** → **Show fields** in the toolbar.
 
 ---
 
@@ -70,7 +70,7 @@ You can view detected fields by clicking **Review data** → **Show fields** in 
 
 ### Adding a Chart
 
-1. Click **Add chart** in the toolbar.
+1. Select **Add chart** in the toolbar.
 2. Select a chart type from the dropdown.
 3. The new chart appears in the chart grid and becomes the active view.
 
@@ -90,7 +90,7 @@ You can view detected fields by clicking **Review data** → **Show fields** in 
 
 ### Chart Configuration Panel
 
-Click the settings icon on any chart card to expand the configuration panel. From there you can:
+Select the settings icon on any chart card to expand the configuration panel. From there you can:
 
 - **Change chart type** — switch between line, bar, area, etc.
 - **Select metric column** — choose which numeric field to visualize (e.g., PM2.5, PM10)
@@ -128,23 +128,14 @@ When your data contains latitude and longitude columns, the **Map** chart type b
 | **Heatmap** | Density-based visualization showing concentration clusters |
 | **Grid choropleth** | Grid-based aggregation showing average values per cell |
 
-### AQI Coloring
+### Air Quality Coloring
 
-The map automatically detects PM2.5 or PM10 columns and applies AQI (Air Quality Index) color coding:
+The map automatically detects PM2.5 or PM10 columns and applies AirQo air quality color coding. See [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md) for the full color scale and ranges.
 
-| AQI Level | Color | Range |
-|-----------|-------|-------|
-| Good | Green | 0–12 µg/m³ |
-| Moderate | Yellow | 12.1–35.4 µg/m³ |
-| Unhealthy for Sensitive Groups | Orange | 35.5–55.4 µg/m³ |
-| Unhealthy | Red | 55.5–150.4 µg/m³ |
-| Very Unhealthy | Purple | 150.5–250.4 µg/m³ |
-| Hazardous | Dark Red | 250.5+ µg/m³ |
-
-Click any point on the map to see a popup with the measurement value and AQI classification.
+Select any point on the map to see a popup with the measurement value and category.
 
 :::note
-The Map chart requires a valid Mapbox access token (`NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`) configured in the environment.
+The Map chart requires coordinates and a working map service connection.
 :::
 
 ---
@@ -155,7 +146,7 @@ If your data contains a time column, the **Filter by date** picker appears in th
 
 1. Use the date range picker to set a start and end date.
 2. All charts update in real time to show only data within the selected range.
-3. Click **Reset range** to return to the full dataset period.
+3. Select **Reset range** to return to the full dataset period.
 
 ---
 
@@ -172,10 +163,10 @@ You can upload multiple files and compare them side by side.
 
 ### Managing Datasets
 
-- **Rename** — click the label field in the Data Inspector to give each dataset a friendly name.
+- **Rename** — select the label field in the Data Inspector to give each dataset a friendly name.
 - **Switch sheets** — for Excel files, use the Sheet dropdown to switch between workbook sheets.
-- **Add sheet as dataset** — click **Add sheet** to import another sheet from the same workbook as a separate dataset.
-- **Remove** — click the trash icon to remove a dataset (charts update automatically).
+- **Add sheet as dataset** — select **Add sheet** to import another sheet from the same workbook as a separate dataset.
+- **Remove** — select the trash icon to remove a dataset (charts update automatically).
 
 ---
 
@@ -190,13 +181,13 @@ Use the **View layout** buttons in the toolbar to control how charts are display
 | **Maps only** | Shows only map charts |
 | **Compare all** | Shows all charts side by side in a 2-column grid |
 
-Click any chart tab in the toolbar to switch the active chart in focused mode.
+Select any chart tab in the toolbar to switch the active chart in focused mode.
 
 ---
 
 ## Data Inspector
 
-Click **Review data** in the toolbar to open the Data Inspector panel.
+Select **Review data** in the toolbar to open the Data Inspector panel.
 
 The inspector shows:
 
@@ -223,11 +214,11 @@ Exported files are named automatically based on the chart title (e.g., `pm2-5-tr
 
 ## Workspace Drafts
 
-Your work is **auto-saved** to the browser's IndexedDB storage. This means:
+Your work is **auto-saved** locally in your browser. This means:
 
 - If you close the tab and return later, your datasets, charts, and configuration are restored.
-- You can also click **Save draft** to save manually at any time.
-- Click **Clear** to reset the entire workspace and delete the saved draft.
+- You can also select **Save draft** to save manually at any time.
+- Select **Clear** to reset the entire workspace and delete the saved draft.
 
 :::caution
 Drafts are stored locally in your browser. They are **not** synced across devices or browsers. Clearing browser data will remove saved drafts.
@@ -237,7 +228,7 @@ Drafts are stored locally in your browser. They are **not** synced across device
 
 ## Tutorial Video
 
-Click **Watch tutorial** at the top of the visualizer page to open a walkthrough video that demonstrates the full workflow from upload to chart export.
+Select **Watch tutorial** at the top of the visualizer page to open a walkthrough video that demonstrates the full workflow from upload to chart export.
 
 ---
 
@@ -248,8 +239,8 @@ Click **Watch tutorial** at the top of the visualizer page to open a walkthrough
 | Max file size | 100 MB per file | Browser memory constraints |
 | Max rows per dataset | 50,000 | Performance optimization |
 | Max rows rendered per chart | 5,000 | Chart rendering performance |
-| Supported formats | `.csv`, `.xlsx` | PapaParse + read-excel-file |
-| Map requires | Mapbox token + lat/lng columns | Mapbox GL rendering |
+| Supported formats | `.csv`, `.xlsx` | Standard CSV and Excel parsers |
+| Map requires | map service connection + latitude/longitude columns | map rendering |
 
 ---
 
@@ -259,7 +250,7 @@ Click **Watch tutorial** at the top of the visualizer page to open a walkthrough
 |-------|---------------|----------|
 | No numeric columns detected | File has no measurement data | Ensure at least one column contains numeric values |
 | Map not available | No latitude/longitude columns found | Verify your data has columns named `latitude`, `lat`, `longitude`, `lng`, or similar |
-| Charts appear empty | Date range filter excludes all data | Click **Reset range** in the toolbar |
+| Charts appear empty | Date range filter excludes all data | Select **Reset range** in the toolbar |
 | Large file takes long to parse | File exceeds 50,000 rows | Wait for parsing to complete, or split into smaller files |
 | Draft not restored | Browser storage was cleared | Re-upload your files |
 | Sheet switch fails | Source file reference lost | Re-upload the file and select the desired sheet |
@@ -268,5 +259,5 @@ Click **Watch tutorial** at the top of the visualizer page to open a walkthrough
 
 ## Related Guides
 
-- [Exporting Air Quality Data](../exporting-data/data-export.md) — download platform data for offline analysis
-- [Managing Favorite Locations](../managing-locations/favorite-locations.md) — save monitoring sites to your dashboard
+- [Export Air Quality Data](../exporting-data/data-export.md) — download platform data for offline analysis
+- [Favorite Locations](../managing-locations/favorite-locations.md) — save monitoring sites to your dashboard
