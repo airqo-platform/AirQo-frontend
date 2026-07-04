@@ -158,7 +158,8 @@ const ActivityFormDialog: React.FC<ActivityFormDialogProps> = ({
         quizPayload.format === 'single_choice' &&
         (quizPayload.correct_index === undefined ||
           quizPayload.correct_index < 0 ||
-          quizPayload.correct_index >= validOptions.length)
+          quizPayload.correct_index >= quizPayload.options.length ||
+          !quizPayload.options[quizPayload.correct_index]?.trim())
       ) {
         return 'Select a valid correct answer';
       }
@@ -364,7 +365,7 @@ const ActivityFormDialog: React.FC<ActivityFormDialogProps> = ({
 
       if (updatedCorrectIndex !== undefined) {
         if (updatedCorrectIndex === index) {
-          updatedCorrectIndex = 0;
+          updatedCorrectIndex = undefined;
         } else if (updatedCorrectIndex > index) {
           updatedCorrectIndex -= 1;
         }

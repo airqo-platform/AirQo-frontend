@@ -89,6 +89,7 @@ const CourseDetailPage: React.FC = () => {
     data: course,
     error: courseError,
     isLoading: courseLoading,
+    isValidating,
     mutate: mutateCourse,
   } = useSWR(
     courseId ? `system/learn/courses/${courseId}` : null,
@@ -192,11 +193,11 @@ const CourseDetailPage: React.FC = () => {
         await learnAdminService.deleteUnit(unit._id);
         toast.success('Unit deleted successfully');
         await refreshData();
+        setDialog(null);
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
       } finally {
         setIsProcessing(false);
-        setDialog(null);
       }
     },
     [refreshData]
@@ -210,11 +211,11 @@ const CourseDetailPage: React.FC = () => {
         await learnAdminService.deleteLesson(lesson._id);
         toast.success('Lesson deleted successfully');
         await refreshData();
+        setDialog(null);
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
       } finally {
         setIsProcessing(false);
-        setDialog(null);
       }
     },
     [refreshData]
@@ -228,11 +229,11 @@ const CourseDetailPage: React.FC = () => {
         await learnAdminService.deleteActivity(activity._id);
         toast.success('Activity deleted successfully');
         await refreshData();
+        setDialog(null);
       } catch (error) {
         toast.error(getUserFriendlyErrorMessage(error));
       } finally {
         setIsProcessing(false);
-        setDialog(null);
       }
     },
     [refreshData]
@@ -680,7 +681,7 @@ const CourseDetailPage: React.FC = () => {
               size="sm"
               Icon={AqRefreshCw05}
               onClick={handleRefresh}
-              loading={courseLoading}
+              loading={courseLoading || isValidating}
             >
               Refresh
             </Button>

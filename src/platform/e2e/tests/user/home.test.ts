@@ -41,19 +41,16 @@ describe('Home Page @user', function () {
 
   it('should display welcome text with name', async function () {
     await homePage.navigateToHome();
-    await new Promise(r => setTimeout(r, 3000));
+    const isWelcome = await homePage.isWelcomeDisplayed();
+    expect(isWelcome).to.be.true;
     const text = await homePage.getWelcomeText();
-    const hasWelcome =
-      text.includes('Welcome') || text.includes('Home') || text.length > 0;
-    expect(hasWelcome).to.be.true;
+    expect(text).to.be.a('string').and.have.length.greaterThan(0);
   });
 
   it('should show quick access buttons @smoke', async function () {
     await homePage.navigateToHome();
-    await new Promise(r => setTimeout(r, 3000));
     const hasButtons = await homePage.hasQuickAccessButtons();
-    const hasWelcome = await homePage.isWelcomeDisplayed();
-    expect(hasButtons || hasWelcome).to.be.true;
+    expect(hasButtons).to.be.true;
   });
 
   it('should navigate to data export on Download Data click', async function () {
