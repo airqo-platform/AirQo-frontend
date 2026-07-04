@@ -164,7 +164,15 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     }
   );
 
-  const staffMembers = staffData?.staff || [];
+  const staffMembers = useMemo(() => staffData?.staff || [], [staffData?.staff]);
+
+  const staffById = useMemo(() => {
+    const map = new Map<string, { firstName: string; lastName: string; email: string }>();
+    for (const m of staffMembers) {
+      map.set(m._id, m);
+    }
+    return map;
+  }, [staffMembers]);
 
   const feedback = data?.feedback as FeedbackSubmission | undefined;
   const prevFeedbackIdRef = useRef<string | undefined>(undefined);
@@ -173,7 +181,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     if (feedback && feedbackId !== prevFeedbackIdRef.current) {
       prevFeedbackIdRef.current = feedbackId;
       setAdminNotes(feedback.adminNotes || '');
-      setAssigneeId(feedback.assignedTo?._id || '');
+      setAssigneeId(
+        typeof feedback.assignedTo === 'string'
+          ? feedback.assignedTo
+          : feedback.assignedTo?._id || ''
+      );
     }
   }, [feedback, feedbackId]);
 
@@ -818,14 +830,29 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                   Currently assigned to
                 </p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {feedback.assignedTo.firstName} {feedback.assignedTo.lastName}{' '}
-                  ({feedback.assignedTo.email})
+                  {(() => {
+                    const assigned = feedback.assignedTo;
+                    if (typeof assigned === 'string') {
+                      const resolved = staffById.get(assigned);
+                      return resolved
+                        ? `${resolved.firstName} ${resolved.lastName} (${resolved.email})`
+                        : assigned;
+                    }
+                    return `${assigned.firstName} ${assigned.lastName} (${assigned.email})`;
+                  })()}
                 </p>
                 {feedback.assignedAt && (
                   <p className="mt-1 text-xs text-muted-foreground">
                     Assigned on {formatDateTime(feedback.assignedAt)}
                     {feedback.assignedBy && (
-                      <> by {feedback.assignedBy.email}</>
+                      <> by {(() => {
+                        const by = feedback.assignedBy;
+                        if (typeof by === 'string') {
+                          const resolved = staffById.get(by);
+                          return resolved ? resolved.email : by;
+                        }
+                        return by.email;
+                      })()}</>
                     )}
                   </p>
                 )}
