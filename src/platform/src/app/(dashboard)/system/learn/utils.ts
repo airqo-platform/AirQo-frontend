@@ -150,7 +150,7 @@ export const isHtmlEmpty = (html: string): boolean =>
 export const stripHtmlTags = (html: string): string =>
   normalizeNbsp(html.replace(/<[^>]*>/g, '')).trim();
 
-export const getPlainTextPreview = (text: string, maxLength = 120): string => {
+export const getPlainTextPreview = (text: string, maxLength = 200): string => {
   if (!text) return '';
   const hasTags = /<[a-z][\s\S]*>/i.test(text);
   const plain = hasTags ? stripHtmlTags(text) : text;

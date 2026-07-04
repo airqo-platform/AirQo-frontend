@@ -29,7 +29,6 @@ import type {
 } from '@/shared/types/learn';
 import {
   computeCourseCounts,
-  formatDateTime,
   getActivityIconClass,
   getActivityTypeLabel,
   getPlainTextPreview,
@@ -394,11 +393,11 @@ const CourseDetailPage: React.FC = () => {
 
       return (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
+          <p className="line-clamp-1 text-sm font-medium text-foreground">
             {payload.title || 'Untitled article'}
           </p>
           <p className="line-clamp-2 text-xs text-muted-foreground">
-            {getPlainTextPreview(payload.body || '') || 'No content yet.'}
+            {getPlainTextPreview(payload.body || '', 200) || 'No content yet.'}
           </p>
         </div>
       );
@@ -423,6 +422,7 @@ const CourseDetailPage: React.FC = () => {
               <img
                 src={thumbnail}
                 alt="Video thumbnail"
+                referrerPolicy="no-referrer"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -442,7 +442,7 @@ const CourseDetailPage: React.FC = () => {
       const payload = activity.payload as { image_url?: string };
 
       return (
-        <p className="text-xs text-muted-foreground">
+        <p className="line-clamp-1 text-xs text-muted-foreground">
           {payload.image_url || 'No image URL set.'}
         </p>
       );
@@ -453,7 +453,7 @@ const CourseDetailPage: React.FC = () => {
 
       return (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
+          <p className="line-clamp-1 text-sm font-medium text-foreground">
             {payload.question || 'Untitled quiz'}
           </p>
           <p className="text-xs text-muted-foreground">
@@ -507,14 +507,14 @@ const CourseDetailPage: React.FC = () => {
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <AqLayersThree01 className="h-5 w-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-muted-foreground">
                       Unit {unitIndex + 1}
                     </p>
-                    <h3 className="text-base font-semibold text-foreground">
+                    <h3 className="line-clamp-1 text-base font-semibold text-foreground">
                       {unit.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="line-clamp-1 text-xs text-muted-foreground">
                       {unit.plain_title_key} · Order {unit.unit_order}
                     </p>
                   </div>
@@ -549,6 +549,7 @@ const CourseDetailPage: React.FC = () => {
                                     <img
                                       src={lessonCoverUrl}
                                       alt={lesson.title}
+                                      referrerPolicy="no-referrer"
                                       className="h-full w-full object-cover"
                                     />
                                   </div>
@@ -558,14 +559,14 @@ const CourseDetailPage: React.FC = () => {
                                   </div>
                                 );
                               })()}
-                              <div>
+                              <div className="min-w-0">
                                 <p className="text-xs font-medium text-muted-foreground">
                                   Lesson {lessonIndex + 1}
                                 </p>
-                                <h4 className="text-sm font-semibold text-foreground">
+                                <h4 className="line-clamp-1 text-sm font-semibold text-foreground">
                                   {lesson.title}
                                 </h4>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="line-clamp-1 text-xs text-muted-foreground">
                                   {lesson.plain_title_key} · Order{' '}
                                   {lesson.lesson_order}
                                 </p>
@@ -779,13 +780,13 @@ const CourseDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-auto flex flex-wrap items-center gap-4 pt-4 text-xs text-muted-foreground">
-                <span>Created {formatDateTime(course.created_at)}</span>
-                <span>Updated {formatDateTime(course.updated_at)}</span>
-                {course.catalog_version && (
-                  <span>Catalog {course.catalog_version}</span>
-                )}
-              </div>
+              {course.catalog_version && (
+                <div className="mt-auto pt-4">
+                  <span className="text-xs text-muted-foreground">
+                    Catalog {course.catalog_version}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </Card>

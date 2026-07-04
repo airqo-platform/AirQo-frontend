@@ -115,6 +115,7 @@ const CoverImage = React.forwardRef<HTMLImageElement, CoverImageProps>(
       alt={alt}
       onLoad={onLoad}
       onError={onError}
+      referrerPolicy="no-referrer"
       className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
         state === 'loaded' ? 'opacity-100' : 'opacity-0'
       }`}
