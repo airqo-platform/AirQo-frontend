@@ -1,3 +1,0 @@
-export const VERTEX_DESKTOP_DOWNLOADS = {
-  windows: process.env.NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL || '',
-};
