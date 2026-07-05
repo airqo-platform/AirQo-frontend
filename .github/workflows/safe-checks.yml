@@ -102,6 +102,13 @@ jobs:
         run: cd src/vertex && npx tsc --noEmit
       - name: Test & Coverage
         run: cd src/vertex && npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          directory: src/vertex/coverage/
+          flags: vertex
 
   check-platform:
     needs: detect-changes

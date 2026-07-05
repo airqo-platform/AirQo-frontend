@@ -1,0 +1,22 @@
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+      vertex:
+        flags:
+          - vertex
+        informational: true
+
+flags:
+  vertex:
+    paths:
+      - src/vertex/
+    carryforward: false
+
+comment:
+  layout: "flags, diff"
+  require_changes: true

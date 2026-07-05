@@ -197,6 +197,10 @@ Prioritize meaningful coverage for:
 
 Do not add low-value tests just to increase coverage numbers.
 
+The `check-vertex` job in `.github/workflows/safe-checks.yml` runs the suite with coverage on every PR that touches Vertex, and uploads results to Codecov under the `vertex` flag (see root `codecov.yml`). Project and patch coverage checks are currently informational (visible on the PR, non-blocking) rather than an enforced gate, consistent with treating coverage as a signal rather than a target. The coverage badge in this app's `README.md` reflects the latest `staging` run.
+
+Flaky-test-rate tracking is deferred: it needs a separate mechanism (for example Codecov Test Analytics or a retry-count script) beyond the coverage upload above, and isn't wired up yet.
+
 ## Deferred test areas
 
 Proxy and network-heavy utilities should be tested in a later integration-style pass with explicit mocks for axios, NextAuth, environment config, and Next.js request/response objects.
