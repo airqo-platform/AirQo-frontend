@@ -2,7 +2,7 @@
   "name": "vertex-desktop",
   "version": "0.1.9",
   "private": true,
-  "author": "AirQo",
+  "author": "AirQo <airqo.analytics@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/airqo-platform/AirQo-frontend.git"
