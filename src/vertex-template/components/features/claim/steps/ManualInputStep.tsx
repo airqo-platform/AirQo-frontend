@@ -34,7 +34,7 @@ const ManualInputStep = ({
           control={formMethods.control}
           name="device_id"
           render={({ field, fieldState }) => (
-            <ReusableInputField label="Device Name" placeholder="e.g. airqo_g5241" error={fieldState.error?.message} required {...field} />
+            <ReusableInputField label="Device Name" placeholder="e.g. sensor_g5241" error={fieldState.error?.message} required {...field} />
           )}
         />
         <FormField

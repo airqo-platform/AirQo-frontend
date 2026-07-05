@@ -1,12 +1,22 @@
 import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { vertexConfig } from "@/vertex.config";
 
 const isProduction = process.env.NODE_ENV === "production";
 const sessionCookieName = isProduction
   ? "__Secure-next-auth.session-token"
   : "next-auth.session-token";
 
-export default withAuth(
+// With auth.provider "none" the app has no login flow: skip NextAuth
+// entirely and only keep the root redirect into the dashboard.
+function noAuthMiddleware(req: NextRequest) {
+  if (req.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/home", req.url));
+  }
+  return NextResponse.next();
+}
+
+const authMiddleware = withAuth(
   function middleware(req) {
     if (req.nextUrl.pathname === "/") {
       return NextResponse.redirect(new URL("/home", req.url));
@@ -36,6 +46,10 @@ export default withAuth(
   }
 );
 
+export default vertexConfig.auth.provider === "none"
+  ? noAuthMiddleware
+  : authMiddleware;
+
 export const config = {
   matcher: [
     /*
@@ -46,6 +60,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files with extensions
      */
-    '/((?!api(?:$|/)|_next/static(?:$|/)|_next/image(?:$|/)|favicon\\.ico$|login(?:$|/)|download(?:$|/)|auth-error(?:$|/)|.*\\.).*)',
+    '/((?!api(?:$|/)|_next/static(?:$|/)|_next/image(?:$|/)|favicon\\.ico$|login(?:$|/)|auth-error(?:$|/)|.*\\.).*)',
   ],
 };

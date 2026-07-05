@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { groupsApi } from "../apis/organizations";
+import { adapter as groupsApi } from "../adapters";
 import { setError, setGroups } from "../redux/slices/groupsSlice";
 import { useDispatch } from "react-redux";
 import React from "react";
@@ -43,8 +43,8 @@ export const useGroupsByCohort = (cohortId: string) => {
   };
 };
 
-export const useGroupDetails = (groupId: string, options?: any) => {
-  return useQuery<any>({
+export const useGroupDetails = (groupId: string, options?: object) => {
+  return useQuery({
     queryKey: ["groupDetails", groupId],
     queryFn: () => groupsApi.getGroupDetailsApi(groupId),
     enabled: !!groupId,

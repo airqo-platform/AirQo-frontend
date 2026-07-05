@@ -7,17 +7,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
 import {
-  setUserDetails,
-  setActiveNetwork,
-  setActiveGroup,
-  setAvailableNetworks,
-  setUserGroups,
-  setInitialized,
   logout as logoutAction,
-  setUserContext,
   initializeUserData,
 } from '@/core/redux/slices/userSlice';
-import { users } from '@/core/apis/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
@@ -32,10 +24,12 @@ import type {
   UserDetailsResponse,
   UserDetails,
 } from '@/app/types/users';
-import { ExtendedSession } from '../utils/secureApiProxyClient';
 import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 import { consumeOAuthTokenHandoffFromUrl } from './oauth-session';
+import { adapter } from '@/core/adapters';
+import { isAuthDisabled, createMockSession } from './auth-mode';
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 // --- Helper Functions ---
 
@@ -43,7 +37,7 @@ function filterGroupsAndNetworks(
   userInfo: UserDetails
 ): { groups: Group[]; networks: Network[] } {
   // Return all groups and networks regardless of staff status
-  // AirQo should be visible to all users as the default organization
+  // The system group should be visible to all users as the default organization
   return {
     groups: userInfo.groups || [],
     networks: userInfo.networks || [],
@@ -66,8 +60,8 @@ function determineInitialUserSetup(
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
-    if (airqoGroup) {
+    const systemGroup = filteredGroups.find((g) => isSystemGroupTitle(g.grp_title));
+    if (systemGroup) {
       // Logic for manual personal mode
     } else {
       return { initialUserContext: 'personal' };
@@ -92,9 +86,9 @@ function determineInitialUserSetup(
     }
   }
 
-  // 3. Fallback to AirQo or first available group
+  // 3. Fallback to the system group or first available group
   if (!defaultGroup && !activeGroup) {
-    defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
+    defaultGroup = filteredGroups.find((g) => isSystemGroupTitle(g.grp_title)) || filteredGroups[0];
   } else if (!defaultGroup) {
     defaultGroup = filteredGroups[0];
   }
@@ -106,7 +100,7 @@ function determineInitialUserSetup(
 
   let initialUserContext: 'personal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
+    if (isSystemGroupTitle(defaultGroup.grp_title)) {
       initialUserContext = 'personal';
     } else {
       initialUserContext = 'external-org';
@@ -156,7 +150,7 @@ function useUserDetails(userId: string | null) {
 
   return useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
-    queryFn: () => users.getUserDetails(userId!),
+    queryFn: () => adapter.getUserDetails(userId!),
     enabled: !!userId,
     networkMode: 'offlineFirst',
     retry: isDevelopment ? 0 : 1,
@@ -170,7 +164,7 @@ function useUserDetails(userId: string | null) {
 // --- Components ---
 
 const authRoutes = ['/login', '/auth-error'];
-const publicRoutes = [...authRoutes, '/download'];
+const publicRoutes = [...authRoutes];
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
 
@@ -679,6 +673,82 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * Bootstraps the app when auth is disabled (auth.provider "none").
+ * Loads the current user from the configured adapter, hydrates the
+ * user store, and keeps auth-only routes out of reach.
+ */
+function NoAuthBootstrap({ children }: { children: React.ReactNode }) {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isInitialized, userContext, activeGroup } = useAppSelector(
+    (state) => state.user
+  );
+
+  // Login/auth-error pages have no purpose without an auth provider.
+  const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
+  useEffect(() => {
+    if (isAuthRoute) {
+      router.replace('/home');
+    }
+  }, [isAuthRoute, router]);
+
+  useEffect(() => {
+    if (isInitialized) return;
+    let cancelled = false;
+
+    adapter
+      .getCurrentUser('current')
+      .then((data: UserDetailsResponse) => {
+        if (cancelled) return;
+
+        const userInfo = data?.users?.[0];
+        if (!userInfo) {
+          logger.error('[NoAuthBootstrap] Adapter returned no current user');
+          return;
+        }
+
+        const { groups, networks } = filterGroupsAndNetworks(userInfo);
+        const { defaultGroup, defaultNetwork, initialUserContext } =
+          determineInitialUserSetup(
+            userInfo,
+            groups,
+            networks,
+            userContext,
+            activeGroup,
+            getLastActiveGroupId(userInfo._id)
+          );
+
+        dispatch(
+          initializeUserData({
+            userDetails: userInfo,
+            groups,
+            availableNetworks: networks,
+            activeGroup: defaultGroup || null,
+            activeNetwork: defaultNetwork,
+            userContext: initialUserContext,
+          })
+        );
+      })
+      .catch((error: unknown) => {
+        logger.error('[NoAuthBootstrap] Failed to load current user', {
+          error: getApiErrorMessage(error),
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, isInitialized, userContext, activeGroup]);
+
+  if (isAuthRoute) {
+    return <SessionLoadingState />;
+  }
+
+  return <>{children}</>;
+}
+
+/**
  * Main AuthProvider component
  */
 export function AuthProvider({
@@ -688,6 +758,21 @@ export function AuthProvider({
   children: React.ReactNode;
   session?: Session | null;
 }) {
+  if (isAuthDisabled) {
+    // Keep SessionProvider so useSession() consumers work, but with a
+    // static synthetic session: no token handoff, session refresh,
+    // route protection, or auto-logout.
+    return (
+      <SessionProvider
+        session={session ?? createMockSession()}
+        refetchOnWindowFocus={false}
+        refetchInterval={0}
+      >
+        <NoAuthBootstrap>{children}</NoAuthBootstrap>
+      </SessionProvider>
+    );
+  }
+
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
       <TokenHandoffHandler>

@@ -3,11 +3,12 @@
 import { CreateGridForm } from "@/components/features/grids/create-grid";
 import { CreateAdminLevel } from "@/components/features/grids/create-admin-level";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import GridsTable from "@/components/features/grids/grids-list-table";
 
 export default function GridsPage() {
   return (
-    <RouteGuard permission="SITE_VIEW">
+    <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>

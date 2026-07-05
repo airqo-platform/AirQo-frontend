@@ -87,11 +87,6 @@ export const ENDPOINT_CONFIG: Record<string, EndpointConfig> = {
     requiresApiToken: false,
     timeout: 30000,
   },
-  grids: {
-    requiresAuth: true,
-    requiresApiToken: false,
-    timeout: 30000,
-  },
   cohorts: {
     requiresAuth: true,
     requiresApiToken: false,

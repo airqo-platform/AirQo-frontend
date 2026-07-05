@@ -18,6 +18,7 @@ import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 export const formatTitle = (title: string) => {
   if (!title) return "";
@@ -58,7 +59,7 @@ const OrganizationPicker: React.FC = () => {
     dispatch(clearForbiddenState());
 
     const newContext: UserContext =
-      group.grp_title.toLowerCase() === "airqo"
+      isSystemGroupTitle(group.grp_title)
         ? "personal"
         : "external-org";
 

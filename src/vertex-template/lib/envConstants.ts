@@ -3,6 +3,7 @@
  * Centralizes environment variable access with proper validation
  */
 import { stripTrailingSlash } from './utils';
+import { vertexConfig } from '@/vertex.config';
 
 /**
  * Gets the API base URL from environment variables
@@ -38,7 +39,8 @@ export const getApiToken = (): string => {
  * Gets the Cookie Policy URL
  * @returns {string} The cookie policy URL
  */
-export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
+export const COOKIE_POLICY_URL =
+  process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || vertexConfig.links.cookiePolicyUrl || '';
 
 /**
  * Gets the Cloudinary cloud name

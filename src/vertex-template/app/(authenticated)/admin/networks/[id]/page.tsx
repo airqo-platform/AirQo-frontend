@@ -16,6 +16,7 @@ import { useState } from "react";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { NetworkStatsCards } from "@/components/features/networks/NetworkStatsCards";
 import { usePageTitle } from "@/context/page-title-context";
+import { isSystemNetworkName } from '@/core/config/system-group';
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -44,7 +45,7 @@ export default function NetworkDetailsPage() {
         section: "Sensor Manufacturers",
     });
 
-    const isAirQoNetwork = network?.net_name?.toLowerCase() === "airqo";
+    const isSystemNetwork = isSystemNetworkName(network?.net_name);
 
     return (
         <RouteGuard permission={PERMISSIONS.NETWORK.VIEW}>
@@ -54,14 +55,14 @@ export default function NetworkDetailsPage() {
                         Back
                     </ReusableButton>
                     <div className="flex gap-2">
-                        {isAirQoNetwork ? (
+                        {isSystemNetwork ? (
                             <ReusableButton
                                 disabled={!canUpdateDevice}
                                 onClick={() => setCreateDeviceOpen(true)}
                                 Icon={Plus}
                                 permission={PERMISSIONS.DEVICE.UPDATE}
                             >
-                                Add AirQo Device
+                                Add Device
                             </ReusableButton>
                         ) : (
                             <ReusableButton

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 import NetworkRequestsClient from "./NetworkRequestsClient";
-import { NetworkCreationRequest } from "@/core/apis/networks";
+import { NetworkCreationRequest } from "@/core/adapters/types";
 import logger from "@/lib/logger";
 
 import { notFound } from "next/navigation";

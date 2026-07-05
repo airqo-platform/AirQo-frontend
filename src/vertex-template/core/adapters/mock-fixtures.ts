@@ -2,8 +2,9 @@ import type { Cohort } from "@/app/types/cohorts";
 import type { Device, PaginationMeta } from "@/app/types/devices";
 import type { Site } from "@/app/types/sites";
 import type { UserDetails } from "@/app/types/users";
-import type { Network } from "@/core/apis/networks";
-import type { DeviceActivity } from "@/core/apis/devices";
+import type { Manufacturer } from "./contracts/manufacturers";
+import type { DeviceActivity } from "./contracts/devices";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const now = "2026-05-30T09:00:00.000Z";
 const yesterday = "2026-05-29T09:00:00.000Z";
@@ -19,18 +20,41 @@ export const mockPaginationMeta: PaginationMeta = {
   usedCache: false,
 };
 
+// Grant the demo admin every permission except the SUPER_ADMIN override
+// and database administration, so the whole app (including the admin
+// panel via SYSTEM_ADMIN) is explorable in mock mode while permission
+// denials remain observable. Derived from the RBAC constants so the
+// permission strings cannot drift out of sync.
+const demoPermissions = Object.entries(PERMISSIONS)
+  .filter(([group]) => group !== "SYSTEM")
+  .flatMap(([, group]) => Object.values(group))
+  .concat(PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
+
 export const mockRole = {
   _id: "role-demo-admin",
   role_name: "DEMO_ADMIN",
-  role_permissions: [
-    { _id: "perm-device-view", permission: "DEVICE.VIEW" },
-    { _id: "perm-device-deploy", permission: "DEVICE.DEPLOY" },
-    { _id: "perm-site-view", permission: "SITE.VIEW" },
-    { _id: "perm-site-create", permission: "SITE.CREATE" },
-  ],
+  role_permissions: demoPermissions.map((permission) => ({
+    _id: `perm-${permission.toLowerCase().replace(/_/g, "-")}`,
+    permission,
+  })),
 };
 
-export const mockNetworks: Network[] = [
+// Role for the second demo organization: everything except the admin-panel
+// permission, so switching organizations observably changes access.
+const orgPermissions = Object.entries(PERMISSIONS)
+  .filter(([group]) => group !== "SYSTEM")
+  .flatMap(([, group]) => Object.values(group));
+
+export const mockOrgRole = {
+  _id: "role-lakeview-admin",
+  role_name: "LAKEVIEW_ORG_ADMIN",
+  role_permissions: orgPermissions.map((permission) => ({
+    _id: `perm-lakeview-${permission.toLowerCase().replace(/_/g, "-")}`,
+    permission,
+  })),
+};
+
+export const mockNetworks: Manufacturer[] = [
   {
     _id: "network-demo",
     net_status: "active",
@@ -99,6 +123,16 @@ export const mockUser: UserDetails = {
       createdAt: "2026-01-01T00:00:00.000Z",
       status: "active",
     },
+    {
+      // net_name matches the lakeview group title so the active network
+      // follows the active group when switching organizations.
+      _id: "network-lakeview",
+      net_name: "lakeview",
+      role: mockOrgRole,
+      userType: "admin",
+      createdAt: "2026-02-01T00:00:00.000Z",
+      status: "active",
+    },
   ],
   clients: [],
   groups: [
@@ -110,12 +144,21 @@ export const mockUser: UserDetails = {
       role: mockRole,
       userType: "admin",
     },
+    {
+      // Second organization so the org switcher is exercisable in mock mode.
+      _id: "group-lakeview",
+      grp_title: "lakeview",
+      createdAt: "2026-02-01T00:00:00.000Z",
+      status: "active",
+      role: mockOrgRole,
+      userType: "admin",
+    },
   ],
   permissions: mockRole.role_permissions,
   createdAt: "2026-01-01T00:00:00.000Z",
-  my_networks: ["network-demo"],
-  my_groups: ["group-demo"],
-  group_ids: ["group-demo"],
+  my_networks: ["network-demo", "network-lakeview"],
+  my_groups: ["group-demo", "group-lakeview"],
+  group_ids: ["group-demo", "group-lakeview"],
   cohort_ids: ["cohort-central", "cohort-schools"],
 };
 

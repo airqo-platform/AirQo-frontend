@@ -92,11 +92,11 @@ export function CreateNetworkForm() {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="net_name" render={({ field, fieldState }) => <ReusableInputField label="Name" placeholder="e.g. mairqo" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_acronym" render={({ field, fieldState }) => <ReusableInputField label="Acronym" placeholder="e.g. mairqo" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_username" render={({ field, fieldState }) => <ReusableInputField label="Username" placeholder="e.g. mairqo" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_email" render={({ field, fieldState }) => <ReusableInputField label="Email" type="email" placeholder="e.g. support@mairqo.net" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_website" render={({ field, fieldState }) => <ReusableInputField label="Website" type="url" placeholder="e.g. https://www.mairqo.com" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_name" render={({ field, fieldState }) => <ReusableInputField label="Name" placeholder="e.g. acme" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_acronym" render={({ field, fieldState }) => <ReusableInputField label="Acronym" placeholder="e.g. acme" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_username" render={({ field, fieldState }) => <ReusableInputField label="Username" placeholder="e.g. acme" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_email" render={({ field, fieldState }) => <ReusableInputField label="Email" type="email" placeholder="e.g. support@acme.io" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_website" render={({ field, fieldState }) => <ReusableInputField label="Website" type="url" placeholder="e.g. https://www.acme.io" error={fieldState.error?.message} required {...field} />} />
                             <FormField control={form.control} name="net_phoneNumber" render={({ field, fieldState }) => <ReusableInputField label="Phone Number" placeholder="e.g. +25677123456789" error={fieldState.error?.message} required {...field} />} />
                             <FormField
                                 control={form.control}
@@ -118,8 +118,8 @@ export function CreateNetworkForm() {
                                 )}
                             />
                             <FormField control={form.control} name="net_description" render={({ field, fieldState }) => <ReusableInputField label="Description" placeholder="Enter a brief description" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_connection_endpoint" render={({ field, fieldState }) => <ReusableInputField label="Connection Endpoint" type="url" placeholder="e.g. https://device.mairqo.com/v2/" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_connection_string" render={({ field, fieldState }) => <ReusableInputField label="Connection String" type="url" placeholder="e.g. https://device.mairqo.com/v2/" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_connection_endpoint" render={({ field, fieldState }) => <ReusableInputField label="Connection Endpoint" type="url" placeholder="e.g. https://devices.acme.io/v2/" error={fieldState.error?.message} required {...field} />} />
+                            <FormField control={form.control} name="net_connection_string" render={({ field, fieldState }) => <ReusableInputField label="Connection String" type="url" placeholder="e.g. https://devices.acme.io/v2/" error={fieldState.error?.message} required {...field} />} />
                         </div>
                     </form>
                 </Form>

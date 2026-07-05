@@ -4,6 +4,9 @@ import { Copy } from "lucide-react";
 import React from "react";
 import { useClipboard } from "@/core/hooks/useClipboard";
 
+import { vertexConfig } from '@/vertex.config';
+const MEASUREMENTS_API_BASE = (vertexConfig.api.publicMeasurementsBaseUrl || "https://api.example.com").replace(/\/$/, "");
+
 interface DeviceMeasurementsApiCardProps {
   deviceId: string;
 }
@@ -19,13 +22,13 @@ const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ d
         <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Recent Measurements API</div>
         <div className="flex items-center gap-2">
           <div className="text-sm font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/recent?token=YOUR_TOKEN`}
+            {`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/devices/${deviceId}/recent?token=YOUR_TOKEN`}
           </div>
           <Button
             variant="ghost"
             size="icon"
             className="hover:bg-transparent"
-            onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/recent?token=YOUR_TOKEN`)}
+            onClick={() => handleCopy(`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/devices/${deviceId}/recent?token=YOUR_TOKEN`)}
           >
             <Copy className="w-4 h-4" />
           </Button>
@@ -36,13 +39,13 @@ const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ d
         <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Historical Measurements API</div>
         <div className="flex items-center gap-2">
           <div className="text-sm font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/historical?token=YOUR_TOKEN`}
+            {`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/devices/${deviceId}/historical?token=YOUR_TOKEN`}
           </div>
           <Button
             variant="ghost"
             size="icon"
             className="hover:bg-transparent"
-            onClick={() => handleCopy(`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/historical?token=YOUR_TOKEN`)}
+            onClick={() => handleCopy(`${MEASUREMENTS_API_BASE}/api/v2/devices/measurements/devices/${deviceId}/historical?token=YOUR_TOKEN`)}
           >
             <Copy className="w-4 h-4" />
           </Button>

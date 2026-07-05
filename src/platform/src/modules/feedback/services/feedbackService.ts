@@ -8,6 +8,7 @@ import type {
   ApiErrorResponse,
   GetFeedbackSubmissionResponse,
   GetFeedbackSubmissionsResponse,
+  GetFeedbackStaffResponse,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
   UpdateFeedbackStatusResponse,
@@ -90,6 +91,19 @@ export class FeedbackService {
     return extractResponseData(
       response.data as GetFeedbackSubmissionResponse,
       'Failed to load feedback submission'
+    );
+  }
+
+  async getFeedbackStaff(): Promise<GetFeedbackStaffResponse> {
+    await this.ensureAuthenticated();
+
+    const response = await this.authenticatedClient.get<
+      GetFeedbackStaffResponse | ApiErrorResponse
+    >('/users/feedback/staff');
+
+    return extractResponseData(
+      response.data as GetFeedbackStaffResponse,
+      'Failed to load feedback staff'
     );
   }
 
