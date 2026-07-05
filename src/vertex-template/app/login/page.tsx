@@ -318,9 +318,11 @@ export default function LoginPage() {
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                                <Link href={forgotPasswordUrl} target="_blank" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                                  Forgot password?
-                                </Link>
+                                {forgotPasswordUrl && (
+                                  <Link href={forgotPasswordUrl} target="_blank" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                    Forgot password?
+                                  </Link>
+                                )}
                               </div>
                               <ReusableInputField
                                 type={"password"}
@@ -357,12 +359,14 @@ export default function LoginPage() {
                 </form>
               </Form>
 
-              <div className="text-sm text-center text-muted-foreground mt-4">
-                Don&apos;t have an account?{" "}
-                <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
-                  Sign up
-                </Link>
-              </div>
+              {signUpUrl && (
+                <div className="text-sm text-center text-muted-foreground mt-4">
+                  Don&apos;t have an account?{" "}
+                  <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                    Sign up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
