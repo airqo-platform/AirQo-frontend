@@ -50,7 +50,7 @@ The **Heatmap** option appears in Map Settings but is currently disabled.
 
 ### Air Quality Levels
 
-Markers are colored and iconised based on the latest reading. See [Air Quality Levels](./air-quality-levels.md) for the full color scale and ranges.
+Markers are colored and iconized based on the latest reading. See [Air Quality Levels](./air-quality-levels.md) for the full color scale and ranges.
 
 Hover over a marker to see a tooltip with the site name and current reading. Select a marker to open its details in the sidebar.
 

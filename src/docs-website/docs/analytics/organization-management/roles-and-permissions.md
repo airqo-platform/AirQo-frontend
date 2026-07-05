@@ -21,7 +21,7 @@ When you first join the AirQo Analytics platform, you are assigned to a default 
 
 AirQo uses a **roles and permissions system** to control what each member can do:
 
-```
+```text
 Organization
  └── Roles (e.g., CLEAN_AIR_NETWORK_ADMIN, DEFAULT_MEMBER)
       └── Permissions (e.g., MEMBER_INVITE, ROLE_EDIT)
