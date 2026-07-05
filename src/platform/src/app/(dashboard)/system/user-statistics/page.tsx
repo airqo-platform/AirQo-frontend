@@ -38,6 +38,26 @@ import {
   Line,
 } from 'recharts';
 
+const AXIS_STYLE = {
+  tick: { fontSize: 12, fill: 'rgb(100, 116, 139)' },
+  tickLine: { stroke: 'rgb(226, 232, 240)' },
+  axisLine: { stroke: 'rgb(226, 232, 240)' },
+};
+
+const AXIS_LABEL_STYLE = {
+  textAnchor: 'start' as const,
+  fontSize: 12,
+  fill: 'rgb(100, 116, 139)',
+};
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '8px',
+  fontSize: '12px',
+  color: 'hsl(var(--card-foreground))',
+};
+
 interface ChartDataPoint {
   name: string;
   value: number;
@@ -299,7 +319,7 @@ const UserStatisticsPage: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={organizationData}
-                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -308,32 +328,27 @@ const UserStatisticsPage: React.FC = () => {
                 />
                 <XAxis
                   dataKey="name"
-                  angle={-30}
-                  textAnchor="end"
-                  interval={0}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: 'hsl(var(--card-foreground))',
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
                   }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar
                   dataKey="value"
                   fill={getPrimaryColor(0)}
-                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -352,7 +367,7 @@ const UserStatisticsPage: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={loginRangesData}
-                margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -361,29 +376,27 @@ const UserStatisticsPage: React.FC = () => {
                 />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: 'hsl(var(--card-foreground))',
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
                   }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar
                   dataKey="value"
                   fill={getPrimaryColor(1)}
-                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -402,7 +415,7 @@ const UserStatisticsPage: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={signupsOverTimeData}
-                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -411,35 +424,30 @@ const UserStatisticsPage: React.FC = () => {
                 />
                 <XAxis
                   dataKey="name"
-                  angle={-30}
-                  textAnchor="end"
-                  interval={0}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: 'hsl(var(--card-foreground))',
+                  label={{
+                    value: 'New Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
                   }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Line
                   type="monotone"
                   dataKey="value"
                   stroke={getPrimaryColor(2)}
                   strokeWidth={2}
-                  dot={{ r: 4, fill: getPrimaryColor(2) }}
-                  activeDot={{ r: 6 }}
+                  dot={false}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -458,7 +466,7 @@ const UserStatisticsPage: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={topGroupsData}
-                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -467,32 +475,27 @@ const UserStatisticsPage: React.FC = () => {
                 />
                 <XAxis
                   dataKey="name"
-                  angle={-30}
-                  textAnchor="end"
-                  interval={0}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
-                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
-                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    color: 'hsl(var(--card-foreground))',
+                  label={{
+                    value: 'Members',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
                   }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
                 />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar
                   dataKey="value"
                   fill={getPrimaryColor(3)}
-                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
