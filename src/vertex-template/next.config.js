@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    if (process.env.NEXT_PUBLIC_ENV === 'development') {
+    // Optional dev-mode proxy: forward /api/v2 requests to a real backend
+    // (e.g. a staging environment) instead of the local API routes.
+    const devProxyTarget = process.env.NEXT_PUBLIC_DEV_API_PROXY_TARGET;
+    if (process.env.NEXT_PUBLIC_ENV === 'development' && devProxyTarget) {
       return [
         {
           source: '/api/v2/:path*',
-          destination: 'https://staging-vertex.airqo.net/api/v2/:path*',
+          destination: `${devProxyTarget.replace(/\/$/, '')}/api/v2/:path*`,
         },
       ];
     }

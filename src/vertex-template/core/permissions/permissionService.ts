@@ -1,5 +1,6 @@
 import { UserDetails, Network, Group } from "@/app/types/users";
 import { PERMISSIONS, Permission, mapLegacyPermission } from "./constants";
+import { isSystemGroupTitle } from "@/core/config/system-group";
 
 // Access context for permission checking
 export interface AccessContext {
@@ -74,12 +75,11 @@ class PermissionService {
       };
     }
 
-    // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override)
+    // 1. Super admin permission is a system-wide override
     if (this.isSuperAdmin(user)) {
       return {
         hasPermission: true,
-        reason: "User has AIRQO_SUPER_ADMIN role with system-wide access",
-        role: "AIRQO_SUPER_ADMIN",
+        reason: "User has the SUPER_ADMIN permission with system-wide access",
         canOverride: true,
       };
     }
@@ -206,35 +206,23 @@ class PermissionService {
    * Check if user is super admin
    */
   isSuperAdmin(user: UserDetails): boolean {
-    if (!user.networks && !user.groups) return false;
+    const hasSuperAdminPermission = (rolePermissions?: Array<{ permission?: string }>) =>
+      !!rolePermissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN);
 
-    // Check if user has SUPER_ADMIN permission in any network
-    if (user.networks) {
-      return user.networks.some((network) =>
-        network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
-
-    // Check if user has SUPER_ADMIN permission in any group
-    if (user.groups) {
-      return user.groups.some((group) =>
-        group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
-
-    return false;
+    return (
+      !!user.networks?.some((network) => hasSuperAdminPermission(network.role?.role_permissions)) ||
+      !!user.groups?.some((group) => hasSuperAdminPermission(group.role?.role_permissions))
+    );
   }
 
   /**
-   * Get user's AirQo group (if they have one)
-   * This is useful for private context permission checks
+   * Get the user's system group (if they belong to one).
+   * This is useful for private context permission checks.
    */
-  getAirQoGroup(user: UserDetails): Group | undefined {
+  getSystemGroup(user: UserDetails): Group | undefined {
     if (!user.groups) return undefined;
-    
-    return user.groups.find((group) => 
-      group.grp_title.toLowerCase() === 'airqo'
-    );
+
+    return user.groups.find((group) => isSystemGroupTitle(group.grp_title));
   }
 
   /**
@@ -253,7 +241,6 @@ class PermissionService {
       ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.SETTINGS),
-      ...Object.values(PERMISSIONS.SHIPPING),
     ];
 
     return orgPermissions.includes(permission);
@@ -400,7 +387,7 @@ class PermissionService {
       [PERMISSIONS.DEVICE.MAINTAIN]: "Perform device maintenance",
       [PERMISSIONS.DEVICE.UPDATE]: "Update device configuration",
       [PERMISSIONS.DEVICE.DELETE]: "Delete device records",
-      [PERMISSIONS.DEVICE.CLAIM]: "Add AirQo device",
+      [PERMISSIONS.DEVICE.CLAIM]: "Add device",
 
       [PERMISSIONS.SITE.VIEW]: "View site information",
       [PERMISSIONS.SITE.CREATE]: "Create new sites",
@@ -422,11 +409,6 @@ class PermissionService {
       [PERMISSIONS.SETTINGS.VIEW]: "View system settings",
       [PERMISSIONS.SETTINGS.EDIT]: "Edit system settings",
       [PERMISSIONS.SETTINGS.GROUP_SETTINGS]: "Manage group-specific settings",
-
-      [PERMISSIONS.SHIPPING.VIEW]: "View shipping information",
-      [PERMISSIONS.SHIPPING.CREATE]: "Create shipping requests",
-      [PERMISSIONS.SHIPPING.EDIT]: "Edit shipping details",
-      [PERMISSIONS.SHIPPING.DELETE]: "Delete shipping records",
     };
 
     return descriptions[permission] || "Permission description not available";

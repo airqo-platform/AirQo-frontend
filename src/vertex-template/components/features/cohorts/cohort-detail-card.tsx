@@ -270,7 +270,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
         <div className="space-y-4 py-2">
           <p className="text-gray-600 dark:text-gray-300">
             {targetVisibility
-              ? "You are about to make this cohort visible on the public AirQo Map. This means anyone can see readings from devices in this cohort."
+              ? "You are about to make this cohort visible on the public map. This means anyone can see readings from devices in this cohort."
               : "You are about to make this cohort private. Data from devices in this cohort will only be visible to your organization and will not appear on the public map."}
           </p>
         </div>

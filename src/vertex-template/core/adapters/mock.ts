@@ -1,14 +1,13 @@
 import type {
   Device,
-  DeviceClaimRequest,
   MaintenanceLogData,
   PaginationMeta,
 } from "@/app/types/devices";
 import type { Site } from "@/app/types/sites";
 import type { Cohort } from "@/app/types/cohorts";
-import type { GetDevicesSummaryParams } from "@/core/apis/devices";
-import type { GetSitesSummaryParams } from "@/core/apis/sites";
-import type { GetCohortsSummaryParams } from "@/core/apis/cohorts";
+import type { GetDevicesSummaryParams } from "./contracts/devices";
+import type { GetSitesSummaryParams } from "./contracts/sites";
+import type { GetCohortsSummaryParams } from "./contracts/cohorts";
 import {
   mockCohorts,
   mockDeviceActivities,
@@ -21,8 +20,6 @@ import {
 } from "./mock-fixtures";
 import type {
   CreateDeviceInput,
-  CreateSiteInput,
-  DateRange,
   DeviceDeployInput,
   DeviceRecallInput,
 
@@ -111,6 +108,22 @@ function filterCohorts(params: GetCohortsSummaryParams = {}): Cohort[] {
 }
 
 export const mockAdapter: VertexAdapter = (() => {
+  // Onboarding checklist state per group, so updates made through
+  // updateGroupOnboardingApi survive a group-details refetch.
+  const onboardingChecklists = new Map<
+    string,
+    { completed_steps: string[]; is_dismissed: boolean }
+  >();
+
+  const getOnboardingChecklist = (groupId: string) => {
+    let checklist = onboardingChecklists.get(groupId);
+    if (!checklist) {
+      checklist = { completed_steps: [], is_dismissed: false };
+      onboardingChecklists.set(groupId, checklist);
+    }
+    return checklist;
+  };
+
   const coreMocks: Partial<VertexAdapter> = {
     async getCurrentUser() {
       return {
@@ -119,7 +132,7 @@ export const mockAdapter: VertexAdapter = (() => {
         users: [clone(mockUser)],
       };
     },
-    async login(credentials) {
+    async login() {
       return {
         success: true,
         message: "Mock login successful",
@@ -347,17 +360,241 @@ export const mockAdapter: VertexAdapter = (() => {
     async getNetworks() {
       return clone(mockNetworks);
     },
+
+    async getMyDevices(userId, groupIds, cohortIds) {
+      let devices = mockDevices;
+
+      if (cohortIds && cohortIds.length > 0) {
+        devices = devices.filter((device) =>
+          device.cohorts?.some(
+            (cohort) => typeof cohort === "string" && cohortIds.includes(cohort),
+          ),
+        );
+      } else if (groupIds && groupIds.length > 0) {
+        devices = devices.filter((device) =>
+          device.groups?.some((group) => groupIds.includes(group)),
+        );
+      }
+
+      return {
+        success: true,
+        message: "Mock my-devices loaded successfully",
+        devices: clone(devices),
+        total_devices: devices.length,
+        deployed_devices: devices.filter(
+          (device) => device.status === "deployed",
+        ).length,
+      };
+    },
+
+    async getSitesSummaryCount(params = {}) {
+      const sites = filterSites(params);
+
+      return {
+        message: "Mock site count loaded successfully",
+        summary: {
+          total_sites: sites.length,
+          operational: sites.filter(
+            (site) => site.rawOnlineStatus && site.isOnline,
+          ).length,
+          transmitting: sites.filter((site) => site.rawOnlineStatus === true)
+            .length,
+          not_transmitting: sites.filter((site) => !site.rawOnlineStatus)
+            .length,
+          data_available: sites.filter((site) => site.isOnline).length,
+        },
+      };
+    },
+
+    async getDeviceStatusFeed() {
+      return {
+        isCache: false,
+        created_at: new Date().toISOString(),
+      };
+    },
+
+    async getDevicesByCohorts(params, signal) {
+      assertNotAborted(signal);
+      const { cohort_ids, limit = 100, skip = 0, ...rest } = params;
+      const devices = filterDevices(rest).filter((device) =>
+        device.cohorts?.some(
+          (cohort) => typeof cohort === "string" && cohort_ids.includes(cohort),
+        ),
+      );
+
+      return {
+        success: true,
+        message: "Mock cohort devices loaded successfully",
+        devices: clone(paginate(devices, limit, skip)),
+        meta: createMeta(devices.length, limit, skip),
+      };
+    },
+
+    async getSitesByCohorts(params, signal) {
+      assertNotAborted(signal);
+      const { cohort_ids, limit = 100, skip = 0, ...rest } = params;
+      const cohortSiteIds = new Set(
+        mockDevices
+          .filter((device) =>
+            device.cohorts?.some(
+              (cohort) =>
+                typeof cohort === "string" && cohort_ids.includes(cohort),
+            ),
+          )
+          .map((device) => device.site_id)
+          .filter(Boolean),
+      );
+      const sites = filterSites(rest).filter((site) =>
+        cohortSiteIds.has(site._id),
+      );
+
+      return {
+        success: true,
+        message: "Mock cohort sites loaded successfully",
+        sites: clone(paginate(sites, limit, skip)),
+        meta: createMeta(sites.length, limit, skip),
+      };
+    },
+
+    async getCohortsSummary(params = {}, signal) {
+      assertNotAborted(signal);
+      const cohorts = filterCohorts(params);
+      const limit = params.limit ?? 100;
+      const skip = params.skip ?? 0;
+
+      return {
+        success: true,
+        message: "Mock cohorts loaded successfully",
+        cohorts: clone(paginate(cohorts, limit, skip)),
+        meta: createMeta(cohorts.length, limit, skip),
+      };
+    },
+
+    async getUserCohortsSummary(params = {}, signal) {
+      assertNotAborted(signal);
+      const cohorts = filterCohorts(params);
+      const limit = params.limit ?? 100;
+      const skip = params.skip ?? 0;
+
+      return {
+        success: true,
+        message: "Mock user cohorts loaded successfully",
+        cohorts: clone(paginate(cohorts, limit, skip)),
+        meta: createMeta(cohorts.length, limit, skip),
+      };
+    },
+
+    async getCohortDetailsApi(cohortId) {
+      const cohort = mockCohorts.find(
+        (item) => item._id === cohortId || item.name === cohortId,
+      );
+
+      if (!cohort) {
+        throw new Error(`Mock cohort not found: ${cohortId}`);
+      }
+
+      return {
+        success: true,
+        message: "Mock cohort loaded successfully",
+        cohorts: [clone(cohort)],
+      };
+    },
+
+    async verifyCohortIdApi(cohortId) {
+      const cohort = mockCohorts.find(
+        (item) => item._id === cohortId || item.name === cohortId,
+      );
+
+      if (!cohort) {
+        throw new Error(`Mock cohort not found: ${cohortId}`);
+      }
+
+      return {
+        success: true,
+        message: "Mock cohort verified successfully",
+        cohort: clone(cohort),
+      };
+    },
+
+    async getGroupCohorts() {
+      return {
+        success: true,
+        message: "Mock group cohorts loaded successfully",
+        data: mockCohorts.map((cohort) => cohort._id),
+      };
+    },
+
+    async getPersonalUserCohorts() {
+      return {
+        success: true,
+        message: "Mock personal cohorts loaded successfully",
+        cohorts: mockCohorts.map((cohort) => cohort._id),
+      };
+    },
+
+    async getGroupsApi() {
+      return {
+        success: true,
+        message: "Mock groups loaded successfully",
+        groups: clone(mockUser.groups ?? []),
+      };
+    },
+
+    async getGroupDetailsApi(groupId) {
+      const group =
+        mockUser.groups?.find((item) => item._id === groupId) ??
+        mockUser.groups?.[0];
+
+      return {
+        success: true,
+        message: "Mock group loaded successfully",
+        group: {
+          ...clone(group),
+          onboarding_checklist: clone(
+            getOnboardingChecklist(group?._id ?? groupId),
+          ),
+        },
+      };
+    },
+
+    async updateGroupOnboardingApi(groupId, payload) {
+      const checklist = getOnboardingChecklist(groupId);
+
+      if (payload.action === "dismiss_checklist") {
+        checklist.is_dismissed = true;
+      } else if (
+        payload.step_id &&
+        !checklist.completed_steps.includes(payload.step_id)
+      ) {
+        checklist.completed_steps.push(payload.step_id);
+      }
+
+      return {
+        success: true,
+        message: "Mock onboarding checklist updated successfully",
+        group: { onboarding_checklist: clone(checklist) },
+      };
+    },
   };
 
+  // Unimplemented methods fail loudly so contributors can tell what the
+  // mock adapter actually supports. Add missing methods to coreMocks above.
   return new Proxy(coreMocks as VertexAdapter, {
     get(target, prop, receiver) {
       if (prop in target) {
         return Reflect.get(target, prop, receiver);
       }
-      return async (...args: any[]) => {
-        console.warn(`[Mock Adapter] Method '${String(prop)}' is not implemented.`);
-        return { success: true, message: `Mocked call to ${String(prop)}` };
+      // Runtime protocol probes (e.g. awaiting the adapter, serialization)
+      // must not turn into fake adapter methods.
+      if (typeof prop === "symbol" || prop === "then" || prop === "toJSON") {
+        return undefined;
+      }
+      return async () => {
+        throw new Error(
+          `[Mock Adapter] '${String(prop)}' is not implemented. ` +
+            "Implement it in core/adapters/mock.ts to support this feature in mock mode.",
+        );
       };
-    }
+    },
   });
 })();

@@ -22,9 +22,9 @@ Generic REST adapters, plugin systems, deploy wizards, and config admin screens 
 - `org`: visible organization identity, logo, primary color, support email, website, and slug.
 - `api`: adapter choice, AirQo API base URL when applicable, and public measurement URL base.
 - `auth`: auth provider and system group slug used by AirQo-mode permission logic.
-- `features`: v1 feature flags for maps, bulk deploy, sites, CSV export, readings, user management, desktop download, app launcher, shipping, and network requests.
+- `features`: v1 feature flags for maps, bulk deploy, sites, CSV export, readings, user management, app launcher, and network requests.
 - `map`: default center, zoom, and tile provider.
-- `links`: docs, privacy, cookie policy, analytics, and desktop download URLs.
+- `links`: docs, privacy, cookie policy, and analytics URLs.
 
 ## Validation Rules
 

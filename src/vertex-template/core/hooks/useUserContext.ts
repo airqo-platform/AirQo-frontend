@@ -2,12 +2,12 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useMemo } from "react";
+import type { Group, UserDetails } from "@/app/types/users";
 
 export interface SidebarConfig {
   title: string;
   showNetworkMap: boolean;
   showSites: boolean;
-  showGrids: boolean;
   showCohorts: boolean;
   showUserManagement: boolean;
   showAccessControl: boolean;
@@ -16,7 +16,6 @@ export interface SidebarConfig {
   showClaimDevice: boolean;
   showDeployDevice: boolean;
   showNetworks: boolean;
-  showShipping: boolean;
 }
 
 export interface UserContextState {
@@ -24,8 +23,8 @@ export interface UserContextState {
   userContext: 'personal' | 'external-org' | null;
   userScope: 'personal' | 'organisation' | null;
   canSwitchContext: boolean;
-  activeGroup: any;
-  userDetails: any;
+  activeGroup: Group | null;
+  userDetails: UserDetails | null;
   
   // Loading states
   isLoading: boolean;
@@ -44,7 +43,7 @@ export interface UserContextState {
   
   // Methods
   getSidebarConfig: () => SidebarConfig;
-  getContextPermissions: () => any;
+  getContextPermissions: () => Record<string, boolean | undefined>;
 }
 
 export const useUserContext = (): UserContextState => {
@@ -61,7 +60,6 @@ export const useUserContext = (): UserContextState => {
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
   const canViewNetworks = usePermission(PERMISSIONS.NETWORK.VIEW);
-  const canViewShipping = usePermission(PERMISSIONS.SHIPPING.VIEW);
 
   // Determine loading states
   const isLoading = useMemo(() => {
@@ -115,14 +113,14 @@ export const useUserContext = (): UserContextState => {
 
   // Determine user scope based on permissions
   // External orgs ALWAYS use organisation scope
-  // Only AirQo uses permission-based personal vs organisation scope
+  // Only the system group uses permission-based personal vs organisation scope
   const userScope = useMemo(() => {
     // External organisations ALWAYS use organisation scope
     if (userContext === 'external-org') {
       return 'organisation';
     }
     
-    // AirQo internal context and Personal context use personal scope
+    // System-group internal context and Personal context use personal scope
     // We treat 'personal' context as personal scope regardless of permissions for now
     // Permissions just toggle sidebar visibility
     return 'personal';
@@ -137,7 +135,6 @@ export const useUserContext = (): UserContextState => {
         title: 'Loading...',
         showNetworkMap: false,
         showSites: false,
-        showGrids: false,
         showCohorts: false,
         showUserManagement: false,
         showAccessControl: false,
@@ -146,7 +143,6 @@ export const useUserContext = (): UserContextState => {
         showClaimDevice: true,
         showDeployDevice: true,
         showNetworks: false,
-        showShipping: false,
       };
     }
 
@@ -156,7 +152,6 @@ export const useUserContext = (): UserContextState => {
           title: 'My Monitors',
           showNetworkMap: false,
           showSites: canViewSites, // Permission based
-          showGrids: canViewSites,
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
@@ -165,7 +160,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: canViewNetworks,
-          showShipping: canViewShipping,
         };
 
       case 'external-org':
@@ -173,7 +167,6 @@ export const useUserContext = (): UserContextState => {
           title: activeGroup?.grp_title || 'Organization',
           showNetworkMap: false,
           showSites: canViewSites,
-          showGrids: false,
           showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
@@ -183,7 +176,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
-          showShipping: false,
         };
 
       default:
@@ -191,7 +183,6 @@ export const useUserContext = (): UserContextState => {
           title: 'My Monitors',
           showNetworkMap: true,
           showSites: false,
-          showGrids: false,
           showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
@@ -200,7 +191,6 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
-          showShipping: false,
         };
     }
   };
@@ -214,7 +204,6 @@ export const useUserContext = (): UserContextState => {
         canViewAccessControl: false,
         canViewOrganizations: false,
         canViewNetworks: false,
-        canViewShipping: false,
       };
     }
 
@@ -237,7 +226,6 @@ export const useUserContext = (): UserContextState => {
       canViewUserManagement,
       canViewAccessControl,
       canViewNetworks,
-      canViewShipping,
     };
   };
 

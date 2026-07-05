@@ -7,7 +7,7 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import { shouldEnablePersistentClientCache } from "@/core/utils/clientCache";
 import type { AxiosError } from "axios";
 
-const QUERY_CACHE_KEY_PREFIX = "airqo:vertex:react-query:v1";
+const QUERY_CACHE_KEY_PREFIX = "vertex:react-query:v1";
 const QUERY_CACHE_MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
 
 interface QueryProviderProps {

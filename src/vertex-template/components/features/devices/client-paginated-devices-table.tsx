@@ -11,6 +11,7 @@ import { Edit, Plus, Trash2 } from "lucide-react";
 import BulkEditDevicesModal from "./bulk-edit-device-details-modal";
 import { AssignCohortDevicesDialog } from "../cohorts/assign-cohort-devices";
 import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 interface ClientPaginatedDevicesTableProps {
   devices: Device[];
@@ -35,7 +36,7 @@ export default function ClientPaginatedDevicesTable({
 }: ClientPaginatedDevicesTableProps) {
   const router = useRouter();
   const { userContext, activeGroup } = useUserContext();
-  const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
+  const isInternalView = userContext === "personal" && isSystemGroupTitle(activeGroup?.grp_title);
 
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);

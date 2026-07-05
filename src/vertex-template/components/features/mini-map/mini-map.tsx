@@ -3,13 +3,18 @@
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useDispatch } from 'react-redux';
-import { setPolygon } from '@/core/redux/slices/gridsSlice';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { cn } from '@/lib/utils';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+
+export type PolygonPosition = [number, number]; // [latitude, longitude]
+
+export interface PolygonGeometry {
+  type: 'Polygon' | 'MultiPolygon';
+  coordinates: PolygonPosition[][] | PolygonPosition[][][] | null;
+}
 
 interface MiniMapProps {
   latitude?: string;
@@ -19,6 +24,9 @@ interface MiniMapProps {
   inputMode?: 'siteName' | 'coordinates';
   customSiteName?: string;
   mapMode?: 'marker' | 'polygon';
+  /** Called in polygon mode whenever the drawn shape changes.
+   *  Coordinates are [latitude, longitude]; null when the shape is cleared. */
+  onPolygonChange?: (polygon: PolygonGeometry) => void;
   center?: [number, number];
   zoom?: number;
   scrollZoom?: boolean;
@@ -99,6 +107,7 @@ function MiniMap({
   onSiteNameChange,
   customSiteName,
   mapMode = 'marker',
+  onPolygonChange,
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   scrollZoom = true,
@@ -109,7 +118,6 @@ function MiniMap({
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const dispatch = useDispatch();
 
   // Handle coordinate updates from map interaction
   const handleCoordinateUpdate = useCallback(async (lat: number, lng: number) => {
@@ -212,15 +220,15 @@ function MiniMap({
               const transformed = geometry.coordinates.map(ring =>
                 ring.map(([lng, lat]) => [lat, lng] as [number, number])
               );
-              dispatch(setPolygon({ type: 'Polygon', coordinates: transformed }));
+              onPolygonChange?.({ type: 'Polygon', coordinates: transformed });
             } else if (geometry.type === 'MultiPolygon') {
               const transformed = geometry.coordinates.map(polygon =>
                 polygon.map(ring => ring.map(([lng, lat]) => [lat, lng] as [number, number]))
               );
-              dispatch(setPolygon({ type: 'MultiPolygon', coordinates: transformed }));
+              onPolygonChange?.({ type: 'MultiPolygon', coordinates: transformed });
             }
           } else {
-            dispatch(setPolygon({ type: "Polygon", coordinates: null }));
+            onPolygonChange?.({ type: 'Polygon', coordinates: null });
           }
         };
 

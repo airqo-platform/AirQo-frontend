@@ -43,7 +43,7 @@ const DEFAULT_TAGS: Option[] = [
   createTagOption("Software checks/re-installation"),
   createTagOption("PCB works/replacement"),
   createTagOption("Temp/humidity sensor works/replacement"),
-  createTagOption("Air quality sensor(s) works/replacement"),
+  createTagOption("Sensor works/replacement"),
 ]
 
 const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, onOpenChange, deviceName }) => {

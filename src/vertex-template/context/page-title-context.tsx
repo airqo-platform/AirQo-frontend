@@ -9,8 +9,9 @@ import React, {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { vertexConfig } from '@/vertex.config';
 
-const APP_TITLE = "AirQo Vertex";
+const APP_TITLE = vertexConfig.org.name;
 
 interface PageTitleValue {
   title: string;
@@ -37,10 +38,16 @@ const titleCase = (value: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
+// APP_TITLE is configurable branding (vertexConfig.org.name), so it must be
+// escaped before interpolation into a RegExp — names like "Acme (IoT)" would
+// otherwise break the pattern.
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const cleanDocumentTitle = () => {
   if (typeof document === "undefined") return "";
   return document.title
-    .replace(new RegExp(`\\s*\\|\\s*${APP_TITLE}$`), "")
+    .replace(new RegExp(`\\s*\\|\\s*${escapeRegExp(APP_TITLE)}$`), "")
     .trim();
 };
 
@@ -63,8 +70,6 @@ const getFallbackTitle = (pathname: string | null): PageTitleValue => {
     },
     "/admin/cohorts": { title: "Cohorts", section: "Administrative Panel" },
     "/admin/sites": { title: "Sites", section: "Administrative Panel" },
-    "/admin/grids": { title: "Grids", section: "Administrative Panel" },
-    "/admin/shipping": { title: "Shipping", section: "Administrative Panel" },
   };
 
   if (exactRouteTitles[pathname]) return exactRouteTitles[pathname];
@@ -92,11 +97,6 @@ const getFallbackTitle = (pathname: string | null): PageTitleValue => {
     [
       /^\/admin\/networks\/[^/]+$/,
       { title: "Sensor Manufacturer Details", section: "Sensor Manufacturers" },
-    ],
-    [/^\/admin\/grids\/[^/]+$/, { title: "Grid Details", section: "Grids" }],
-    [
-      /^\/admin\/shipping\/[^/]+$/,
-      { title: "Shipping Batch", section: "Shipping" },
     ],
     [
       /^\/devices\/overview\/[^/]+$/,
