@@ -12,6 +12,7 @@ import {
   Card,
   LoadingState,
   PageHeading,
+  Select,
 } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
@@ -151,6 +152,28 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     }
   );
 
+  const { data: staffData, isLoading: staffLoading } = useSWR(
+    'feedback/staff',
+    () => feedbackService.getFeedbackStaff(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      dedupingInterval: 60000,
+    }
+  );
+
+  const staffMembers = useMemo(() => staffData?.staff || [], [staffData?.staff]);
+
+  const staffById = useMemo(() => {
+    const map = new Map<string, { firstName: string; lastName: string; email: string }>();
+    for (const m of staffMembers) {
+      map.set(m._id, m);
+    }
+    return map;
+  }, [staffMembers]);
+
   const feedback = data?.feedback as FeedbackSubmission | undefined;
   const prevFeedbackIdRef = useRef<string | undefined>(undefined);
 
@@ -158,7 +181,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     if (feedback && feedbackId !== prevFeedbackIdRef.current) {
       prevFeedbackIdRef.current = feedbackId;
       setAdminNotes(feedback.adminNotes || '');
-      setAssigneeId(feedback.assignedTo?._id || '');
+      setAssigneeId(
+        typeof feedback.assignedTo === 'string'
+          ? feedback.assignedTo
+          : feedback.assignedTo?._id || ''
+      );
     }
   }, [feedback, feedbackId]);
 
@@ -758,18 +785,37 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
             />
 
             <div className="flex items-end gap-3">
-              <Input
-                id="assignee-id"
-                label="Assignee user ID"
-                placeholder="Enter user ID"
+              <Select
+                label="Assignee"
                 value={assigneeId}
                 onChange={e =>
                   setAssigneeId(
-                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                    (e as React.ChangeEvent<HTMLSelectElement>).target
+                      .value as string
                   )
                 }
+                placeholder={
+                  staffLoading
+                    ? 'Loading staff...'
+                    : 'Select a team member'
+                }
+                disabled={staffLoading || isAssigning}
                 containerClassName="!mb-0 flex-1"
-              />
+              >
+                <option value="">Unassigned</option>
+                {staffMembers.map(
+                  (member: {
+                    _id: string;
+                    firstName: string;
+                    lastName: string;
+                    email: string;
+                  }) => (
+                    <option key={member._id} value={member._id}>
+                      {member.firstName} {member.lastName} ({member.email})
+                    </option>
+                  )
+                )}
+              </Select>
               <Button
                 loading={isAssigning}
                 onClick={() => void handleAssign()}
@@ -784,14 +830,29 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                   Currently assigned to
                 </p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {feedback.assignedTo.firstName} {feedback.assignedTo.lastName}{' '}
-                  ({feedback.assignedTo.email})
+                  {(() => {
+                    const assigned = feedback.assignedTo;
+                    if (typeof assigned === 'string') {
+                      const resolved = staffById.get(assigned);
+                      return resolved
+                        ? `${resolved.firstName} ${resolved.lastName} (${resolved.email})`
+                        : assigned;
+                    }
+                    return `${assigned.firstName} ${assigned.lastName} (${assigned.email})`;
+                  })()}
                 </p>
                 {feedback.assignedAt && (
                   <p className="mt-1 text-xs text-muted-foreground">
                     Assigned on {formatDateTime(feedback.assignedAt)}
                     {feedback.assignedBy && (
-                      <> by {feedback.assignedBy.email}</>
+                      <> by {(() => {
+                        const by = feedback.assignedBy;
+                        if (typeof by === 'string') {
+                          const resolved = staffById.get(by);
+                          return resolved ? resolved.email : by;
+                        }
+                        return by.email;
+                      })()}</>
                     )}
                   </p>
                 )}
