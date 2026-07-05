@@ -39,6 +39,21 @@ export const mockRole = {
   })),
 };
 
+// Role for the second demo organization: everything except the admin-panel
+// permission, so switching organizations observably changes access.
+const orgPermissions = Object.entries(PERMISSIONS)
+  .filter(([group]) => group !== "SYSTEM")
+  .flatMap(([, group]) => Object.values(group));
+
+export const mockOrgRole = {
+  _id: "role-lakeview-admin",
+  role_name: "LAKEVIEW_ORG_ADMIN",
+  role_permissions: orgPermissions.map((permission) => ({
+    _id: `perm-lakeview-${permission.toLowerCase().replace(/_/g, "-")}`,
+    permission,
+  })),
+};
+
 export const mockNetworks: Manufacturer[] = [
   {
     _id: "network-demo",
@@ -108,6 +123,16 @@ export const mockUser: UserDetails = {
       createdAt: "2026-01-01T00:00:00.000Z",
       status: "active",
     },
+    {
+      // net_name matches the lakeview group title so the active network
+      // follows the active group when switching organizations.
+      _id: "network-lakeview",
+      net_name: "lakeview",
+      role: mockOrgRole,
+      userType: "admin",
+      createdAt: "2026-02-01T00:00:00.000Z",
+      status: "active",
+    },
   ],
   clients: [],
   groups: [
@@ -119,12 +144,21 @@ export const mockUser: UserDetails = {
       role: mockRole,
       userType: "admin",
     },
+    {
+      // Second organization so the org switcher is exercisable in mock mode.
+      _id: "group-lakeview",
+      grp_title: "lakeview",
+      createdAt: "2026-02-01T00:00:00.000Z",
+      status: "active",
+      role: mockOrgRole,
+      userType: "admin",
+    },
   ],
   permissions: mockRole.role_permissions,
   createdAt: "2026-01-01T00:00:00.000Z",
-  my_networks: ["network-demo"],
-  my_groups: ["group-demo"],
-  group_ids: ["group-demo"],
+  my_networks: ["network-demo", "network-lakeview"],
+  my_groups: ["group-demo", "group-lakeview"],
+  group_ids: ["group-demo", "group-lakeview"],
   cohort_ids: ["cohort-central", "cohort-schools"],
 };
 

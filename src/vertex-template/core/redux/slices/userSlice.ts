@@ -92,6 +92,26 @@ const determineUserContext = (
   return { context, canSwitchContext };
 };
 
+// Mirrors determineInitialUserSetup in authProvider: the active network follows
+// the active group (matched by name, falling back to the first network), and
+// the current role follows the network.
+const applyNetworkForGroup = (state: UserState, group: Group | null) => {
+  const groupTitle = group?.grp_title?.toLowerCase();
+  const network = groupTitle
+    ? state.availableNetworks.find(
+        (n) => n.net_name.toLowerCase() === groupTitle,
+      ) ?? state.availableNetworks[0] ?? null
+    : null;
+
+  state.activeNetwork = network;
+  state.currentRole = network?.role
+    ? {
+        role_name: network.role.role_name,
+        permissions: network.role.role_permissions.map((p) => p.permission),
+      }
+    : null;
+};
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -152,6 +172,7 @@ const userSlice = createSlice({
 
         if (systemGroup) {
           state.activeGroup = systemGroup;
+          applyNetworkForGroup(state, systemGroup);
           // Determine context immediately with the new group
           const { context, canSwitchContext } = determineUserContext(
             state.userDetails,
@@ -169,11 +190,11 @@ const userSlice = createSlice({
         state.userContext = 'personal';
         state.canSwitchContext = false;
         // When activeGroup is null, activeNetwork should also be null
-        state.activeNetwork = null;
-        state.currentRole = null;
+        applyNetworkForGroup(state, null);
         return;
       }
-      
+
+      applyNetworkForGroup(state, action.payload);
       const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         action.payload,
@@ -268,17 +289,42 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase("persist/REHYDRATE", (state, action: { type: "persist/REHYDRATE"; payload?: { user?: Partial<UserState> } }) => {
+    builder.addCase("persist/REHYDRATE", (state, action: {
+      type: "persist/REHYDRATE";
+      key?: string;
+      payload?: Partial<UserState> & { user?: Partial<UserState> };
+    }) => {
+      if (action.key && action.key !== "user") return;
+
+      // The user slice is persisted under its own key, so the payload is the
+      // user state itself. The nested `payload.user` shape is also accepted in
+      // case the slice is ever moved under a root-level persist config.
+      const persisted = action.payload?.user ?? action.payload;
+
       // If we have userDetails from persistence, assume authenticated and initialized
       // This enables instant loading for existing users without waiting for a fresh session check
-      if (action.payload?.user?.userDetails) {
+      if (persisted?.userDetails) {
         state.isAuthenticated = true;
         state.isInitialized = true;
-        state.userDetails = action.payload.user.userDetails;
-        
+        state.userDetails = persisted.userDetails;
+
         // Also restore critical flags if they exist
-        if (action.payload.user.activeGroup) state.activeGroup = action.payload.user.activeGroup;
-        if (action.payload.user.userContext) state.userContext = action.payload.user.userContext;
+        if (persisted.activeGroup) state.activeGroup = persisted.activeGroup;
+        if (persisted.userContext) state.userContext = persisted.userContext;
+
+        // availableNetworks and currentRole are derived state and not persisted;
+        // rebuild them from the persisted user details and active network so a
+        // rehydrated session matches a freshly initialized one.
+        state.availableNetworks = persisted.userDetails.networks || [];
+        const persistedNetwork = persisted.activeNetwork;
+        if (persistedNetwork?.role) {
+          state.currentRole = {
+            role_name: persistedNetwork.role.role_name,
+            permissions: persistedNetwork.role.role_permissions.map(
+              (p) => p.permission,
+            ),
+          };
+        }
       }
     });
   },
