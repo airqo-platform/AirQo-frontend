@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website: ${{ steps.check.outputs.website }}
-      vertex: ${{ steps.check.outputs.vertex }}
       platform: ${{ steps.check.outputs.platform }}
       beacon: ${{ steps.check.outputs.beacon }}
       calibrate: ${{ steps.check.outputs.calibrate }}
@@ -35,7 +34,6 @@ jobs:
           cat files.txt
 
           echo "website=false"   >> $GITHUB_OUTPUT
-          echo "vertex=false"    >> $GITHUB_OUTPUT
           echo "platform=false"  >> $GITHUB_OUTPUT
           echo "beacon=false"    >> $GITHUB_OUTPUT
           echo "calibrate=false" >> $GITHUB_OUTPUT
@@ -45,9 +43,6 @@ jobs:
           do
             if [[ $file == src/website/* ]]; then
               echo "website=true" >> $GITHUB_OUTPUT
-            fi
-            if [[ $file == src/vertex/* ]]; then
-              echo "vertex=true" >> $GITHUB_OUTPUT
             fi
             if [[ $file == src/platform/* ]]; then
               echo "platform=true" >> $GITHUB_OUTPUT
@@ -80,35 +75,6 @@ jobs:
         run: cd src/website && npm ci
       - name: Lint
         run: cd src/website && npm run lint --if-present
-
-  check-vertex:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.vertex == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: src/vertex/package-lock.json
-      - name: Install dependencies
-        run: cd src/vertex && npm ci
-      - name: Lint
-        run: cd src/vertex && npm run lint --if-present
-      - name: Type Check
-        run: cd src/vertex && npx tsc --noEmit
-      - name: Test & Coverage
-        run: cd src/vertex && npm run test:coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        with:
-          directory: src/vertex/coverage/
-          flags: vertex
 
   check-platform:
     needs: detect-changes

@@ -1,5 +1,6 @@
 # Vertex (Web App)
 
+[![vertex-ci](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/vertex-ci.yml/badge.svg?branch=staging)](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/vertex-ci.yml)
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?flag=vertex)](https://codecov.io/gh/airqo-platform/AirQo-frontend/flags/vertex)
 
 `vertex` is the AirQo web application for Device and Network management.
@@ -45,7 +46,7 @@ npm run dev
 
 Vertex uses Vitest and React Testing Library for unit, hook, and component tests. Follow the internal testing conventions in `app/_docs/internal/TESTING.md` when adding or updating tests.
 
-The badge above reflects overall coverage from the latest `staging` run. The `check-vertex` job in `.github/workflows/safe-checks.yml` runs lint, typecheck, and `test:coverage` on every PR touching Vertex, then uploads results to Codecov under the `vertex` flag; patch coverage (coverage of new/changed lines) is reported on every PR. See `app/_docs/internal/TESTING.md` for coverage priorities by area and current scope.
+The badges above reflect the latest `staging` run: build/test status and overall coverage. `.github/workflows/vertex-ci.yml` runs lint, typecheck, and `test:coverage` on every PR and push to `staging` that touches Vertex, then uploads results to Codecov under the `vertex` flag; patch coverage (coverage of new/changed lines) is reported on every PR. See `app/_docs/internal/TESTING.md` for coverage priorities by area and current scope.
 
 ## Environment variables
 

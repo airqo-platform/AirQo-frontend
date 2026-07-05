@@ -197,11 +197,11 @@ Prioritize meaningful coverage for:
 
 Do not add low-value tests just to increase coverage numbers.
 
-The `check-vertex` job in `.github/workflows/safe-checks.yml` runs the suite with coverage on every PR that touches Vertex, and uploads results to Codecov under the `vertex` flag (see root `codecov.yml`). Project and patch coverage checks are currently informational (visible on the PR, non-blocking) rather than an enforced gate, consistent with treating coverage as a signal rather than a target. The coverage badge in this app's `README.md` reflects the latest `staging` run.
+`.github/workflows/vertex-ci.yml` runs the suite with coverage on every PR and push to `staging` that touches Vertex, and uploads results to Codecov under the `vertex` flag (see root `codecov.yml`). Project and patch coverage checks are currently informational (visible on the PR, non-blocking) rather than an enforced gate, consistent with treating coverage as a signal rather than a target. The build/test status and coverage badges in this app's `README.md` reflect the latest `staging` run.
+
+Vertex previously ran as a conditional job inside the shared `safe-checks.yml` (still used by the other frontend projects in this monorepo). It was split into its own workflow so it could push-trigger on `staging` independently — keeping Codecov's baseline fresh — without changing CI behavior for the other five projects.
 
 Flaky-test-rate tracking is deferred: it needs a separate mechanism (for example Codecov Test Analytics or a retry-count script) beyond the coverage upload above, and isn't wired up yet.
-
-Known gap: `safe-checks.yml` (shared across all frontend projects in this monorepo) only triggers on `pull_request`, not on `push` to `staging`. This means Codecov's stored baseline for `staging` can lag well behind its actual tip, making PR-vs-base diffs less reliable than they should be. Fixing it means adding a push trigger to a workflow shared by five other projects, so it's left as a follow-up decision rather than changed here.
 
 ## Deferred test areas
 

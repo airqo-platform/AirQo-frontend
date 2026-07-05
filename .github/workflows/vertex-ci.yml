@@ -1,0 +1,60 @@
+name: vertex-ci
+
+on:
+  pull_request:
+    branches:
+      - staging
+    paths:
+      - "src/vertex/**"
+      - ".github/workflows/vertex-ci.yml"
+  push:
+    branches:
+      - staging
+    paths:
+      - "src/vertex/**"
+      - ".github/workflows/vertex-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-vertex:
+    name: check-vertex
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/vertex
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/vertex/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Test & Coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        continue-on-error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          directory: src/vertex/coverage/
+          flags: vertex
+          fail_ci_if_error: false
