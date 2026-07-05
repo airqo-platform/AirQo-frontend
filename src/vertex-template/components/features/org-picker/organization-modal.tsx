@@ -76,10 +76,15 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     return groups;
   }, [userGroups, searchTerm]);
 
+  // The "request organization" flow lives on the external analytics platform;
+  // without a configured URL there is nowhere to send the user.
+  const requestOrgUrl = vertexConfig.links.analyticsUrl
+    ? `${vertexConfig.links.analyticsUrl.replace(/\/$/, '')}/request-organization`
+    : null;
+
   const handleCreateNew = () => {
-    const baseUrl = vertexConfig.links.analyticsUrl || '';
-    const url = `${baseUrl.replace(/\/$/, '')}/request-organization`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (!requestOrgUrl) return;
+    window.open(requestOrgUrl, '_blank', 'noopener,noreferrer');
     onClose();
   }
 
@@ -135,9 +140,11 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
           <ReusableButton onClick={onClose} variant="outlined">
             Close
           </ReusableButton>
-          <ReusableButton onClick={handleCreateNew}>
-            Request New Organization
-          </ReusableButton>
+          {requestOrgUrl && (
+            <ReusableButton onClick={handleCreateNew}>
+              Request New Organization
+            </ReusableButton>
+          )}
         </div>
       }
     >
