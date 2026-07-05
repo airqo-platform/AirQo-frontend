@@ -15,7 +15,7 @@ flags:
   vertex:
     paths:
       - src/vertex/
-    carryforward: false
+    carryforward: true
 
 comment:
   layout: "flags, diff"

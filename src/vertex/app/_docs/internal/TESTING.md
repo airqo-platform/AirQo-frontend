@@ -201,6 +201,8 @@ The `check-vertex` job in `.github/workflows/safe-checks.yml` runs the suite wit
 
 Flaky-test-rate tracking is deferred: it needs a separate mechanism (for example Codecov Test Analytics or a retry-count script) beyond the coverage upload above, and isn't wired up yet.
 
+Known gap: `safe-checks.yml` (shared across all frontend projects in this monorepo) only triggers on `pull_request`, not on `push` to `staging`. This means Codecov's stored baseline for `staging` can lag well behind its actual tip, making PR-vs-base diffs less reliable than they should be. Fixing it means adding a push trigger to a workflow shared by five other projects, so it's left as a follow-up decision rather than changed here.
+
 ## Deferred test areas
 
 Proxy and network-heavy utilities should be tested in a later integration-style pass with explicit mocks for axios, NextAuth, environment config, and Next.js request/response objects.
