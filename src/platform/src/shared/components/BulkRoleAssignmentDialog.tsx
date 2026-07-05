@@ -6,6 +6,7 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 
 interface BulkRoleAssignmentDialogProps {
   isOpen: boolean;
@@ -209,6 +210,7 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
             }}
             placeholder="Search and select a role..."
             disabled={rolesLoading || !!rolesError || !activeGroup?.id}
+            maxLength={SEARCH_TERM_MAX}
             className="w-full px-3 py-2.5 border rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:bg-muted disabled:text-muted-foreground"
           />
 

@@ -19,6 +19,11 @@ import {
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackWebhook } from '@/shared/types/api';
+import {
+  WEBHOOK_NAME_MAX,
+  WEBHOOK_URL_MAX,
+  WEBHOOK_SECRET_MAX,
+} from '@/shared/lib/validation-limits';
 
 const WEBHOOK_EVENT_OPTIONS = [
   { value: 'feedback.submitted', label: 'Feedback Submitted' },
@@ -91,6 +96,7 @@ const WebhookForm: React.FC<{
           onChange={e =>
             setName((e as React.ChangeEvent<HTMLInputElement>).target.value)
           }
+          maxLength={WEBHOOK_NAME_MAX}
         />
         <Input
           id="webhook-url"
@@ -100,6 +106,7 @@ const WebhookForm: React.FC<{
           onChange={e =>
             setUrl((e as React.ChangeEvent<HTMLInputElement>).target.value)
           }
+          maxLength={WEBHOOK_URL_MAX}
         />
         {!initialData && (
           <Input
@@ -114,6 +121,7 @@ const WebhookForm: React.FC<{
                 (e as React.ChangeEvent<HTMLInputElement>).target.value
               )
             }
+            maxLength={WEBHOOK_SECRET_MAX}
           />
         )}
 

@@ -253,7 +253,7 @@ const systemSidebarConfig: NavGroup[] = [
       },
       {
         id: 'system-team-members',
-        label: 'Team Members',
+        label: 'Members',
         href: '/system/team-members',
         icon: AqUsers01,
       },
@@ -286,6 +286,12 @@ const systemSidebarConfig: NavGroup[] = [
         label: 'Survey Management',
         href: '/system/surveys',
         icon: AqFileQuestion02,
+      },
+      {
+        id: 'system-users',
+        label: 'User Management',
+        href: '/system/users',
+        icon: AqUsers01,
       },
       {
         id: 'system-user-statistics',
@@ -385,10 +391,16 @@ const globalSidebarConfig: NavGroup[] = [
               'Review active surveys, responses, and completion stats',
           },
           {
+            id: 'system-users',
+            label: 'User Management',
+            href: '/system/users',
+            description: 'View and manage platform users and roles',
+          },
+          {
             id: 'system-user-statistics',
             label: 'User Statistics',
             href: '/system/user-statistics',
-            description: 'View user statistics across the platform',
+            description: 'View analytics and charts for platform users',
           },
         ],
       },

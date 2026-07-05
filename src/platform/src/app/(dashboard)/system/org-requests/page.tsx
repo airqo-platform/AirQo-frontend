@@ -11,6 +11,7 @@ import { TextInput } from '@/shared/components/ui/text-input';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { REJECTION_REASON_MAX } from '@/shared/lib/validation-limits';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   useOrganizationRequests,
@@ -473,6 +474,7 @@ const OrganizationRequestsPage = () => {
                 }
                 required
                 placeholder="Please provide a reason for rejection"
+                maxLength={REJECTION_REASON_MAX}
               />
             )}
           </ReusableDialog>

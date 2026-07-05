@@ -15,7 +15,7 @@ import {
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackStaffMember } from '@/shared/types/api';
 
-const TeamMembersContent: React.FC = () => {
+const MembersContent: React.FC = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -121,7 +121,7 @@ const TeamMembersContent: React.FC = () => {
     return (
       <LoadingState
         className="min-h-[400px]"
-        text="Loading team members..."
+        text="Loading members..."
       />
     );
   }
@@ -131,7 +131,7 @@ const TeamMembersContent: React.FC = () => {
       return (
         <AccessDenied
           title="Access Denied"
-          message="You do not have the required permissions to view team members."
+          message="You do not have the required permissions to view members."
         />
       );
     }
@@ -148,8 +148,8 @@ const TeamMembersContent: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeading
-          title="Team Members"
-          subtitle={`${allMembers.length} staff member${allMembers.length !== 1 ? 's' : ''}`}
+          title="Members"
+          subtitle={`${allMembers.length} member${allMembers.length !== 1 ? 's' : ''}`}
         />
         {selectedMembers.length > 0 && (
           <Button
@@ -163,7 +163,6 @@ const TeamMembersContent: React.FC = () => {
       </div>
 
       <ServerSideTable
-        title="Staff Members"
         data={paginatedMembers.map(member => ({
           ...member,
           id: member._id,
@@ -202,16 +201,16 @@ const TeamMembersContent: React.FC = () => {
   );
 };
 
-const TeamMembersPage: React.FC = () => {
+const MembersPage: React.FC = () => {
   return (
     <PermissionGuard
       requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need system administration permissions to view team members."
+      accessDeniedMessage="You need system administration permissions to view members."
     >
-      <TeamMembersContent />
+      <MembersContent />
     </PermissionGuard>
   );
 };
 
-export default TeamMembersPage;
+export default MembersPage;

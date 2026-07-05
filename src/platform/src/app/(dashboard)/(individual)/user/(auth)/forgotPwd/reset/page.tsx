@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { resetPwdSchema, type ResetPwdFormData } from '@/shared/lib/validators';
+import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import { useResetPassword } from '@/shared/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -165,6 +166,7 @@ export default function ResetPwdPage() {
             error={errors.password?.message}
             containerClassName="mb-4"
             showPasswordToggle
+            maxLength={PASSWORD_MAX}
             {...register('password')}
           />
 
@@ -175,6 +177,7 @@ export default function ResetPwdPage() {
             error={errors.confirmPassword?.message}
             containerClassName="mb-4"
             showPasswordToggle
+            maxLength={PASSWORD_MAX}
             {...register('confirmPassword')}
           />
 

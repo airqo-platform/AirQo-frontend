@@ -22,6 +22,13 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
 import { isValidAsn, isValidCidrNotation } from '@/shared/lib/validators';
+import {
+  PROVIDER_NAME_MAX,
+  ASN_MAX,
+  CIDR_RANGE_MAX,
+  BLOCK_REASON_MAX,
+  RESOLUTION_NOTE_MAX,
+} from '@/shared/lib/validation-limits';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type {
   BlockedAsn,
@@ -113,6 +120,7 @@ const StringListEditor: React.FC<StringListEditorProps> = ({
                 onChange={e => onChange(index, e.target.value)}
                 placeholder={placeholder}
                 className="w-full"
+                maxLength={CIDR_RANGE_MAX}
               />
               {errors[index] && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -302,6 +310,7 @@ const BlockedAsnDialog: React.FC<BlockedAsnDialogProps> = ({
           onChange={e => setProvider(e.target.value)}
           placeholder="Amazon Web Services"
           description="Human-readable provider name, e.g. Cloudflare or DigitalOcean."
+          maxLength={PROVIDER_NAME_MAX}
           required
         />
 
@@ -312,6 +321,7 @@ const BlockedAsnDialog: React.FC<BlockedAsnDialogProps> = ({
             onChange={e => setAsn(e.target.value)}
             placeholder="AS16509"
             description="Optional if CIDR ranges are provided."
+            maxLength={ASN_MAX}
           />
 
           <div className="rounded-xl border border-border bg-muted/20 p-4">
@@ -348,6 +358,7 @@ const BlockedAsnDialog: React.FC<BlockedAsnDialogProps> = ({
           onChange={e => setReason(e.target.value)}
           placeholder="AWS data-center range"
           rows={4}
+          maxLength={BLOCK_REASON_MAX}
         />
       </div>
     </Dialog>
@@ -458,6 +469,7 @@ const ResolveFlaggedTokenDialog: React.FC<ResolveFlaggedTokenDialogProps> = ({
           onChange={e => setNote(e.target.value)}
           placeholder="Investigated automated scanner. Token owner notified and key rotated."
           rows={5}
+          maxLength={RESOLUTION_NOTE_MAX}
         />
       </div>
     </Dialog>

@@ -1,17 +1,52 @@
 import { z } from 'zod';
+import {
+  FIRST_NAME_MAX,
+  LAST_NAME_MAX,
+  EMAIL_MAX,
+  PASSWORD_MIN,
+  PASSWORD_MAX,
+  JOB_TITLE_MAX,
+  USER_BIO_MAX,
+  PHONE_MAX,
+  CITY_MAX,
+  PROJECT_NAME_MAX,
+  FUNDER_PARTNER_MAX,
+  CONTACT_NAME_MAX,
+  USE_CASE_MAX,
+  COUNTRY_MAX,
+  GROUP_TITLE_MAX,
+  GROUP_DESCRIPTION_MAX,
+  GROUP_INDUSTRY_MAX,
+  GROUP_TIMEZONE_MAX,
+  GROUP_WEBSITE_MAX,
+  ROLE_NAME_MAX,
+  ROLE_DESCRIPTION_MAX,
+  ROLE_CODE_MAX,
+} from './validation-limits';
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Password is required').max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
 });
 
 export const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .max(FIRST_NAME_MAX, `First name must be ${FIRST_NAME_MAX} characters or less`),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .max(LAST_NAME_MAX, `Last name must be ${LAST_NAME_MAX} characters or less`),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email address')
+    .max(EMAIL_MAX, `Email must be ${EMAIL_MAX} characters or less`),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+    .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
       'Password must include uppercase, lowercase, number, and special character'
@@ -19,19 +54,24 @@ export const registerSchema = z.object({
 });
 
 export const forgotPwdSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email address')
+    .max(EMAIL_MAX, `Email must be ${EMAIL_MAX} characters or less`),
 });
 
 export const resetPwdSchema = z
   .object({
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
         'Password must include uppercase, lowercase, number, and special character'
       ),
-    confirmPassword: z.string(),
+    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(d => d.password === d.confirmPassword, {
     message: 'Passwords do not match',
@@ -43,12 +83,12 @@ export const setPasswordSchema = z
     password: z
       .string()
       .min(6, 'Password must be at least 6 characters')
-      .max(30, 'Password must be 30 characters or less')
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
       .regex(
         /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*.,]+$/,
         'Password must include at least one letter and one number'
       ),
-    confirmPassword: z.string(),
+    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(data => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -56,27 +96,38 @@ export const setPasswordSchema = z
   });
 
 export const profileSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  phoneNumber: z.string().optional(),
-  jobTitle: z.string().optional(),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .max(FIRST_NAME_MAX, `First name must be ${FIRST_NAME_MAX} characters or less`),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .max(LAST_NAME_MAX, `Last name must be ${LAST_NAME_MAX} characters or less`),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email address')
+    .max(EMAIL_MAX, `Email must be ${EMAIL_MAX} characters or less`),
+  phoneNumber: z.string().max(PHONE_MAX, `Phone number must be ${PHONE_MAX} characters or less`).optional(),
+  jobTitle: z.string().max(JOB_TITLE_MAX, `Job title must be ${JOB_TITLE_MAX} characters or less`).optional(),
   country: z.string().min(1, 'Country is required'),
-  description: z.string().optional(),
+  description: z.string().max(USER_BIO_MAX, `Bio must be ${USER_BIO_MAX} characters or less`).optional(),
   profilePicture: z.string().optional(),
 });
 
 export const securitySchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
+    currentPassword: z.string().min(1, 'Current password is required').max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
     newPassword: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
         'Password must include uppercase, lowercase, number, and special character'
       ),
-    confirmPassword: z.string(),
+    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(d => d.newPassword === d.confirmPassword, {
     message: 'Passwords do not match',
@@ -88,33 +139,33 @@ export const organizationRequestSchema = z.object({
   city: z
     .string()
     .min(2, 'City must be at least 2 characters')
-    .max(100, 'City must be less than 100 characters'),
+    .max(CITY_MAX, `City must be less than ${CITY_MAX} characters`),
 
   project_name: z
     .string()
     .min(2, 'Project name must be at least 2 characters')
-    .max(120, 'Project name must be less than 120 characters'),
+    .max(PROJECT_NAME_MAX, `Project name must be less than ${PROJECT_NAME_MAX} characters`),
 
   funder_partner: z
     .string()
-    .max(120, 'Funder/partner must be less than 120 characters')
+    .max(FUNDER_PARTNER_MAX, `Funder/partner must be less than ${FUNDER_PARTNER_MAX} characters`)
     .optional(),
 
   contact_email: z
     .string()
     .min(1, 'Email is required')
     .email('Please enter a valid email address')
-    .max(254, 'Email address is too long'),
+    .max(EMAIL_MAX, 'Email address is too long'),
 
   contact_name: z
     .string()
     .min(2, 'Contact name must be at least 2 characters')
-    .max(100, 'Contact name must be less than 100 characters'),
+    .max(CONTACT_NAME_MAX, `Contact name must be less than ${CONTACT_NAME_MAX} characters`),
 
   use_case: z
     .string()
     .min(10, 'Use case description must be at least 10 characters')
-    .max(1000, 'Use case description must be less than 1000 characters'),
+    .max(USE_CASE_MAX, `Use case description must be less than ${USE_CASE_MAX} characters`),
 
   organization_type: z.enum([
     'government',
@@ -127,7 +178,51 @@ export const organizationRequestSchema = z.object({
   country: z
     .string()
     .min(2, 'Country is required')
-    .max(100, 'Country name is too long'),
+    .max(COUNTRY_MAX, `Country name must be less than ${COUNTRY_MAX} characters`),
+});
+
+// Role creation validation
+export const createRoleSchema = z.object({
+  role_name: z
+    .string()
+    .min(1, 'Role name is required')
+    .max(ROLE_NAME_MAX, `Role name must be ${ROLE_NAME_MAX} characters or less`)
+    .regex(
+      /^[A-Z0-9_]+$/,
+      'Role name must contain only uppercase letters, numbers, and underscores'
+    ),
+  role_code: z
+    .string()
+    .max(ROLE_CODE_MAX, `Role code must be ${ROLE_CODE_MAX} characters or less`)
+    .optional(),
+  role_description: z
+    .string()
+    .max(ROLE_DESCRIPTION_MAX, `Role description must be ${ROLE_DESCRIPTION_MAX} characters or less`)
+    .optional(),
+});
+
+// Group details validation
+export const groupDetailsSchema = z.object({
+  grp_title: z
+    .string()
+    .min(1, 'Group title is required')
+    .max(GROUP_TITLE_MAX, `Group title must be ${GROUP_TITLE_MAX} characters or less`),
+  grp_description: z
+    .string()
+    .max(GROUP_DESCRIPTION_MAX, `Description must be ${GROUP_DESCRIPTION_MAX} characters or less`)
+    .optional(),
+  grp_industry: z
+    .string()
+    .max(GROUP_INDUSTRY_MAX, `Industry must be ${GROUP_INDUSTRY_MAX} characters or less`)
+    .optional(),
+  grp_timezone: z
+    .string()
+    .max(GROUP_TIMEZONE_MAX, `Timezone must be ${GROUP_TIMEZONE_MAX} characters or less`)
+    .optional(),
+  grp_website: z
+    .string()
+    .max(GROUP_WEBSITE_MAX, `Website must be ${GROUP_WEBSITE_MAX} characters or less`)
+    .optional(),
 });
 
 // Individual field validators for real-time validation
@@ -153,6 +248,8 @@ export type SecurityFormData = z.infer<typeof securitySchema>;
 export type OrganizationRequestFormData = z.infer<
   typeof organizationRequestSchema
 >;
+export type CreateRoleFormData = z.infer<typeof createRoleSchema>;
+export type GroupDetailsFormData = z.infer<typeof groupDetailsSchema>;
 
 // IP Address validation
 export const isValidIpAddress = (ip: string): boolean => {

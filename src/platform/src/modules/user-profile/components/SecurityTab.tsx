@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Banner } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { securitySchema, type SecurityFormData } from '@/shared/lib/validators';
+import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import { useUpdatePassword, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isInOrganizationContext } from '@/shared/utils/groupUtils';
@@ -97,6 +98,7 @@ const SecurityTab: React.FC = () => {
                 error={errors.currentPassword?.message}
                 required
                 showPasswordToggle
+                maxLength={PASSWORD_MAX}
               />
 
               {/* New Password */}
@@ -108,6 +110,7 @@ const SecurityTab: React.FC = () => {
                 error={errors.newPassword?.message}
                 required
                 showPasswordToggle
+                maxLength={PASSWORD_MAX}
               />
 
               {/* Confirm Password */}
@@ -119,6 +122,7 @@ const SecurityTab: React.FC = () => {
                 error={errors.confirmPassword?.message}
                 required
                 showPasswordToggle
+                maxLength={PASSWORD_MAX}
               />
 
               {/* Submit Button */}

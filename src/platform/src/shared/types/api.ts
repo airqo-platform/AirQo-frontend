@@ -295,6 +295,12 @@ export interface UserDetailsResponse {
   users: User[];
 }
 
+export interface GetUsersResponse {
+  success: true;
+  message: string;
+  users: User[];
+}
+
 export interface User {
   _id: string;
   firstName: string;

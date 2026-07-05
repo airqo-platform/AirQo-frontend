@@ -20,6 +20,7 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { HexColorPicker } from 'react-colorful';
 import { useUser } from '@/shared/hooks/useUser';
+import { HEX_COLOR_MAX } from '@/shared/lib/validation-limits';
 import {
   useGroupTheme,
   useUpdateOrganizationGroupTheme,
@@ -309,6 +310,7 @@ const ThemeSettings: React.FC = () => {
                     type="text"
                     value={customColor}
                     onChange={e => setCustomColor(e.target.value)}
+                    maxLength={HEX_COLOR_MAX}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
                   />
                 </div>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { AqSearchRefraction, AqXClose } from '@airqo/icons-react';
+import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 
 export type SearchFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   onClear?: () => void;
@@ -8,7 +9,16 @@ export type SearchFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
-  ({ className, onClear, showClearButton = true, ...props }, ref) => {
+  (
+    {
+      className,
+      onClear,
+      showClearButton = true,
+      maxLength = SEARCH_TERM_MAX,
+      ...props
+    },
+    ref
+  ) => {
     const hasValue = props.value && String(props.value).length > 0;
 
     const handleClear = () => {
@@ -30,6 +40,7 @@ const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
       <div className="relative min-w-0 w-full box-border">
         <input
           type="search"
+          maxLength={maxLength}
           className={cn(
             'h-10 w-full min-w-0 max-w-full rounded-md border border-primary bg-background pl-10 pr-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
             className

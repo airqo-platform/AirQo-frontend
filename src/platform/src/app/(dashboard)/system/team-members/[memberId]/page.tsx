@@ -31,6 +31,7 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
@@ -586,6 +587,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
               }}
               placeholder="Search and select a role..."
               disabled={rolesLoading}
+              maxLength={SEARCH_TERM_MAX}
               className="w-full px-3 py-2.5 border rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:bg-muted disabled:text-muted-foreground"
             />
 
