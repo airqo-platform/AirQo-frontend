@@ -155,7 +155,7 @@ This action requires the `ROLE_CREATE` permission.
 
 ### Editing Role Permissions
 
-1. Go to **Roles & Permissions** and select on the role you want to edit.
+1. Go to **Roles & Permissions** and select the role you want to edit.
 2. You will see a checklist of all available permissions.
 3. Check or uncheck permissions to add or remove them from the role.
 4. Select **Save** to apply changes.
@@ -180,7 +180,7 @@ This action requires the `ROLE_EDIT` permission.
 
 ### Single Assignment
 
-1. Go to the **Members** page and select on the member's name.
+1. Go to the **Members** page and select the member's name.
 2. On the member detail page, find the **Roles** section.
 3. Use the dropdown to select a role to assign.
 4. Select **Assign**.

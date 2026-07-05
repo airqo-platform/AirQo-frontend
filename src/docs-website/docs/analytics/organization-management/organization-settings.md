@@ -88,7 +88,7 @@ If your team does not yet have an organization workspace:
 
 ## Leaving an Organization
 
-1. Select on your profile icon and go to **Profile**.
+1. Select your profile icon and go to **Profile**.
 2. Navigate to the **Security** tab.
 3. Scroll to the **Leave Organization** section at the bottom.
 4. Select **Leave Organization**.

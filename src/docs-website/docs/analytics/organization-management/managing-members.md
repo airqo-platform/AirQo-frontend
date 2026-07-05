@@ -23,7 +23,7 @@ This action requires the `MEMBER_VIEW` permission.
 
 ## Viewing Member Details
 
-1. Select on any member's name in the members list.
+1. Select any member's name in the members list.
 2. The detail page shows the member's profile information and all roles currently assigned to them.
 
 :::note Requires MEMBER_VIEW
@@ -60,7 +60,7 @@ When a newly invited member joins, they are typically assigned the organization'
 
 ### Single Assignment
 
-1. Go to the **Members** page and select on the member's name.
+1. Go to the **Members** page and select the member's name.
 2. On the member detail page, find the **Roles** section.
 3. Use the dropdown to select a role to assign.
 4. Select **Assign**.
