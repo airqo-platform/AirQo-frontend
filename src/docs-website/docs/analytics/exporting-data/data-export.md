@@ -1,21 +1,21 @@
 ---
 sidebar_position: 1
-sidebar_label: Exporting Data
+sidebar_label: Export Air Quality Data
 ---
 
-# Exporting Air Quality Data
+# Export Air Quality Data
 
-The Data Export page lets you download air quality datasets from the AirQo Analytics platform. Select locations across Africa, configure date ranges and pollutants, and export in multiple formats for offline analysis.
+The Data Export page lets you download air quality datasets from AirQo Analytics. Select locations across Africa, configure date ranges and pollutants, and export in multiple formats for offline analysis.
 
 ---
 
 ## Accessing the Export Page
 
-1. Log in to the AirQo Analytics platform at [analytics.airqo.net](https://analytics.airqo.net).
-2. Open the sidebar and click **Data Export** under the Data & Analysis section.
-3. Direct URLs:
-   - **Personal workspace:** `analytics.airqo.net/user/data-export`
-   - **Organization workspace:** `analytics.airqo.net/org/<your-org>/data-export`
+1. Log in to [AirQo Analytics](https://analytics.airqo.net).
+2. Open the sidebar and select **Visualization & Data Export** under the Data & Analysis section.
+3. Direct links:
+   - **Individual workflow:** [analytics.airqo.net/user/data-export](https://analytics.airqo.net/user/data-export)
+   - **Organization workflow:** `https://analytics.airqo.net/org/<your-org>/data-export`
 
 ---
 
@@ -123,7 +123,7 @@ The main content area shows a paginated table of available locations. The table 
 2. Use the **Select All** checkbox in the table header to select all rows on the current page.
 3. Use the **search bar** to filter locations by name.
 4. Use **pagination** to browse through pages of results.
-5. Click **Clear All** in the header to deselect everything.
+5. Select **Clear All** in the header to deselect everything.
 
 :::tip
 Selections persist across page changes. You can select items from page 1, navigate to page 2, select more, and all selections are preserved.
@@ -135,7 +135,7 @@ When you select a country or city:
 
 1. All monitoring sites within that grid are included by default.
 2. A **Selected Grids Summary** card appears showing the site count per grid.
-3. Click **Customize Sites** to open the Site Selection dialog where you can:
+3. Select **Customize Sites** to open the Site Selection dialog where you can:
    - Deselect individual sites within the grid
    - Choose only specific sites to include in the export
 
@@ -153,14 +153,14 @@ Choose one or more sites, devices, countries, or cities from the table.
 
 ### Step 3: Review & Download
 
-1. Click **Review & Download** in the header.
+1. Select **Review & Download** in the header.
 2. The **Download Preview** dialog opens with a summary of your export and **column selection** options:
    - **Location columns** — site/device name, ID, coordinates
    - **Core data columns** — datetime, measurement values
    - **Metadata columns** — city, country, region, data provider
    - **Pollutant columns** — PM₂.₅ and/or PM₁₀ measurement values
 3. Toggle columns on or off depending on what you need.
-4. Click **Confirm Download** to proceed.
+4. Select **Confirm Download** to proceed.
 
 ### Step 4: Choose Save Format
 
@@ -184,7 +184,7 @@ If the API returns no measurement data for your selection (e.g., no readings in 
 
 ## Visualize Data
 
-Click **Visualize Data** in the header to open the selected locations in the **More Insights** dialog. This lets you quickly explore trends and charts for your selected sites without leaving the export page.
+Select **Visualize Data** in the header to open the selected locations in the **More Insights** dialog. This lets you quickly explore trends and charts for your selected sites without leaving the export page.
 
 ---
 
@@ -195,18 +195,19 @@ The platform shows dynamic banners based on your current export state:
 | Banner | Meaning |
 |--------|---------|
 | **Date Range Required** | You haven't selected a date range yet |
-| **Location Selection Required** | No sites, devices, or grids are selected |
+| **Location Selection Required** | No sites, devices, countries, or cities are selected |
 | **Pollutant Selection Required** | No pollutants are checked |
 | **Large Date Range Detected** | Your range exceeds 90 days — split into batches |
 | **Reference Monitor data is available** | BAM devices provide high-quality reference data |
 | **Ready to Export** | All requirements are met — you can download |
 | **No Data Available** | (Organization flow) No devices or sites have been deployed yet |
+| **Download Limit Notice** | Annual or large downloads should be done in shorter batches |
 
 ---
 
 ## Video Tutorial
 
-Click **Watch Tutorial** in the help banner at the top of the page to open a walkthrough video demonstrating the full export workflow.
+Select **Watch Tutorial** in the help banner at the top of the page to open a walkthrough video demonstrating the full export workflow.
 
 ---
 
@@ -234,3 +235,10 @@ Click **Watch Tutorial** in the help banner at the top of the page to open a wal
 | BAM data shows only raw data | Reference monitors use raw data type | This is expected — BAM data is already high-quality |
 | Mobile devices only show Raw frequency | Mobile devices don't support aggregation | Use Raw frequency for mobile device exports |
 | Excel option unavailable | Only one location selected | Select 2+ locations to enable Excel export |
+
+---
+
+## Related Guides
+
+- [Using the Dataset Visualizer](../visualizing-data/dataset-visualizer.md) — upload and visualize your own data files
+- [Favorite Locations](../managing-locations/favorite-locations.md) — save monitoring sites for quick access
