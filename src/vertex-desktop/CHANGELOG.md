@@ -4,6 +4,47 @@
 
 ---
 
+## Version 0.1.9
+**Released:** July 05, 2026
+
+### Fully Automated Tag-and-Release Pipeline + Linux Builds
+
+Removed the last manual step from cutting a desktop release: bumping `version` and merging to `staging` now tags and releases automatically. Added Linux packaging so installers publish for all three desktop platforms.
+
+<details>
+<summary><strong>CI/CD Enhancements (2)</strong></summary>
+
+- **Auto-Tag Job**: Added an `auto-tag` job to `vertex-desktop-ci.yml` that runs after typecheck/build succeed on `staging`. It reads `version` from `package.json` and, if a matching `vertex-desktop-v<version>` tag doesn't exist yet, creates and pushes it — no local `git tag`/`git push` required.
+- **Linux Release Job**: Added a `release-linux` job to `vertex-desktop-release.yml` that builds and publishes Linux artifacts alongside the existing Windows and macOS jobs.
+
+</details>
+
+<details>
+<summary><strong>Packaging & Distribution (1)</strong></summary>
+
+- **Linux Build Targets**: Configured `build.linux.target` (`AppImage`, `deb`) in `package.json` so `electron-builder --linux` has explicit output targets.
+
+</details>
+
+<details>
+<summary><strong>Documentation (1)</strong></summary>
+
+- **Release Runbook**: Updated desktop README to describe the auto-tag flow and confirm Linux is part of the standard release.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `.github/workflows/vertex-desktop-ci.yml`
+- `.github/workflows/vertex-desktop-release.yml`
+- `package.json`
+- `README.md`
+
+</details>
+
+---
+
 ## Version 0.1.6
 **Released:** April 09, 2026
 

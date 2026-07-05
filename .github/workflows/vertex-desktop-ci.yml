@@ -16,6 +16,9 @@ on:
       - ".github/workflows/vertex-desktop-ci.yml"
       - ".github/workflows/vertex-desktop-release.yml"
 
+permissions:
+  contents: write
+
 jobs:
   desktop-quality:
     name: typecheck-and-build
@@ -42,3 +45,54 @@ jobs:
 
       - name: Build desktop runtime
         run: npm run build
+
+  auto-tag:
+    name: tag-release-if-version-bumped
+    needs: desktop-quality
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version and tag
+        id: version
+        working-directory: src/vertex-desktop
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="vertex-desktop-v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: check
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push release tag
+        if: steps.check.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Vertex desktop release ${TAG}"
+          git push origin "${TAG}"
+          echo "Pushed tag ${TAG} - this will trigger vertex-desktop-release.yml"
+
+      - name: Skip (tag already exists)
+        if: steps.check.outputs.exists == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: echo "Tag ${TAG} already exists, skipping. Bump the version in src/vertex-desktop/package.json to cut a new release."
