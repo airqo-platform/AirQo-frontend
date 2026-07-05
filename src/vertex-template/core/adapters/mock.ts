@@ -108,6 +108,22 @@ function filterCohorts(params: GetCohortsSummaryParams = {}): Cohort[] {
 }
 
 export const mockAdapter: VertexAdapter = (() => {
+  // Onboarding checklist state per group, so updates made through
+  // updateGroupOnboardingApi survive a group-details refetch.
+  const onboardingChecklists = new Map<
+    string,
+    { completed_steps: string[]; is_dismissed: boolean }
+  >();
+
+  const getOnboardingChecklist = (groupId: string) => {
+    let checklist = onboardingChecklists.get(groupId);
+    if (!checklist) {
+      checklist = { completed_steps: [], is_dismissed: false };
+      onboardingChecklists.set(groupId, checklist);
+    }
+    return checklist;
+  };
+
   const coreMocks: Partial<VertexAdapter> = {
     async getCurrentUser() {
       return {
@@ -534,8 +550,29 @@ export const mockAdapter: VertexAdapter = (() => {
         message: "Mock group loaded successfully",
         group: {
           ...clone(group),
-          onboarding_checklist: { completed_steps: [], is_dismissed: false },
+          onboarding_checklist: clone(
+            getOnboardingChecklist(group?._id ?? groupId),
+          ),
         },
+      };
+    },
+
+    async updateGroupOnboardingApi(groupId, payload) {
+      const checklist = getOnboardingChecklist(groupId);
+
+      if (payload.action === "dismiss_checklist") {
+        checklist.is_dismissed = true;
+      } else if (
+        payload.step_id &&
+        !checklist.completed_steps.includes(payload.step_id)
+      ) {
+        checklist.completed_steps.push(payload.step_id);
+      }
+
+      return {
+        success: true,
+        message: "Mock onboarding checklist updated successfully",
+        group: { onboarding_checklist: clone(checklist) },
       };
     },
   };
