@@ -2,6 +2,41 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.14
+**Released:** July 5, 2026
+
+### CI & Test Coverage Reporting
+
+Gave Vertex its own standalone CI workflow and wired up automated coverage reporting, closing the gap where Vertex had no dedicated pipeline visibility into test health.
+
+<details>
+<summary><strong>New: <code>vertex-ci.yml</code> workflow</strong></summary>
+
+- Vertex's checks (lint, typecheck, `test:coverage`) moved out of the shared, multi-project `safe-checks.yml` into a dedicated `.github/workflows/vertex-ci.yml`, matching the existing `vertex-desktop-ci.yml` / `vertex-performance.yml` pattern.
+- Runs on both `pull_request` and `push` to `staging` (scoped to `src/vertex/**`), so it can keep its Codecov baseline fresh independently — without changing CI behaviour for the other five frontend projects still in `safe-checks.yml`.
+- Fork-contributor PRs are unaffected: the trigger type (`pull_request`, not `pull_request_target`) is unchanged, and the Codecov upload step is hardened with `continue-on-error` / `fail_ci_if_error: false` so a missing token on a fork PR can never fail lint/typecheck/test results.
+
+</details>
+
+<details>
+<summary><strong>New: Codecov integration under a <code>vertex</code> flag</strong></summary>
+
+- Coverage uploads to Codecov scoped via `flags: vertex` (see root `codecov.yml`), with `carryforward: true` since coverage only uploads when Vertex files change.
+- Project and patch coverage checks are informational (visible, non-blocking) for now, consistent with `TESTING.md`'s stance that coverage is a quality signal, not a target.
+- Added `lcov` to Vitest's coverage reporters for reliable Codecov parsing.
+
+</details>
+
+<details>
+<summary><strong>README &amp; docs</strong></summary>
+
+- Build-status and coverage badges added to `src/vertex/README.md`.
+- `app/_docs/internal/TESTING.md` documents the CI wiring and explicitly defers flaky-test-rate tracking as a follow-up.
+
+</details>
+
+---
+
 ## Version 2.0.13
 **Released:** July 3, 2026
 
