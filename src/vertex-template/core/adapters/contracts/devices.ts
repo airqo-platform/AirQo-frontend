@@ -20,11 +20,6 @@ import type {
   DecryptionResponse,
 } from "@/app/types/devices";
 
-export interface DeviceStatusResponse {
-  message: string;
-  data: DeviceStatusSummary[];
-}
-
 export interface DeviceCountSummary {
   total_monitors: number;
   operational: number;
@@ -85,22 +80,6 @@ export type GetDevicesSummaryParams = Partial<Device> & {
   order?: "asc" | "desc";
   group?: string;
 };
-
-export interface DeviceStatusSummary {
-  _id: string;
-  created_at: string;
-  total_active_device_count: number;
-  count_of_online_devices: number;
-  count_of_offline_devices: number;
-  count_of_mains: number;
-  count_of_solar_devices: number;
-  count_of_alternator_devices: number;
-  count_due_maintenance: number;
-  count_overdue_maintenance: number;
-  count_unspecified_maintenance: number;
-  online_devices: Device[];
-  offline_devices: Device[];
-}
 
 /** Device fleet: listing, detail, lifecycle (claim, deploy, recall, maintain), and import. */
 export interface DeviceAdapter {
