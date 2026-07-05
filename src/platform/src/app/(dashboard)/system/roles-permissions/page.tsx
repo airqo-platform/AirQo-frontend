@@ -7,7 +7,10 @@ import { Button, Card, PageHeading, toast } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqRefreshCw05, AqEdit05, AqPlus } from '@airqo/icons-react';
 import { useRolesSummary, usePermissions } from '@/shared/hooks/useAdmin';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import CreateRoleDialog from './components/CreateRoleDialog';

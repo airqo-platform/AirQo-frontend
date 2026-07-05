@@ -17,9 +17,11 @@ const sanitizeHeaderValue = (value: string): string | null => {
 const getRequestOrigin = (req: NextRequest): string | null => {
   const protoRaw = req.headers.get('x-forwarded-proto');
   const proto = protoRaw ? sanitizeHeaderValue(protoRaw) : null;
-  const effectiveProto = proto && VALID_PROTOCOLS.has(`${proto}:`) ? proto : 'https';
+  const effectiveProto =
+    proto && VALID_PROTOCOLS.has(`${proto}:`) ? proto : 'https';
 
-  const hostRaw = req.headers.get('x-forwarded-host') || req.headers.get('host');
+  const hostRaw =
+    req.headers.get('x-forwarded-host') || req.headers.get('host');
   const host = hostRaw ? sanitizeHeaderValue(hostRaw) : null;
 
   if (!host) {
@@ -48,12 +50,18 @@ const setRuntimeAuthUrls = (req: NextRequest) => {
   }
 };
 
-export async function GET(req: NextRequest, context: { params: Record<string, unknown> }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Record<string, unknown> }
+) {
   setRuntimeAuthUrls(req);
   return handler(req, context);
 }
 
-export async function POST(req: NextRequest, context: { params: Record<string, unknown> }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Record<string, unknown> }
+) {
   setRuntimeAuthUrls(req);
   return handler(req, context);
 }

@@ -1,13 +1,21 @@
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class FavoritesPage extends BasePage {
-  protected static readonly PAGE_TITLE = By.css("h1, h2");
-  protected static readonly MANAGE_FAVORITES = By.xpath("//button[contains(text(), 'Manage Favorites') or contains(text(), 'Favorites')]");
-  protected static readonly NO_FAVORITES = By.xpath("//p[contains(text(), 'No favorite') or contains(text(), 'no favorite')]");
-  protected static readonly CHART = By.css("svg, canvas");
-  protected static readonly ADD_LOCATION = By.xpath("//button[contains(text(), 'Add')]");
-  protected static readonly DATE_RANGE = By.css('[placeholder*="date"], [placeholder*="Date"]');
+  protected static readonly PAGE_TITLE = By.css('h1, h2');
+  protected static readonly MANAGE_FAVORITES = By.xpath(
+    "//button[contains(text(), 'Manage Favorites') or contains(text(), 'Favorites')]"
+  );
+  protected static readonly NO_FAVORITES = By.xpath(
+    "//p[contains(text(), 'No favorite') or contains(text(), 'no favorite')]"
+  );
+  protected static readonly CHART = By.css('svg, canvas');
+  protected static readonly ADD_LOCATION = By.xpath(
+    "//button[contains(text(), 'Add')]"
+  );
+  protected static readonly DATE_RANGE = By.css(
+    '[placeholder*="date"], [placeholder*="Date"]'
+  );
   protected static readonly FILTER_BUTTONS = By.css("button[class*='filter']");
 
   constructor(driver: WebDriver) {
@@ -15,7 +23,7 @@ export class FavoritesPage extends BasePage {
   }
 
   async navigateToFavorites(): Promise<void> {
-    await this.navigateTo("/user/favorites");
+    await this.navigateTo('/user/favorites');
   }
 
   async hasCharts(): Promise<boolean> {
@@ -44,9 +52,15 @@ export class FavoritesPage extends BasePage {
 }
 
 export class NotFoundPage extends BasePage {
-  protected static readonly TITLE = By.xpath("//h1[contains(text(), 'Not Found') or contains(text(), '404')]");
-  protected static readonly GO_HOME = By.xpath("//button[contains(text(), 'Go Home')]");
-  protected static readonly GO_BACK = By.xpath("//button[contains(text(), 'Go Back')]");
+  protected static readonly TITLE = By.xpath(
+    "//h1[contains(text(), 'Not Found') or contains(text(), '404')]"
+  );
+  protected static readonly GO_HOME = By.xpath(
+    "//button[contains(text(), 'Go Home')]"
+  );
+  protected static readonly GO_BACK = By.xpath(
+    "//button[contains(text(), 'Go Back')]"
+  );
 
   constructor(driver: WebDriver) {
     super(driver);

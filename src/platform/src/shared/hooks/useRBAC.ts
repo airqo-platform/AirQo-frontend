@@ -270,13 +270,15 @@ export const useRBAC = () => {
     );
   };
 
-
   /**
    * Check if user email ends with a specific domain
    */
-  const hasEmailDomain = useCallback((domain: string): boolean => {
-    return !!user?.email?.toLowerCase().endsWith(domain.toLowerCase());
-  }, [user?.email]);
+  const hasEmailDomain = useCallback(
+    (domain: string): boolean => {
+      return !!user?.email?.toLowerCase().endsWith(domain.toLowerCase());
+    },
+    [user?.email]
+  );
 
   const isLoading = userLoading || rolesLoading;
 

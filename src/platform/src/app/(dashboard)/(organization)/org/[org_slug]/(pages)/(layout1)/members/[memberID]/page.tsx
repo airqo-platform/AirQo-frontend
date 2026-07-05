@@ -338,7 +338,9 @@ const MemberDetailsPage: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-card rounded-lg border p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <h3 className="text-lg font-semibold truncate">Group Roles</h3>
+                  <h3 className="text-lg font-semibold truncate">
+                    Group Roles
+                  </h3>
                   {canAssignRoles && (
                     <Button
                       size="sm"
@@ -361,9 +363,15 @@ const MemberDetailsPage: React.FC = () => {
                         className="flex items-start sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <AqShield02 size={16} className="text-primary mt-0.5 shrink-0" />
+                          <AqShield02
+                            size={16}
+                            className="text-primary mt-0.5 shrink-0"
+                          />
                           <div className="min-w-0">
-                            <p className="font-medium break-words" title={role.role_name}>
+                            <p
+                              className="font-medium break-words"
+                              title={role.role_name}
+                            >
                               {role.role_name}
                             </p>
                             <p className="text-xs text-muted-foreground break-words">
@@ -484,7 +492,10 @@ const MemberDetailsPage: React.FC = () => {
                     Role: {roles.find(r => r._id === roleToUnassign)?.role_name}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {roles.find(r => r._id === roleToUnassign)?.role_description}
+                    {
+                      roles.find(r => r._id === roleToUnassign)
+                        ?.role_description
+                    }
                   </p>
                 </div>
               )}

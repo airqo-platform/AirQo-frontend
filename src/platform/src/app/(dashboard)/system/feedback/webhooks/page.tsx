@@ -110,9 +110,7 @@ const WebhookForm: React.FC<{
             placeholder="Min 16 characters"
             value={secret}
             onChange={e =>
-              setSecret(
-                (e as React.ChangeEvent<HTMLInputElement>).target.value
-              )
+              setSecret((e as React.ChangeEvent<HTMLInputElement>).target.value)
             }
           />
         )}
@@ -172,11 +170,10 @@ const WebhooksContent: React.FC = () => {
     error,
     isLoading,
     mutate: refreshWebhooks,
-  } = useSWR(
-    'feedback/webhooks',
-    () => feedbackService.getWebhooks(),
-    { revalidateOnFocus: false, shouldRetryOnError: false }
-  );
+  } = useSWR('feedback/webhooks', () => feedbackService.getWebhooks(), {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
 
   const webhooks = data?.webhooks || [];
 
@@ -219,11 +216,7 @@ const WebhooksContent: React.FC = () => {
   );
 
   const handleUpdate = useCallback(
-    async (formData: {
-      name: string;
-      url: string;
-      events: string[];
-    }) => {
+    async (formData: { name: string; url: string; events: string[] }) => {
       if (!editingWebhook) return;
 
       setIsSubmitting(true);
@@ -278,10 +271,7 @@ const WebhooksContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <LoadingState
-        className="min-h-[400px]"
-        text="Loading webhooks..."
-      />
+      <LoadingState className="min-h-[400px]" text="Loading webhooks..." />
     );
   }
 
