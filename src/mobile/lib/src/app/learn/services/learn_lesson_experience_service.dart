@@ -1,133 +1,106 @@
-import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
-import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
+import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 
 class LearnLessonExperienceService {
   const LearnLessonExperienceService._();
 
-  static const demoActivityCount = 7;
-
-  static const _demoVideoUrl =
-      'https://www.youtube.com/watch?v=U5F-F2AHH7s';
-
-  static List<LearnLessonActivity> buildDemoScript({
-    required String lessonTitle,
-    required String unitTitle,
-    required LearnLessonSlot slot,
-    KyaLesson? apiLesson,
+  static List<LearnLessonActivity> buildFromV2Lesson({
+    required LearnV2Lesson lesson,
   }) {
-    final topic = learnDisplayTitle(lessonTitle.isNotEmpty
-        ? lessonTitle
-        : slot.plainTitleKey);
-    final unit = learnDisplayTitle(unitTitle);
-    final imageUrl = _resolveImage(slot, apiLesson);
-    final articleBody = _resolveArticleBody(slot, apiLesson, topic, unit);
+    final activities = <LearnLessonActivity>[];
+    for (var i = 0; i < lesson.activities.length; i++) {
+      final v2 = lesson.activities[i];
+      final activity = _v2ActivityToLearnActivity(v2, i);
+      if (activity != null) activities.add(activity);
+    }
+    return activities;
+  }
 
-    return [
-      LearnLessonActivity(
-        index: 0,
-        type: LearnActivityType.article,
-        title: 'About $topic',
-        article: LearnArticlePayload(
-          body: articleBody,
-          audioText: articleBody,
-        ),
-      ),
-      LearnLessonActivity(
-        index: 1,
-        type: LearnActivityType.video,
-        title: 'Watch: $topic',
-        video: LearnVideoPayload(
-          videoUrl: _demoVideoUrl,
-          description:
-              'A short overview of $topic and why it matters for the air around you in $unit.',
-          posterUrl: imageUrl,
-        ),
-      ),
-      LearnLessonActivity(
-        index: 2,
-        type: LearnActivityType.image,
-        title: 'Spot it: $topic',
-        image: LearnImagePayload(
-          imageUrl: imageUrl,
-          caption: 'Look for signs of $topic near your home.',
-          subtitle:
-              'Community photo — notice smoke, dust, or traffic that affects daily air quality.',
-        ),
-      ),
-      LearnLessonActivity(
-        index: 3,
-        type: LearnActivityType.quiz,
-        title: 'Quick check',
-        quiz: LearnQuizPayload(
-          format: LearnQuizFormat.singleChoice,
-          question: 'What is the main pollution source in this lesson?',
-          options: [
-            'Vehicle exhaust',
-            topic,
-            'Factory chimney',
-            'Crop burning',
-          ],
-          correctIndex: 1,
-          correctFeedback: 'Correct! $topic is the focus of this lesson.',
-          incorrectFeedback:
-              'Not quite — re-read the article and try again.',
-        ),
-      ),
-      LearnLessonActivity(
-        index: 4,
-        type: LearnActivityType.quiz,
-        title: 'Multiple choice',
-        quiz: LearnQuizPayload(
-          format: LearnQuizFormat.multiChoice,
-          question: 'Which activities can raise PM2.5 near your home?',
-          options: [
-            'Burning charcoal',
-            'Using solar panels',
-            'Smoking indoors',
-            'Sweeping dry floors',
-          ],
-          correctIndices: {0, 2, 3},
-          correctFeedback:
-              'Correct! Charcoal, smoking, and sweeping all release particles.',
-          incorrectFeedback:
-              'Charcoal, smoking, and sweeping release particles. Solar panels do not.',
-        ),
-      ),
-      LearnLessonActivity(
-        index: 5,
-        type: LearnActivityType.quiz,
-        title: 'Ranking',
-        quiz: LearnQuizPayload(
-          format: LearnQuizFormat.ranking,
-          question: 'Order these from most to least impact on indoor air.',
-          options: [
-            'Charcoal cooking',
-            'Crop burning smoke',
-            'Vehicle exhaust',
-            'Road dust',
-          ],
-          correctOrder: [0, 1, 2, 3],
-          correctFeedback: 'Great job — that order matches typical indoor impact.',
-          incorrectFeedback:
-              'Almost! Charcoal and crop smoke usually have the biggest indoor impact.',
-        ),
-      ),
-      LearnLessonActivity(
-        index: 6,
-        type: LearnActivityType.quiz,
-        title: 'Your thoughts',
-        quiz: LearnQuizPayload(
-          format: LearnQuizFormat.freeText,
-          question:
-              'Name one thing near your home that affects your air quality.',
-          options: const [],
-          correctFeedback:
-              'Noted! Top answers from your area: open burning, road dust, charcoal smoke.',
-        ),
-      ),
-    ];
+  static LearnLessonActivity? _v2ActivityToLearnActivity(
+      LearnV2Activity v2, int index) {
+    final p = v2.payload;
+    switch (v2.type) {
+      case 'article':
+        final body = p['body'] as String? ?? '';
+        if (body.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.article,
+          title: p['title'] as String? ?? 'Read',
+          article: LearnArticlePayload(
+            body: body,
+            audioText: p['audio_text'] as String?,
+          ),
+        );
+      case 'video':
+        final url = p['url'] as String? ?? '';
+        if (url.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.video,
+          title: p['title'] as String? ?? 'Watch',
+          video: LearnVideoPayload(
+            videoUrl: url,
+            description: p['description'] as String? ?? '',
+            posterUrl: p['poster_url'] as String?,
+          ),
+        );
+      case 'image':
+        final url = p['url'] as String? ?? '';
+        if (url.isEmpty) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.image,
+          title: p['title'] as String? ?? 'Look',
+          image: LearnImagePayload(
+            imageUrl: url,
+            caption: p['caption'] as String? ?? '',
+            subtitle: p['subtitle'] as String?,
+          ),
+        );
+      case 'quiz':
+        final quiz = _parseV2Quiz(p);
+        if (quiz == null) return null;
+        return LearnLessonActivity(
+          index: index,
+          type: LearnActivityType.quiz,
+          title: p['title'] as String? ?? 'Quiz',
+          quiz: quiz,
+        );
+      default:
+        return null;
+    }
+  }
+
+  static int? _toInt(dynamic v) =>
+      v is int ? v : (v is String ? int.tryParse(v) : null);
+
+  static LearnQuizPayload? _parseV2Quiz(Map<String, dynamic> p) {
+    final question = p['question'] as String? ?? '';
+    if (question.isEmpty) return null;
+
+    final format = LearnQuizFormat.fromApiKey(p['format'] as String? ?? '');
+    final rawOptions = p['options'] as List? ?? [];
+    final options = rawOptions.map((o) => o.toString()).toList();
+    final correctIndex = _toInt(p['correct_index']);
+    final rawIndices = p['correct_indices'] as List?;
+    final correctIndices = rawIndices?.map(_toInt).whereType<int>().toSet();
+    final rawOrder = p['correct_order'] as List?;
+    final correctOrder = rawOrder?.map(_toInt).whereType<int>().toList();
+
+    return LearnQuizPayload(
+      format: format,
+      question: question,
+      options: options,
+      correctIndex: correctIndex,
+      correctIndices: correctIndices,
+      correctOrder: correctOrder,
+      correctFeedback: p['correct_feedback'] as String? ?? 'Correct!',
+      incorrectFeedback: p['incorrect_feedback'] as String? ??
+          'Not quite — try reviewing the lesson.',
+      hint: p['hint'] as String?,
+    );
   }
 
   static String activityTypeKey(LearnLessonActivity activity) {
@@ -183,33 +156,4 @@ class LearnLessonExperienceService {
     return lessonIndex == lastUnit.lessons.length - 1;
   }
 
-  static String _resolveImage(LearnLessonSlot slot, KyaLesson? apiLesson) {
-    if (apiLesson != null && apiLesson.image.isNotEmpty) {
-      return apiLesson.image;
-    }
-    if (apiLesson != null) {
-      for (final task in apiLesson.tasks) {
-        if (task.image.isNotEmpty) return task.image;
-      }
-    }
-    return '';
-  }
-
-  static String _resolveArticleBody(
-    LearnLessonSlot slot,
-    KyaLesson? apiLesson,
-    String topic,
-    String unit,
-  ) {
-    if (apiLesson != null && apiLesson.tasks.isNotEmpty) {
-      final parts = apiLesson.tasks
-          .where((t) => t.content.trim().isNotEmpty)
-          .map((t) => t.content.trim())
-          .toList();
-      if (parts.isNotEmpty) return parts.join('\n\n');
-    }
-    return 'In $unit, understanding $topic helps you read the air around you. '
-        'Small particles in smoke and dust can reach your lungs before you feel anything. '
-        'Knowing what to look for is the first step to protecting yourself and your family.';
-  }
 }

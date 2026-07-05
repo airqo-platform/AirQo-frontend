@@ -382,6 +382,25 @@ export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
   screenResolution?: string;
 }
 
+export interface FeedbackReply {
+  message: string;
+  adminEmail: string;
+  sentAt: string;
+}
+
+export interface FeedbackAssignedUser {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface FeedbackWatcher {
+  email: string;
+  name: string;
+  addedAt: string;
+}
+
 export interface FeedbackSubmission {
   _id: string;
   category: string;
@@ -395,6 +414,15 @@ export interface FeedbackSubmission {
   screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
   tenant?: string;
+  actionable?: boolean;
+  adminNotes?: string | null;
+  replies?: FeedbackReply[];
+  assignedTo?: FeedbackAssignedUser | null;
+  assignedAt?: string | null;
+  assignedBy?: FeedbackAssignedUser | null;
+  watchers?: FeedbackWatcher[];
+  reminderSentAt?: string | null;
+  reminderCount?: number;
   createdAt: string;
   updatedAt: string;
   __v?: number;
@@ -447,6 +475,142 @@ export interface UpdateFeedbackStatusResponse {
   success: boolean;
   message: string;
   feedback: FeedbackSubmission;
+}
+
+export interface ReplyToFeedbackRequest {
+  message: string;
+}
+
+export interface ReplyToFeedbackResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    replies: FeedbackReply[];
+  };
+}
+
+export interface UpdateAdminNotesRequest {
+  adminNotes: string;
+}
+
+export interface UpdateAdminNotesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    adminNotes: string;
+  };
+}
+
+export interface BulkStatusUpdateRequest {
+  feedback_ids: string[];
+  status: string;
+}
+
+export interface BulkStatusUpdateResponse {
+  success: boolean;
+  message: string;
+  data: {
+    succeeded: Array<{ _id: string; status: string }>;
+    failed: Array<{ _id: string; reason: string }>;
+    summary: {
+      total: number;
+      succeeded: number;
+      failed: number;
+    };
+  };
+}
+
+export interface AssignFeedbackRequest {
+  userId: string | null;
+}
+
+export interface AssignFeedbackResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    assignedTo: FeedbackAssignedUser | null;
+    assignedAt: string | null;
+    assignedBy: FeedbackAssignedUser | null;
+  };
+}
+
+export interface AddWatcherRequest {
+  email: string;
+  name?: string;
+}
+
+export interface AddWatcherResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    watchers: FeedbackWatcher[];
+  };
+}
+
+export interface RemoveWatcherResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    watchers: FeedbackWatcher[];
+  };
+}
+
+export interface FeedbackWebhook {
+  _id: string;
+  name: string;
+  url: string;
+  events: string[];
+  active: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RegisterWebhookRequest {
+  name: string;
+  url: string;
+  events: string[];
+  secret: string;
+  active?: boolean;
+}
+
+export interface RegisterWebhookResponse {
+  success: boolean;
+  message: string;
+  data: Omit<FeedbackWebhook, 'updatedAt'>;
+}
+
+export interface GetWebhooksResponse {
+  success: boolean;
+  message: string;
+  webhooks: FeedbackWebhook[];
+  total: number;
+}
+
+export interface UpdateWebhookRequest {
+  name?: string;
+  url?: string;
+  events?: string[];
+  active?: boolean;
+}
+
+export interface UpdateWebhookResponse {
+  success: boolean;
+  message: string;
+  data: FeedbackWebhook;
+}
+
+export interface DeleteWebhookResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    name: string;
+  };
 }
 
 export interface SurveyQuestion {

@@ -235,9 +235,7 @@ const ApiPage = () => {
 
             <CustomButton
               onClick={() =>
-                window.open(
-                  'https://docs.airqo.net/airqo-rest-api-documentation/',
-                )
+                window.open('https://platform.airqo.net/docs/api/intro/')
               }
               className=" text-white "
             >

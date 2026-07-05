@@ -96,6 +96,11 @@ const RolesPage = () => {
       return;
     }
 
+    if (!/^[A-Z0-9_]+$/.test(newRoleName.trim())) {
+      toast.error('Role name must contain only uppercase letters, numbers, and underscores');
+      return;
+    }
+
     try {
       await createRoleMutation.trigger({
         role_name: newRoleName.trim(),
@@ -122,14 +127,16 @@ const RolesPage = () => {
         key: 'role_name',
         label: 'Role Name',
         render: (value: unknown, role: RoleDetails) => (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
               <AqShield02 className="w-5 h-5 text-blue-600" />
             </div>
-            <div>
-              <div className="font-medium text-gray-900">{role.role_name}</div>
+            <div className="min-w-0">
+              <div className="font-medium text-gray-900 break-words" title={role.role_name}>
+                {role.role_name}
+              </div>
               {role.role_description && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 break-words line-clamp-2">
                   {role.role_description}
                 </div>
               )}
@@ -141,7 +148,7 @@ const RolesPage = () => {
         key: 'permissions',
         label: 'Permissions',
         render: (value: unknown, role: RoleDetails) => (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
             {role.role_permissions.length} permissions
           </span>
         ),
@@ -150,7 +157,7 @@ const RolesPage = () => {
         key: 'users',
         label: 'Users',
         render: (value: unknown, role: RoleDetails) => (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 whitespace-nowrap">
             {role.user_count} users
           </span>
         ),
@@ -159,7 +166,7 @@ const RolesPage = () => {
         key: 'createdAt',
         label: 'Created At',
         render: (value: unknown, role: RoleDetails) => (
-          <div className="text-sm">
+          <div className="text-sm whitespace-nowrap">
             {formatWithPattern(role.createdAt, 'MMM dd, yyyy')}
           </div>
         ),
@@ -210,7 +217,7 @@ const RolesPage = () => {
         )}
 
         {/* Page Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <PageHeading
             title="Roles & Permissions"
             subtitle={`Manage user roles and their permissions for ${currentOrg?.title || 'your organization'}`}
@@ -222,6 +229,7 @@ const RolesPage = () => {
               onClick={() => setShowCreateDialog(true)}
               Icon={AqPlus}
               disabled={!currentOrg?.id}
+              showTextOnMobile
             >
               Create New Role
             </Button>
@@ -278,8 +286,8 @@ const RolesPage = () => {
                 <Input
                   type="text"
                   value={newRoleName}
-                  onChange={e => setNewRoleName(e.target.value)}
-                  placeholder="Enter role name"
+                  onChange={e => setNewRoleName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+                  placeholder="EXAMPLE_ROLE_NAME"
                   className="w-full"
                   disabled={createRoleMutation.isMutating}
                 />

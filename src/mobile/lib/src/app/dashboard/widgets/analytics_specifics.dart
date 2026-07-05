@@ -130,7 +130,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                             'assets/icons/share-icon.svg',
                             width: 18,
                             height: 18,
-                            colorFilter: const ColorFilter.mode(
+                            colorFilter: ColorFilter.mode(
                               AppColors.primaryColor,
                               BlendMode.srcIn,
                             ),

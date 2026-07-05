@@ -2,52 +2,77 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.10
-**Released:** June 30, 2026
+## Version 2.0.11
+**Released:** July 2, 2026
 
-### RBAC Architecture Migration — Permission-Based Access Control
+### Vertex Desktop — macOS Code Signing, Notarization & CI Release Pipeline
 
-Introduced the foundational infrastructure for a dynamic, capability-driven authorization system. Phased out static role-name checks in favour of live permission checks sourced from the API payload.
+Added full macOS distribution support to the Vertex Desktop Electron app. Builds are now signed with a Developer ID certificate, notarized via Apple's notarytool, and published as downloadable `.dmg` artifacts through GitHub Actions on every `vertex-desktop-v*` tag push.
 
 <details>
-<summary><strong>New: `useRBAC` Hook (`core/hooks/useRBAC.ts`)</strong></summary>
+<summary><strong>macOS Code Signing & Notarization (2)</strong></summary>
 
-- **Unified RBAC hook** matching the platform project's API surface. Exposes `hasPermission`, `hasAnyPermission`, `hasAllPermissions` (across all orgs) and `hasPermissionInActiveGroup`, `hasAnyPermissionInActiveGroup`, `hasAllPermissionsInActiveGroup` (scoped to the currently active group).
-- Reads from Redux via `permissionService` — no additional API call. Legacy permission string mapping (e.g. `"CREATE_UPDATE_AND_DELETE_NETWORKS"` → `NETWORK_VIEW`) handled automatically.
-- `isLoading` and `error` sourced from `useUserContext()`. Respects `MOCK_PERMISSIONS_ENABLED` for dev testing.
+- **`scripts/notarize.js`** [NEW]: electron-builder `afterSign` hook that submits the signed `.app` to Apple's notarytool for notarization. Skips silently on local builds when Apple credentials are absent; throws in CI if any of `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, or `APPLE_TEAM_ID` are missing so an unnotarized build can never be published accidentally.
+- **electron-builder config**: Wired `notarize.js` as the `afterSign` hook and configured `CSC_LINK` / `CSC_KEY_PASSWORD` for Developer ID certificate injection at build time.
 
 </details>
 
 <details>
-<summary><strong>Admin Route Guard (`admin/layout.tsx`)</strong></summary>
+<summary><strong>CI Release Pipeline (1)</strong></summary>
 
-- Replaced `roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN", "AIRQO_NETWORK_ADMIN"]}` with `permissions={[SYSTEM.SUPER_ADMIN, SYSTEM.SYSTEM_ADMIN, ORGANIZATION.VIEW, NETWORK.VIEW]}` on `RouteGuard`.
-- `allowedContexts={['personal']}` unchanged — admin pages remain exclusive to the AirQo personal context.
+- **`.github/workflows/vertex-desktop-release.yml`** [NEW]: Triggers on `vertex-desktop-v*` tag pushes (and `workflow_dispatch` for manual re-runs). Runs two parallel jobs — `build-and-publish-windows` (NSIS `.exe`) and `build-and-publish-macos` (signed + notarized `.dmg`) — both publishing artifacts to a GitHub Release at the triggering tag.
 
 </details>
 
 <details>
-<summary><strong>Deprecation: `ROLES` object (`core/permissions/constants.ts`)</strong></summary>
+<summary><strong>Required CI Secrets (macOS job)</strong></summary>
 
-- Added `@deprecated` JSDoc to the `ROLES` object. The object is kept for reference but must not be used for access control — check capabilities (`PERMISSIONS.*`) via `useRBAC` instead.
+| Secret | Purpose |
+|---|---|
+| `APPLE_ID` | Apple developer account email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for notarytool |
+| `APPLE_TEAM_ID` | 10-character Apple Developer Team ID |
+| `CSC_LINK` | Base64-encoded Developer ID `.p12` certificate |
+| `CSC_KEY_PASSWORD` | Password for the `.p12` |
 
 </details>
 
 ---
 
 ## Version 2.0.9
-**Released:** June 29, 2026
+**Released:** June 30, 2026
 
-### Admin Panel Access Control — Primary Sidebar Permission Gate
+### Download Page — Navigation Bar & Apps Menu Redesign
 
-Replaced the static role-name check that guarded the Administrative Panel entry in the primary sidebar with a dynamic, permission-based model.
+Introduced a persistent top navigation bar on the `/download` page and overhauled the Apps Menu dropdown to a Docker-style list layout with per-app descriptions.
 
 <details>
-<summary><strong>Primary Sidebar (`primary-sidebar.tsx`)</strong></summary>
+<summary><strong>Download Page Topbar (`components/layout/DownloadTopbar.tsx`)</strong></summary>
 
-- **Permission-based gate**: Removed the `allowedRoles` array (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) and replaced `canViewAdminPanel` with a `useHasAnyPermission` check against `SYSTEM.SUPER_ADMIN`, `SYSTEM.SYSTEM_ADMIN`, `ORGANIZATION.VIEW`, and `NETWORK.VIEW`.
-- **Context enforcement preserved**: The `isPersonalContext` guard remains — the Administrative Panel entry is never shown when the user is operating under an external organisation.
-- **Hook consolidation**: Eliminated a redundant second `useUserContext()` call; `isPersonalContext` and `activeGroup` are now destructured from the same call as `getContextPermissions`.
+- **New lightweight topbar** for the public `/download` page. Intentionally separate from the authenticated `Topbar` — no Redux, no NextAuth session, no `OrganizationPicker` or logout dependencies.
+- **Logo repositioned**: moved from the `DownloadHero` body to the top-left of the new nav bar, matching the positioning on airqo.net.
+- **Sign in button** on the right routes to `/login`.
+- **`AppDropdown`** (9-dot grid) integrated on the right, next to the Sign in button.
+
+</details>
+
+<details>
+<summary><strong>Apps Menu Redesign (`components/layout/AppDropdown.tsx`)</strong></summary>
+
+- Replaced the 3-column icon grid with a vertical list layout (`w-72`) matching the Docker Desktop apps menu pattern.
+- Each entry now shows a coloured icon on the left with the app title and a concise one-line description alongside it.
+- Added `description` field to all 7 app entries (Analytics, Calibrate, Website, Vertex, API Docs, Mobile App, AI Platform).
+- Removed the redundant "AirQo Apps" section header.
+
+</details>
+
+<details>
+<summary><strong>Files Modified & Added (3)</strong></summary>
+
+- `src/vertex/components/layout/DownloadTopbar.tsx` [NEW]
+- `src/vertex/components/layout/AppDropdown.tsx` [MODIFIED]
+- `src/vertex/components/features/download/DownloadHero.tsx` [MODIFIED]
+- `src/vertex/app/download/page.tsx` [MODIFIED]
 
 </details>
 

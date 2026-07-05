@@ -12,7 +12,15 @@ class ApiUtils {
 
   static String sitesSearch = "/api/v2/devices/sites/summary";
 
-  static String fetchLessons = "/api/v2/devices/kya/lessons";
+  static String learnCatalog = "/api/v2/devices/learn/catalog";
+
+  static String learnSessions = "/api/v2/devices/learn/sessions/anonymous";
+
+  static String learnProgress = "/api/v2/devices/learn/progress/lessons";
+
+  static String learnProgressSync = "/api/v2/devices/learn/progress/sync";
+
+  static String learnProgressLink = "/api/v2/devices/learn/progress/link";
 
   static String fetchDailyForecasts = "/api/v2/predict/daily-forecasting";
 

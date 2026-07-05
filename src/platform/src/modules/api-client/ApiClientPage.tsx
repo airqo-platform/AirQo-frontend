@@ -320,12 +320,14 @@ const ApiClientPage: React.FC = () => {
         render: (value: unknown, item: TableClient) => {
           const token = item.access_token;
           let expired = false;
+          let isAutoSuspended = false;
           if (token) {
             expired = token.token_status === 'expired';
             if (!expired && token.expires) {
               const expiryDate = parseDate(token.expires);
               if (expiryDate) expired = expiryDate.getTime() <= Date.now();
             }
+            isAutoSuspended = Boolean(token?.request_pattern?.auto_suspended);
           }
 
           const isGeneratingForThis =
@@ -333,8 +335,14 @@ const ApiClientPage: React.FC = () => {
 
           return (
             <div className="flex flex-col items-stretch gap-2">
-              {token && expired && item.isActive && (
-                <Tooltip content="A new token will be generated - copy it when shown to use it">
+              {token && (expired || isAutoSuspended) && item.isActive && (
+                <Tooltip
+                  content={
+                    isAutoSuspended
+                      ? 'Issues a fresh token — replaces the suspended one without creating a new client'
+                      : 'A new token will be generated - copy it when shown to use it'
+                  }
+                >
                   <div className="w-full">
                     <Button
                       size="sm"
