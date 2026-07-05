@@ -209,20 +209,16 @@ class PermissionService {
     if (!user.networks && !user.groups) return false;
 
     // Check if user has SUPER_ADMIN permission in any network
-    if (user.networks) {
-      return user.networks.some((network) =>
-        network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
+    const hasSuperAdminNetwork = !!user.networks?.some((network) =>
+      network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
+    );
 
     // Check if user has SUPER_ADMIN permission in any group
-    if (user.groups) {
-      return user.groups.some((group) =>
-        group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-      );
-    }
+    const hasSuperAdminGroup = !!user.groups?.some((group) =>
+      group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
+    );
 
-    return false;
+    return hasSuperAdminNetwork || hasSuperAdminGroup;
   }
 
   /**

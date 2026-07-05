@@ -436,6 +436,20 @@ export interface FeedbackSubmissionsMeta {
   pages: number;
 }
 
+export interface FeedbackStaffMember {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  userName: string;
+}
+
+export interface GetFeedbackStaffResponse {
+  success: boolean;
+  message: string;
+  staff: FeedbackStaffMember[];
+}
+
 export interface GetFeedbackSubmissionsResponse {
   success: boolean;
   message: string;

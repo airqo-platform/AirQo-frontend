@@ -1,3 +1,12 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ImportDeclaration[source.value='@/core/permissions/constants'] > ImportSpecifier[imported.name='ROLES']",
+        "message": "ROLES has been removed — use PERMISSIONS.* constants for all access-control decisions. See core/permissions/adminAccess.ts for the admin panel policy."
+      }
+    ]
+  }
 }

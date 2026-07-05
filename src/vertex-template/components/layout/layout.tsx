@@ -68,8 +68,6 @@ export default function Layout({ children }: LayoutProps) {
       '/admin/networks/requests',
       '/admin/cohorts',
       '/admin/sites',
-      '/admin/grids',
-      '/admin/shipping',
     ];
 
     routesToPrefetch.forEach(route => {

@@ -1,92 +1,80 @@
-# Vertex (Web App).
+# Vertex Template
 
-`vertex` is the AirQo web application for Device and Network management.
+`vertex-template` is a configurable IoT sensor dashboard starter app. It runs on **mock data out of the box** — no backend, no credentials, no env file required — and is the source template for the future `create-vertex-app` CLI.
+
+It is domain-neutral by default: branding, labels, links, and feature flags come from [`vertex.config.ts`](./vertex.config.ts). AirQo's production app lives separately in `src/vertex`; this template ships no AirQo integration.
 
 ## Quick start
 
-1. Install dependencies:
-
 ```bash
-cd src/vertex
+cd src/vertex-template
 npm install
-```
-
-2. Create local environment file:
-
-```bash
-copy .env.example .env
-```
-
-3. Run development server:
-
-```bash
 npm run dev
 ```
 
-4. Open `http://localhost:3000`.
+Open `http://localhost:3000`. You land on a working dashboard as a demo admin, backed by the mock adapter's fixtures (devices, sites, cohorts).
 
-## Scripts
+No `.env` file is needed for mock mode. If you want one, copy the example:
 
-- `npm run dev`: Start local development server.
-- `npm run dev:inspect`: Start dev server with Node inspector enabled.
-- `npm run build`: Build production bundle.
-- `npm run start`: Start production server from built output.
-- `npm run lint`: Run lint checks.
-- `npm run format`: Format code with Prettier.
-- `npm run format:check`: Check formatting.
-- `npm run check-size`: Build and run bundle size checks.
+```bash
+cp .env.example .env.local
+```
+
+## What v1 supports (and doesn't)
+
+- **Data adapter: `mock` only.** The adapter registry (`core/adapters/index.ts`) and the config schema accept only `"mock"`. Real adapters — including an AirQo adapter — are future work and will be implemented against the adapter contract, not inside this template.
+- **Auth provider: `none` only.** The app boots straight into the dashboard with a synthetic session (`core/auth/auth-mode.ts`). There is no login flow; NextAuth code paths exist but are inert when `auth.provider` is `"none"`.
+- The mock adapter **fails loudly**: calling an unimplemented adapter method throws an error naming the method, rather than silently returning fake data. If a page errors this way, the method needs an implementation in `core/adapters/mock.ts`.
+
+## Configuration
+
+All customization goes through [`vertex.config.ts`](./vertex.config.ts), validated at startup by the zod schema in [`core/config/vertex-config.ts`](./core/config/vertex-config.ts) (fails fast with a readable error).
+
+Use [`vertex.config.example.ts`](./vertex.config.example.ts) as the annotated reference for every key. Summary:
+
+| Key | Purpose |
+| --- | --- |
+| `org.name`, `org.shortName`, `org.slug` | Branding used in the page title, topbar, footer, and metadata |
+| `org.logo`, `org.primaryColor` | Logo path (under `public/`) and theme color |
+| `org.supportEmail`, `org.websiteUrl` | Support/contact links |
+| `api.adapter` | Data source; `"mock"` is the only valid value in v1 |
+| `api.baseUrl`, `api.publicMeasurementsBaseUrl` | Reserved for real adapters; the public base also fills the copy-paste measurement API examples |
+| `auth.provider` | `"none"` is the only valid value in v1 |
+| `auth.systemGroupSlug` | Group title treated as the operator's own "system" organization — members get the internal/staff experience |
+| `features.*` | Feature flags (device map, bulk deploy, site management, CSV export, reading history, user management, app launcher, network requests) |
+| `map.defaultCenter`, `map.defaultZoom`, `map.tileProvider` | Map defaults; `"openstreetmap"` needs no token, `"mapbox"` requires `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` |
+| `links.*` | Docs, privacy policy, cookie policy, and analytics URLs (empty string hides the link) |
+
+## Access control
+
+Access control is **permission-based only**. The frontend never compares role names; it checks granular permissions (`core/permissions/constants.ts`) carried by the user's role data via `usePermission` / `RouteGuard`. Roles are backend data — bundles of permissions — and are shown in the UI for information only. The admin panel requires the `SYSTEM_ADMIN` permission; `SUPER_ADMIN` overrides all checks.
 
 ## Environment variables
 
-Use `src/vertex/.env.example` as the base. Common variables include:
+Mock mode needs none. All are optional:
 
-- `NEXT_PUBLIC_API_URL`: Backend API base URL.
-- `NEXT_PUBLIC_API_BASE_URL`: Public API origin used for measurement URL examples.
-- `NEXT_PUBLIC_ANALYTICS_URL`: Analytics platform URL.
-- `NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL`: Optional Windows installer URL for Vertex Desktop downloads.
-- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: Mapbox token for map features.
-- `NEXT_PUBLIC_ENV`: App environment label (for example `development`).
-- `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED`: Enables mock permissions when needed.
-- `ADMIN_SECRET`: Secret used by admin/protected server operations.
-- `NEXT_PUBLIC_CLOUDINARY_NAME`: Cloudinary cloud name.
-- `NEXT_PUBLIC_CLOUDINARY_PRESET`: Cloudinary upload preset.
-- `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`: HCaptcha site key needed for the new login flow.
-- `SLACK_WEBHOOK_URL`: Slack webhook for server-side notifications.
-- `NEXT_PUBLIC_SLACK_BOT_TOKEN`, `NEXT_PUBLIC_SLACK_CHANNEL`: Slack client configuration.
+- `NEXT_PUBLIC_ENV` — environment label: `development` (default) | `staging` | `production`.
+- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` — only when `map.tileProvider` is `"mapbox"`.
+- `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED` — dev-only permission override matrix for testing denial states (see `core/hooks/usePermissions.ts`); never active in production builds.
+- `NEXT_PUBLIC_DEV_API_PROXY_TARGET` — dev-only: proxy `/api/v2/*` to a real backend origin instead of the local API routes. Off unless set.
 
-## Vertex configuration
+## Scripts
 
-Vertex has a typed app configuration surface in `vertex.config.ts`. This is the file that the future `create-vertex-app` CLI will generate or update for each scaffolded instance.
+- `npm run dev` — start the dev server (`dev:inspect` adds the Node inspector).
+- `npm run build` / `npm run start` — production build and serve.
+- `npm run lint` — ESLint via Next.js.
+- `npm run format` / `npm run format:check` — Prettier.
+- `npm run check-size` — build plus bundle-size checks.
 
-V1 supports two data adapters:
+## Project layout
 
-- `mock`: runs locally without API credentials and is the default for generated templates.
-- `airqo`: uses the existing AirQo API, auth, and proxy behavior.
+- `app/` — Next.js App Router pages (public: login/auth-error; authenticated: home, devices, sites, cohorts, admin).
+- `core/adapters/` — the adapter contract (`contracts/`: capability interfaces for devices, sites, cohorts, manufacturers, users, organizations, access control), the registry, the mock adapter, and its fixtures. There is no separate HTTP client layer — adapters own their transport.
+- `core/config/` — config schema and the system-group helper.
+- `core/permissions/` — permission constants and the permission service.
+- `core/auth/` — auth-mode switch and the (inert in v1) NextAuth provider.
+- `docs/` — template planning docs: adapter foundation, config contract, coupling audit.
 
-Generic REST backends are intentionally out of scope for v1.
+## Contributing
 
-Use `vertex.config.example.ts` as the template-facing reference. Keep validation and shared types in `core/config/vertex-config.ts` so contributors can add config-driven behavior without inventing new config shapes.
-
-## Authentication and SSO
-
-For normal app-local authentication, set:
-
-```bash
-NEXTAUTH_SECRET=<app-specific-secret>
-NEXTAUTH_URL=http://localhost:3001
-```
-
-Notes:
-
-- `NEXTAUTH_SECRET` should be unique to Vertex.
-- `NEXTAUTH_URL` should match the local or production origin for Vertex.
-
-## Related projects
-
-- `src/vertex-desktop`: Electron wrapper that loads the hosted Vertex web app.
-- Most feature and business logic remains in this web app; desktop-specific behavior stays in `src/vertex-desktop`.
-
-## Deployment notes
-
-- Staging and production deployment automation is configured in `.github/workflows/`.
-- This app is deployed independently from desktop installer releases.
+Safe areas for contributors: UI copy, config schema additions, mock adapter fixtures and methods, and generic component work. The adapter contract and anything touching `core/adapters/types.ts` is maintainer-owned until the v1 contract stabilizes — see `docs/vertex-template-adapter-foundation.md`.

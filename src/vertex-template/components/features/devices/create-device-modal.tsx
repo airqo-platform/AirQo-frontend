@@ -128,7 +128,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     <ReusableDialog
       isOpen={open}
       onClose={handleClose}
-      title="Add AirQo Device"
+      title="Add Device"
       subtitle={`Sensor Manufacturer: ${networkName || activeNetwork?.net_name || "N/A"}`}
       size="md"
       primaryAction={{

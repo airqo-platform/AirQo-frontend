@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { options } from "../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
-import { CreateNetworkPayload, CreateNetworkResponse } from "@/core/apis/networks";
+import { CreateNetworkPayload, CreateNetworkResponse } from "@/core/adapters/types";
 import axios from "axios";
 import { networkFormSchema } from "@/components/features/networks/schema";
 

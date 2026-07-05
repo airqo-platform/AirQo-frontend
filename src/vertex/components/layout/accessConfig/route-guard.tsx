@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useAppSelector } from "@/core/redux/hooks";
-import { usePermission, useUserRole, useHasAnyPermission } from "@/core/hooks/usePermissions";
-import { Permission, RoleName } from "@/core/permissions/constants";
+import { useHasAnyPermission } from "@/core/hooks/usePermissions";
+import { Permission } from "@/core/permissions/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ForbiddenError } from "@/components/ui/forbidden-error";
@@ -13,8 +13,6 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 interface RouteGuardProps {
   permission?: Permission;
   permissions?: Permission[];
-  role?: RoleName;
-  roles?: RoleName[];
   children: React.ReactNode;
   redirectTo?: string;
   showError?: boolean;
@@ -30,8 +28,6 @@ interface RouteGuardProps {
 export const RouteGuard: React.FC<RouteGuardProps> = ({
   permission,
   permissions,
-  role,
-  roles,
   children,
   redirectTo = "/unauthorized",
   showError = true,
@@ -43,37 +39,23 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const isOrganizationSwitching = useAppSelector(
     (state) => state.user.organizationSwitching.isSwitching
   );
-  const hasPermission = usePermission(permission || '' as Permission, { resourceContext });
-  const hasAnyPermission = useHasAnyPermission(permissions || [], { resourceContext });
-  const userRole = useUserRole(resourceContext?.organizationId);
 
-  // Validate that at least one access control method is specified
-  if (!permission && !permissions && !role && !roles) {
-    throw new Error('RouteGuard requires either permission, permissions, role, or roles prop');
+  if (!permission && !permissions?.length) {
+    throw new Error('RouteGuard requires either a permission or permissions prop');
   }
 
-  // Check role-based access
-  const hasRoleAccess = React.useMemo(() => {
-    if (!role && !roles) return false;
-    if (!userRole) return false;
+  // Merge both props into a single array so one hook call handles both cases,
+  // avoiding the empty-string workaround previously needed for the singular prop.
+  const effectivePermissions = [
+    ...(permission ? [permission] : []),
+    ...(permissions ?? []),
+  ];
 
-    if (role) {
-      return userRole === role;
-    }
-
-    if (roles && roles.length > 0) {
-      return roles.includes(userRole as RoleName);
-    }
-
-    return false;
-  }, [role, roles, userRole]);
-
-  // Check permission-based access
-  const hasPermissionAccess = permission ? hasPermission : (permissions ? hasAnyPermission : false);
+  const hasPermissionAccess = useHasAnyPermission(effectivePermissions, { resourceContext });
 
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
 
-  const hasAccess = hasValidContext && (hasPermissionAccess || hasRoleAccess);
+  const hasAccess = hasValidContext && hasPermissionAccess;
 
   useEffect(() => {
     if (isLoading || isOrganizationSwitching) {
@@ -103,62 +85,3 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   return <>{children}</>;
 };
-
-// Higher-order component for route-level permission protection
-export const withRoutePermission = (
-  permission: Permission,
-  redirectTo?: string,
-  resourceContext?: RouteGuardProps["resourceContext"]
-) => {
-  return <P extends object>(Component: React.ComponentType<P>) => {
-    const WrappedComponent = (props: P) => {
-      const hasPermission = usePermission(permission, { resourceContext });
-      const router = useRouter();
-
-      useEffect(() => {
-        if (!hasPermission) {
-          router.push(redirectTo || "/unauthorized");
-        }
-      }, [hasPermission, router]);
-
-      if (!hasPermission) {
-        return null;
-      }
-
-      return <Component {...props} />;
-    };
-
-    WrappedComponent.displayName = `withRoutePermission(${Component.displayName || Component.name})`;
-    return WrappedComponent;
-  };
-};
-
-// Higher-order component for route-level role protection
-export const withRouteRole = (
-  role: RoleName,
-  redirectTo?: string,
-  organizationId?: string
-) => {
-  return <P extends object>(Component: React.ComponentType<P>) => {
-    const WrappedComponent = (props: P) => {
-      const userRole = useUserRole(organizationId);
-      const router = useRouter();
-
-      useEffect(() => {
-        if (userRole !== role) {
-          router.push(redirectTo || "/unauthorized");
-        }
-      }, [userRole, router]);
-
-      if (userRole !== role) {
-        return null;
-      }
-
-      return <Component {...props} />;
-    };
-
-    WrappedComponent.displayName = `withRouteRole(${Component.displayName || Component.name})`;
-    return WrappedComponent;
-  };
-};
-
