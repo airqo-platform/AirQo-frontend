@@ -1,0 +1,10 @@
+{
+  "label": "Fair Usage Policy",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "data-access/fair-usage-policy/index"
+  }
+}

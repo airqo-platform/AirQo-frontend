@@ -1,0 +1,10 @@
+{
+  "label": "Data Access Guide for Researchers",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "data-access/researchers-guide/index"
+  }
+}
