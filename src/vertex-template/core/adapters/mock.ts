@@ -378,10 +378,14 @@ export const mockAdapter: VertexAdapter = (() => {
         message: "Mock site count loaded successfully",
         summary: {
           total_sites: sites.length,
-          operational: sites.filter((site) => site.isOnline).length,
-          transmitting: sites.filter((site) => site.isOnline).length,
-          not_transmitting: sites.filter((site) => !site.isOnline).length,
-          data_available: sites.length,
+          operational: sites.filter(
+            (site) => site.rawOnlineStatus && site.isOnline,
+          ).length,
+          transmitting: sites.filter((site) => site.rawOnlineStatus === true)
+            .length,
+          not_transmitting: sites.filter((site) => !site.rawOnlineStatus)
+            .length,
+          data_available: sites.filter((site) => site.isOnline).length,
         },
       };
     },
