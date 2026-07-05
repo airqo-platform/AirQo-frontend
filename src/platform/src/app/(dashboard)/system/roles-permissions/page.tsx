@@ -198,6 +198,7 @@ const RolesPermissionsContent: React.FC = () => {
             variant="ghost"
             onClick={() => handleViewRole(item._id)}
             className="p-1 h-8 w-8"
+            title="Edit role"
             aria-label={`Edit role ${item.role_name}`}
           >
             <AqEdit05 className="w-4 h-4" />

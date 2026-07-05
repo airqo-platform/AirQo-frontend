@@ -14,6 +14,7 @@ import {
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackStaffMember } from '@/shared/types/api';
+import { AqEye } from '@airqo/icons-react';
 
 const MembersContent: React.FC = () => {
   const router = useRouter();
@@ -108,8 +109,10 @@ const MembersContent: React.FC = () => {
             onClick={() =>
               router.push(`/system/team-members/${member._id}`)
             }
+            title="View member details"
+            aria-label="View member details"
           >
-            View
+            <AqEye className="w-4 h-4" />
           </Button>
         ),
       },

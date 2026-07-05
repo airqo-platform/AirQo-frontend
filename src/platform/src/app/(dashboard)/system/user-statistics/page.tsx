@@ -14,9 +14,10 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { isForbiddenError } from '@/shared/utils/errorMessages';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
-import { useUsers } from '@/shared/hooks/useAdmin';
+import { useUserStatistics, useUsers } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { ChartContainer } from '@/shared/components/charts';
+import { ChartContainer, StatsPieChart } from '@/shared/components/charts';
+import { getPrimaryColor } from '@/shared/components/charts/constants';
 import {
   AqUsers01,
   AqUsersCheck,
@@ -24,25 +25,18 @@ import {
   AqMail01,
   AqRefreshCw05,
   AqArrowRight,
-  AqPresentationChart02,
 } from '@airqo/icons-react';
 import {
-  PieChart,
-  Pie,
-  Cell,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   LineChart,
   Line,
 } from 'recharts';
-
-const COLORS = ['#1649e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2'];
 
 interface ChartDataPoint {
   name: string;
@@ -51,17 +45,38 @@ interface ChartDataPoint {
 }
 
 const UserStatisticsPage: React.FC = () => {
-  const { data, isLoading, error, mutate } = useUsers();
+  const {
+    data: statsResponse,
+    isLoading: statsLoading,
+    error: statsError,
+    mutate: mutateStats,
+  } = useUserStatistics();
 
-  const users = useMemo(() => data?.users ?? [], [data]);
+  const {
+    data: usersResponse,
+    isLoading: usersLoading,
+    error: usersError,
+    mutate: mutateUsers,
+  } = useUsers();
+
+  const isLoading = statsLoading || usersLoading;
+  const error = statsError || usersError;
 
   const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter(u => u.isActive).length;
-    const verified = users.filter(u => u.verified).length;
-    const apiUsers = users.filter(u => (u.clients?.length ?? 0) > 0).length;
-    return { total, active, verified, apiUsers };
-  }, [users]);
+    const s = statsResponse?.users_stats;
+    return {
+      total: s?.users?.number ?? 0,
+      active: s?.active_users?.number ?? 0,
+      apiUsers: s?.api_users?.number ?? 0,
+    };
+  }, [statsResponse]);
+
+  const users = useMemo(() => usersResponse?.users ?? [], [usersResponse]);
+
+  const verifiedCount = useMemo(
+    () => users.filter(u => u.verified).length,
+    [users]
+  );
 
   const statusData: ChartDataPoint[] = useMemo(
     () => [
@@ -73,10 +88,10 @@ const UserStatisticsPage: React.FC = () => {
 
   const verificationData: ChartDataPoint[] = useMemo(
     () => [
-      { name: 'Verified', value: stats.verified },
-      { name: 'Unverified', value: stats.total - stats.verified },
+      { name: 'Verified', value: verifiedCount },
+      { name: 'Unverified', value: stats.total - verifiedCount },
     ],
-    [stats]
+    [stats, verifiedCount]
   );
 
   const organizationData: ChartDataPoint[] = useMemo(() => {
@@ -126,7 +141,8 @@ const UserStatisticsPage: React.FC = () => {
   const topGroupsData: ChartDataPoint[] = useMemo(() => {
     const counts = users.reduce<Record<string, number>>((acc, user) => {
       (user.groups ?? []).forEach(group => {
-        const title = group.grp_title?.trim() || group.organization_slug || 'Unknown';
+        const title =
+          group.grp_title?.trim() || group.organization_slug || 'Unknown';
         acc[title] = (acc[title] ?? 0) + 1;
       });
       return acc;
@@ -140,7 +156,7 @@ const UserStatisticsPage: React.FC = () => {
   const handleRefresh = useCallback(async () => {
     try {
       await refreshWithToast(
-        () => mutate(),
+        () => Promise.all([mutateStats(), mutateUsers()]),
         'User statistics refreshed successfully'
       );
     } catch (err) {
@@ -150,7 +166,7 @@ const UserStatisticsPage: React.FC = () => {
           : 'Unable to refresh user statistics'
       );
     }
-  }, [mutate]);
+  }, [mutateStats, mutateUsers]);
 
   if (isLoading) {
     return (
@@ -233,7 +249,7 @@ const UserStatisticsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Verified Users</p>
-              <p className="text-2xl font-bold mt-1">{stats.verified}</p>
+              <p className="text-2xl font-bold mt-1">{verifiedCount}</p>
             </div>
             <div className="p-2.5 rounded-full bg-purple-100 text-purple-700">
               <AqMail01 className="w-5 h-5" />
@@ -261,32 +277,7 @@ const UserStatisticsPage: React.FC = () => {
           showMoreButton={false}
           loading={isLoading}
         >
-          {stats.total > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Tooltip />
-                <Legend />
-                <Pie
-                  data={statusData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {statusData.map((_, index) => (
-                    <Cell
-                      key={`cell-status-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <NoDataState />
-          )}
+          <StatsPieChart data={statusData} />
         </ChartContainer>
 
         <ChartContainer
@@ -295,32 +286,7 @@ const UserStatisticsPage: React.FC = () => {
           showMoreButton={false}
           loading={isLoading}
         >
-          {stats.total > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Tooltip />
-                <Legend />
-                <Pie
-                  data={verificationData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {verificationData.map((_, index) => (
-                    <Cell
-                      key={`cell-verify-${index}`}
-                      fill={COLORS[(index + 2) % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <NoDataState />
-          )}
+          <StatsPieChart data={verificationData} />
         </ChartContainer>
 
         <ChartContainer
@@ -330,13 +296,45 @@ const UserStatisticsPage: React.FC = () => {
           loading={isLoading}
         >
           {organizationData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={organizationData} margin={{ top: 8, right: 16, left: 0, bottom: 32 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-30} textAnchor="end" interval={0} tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#1649e5" radius={[4, 4, 0, 0]} />
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={organizationData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  angle={-30}
+                  textAnchor="end"
+                  interval={0}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: 'hsl(var(--card-foreground))',
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={getPrimaryColor(0)}
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -351,13 +349,42 @@ const UserStatisticsPage: React.FC = () => {
           loading={isLoading}
         >
           {loginRangesData.some(d => d.value > 0) ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={loginRangesData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#059669" radius={[4, 4, 0, 0]} />
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={loginRangesData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: 'hsl(var(--card-foreground))',
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={getPrimaryColor(1)}
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -372,18 +399,47 @@ const UserStatisticsPage: React.FC = () => {
           loading={isLoading}
         >
           {signupsOverTimeData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={signupsOverTimeData} margin={{ top: 8, right: 16, left: 0, bottom: 32 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-30} textAnchor="end" interval={0} tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={signupsOverTimeData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  angle={-30}
+                  textAnchor="end"
+                  interval={0}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: 'hsl(var(--card-foreground))',
+                  }}
+                />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#7c3aed"
+                  stroke={getPrimaryColor(2)}
                   strokeWidth={2}
-                  dot={{ r: 4 }}
+                  dot={{ r: 4, fill: getPrimaryColor(2) }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -399,13 +455,45 @@ const UserStatisticsPage: React.FC = () => {
           loading={isLoading}
         >
           {topGroupsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={topGroupsData} margin={{ top: 8, right: 16, left: 0, bottom: 32 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-30} textAnchor="end" interval={0} tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#d97706" radius={[4, 4, 0, 0]} />
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={topGroupsData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  angle={-30}
+                  textAnchor="end"
+                  interval={0}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 12, fill: 'rgb(100, 116, 139)' }}
+                  tickLine={{ stroke: 'rgb(226, 232, 240)' }}
+                  axisLine={{ stroke: 'rgb(226, 232, 240)' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    color: 'hsl(var(--card-foreground))',
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={getPrimaryColor(3)}
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -418,9 +506,9 @@ const UserStatisticsPage: React.FC = () => {
 };
 
 const NoDataState: React.FC = () => (
-  <div className="flex items-center justify-center h-[280px] text-muted-foreground">
+  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
     <div className="text-center">
-      <AqPresentationChart02 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+      <AqUsers01 className="w-10 h-10 mx-auto mb-2 opacity-50" />
       <p className="text-sm">No data available</p>
     </div>
   </div>

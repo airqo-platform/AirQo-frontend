@@ -4,7 +4,6 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
-  Card,
   Input,
   LoadingState,
   PageHeading,
@@ -28,10 +27,6 @@ import {
   AqRefreshCw05,
   AqDownload01,
   AqShield02,
-  AqUsers01,
-  AqUsersCheck,
-  AqMail01,
-  AqKey01,
 } from '@airqo/icons-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -102,14 +97,6 @@ const UserManagementPage: React.FC = () => {
       return name.includes(q) || group.includes(q);
     });
   }, [availableRoles, roleSearch]);
-
-  const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter(u => u.isActive).length;
-    const verified = users.filter(u => u.verified).length;
-    const apiUsers = users.filter(u => (u.clients?.length ?? 0) > 0).length;
-    return { total, active, verified, apiUsers };
-  }, [users]);
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -348,6 +335,7 @@ const UserManagementPage: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => router.push(`/system/users/${user._id}`)}
+              title="View user details"
               aria-label="View user details"
             >
               <AqEye className="w-4 h-4" />
@@ -357,6 +345,7 @@ const UserManagementPage: React.FC = () => {
               size="sm"
               onClick={() => openRoleDialog(user)}
               disabled={rolesLoading || availableRoles.length === 0}
+              title="Update user role"
               aria-label="Update user role"
             >
               <AqShield02 className="w-4 h-4" />
@@ -431,54 +420,6 @@ const UserManagementPage: React.FC = () => {
           </div>
         }
       />
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Users</p>
-              <p className="text-2xl font-bold mt-1">{stats.total}</p>
-            </div>
-            <div className="p-2.5 rounded-full bg-blue-100 text-blue-700">
-              <AqUsers01 className="w-5 h-5" />
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Active Users</p>
-              <p className="text-2xl font-bold mt-1">{stats.active}</p>
-            </div>
-            <div className="p-2.5 rounded-full bg-green-100 text-green-700">
-              <AqUsersCheck className="w-5 h-5" />
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Verified Users</p>
-              <p className="text-2xl font-bold mt-1">{stats.verified}</p>
-            </div>
-            <div className="p-2.5 rounded-full bg-purple-100 text-purple-700">
-              <AqMail01 className="w-5 h-5" />
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">API Users</p>
-              <p className="text-2xl font-bold mt-1">{stats.apiUsers}</p>
-            </div>
-            <div className="p-2.5 rounded-full bg-amber-100 text-amber-700">
-              <AqKey01 className="w-5 h-5" />
-            </div>
-          </div>
-        </Card>
-      </div>
 
       {/* Users Table */}
       <ServerSideTable

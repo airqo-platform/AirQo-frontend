@@ -721,6 +721,7 @@ const SecurityPageContent: React.FC = () => {
               variant="ghost"
               onClick={() => handleEditBlockedAsn(item)}
               className="p-1 h-8 w-8"
+              title="Edit blocked range"
               aria-label={`Edit blocked range ${item.provider}`}
             >
               <AqEdit05 className="w-4 h-4" />
@@ -730,6 +731,7 @@ const SecurityPageContent: React.FC = () => {
               variant="ghost"
               onClick={() => handleDeleteBlockedAsn(item)}
               className="p-1 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              title="Delete blocked range"
               aria-label={`Delete blocked range ${item.provider}`}
             >
               <AqTrash01 className="w-4 h-4" />
@@ -842,6 +844,7 @@ const SecurityPageContent: React.FC = () => {
                 size="sm"
                 variant="outlined"
                 onClick={() => handleResolveToken(item)}
+                title="Resolve flagged token"
               >
                 Resolve
               </Button>
