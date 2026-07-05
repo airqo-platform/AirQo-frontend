@@ -1,46 +1,50 @@
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class SystemAdminPage extends BasePage {
-  protected static readonly PAGE_TITLE = By.css("h1, h2");
-  protected static readonly DATA_TABLE = By.css("table");
-  protected static readonly CREATE_BUTTON = By.xpath("//button[contains(text(), 'Create') or contains(text(), 'New')]");
-  protected static readonly SEARCH_INPUT = By.css('input[type="search"], input[placeholder*="Search"]');
+  protected static readonly PAGE_TITLE = By.css('h1, h2');
+  protected static readonly DATA_TABLE = By.css('table');
+  protected static readonly CREATE_BUTTON = By.xpath(
+    "//button[contains(text(), 'Create') or contains(text(), 'New')]"
+  );
+  protected static readonly SEARCH_INPUT = By.css(
+    'input[type="search"], input[placeholder*="Search"]'
+  );
 
   constructor(driver: WebDriver) {
     super(driver);
   }
 
   async navigateToClients(): Promise<void> {
-    await this.navigateTo("/system/clients");
+    await this.navigateTo('/system/clients');
   }
 
   async navigateToEmailConfigs(): Promise<void> {
-    await this.navigateTo("/system/email-configs");
+    await this.navigateTo('/system/email-configs');
   }
 
   async navigateToFeedback(): Promise<void> {
-    await this.navigateTo("/system/feedback");
+    await this.navigateTo('/system/feedback');
   }
 
   async navigateToOrgRequests(): Promise<void> {
-    await this.navigateTo("/system/org-requests");
+    await this.navigateTo('/system/org-requests');
   }
 
   async navigateToRolesPermissions(): Promise<void> {
-    await this.navigateTo("/system/roles-permissions");
+    await this.navigateTo('/system/roles-permissions');
   }
 
   async navigateToSecurity(): Promise<void> {
-    await this.navigateTo("/system/security");
+    await this.navigateTo('/system/security');
   }
 
   async navigateToSurveys(): Promise<void> {
-    await this.navigateTo("/system/surveys");
+    await this.navigateTo('/system/surveys');
   }
 
   async navigateToUserStatistics(): Promise<void> {
-    await this.navigateTo("/system/user-statistics");
+    await this.navigateTo('/system/user-statistics');
   }
 
   async getPageTitle(): Promise<string> {

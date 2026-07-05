@@ -129,8 +129,7 @@ const DailyPill: React.FC<{
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullDate(item.date)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span>{' '}
-        {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>
@@ -181,9 +180,7 @@ const DailyPill: React.FC<{
         <span
           className={cn(
             'text-base font-bold mb-1',
-            isToday
-              ? 'text-white'
-              : 'text-gray-900 dark:text-gray-100'
+            isToday ? 'text-white' : 'text-gray-900 dark:text-gray-100'
           )}
         >
           {getDateNum(item.date)}
@@ -243,8 +240,7 @@ const HourlyPill: React.FC<{
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullTime(item.timestamp)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span>{' '}
-        {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>
@@ -398,9 +394,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
         {showEmpty && (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
-            <p className="text-sm text-gray-500">
-              No forecast data available
-            </p>
+            <p className="text-sm text-gray-500">No forecast data available</p>
           </div>
         )}
 
@@ -409,11 +403,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
           <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
             <div className="flex gap-2 min-w-max py-1">
               {dailyItems.slice(0, 7).map((item, idx) => (
-                <DailyPill
-                  key={item.date}
-                  item={item}
-                  isToday={idx === 0}
-                />
+                <DailyPill key={item.date} item={item} isToday={idx === 0} />
               ))}
             </div>
           </div>

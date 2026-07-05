@@ -12,6 +12,7 @@ import {
   AppDropdown,
   OrganizationSelector,
   LogoComponent,
+  InfoDropdown,
 } from './components';
 import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
@@ -61,6 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
             {shouldShowAuthControls && !isMobile && <OrganizationSelector />}
+            <InfoDropdown />
             <AppDropdown />
             {shouldShowAuthControls && <ProfileDropdown />}
           </div>

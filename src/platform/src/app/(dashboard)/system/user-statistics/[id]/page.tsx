@@ -26,7 +26,10 @@ import {
   AqUsersCheck,
 } from '@airqo/icons-react';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 

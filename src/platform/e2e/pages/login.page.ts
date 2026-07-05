@@ -1,24 +1,38 @@
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class LoginPage extends BasePage {
   protected static readonly EMAIL_INPUT = By.css('input[type="email"]');
   protected static readonly PASSWORD_INPUT = By.css('input[type="password"]');
   protected static readonly SUBMIT_BUTTON = By.css('button[type="submit"]');
-  protected static readonly REGISTER_LINK = By.xpath("//a[contains(text(), 'Register')]");
-  protected static readonly FORGOT_PASSWORD_LINK = By.xpath("//a[contains(text(), 'Forgot Password')]");
-  protected static readonly PASSWORD_TOGGLE = By.css('button[aria-label="Show password"]');
-  protected static readonly GOOGLE_AUTH = By.css('button[aria-label="Sign in with Google"]');
-  protected static readonly GITHUB_AUTH = By.css('button[aria-label="Sign in with GitHub"]');
-  protected static readonly LINKEDIN_AUTH = By.css('button[aria-label="Sign in with LinkedIn"]');
-  protected static readonly X_AUTH = By.css('button[aria-label="Sign in with X"]');
+  protected static readonly REGISTER_LINK = By.xpath(
+    "//a[contains(text(), 'Register')]"
+  );
+  protected static readonly FORGOT_PASSWORD_LINK = By.xpath(
+    "//a[contains(text(), 'Forgot Password')]"
+  );
+  protected static readonly PASSWORD_TOGGLE = By.css(
+    'button[aria-label="Show password"]'
+  );
+  protected static readonly GOOGLE_AUTH = By.css(
+    'button[aria-label="Sign in with Google"]'
+  );
+  protected static readonly GITHUB_AUTH = By.css(
+    'button[aria-label="Sign in with GitHub"]'
+  );
+  protected static readonly LINKEDIN_AUTH = By.css(
+    'button[aria-label="Sign in with LinkedIn"]'
+  );
+  protected static readonly X_AUTH = By.css(
+    'button[aria-label="Sign in with X"]'
+  );
 
   constructor(driver: WebDriver) {
     super(driver);
   }
 
   async navigateToLogin(): Promise<void> {
-    await this.navigateTo("/user/login");
+    await this.navigateTo('/user/login');
   }
 
   async enterEmail(email: string): Promise<void> {
@@ -50,8 +64,8 @@ export class LoginPage extends BasePage {
 
   async isPasswordVisible(): Promise<boolean> {
     const input = await this.find(LoginPage.PASSWORD_INPUT);
-    const type = await input.getAttribute("type");
-    return type === "text";
+    const type = await input.getAttribute('type');
+    return type === 'text';
   }
 
   async isEmailStep(): Promise<boolean> {

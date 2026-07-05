@@ -97,7 +97,9 @@ const RolesPage = () => {
     }
 
     if (!/^[A-Z0-9_]+$/.test(newRoleName.trim())) {
-      toast.error('Role name must contain only uppercase letters, numbers, and underscores');
+      toast.error(
+        'Role name must contain only uppercase letters, numbers, and underscores'
+      );
       return;
     }
 
@@ -132,7 +134,10 @@ const RolesPage = () => {
               <AqShield02 className="w-5 h-5 text-blue-600" />
             </div>
             <div className="min-w-0">
-              <div className="font-medium text-gray-900 break-words" title={role.role_name}>
+              <div
+                className="font-medium text-gray-900 break-words"
+                title={role.role_name}
+              >
                 {role.role_name}
               </div>
               {role.role_description && (
@@ -286,7 +291,11 @@ const RolesPage = () => {
                 <Input
                   type="text"
                   value={newRoleName}
-                  onChange={e => setNewRoleName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+                  onChange={e =>
+                    setNewRoleName(
+                      e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_')
+                    )
+                  }
                   placeholder="EXAMPLE_ROLE_NAME"
                   className="w-full"
                   disabled={createRoleMutation.isMutating}

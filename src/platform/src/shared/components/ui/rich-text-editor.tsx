@@ -46,9 +46,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       'hover:bg-primary/10 hover:text-primary',
       'focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1',
       'disabled:pointer-events-none disabled:opacity-40',
-      isActive
-        ? 'bg-primary/15 text-primary'
-        : 'text-muted-foreground'
+      isActive ? 'bg-primary/15 text-primary' : 'text-muted-foreground'
     )}
   >
     {children}
@@ -78,12 +76,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ editor, disabled = false }) => {
       return;
     }
 
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange('link')
-      .setLink({ href: url })
-      .run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
 
   if (!editor) return null;
@@ -250,7 +243,8 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
             'border-input hover:border-primary/50',
             'focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
             disabled && 'cursor-not-allowed opacity-60',
-            error && 'border-destructive focus-within:border-destructive focus-within:ring-destructive'
+            error &&
+              'border-destructive focus-within:border-destructive focus-within:ring-destructive'
           )}
         >
           <Toolbar editor={editor} disabled={disabled} />

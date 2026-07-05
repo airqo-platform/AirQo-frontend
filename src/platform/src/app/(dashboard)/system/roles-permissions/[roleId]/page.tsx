@@ -12,13 +12,13 @@ import {
   SearchField,
   toast,
 } from '@/shared/components/ui';
-import {
-  AqRefreshCw05,
-  AqArrowLeft,
-} from '@airqo/icons-react';
+import { AqRefreshCw05, AqArrowLeft } from '@airqo/icons-react';
 import { useRoleById, usePermissions } from '@/shared/hooks/useAdmin';
 import { adminService } from '@/shared/services/adminService';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type { RoleDetails, RolePermission } from '@/shared/types/api';
@@ -51,11 +51,7 @@ const RoleDetailContent: React.FC = () => {
 
   const role: RoleDetails | null = useMemo(() => {
     if (!roleData) return null;
-    return (
-      roleData.role ||
-      (roleData.roles && roleData.roles[0]) ||
-      null
-    );
+    return roleData.role || (roleData.roles && roleData.roles[0]) || null;
   }, [roleData]);
 
   const allPermissions = useMemo(
@@ -95,7 +91,9 @@ const RoleDetailContent: React.FC = () => {
       if (!groups[prefix]) groups[prefix] = [];
       groups[prefix].push(perm);
     }
-    const sorted = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+    const sorted = Object.entries(groups).sort(([a], [b]) =>
+      a.localeCompare(b)
+    );
     return sorted;
   }, [filteredPermissions]);
 
@@ -104,21 +102,18 @@ const RoleDetailContent: React.FC = () => {
     return new Set(role.role_permissions.map(p => p._id));
   }, [role]);
 
-  const handleToggle = useCallback(
-    (permissionId: string) => {
-      setSelectedPermissionIds(prev => {
-        const next = new Set(prev);
-        if (next.has(permissionId)) {
-          next.delete(permissionId);
-        } else {
-          next.add(permissionId);
-        }
-        return next;
-      });
-      setHasChanges(true);
-    },
-    []
-  );
+  const handleToggle = useCallback((permissionId: string) => {
+    setSelectedPermissionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(permissionId)) {
+        next.delete(permissionId);
+      } else {
+        next.add(permissionId);
+      }
+      return next;
+    });
+    setHasChanges(true);
+  }, []);
 
   const handleToggleGroup = useCallback((permissionIds: string[]) => {
     setSelectedPermissionIds(prev => {
@@ -181,10 +176,7 @@ const RoleDetailContent: React.FC = () => {
 
   if (roleLoading || permissionsLoading) {
     return (
-      <LoadingState
-        className="min-h-[400px]"
-        text="Loading role details..."
-      />
+      <LoadingState className="min-h-[400px]" text="Loading role details..." />
     );
   }
 
@@ -288,9 +280,7 @@ const RoleDetailContent: React.FC = () => {
           )}
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-muted-foreground">
-            Selected Permissions
-          </p>
+          <p className="text-xs text-muted-foreground">Selected Permissions</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {selectedPermissionIds.size}
             <span className="text-sm font-normal text-muted-foreground">
@@ -337,7 +327,9 @@ const RoleDetailContent: React.FC = () => {
               size="sm"
               variant="filled"
               onClick={handleSave}
-              disabled={isSaving || !hasChanges || selectedPermissionIds.size === 0}
+              disabled={
+                isSaving || !hasChanges || selectedPermissionIds.size === 0
+              }
               loading={isSaving}
             >
               Save Changes
@@ -390,8 +382,9 @@ const RoleDetailContent: React.FC = () => {
                 <div className="divide-y divide-border">
                   {permissions.map(perm => {
                     const isSelected = selectedPermissionIds.has(perm._id);
-                    const wasOriginallySelected =
-                      originalPermissionIds.has(perm._id);
+                    const wasOriginallySelected = originalPermissionIds.has(
+                      perm._id
+                    );
                     const isChanged = isSelected !== wasOriginallySelected;
 
                     return (

@@ -149,11 +149,26 @@ export function applyThemeImmediately(theme: ThemeData): void {
   document.documentElement.style.setProperty('--ring', rgb);
 
   // Derive lighter / darker shades from the primary color
-  document.documentElement.style.setProperty('--primary-50', lightenRgb(rgb, 0.92));
-  document.documentElement.style.setProperty('--primary-100', lightenRgb(rgb, 0.82));
-  document.documentElement.style.setProperty('--primary-700', darkenRgb(rgb, 0.25));
-  document.documentElement.style.setProperty('--primary-800', darkenRgb(rgb, 0.38));
-  document.documentElement.style.setProperty('--primary-900', darkenRgb(rgb, 0.50));
+  document.documentElement.style.setProperty(
+    '--primary-50',
+    lightenRgb(rgb, 0.92)
+  );
+  document.documentElement.style.setProperty(
+    '--primary-100',
+    lightenRgb(rgb, 0.82)
+  );
+  document.documentElement.style.setProperty(
+    '--primary-700',
+    darkenRgb(rgb, 0.25)
+  );
+  document.documentElement.style.setProperty(
+    '--primary-800',
+    darkenRgb(rgb, 0.38)
+  );
+  document.documentElement.style.setProperty(
+    '--primary-900',
+    darkenRgb(rgb, 0.5)
+  );
 
   // Apply theme mode
   if (mode === 'dark') {

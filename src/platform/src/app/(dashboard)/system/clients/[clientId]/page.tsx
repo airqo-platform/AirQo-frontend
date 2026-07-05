@@ -8,7 +8,10 @@ import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
 import { WarningBanner } from '@/shared/components/ui/banner';
 import { formatDate, parseDate } from '@/shared/utils';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import {
