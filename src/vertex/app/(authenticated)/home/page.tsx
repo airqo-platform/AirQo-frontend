@@ -7,7 +7,7 @@ import { Plus, Upload, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import { usePermissions } from "@/core/hooks/usePermissions";
+import { usePermissions, usePermissionDescription } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -134,6 +134,7 @@ const WelcomePage = () => {
   const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
   const permissionsMap = usePermissions(permissionsToCheck);
   const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
+  const claimDevicePermissionDescription = usePermissionDescription(PERMISSIONS.DEVICE.UPDATE);
 
   // ── Device data ────────────────────────────────────────────────────────────
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
@@ -405,6 +406,8 @@ const WelcomePage = () => {
               onGoToVisibility={handleGoToVisibility}
               canClaimDevice={canClaimDevice}
               isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
+              missingPermission={PERMISSIONS.DEVICE.UPDATE}
+              missingPermissionDescription={claimDevicePermissionDescription}
             />
           </div>
         );
@@ -423,6 +426,8 @@ const WelcomePage = () => {
           onGoToVisibility={handleGoToVisibility}
           canClaimDevice={canClaimDevice}
           isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
+          missingPermission={PERMISSIONS.DEVICE.UPDATE}
+          missingPermissionDescription={claimDevicePermissionDescription}
         />
 
         {showClaimDevice && (
