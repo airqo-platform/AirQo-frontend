@@ -20,7 +20,6 @@ export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
   [PERMISSIONS.DEVICE.RECALL]: true,
   [PERMISSIONS.DEVICE.MAINTAIN]: true,
   [PERMISSIONS.NETWORK.VIEW]: true,
-  [PERMISSIONS.SHIPPING.VIEW]: true,
   // Add more as needed for your test scenarios
 };
 
@@ -41,7 +40,7 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
     if (!user) return false;
 
     // Standard permission check using the active context
-    // For AirQo staff in Personal Mode, activeGroup will be set to 'AirQo'
+    // For system-group staff in Personal Mode, activeGroup will be set to the system group
     // For regular users in Personal Mode, activeGroup will be null (correct)
     const effectiveContext = context;
 

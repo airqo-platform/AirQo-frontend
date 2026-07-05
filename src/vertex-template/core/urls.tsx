@@ -1,22 +1,17 @@
 import { stripTrailingSlash } from "@/lib/utils";
-
-const isProduction =
-  process.env.NEXT_PUBLIC_ENV === "production" ||
-  process.env.NODE_ENV === "production";
-const DEFAULT_ANALYTICS_BASE_URL = isProduction 
-  ? "https://analytics.airqo.net" 
-  : "https://staging-analytics.airqo.net";
-
-export const BASE_API_URL = stripTrailingSlash(
-  process.env.NEXT_PUBLIC_API_URL || ""
-);
-export const USERS_MGT_URL = `${BASE_API_URL}/users`;
-export const DEVICES_MGT_URL = `${BASE_API_URL}/devices`;
-export const SITES_MGT_URL = `${BASE_API_URL}/devices/sites`;
-export const ANALYTICS_MGT_URL = `${BASE_API_URL}/analytics`;
+import { vertexConfig } from "@/vertex.config";
 
 const ANALYTICS_BASE_URL = stripTrailingSlash(
-  process.env.NEXT_PUBLIC_ANALYTICS_URL || DEFAULT_ANALYTICS_BASE_URL
+  process.env.NEXT_PUBLIC_ANALYTICS_URL || vertexConfig.links.analyticsUrl || ""
 );
-export const forgotPasswordUrl = `${ANALYTICS_BASE_URL}/user/forgotPwd`;
-export const signUpUrl = `${ANALYTICS_BASE_URL}/user/creation/individual/register`;
+
+// Account self-service lives on the external analytics platform. When no
+// analytics URL is configured (the template default), these are null and
+// callers must hide the corresponding links instead of rendering relative
+// paths on the app origin.
+export const forgotPasswordUrl = ANALYTICS_BASE_URL
+  ? `${ANALYTICS_BASE_URL}/user/forgotPwd`
+  : null;
+export const signUpUrl = ANALYTICS_BASE_URL
+  ? `${ANALYTICS_BASE_URL}/user/creation/individual/register`
+  : null;

@@ -28,6 +28,8 @@ type OnboardingChecklistProps = {
   onMarkAsDone?: () => void;
   organizationName?: string;
   isReadOnly?: boolean;
+  missingPermission?: string;
+  missingPermissionDescription?: string;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -213,6 +215,8 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
   onMarkAsDone,
   organizationName,
   isReadOnly,
+  missingPermission,
+  missingPermissionDescription,
 }) => {
 
   const [showingSuccess, setShowingSuccess] = React.useState(false);
@@ -272,7 +276,26 @@ export const OnboardingChecklist: React.FC<OnboardingChecklistProps> = ({
 
       {isReadOnly && !allComplete && !showingSuccess && (
         <div className="mx-4 mb-2 p-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800 rounded-md">
-          <strong>View-Only Mode:</strong> You need Admin permissions to complete these steps. Please contact your workspace administrator to finish setup.
+          <strong>View-Only Mode:</strong> You&apos;re missing the{" "}
+          {missingPermissionDescription ? (
+            <>
+              &ldquo;{missingPermissionDescription}&rdquo;{" "}
+              {missingPermission && (
+                <code className="px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-[13px]">
+                  {missingPermission}
+                </code>
+              )}{" "}
+            </>
+          ) : missingPermission ? (
+            <>
+              <code className="px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-[13px]">
+                {missingPermission}
+              </code>{" "}
+            </>
+          ) : (
+            "Admin "
+          )}
+          permission needed to complete these steps. Share this with your workspace administrator so they can grant it.
         </div>
       )}
 

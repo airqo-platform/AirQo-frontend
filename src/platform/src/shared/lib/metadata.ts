@@ -240,6 +240,22 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Review an individual feedback submission in detail.',
     },
   },
+  '/system/team-members': {
+    title: 'Team Members',
+    description: 'View staff members and manage role assignments.',
+    openGraph: {
+      title: 'Team Members | AirQo Analytics',
+      description: 'View staff members and manage role assignments.',
+    },
+  },
+  '/system/team-members/[memberId]': {
+    title: 'Team Member Details',
+    description: 'View team member profile and manage their role assignments.',
+    openGraph: {
+      title: 'Team Member Details | AirQo Analytics',
+      description: 'View team member profile and manage their role assignments.',
+    },
+  },
 };
 
 // Generate metadata for a specific page
@@ -263,6 +279,9 @@ export function generatePageMetadata(pathname: string): Metadata {
   }
   if (pathname.startsWith('/system/feedback/')) {
     pageKey = '/system/feedback/[id]';
+  }
+  if (pathname.startsWith('/system/team-members/')) {
+    pageKey = '/system/team-members/[memberId]';
   }
 
   if (pathname.startsWith('/system/learn/')) {

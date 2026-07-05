@@ -7,7 +7,7 @@ import NetworkRequestTable from "@/components/features/networks/request-table";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NetworkCreationRequest } from "@/core/apis/networks";
+import { NetworkCreationRequest } from "@/core/adapters/types";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableButton from "@/components/shared/button/ReusableButton";

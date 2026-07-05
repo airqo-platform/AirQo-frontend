@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import {
-  Network,
-  networks as networksApi,
-} from "@/core/apis/networks";
+import { Manufacturer as Network } from "@/core/adapters/types";
 import { DeviceListingOptions } from "./useDevices";
 import { adapter } from "../adapters";
 import { AxiosError } from "axios";
 import type { DevicesSummaryResponse } from "@/app/types/devices";
+import { isSystemNetworkName } from '@/core/config/system-group';
 
 
 interface ErrorResponse {
@@ -27,15 +25,14 @@ export const useNetworks = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Sort networks to ensure 'airqo' is always first, then alphabetically
+  // Sort networks so the system network is always first, then alphabetically
   const networks = [...networksData].sort((a, b) => {
-    const aIsAirqo = a.net_name?.toLowerCase() === 'airqo';
-    const bIsAirqo = b.net_name?.toLowerCase() === 'airqo';
-    
-    if (aIsAirqo) return -1;
-    if (bIsAirqo) return 1;
-    
-    // Alphabetical sort for non-airqo networks
+    const aIsSystem = isSystemNetworkName(a.net_name);
+    const bIsSystem = isSystemNetworkName(b.net_name);
+
+    if (aIsSystem) return -1;
+    if (bIsSystem) return 1;
+
     return (a.net_name || '').localeCompare(b.net_name || '');
   });
 
@@ -99,4 +96,4 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
     error: devicesQuery.error,
   };
 };
-
+

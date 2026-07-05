@@ -1,6 +1,5 @@
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useAppDispatch } from "../redux/hooks";
-import { roles } from "../apis/roles";
 import { setRoles, setError } from "../redux/slices/rolesSlice";
 import { AxiosError } from "axios";
 import { Role } from "@/app/types/roles";

@@ -1,16 +1,13 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   AqHomeSmile,
   AqCpuChip01,
   AqMonitor,
   AqMarkerPin01,
-  AqPackagePlus,
   AqCollocation,
-  AqBezierCurve02,
   AqFileQuestion02,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
@@ -55,20 +52,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const contextPermissions = getContextPermissions();
   const pathname = usePathname();
 
-  const [platform, setPlatform] = React.useState<'win' | 'linux' | 'other' | null>(null);
-  const [isElectron, setIsElectron] = React.useState(false);
-
-  React.useEffect(() => {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    setIsElectron(userAgent.includes('electron'));
-    if (userAgent.includes('win')) {
-      setPlatform('win');
-    } else if (userAgent.includes('linux')) {
-      setPlatform('linux');
-    } else {
-      setPlatform('other');
-    }
-  }, []);
 
   return (
     <aside
@@ -98,21 +81,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
-          footer={!isCollapsed && activeModule !== 'admin' && !isElectron && platform === 'win' && (
-            <div className="px-1 pb-2">
-              <Link
-                href={ROUTE_LINKS.DOWNLOAD}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 w-full rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z" />
-                </svg>
-                <span className="truncate">Download for Windows</span>
-              </Link>
-            </div>
-          )}
         >
           {/* Device Management Module - Personal devices for all users */}
           {activeModule === 'devices' && (
@@ -260,25 +228,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   icon: AqMarkerPin01,
                   label: 'Sites',
                   disabled: !contextPermissions.canViewSites,
-                }}
-                isCollapsed={isCollapsed}
-              />
-
-              <NavItem
-                item={{
-                  href: ROUTE_LINKS.GRIDS,
-                  icon: AqBezierCurve02,
-                  label: 'Grids',
-                  disabled: !contextPermissions.canViewSites,
-                }}
-                isCollapsed={isCollapsed}
-              />
-
-              <NavItem
-                item={{
-                  href: ROUTE_LINKS.ADMIN_SHIPPING,
-                  icon: AqPackagePlus,
-                  label: 'Shipping',
                 }}
                 isCollapsed={isCollapsed}
               />

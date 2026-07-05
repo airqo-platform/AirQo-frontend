@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts, useUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
@@ -30,7 +31,14 @@ type CohortRow = {
 
 export default function CohortsPage() {
   usePageTitle({ title: "Cohorts", section: "Administrative Panel" });
+  return (
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
+      <CohortsContent />
+    </RouteGuard>
+  );
+}
 
+function CohortsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -185,9 +193,8 @@ export default function CohortsPage() {
   ];
 
   return (
-    <RouteGuard permission="DEVICE_VIEW">
-      <div>
-        <div className="flex justify-between items-center mb-3">
+    <div>
+      <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-2xl font-semibold">Cohorts</h1>
             <p className="text-sm text-muted-foreground">
@@ -300,7 +307,6 @@ export default function CohortsPage() {
           initialSelectedCohortIds={selectedCohortIds}
         />
 
-      </div>
-    </RouteGuard>
+    </div>
   );
 }

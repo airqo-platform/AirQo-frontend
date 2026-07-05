@@ -32,6 +32,7 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import dynamic from "next/dynamic";
+import { SYSTEM_GROUP_SLUG } from '@/core/config/system-group';
 
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
 const ClaimDeviceModal = dynamic(
@@ -455,11 +456,11 @@ const DeployDeviceComponent = ({
     longitude: prefilledDevice?.longitude?.toString() ?? "",
     siteName: prefilledDevice?.site_name ?? "",
     site_id: "",
-    network: prefilledDevice?.network ?? "airqo",
+    network: prefilledDevice?.network ?? SYSTEM_GROUP_SLUG,
   });
 
   // Use external availableDevices if provided, otherwise use internal filtering
-  const filteredAirQoDevices = React.useMemo(() => {
+  const filteredSystemDevices = React.useMemo(() => {
     if (externalAvailableDevices.length > 0) return externalAvailableDevices;
     if (userScope === 'personal') return [];
     return allDevices.filter(
@@ -476,7 +477,7 @@ const DeployDeviceComponent = ({
   });
 
   // Choose which devices to show based on scope
-  const availableDevices = userScope === 'personal' ? claimedDevices : filteredAirQoDevices;
+  const availableDevices = userScope === 'personal' ? claimedDevices : filteredSystemDevices;
   const isLoadingDevices = userScope === 'personal' ? isLoadingClaimedDevices : false;
 
   const devicesForSelection = React.useMemo(() => {
@@ -583,7 +584,7 @@ const DeployDeviceComponent = ({
     setDeviceData((prev) => ({
       ...prev,
       deviceName,
-      network: selectedDevice?.network || prev.network || "airqo",
+      network: selectedDevice?.network || prev.network || SYSTEM_GROUP_SLUG,
     }));
   };
 
@@ -665,7 +666,7 @@ const DeployDeviceComponent = ({
         ...(siteSource === 'previous'
           ? { site_id: deviceData.site_id, site_name: previousSiteName }
           : { site_name: deviceData.siteName || `${deviceData.deviceName} Site` }),
-        network: deviceData.network || "airqo",
+        network: deviceData.network || SYSTEM_GROUP_SLUG,
         user_id: userDetails._id,
         firstName: userDetails.firstName,
         lastName: userDetails.lastName,
@@ -696,7 +697,7 @@ const DeployDeviceComponent = ({
             longitude: "",
             siteName: "",
             site_id: "",
-            network: "airqo",
+            network: SYSTEM_GROUP_SLUG,
           });
 
           setCurrentStep(0);

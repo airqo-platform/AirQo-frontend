@@ -12,6 +12,8 @@ interface OnboardingChecklistWrapperProps {
   onGoToVisibility?: () => void;
   canClaimDevice: boolean;
   isLoadingGroupDetailsSafe: boolean;
+  missingPermission?: string;
+  missingPermissionDescription?: string;
 }
 
 export default function OnboardingChecklistWrapper({
@@ -21,6 +23,8 @@ export default function OnboardingChecklistWrapper({
   onGoToVisibility,
   canClaimDevice,
   isLoadingGroupDetailsSafe,
+  missingPermission,
+  missingPermissionDescription,
 }: OnboardingChecklistWrapperProps) {
   const { activeChecklistState, updateChecklist } = useOnboarding();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
@@ -62,6 +66,8 @@ export default function OnboardingChecklistWrapper({
       }}
       organizationName={formatTitle(activeGroup?.grp_title || '')}
       isReadOnly={!canClaimDevice}
+      missingPermission={!canClaimDevice ? missingPermission : undefined}
+      missingPermissionDescription={!canClaimDevice ? missingPermissionDescription : undefined}
     />
   );
 }

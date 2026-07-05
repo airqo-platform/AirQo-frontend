@@ -25,12 +25,12 @@ const CohortsEmptyState = () => {
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
-                Get started by claiming widespread AirQo devices to automatically create your first device cohort.
+                Get started by adding devices to automatically create your first device cohort.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <ReusableButton onClick={() => setIsClaimModalOpen(true)} Icon={Plus}>
-                    Add AirQo Device
+                    Add Device
                 </ReusableButton>
             </div>
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 import { openFeedbackDialog } from './feedback-dialog';
-import { feedbackService } from '@/core/apis/feedback';
+import { feedbackService } from '@/core/services/feedback';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { useBanner } from '@/context/banner-context';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';

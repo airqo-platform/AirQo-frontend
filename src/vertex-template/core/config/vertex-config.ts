@@ -49,7 +49,6 @@ const vertexConfigSchema = z
       userManagement: z.boolean(),
 
       appLauncher: z.boolean(),
-      shipping: z.boolean(),
       networkRequests: z.boolean(),
     }),
     map: z.object({
@@ -86,7 +85,7 @@ export const defaultVertexConfig: VertexConfigInput = {
     name: "Vertex Demo",
     shortName: "Vertex",
     slug: "vertex-demo",
-    logo: "/images/airqo_logo.svg",
+    logo: "/images/vertex_logo.svg",
     primaryColor: "#145FFF",
     supportEmail: "support@example.org",
     websiteUrl: "",
@@ -109,7 +108,6 @@ export const defaultVertexConfig: VertexConfigInput = {
     userManagement: false,
 
     appLauncher: false,
-    shipping: false,
     networkRequests: false,
   },
   map: {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppSelector } from '@/core/redux/hooks';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import OopsIcon from '@/public/icons/Errors/OopsIcon';
+import { vertexConfig } from '@/vertex.config';
 
 /**
  * 404 Not Found page component
@@ -59,7 +60,7 @@ export default function NotFound() {
         <div className="mt-8 pt-8 border-t border-border">
           <p className="text-sm text-muted-foreground">
             If you believe this is an error, please{' '}
-            <a href="mailto:analytics@airqo.net" className="text-primary hover:text-primary/80 underline">contact support</a>.
+            <a href={`mailto:${vertexConfig.org.supportEmail}`} className="text-primary hover:text-primary/80 underline">contact support</a>.
           </p>
         </div>
       </div>

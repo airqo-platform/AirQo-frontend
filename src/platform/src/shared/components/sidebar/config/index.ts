@@ -252,6 +252,12 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/roles-permissions',
         icon: AqFileShield02,
       },
+      {
+        id: 'system-team-members',
+        label: 'Team Members',
+        href: '/system/team-members',
+        icon: AqUsers01,
+      },
     ],
   },
   {
@@ -352,6 +358,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Roles & Permissions',
             href: '/system/roles-permissions',
             description: 'Manage system roles and configure permissions',
+          },
+          {
+            id: 'system-team-members',
+            label: 'Team Members',
+            href: '/system/team-members',
+            description: 'View staff members and manage role assignments',
           },
           {
             id: 'system-email-configs',

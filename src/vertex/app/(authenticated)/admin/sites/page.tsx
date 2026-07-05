@@ -1,6 +1,7 @@
 "use client";
 
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 import SitesTable from "@/components/features/sites/sites-list-table";
 import { SiteStatsCards } from "@/components/features/sites/site-stats-cards";
 import { usePageTitle } from "@/context/page-title-context";
@@ -18,7 +19,7 @@ export default function SitesPage() {
   usePageTitle({ title: "Sites", section: "Administrative Panel" });
 
   return (
-    <RouteGuard permission="SITE_VIEW">
+    <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>

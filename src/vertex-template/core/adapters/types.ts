@@ -1,46 +1,50 @@
-import { devices } from "../apis/devices";
-import { sites } from "../apis/sites";
-import { cohorts } from "../apis/cohorts";
-import { networks } from "../apis/networks";
-import { users } from "../apis/users";
-import { grids } from "../apis/grids";
-import { groupsApi } from "../apis/organizations";
-import { permissions } from "../apis/permissions";
-import { roles } from "../apis/roles";
-import { feedbackService } from "../apis/feedback";
+import type { DeviceAdapter } from "./contracts/devices";
+import type { SiteAdapter } from "./contracts/sites";
+import type { CohortAdapter } from "./contracts/cohorts";
+import type { ManufacturerAdapter } from "./contracts/manufacturers";
+import type { UserAdapter } from "./contracts/users";
+import type { OrganizationAdapter } from "./contracts/organizations";
+import type { AccessControlAdapter } from "./contracts/access-control";
 
-type BaseApis = typeof devices &
-  typeof sites &
-  typeof cohorts &
-  typeof networks &
-  typeof users &
-  typeof grids &
-  typeof groupsApi &
-  typeof permissions &
-  typeof roles &
-  typeof feedbackService;
+export * from "./contracts";
 
-export interface VertexAdapter extends BaseApis {
-  // We keep the generic overrides we defined previously so that
-  // components using adapter.getDevices (instead of adapter.getDevicesSummaryApi) still work
-  getDevices: typeof devices.getDevicesSummaryApi;
-  getDevicesByStatus: typeof devices.getDevicesByStatusApi;
-  getDeviceCount: typeof devices.getDeviceCountApi;
-  getDevice: typeof devices.getDeviceDetails;
-  updateDevice: typeof devices.updateDeviceLocal;
-  getSites: typeof sites.getSitesSummary;
-  getSite: typeof sites.getSiteDetails;
-  getSitesByStatus: typeof sites.getSitesByStatusApi;
-  getNetworks: typeof networks.getNetworksApi;
-  getCurrentUser: typeof users.getUserDetails;
-  login: typeof users.loginWithDetails;
+/**
+ * The Vertex adapter contract.
+ *
+ * An adapter is the single integration point between the UI and a data
+ * source. It is composed of capability interfaces (devices, sites,
+ * cohorts, manufacturers, users, organizations, access control) defined
+ * in ./contracts — hand-written, with no dependency on any transport
+ * layer. v1 ships one implementation: the mock adapter.
+ *
+ * The aliased members below are the preferred call names used by hooks
+ * and components; they point at the underlying capability methods.
+ */
+export interface VertexAdapter
+  extends DeviceAdapter,
+    SiteAdapter,
+    CohortAdapter,
+    ManufacturerAdapter,
+    UserAdapter,
+    OrganizationAdapter,
+    AccessControlAdapter {
+  getDevices: DeviceAdapter["getDevicesSummaryApi"];
+  getDevicesByStatus: DeviceAdapter["getDevicesByStatusApi"];
+  getDeviceCount: DeviceAdapter["getDeviceCountApi"];
+  getDevice: DeviceAdapter["getDeviceDetails"];
+  updateDevice: DeviceAdapter["updateDeviceLocal"];
+  getSites: SiteAdapter["getSitesSummary"];
+  getSite: SiteAdapter["getSiteDetails"];
+  getSitesByStatus: SiteAdapter["getSitesByStatusApi"];
+  getNetworks: ManufacturerAdapter["getManufacturers"];
+  getCurrentUser: UserAdapter["getUserDetails"];
+  login: UserAdapter["loginWithDetails"];
 }
+
 export interface DateRange {
   startDate: string;
   endDate: string;
 }
-
-
 
 export interface DeviceDeployInput {
   deviceName: string;
