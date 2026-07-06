@@ -120,15 +120,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
           REPO: ${{ github.repository }}
-          REF_NAME: ${{ github.ref_name }}
         run: |
           # A tag pushed with the default GITHUB_TOKEN does not trigger other
           # workflows' `on: push: tags:` (GitHub's anti-recursion guard), so
           # dispatch vertex-desktop-release.yml directly via workflow_dispatch,
-          # which is explicitly exempt from that restriction.
+          # which is explicitly exempt from that restriction. Dispatch with
+          # --ref set to the tag itself (not the branch) so the workflow
+          # definition GitHub loads matches the same commit the build later
+          # checks out, instead of whatever staging has moved to by then.
           gh workflow run vertex-desktop-release.yml \
             --repo "${REPO}" \
-            --ref "${REF_NAME}" \
+            --ref "${TAG}" \
             -f release_tag="${TAG}"
           echo "Dispatched vertex-desktop-release.yml for ${TAG}"
 
