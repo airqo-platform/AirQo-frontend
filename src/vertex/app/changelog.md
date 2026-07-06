@@ -2,6 +2,31 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.14
+**Released:** July 6, 2026
+
+### Device Details — Localized Map Card
+
+Added an embedded map to the Device Location card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed.
+
+<details>
+<summary><strong>Device Location Card (`device-location-card.tsx`)</strong></summary>
+
+- **Embedded map**: Renders a read-only `MiniMap` centred on the device's stored coordinates at zoom level 13.
+- **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
+- **Empty state**: When a device has no coordinates, a dashed-border placeholder with a `MapPin` icon and a short message is shown instead of blank space.
+
+</details>
+
+<details>
+<summary><strong>MiniMap — `readOnly` prop (`mini-map.tsx`)</strong></summary>
+
+- Added `readOnly?: boolean` (default `false`). When `true`, the marker is non-draggable and click-to-move is disabled — the existing add/edit device flows are unaffected.
+
+</details>
+
+---
+
 ## Version 2.0.13
 **Released:** July 3, 2026
 
