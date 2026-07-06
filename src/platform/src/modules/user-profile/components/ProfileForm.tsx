@@ -183,7 +183,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
         if (oldPublicId) {
           try {
             await deleteFromCloudinary(oldPublicId);
-            console.log(
+            console.debug(
               'Successfully deleted old profile picture:',
               oldPublicId
             );

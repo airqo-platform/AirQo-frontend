@@ -1,8 +1,6 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { ExportOptions, ExportOptionsPartial } from '../types';
 
 const applyCloneStyles = (clonedDoc: Document) => {
@@ -170,6 +168,7 @@ export const useChartExport = () => {
   const renderChartToCanvas = useCallback(
     async (options: ExportOptionsPartial = {}) => {
       const element = getExportElement();
+      const { default: html2canvas } = await import('html2canvas');
 
       return html2canvas(element, {
         backgroundColor: '#ffffff',
@@ -229,6 +228,7 @@ export const useChartExport = () => {
         );
 
         const imgData = canvas.toDataURL('image/png', options.quality || 0.9);
+        const { jsPDF } = await import('jspdf');
 
         // Fit the rendered chart into the printable page area while preserving
         // aspect ratio. This avoids cropped PDFs when the chart is wide or tall.

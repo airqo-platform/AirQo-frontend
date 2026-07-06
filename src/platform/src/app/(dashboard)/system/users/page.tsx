@@ -28,8 +28,6 @@ import {
   AqDownload01,
   AqShield02,
 } from '@airqo/icons-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { Dialog, Select } from '@/shared/components/ui';
 import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 
@@ -204,47 +202,55 @@ const UserManagementPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AirQo User Management Report', 40, 50);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Total Records: ${filteredUsers.length}`, 40, 70);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 85);
+  const exportToPDF = async () => {
+    try {
+      const [{ jsPDF }, { autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]);
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AirQo User Management Report', 40, 50);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Records: ${filteredUsers.length}`, 40, 70);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 85);
 
-    const tableData = filteredUsers.map(user => [
-      `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || '--',
-      user.email || '--',
-      user.userName || '--',
-      user.isActive ? 'Active' : 'Inactive',
-      user.verified ? 'Yes' : 'No',
-      String(user.loginCount ?? 0),
-    ]);
+      const tableData = filteredUsers.map(user => [
+        `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || '--',
+        user.email || '--',
+        user.userName || '--',
+        user.isActive ? 'Active' : 'Inactive',
+        user.verified ? 'Yes' : 'No',
+        String(user.loginCount ?? 0),
+      ]);
 
-    autoTable(doc, {
-      head: [['Name', 'Email', 'Username', 'Status', 'Verified', 'Logins']],
-      body: tableData,
-      startY: 105,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [22, 78, 99] },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
-      margin: { left: 40, right: 40 },
-    });
+      autoTable(doc, {
+        head: [['Name', 'Email', 'Username', 'Status', 'Verified', 'Logins']],
+        body: tableData,
+        startY: 105,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [22, 78, 99] },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        margin: { left: 40, right: 40 },
+      });
 
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(9);
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        40,
-        doc.internal.pageSize.height - 30
-      );
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          40,
+          doc.internal.pageSize.height - 30
+        );
+      }
+
+      doc.save(`users-export-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      toast.error(getUserFriendlyErrorMessage(err));
     }
-
-    doc.save(`users-export-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const columns = useMemo(
