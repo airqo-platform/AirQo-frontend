@@ -5,6 +5,7 @@ import { createMainWindow } from "./windows";
 import { setupPermissionHandlers } from "./permissions";
 import { setupAutoUpdates, checkForUpdates, setAutoUpdateWindow } from "./updates";
 import { registerDeepLinkProtocol, handleDeepLink } from "./deeplinks";
+import { setupAuthWindowHandler } from "./auth-window";
 import { setupMenu } from "./menu";
 
 dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
@@ -34,6 +35,8 @@ const createWindow = (): void => {
   const preloadPath = path.join(__dirname, "..", "preload", "index.js");
   process.env.VERTEX_DESKTOP_ICON_PATH = getAssetPath("icon.png");
   mainWindow = createMainWindow({ startUrl, preloadPath });
+  setupAuthWindowHandler(mainWindow, startUrl);
+  void mainWindow.loadURL(startUrl).catch(() => {});
   setAutoUpdateWindow(mainWindow);
   const offlinePagePath = getAssetPath("offline.html");
 
