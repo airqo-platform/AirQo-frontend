@@ -1,3 +1,5 @@
+"use client";
+
 import { lazy, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { useRouter, usePathname } from "next/navigation";
