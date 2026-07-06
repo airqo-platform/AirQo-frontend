@@ -14,7 +14,9 @@ const configuredCookieDomain =
 
 if (isProduction && !process.env.NEXTAUTH_URL && !process.env.AUTH_TRUST_HOST) {
   process.env.AUTH_TRUST_HOST = 'true';
-  console.warn('[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.');
+  console.warn(
+    '[NextAuth] WARNING: NEXTAUTH_URL is missing. Dynamic host detection will be used.'
+  );
 }
 
 const getCookieDomain = () => {
@@ -22,14 +24,17 @@ const getCookieDomain = () => {
     return undefined;
   }
 
-  const referenceUrl = process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
+  const referenceUrl =
+    process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
   if (!referenceUrl) {
     return configuredCookieDomain;
   }
 
   try {
     const host = new URL(referenceUrl).hostname.toLowerCase();
-    const normalizedDomain = configuredCookieDomain.replace(/^\./, '').toLowerCase();
+    const normalizedDomain = configuredCookieDomain
+      .replace(/^\./, '')
+      .toLowerCase();
     const hostMatches =
       host === normalizedDomain || host.endsWith(`.${normalizedDomain}`);
 
@@ -176,7 +181,9 @@ export const authOptions: any = {
             if (parts.length === 3) {
               const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
               const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-              decoded = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+              decoded = JSON.parse(
+                Buffer.from(padded, 'base64').toString('utf-8')
+              );
             }
           } catch {
             decoded = null;
@@ -333,7 +340,8 @@ export const authOptions: any = {
         (session.user as any)._id = (token as any)._id || (token as any).id;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
-        (session.user as any).userName = (token as any).userName || (session.user as any).email;
+        (session.user as any).userName =
+          (token as any).userName || (session.user as any).email;
         (session.user as any).organization = (token as any).organization || '';
         (session.user as any).privilege = (token as any).privilege || '';
         (session.user as any).country = (token as any).country || '';

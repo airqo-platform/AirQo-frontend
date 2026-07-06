@@ -17,7 +17,10 @@ import {
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqEdit05, AqTrash01, AqRefreshCw05, AqPlus } from '@airqo/icons-react';
 import { adminService } from '@/shared/services/adminService';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import { formatDate } from '@/shared/utils';
@@ -900,138 +903,142 @@ const SecurityPageContent: React.FC = () => {
           text="Loading security data..."
         />
       ) : (
-      <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {summaryCards.map(card => (
-          <Card key={card.title} className="p-4">
-            <p className="text-sm text-muted-foreground">{card.title}</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {card.value}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {card.description}
-            </p>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {summaryCards.map(card => (
+              <Card key={card.title} className="p-4">
+                <p className="text-sm text-muted-foreground">{card.title}</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">
+                  {card.value}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {card.description}
+                </p>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="p-2">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={activeTab === 'blocked-asns' ? 'filled' : 'outlined'}
+                onClick={() => setActiveTab('blocked-asns')}
+              >
+                ASN / CIDR Blocks
+              </Button>
+              <Button
+                size="sm"
+                variant={activeTab === 'flagged-tokens' ? 'filled' : 'outlined'}
+                onClick={() => setActiveTab('flagged-tokens')}
+              >
+                Flagged Tokens
+              </Button>
+            </div>
           </Card>
-        ))}
-      </div>
 
-      <Card className="p-2">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={activeTab === 'blocked-asns' ? 'filled' : 'outlined'}
-            onClick={() => setActiveTab('blocked-asns')}
-          >
-            ASN / CIDR Blocks
-          </Button>
-          <Button
-            size="sm"
-            variant={activeTab === 'flagged-tokens' ? 'filled' : 'outlined'}
-            onClick={() => setActiveTab('flagged-tokens')}
-          >
-            Flagged Tokens
-          </Button>
-        </div>
-      </Card>
+          {activeTab === 'blocked-asns' ? (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={blockedFilter === 'all' ? 'filled' : 'outlined'}
+                  onClick={() => setBlockedFilter('all')}
+                >
+                  All ({blockedSummary.total})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={blockedFilter === 'active' ? 'filled' : 'outlined'}
+                  onClick={() => setBlockedFilter('active')}
+                >
+                  Active ({blockedSummary.active})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={blockedFilter === 'inactive' ? 'filled' : 'outlined'}
+                  onClick={() => setBlockedFilter('inactive')}
+                >
+                  Inactive ({blockedSummary.inactive})
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  Icon={AqRefreshCw05}
+                  onClick={handleRefreshBlocked}
+                  className="ml-auto"
+                >
+                  Refresh
+                </Button>
+              </div>
 
-      {activeTab === 'blocked-asns' ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant={blockedFilter === 'all' ? 'filled' : 'outlined'}
-              onClick={() => setBlockedFilter('all')}
-            >
-              All ({blockedSummary.total})
-            </Button>
-            <Button
-              size="sm"
-              variant={blockedFilter === 'active' ? 'filled' : 'outlined'}
-              onClick={() => setBlockedFilter('active')}
-            >
-              Active ({blockedSummary.active})
-            </Button>
-            <Button
-              size="sm"
-              variant={blockedFilter === 'inactive' ? 'filled' : 'outlined'}
-              onClick={() => setBlockedFilter('inactive')}
-            >
-              Inactive ({blockedSummary.inactive})
-            </Button>
-            <Button
-              size="sm"
-              variant="outlined"
-              Icon={AqRefreshCw05}
-              onClick={handleRefreshBlocked}
-              className="ml-auto"
-            >
-              Refresh
-            </Button>
-          </div>
+              <ServerSideTable
+                title="Blocked ASN/CIDR rules"
+                data={filteredBlockedRows}
+                columns={blockedColumns}
+                loading={blockedLoading}
+                error={
+                  blockedError
+                    ? getUserFriendlyErrorMessage(blockedError)
+                    : null
+                }
+                onRefresh={handleRefreshBlocked}
+                showClientPagination={true}
+                pageSize={10}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={flaggedFilter === 'open' ? 'filled' : 'outlined'}
+                  onClick={() => setFlaggedFilter('open')}
+                >
+                  Open ({flaggedSummary.open})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={flaggedFilter === 'resolved' ? 'filled' : 'outlined'}
+                  onClick={() => setFlaggedFilter('resolved')}
+                >
+                  Resolved ({flaggedSummary.resolved})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={flaggedFilter === 'all' ? 'filled' : 'outlined'}
+                  onClick={() => setFlaggedFilter('all')}
+                >
+                  All ({flaggedSummary.total})
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  Icon={AqRefreshCw05}
+                  onClick={handleRefreshFlagged}
+                  className="ml-auto"
+                >
+                  Refresh
+                </Button>
+              </div>
 
-          <ServerSideTable
-            title="Blocked ASN/CIDR rules"
-            data={filteredBlockedRows}
-            columns={blockedColumns}
-            loading={blockedLoading}
-            error={
-              blockedError ? getUserFriendlyErrorMessage(blockedError) : null
-            }
-            onRefresh={handleRefreshBlocked}
-            showClientPagination={true}
-            pageSize={10}
-          />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant={flaggedFilter === 'open' ? 'filled' : 'outlined'}
-              onClick={() => setFlaggedFilter('open')}
-            >
-              Open ({flaggedSummary.open})
-            </Button>
-            <Button
-              size="sm"
-              variant={flaggedFilter === 'resolved' ? 'filled' : 'outlined'}
-              onClick={() => setFlaggedFilter('resolved')}
-            >
-              Resolved ({flaggedSummary.resolved})
-            </Button>
-            <Button
-              size="sm"
-              variant={flaggedFilter === 'all' ? 'filled' : 'outlined'}
-              onClick={() => setFlaggedFilter('all')}
-            >
-              All ({flaggedSummary.total})
-            </Button>
-            <Button
-              size="sm"
-              variant="outlined"
-              Icon={AqRefreshCw05}
-              onClick={handleRefreshFlagged}
-              className="ml-auto"
-            >
-              Refresh
-            </Button>
-          </div>
-
-          <ServerSideTable
-            title="Flagged token alerts"
-            data={filteredFlaggedRows}
-            columns={flaggedColumns}
-            loading={flaggedLoading}
-            error={
-              flaggedError ? getUserFriendlyErrorMessage(flaggedError) : null
-            }
-            onRefresh={handleRefreshFlagged}
-            showClientPagination={true}
-            pageSize={10}
-          />
-        </div>
-      )}
-      </>
+              <ServerSideTable
+                title="Flagged token alerts"
+                data={filteredFlaggedRows}
+                columns={flaggedColumns}
+                loading={flaggedLoading}
+                error={
+                  flaggedError
+                    ? getUserFriendlyErrorMessage(flaggedError)
+                    : null
+                }
+                onRefresh={handleRefreshFlagged}
+                showClientPagination={true}
+                pageSize={10}
+              />
+            </div>
+          )}
+        </>
       )}
 
       <BlockedAsnDialog

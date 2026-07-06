@@ -114,3 +114,4 @@ export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';
 export { useResizeObserver } from './useResizeObserver';
 export { usePageTracking } from './usePageTracking';
+export { useEnvironmentAwareUrl } from './useEnvironmentAwareUrl';

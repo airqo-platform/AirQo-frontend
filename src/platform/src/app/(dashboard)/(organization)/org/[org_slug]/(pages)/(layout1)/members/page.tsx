@@ -206,7 +206,9 @@ const MembersPage: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <div className="font-medium flex items-center gap-2 flex-wrap">
-                  <span className="truncate">{member.firstName} {member.lastName}</span>
+                  <span className="truncate">
+                    {member.firstName} {member.lastName}
+                  </span>
                   {isManager && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full whitespace-nowrap">
                       <AqShield02 size={12} />
@@ -252,7 +254,9 @@ const MembersPage: React.FC = () => {
         key: 'country',
         label: 'Country',
         render: (value: unknown, member: GroupMember) => (
-          <div className="text-sm whitespace-nowrap">{member.country || '--'}</div>
+          <div className="text-sm whitespace-nowrap">
+            {member.country || '--'}
+          </div>
         ),
       },
       {
@@ -393,7 +397,11 @@ const MembersPage: React.FC = () => {
                 </Button>
               )}
               {canInviteMembers && (
-                <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus} showTextOnMobile>
+                <Button
+                  onClick={() => setShowInviteDialog(true)}
+                  Icon={AqPlus}
+                  showTextOnMobile
+                >
                   Send Invites
                 </Button>
               )}

@@ -29,7 +29,10 @@ import { useUser } from '@/shared/hooks';
 import { applicationEmailConfigService } from '@/shared/services';
 import type { ApplicationEmailConfiguration } from '@/shared/types/api';
 import { formatDate } from '@/shared/utils';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { EMAIL_LIST_MAX } from '@/shared/lib/validation-limits';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
@@ -560,38 +563,232 @@ const EmailConfigContent: React.FC = () => {
           message="You do not have the required permissions to view email configurations."
         />
       ) : (
-      <div className="space-y-6">
-        <PageHeading
-          title="Email Configuration"
-          subtitle="Maintain the application-account emails that trigger admin CCs on automated notifications."
-          action={pageAction}
-        />
-
-        {isLoading ? (
-          <LoadingState
-            className="min-h-[420px]"
-            text="Loading email configurations..."
+        <div className="space-y-6">
+          <PageHeading
+            title="Email Configuration"
+            subtitle="Maintain the application-account emails that trigger admin CCs on automated notifications."
+            action={pageAction}
           />
-        ) : error ? (
-          <Card className="p-6">
-            <div className="flex flex-col gap-4">
+
+          {isLoading ? (
+            <LoadingState
+              className="min-h-[420px]"
+              text="Loading email configurations..."
+            />
+          ) : error ? (
+            <Card className="p-6">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Failed to load email configurations
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {getUserFriendlyErrorMessage(error)}
+                  </p>
+                </div>
+                <div className="flex justify-start">
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={handleRefresh}
+                    Icon={AqRefreshCw05}
+                    iconPosition="start"
+                  >
+                    Try again
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {summaryCards.map(card => (
+                  <Card key={card.title} className="p-4">
+                    <p className="text-sm text-muted-foreground">
+                      {card.title}
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold text-foreground">
+                      {card.value}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {card.description}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+
+              {configs.length === 0 ? (
+                <EmptyState
+                  title="No email configurations yet"
+                  description="Create the first configuration to define the admin CC recipients and application emails for automated notifications."
+                  icon={<AqMail04 className="h-12 w-12" />}
+                  action={{
+                    label: 'Create configuration',
+                    onClick: openCreateDialog,
+                    variant: 'filled',
+                  }}
+                />
+              ) : (
+                <ServerSideTable
+                  title="Email configurations"
+                  data={tableData}
+                  columns={columns}
+                  loading={false}
+                  showClientPagination={true}
+                  compactRows={false}
+                />
+              )}
+            </div>
+          )}
+
+          <Dialog
+            isOpen={!!dialogState}
+            onClose={closeDialog}
+            title={
+              dialogState?.mode === 'create'
+                ? 'Create Email Configuration'
+                : 'Edit Email Configuration'
+            }
+            size="lg"
+          >
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <Input
+                label="Admin CC emails"
+                value={formState.adminCCEmails}
+                onChange={event =>
+                  setFormState(prev => ({
+                    ...prev,
+                    adminCCEmails: String(event.target.value || ''),
+                  }))
+                }
+                placeholder="admin1@airqo.net, admin2@airqo.net"
+                description="Comma-separated admin emails to copy on automated alerts."
+                required={dialogState?.mode === 'create'}
+              />
+
+              {dialogState?.mode === 'edit' && (
+                <Select
+                  label="Application email update mode"
+                  value={formState.mode}
+                  onChange={event =>
+                    setFormState(prev => ({
+                      ...prev,
+                      mode: String(
+                        event.target.value || 'replace'
+                      ) as EmailConfigMode,
+                    }))
+                  }
+                  description="Choose whether to replace the list or add/remove specific emails."
+                >
+                  <option value="replace">Replace full list</option>
+                  <option value="add">Add application emails</option>
+                  <option value="remove">Remove application emails</option>
+                </Select>
+              )}
+
               <div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Failed to load email configurations
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {getUserFriendlyErrorMessage(error)}
+                <TextInput
+                  label={
+                    dialogState?.mode === 'edit'
+                      ? formState.mode === 'add'
+                        ? 'Application emails to add'
+                        : formState.mode === 'remove'
+                          ? 'Application emails to remove'
+                          : 'Application emails'
+                      : 'Application emails'
+                  }
+                  value={formState.applicationEmails}
+                  onChange={event =>
+                    setFormState(prev => ({
+                      ...prev,
+                      applicationEmails: String(event.target.value || ''),
+                    }))
+                  }
+                  placeholder={'app-client@airqo.net\nmonitoring-bot@airqo.net'}
+                  rows={6}
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {dialogState?.mode === 'edit'
+                    ? formState.mode === 'add'
+                      ? 'Add one email per line. These emails will be appended to the existing list.'
+                      : formState.mode === 'remove'
+                        ? 'Add one email per line. These emails will be removed from the existing list.'
+                        : 'Add one email per line. Leaving this blank will clear the current application email list.'
+                    : 'Optional. Add one email per line.'}
                 </p>
               </div>
-              <div className="flex justify-start">
+
+              <div className="flex justify-end gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outlined"
-                  onClick={handleRefresh}
-                  Icon={AqRefreshCw05}
-                  iconPosition="start"
+                  onClick={closeDialog}
+                  disabled={isSubmitting}
                 >
-                  Try again
+                  Cancel
+                </Button>
+                <Button type="submit" loading={isSubmitting}>
+                  {dialogState?.mode === 'create'
+                    ? 'Create configuration'
+                    : 'Save changes'}
+                </Button>
+              </div>
+            </form>
+          </Dialog>
+
+          <Dialog
+            isOpen={!!deleteConfig}
+            onClose={closeDeleteDialog}
+            title="Delete Email Configuration"
+            size="md"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This will permanently remove the configuration for{' '}
+                <span className="font-mono text-foreground">
+                  {deleteConfig ? shortenId(deleteConfig._id) : ''}
+                </span>
+                . Any automated alerts using this config will stop copying the
+                configured admin CC recipients.
+              </p>
+
+              {deleteConfig && (
+                <div className="grid gap-3 rounded-lg border border-border bg-muted/40 p-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Admin CC emails
+                    </p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {parseEmailList(deleteConfig.adminCCEmails || '').length}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Application emails
+                    </p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {(deleteConfig.applicationEmails || []).length}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outlined"
+                  onClick={closeDeleteDialog}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDeleteConfig}
+                  loading={isDeleting}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete configuration
                 </Button>
               </div>
             </div>

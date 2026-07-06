@@ -173,7 +173,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
     (status === 'authenticated' && !!userId && isLoading && !data) ||
     activeGroupMissingFromFreshGroups
   ) {
-    return <LoadingOverlay delayMs={0} />;
+    return <LoadingOverlay delayMs={150} />;
   }
 
   return <>{children}</>;

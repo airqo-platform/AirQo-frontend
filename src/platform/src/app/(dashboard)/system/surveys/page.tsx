@@ -14,7 +14,10 @@ import {
 } from '@/shared/components/ui';
 import { AqEye, AqPlus, AqRefreshCw05 } from '@airqo/icons-react';
 import { surveyService } from '@/shared/services';
-import { getUserFriendlyErrorMessage, isForbiddenError } from '@/shared/utils/errorMessages';
+import {
+  getUserFriendlyErrorMessage,
+  isForbiddenError,
+} from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import type { Survey } from '@/shared/types/api';
@@ -202,98 +205,100 @@ const SurveyListPage: React.FC = () => {
           message="You do not have the required permissions to view surveys."
         />
       ) : (
-      <div className="space-y-6">
-        <PageHeading
-          title="Survey Management"
-          subtitle="Review active surveys, inspect question sets, and open a survey to analyze responses and update its configuration."
-          action={
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <Button
-                variant="outlined"
-                Icon={AqRefreshCw05}
-                onClick={handleRefresh}
-                loading={isLoading || isValidating}
-              >
-                Refresh
-              </Button>
-              <Button Icon={AqPlus} onClick={handleCreateSurvey}>
-                Create survey
-              </Button>
-            </div>
-          }
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">Active surveys</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary.activeSurveys}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Available to the system team right now.
-            </p>
-          </Card>
-
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">Total questions</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary.totalQuestions}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Across all active surveys.
-            </p>
-          </Card>
-
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">Required questions</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {summary.requiredQuestions}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Must be answered before completion.
-            </p>
-          </Card>
-
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">
-              Avg. completion time
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
-              {formatDuration(summary.averageCompletionTime)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Average across active surveys.
-            </p>
-          </Card>
-        </div>
-
-        {isLoading ? (
-          <LoadingState
-            className="min-h-[400px]"
-            text="Loading active surveys..."
+        <div className="space-y-6">
+          <PageHeading
+            title="Survey Management"
+            subtitle="Review active surveys, inspect question sets, and open a survey to analyze responses and update its configuration."
+            action={
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  variant="outlined"
+                  Icon={AqRefreshCw05}
+                  onClick={handleRefresh}
+                  loading={isLoading || isValidating}
+                >
+                  Refresh
+                </Button>
+                <Button Icon={AqPlus} onClick={handleCreateSurvey}>
+                  Create survey
+                </Button>
+              </div>
+            }
           />
-        ) : error ? (
-          <Card className="p-6">
-            <p className="text-sm text-muted-foreground">
-              {getUserFriendlyErrorMessage(error)}
-            </p>
-          </Card>
-        ) : surveys.length === 0 ? (
-          <EmptyState
-            title="No active surveys"
-            description="There are no active surveys to review right now."
-            action={{
-              label: 'Create survey',
-              onClick: handleCreateSurvey,
-              variant: 'filled',
-            }}
-          />
-        ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {surveys.map(renderSurveyCard)}
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">Active surveys</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {summary.activeSurveys}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Available to the system team right now.
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">Total questions</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {summary.totalQuestions}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Across all active surveys.
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">
+                Required questions
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {summary.requiredQuestions}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Must be answered before completion.
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-muted-foreground">
+                Avg. completion time
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">
+                {formatDuration(summary.averageCompletionTime)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Average across active surveys.
+              </p>
+            </Card>
           </div>
-        )}
-      </div>
+
+          {isLoading ? (
+            <LoadingState
+              className="min-h-[400px]"
+              text="Loading active surveys..."
+            />
+          ) : error ? (
+            <Card className="p-6">
+              <p className="text-sm text-muted-foreground">
+                {getUserFriendlyErrorMessage(error)}
+              </p>
+            </Card>
+          ) : surveys.length === 0 ? (
+            <EmptyState
+              title="No active surveys"
+              description="There are no active surveys to review right now."
+              action={{
+                label: 'Create survey',
+                onClick: handleCreateSurvey,
+                variant: 'filled',
+              }}
+            />
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-2">
+              {surveys.map(renderSurveyCard)}
+            </div>
+          )}
+        </div>
       )}
     </PermissionGuard>
   );

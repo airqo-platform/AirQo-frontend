@@ -13,6 +13,7 @@ The Selenium docs explicitly list JavaScript as a first-class language:
 > Recommends **Mocha** as the test runner — [Using Selenium](https://www.selenium.dev/documentation/webdriver/getting_started/using_selenium/)
 
 This is a Next.js 14 + TypeScript project. Using TypeScript for tests means:
+
 - No extra runtime (Node.js already required)
 - Same language, same team, same tooling
 - Type safety catches errors at compile time
@@ -20,15 +21,15 @@ This is a Next.js 14 + TypeScript project. Using TypeScript for tests means:
 
 ## Tech Stack
 
-| Component | Choice | Version |
-|-----------|--------|---------|
-| Browser Automation | selenium-webdriver | 4.45.0 |
-| Test Runner | Mocha | 11.1.0 |
-| Assertions | Chai | (via Mocha) |
-| HTML Reports | Mochawesome | 7.1.3 |
-| Language | TypeScript | 5.9.3 |
-| Config | dotenv | 16.4.7 |
-| TS Loader | ts-node | 10.9.2 |
+| Component          | Choice             | Version     |
+| ------------------ | ------------------ | ----------- |
+| Browser Automation | selenium-webdriver | 4.45.0      |
+| Test Runner        | Mocha              | 11.1.0      |
+| Assertions         | Chai               | (via Mocha) |
+| HTML Reports       | Mochawesome        | 7.1.3       |
+| Language           | TypeScript         | 5.9.3       |
+| Config             | dotenv             | 16.4.7      |
+| TS Loader          | ts-node            | 10.9.2      |
 
 ## Directory Structure
 
@@ -115,16 +116,16 @@ yarn test:e2e:report
 
 `.env` variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BASE_URL` | `http://localhost:3000` | App URL |
-| `BROWSER` | `chrome` | chrome / firefox / edge |
-| `HEADLESS` | `true` | Headless mode |
-| `IMPLICIT_WAIT` | `10` | Element wait timeout (sec) |
-| `PAGE_LOAD_TIMEOUT` | `30` | Page load timeout (sec) |
-| `TEST_USER_EMAIL` | — | Auth test credentials |
-| `TEST_USER_PASSWORD` | — | Auth test credentials |
-| `TEST_ORG_SLUG` | — | Org slug for org tests |
+| Variable             | Default                 | Description                |
+| -------------------- | ----------------------- | -------------------------- |
+| `BASE_URL`           | `http://localhost:3000` | App URL                    |
+| `BROWSER`            | `chrome`                | chrome / firefox / edge    |
+| `HEADLESS`           | `true`                  | Headless mode              |
+| `IMPLICIT_WAIT`      | `10`                    | Element wait timeout (sec) |
+| `PAGE_LOAD_TIMEOUT`  | `30`                    | Page load timeout (sec)    |
+| `TEST_USER_EMAIL`    | —                       | Auth test credentials      |
+| `TEST_USER_PASSWORD` | —                       | Auth test credentials      |
+| `TEST_ORG_SLUG`      | —                       | Org slug for org tests     |
 
 ## Test Report
 
@@ -135,6 +136,7 @@ yarn test:report     # generates reports/airqo-e2e-tests.html
 ```
 
 Report includes:
+
 - Pass/fail/skip counts with percentages
 - Duration per test and suite
 - Expandable error details with stack traces
@@ -173,34 +175,35 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 
 ### Coverage by Module
 
-| Module | Pages | Tests | Status |
-|--------|-------|-------|--------|
-| **Auth** | Login | 8 | Covered |
-| | Register | 7 | Covered |
-| | Forgot Password | 4 | Covered |
-| | Reset Password | 4 | Covered |
-| | Protected Routes | 7 | Covered |
-| | Form Validation | 5 | Covered |
-| **User** | Home | 8 | Covered |
-| | Profile | 9 | Covered |
-| | Favorites/Analytics | 2 | Covered |
-| | Request Organization | 4 | Covered |
-| **Organization** | Dashboard | 3 | Covered |
-| | Members | 4 | Covered |
-| | Settings | 2 | Covered |
-| | Roles | 2 | Covered |
-| | Member Requests | 2 | Covered |
-| **Admin** | All System Pages | 7 | Page loads covered |
-| **Data** | Visualizer | 2 | Covered |
-| | Export | 2 | Covered |
-| | Map | 2 | Covered |
-| **Total** | | **~87** | |
+| Module           | Pages                | Tests   | Status             |
+| ---------------- | -------------------- | ------- | ------------------ |
+| **Auth**         | Login                | 8       | Covered            |
+|                  | Register             | 7       | Covered            |
+|                  | Forgot Password      | 4       | Covered            |
+|                  | Reset Password       | 4       | Covered            |
+|                  | Protected Routes     | 7       | Covered            |
+|                  | Form Validation      | 5       | Covered            |
+| **User**         | Home                 | 8       | Covered            |
+|                  | Profile              | 9       | Covered            |
+|                  | Favorites/Analytics  | 2       | Covered            |
+|                  | Request Organization | 4       | Covered            |
+| **Organization** | Dashboard            | 3       | Covered            |
+|                  | Members              | 4       | Covered            |
+|                  | Settings             | 2       | Covered            |
+|                  | Roles                | 2       | Covered            |
+|                  | Member Requests      | 3       | Covered            |
+| **Admin**        | All System Pages     | 7       | Page loads covered |
+| **Data**         | Visualizer           | 2       | Covered            |
+|                  | Export               | 3       | Covered            |
+|                  | Map                  | 2       | Covered            |
+| **Total**        |                      | **86**  |                    |
 
 ### What Each Test Suite Covers
 
 #### Auth Tests (35 tests)
 
 **Login (`login.test.ts`)**
+
 - Page loads with email input
 - Two-step login flow (email → password)
 - Successful login redirects to `/user/home`
@@ -211,6 +214,7 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 - Invalid credentials stay on login page
 
 **Register (`register.test.ts`)**
+
 - Page loads with form fields
 - Form has all required fields (firstName, lastName, email, password)
 - Password hint text displayed
@@ -220,18 +224,21 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 - Short password rejected
 
 **Forgot Password (`forgot-password.test.ts`)**
+
 - Page loads with email input
 - Success state after valid email submission
 - Empty email shows validation
 - Login link navigation
 
 **Reset Password (`reset-password.test.ts`)**
+
 - Invalid link state for missing/fake token
 - Valid token shows password form
 - Mismatched passwords show error
 - Password form displayed or invalid link state
 
 **Protected Routes (`protected-routes.test.ts`)**
+
 - Unauthenticated `/user/home` → redirect to login
 - Unauthenticated `/user/profile` → redirect to login
 - Unauthenticated `/user/favorites` → redirect to login
@@ -241,6 +248,7 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 - Non-existent route shows 404
 
 **Form Validation (`form-validation.test.ts`)**
+
 - Empty email on login validation
 - Invalid email format on register
 - Weak password rejected (button disabled)
@@ -250,6 +258,7 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 #### User Tests (23 tests)
 
 **Home (`home.test.ts`)**
+
 - Page loads with welcome heading
 - Welcome text contains "Welcome"
 - Quick access buttons displayed
@@ -260,6 +269,7 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 - Request Organization → `/request-organization`
 
 **Profile (`profile.test.ts`)**
+
 - Page loads with profile form
 - 6 tabs displayed (Profile, Security, API, Subscription, Team Invites, Theme)
 - Profile form fields present
@@ -271,10 +281,12 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 - Theme tab accessible
 
 **Favorites (`favorites.test.ts`)**
+
 - Page loads
 - Charts or empty state displayed
 
 **Request Organization (`request-organization.test.ts`)**
+
 - Page loads with form
 - Empty submission shows validation
 - Short use case rejected (< 10 chars)
@@ -283,17 +295,20 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 #### Organization Tests (14 tests)
 
 **Dashboard (`dashboard.test.ts`)**
+
 - Loads with quick access, access denied, or no-favorites state
 - Charts or no-favorites displayed
 - Invalid org slug shows access denied
 
 **Members (`members.test.ts`)**
+
 - Page loads with title containing "MEMBERS"
 - Table headers displayed
 - Expected columns present (User, Status)
 - Invite dialog opens
 
 **Settings/Roles/Member Requests (`org-settings.test.ts`)**
+
 - Settings page loads
 - Theme section displayed
 - Roles page loads
@@ -304,6 +319,7 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 #### Admin Tests (7 tests)
 
 **System Admin (`admin.test.ts`)**
+
 - Clients page loads
 - Data table or create button on clients
 - Feedback page loads
@@ -315,14 +331,17 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 #### Data Tests (7 tests)
 
 **Data Visualizer (`data.test.ts`)**
+
 - Workspace loaded
 - Chart area displayed
 
 **Data Export**
+
 - Page loads with site selection or download button
 - Download button displayed
 
 **Map**
+
 - Map container loaded
 - Map markers displayed
 
@@ -331,17 +350,19 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 Every page has a dedicated class extending `BasePage`:
 
 ```typescript
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class LoginPage extends BasePage {
   private static readonly EMAIL_INPUT = By.css('input[type="email"]');
   private static readonly SUBMIT = By.css('button[type="submit"]');
 
-  constructor(driver: WebDriver) { super(driver); }
+  constructor(driver: WebDriver) {
+    super(driver);
+  }
 
   async navigateToLogin(): Promise<void> {
-    await this.navigateTo("/user/login");
+    await this.navigateTo('/user/login');
   }
 
   async login(email: string, password: string): Promise<void> {
@@ -354,21 +375,21 @@ export class LoginPage extends BasePage {
 
 ### BasePage Methods
 
-| Method | Description |
-|--------|-------------|
-| `navigateTo(path)` | Navigate to `BASE_URL + path` |
-| `find(locator, timeout?)` | Find element with explicit wait |
-| `findAll(locator)` | Find all matching elements |
-| `click(locator, timeout?)` | Click with JS fallback |
-| `typeText(locator, text, clear?)` | Clear and type |
-| `getText(locator, timeout?)` | Get visible text |
-| `isDisplayed(locator, timeout?)` | Check visibility |
-| `waitForUrlContains(text, timeout?)` | Wait for URL change |
-| `scrollTo(locator)` | Scroll into view |
-| `getAttribute(locator, attr)` | Get element attribute |
-| `takeScreenshot(name)` | Save screenshot to disk |
-| `pressEnter()` | Press Enter key |
-| `executeJs(script, ...args)` | Execute JavaScript |
+| Method                               | Description                     |
+| ------------------------------------ | ------------------------------- |
+| `navigateTo(path)`                   | Navigate to `BASE_URL + path`   |
+| `find(locator, timeout?)`            | Find element with explicit wait |
+| `findAll(locator)`                   | Find all matching elements      |
+| `click(locator, timeout?)`           | Click with JS fallback          |
+| `typeText(locator, text, clear?)`    | Clear and type                  |
+| `getText(locator, timeout?)`         | Get visible text                |
+| `isDisplayed(locator, timeout?)`     | Check visibility                |
+| `waitForUrlContains(text, timeout?)` | Wait for URL change             |
+| `scrollTo(locator)`                  | Scroll into view                |
+| `getAttribute(locator, attr)`        | Get element attribute           |
+| `takeScreenshot(name)`               | Save screenshot to disk         |
+| `pressEnter()`                       | Press Enter key                 |
+| `executeJs(script, ...args)`         | Execute JavaScript              |
 
 ### Locator Strategy
 
@@ -384,13 +405,13 @@ Locators follow the [Selenium recommended order](https://www.selenium.dev/docume
 ### Template
 
 ```typescript
-import { expect } from "chai";
-import { WebDriver } from "selenium-webdriver";
-import { createDriver, quitDriver, screenshotOnFailure } from "../setup";
-import { MyPage } from "../pages/my.page";
-import { Config } from "../config";
+import { expect } from 'chai';
+import { WebDriver } from 'selenium-webdriver';
+import { createDriver, quitDriver, screenshotOnFailure } from '../setup';
+import { MyPage } from '../pages/my.page';
+import { Config } from '../config';
 
-describe("My Feature @tag", function () {
+describe('My Feature @tag', function () {
   let driver: WebDriver;
   let page: MyPage;
   this.timeout(30000);
@@ -405,12 +426,12 @@ describe("My Feature @tag", function () {
   });
 
   afterEach(async function () {
-    if (this.currentTest?.state === "failed") {
+    if (this.currentTest?.state === 'failed') {
       await screenshotOnFailure(this.currentTest.fullTitle());
     }
   });
 
-  it("should do something @smoke", async function () {
+  it('should do something @smoke', async function () {
     await page.navigateToMyPage();
     const result = await page.someMethod();
     expect(result).to.be.true;
@@ -443,7 +464,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
       - uses: browser-actions/setup-chrome@latest
       - name: Install e2e dependencies
         working-directory: src/platform/e2e
@@ -499,16 +520,16 @@ pipeline {
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue                              | Solution                                |
+| ---------------------------------- | --------------------------------------- |
 | `WebDriverError: Chrome not found` | Install Chrome or set `BROWSER=firefox` |
-| `MODULE_NOT_FOUND` | Run `yarn install` in `e2e/` |
-| `TimeoutError` | Increase `IMPLICIT_WAIT` in `.env` |
-| `ElementNotInteractableError` | Add wait, scroll to element |
-| Tests fail headless only | Set `HEADLESS=false` to debug |
-| Flaky tests | Increase timeouts, add retries |
-| `ECONNREFUSED` | Start the app first (`npm run dev`) |
-| Port conflict | Check `BASE_URL` matches running app |
+| `MODULE_NOT_FOUND`                 | Run `yarn install` in `e2e/`            |
+| `TimeoutError`                     | Increase `IMPLICIT_WAIT` in `.env`      |
+| `ElementNotInteractableError`      | Add wait, scroll to element             |
+| Tests fail headless only           | Set `HEADLESS=false` to debug           |
+| Flaky tests                        | Increase timeouts, add retries          |
+| `ECONNREFUSED`                     | Start the app first (`npm run dev`)     |
+| Port conflict                      | Check `BASE_URL` matches running app    |
 
 ## References
 
