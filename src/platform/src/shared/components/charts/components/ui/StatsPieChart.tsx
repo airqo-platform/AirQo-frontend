@@ -36,7 +36,9 @@ const StatsPieChart: React.FC<StatsPieChartProps> = ({
   showLegend = true,
   colors,
 }) => {
-  if (!data || data.length === 0) {
+  const total = data?.reduce((sum, d) => sum + (d.value || 0), 0) ?? 0;
+
+  if (!data || data.length === 0 || total === 0) {
     return (
       <div
         className="flex items-center justify-center text-muted-foreground"

@@ -109,19 +109,13 @@ const UserManagementPage: React.FC = () => {
     }
   }, [mutate]);
 
-  const openRoleDialog = useCallback(
-    (user: User) => {
-      const primaryRoleId =
-        user.groups?.[0]?.role?._id ||
-        user.networks?.[0]?.role?._id ||
-        availableRoles[0]?._id ||
-        '';
-      setRoleDialogUser(user);
-      setSelectedRoleId(primaryRoleId);
-      setRoleSearch('');
-    },
-    [availableRoles]
-  );
+  const openRoleDialog = useCallback((user: User) => {
+    const primaryRoleId =
+      user.groups?.[0]?.role?._id || user.networks?.[0]?.role?._id || '';
+    setRoleDialogUser(user);
+    setSelectedRoleId(primaryRoleId);
+    setRoleSearch('');
+  }, []);
 
   const handleUpdateRole = async () => {
     if (!roleDialogUser || !selectedRoleId) {

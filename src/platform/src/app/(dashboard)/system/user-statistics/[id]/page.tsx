@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
 
 interface UserDetailRedirectPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-export default async function UserDetailRedirectPage({
+export default function UserDetailRedirectPage({
   params,
 }: UserDetailRedirectPageProps) {
-  const { id } = await params;
+  const { id } = params;
   redirect(`/system/users/${id}`);
 }

@@ -74,13 +74,8 @@ const UserDetailPage: React.FC = () => {
   }, [availableRoles, roleSearch]);
 
   const primaryRoleId = useMemo(() => {
-    return (
-      user?.networks?.[0]?.role?._id ||
-      user?.groups?.[0]?.role?._id ||
-      availableRoles[0]?._id ||
-      ''
-    );
-  }, [availableRoles, user]);
+    return user?.networks?.[0]?.role?._id || user?.groups?.[0]?.role?._id || '';
+  }, [user]);
 
   const currentRoleEntries = useMemo(() => {
     const entries: Array<{
@@ -135,6 +130,7 @@ const UserDetailPage: React.FC = () => {
 
   const openRoleDialog = useCallback(() => {
     setSelectedRoleId(primaryRoleId);
+    setRoleSearch('');
     setIsRoleDialogOpen(true);
   }, [primaryRoleId]);
 
