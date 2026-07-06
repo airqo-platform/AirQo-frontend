@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 
+import MainLayout from '@/components/layout/MainLayout';
 import SingleEvent from '@/features/events/SingleEvent';
 import { buildSiteUrl } from '@/lib/siteUrl';
 
@@ -65,9 +66,9 @@ export async function generateMetadata({
 
 const page = ({ params }: { params: { id: string } }) => {
   return (
-    <div>
+    <MainLayout>
       <SingleEvent slug={params.id} />
-    </div>
+    </MainLayout>
   );
 };
 
