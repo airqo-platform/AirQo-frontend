@@ -558,6 +558,7 @@ const SurveyDetailsPage: React.FC = () => {
             Icon={AqEye}
             iconPosition="start"
             onClick={() => setSelectedResponse(item)}
+            title="View response details"
           >
             View
           </Button>

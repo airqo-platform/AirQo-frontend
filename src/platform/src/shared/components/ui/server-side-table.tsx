@@ -177,7 +177,7 @@ export function ServerSideTable<T extends TableItem>({
     <div className={cn('w-full max-w-full overflow-x-auto', className)}>
       <MultiSelectTable
         data={data}
-        title={`${title}`}
+        title={title || ''}
         columns={columns}
         loading={loading}
         isRefreshing={isRefreshing}

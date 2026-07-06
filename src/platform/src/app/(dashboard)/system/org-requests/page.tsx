@@ -14,6 +14,7 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { REJECTION_REASON_MAX } from '@/shared/lib/validation-limits';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   useOrganizationRequests,
@@ -79,7 +80,8 @@ const getPartnerName = (request: OrganizationRequest) =>
   request.funder_partner || request.funderPartner || '';
 
 const OrganizationRequestsPage = () => {
-  const { data, error, isLoading, mutate } = useOrganizationRequests();
+  const { data, error, isLoading, isValidating, mutate } =
+    useOrganizationRequests();
 
   const requests = useMemo(() => data?.requests || [], [data?.requests]);
   const errorMessage = error ? 'Failed to load organization requests' : null;
@@ -362,7 +364,12 @@ const OrganizationRequestsPage = () => {
           title="Failed to load organization requests"
           message={errorMessage}
           actions={
-            <Button onClick={handleRefresh} variant="outlined" size="sm">
+            <Button
+              onClick={handleRefresh}
+              variant="outlined"
+              size="sm"
+              loading={isValidating}
+            >
               Try again
             </Button>
           }
@@ -403,7 +410,12 @@ const OrganizationRequestsPage = () => {
                   {requests.filter(r => r.status === 'rejected').length})
                 </Button>
               </div>
-              <Button variant="outlined" size="sm" onClick={handleRefresh}>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={handleRefresh}
+                loading={isValidating}
+              >
                 Refresh
               </Button>
             </div>
@@ -476,6 +488,7 @@ const OrganizationRequestsPage = () => {
                 }
                 required
                 placeholder="Please provide a reason for rejection"
+                maxLength={REJECTION_REASON_MAX}
               />
             )}
           </ReusableDialog>

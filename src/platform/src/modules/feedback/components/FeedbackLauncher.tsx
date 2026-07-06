@@ -11,6 +11,7 @@ import { Button, Select, TextInput } from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { FEEDBACK_MESSAGE_MAX } from '@/shared/lib/validation-limits';
 import {
   MAX_IMAGE_FILE_SIZE_BYTES,
   PROFILE_IMAGE_ALLOWED_MIME_TYPES,
@@ -928,6 +929,7 @@ export const FeedbackLauncher: React.FC = () => {
                 rows={6}
                 required
                 containerClassName="md:col-span-2"
+                maxLength={FEEDBACK_MESSAGE_MAX}
               />
 
               <div className="space-y-3 md:col-span-2">

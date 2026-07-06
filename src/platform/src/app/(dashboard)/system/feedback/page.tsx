@@ -350,6 +350,7 @@ const FeedbackListContent: React.FC = () => {
             Icon={AqEye}
             iconPosition="start"
             onClick={() => handleViewFeedback(item._id)}
+            title="View feedback details"
             aria-label={`View feedback ${item.subject}`}
           >
             View

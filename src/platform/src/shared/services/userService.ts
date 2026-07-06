@@ -31,6 +31,7 @@ import type {
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
   GetUserStatisticsResponse,
+  GetUsersResponse,
   AcceptEmailInvitationRequest,
   AcceptEmailInvitationResponse,
   GetPendingInvitationsResponse,
@@ -493,6 +494,22 @@ export class UserService {
     }
 
     return data as GetUserStatisticsResponse;
+  }
+
+  // Get users - authenticated endpoint (supports optional email filter)
+  async getUsers(email?: string): Promise<GetUsersResponse> {
+    await this.ensureAuthenticated();
+    const params = email ? `?email=${encodeURIComponent(email.trim())}` : '';
+    const response = await this.authenticatedClient.get<
+      GetUsersResponse | ApiErrorResponse
+    >(`/users${params}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get users');
+    }
+
+    return data as GetUsersResponse;
   }
 
   // Get pending invitations - authenticated endpoint

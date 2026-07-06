@@ -13,6 +13,7 @@ import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useCreateRole } from '@/shared/hooks/useAdmin';
 import type { UserRoleSummary } from '@/shared/types/api';
+import { ROLE_NAME_MAX, ROLE_CODE_MAX } from '@/shared/lib/validation-limits';
 
 interface CreateRoleDialogProps {
   isOpen: boolean;
@@ -155,6 +156,7 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
             }
             placeholder="EXAMPLE_ROLE_NAME"
             className="w-full"
+            maxLength={ROLE_NAME_MAX}
           />
         </div>
 
@@ -167,6 +169,7 @@ const CreateRoleDialog: React.FC<CreateRoleDialogProps> = ({
             onChange={e => setRoleCode(e.target.value)}
             placeholder="Optional identifier code"
             className="w-full"
+            maxLength={ROLE_CODE_MAX}
           />
         </div>
 

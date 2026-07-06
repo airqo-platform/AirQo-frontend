@@ -46,6 +46,12 @@ import {
   toast,
 } from '@/shared/components/ui';
 import { cn } from '@/shared/lib/utils';
+import {
+  CHART_TITLE_MAX,
+  CHART_SUBTITLE_MAX,
+  CHART_AXIS_LABEL_MAX,
+  CHART_REFERENCE_LABEL_MAX,
+} from '@/shared/lib/validation-limits';
 import { VisualizerChart } from './VisualizerChart';
 import { VisualizerMapChart } from './VisualizerMapChart';
 
@@ -612,6 +618,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                 onChange={event => setDraftTitle(event.target.value)}
                 onBlur={commitTitle}
                 onKeyDown={event => handleEditableKeyDown(event, 'title')}
+                maxLength={CHART_TITLE_MAX}
                 className="w-full rounded-md border border-primary/40 bg-background px-2 py-1 text-lg font-semibold leading-snug text-foreground outline-none ring-2 ring-primary/10"
                 aria-label="Custom chart title"
               />
@@ -643,6 +650,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                 onBlur={commitSubtitle}
                 onKeyDown={event => handleEditableKeyDown(event, 'subtitle')}
                 placeholder="Add a custom subtitle"
+                maxLength={CHART_SUBTITLE_MAX}
                 className="mt-1 w-full rounded-md border border-primary/40 bg-background px-2 py-1 text-sm leading-relaxed text-muted-foreground outline-none ring-2 ring-primary/10"
                 aria-label="Custom chart subtitle"
               />
@@ -796,6 +804,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       updateChart({ title: event.target.value })
                     }
                     containerClassName="mb-0 md:col-span-2"
+                    maxLength={CHART_TITLE_MAX}
                   />
                   <Input
                     label="Subtitle"
@@ -804,6 +813,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       updateChart({ subtitle: event.target.value })
                     }
                     containerClassName="mb-0 md:col-span-2"
+                    maxLength={CHART_SUBTITLE_MAX}
                   />
                   <Select
                     label="Type"
@@ -935,6 +945,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       updateChart({ title: event.target.value })
                     }
                     containerClassName="mb-0 md:col-span-2"
+                    maxLength={CHART_TITLE_MAX}
                   />
                   <Input
                     label="Subtitle"
@@ -943,6 +954,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       updateChart({ subtitle: event.target.value })
                     }
                     containerClassName="mb-0 md:col-span-2"
+                    maxLength={CHART_SUBTITLE_MAX}
                   />
                   <Select
                     label="Type"
@@ -1019,6 +1031,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       })
                     }
                     containerClassName="mb-0"
+                    maxLength={CHART_AXIS_LABEL_MAX}
                   />
                   <Select
                     label="X axis time or category"
@@ -1063,6 +1076,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       })
                     }
                     containerClassName="mb-0"
+                    maxLength={CHART_AXIS_LABEL_MAX}
                   />
                   <Select
                     label="Series / compare by"
@@ -1178,6 +1192,7 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       })
                     }
                     containerClassName="mb-0"
+                    maxLength={CHART_REFERENCE_LABEL_MAX}
                   />
                   <label className="mb-0 flex flex-col gap-1.5 text-sm">
                     <span className="font-medium text-foreground">

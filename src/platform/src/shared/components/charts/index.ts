@@ -12,6 +12,11 @@ export {
   CompactLegend,
   InteractiveLegend,
 } from './components/ui/CustomLegend';
+export { StatsPieChart } from './components/ui/StatsPieChart';
+export type {
+  StatsPieChartDataPoint,
+  StatsPieChartProps,
+} from './components/ui/StatsPieChart';
 
 // Export hooks
 export { useChartExport } from './hooks/useChartExport';

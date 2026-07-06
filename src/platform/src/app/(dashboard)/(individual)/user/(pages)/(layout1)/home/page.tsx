@@ -17,8 +17,12 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDataAccessOpen, setIsDataAccessOpen] = useState(false);
 
-  const fairUsagePolicyUrl = useEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/fair-usage-policy/');
-  const researchersGuideUrl = useEnvironmentAwareUrl('https://platform.airqo.net/docs/data-access/researchers-guide/');
+  const fairUsagePolicyUrl = useEnvironmentAwareUrl(
+    'https://platform.airqo.net/docs/data-access/fair-usage-policy/'
+  );
+  const researchersGuideUrl = useEnvironmentAwareUrl(
+    'https://platform.airqo.net/docs/data-access/researchers-guide/'
+  );
 
   const handleModal = () => setIsModalOpen(!isModalOpen);
 
