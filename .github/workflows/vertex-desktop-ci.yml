@@ -59,6 +59,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Resolve version and tag
         id: version
         working-directory: src/vertex-desktop
@@ -84,7 +89,15 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         env:
           TAG: ${{ steps.version.outputs.tag }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
         run: |
+          if [[ "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            echo "No before SHA available (new branch); proceeding with tagging."
+          elif ! git diff --unified=0 "${BEFORE_SHA}" "${AFTER_SHA}" -- src/vertex-desktop/package.json | grep -qE '^[+-][[:space:]]*"version"[[:space:]]*:'; then
+            echo "No version change detected in src/vertex-desktop/package.json for this push; skipping auto-tag."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "${TAG}" -m "Vertex desktop release ${TAG}"

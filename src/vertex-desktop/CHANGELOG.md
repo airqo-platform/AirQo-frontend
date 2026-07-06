@@ -4,7 +4,7 @@
 
 ---
 
-## Version 0.1.9
+## Version 0.1.10
 **Released:** July 05, 2026
 
 ### Fully Automated Tag-and-Release Pipeline + Linux Builds
@@ -12,17 +12,27 @@
 Removed the last manual step from cutting a desktop release: bumping `version` and merging to `staging` now tags and releases automatically. Added Linux packaging so installers publish for all three desktop platforms.
 
 <details>
-<summary><strong>CI/CD Enhancements (2)</strong></summary>
+<summary><strong>CI/CD Enhancements (4)</strong></summary>
 
 - **Auto-Tag Job**: Added an `auto-tag` job to `vertex-desktop-ci.yml` that runs after typecheck/build succeed on `staging`. It reads `version` from `package.json` and, if a matching `vertex-desktop-v<version>` tag doesn't exist yet, creates and pushes it — no local `git tag`/`git push` required.
+- **Version-Bump Guard**: `auto-tag` only tags when the push's diff actually changed the `version` field in `package.json`, preventing an unrelated push from re-cutting a release if a tag is ever missing (e.g. deleted).
+- **Explicit Node Setup**: `auto-tag` now sets up Node via `actions/setup-node@v4` instead of relying on the runner's preinstalled version, matching the other desktop jobs.
 - **Linux Release Job**: Added a `release-linux` job to `vertex-desktop-release.yml` that builds and publishes Linux artifacts alongside the existing Windows and macOS jobs.
 
 </details>
 
 <details>
-<summary><strong>Packaging & Distribution (1)</strong></summary>
+<summary><strong>Packaging & Distribution (2)</strong></summary>
 
 - **Linux Build Targets**: Configured `build.linux.target` (`AppImage`, `deb`) in `package.json` so `electron-builder --linux` has explicit output targets.
+- **Maintainer Email**: Set `author` to an email-bearing value so `electron-builder` can generate valid Debian package metadata for the `deb` target.
+
+</details>
+
+<details>
+<summary><strong>Security (1)</strong></summary>
+
+- **Scoped Permissions**: Reduced workflow-level `permissions` in `vertex-desktop-ci.yml` to `contents: read`, since only the `auto-tag` job needs write access (declared at the job level) and the `desktop-quality` job runs untrusted dependency install/build steps.
 
 </details>
 
