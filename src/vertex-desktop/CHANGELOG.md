@@ -4,6 +4,33 @@
 
 ---
 
+## Version 0.1.11
+**Released:** July 06, 2026
+
+### Social OAuth in Electron Window
+
+Replaced system-browser OAuth flow with a dedicated Electron child window so the OS no longer shows a "Open Electron?" protocol dialog and the browser tab is never left in a broken state.
+
+<details>
+<summary><strong>Authentication (3)</strong></summary>
+
+- **OAuth Child Window**: Social sign-in URLs (`/users/auth/*`) now open in a 480×680 Electron `BrowserWindow` instead of the system browser, keeping the entire auth flow inside the app.
+- **Deep-Link Interception**: The child window monitors `will-navigate` and `will-redirect` for the `vertex://` redirect issued by the backend after OAuth completes; it intercepts the URL internally, closes itself, and hands the token to `handleDeepLink` — no OS protocol handler required.
+- **AirQo Icon**: The auth popup uses the same packaged `icon.png` as the main window instead of the default Electron icon.
+
+</details>
+
+<details>
+<summary><strong>Files Added/Modified (3)</strong></summary>
+
+- `main/auth-window.ts` *(new)*
+- `main/index.ts`
+- `main/windows.ts`
+
+</details>
+
+---
+
 ## Version 0.1.10
 **Released:** July 05, 2026
 
