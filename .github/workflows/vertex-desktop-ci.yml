@@ -53,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,12 +87,14 @@ jobs:
           fi
 
       - name: Create and push release tag
+        id: tag
         if: steps.check.outputs.exists == 'false'
         env:
           TAG: ${{ steps.version.outputs.tag }}
           BEFORE_SHA: ${{ github.event.before }}
           AFTER_SHA: ${{ github.sha }}
         run: |
+          echo "tagged=false" >> "$GITHUB_OUTPUT"
           if [[ "${BEFORE_SHA}" =~ ^0+$ ]]; then
             echo "No before SHA available (new branch); proceeding with tagging."
           else
@@ -108,7 +111,24 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "${TAG}" -m "Vertex desktop release ${TAG}"
           git push origin "${TAG}"
-          echo "Pushed tag ${TAG} - this will trigger vertex-desktop-release.yml"
+          echo "tagged=true" >> "$GITHUB_OUTPUT"
+          echo "Pushed tag ${TAG}"
+
+      - name: Trigger release workflow
+        if: steps.tag.outputs.tagged == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          # A tag pushed with the default GITHUB_TOKEN does not trigger other
+          # workflows' `on: push: tags:` (GitHub's anti-recursion guard), so
+          # dispatch vertex-desktop-release.yml directly via workflow_dispatch,
+          # which is explicitly exempt from that restriction.
+          gh workflow run vertex-desktop-release.yml \
+            --repo "${{ github.repository }}" \
+            --ref "${{ github.ref_name }}" \
+            -f release_tag="${TAG}"
+          echo "Dispatched vertex-desktop-release.yml for ${TAG}"
 
       - name: Skip (tag already exists)
         if: steps.check.outputs.exists == 'true'
