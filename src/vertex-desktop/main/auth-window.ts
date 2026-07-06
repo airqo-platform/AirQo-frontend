@@ -21,7 +21,7 @@ const isOAuthUrl = (url: string): boolean => {
     const trustedOrigin = apiOrigin
       ? parsed.origin === apiOrigin
       : parsed.hostname === "airqo.net" || parsed.hostname.endsWith(".airqo.net");
-    return trustedOrigin && parsed.pathname.includes('/users/auth/');
+    return trustedOrigin && parsed.pathname.startsWith("/users/auth/");
   } catch {
     return false;
   }
@@ -63,7 +63,7 @@ export const setupAuthWindowHandler = (
     });
 
     const interceptDeepLink = (event: { preventDefault: () => void }, url: string) => {
-      if (!url.startsWith("vertex://")) return;
+      if (!url.startsWith("vertex://login")) return;
       event.preventDefault();
       childWindow.webContents.off("will-navigate", interceptDeepLink);
       childWindow.webContents.off("will-redirect", interceptDeepLink);
