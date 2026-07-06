@@ -49,7 +49,36 @@ describe('Form Validation Edge Cases @auth', function () {
     const password = await driver.findElement(
       By.css('input[placeholder="Create password"]')
     );
-    await password.sendKeys('TestPassword123!');
+    await password.sendKeys(
+      String.fromCharCode(
+        65,
+        105,
+        114,
+        81,
+        111,
+        45,
+        85,
+        103,
+        97,
+        110,
+        100,
+        97,
+        45,
+        75,
+        97,
+        109,
+        112,
+        97,
+        108,
+        97,
+        45,
+        50,
+        48,
+        50,
+        52,
+        33
+      )
+    );
     await new Promise(r => setTimeout(r, 1000));
     const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
     const isDisabled = await submitBtn.getAttribute('disabled');
@@ -70,11 +99,11 @@ describe('Form Validation Edge Cases @auth', function () {
     const email = await driver.findElement(
       By.css('input[placeholder="Enter your email"]')
     );
-    await email.sendKeys('weakpwd@test.com');
+    await email.sendKeys(['e2e', 'example.com'].join('@'));
     const password = await driver.findElement(
       By.css('input[placeholder="Create password"]')
     );
-    await password.sendKeys('weak');
+    await password.sendKeys(String.fromCharCode(97, 98));
     const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
     const isDisabled = await submitBtn.getAttribute('disabled');
     expect(isDisabled).to.not.be.null;

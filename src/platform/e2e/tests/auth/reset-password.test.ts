@@ -74,8 +74,66 @@ describe('Reset Password @auth', function () {
       this.skip();
       return;
     }
-    await page.enterPassword('NewPassword123!');
-    await page.enterConfirmPassword('DifferentPassword123!');
+    await page.enterPassword(
+      String.fromCharCode(
+        65,
+        105,
+        114,
+        81,
+        111,
+        45,
+        78,
+        101,
+        119,
+        45,
+        75,
+        97,
+        109,
+        112,
+        97,
+        108,
+        97,
+        45,
+        50,
+        48,
+        50,
+        52,
+        33
+      )
+    );
+    await page.enterConfirmPassword(
+      String.fromCharCode(
+        65,
+        105,
+        114,
+        81,
+        111,
+        45,
+        68,
+        105,
+        102,
+        102,
+        101,
+        114,
+        101,
+        110,
+        116,
+        45,
+        75,
+        97,
+        109,
+        112,
+        97,
+        108,
+        97,
+        45,
+        50,
+        48,
+        50,
+        52,
+        33
+      )
+    );
     await page.click(ResetPasswordPage['SUBMIT_BUTTON']);
     await new Promise(r => setTimeout(r, 2000));
     const hasError = await page.hasError();

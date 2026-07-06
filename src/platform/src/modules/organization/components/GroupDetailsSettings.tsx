@@ -245,7 +245,10 @@ const GroupDetailsSettings: React.FC = () => {
           if (oldPublicId) {
             try {
               await deleteFromCloudinary(oldPublicId);
-              console.log('Successfully deleted old group logo:', oldPublicId);
+              console.debug(
+                'Successfully deleted old group logo:',
+                oldPublicId
+              );
             } catch (deleteError) {
               // Log but don't block - orphaned images are better than blocked uploads
               console.warn(

@@ -670,7 +670,7 @@ const DataExportPage = () => {
         const titleSuffix =
           download.activeTab.charAt(0).toUpperCase() +
           download.activeTab.slice(1);
-        const blob = buildDownloadPdfBlob(
+        const blob = await buildDownloadPdfBlob(
           download.response,
           download.selectedColumnKeys,
           {
