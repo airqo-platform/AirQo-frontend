@@ -17,6 +17,7 @@ import { HexColorPicker } from 'react-colorful';
 import { useUser } from '@/shared/hooks/useUser';
 import { useGroupTheme } from '@/shared/hooks/usePreferences';
 import { Tooltip } from 'flowbite-react';
+import { HEX_COLOR_MAX } from '@/shared/lib/validation-limits';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
 
 const presetColors = [
@@ -213,6 +214,7 @@ const ThemeManager: React.FC = () => {
                     type="text"
                     value={customColor}
                     onChange={e => setCustomColor(e.target.value)}
+                    maxLength={HEX_COLOR_MAX}
                     className="flex-1 px-2 py-1 text-sm border border-border rounded-md bg-background"
                   />
                 </div>

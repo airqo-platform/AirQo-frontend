@@ -19,6 +19,10 @@ import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
+import {
+  ROLE_NAME_MAX,
+  ROLE_DESCRIPTION_MAX,
+} from '@/shared/lib/validation-limits';
 
 const RolesPage = () => {
   const router = useRouter();
@@ -299,6 +303,7 @@ const RolesPage = () => {
                   placeholder="EXAMPLE_ROLE_NAME"
                   className="w-full"
                   disabled={createRoleMutation.isMutating}
+                  maxLength={ROLE_NAME_MAX}
                 />
               </div>
               <div>
@@ -312,6 +317,7 @@ const RolesPage = () => {
                   placeholder="Enter role description (optional)"
                   className="w-full"
                   disabled={createRoleMutation.isMutating}
+                  maxLength={ROLE_DESCRIPTION_MAX}
                 />
               </div>
               {currentOrg && (

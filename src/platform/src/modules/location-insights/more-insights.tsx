@@ -17,6 +17,7 @@ import { POLLUTANT_LABELS } from '@/shared/components/charts/constants';
 import type { ChartData } from '@/modules/analytics/types';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import type { ChartDataPoint } from '@/shared/types/api';
+import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 
 // Pollutant options
 const POLLUTANT_OPTIONS = Object.entries(POLLUTANT_LABELS).map(
@@ -513,6 +514,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           placeholder="Search locations..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
+          maxLength={SEARCH_TERM_MAX}
           className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         />
         {searchQuery && (

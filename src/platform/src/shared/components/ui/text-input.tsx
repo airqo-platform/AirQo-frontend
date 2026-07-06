@@ -28,10 +28,47 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
       required = false,
       disabled = false,
       rows = 4,
+      maxLength,
+      value,
+      defaultValue,
+      onChange,
       ...rest
     },
     ref
   ) => {
+    const maxLengthNum = typeof maxLength === 'number' ? maxLength : undefined;
+
+    const getInitialLength = (): number => {
+      if (value !== undefined && value !== null) return String(value).length;
+      if (defaultValue !== undefined && defaultValue !== null)
+        return String(defaultValue).length;
+      return 0;
+    };
+
+    const [charCount, setCharCount] = React.useState(getInitialLength);
+
+    React.useEffect(() => {
+      if (value !== undefined && value !== null) {
+        setCharCount(String(value).length);
+      }
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (maxLengthNum !== undefined) {
+        setCharCount(e.target.value.length);
+      }
+      if (onChange) {
+        onChange(e);
+      }
+    };
+
+    const isOverLimit = maxLengthNum !== undefined && charCount > maxLengthNum;
+    const maxLengthError = isOverLimit
+      ? `Max ${maxLengthNum} characters allowed`
+      : undefined;
+
+    const displayError = error || maxLengthError;
+
     return (
       <div className={`flex flex-col mb-4 ${containerClassName}`}>
         {label && (
@@ -57,6 +94,10 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
             disabled={disabled}
             required={required}
             rows={rows}
+            maxLength={maxLength}
+            value={value}
+            defaultValue={defaultValue}
+            onChange={handleChange}
             className={`
             w-full px-4 py-2.5 rounded-md border bg-background outline-none text-sm
             text-foreground placeholder-muted-foreground
@@ -68,6 +109,7 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
             focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none
 
             disabled:cursor-not-allowed disabled:border-input disabled:bg-muted disabled:text-muted-foreground
+            ${displayError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
             ${inputClassName}
           `}
             style={{
@@ -79,7 +121,7 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
           />
         </div>
 
-        {error && (
+        {displayError && (
           <div className="mt-1.5 flex items-center text-xs text-destructive">
             <svg
               className="w-4 h-4 mr-1 flex-shrink-0"
@@ -92,7 +134,19 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
                 clipRule="evenodd"
               />
             </svg>
-            {error}
+            {displayError}
+          </div>
+        )}
+
+        {!displayError && maxLengthNum !== undefined && charCount > 0 && (
+          <div
+            className={`mt-1.5 text-xs ${
+              charCount >= maxLengthNum
+                ? 'text-destructive font-medium'
+                : 'text-muted-foreground'
+            }`}
+          >
+            {charCount}/{maxLengthNum}
           </div>
         )}
       </div>

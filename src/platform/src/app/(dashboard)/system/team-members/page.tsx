@@ -4,7 +4,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
-import { Button, Card, LoadingState, PageHeading } from '@/shared/components/ui';
+import {
+  Button,
+  Card,
+  LoadingState,
+  PageHeading,
+} from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import BulkRoleAssignmentDialog from '@/shared/components/BulkRoleAssignmentDialog';
 import { feedbackService } from '@/modules/feedback';
@@ -14,8 +19,9 @@ import {
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import type { FeedbackStaffMember } from '@/shared/types/api';
+import { AqEye } from '@airqo/icons-react';
 
-const TeamMembersContent: React.FC = () => {
+const MembersContent: React.FC = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -33,29 +39,21 @@ const TeamMembersContent: React.FC = () => {
     data: staffData,
     isLoading,
     error,
-  } = useSWR(
-    'feedback/staff',
-    () => feedbackService.getFeedbackStaff(),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000,
-    }
-  );
+  } = useSWR('feedback/staff', () => feedbackService.getFeedbackStaff(), {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
+  });
 
-  const allMembers = useMemo(
-    () => staffData?.staff || [],
-    [staffData?.staff]
-  );
+  const allMembers = useMemo(() => staffData?.staff || [], [staffData?.staff]);
 
   const filteredMembers = useMemo(() => {
     if (!search.trim()) return allMembers;
     const q = search.trim().toLowerCase();
-    return allMembers.filter(
-      (member: FeedbackStaffMember) =>
-        `${member.firstName} ${member.lastName} ${member.email} ${member.userName}`
-          .toLowerCase()
-          .includes(q)
+    return allMembers.filter((member: FeedbackStaffMember) =>
+      `${member.firstName} ${member.lastName} ${member.email} ${member.userName}`
+        .toLowerCase()
+        .includes(q)
     );
   }, [allMembers, search]);
 
@@ -105,11 +103,11 @@ const TeamMembersContent: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              router.push(`/system/team-members/${member._id}`)
-            }
+            onClick={() => router.push(`/system/team-members/${member._id}`)}
+            title="View member details"
+            aria-label="View member details"
           >
-            View
+            <AqEye className="w-4 h-4" />
           </Button>
         ),
       },
@@ -118,12 +116,7 @@ const TeamMembersContent: React.FC = () => {
   );
 
   if (isLoading) {
-    return (
-      <LoadingState
-        className="min-h-[400px]"
-        text="Loading team members..."
-      />
-    );
+    return <LoadingState className="min-h-[400px]" text="Loading members..." />;
   }
 
   if (error) {
@@ -131,7 +124,7 @@ const TeamMembersContent: React.FC = () => {
       return (
         <AccessDenied
           title="Access Denied"
-          message="You do not have the required permissions to view team members."
+          message="You do not have the required permissions to view members."
         />
       );
     }
@@ -148,8 +141,8 @@ const TeamMembersContent: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeading
-          title="Team Members"
-          subtitle={`${allMembers.length} staff member${allMembers.length !== 1 ? 's' : ''}`}
+          title="Members"
+          subtitle={`${allMembers.length} member${allMembers.length !== 1 ? 's' : ''}`}
         />
         {selectedMembers.length > 0 && (
           <Button
@@ -163,7 +156,6 @@ const TeamMembersContent: React.FC = () => {
       </div>
 
       <ServerSideTable
-        title="Staff Members"
         data={paginatedMembers.map(member => ({
           ...member,
           id: member._id,
@@ -202,16 +194,16 @@ const TeamMembersContent: React.FC = () => {
   );
 };
 
-const TeamMembersPage: React.FC = () => {
+const MembersPage: React.FC = () => {
   return (
     <PermissionGuard
       requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need system administration permissions to view team members."
+      accessDeniedMessage="You need system administration permissions to view members."
     >
-      <TeamMembersContent />
+      <MembersContent />
     </PermissionGuard>
   );
 };
 
-export default TeamMembersPage;
+export default MembersPage;

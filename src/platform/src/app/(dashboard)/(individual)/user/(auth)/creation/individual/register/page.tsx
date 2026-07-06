@@ -8,6 +8,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { registerSchema, type RegisterFormData } from '@/shared/lib/validators';
+import {
+  FIRST_NAME_MAX,
+  LAST_NAME_MAX,
+  EMAIL_MAX,
+  PASSWORD_MAX,
+} from '@/shared/lib/validation-limits';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useRouter } from 'next/navigation';
@@ -68,6 +74,7 @@ export default function RegisterPage() {
               label="First name"
               placeholder="Enter your first name"
               error={errors.firstName?.message}
+              maxLength={FIRST_NAME_MAX}
               {...register('firstName')}
             />
           </div>
@@ -77,6 +84,7 @@ export default function RegisterPage() {
               label="Last name"
               placeholder="Enter your last name"
               error={errors.lastName?.message}
+              maxLength={LAST_NAME_MAX}
               {...register('lastName')}
             />
           </div>
@@ -88,6 +96,7 @@ export default function RegisterPage() {
           placeholder="Enter your email"
           error={errors.email?.message}
           containerClassName="mb-4"
+          maxLength={EMAIL_MAX}
           {...register('email')}
         />
 
@@ -98,6 +107,7 @@ export default function RegisterPage() {
             placeholder="Create password"
             error={errors.password?.message}
             showPasswordToggle
+            maxLength={PASSWORD_MAX}
             {...register('password')}
           />{' '}
           <p className="mt-2 text-xs text-gray-500">

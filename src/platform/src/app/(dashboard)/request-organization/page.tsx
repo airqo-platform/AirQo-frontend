@@ -19,6 +19,14 @@ import { toast } from '@/shared/components/ui/toast';
 import Dialog from '@/shared/components/ui/dialog';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { validateEmail } from '@/shared/lib/validators';
+import {
+  PROJECT_NAME_MAX,
+  CITY_MAX,
+  FUNDER_PARTNER_MAX,
+  CONTACT_NAME_MAX,
+  EMAIL_MAX,
+  USE_CASE_MAX,
+} from '@/shared/lib/validation-limits';
 
 const ORGANIZATION_TYPES = [
   { value: 'government', label: 'Government' },
@@ -239,6 +247,7 @@ const RequestOrganizationPage = () => {
                     required
                     placeholder="Clean Air Monitor"
                     error={validationErrors.project_name}
+                    maxLength={PROJECT_NAME_MAX}
                   />
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -250,6 +259,7 @@ const RequestOrganizationPage = () => {
                       required
                       placeholder="Kampala"
                       error={validationErrors.city}
+                      maxLength={CITY_MAX}
                     />
 
                     <SelectField
@@ -292,6 +302,7 @@ const RequestOrganizationPage = () => {
                       onChange={handleInputChange}
                       placeholder="WorldBank (optional)"
                       description="Optional: sponsor or implementation partner."
+                      maxLength={FUNDER_PARTNER_MAX}
                     />
                   </div>
 
@@ -304,6 +315,7 @@ const RequestOrganizationPage = () => {
                     rows={5}
                     placeholder="Describe what you are monitoring, who will use the data, and expected impact."
                     error={validationErrors.use_case}
+                    maxLength={USE_CASE_MAX}
                   />
                 </CardContent>
               </Card>
@@ -325,6 +337,7 @@ const RequestOrganizationPage = () => {
                       required
                       placeholder="Jane Doe"
                       error={validationErrors.contact_name}
+                      maxLength={CONTACT_NAME_MAX}
                     />
 
                     <Input
@@ -336,6 +349,7 @@ const RequestOrganizationPage = () => {
                       required
                       placeholder="contact@example.com"
                       error={validationErrors.contact_email}
+                      maxLength={EMAIL_MAX}
                     />
                   </div>
                 </CardContent>

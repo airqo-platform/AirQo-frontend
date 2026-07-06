@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
+import { EMAIL_MAX, PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import {
   normalizeCallbackUrl,
   redirectWithReload,
@@ -184,6 +185,7 @@ export default function LoginPage() {
             type="email"
             placeholder="user@example.com"
             error={errors.email?.message}
+            maxLength={EMAIL_MAX}
             {...register('email')}
           />
 
@@ -220,6 +222,7 @@ export default function LoginPage() {
             error={errors.password?.message}
             containerClassName="mb-0"
             showPasswordToggle
+            maxLength={PASSWORD_MAX}
             {...register('password')}
           />
 

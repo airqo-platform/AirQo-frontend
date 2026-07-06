@@ -253,7 +253,8 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description: 'View team member profile and manage their role assignments.',
     openGraph: {
       title: 'Team Member Details | AirQo Analytics',
-      description: 'View team member profile and manage their role assignments.',
+      description:
+        'View team member profile and manage their role assignments.',
     },
   },
 };

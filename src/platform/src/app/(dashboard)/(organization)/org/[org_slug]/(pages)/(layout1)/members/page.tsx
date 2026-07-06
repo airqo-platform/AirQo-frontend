@@ -25,6 +25,7 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import { PermissionGuard } from '@/shared/components';
 import { useRBAC } from '@/shared/hooks';
+import { EMAIL_MAX } from '@/shared/lib/validation-limits';
 
 interface GroupMember {
   _id: string;
@@ -464,6 +465,7 @@ const MembersPage: React.FC = () => {
                             }
                             placeholder="user@example.com"
                             className="w-full"
+                            maxLength={EMAIL_MAX}
                           />
                           {emailErrors[index] && (
                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">

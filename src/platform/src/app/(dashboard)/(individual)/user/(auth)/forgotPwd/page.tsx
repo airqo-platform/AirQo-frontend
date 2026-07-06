@@ -10,6 +10,7 @@ import {
   forgotPwdSchema,
   type ForgotPwdFormData,
 } from '@/shared/lib/validators';
+import { EMAIL_MAX } from '@/shared/lib/validation-limits';
 import { useForgotPassword } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useState } from 'react';
@@ -95,6 +96,7 @@ export default function ForgotPwdPage() {
             placeholder="e.g. greta.nagawa@gmail.com"
             error={errors.email?.message}
             containerClassName="mb-4"
+            maxLength={EMAIL_MAX}
             {...register('email')}
           />
 

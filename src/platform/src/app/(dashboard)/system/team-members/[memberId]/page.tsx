@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSWRConfig } from 'swr';
 import {
@@ -31,6 +37,7 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 
@@ -39,9 +46,7 @@ const DetailItem: React.FC<{ label: string; value: string }> = ({
   value,
 }) => (
   <div>
-    <label className="text-sm font-medium text-muted-foreground">
-      {label}
-    </label>
+    <label className="text-sm font-medium text-muted-foreground">{label}</label>
     <p className="text-sm mt-1 break-words">{value}</p>
   </div>
 );
@@ -338,10 +343,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                   : 'Never'
               }
             />
-            <DetailItem
-              label="Login Count"
-              value={String(user.loginCount)}
-            />
+            <DetailItem label="Login Count" value={String(user.loginCount)} />
             <DetailItem
               label="Current Primary Role"
               value={
@@ -378,9 +380,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
               <p className="text-sm text-muted-foreground">
                 Role groups loaded
               </p>
-              <p className="text-xl font-semibold">
-                {availableRoles.length}
-              </p>
+              <p className="text-xl font-semibold">{availableRoles.length}</p>
             </div>
 
             {rolesError ? (
@@ -394,7 +394,11 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                 onClick={openRoleDialog}
                 fullWidth
                 loading={rolesLoading}
-                disabled={rolesLoading || availableRoles.length === 0 || !activeGroup?.id}
+                disabled={
+                  rolesLoading ||
+                  availableRoles.length === 0 ||
+                  !activeGroup?.id
+                }
               >
                 Change Role
               </Button>
@@ -586,6 +590,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
               }}
               placeholder="Search and select a role..."
               disabled={rolesLoading}
+              maxLength={SEARCH_TERM_MAX}
               className="w-full px-3 py-2.5 border rounded-md text-sm bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:bg-muted disabled:text-muted-foreground"
             />
 
@@ -612,9 +617,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                             ? 'bg-primary/20 text-primary font-medium'
                             : 'text-foreground'
                         } ${
-                          highlightedRoleIndex === index
-                            ? 'bg-primary/10'
-                            : ''
+                          highlightedRoleIndex === index ? 'bg-primary/10' : ''
                         }`}
                       >
                         {role.role_name} - {role.group?.grp_title || 'No group'}

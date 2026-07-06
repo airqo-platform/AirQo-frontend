@@ -12,6 +12,7 @@ import {
   setPasswordSchema,
   type SetPasswordFormData,
 } from '@/shared/lib/validators';
+import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import type { AuthMethods } from '@/shared/types/api';
 
 const DISMISS_STORAGE_KEY_PREFIX = 'airqo:set-password-dismissed:';
@@ -308,6 +309,7 @@ const SetPasswordPromptDialog = () => {
           error={errors.password?.message}
           required
           showPasswordToggle
+          maxLength={PASSWORD_MAX}
         />
 
         <Input
@@ -318,6 +320,7 @@ const SetPasswordPromptDialog = () => {
           error={errors.confirmPassword?.message}
           required
           showPasswordToggle
+          maxLength={PASSWORD_MAX}
         />
 
         <p className="text-xs text-muted-foreground">

@@ -31,6 +31,7 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { EMAIL_MAX, WATCHER_NAME_MAX } from '@/shared/lib/validation-limits';
 import type {
   FeedbackSubmission,
   FeedbackReply,
@@ -899,6 +900,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     (e as React.ChangeEvent<HTMLInputElement>).target.value
                   )
                 }
+                maxLength={EMAIL_MAX}
               />
               <Input
                 id="watcher-name"
@@ -910,6 +912,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     (e as React.ChangeEvent<HTMLInputElement>).target.value
                   )
                 }
+                maxLength={WATCHER_NAME_MAX}
               />
               <Button
                 loading={isAddingWatcher}
