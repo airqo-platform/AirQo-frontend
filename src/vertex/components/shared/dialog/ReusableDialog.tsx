@@ -102,9 +102,11 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
   useEffect(() => {
     if (isOpen) {
       previousActiveElement.current = document.activeElement
-      // Use timeout to ensure dialog is rendered before focusing
       setTimeout(() => {
-        dialogRef.current?.focus()
+        const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+        ;(firstFocusable ?? dialogRef.current)?.focus()
       }, 100)
     } else {
       ;(previousActiveElement.current as HTMLElement)?.focus()
