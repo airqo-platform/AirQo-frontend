@@ -1,3 +1,8 @@
+// NOTE: Both SWR and TanStack Query caches are invalidated here because:
+// - SWR handles persistent user-scoped data (preferences, devices, cohorts)
+// - TanStack Query handles ephemeral analytics/map data (chart data, readings)
+// On group switch, both must be cleared to prevent stale cross-group data.
+
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSWRConfig } from 'swr';

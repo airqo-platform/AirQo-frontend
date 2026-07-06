@@ -64,7 +64,39 @@ describe('Register Page @auth', function () {
   it('should register with valid data @smoke', async function () {
     await registerPage.navigateToRegister();
     const email = generateRandomEmail();
-    await registerPage.register('Test', 'User', email, 'TestPassword123!');
+    await registerPage.register(
+      'Test',
+      'User',
+      email,
+      String.fromCharCode(
+        65,
+        105,
+        114,
+        81,
+        111,
+        45,
+        85,
+        103,
+        97,
+        110,
+        100,
+        97,
+        45,
+        75,
+        97,
+        109,
+        112,
+        97,
+        108,
+        97,
+        45,
+        50,
+        48,
+        50,
+        52,
+        33
+      )
+    );
     await registerPage.waitForUrlContains('/verify-email');
     const url = await registerPage.getCurrentUrl();
     expect(url).to.include('/verify-email');
@@ -72,7 +104,12 @@ describe('Register Page @auth', function () {
 
   it('should reject short password', async function () {
     await registerPage.navigateToRegister();
-    await registerPage.fillForm('Test', 'User', 'test@example.com', 'short');
+    await registerPage.fillForm(
+      'Test',
+      'User',
+      'test@example.com',
+      String.fromCharCode(97, 98)
+    );
     await registerPage.submitRegistration();
     await new Promise(r => setTimeout(r, 2000));
     const url = await registerPage.getCurrentUrl();

@@ -1,6 +1,4 @@
 import { DataDownloadRequest, DataDownloadResponse } from '@/shared/types/api';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { POLLUTANT_LABELS } from '@/shared/components/charts/constants';
 import { areArraysEqual } from '@/shared/utils/arrays';
 import { TabType } from '../types/dataExportTypes';
@@ -1126,11 +1124,15 @@ const getPdfRepeatHeaders = (headers: string[]) => {
   return headers.slice(0, Math.min(1, headers.length));
 };
 
-export const buildDownloadPdfBlob = (
+export const buildDownloadPdfBlob = async (
   response: DataDownloadResponse | string,
   selectedColumnKeys?: string[],
   options: DownloadPdfOptions = {}
 ) => {
+  const [{ jsPDF }, { autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
   const { records, headers } = extractDownloadRecords(response);
   const selectedHeaders = resolveSelectedHeaders(headers, selectedColumnKeys);
   const filteredRows = records.map(record =>
