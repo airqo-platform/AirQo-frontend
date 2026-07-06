@@ -65,7 +65,11 @@ export const setupAuthWindowHandler = (
     const interceptDeepLink = (event: { preventDefault: () => void }, url: string) => {
       if (!url.startsWith("vertex://")) return;
       event.preventDefault();
-      childWindow.destroy();
+      childWindow.webContents.off("will-navigate", interceptDeepLink);
+      childWindow.webContents.off("will-redirect", interceptDeepLink);
+      if (!childWindow.isDestroyed()) {
+        childWindow.destroy();
+      }
       if (!mainWindow.isDestroyed()) {
         if (mainWindow.isMinimized()) mainWindow.restore();
         mainWindow.focus();
