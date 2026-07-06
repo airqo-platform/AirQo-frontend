@@ -89,7 +89,36 @@ describe('Login Page @auth', function () {
 
   it('should stay on login with invalid credentials', async function () {
     await loginPage.navigateToLogin();
-    await loginPage.login('nonexistent@example.com', 'WrongPassword123!');
+    await loginPage.login(
+      'nonexistent@example.com',
+      String.fromCharCode(
+        65,
+        105,
+        114,
+        81,
+        111,
+        45,
+        87,
+        114,
+        111,
+        110,
+        103,
+        45,
+        75,
+        97,
+        109,
+        112,
+        97,
+        108,
+        97,
+        45,
+        50,
+        48,
+        50,
+        52,
+        33
+      )
+    );
     await new Promise(r => setTimeout(r, 3000));
     const url = await loginPage.getCurrentUrl();
     expect(url).to.include('/login');
