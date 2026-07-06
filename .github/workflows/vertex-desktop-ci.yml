@@ -94,9 +94,15 @@ jobs:
         run: |
           if [[ "${BEFORE_SHA}" =~ ^0+$ ]]; then
             echo "No before SHA available (new branch); proceeding with tagging."
-          elif ! git diff --unified=0 "${BEFORE_SHA}" "${AFTER_SHA}" -- src/vertex-desktop/package.json | grep -qE '^[+-][[:space:]]*"version"[[:space:]]*:'; then
-            echo "No version change detected in src/vertex-desktop/package.json for this push; skipping auto-tag."
-            exit 0
+          else
+            if ! DIFF_OUTPUT=$(git diff --unified=0 "${BEFORE_SHA}" "${AFTER_SHA}" -- src/vertex-desktop/package.json); then
+              echo "::error::git diff between ${BEFORE_SHA} and ${AFTER_SHA} failed; cannot determine if version changed."
+              exit 1
+            fi
+            if ! grep -qE '^[+-][[:space:]]*"version"[[:space:]]*:' <<< "${DIFF_OUTPUT}"; then
+              echo "No version change detected in src/vertex-desktop/package.json for this push; skipping auto-tag."
+              exit 0
+            fi
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
