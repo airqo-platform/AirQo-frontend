@@ -58,7 +58,9 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                         </span>
                     </div>
                     <h4 className="text-base font-medium text-gray-900 leading-none">
-                        {activity.description.charAt(0).toUpperCase() + activity.description.slice(1)}
+                        {typeof activity.description === "string" && activity.description
+                            ? activity.description.charAt(0).toUpperCase() + activity.description.slice(1)
+                            : "No description available"}
                     </h4>
                     {activity.activity_by && (
                         <div className="text-sm text-gray-500">
