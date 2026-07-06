@@ -1,18 +1,17 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type QueryFunctionContext } from "@tanstack/react-query";
 import {
-  sites,
   ApproximateCoordinatesResponse,
   GetSitesSummaryParams,
   SitesSummaryResponse,
   CreateSiteResponse,
   SiteRefreshResponse,
-} from "../apis/sites";
+  DeviceActivitiesResponse,
+} from "../adapters/types";
 import { adapter } from '../adapters';
-import { DeviceActivitiesResponse } from "../apis/devices";
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
-import { useUserContext } from "./useUserContext";
 import { useMemo } from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
@@ -57,10 +56,10 @@ export const useSiteActivitiesInfinite = (siteId: string) => {
 
 export const useSites = (options: SiteListingOptions = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const isAirQoGroup = activeGroup?.grp_title === "airqo";
+  const isSystemGroup = isSystemGroupTitle(activeGroup?.grp_title);
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
-    enabled: !isAirQoGroup && !!activeGroup?._id,
+    enabled: !isSystemGroup && !!activeGroup?._id,
   });
 
   const { page = 1, limit = 100, search, sortBy, order, network } = options;
@@ -73,7 +72,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey: ["sites", network, activeGroup?.grp_title, queryParams],
     queryFn: async ({ signal }: QueryFunctionContext) => {
-      if (isAirQoGroup) {
+      if (isSystemGroup) {
         const params: GetSitesSummaryParams = {
           network: network || "",
           group: "",
@@ -107,7 +106,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(network && { network }),
       }, signal);
     },
-    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
+    enabled: !!activeGroup?.grp_title && (isSystemGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });

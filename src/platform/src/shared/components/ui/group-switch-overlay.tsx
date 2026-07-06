@@ -75,7 +75,7 @@ export function GroupSwitchOverlay() {
 
   return (
     <LoadingOverlay
-      delayMs={0}
+      delayMs={120}
       title={`Switching to ${pendingGroupSwitch.targetGroupName}`}
       description="Updating your workspace, and opening fresh content."
     />

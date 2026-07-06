@@ -1,14 +1,13 @@
 import { useMutation, useQuery, useQueryClient, type QueryFunctionContext } from '@tanstack/react-query';
-import {
-  GetCohortsSummaryParams,
-  cohorts as cohortsApi,
-} from '../apis/cohorts';
+import type { GetCohortsSummaryParams } from '../adapters/types';
+import { adapter as cohortsApi } from '../adapters';
 import { AxiosError } from 'axios';
 import {
   Cohort,
   CohortsSummaryResponse,
   GroupCohortsResponse,
 } from '@/app/types/cohorts';
+import { isSystemGroupTitle } from '@/core/config/system-group';
 
 interface ErrorResponse {
   message: string;
@@ -145,7 +144,7 @@ export const usePersonalUserCohorts = (
         const result = verifyResults[idx];
         if (!result) return false;
         const name = (result?.cohort?.name || '').toLowerCase();
-        return name !== 'airqo';
+        return !isSystemGroupTitle(name);
       });
 
       return filteredIds;

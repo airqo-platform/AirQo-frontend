@@ -436,6 +436,20 @@ export interface FeedbackSubmissionsMeta {
   pages: number;
 }
 
+export interface FeedbackStaffMember {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  userName: string;
+}
+
+export interface GetFeedbackStaffResponse {
+  success: boolean;
+  message: string;
+  staff: FeedbackStaffMember[];
+}
+
 export interface GetFeedbackSubmissionsResponse {
   success: boolean;
   message: string;
@@ -1254,10 +1268,13 @@ export interface DailyForecastResponse {
 export type ParsedNumber = number | { source: string; parsedValue: number };
 
 /** Extract a usable number from a ParsedNumber */
-export function resolveParsedNumber(value: ParsedNumber | undefined | null): number | undefined {
+export function resolveParsedNumber(
+  value: ParsedNumber | undefined | null
+): number | undefined {
   if (value == null) return undefined;
   if (typeof value === 'number') return value;
-  if (typeof value === 'object' && 'parsedValue' in value) return value.parsedValue;
+  if (typeof value === 'object' && 'parsedValue' in value)
+    return value.parsedValue;
   return undefined;
 }
 

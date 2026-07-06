@@ -24,12 +24,6 @@ const getCanonicalRoute = (pathname: string): { label: string; href: string } | 
   if (pathname.includes('/admin/sites')) {
     return { label: 'Sites', href: '/admin/sites' };
   }
-  if (pathname.includes('/admin/grids')) {
-    return { label: 'Grids', href: '/admin/grids' };
-  }
-  if (pathname.includes('/admin/shipping')) {
-    return { label: 'Shipping', href: '/admin/shipping' };
-  }
 
   if (pathname === ROUTE_LINKS.HOME) return { label: 'Home', href: ROUTE_LINKS.HOME };
   
@@ -62,7 +56,7 @@ export const useRecentlyVisited = () => {
       } else {
         setVisitedPages([]);
       }
-    } catch (error) {
+    } catch {
       ReusableToast({ message: "Failed to load recently visited pages", type: "ERROR" });
     } finally {
       setIsLoaded(true);

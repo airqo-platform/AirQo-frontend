@@ -72,11 +72,9 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-.env.test
-.env.local
-.env.development
+# dotenv environment variables files (keep the checked-in example)
+.env*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -119,7 +117,8 @@ cypress/screenshots
 .yarn/
 .yarnrc.yml
 
-# vscode files
+# editor/IDE files
 .vscode/*
+.cursor/
 
-.lighthouseci
+.lighthouseci/

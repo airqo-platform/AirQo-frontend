@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
@@ -12,6 +18,7 @@ import {
   Card,
   LoadingState,
   PageHeading,
+  Select,
 } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
@@ -42,8 +49,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   pending:
     'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-  reviewed:
-    'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  reviewed: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
   resolved:
     'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
   archived:
@@ -57,8 +63,11 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   archived: [],
 };
 
+const normalizeNbsp = (text: string): string =>
+  text.replace(/&nbsp;/gi, ' ').replace(/\u00a0/g, ' ');
+
 const isHtmlEmpty = (html: string): boolean =>
-  !html || html.replace(/<[^>]*>/g, '').trim().length === 0;
+  !html || normalizeNbsp(html.replace(/<[^>]*>/g, '')).trim().length === 0;
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: 'General',
@@ -151,6 +160,34 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     }
   );
 
+  const { data: staffData, isLoading: staffLoading } = useSWR(
+    'feedback/staff',
+    () => feedbackService.getFeedbackStaff(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      dedupingInterval: 60000,
+    }
+  );
+
+  const staffMembers = useMemo(
+    () => staffData?.staff || [],
+    [staffData?.staff]
+  );
+
+  const staffById = useMemo(() => {
+    const map = new Map<
+      string,
+      { firstName: string; lastName: string; email: string }
+    >();
+    for (const m of staffMembers) {
+      map.set(m._id, m);
+    }
+    return map;
+  }, [staffMembers]);
+
   const feedback = data?.feedback as FeedbackSubmission | undefined;
   const prevFeedbackIdRef = useRef<string | undefined>(undefined);
 
@@ -158,7 +195,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     if (feedback && feedbackId !== prevFeedbackIdRef.current) {
       prevFeedbackIdRef.current = feedbackId;
       setAdminNotes(feedback.adminNotes || '');
-      setAssigneeId(feedback.assignedTo?._id || '');
+      setAssigneeId(
+        typeof feedback.assignedTo === 'string'
+          ? feedback.assignedTo
+          : feedback.assignedTo?._id || ''
+      );
     }
   }, [feedback, feedbackId]);
 
@@ -489,7 +530,10 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 </DetailPanel>
               ))}
               {feedback.reminderCount != null && feedback.reminderCount > 0 && (
-                <DetailPanel label="Reminders sent" valueClassName="font-medium">
+                <DetailPanel
+                  label="Reminders sent"
+                  valueClassName="font-medium"
+                >
                   {feedback.reminderCount}×
                   {feedback.reminderSentAt && (
                     <span className="ml-2 text-xs text-muted-foreground">
@@ -666,7 +710,9 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     >
                       <div
                         className="prose prose-sm max-w-none text-sm text-foreground"
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.message) }}
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(reply.message),
+                        }}
                       />
                       <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{reply.adminEmail}</span>
@@ -734,7 +780,9 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               <div className="rounded-md border bg-muted/20 p-4">
                 <div
                   className="prose prose-sm max-w-none text-sm text-foreground"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(feedback.adminNotes) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(feedback.adminNotes),
+                  }}
                 />
               </div>
             ) : (
@@ -758,22 +806,36 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
             />
 
             <div className="flex items-end gap-3">
-              <Input
-                id="assignee-id"
-                label="Assignee user ID"
-                placeholder="Enter user ID"
+              <Select
+                label="Assignee"
                 value={assigneeId}
                 onChange={e =>
                   setAssigneeId(
-                    (e as React.ChangeEvent<HTMLInputElement>).target.value
+                    (e as React.ChangeEvent<HTMLSelectElement>).target
+                      .value as string
                   )
                 }
+                placeholder={
+                  staffLoading ? 'Loading staff...' : 'Select a team member'
+                }
+                disabled={staffLoading || isAssigning}
                 containerClassName="!mb-0 flex-1"
-              />
-              <Button
-                loading={isAssigning}
-                onClick={() => void handleAssign()}
               >
+                <option value="">Unassigned</option>
+                {staffMembers.map(
+                  (member: {
+                    _id: string;
+                    firstName: string;
+                    lastName: string;
+                    email: string;
+                  }) => (
+                    <option key={member._id} value={member._id}>
+                      {member.firstName} {member.lastName} ({member.email})
+                    </option>
+                  )
+                )}
+              </Select>
+              <Button loading={isAssigning} onClick={() => void handleAssign()}>
                 {assigneeId ? 'Assign' : 'Unassign'}
               </Button>
             </div>
@@ -784,14 +846,33 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                   Currently assigned to
                 </p>
                 <p className="mt-1 text-sm font-medium text-foreground">
-                  {feedback.assignedTo.firstName} {feedback.assignedTo.lastName}{' '}
-                  ({feedback.assignedTo.email})
+                  {(() => {
+                    const assigned = feedback.assignedTo;
+                    if (typeof assigned === 'string') {
+                      const resolved = staffById.get(assigned);
+                      return resolved
+                        ? `${resolved.firstName} ${resolved.lastName} (${resolved.email})`
+                        : assigned;
+                    }
+                    return `${assigned.firstName} ${assigned.lastName} (${assigned.email})`;
+                  })()}
                 </p>
                 {feedback.assignedAt && (
                   <p className="mt-1 text-xs text-muted-foreground">
                     Assigned on {formatDateTime(feedback.assignedAt)}
                     {feedback.assignedBy && (
-                      <> by {feedback.assignedBy.email}</>
+                      <>
+                        {' '}
+                        by{' '}
+                        {(() => {
+                          const by = feedback.assignedBy;
+                          if (typeof by === 'string') {
+                            const resolved = staffById.get(by);
+                            return resolved ? resolved.email : by;
+                          }
+                          return by.email;
+                        })()}
+                      </>
                     )}
                   </p>
                 )}

@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui';
+import BulkRoleAssignmentDialog from '@/shared/components/BulkRoleAssignmentDialog';
 
 const UserStatisticsPage: React.FC = () => {
   const router = useRouter();
@@ -35,6 +36,8 @@ const UserStatisticsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [showBulkRoleDialog, setShowBulkRoleDialog] = useState(false);
 
   const stats = data?.users_stats;
 
@@ -76,6 +79,7 @@ const UserStatisticsPage: React.FC = () => {
   // Reset page to 1 when search changes
   useEffect(() => {
     setPage(1);
+    setSelectedUsers([]);
   }, [search]);
 
   const handleViewDetails = useCallback(
@@ -381,6 +385,7 @@ const UserStatisticsPage: React.FC = () => {
                 setActiveTab(card.id as 'all' | 'active' | 'api');
                 setPage(1);
                 setSearch('');
+                setSelectedUsers([]);
               }}
               className={`cursor-pointer p-6 transition-all ${
                 isActive ? 'border-primary bg-primary/5' : 'hover:shadow-md'
@@ -410,6 +415,15 @@ const UserStatisticsPage: React.FC = () => {
           Refresh
         </button>
         <div className="flex gap-2">
+          {selectedUsers.length > 0 && (
+            <Button
+              onClick={() => setShowBulkRoleDialog(true)}
+              variant="outlined"
+              showTextOnMobile
+            >
+              Assign Role ({selectedUsers.length})
+            </Button>
+          )}
           <button
             onClick={exportToCSV}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
@@ -449,6 +463,22 @@ const UserStatisticsPage: React.FC = () => {
           setPage(1);
         }}
         loading={isLoading}
+        multiSelect
+        selectedItems={selectedUsers}
+        onSelectedItemsChange={ids =>
+          setSelectedUsers(ids.map(id => String(id)))
+        }
+      />
+
+      <BulkRoleAssignmentDialog
+        isOpen={showBulkRoleDialog}
+        onClose={() => setShowBulkRoleDialog(false)}
+        userIds={selectedUsers}
+        userCount={selectedUsers.length}
+        onSuccess={() => {
+          setSelectedUsers([]);
+          mutate();
+        }}
       />
     </div>
   );

@@ -18,6 +18,7 @@ import {
   AqMail04,
   AqClipboardCheck,
   AqFileShield02,
+  AqBookOpen01,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -251,6 +252,12 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/roles-permissions',
         icon: AqFileShield02,
       },
+      {
+        id: 'system-team-members',
+        label: 'Team Members',
+        href: '/system/team-members',
+        icon: AqUsers01,
+      },
     ],
   },
   {
@@ -275,6 +282,12 @@ const systemSidebarConfig: NavGroup[] = [
     id: 'system-insights',
     label: 'Insights',
     items: [
+      {
+        id: 'system-learn',
+        label: 'Course Management',
+        href: '/system/learn',
+        icon: AqBookOpen01,
+      },
       {
         id: 'system-surveys',
         label: 'Survey Management',
@@ -347,6 +360,12 @@ const globalSidebarConfig: NavGroup[] = [
             description: 'Manage system roles and configure permissions',
           },
           {
+            id: 'system-team-members',
+            label: 'Team Members',
+            href: '/system/team-members',
+            description: 'View staff members and manage role assignments',
+          },
+          {
             id: 'system-email-configs',
             label: 'Email Configuration',
             href: '/system/email-configs',
@@ -364,6 +383,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Feedback',
             href: '/system/feedback',
             description: 'Review user feedback and flagged issues',
+          },
+          {
+            id: 'system-learn',
+            label: 'Course Management',
+            href: '/system/learn',
+            description: 'Create and manage AirQo Learn course content',
           },
           {
             id: 'system-surveys',

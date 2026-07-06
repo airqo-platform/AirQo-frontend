@@ -4,7 +4,7 @@ import ReusableTable, {
   TableItem,
 } from "@/components/shared/table/ReusableTable";
 import { useRouter } from "next/navigation";
-import { Network } from "@/core/apis/networks";
+import { Network } from "@/core/adapters/types";
 import { AqCopy01, AqLinkExternal01 } from "@airqo/icons-react";
 import { useBanner } from "@/context/banner-context";
 

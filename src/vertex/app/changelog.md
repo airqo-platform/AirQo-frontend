@@ -2,6 +2,92 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.14
+**Released:** July 5, 2026
+
+### CI & Test Coverage Reporting
+
+Gave Vertex its own standalone CI workflow and wired up automated coverage reporting, closing the gap where Vertex had no dedicated pipeline visibility into test health.
+
+<details>
+<summary><strong>New: <code>vertex-ci.yml</code> workflow</strong></summary>
+
+- Vertex's checks (lint, typecheck, `test:coverage`) moved out of the shared, multi-project `safe-checks.yml` into a dedicated `.github/workflows/vertex-ci.yml`, matching the existing `vertex-desktop-ci.yml` / `vertex-performance.yml` pattern.
+- Runs on both `pull_request` and `push` to `staging` (scoped to `src/vertex/**`), so it can keep its Codecov baseline fresh independently — without changing CI behaviour for the other five frontend projects still in `safe-checks.yml`.
+- Fork-contributor PRs are unaffected: the trigger type (`pull_request`, not `pull_request_target`) is unchanged, and the Codecov upload step is hardened with `continue-on-error` / `fail_ci_if_error: false` so a missing token on a fork PR can never fail lint/typecheck/test results.
+
+</details>
+
+<details>
+<summary><strong>New: Codecov integration under a <code>vertex</code> flag</strong></summary>
+
+- Coverage uploads to Codecov scoped via `flags: vertex` (see root `codecov.yml`), with `carryforward: true` since coverage only uploads when Vertex files change.
+- Project and patch coverage checks are informational (visible, non-blocking) for now, consistent with `TESTING.md`'s stance that coverage is a quality signal, not a target.
+- Added `lcov` to Vitest's coverage reporters for reliable Codecov parsing.
+
+</details>
+
+<details>
+<summary><strong>README &amp; docs</strong></summary>
+
+- Build-status and coverage badges added to `src/vertex/README.md`.
+- `app/_docs/internal/TESTING.md` documents the CI wiring and explicitly defers flaky-test-rate tracking as a follow-up.
+
+</details>
+
+---
+
+## Version 2.0.13
+**Released:** July 3, 2026
+
+### RBAC Architecture Migration — Permission-Based Access Control
+
+Introduced the foundational infrastructure for a dynamic, capability-driven authorization system. Phased out static role-name checks in favour of live permission checks sourced from the API payload.
+
+<details>
+<summary><strong>New: `useRBAC` Hook (`core/hooks/useRBAC.ts`)</strong></summary>
+
+- **Unified RBAC hook** matching the platform project's API surface. Exposes `hasPermission`, `hasAnyPermission`, `hasAllPermissions` (across all orgs) and `hasPermissionInActiveGroup`, `hasAnyPermissionInActiveGroup`, `hasAllPermissionsInActiveGroup` (scoped to the currently active group).
+- Reads from Redux via `permissionService` — no additional API call. Legacy permission string mapping (e.g. `"CREATE_UPDATE_AND_DELETE_NETWORKS"` → `NETWORK_VIEW`) handled automatically.
+- `isLoading` and `error` sourced from `useUserContext()`. Respects `MOCK_PERMISSIONS_ENABLED` for dev testing.
+
+</details>
+
+<details>
+<summary><strong>Admin Route Guard (`admin/layout.tsx`)</strong></summary>
+
+- Replaced `roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN", "AIRQO_NETWORK_ADMIN"]}` with `permissions={[SYSTEM.SUPER_ADMIN, SYSTEM.SYSTEM_ADMIN, ORGANIZATION.VIEW, NETWORK.VIEW]}` on `RouteGuard`.
+- `allowedContexts={['personal']}` unchanged — admin pages remain exclusive to the AirQo personal context.
+
+</details>
+
+<details>
+<summary><strong>Deprecation: `ROLES` object (`core/permissions/constants.ts`)</strong></summary>
+
+- Added `@deprecated` JSDoc to the `ROLES` object. The object is kept for reference but must not be used for access control — check capabilities (`PERMISSIONS.*`) via `useRBAC` instead.
+
+</details>
+
+---
+
+## Version 2.0.12
+**Released:** July 3, 2026
+
+### Admin Panel Access Control — Primary Sidebar Permission Gate
+
+Replaced the static role-name check that guarded the Administrative Panel entry in the primary sidebar with a dynamic, permission-based model.
+
+<details>
+<summary><strong>Primary Sidebar (`primary-sidebar.tsx`)</strong></summary>
+
+- **Permission-based gate**: Removed the `allowedRoles` array (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) and replaced `canViewAdminPanel` with a `useHasAnyPermission` check against `SYSTEM.SUPER_ADMIN`, `SYSTEM.SYSTEM_ADMIN`, `ORGANIZATION.VIEW`, and `NETWORK.VIEW`.
+- **Context enforcement preserved**: The `isPersonalContext` guard remains — the Administrative Panel entry is never shown when the user is operating under an external organisation.
+- **Hook consolidation**: Eliminated a redundant second `useUserContext()` call; `isPersonalContext` and `activeGroup` are now destructured from the same call as `getContextPermissions`.
+
+</details>
+
+---
+
 ## Version 2.0.11
 **Released:** July 2, 2026
 

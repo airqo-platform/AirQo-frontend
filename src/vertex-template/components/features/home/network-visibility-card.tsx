@@ -6,7 +6,7 @@ import {
   useGroupCohorts,
   usePersonalUserCohorts,
 } from '@/core/hooks/useCohorts';
-import { cohorts as cohortsApi } from '@/core/apis/cohorts';
+import { adapter as cohortsApi } from '@/core/adapters';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { PERMISSIONS } from '@/core/permissions/constants';
@@ -174,7 +174,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {allPublic
-                  ? `${isPersonalScope ? 'Your' : "Your organization's"} devices are visible to anyone on the AirQo Map. You are contributing to open data.`
+                  ? `${isPersonalScope ? 'Your' : "Your organization's"} devices are visible to anyone on the public map. You are contributing to open data.`
                   : allPrivate
                     ? `${isPersonalScope ? 'Your' : "Your organization's"} devices are hidden from the public. Data is visible only in your account.`
                     : 'Visibility settings are customized per cohort. Manage each cohort below.'}
@@ -318,7 +318,7 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
         <div className="space-y-4 py-2">
           <p className="text-gray-600 dark:text-gray-300">
             {targetVisibility
-              ? `You are about to make the devices in "${pendingCohort?.name}" visible on the public AirQo Map. This means anyone can see the air quality readings for these devices.`
+              ? `You are about to make the devices in "${pendingCohort?.name}" visible on the public map. This means anyone can see the readings for these devices.`
               : `You are about to make "${pendingCohort?.name}" private. Data from these devices will only be visible to ${isPersonalScope ? 'you' : 'your organization'} and will not appear on the public map.`}
           </p>
         </div>

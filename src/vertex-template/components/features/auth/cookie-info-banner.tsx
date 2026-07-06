@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { COOKIE_POLICY_URL } from '@/lib/envConstants';
 import ReusableButton from '@/components/shared/button/ReusableButton';
+import { vertexConfig } from '@/vertex.config';
 
 export function CookieInfoBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -28,7 +29,7 @@ export function CookieInfoBanner() {
     <div className="fixed bottom-0 left-0 right-0 z-[100] bg-primary text-white py-3 px-4 shadow">
       <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-3 sm:flex-row w-full">
         <p className="m-0 text-center text-sm sm:text-left">
-          AirQo uses cookies to deliver and enhance the quality of its services and to analyze traffic.
+          {vertexConfig.org.name} uses cookies to deliver and enhance the quality of its services and to analyze traffic.
           {' '}
           <Link 
             href={COOKIE_POLICY_URL} 

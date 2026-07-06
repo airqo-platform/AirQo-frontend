@@ -1,4 +1,4 @@
-export const FEEDBACK_DIALOG_OPEN_EVENT = 'airqo:feedback:open';
+export const FEEDBACK_DIALOG_OPEN_EVENT = 'vertex:feedback:open';
 
 export const openFeedbackDialog = (): void => {
   if (typeof window === 'undefined') {

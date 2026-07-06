@@ -6,6 +6,7 @@ import type {
   CurrentRole,
   Group,
 } from "@/app/types/users";
+import { isSystemGroupTitle } from "@/core/config/system-group";
 
 export type UserContext = 'personal' | 'external-org';
 export type UserScope = 'personal' | 'organisation';
@@ -62,32 +63,6 @@ const initialState: UserState = {
   isLoggingOut: false,
 };
 
-// Helper function to determine user scope based on permissions
-// NOTE: This requires permissions to be calculated, so it should be called 
-// in components/hooks that have access to permission state, not in Redux reducers
-const determineUserScope = (
-  userContext: UserContext | null,
-  permissions: {
-    canViewSites?: boolean | null;
-    canViewNetworks?: boolean | null;
-    isSuperAdmin?: boolean | null;
-    isSystemAdmin?: boolean | null;
-  }
-): UserScope => {
-  // No special handling needed for personal context or permissions yet
-  // This function might be deprecated or simplified if we rely solely on SidebarConfig logic
-  return 'personal';
-  
-  // Determine if user has any organizational permissions
-  const hasOrgPermissions = 
-    permissions.canViewSites === true ||
-    permissions.canViewNetworks === true ||
-    permissions.isSuperAdmin === true ||
-    permissions.isSystemAdmin === true;
-  
-  return hasOrgPermissions ? 'organisation' : 'personal';
-};
-
 // Helper function to determine user context
 const determineUserContext = (
   userDetails: UserDetails | null,
@@ -103,18 +78,38 @@ const determineUserContext = (
     return { context: 'personal', canSwitchContext };
   }
 
-  const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
+  const isSystemOrg = isSystemGroupTitle(activeGroup.grp_title);
 
   let context: UserContext;
-  if (isAirQoOrg) {
-    // AirQo organization now uses personal context with elevated permissions
-    // The active airqo group allows RBAC checks to pass
+  if (isSystemOrg) {
+    // The system organization uses personal context with elevated permissions
+    // The active system group allows RBAC checks to pass
     context = 'personal';
   } else {
     context = 'external-org';
   }
 
   return { context, canSwitchContext };
+};
+
+// Mirrors determineInitialUserSetup in authProvider: the active network follows
+// the active group (matched by name, falling back to the first network), and
+// the current role follows the network.
+const applyNetworkForGroup = (state: UserState, group: Group | null) => {
+  const groupTitle = group?.grp_title?.toLowerCase();
+  const network = groupTitle
+    ? state.availableNetworks.find(
+        (n) => n.net_name.toLowerCase() === groupTitle,
+      ) ?? state.availableNetworks[0] ?? null
+    : null;
+
+  state.activeNetwork = network;
+  state.currentRole = network?.role
+    ? {
+        role_name: network.role.role_name,
+        permissions: network.role.role_permissions.map((p) => p.permission),
+      }
+    : null;
 };
 
 const userSlice = createSlice({
@@ -171,16 +166,17 @@ const userSlice = createSlice({
       state.activeGroup = action.payload;
       
       if (!action.payload) {
-        // For ALL users (staff or external), "Personal Mode" means using the AirQo group with personal scope.
-        // We find the AirQo group from their userGroups and set it as active.
-        const airqoGroup = state.userGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
+        // For ALL users (staff or external), "Personal Mode" means using the system group with personal scope.
+        // We find the system group from their userGroups and set it as active.
+        const systemGroup = state.userGroups.find((g) => isSystemGroupTitle(g.grp_title));
 
-        if (airqoGroup) {
-          state.activeGroup = airqoGroup;
+        if (systemGroup) {
+          state.activeGroup = systemGroup;
+          applyNetworkForGroup(state, systemGroup);
           // Determine context immediately with the new group
           const { context, canSwitchContext } = determineUserContext(
             state.userDetails,
-            airqoGroup,
+            systemGroup,
             state.userGroups
           );
           state.userContext = context;
@@ -188,17 +184,17 @@ const userSlice = createSlice({
           return;
         }
 
-        // If no AirQo group is found, fall back to null group (true Personal Mode)
-        // This handles edge cases where a user might not belong to AirQo
+        // If no system group is found, fall back to null group (true Personal Mode)
+        // This handles edge cases where a user might not belong to the system group
         state.activeGroup = null;
         state.userContext = 'personal';
         state.canSwitchContext = false;
         // When activeGroup is null, activeNetwork should also be null
-        state.activeNetwork = null;
-        state.currentRole = null;
+        applyNetworkForGroup(state, null);
         return;
       }
-      
+
+      applyNetworkForGroup(state, action.payload);
       const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         action.payload,
@@ -293,17 +289,42 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase("persist/REHYDRATE", (state, action: any) => {
+    builder.addCase("persist/REHYDRATE", (state, action: {
+      type: "persist/REHYDRATE";
+      key?: string;
+      payload?: Partial<UserState> & { user?: Partial<UserState> };
+    }) => {
+      if (action.key && action.key !== "user") return;
+
+      // The user slice is persisted under its own key, so the payload is the
+      // user state itself. The nested `payload.user` shape is also accepted in
+      // case the slice is ever moved under a root-level persist config.
+      const persisted = action.payload?.user ?? action.payload;
+
       // If we have userDetails from persistence, assume authenticated and initialized
       // This enables instant loading for existing users without waiting for a fresh session check
-      if (action.payload?.user?.userDetails) {
+      if (persisted?.userDetails) {
         state.isAuthenticated = true;
         state.isInitialized = true;
-        state.userDetails = action.payload.user.userDetails;
-        
+        state.userDetails = persisted.userDetails;
+
         // Also restore critical flags if they exist
-        if (action.payload.user.activeGroup) state.activeGroup = action.payload.user.activeGroup;
-        if (action.payload.user.userContext) state.userContext = action.payload.user.userContext;
+        if (persisted.activeGroup) state.activeGroup = persisted.activeGroup;
+        if (persisted.userContext) state.userContext = persisted.userContext;
+
+        // availableNetworks and currentRole are derived state and not persisted;
+        // rebuild them from the persisted user details and active network so a
+        // rehydrated session matches a freshly initialized one.
+        state.availableNetworks = persisted.userDetails.networks || [];
+        const persistedNetwork = persisted.activeNetwork;
+        if (persistedNetwork?.role) {
+          state.currentRole = {
+            role_name: persistedNetwork.role.role_name,
+            permissions: persistedNetwork.role.role_permissions.map(
+              (p) => p.permission,
+            ),
+          };
+        }
       }
     });
   },

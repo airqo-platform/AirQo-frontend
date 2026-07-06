@@ -208,6 +208,22 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Inspect platform user statistics and account activity.',
     },
   },
+  '/system/learn': {
+    title: 'Course Management',
+    description: 'Create and manage AirQo Learn course content.',
+    openGraph: {
+      title: 'Course Management | AirQo Analytics',
+      description: 'Create and manage AirQo Learn course content.',
+    },
+  },
+  '/system/learn/[id]': {
+    title: 'Course Details',
+    description: 'View and edit an AirQo Learn course.',
+    openGraph: {
+      title: 'Course Details | AirQo Analytics',
+      description: 'View and edit an AirQo Learn course.',
+    },
+  },
   '/system/feedback': {
     title: 'Feedback',
     description: 'Review user feedback submissions and flagged issues.',
@@ -222,6 +238,22 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     openGraph: {
       title: 'Feedback Details | AirQo Analytics',
       description: 'Review an individual feedback submission in detail.',
+    },
+  },
+  '/system/team-members': {
+    title: 'Team Members',
+    description: 'View staff members and manage role assignments.',
+    openGraph: {
+      title: 'Team Members | AirQo Analytics',
+      description: 'View staff members and manage role assignments.',
+    },
+  },
+  '/system/team-members/[memberId]': {
+    title: 'Team Member Details',
+    description: 'View team member profile and manage their role assignments.',
+    openGraph: {
+      title: 'Team Member Details | AirQo Analytics',
+      description: 'View team member profile and manage their role assignments.',
     },
   },
 };
@@ -247,6 +279,13 @@ export function generatePageMetadata(pathname: string): Metadata {
   }
   if (pathname.startsWith('/system/feedback/')) {
     pageKey = '/system/feedback/[id]';
+  }
+  if (pathname.startsWith('/system/team-members/')) {
+    pageKey = '/system/team-members/[memberId]';
+  }
+
+  if (pathname.startsWith('/system/learn/')) {
+    pageKey = '/system/learn/[id]';
   }
 
   const pageSpecificMetadata = pageMetadata[pageKey] || {};

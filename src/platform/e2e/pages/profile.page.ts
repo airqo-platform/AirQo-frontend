@@ -1,26 +1,48 @@
-import { WebDriver, By } from "selenium-webdriver";
-import { BasePage } from "./base.page";
+import { WebDriver, By } from 'selenium-webdriver';
+import { BasePage } from './base.page';
 
 export class ProfilePage extends BasePage {
-  protected static readonly TAB_BUTTONS = By.css("nav button");
-  protected static readonly FIRST_NAME = By.css('input[placeholder="Enter your first name"]');
-  protected static readonly LAST_NAME = By.css('input[placeholder="Enter your last name"]');
-  protected static readonly EMAIL = By.css('input[placeholder="Enter your email"]');
-  protected static readonly PHONE = By.css('input[placeholder="Enter your phone number"]');
-  protected static readonly JOB_TITLE = By.css('input[placeholder="Enter your job title"]');
-  protected static readonly BIO = By.css('textarea[placeholder="Tell us about yourself..."]');
-  protected static readonly SAVE_BUTTON = By.xpath("//button[contains(text(), 'Save Changes')]");
-  protected static readonly CURRENT_PASSWORD = By.css('input[placeholder="Enter your current password"]');
-  protected static readonly NEW_PASSWORD = By.css('input[placeholder="Enter your new password"]');
-  protected static readonly CONFIRM_PASSWORD = By.css('input[placeholder="Confirm your new password"]');
-  protected static readonly CHANGE_PASSWORD = By.xpath("//button[contains(text(), 'Change Password')]");
+  protected static readonly TAB_BUTTONS = By.css('nav button');
+  protected static readonly FIRST_NAME = By.css(
+    'input[placeholder="Enter your first name"]'
+  );
+  protected static readonly LAST_NAME = By.css(
+    'input[placeholder="Enter your last name"]'
+  );
+  protected static readonly EMAIL = By.css(
+    'input[placeholder="Enter your email"]'
+  );
+  protected static readonly PHONE = By.css(
+    'input[placeholder="Enter your phone number"]'
+  );
+  protected static readonly JOB_TITLE = By.css(
+    'input[placeholder="Enter your job title"]'
+  );
+  protected static readonly BIO = By.css(
+    'textarea[placeholder="Tell us about yourself..."]'
+  );
+  protected static readonly SAVE_BUTTON = By.xpath(
+    "//button[contains(text(), 'Save Changes')]"
+  );
+  protected static readonly CURRENT_PASSWORD = By.css(
+    'input[placeholder="Enter your current password"]'
+  );
+  protected static readonly NEW_PASSWORD = By.css(
+    'input[placeholder="Enter your new password"]'
+  );
+  protected static readonly CONFIRM_PASSWORD = By.css(
+    'input[placeholder="Confirm your new password"]'
+  );
+  protected static readonly CHANGE_PASSWORD = By.xpath(
+    "//button[contains(text(), 'Change Password')]"
+  );
 
   constructor(driver: WebDriver) {
     super(driver);
   }
 
   async navigateToProfile(): Promise<void> {
-    await this.navigateTo("/user/profile");
+    await this.navigateTo('/user/profile');
   }
 
   async getTabCount(): Promise<number> {
@@ -31,7 +53,9 @@ export class ProfilePage extends BasePage {
   async clickTab(index: number): Promise<void> {
     const tabs = await this.findAll(ProfilePage.TAB_BUTTONS);
     if (index >= tabs.length) {
-      throw new Error(`Tab at index ${index} not found (only ${tabs.length} tabs present)`);
+      throw new Error(
+        `Tab at index ${index} not found (only ${tabs.length} tabs present)`
+      );
     }
     await tabs[index].click();
   }
@@ -70,11 +94,16 @@ export class ProfilePage extends BasePage {
 
   async isEmailDisabled(): Promise<boolean> {
     const email = await this.find(ProfilePage.EMAIL);
-    const disabled = await email.getAttribute("disabled");
+    const disabled = await email.getAttribute('disabled');
     return disabled !== null;
   }
 
-  async fillProfile(firstName?: string, lastName?: string, phone?: string, jobTitle?: string): Promise<void> {
+  async fillProfile(
+    firstName?: string,
+    lastName?: string,
+    phone?: string,
+    jobTitle?: string
+  ): Promise<void> {
     if (firstName) await this.typeText(ProfilePage.FIRST_NAME, firstName);
     if (lastName) await this.typeText(ProfilePage.LAST_NAME, lastName);
     if (phone) await this.typeText(ProfilePage.PHONE, phone);
@@ -85,7 +114,11 @@ export class ProfilePage extends BasePage {
     await this.click(ProfilePage.SAVE_BUTTON);
   }
 
-  async changePassword(current: string, newPass: string, confirm: string): Promise<void> {
+  async changePassword(
+    current: string,
+    newPass: string,
+    confirm: string
+  ): Promise<void> {
     await this.typeText(ProfilePage.CURRENT_PASSWORD, current);
     await this.typeText(ProfilePage.NEW_PASSWORD, newPass);
     await this.typeText(ProfilePage.CONFIRM_PASSWORD, confirm);

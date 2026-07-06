@@ -17,6 +17,7 @@ import { AqEdit01 as AqEdit, AqKey01 } from "@airqo/icons-react";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import logger from "@/lib/logger";
+import { isSystemNetworkName } from '@/core/config/system-group';
 
 interface DeviceDetailsModalProps {
   open: boolean;
@@ -234,8 +235,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   };
 
   const onSubmit = async (data: DeviceUpdateFormData) => {
-    const isAirqoManufacturer = device?.network?.toLowerCase() === 'airqo';
-    if (isAirqoManufacturer) {
+    const isSystemManufacturer = isSystemNetworkName(device?.network);
+    if (isSystemManufacturer) {
       await onSubmitLocal(data);
     } else {
       await onSubmitGlobal(data);

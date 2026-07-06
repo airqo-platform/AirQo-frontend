@@ -4,22 +4,23 @@ import {
   type VertexConfigInput,
 } from "./core/config/vertex-config";
 
+// Generic IoT defaults. Copy vertex.config.example.ts over this file (or
+// edit in place) to brand the app for your organization.
 const config: VertexConfigInput = {
   ...defaultVertexConfig,
   org: {
-    name: "AirQo Vertex",
-    shortName: "AirQo",
-    slug: "airqo",
-    logo: "/images/airqo_logo.svg",
+    name: "Vertex Demo",
+    shortName: "Vertex",
+    slug: "vertex-demo",
+    logo: "/images/vertex_logo.svg",
     primaryColor: "#145FFF",
-    supportEmail: "support@airqo.net",
-    websiteUrl: "https://airqo.net",
+    supportEmail: "support@example.org",
+    websiteUrl: "https://example.org",
   },
   api: {
     adapter: "mock",
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
-    publicMeasurementsBaseUrl:
-      process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.example.com",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "",
+    publicMeasurementsBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "",
   },
   auth: {
     provider: "none",
@@ -33,25 +34,19 @@ const config: VertexConfigInput = {
     readingHistory: false,
     userManagement: false,
 
-    appLauncher: true,
-    shipping: true,
-    networkRequests: true,
+    appLauncher: false,
+    networkRequests: false,
   },
   map: {
     defaultCenter: [0.3476, 32.5825],
     defaultZoom: 11,
-    tileProvider: "mapbox",
+    tileProvider: "openstreetmap",
   },
   links: {
-    docsUrl: "https://docs.airqo.net",
-    privacyPolicyUrl: "https://airqo.net/legal/privacy",
-    cookiePolicyUrl:
-      process.env.NEXT_PUBLIC_COOKIE_POLICY_URL ||
-      "https://airqo.net/legal/cookies",
-    analyticsUrl:
-      process.env.NEXT_PUBLIC_ANALYTICS_URL ||
-      "https://staging-analytics.airqo.net",
-
+    docsUrl: "",
+    privacyPolicyUrl: "",
+    cookiePolicyUrl: process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || "",
+    analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL || "",
   },
 };
 

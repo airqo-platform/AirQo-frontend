@@ -8,11 +8,10 @@ import {
 import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
-  devices,
   GetDevicesSummaryParams,
   DeviceCountResponse,
   type DeviceActivitiesResponse,
-} from '../apis/devices';
+} from '../adapters/types';
 import { adapter } from '../adapters';
 import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
@@ -34,16 +33,10 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
-  PrepareDeviceResponse,
-  BulkPrepareResponse,
-  GenerateLabelsResponse,
-  ShippingStatusResponse,
   OrphanedDevicesResponse,
-  ShippingBatchesResponse,
-  ShippingBatchDetailsResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
-import { useDispatch } from 'react-redux';
+import { isSystemGroupTitle } from '@/core/config/system-group';
 import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 import logger from '@/lib/logger';
 
@@ -67,17 +60,16 @@ export type DeviceListingOptions = Partial<Device> & {
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const isAirQoGroup = activeGroup?.grp_title === 'airqo';
-  const { enabled = true } = options;
+  const isSystemGroup = isSystemGroupTitle(activeGroup?.grp_title);
+  const { page = 1, limit = 100, search, sortBy, order, network, enabled = true, filterStatus, ...rest } = options;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
+      enabled: !isSystemGroup && !!activeGroup?._id && enabled,
     }
   );
 
-  const { page = 1, limit = 100, search, sortBy, order, network, enabled: _enabled, filterStatus, ...rest } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
@@ -99,9 +91,9 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     queryKey,
     queryFn: async ({ signal }: QueryFunctionContext) => {
       // 1. Hybrid Strategy: If a generic status filter is provided, use the optimized status endpoint
-      if (options.filterStatus) {
+      if (filterStatus) {
         const commonParams = {
-          status: options.filterStatus,
+          status: filterStatus,
           limit: safeLimit,
           skip,
           ...(search && { search }),
@@ -111,7 +103,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...rest,
         };
 
-        if (isAirQoGroup) {
+        if (isSystemGroup) {
           // Admin view: status across all (or filtered network)
           return adapter.getDevicesByStatus(commonParams);
         } else {
@@ -126,7 +118,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         }
       }
 
-      if (isAirQoGroup) {
+      if (isSystemGroup) {
         const params: GetDevicesSummaryParams = {
           limit: safeLimit,
           skip,
@@ -158,7 +150,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     enabled:
       enabled &&
       !!activeGroup?.grp_title &&
-      (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
+      (isSystemGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
@@ -193,7 +185,7 @@ export const useMyDevices = (
 
   const groupIds = userDetails?.groups
     ? (userDetails.groups as UserGroup[])
-        .filter((g) => g.grp_title?.toLowerCase() !== "airqo")
+        .filter((g) => !isSystemGroupTitle(g.grp_title))
         .map((g) => g._id)
     : userDetails?.group_ids || [];
   const cohortIds = personalCohortIds && personalCohortIds.length > 0 ? personalCohortIds : (userDetails?.cohort_ids || []);
@@ -224,12 +216,12 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
   // If cohortIds are explicitly passed (e.g. personal scope), bypass group logic entirely
   const hasExplicitCohorts = !!cohortIds;
 
-  // Only treat as AirQo group if no explicit cohortIds were passed
-  const isAirQoGroup = !hasExplicitCohorts && activeGroup?.grp_title === 'airqo';
+  // Only treat as system group if no explicit cohortIds were passed
+  const isSystemGroup = !hasExplicitCohorts && isSystemGroupTitle(activeGroup?.grp_title);
 
   const shouldFetchGroupCohorts =
     !hasExplicitCohorts &&
-    !isAirQoGroup &&
+    !isSystemGroup &&
     !!activeGroup?._id &&
     enabled &&
     !network;
@@ -246,7 +238,7 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
     enabled &&
     (
       !!network ||
-      isAirQoGroup ||
+      isSystemGroup ||
       (!!effectiveCohortIds && effectiveCohortIds.length > 0)
     );
 
@@ -254,7 +246,7 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
     queryKey: [
       'deviceCount',
       hasExplicitCohorts ? 'personal' : activeGroup?._id,
-      isAirQoGroup ? null : effectiveCohortIds,
+      isSystemGroup ? null : effectiveCohortIds,
       network,
     ],
     queryFn: () => {
@@ -262,7 +254,7 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
         return adapter.getDeviceCount({ network });
       }
 
-      if (isAirQoGroup) {
+      if (isSystemGroup) {
         return adapter.getDeviceCount({});
       }
 
@@ -622,7 +614,7 @@ export const useBulkImportDevices = () => {
   return useMutation<
     BulkImportDeviceResponse,
     AxiosError<ErrorResponse>,
-    { type: 'csv'; payload: FormData } | { type: 'json'; payload: any }
+    { type: 'csv'; payload: FormData } | { type: 'json'; payload: Parameters<typeof adapter.importBulkDevicesJSON>[0] }
   >({
     mutationFn: (variables) => {
       if (variables.type === 'csv') {
@@ -630,7 +622,7 @@ export const useBulkImportDevices = () => {
       }
       return adapter.importBulkDevicesJSON(variables.payload);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Refresh based on active module
       if (isAdminModule) {
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
@@ -702,7 +694,7 @@ export const useRecallDevice = () => {
         userName?: string;
       };
     }) => adapter.recallDevice(deviceName, recallData),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
@@ -722,7 +714,7 @@ export const useAddMaintenanceLog = () => {
       deviceName: string;
       logData: MaintenanceLogData;
     }) => adapter.addMaintenanceLog(deviceName, logData),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
@@ -744,108 +736,12 @@ export const useDecryptDeviceKeys = () => {
   });
 };
 
-interface UsePrepareDeviceForShippingOptions {
-  onSuccess?: (data: PrepareDeviceResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const usePrepareDeviceForShipping = (options?: UsePrepareDeviceForShippingOptions) => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    PrepareDeviceResponse,
-    AxiosError<ErrorResponse>,
-    { deviceName: string; tokenType?: 'hex' | 'readable' }
-  >({
-    mutationFn: ({ deviceName, tokenType }) =>
-      adapter.prepareDeviceForShipping(deviceName, tokenType),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-interface UsePrepareBulkDevicesForShippingOptions {
-  onSuccess?: (data: BulkPrepareResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const usePrepareBulkDevicesForShipping = (options?: UsePrepareBulkDevicesForShippingOptions) => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    BulkPrepareResponse,
-    AxiosError<ErrorResponse>,
-    { deviceNames: string[]; tokenType?: 'hex' | 'readable'; batchName?: string }
-  >({
-    mutationFn: ({ deviceNames, tokenType, batchName }) =>
-      adapter.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-interface UseGenerateShippingLabelsOptions {
-  onSuccess?: (data: GenerateLabelsResponse) => void;
-  onError?: (error: AxiosError) => void;
-}
-
-export const useGenerateShippingLabels = (options?: UseGenerateShippingLabelsOptions) => {
-  return useMutation<
-    GenerateLabelsResponse,
-    AxiosError<ErrorResponse>,
-    string[]
-  >({
-    mutationFn: (deviceNames) => adapter.generateShippingLabels(deviceNames),
-    onSuccess: (data) => {
-      options?.onSuccess?.(data);
-    },
-    onError: (error) => {
-      options?.onError?.(error);
-    },
-  });
-};
-
-export const useShippingStatus = (deviceNames?: string[]) => {
-  return useQuery<ShippingStatusResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingStatus', deviceNames],
-    queryFn: () => adapter.getShippingStatus(deviceNames),
-    staleTime: 60000,
-  });
-};
-
 export const useOrphanedDevices = (userId: string) => {
   return useQuery<OrphanedDevicesResponse, AxiosError>({
     queryKey: ['orphanedDevices', userId],
     queryFn: () => adapter.getOrphanedDevices(userId),
     enabled: !!userId,
     staleTime: 300_000, // 5 minutes
-  });
-};
-
-export const useShippingBatches = (params: { limit?: number; skip?: number } = {}) => {
-  return useQuery<ShippingBatchesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingBatches', params],
-    queryFn: () => adapter.getShippingBatches(params),
-    staleTime: 60_000,
-  });
-};
-
-export const useShippingBatchDetails = (batchId: string) => {
-  return useQuery<ShippingBatchDetailsResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['shippingBatchDetails', batchId],
-    queryFn: () => adapter.getShippingBatchDetails(batchId),
-    enabled: !!batchId,
-    staleTime: 60_000,
   });
 };
 
