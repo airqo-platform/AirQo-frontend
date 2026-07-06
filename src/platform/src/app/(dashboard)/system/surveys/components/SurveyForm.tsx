@@ -19,6 +19,13 @@ import {
 } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import {
+  SURVEY_TITLE_MAX,
+  SURVEY_DESCRIPTION_MAX,
+  SURVEY_QUESTION_MAX,
+  SURVEY_OPTION_MAX,
+  SURVEY_PLACEHOLDER_MAX,
+} from '@/shared/lib/validation-limits';
+import {
   createQuestionDraft,
   createTriggerDraft,
   formatDateTime,
@@ -338,6 +345,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                 placeholder="Air Quality Exposure Assessment"
                 required
                 error={titleError}
+                maxLength={SURVEY_TITLE_MAX}
               />
 
               <TextInput
@@ -346,6 +354,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Help us understand how air quality affects your daily activities and health."
                 rows={4}
+                maxLength={SURVEY_DESCRIPTION_MAX}
               />
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -545,6 +554,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                             placeholder="What activity were you doing when you received this survey?"
                             rows={3}
                             required
+                            maxLength={SURVEY_QUESTION_MAX}
                           />
                         </div>
 
@@ -639,6 +649,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                               }
                               placeholder="Enter your answer here..."
                               description="Shown inside the response field."
+                              maxLength={SURVEY_PLACEHOLDER_MAX}
                             />
                           </div>
                         )}
@@ -657,6 +668,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({
                               }
                               placeholder={`Option one\nOption two\nOption three`}
                               rows={4}
+                              maxLength={SURVEY_OPTION_MAX}
                             />
                             <p className="mt-1 text-xs text-muted-foreground">
                               Enter one option per line.

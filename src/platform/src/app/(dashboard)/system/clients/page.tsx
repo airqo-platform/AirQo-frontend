@@ -86,6 +86,7 @@ const ClientsAdminPage: React.FC = () => {
   const {
     data: clientsResponse,
     isLoading,
+    isValidating,
     error,
     mutate,
   } = useSWR('/api/clients', () => clientService.getClients());
@@ -437,6 +438,7 @@ const ClientsAdminPage: React.FC = () => {
               variant="outlined"
               Icon={AqRefreshCw05}
               onClick={handleRefresh}
+              loading={isValidating}
               className="ml-auto"
             >
               Refresh
@@ -559,7 +561,7 @@ const ClientsAdminPage: React.FC = () => {
                 <Button
                   variant="filled"
                   onClick={handleRefreshSecret}
-                  disabled={isRefreshingSecret}
+                  loading={isRefreshingSecret}
                 >
                   {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
                 </Button>

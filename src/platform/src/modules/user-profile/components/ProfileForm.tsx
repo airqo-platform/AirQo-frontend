@@ -25,6 +25,12 @@ import {
   MAX_IMAGE_FILE_SIZE_BYTES,
 } from '@/shared/utils/cloudinaryUpload';
 import { profileSchema, type ProfileFormData } from '@/shared/lib/validators';
+import {
+  FIRST_NAME_MAX,
+  LAST_NAME_MAX,
+  JOB_TITLE_MAX,
+  USER_BIO_MAX,
+} from '@/shared/lib/validation-limits';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { ProfileFormData as ProfileFormType } from '../types';
 import SettingsLayout from './SettingsLayout';
@@ -328,6 +334,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
             type="text"
             placeholder="Enter your first name"
             error={errors.firstName?.message}
+            maxLength={FIRST_NAME_MAX}
             required
           />
           <Input
@@ -336,6 +343,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
             type="text"
             placeholder="Enter your last name"
             error={errors.lastName?.message}
+            maxLength={LAST_NAME_MAX}
             required
           />
         </div>
@@ -371,6 +379,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
             type="text"
             placeholder="Enter your job title"
             error={errors.jobTitle?.message}
+            maxLength={JOB_TITLE_MAX}
           />
         </div>
 
@@ -404,6 +413,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
               placeholder="Tell us about yourself..."
               error={errors.description?.message}
               rows={4}
+              maxLength={USER_BIO_MAX}
               {...field}
             />
           )}

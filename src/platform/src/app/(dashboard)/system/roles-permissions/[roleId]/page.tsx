@@ -236,6 +236,7 @@ const RoleDetailContent: React.FC = () => {
               size="sm"
               Icon={AqRefreshCw05}
               onClick={handleRefresh}
+              loading={roleLoading || permissionsLoading}
             >
               Refresh
             </Button>

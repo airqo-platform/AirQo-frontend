@@ -212,7 +212,7 @@ jobs:
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
-            --name sta-env-beacon \
+            --name sta-env-beacon-web \
             --query value -o tsv > secrets.json
 
       - name: Build image

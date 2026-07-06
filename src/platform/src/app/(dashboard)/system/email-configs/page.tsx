@@ -33,6 +33,7 @@ import {
   getUserFriendlyErrorMessage,
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
+import { EMAIL_LIST_MAX } from '@/shared/lib/validation-limits';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 
@@ -140,6 +141,7 @@ const EmailConfigContent: React.FC = () => {
     data: response,
     error,
     isLoading,
+    isValidating,
     mutate,
   } = useSWR(
     '/users/application-email-configs',
@@ -535,6 +537,7 @@ const EmailConfigContent: React.FC = () => {
         Icon={AqRefreshCw05}
         iconPosition="start"
         onClick={handleRefresh}
+        loading={isValidating}
       >
         Refresh
       </Button>
@@ -592,6 +595,7 @@ const EmailConfigContent: React.FC = () => {
                     onClick={handleRefresh}
                     Icon={AqRefreshCw05}
                     iconPosition="start"
+                    loading={isValidating}
                   >
                     Try again
                   </Button>
@@ -663,6 +667,7 @@ const EmailConfigContent: React.FC = () => {
                 placeholder="admin1@airqo.net, admin2@airqo.net"
                 description="Comma-separated admin emails to copy on automated alerts."
                 required={dialogState?.mode === 'create'}
+                maxLength={EMAIL_LIST_MAX}
               />
 
               {dialogState?.mode === 'edit' && (
@@ -705,6 +710,7 @@ const EmailConfigContent: React.FC = () => {
                   }
                   placeholder={'app-client@airqo.net\nmonitoring-bot@airqo.net'}
                   rows={6}
+                  maxLength={EMAIL_LIST_MAX}
                 />
                 <p className="mt-1.5 text-xs text-muted-foreground">
                   {dialogState?.mode === 'edit'

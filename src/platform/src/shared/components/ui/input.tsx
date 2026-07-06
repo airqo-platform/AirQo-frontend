@@ -1,4 +1,3 @@
-// Clean, tested forwardRef Input component
 import * as React from 'react';
 import { AqEye, AqEyeOff, AqAlertCircle } from '@airqo/icons-react';
 
@@ -35,12 +34,35 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       description,
       showPasswordToggle = false,
       onChange,
+      maxLength,
+      value,
+      defaultValue,
       ...inputProps
     } = props;
 
     const [showPassword, setShowPassword] = React.useState(false);
 
+    const maxLengthNum = typeof maxLength === 'number' ? maxLength : undefined;
+
+    const getInitialLength = (): number => {
+      if (value !== undefined && value !== null) return String(value).length;
+      if (defaultValue !== undefined && defaultValue !== null)
+        return String(defaultValue).length;
+      return 0;
+    };
+
+    const [charCount, setCharCount] = React.useState(getInitialLength);
+
+    React.useEffect(() => {
+      if (value !== undefined && value !== null) {
+        setCharCount(String(value).length);
+      }
+    }, [value]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (maxLengthNum !== undefined) {
+        setCharCount(e.target.value.length);
+      }
       if (!onChange) return;
       try {
         onChange(e);
@@ -57,17 +79,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
+    const isOverLimit = maxLengthNum !== undefined && charCount > maxLengthNum;
+    const maxLengthError = isOverLimit
+      ? `Max ${maxLengthNum} characters allowed`
+      : undefined;
+
+    const displayError = error || maxLengthError;
+
     return (
       <div className={`flex flex-col mb-4 ${containerClassName}`}>
         {label && (
           <label className="flex items-center mb-2 text-sm text-foreground">
             {label}
-            {required &&
-              (primaryColor ? (
-                <span className="ml-1 text-destructive">*</span>
-              ) : (
-                <span className="ml-1 text-destructive">*</span>
-              ))}
+            {required && <span className="ml-1 text-destructive">*</span>}
           </label>
         )}
 
@@ -98,18 +122,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             style={
               primaryColor
                 ? {
-                    borderColor: error ? 'red' : primaryColor,
-                    boxShadow: error
+                    borderColor: displayError ? 'red' : primaryColor,
+                    boxShadow: displayError
                       ? '0 0 0 1px red'
                       : `0 0 0 1px ${primaryColor}50`,
                   }
-                : error
+                : displayError
                   ? { borderColor: 'red', boxShadow: '0 0 0 1px red' }
                   : undefined
             }
             disabled={disabled}
             required={required}
+            maxLength={maxLength}
             onChange={handleChange}
+            value={value}
+            defaultValue={defaultValue}
             {...inputProps}
           />
 
@@ -129,16 +156,28 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
 
-        {error && (
+        {displayError && (
           <div className="mt-1.5 flex items-center text-xs text-destructive dark:text-destructive">
             <AqAlertCircle className="flex-shrink-0 w-4 h-4 mr-1" />
-            {error}
+            {displayError}
           </div>
         )}
 
-        {!error && description && (
+        {!displayError && description && (
           <div className="mt-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
             {description}
+          </div>
+        )}
+
+        {!displayError && maxLengthNum !== undefined && charCount > 0 && (
+          <div
+            className={`mt-1.5 text-xs ${
+              charCount >= maxLengthNum
+                ? 'text-destructive font-medium'
+                : 'text-muted-foreground'
+            }`}
+          >
+            {charCount}/{maxLengthNum}
           </div>
         )}
       </div>

@@ -22,6 +22,13 @@ import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { GroupDetails, UpdateGroupDetailsRequest } from '@/shared/types/api';
+import {
+  GROUP_TITLE_MAX,
+  GROUP_DESCRIPTION_MAX,
+  GROUP_INDUSTRY_MAX,
+  GROUP_TIMEZONE_MAX,
+  GROUP_WEBSITE_MAX,
+} from '@/shared/lib/validation-limits';
 import { AqCheck, AqUploadCloud01 } from '@airqo/icons-react';
 import { setActiveGroup, setGroups } from '@/shared/store/userSlice';
 import { normalizeGroupDetails } from '@/shared/utils/userUtils';
@@ -318,6 +325,7 @@ const GroupDetailsSettings: React.FC = () => {
             name="grp_title"
             value={groupTitle}
             onChange={e => setGroupTitle(e.target.value)}
+            maxLength={GROUP_TITLE_MAX}
             required
           />
           <div className="flex justify-end pt-2">
@@ -443,6 +451,7 @@ const GroupDetailsSettings: React.FC = () => {
               name="grp_industry"
               value={formData.grp_industry || ''}
               onChange={handleInputChange}
+              maxLength={GROUP_INDUSTRY_MAX}
             />
 
             {/* Country */}
@@ -468,6 +477,7 @@ const GroupDetailsSettings: React.FC = () => {
               name="grp_timezone"
               value={formData.grp_timezone || ''}
               onChange={handleInputChange}
+              maxLength={GROUP_TIMEZONE_MAX}
             />
 
             {/* Website */}
@@ -478,6 +488,7 @@ const GroupDetailsSettings: React.FC = () => {
               name="grp_website"
               value={formData.grp_website || ''}
               onChange={handleInputChange}
+              maxLength={GROUP_WEBSITE_MAX}
             />
           </div>
 
@@ -489,6 +500,7 @@ const GroupDetailsSettings: React.FC = () => {
             rows={4}
             value={formData.grp_description || ''}
             onChange={handleInputChange}
+            maxLength={GROUP_DESCRIPTION_MAX}
           />
 
           <div className="flex justify-end pt-4">

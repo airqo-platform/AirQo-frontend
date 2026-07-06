@@ -899,7 +899,7 @@ const ClientDetailsPage: React.FC = () => {
               <Button
                 variant="filled"
                 onClick={handleRefreshSecret}
-                disabled={isRefreshingSecret}
+                loading={isRefreshingSecret}
               >
                 {isRefreshingSecret ? 'Regenerating...' : 'Regenerate Secret'}
               </Button>

@@ -239,6 +239,18 @@ export const useUserStatistics = () => {
   );
 };
 
+// Get all users (optionally filtered by email)
+export const useUsers = (email?: string) => {
+  return useSWR(
+    email ? `admin/users?email=${email}` : 'admin/users',
+    () => userService.getUsers(email),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+};
+
 // Get all roles and permissions summary across all pages
 export const useRolesSummary = () => {
   return useSWR(
@@ -266,6 +278,7 @@ export const useUpdateUserRole = () => {
           key =>
             typeof key === 'string' &&
             (key.startsWith('user/details/') ||
+              key.startsWith('admin/users') ||
               key === 'admin/roles/summary/all' ||
               key === 'admin/user-statistics')
         );

@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validators';
+import { EMAIL_MAX, PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import {
   normalizeCallbackUrl,
   redirectWithReload,
@@ -177,6 +178,7 @@ export default function OrgLoginPage() {
             {...register('email')}
             error={errors.email?.message}
             placeholder="Enter your email"
+            maxLength={EMAIL_MAX}
           />
 
           <Button type="submit" fullWidth disabled={loading}>
@@ -212,6 +214,7 @@ export default function OrgLoginPage() {
             error={errors.password?.message}
             placeholder="Enter your password"
             showPasswordToggle
+            maxLength={PASSWORD_MAX}
           />
 
           <div className="flex items-center justify-end gap-3">

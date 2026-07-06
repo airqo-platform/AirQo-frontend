@@ -1,336 +1,190 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { Button, PageHeading } from '@/shared/components/ui';
-import { useUserStatistics } from '@/shared/hooks/useAdmin';
-import { LoadingState } from '@/shared/components/ui/loading-state';
+import React, { useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import {
+  Button,
+  Card,
+  LoadingState,
+  PageHeading,
+} from '@/shared/components/ui';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { PermissionGuard } from '@/shared/components';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { isForbiddenError } from '@/shared/utils/errorMessages';
-import { AqUsers01, AqUsersCheck, AqKey01, AqEye } from '@airqo/icons-react';
-import { Card } from '@/shared/components/ui/card';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import type { UserStatisticsUser } from '@/shared/types/api';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
+import { useUserStatistics, useUsers } from '@/shared/hooks/useAdmin';
+import { formatWithPattern } from '@/shared/utils/dateUtils';
+import { ChartContainer, StatsPieChart } from '@/shared/components/charts';
+import { getPrimaryColor } from '@/shared/components/charts/constants';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/components/ui';
-import BulkRoleAssignmentDialog from '@/shared/components/BulkRoleAssignmentDialog';
+  AqUsers01,
+  AqUsersCheck,
+  AqKey01,
+  AqMail01,
+  AqRefreshCw05,
+  AqArrowRight,
+} from '@airqo/icons-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from 'recharts';
+
+const AXIS_STYLE = {
+  tick: { fontSize: 12, fill: 'rgb(100, 116, 139)' },
+  tickLine: { stroke: 'rgb(226, 232, 240)' },
+  axisLine: { stroke: 'rgb(226, 232, 240)' },
+};
+
+const AXIS_LABEL_STYLE = {
+  textAnchor: 'start' as const,
+  fontSize: 12,
+  fill: 'rgb(100, 116, 139)',
+};
+
+const TOOLTIP_STYLE = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '8px',
+  fontSize: '12px',
+  color: 'hsl(var(--card-foreground))',
+};
+
+interface ChartDataPoint {
+  name: string;
+  value: number;
+  [key: string]: string | number;
+}
 
 const UserStatisticsPage: React.FC = () => {
-  const router = useRouter();
-  const { data, isLoading, error, mutate } = useUserStatistics();
+  const {
+    data: statsResponse,
+    isLoading: statsLoading,
+    error: statsError,
+    mutate: mutateStats,
+  } = useUserStatistics();
 
-  // State for tabs
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'api'>('all');
+  const {
+    data: usersResponse,
+    isLoading: usersLoading,
+    error: usersError,
+    mutate: mutateUsers,
+  } = useUsers();
 
-  // Pagination and search states
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [search, setSearch] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [showBulkRoleDialog, setShowBulkRoleDialog] = useState(false);
+  const isLoading = statsLoading || usersLoading;
+  const error = statsError || usersError;
 
-  const stats = data?.users_stats;
+  const stats = useMemo(() => {
+    const s = statsResponse?.users_stats;
+    return {
+      total: s?.users?.number ?? 0,
+      active: s?.active_users?.number ?? 0,
+      apiUsers: s?.api_users?.number ?? 0,
+    };
+  }, [statsResponse]);
 
-  // Get current data based on active tab
-  const currentData = useMemo<UserStatisticsUser[]>(() => {
-    if (!stats) return [];
-    switch (activeTab) {
-      case 'active':
-        return stats.active_users?.details ?? [];
-      case 'api':
-        return stats.api_users?.details ?? [];
-      default:
-        return stats.users?.details ?? [];
-    }
-  }, [stats, activeTab]);
+  const users = useMemo(() => usersResponse?.users ?? [], [usersResponse]);
 
-  // Filter and paginate data
-  const filteredData = useMemo(() => {
-    return currentData
-      .filter((user: UserStatisticsUser) =>
-        `${user.firstName} ${user.lastName} ${user.email} ${user.userName}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-      .map((user: UserStatisticsUser) => ({
-        ...user,
-        id: user._id,
-      }));
-  }, [currentData, search]);
-
-  const paginatedData = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    return filteredData.slice(start, end);
-  }, [filteredData, page, pageSize]);
-
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-
-  // Reset page to 1 when search changes
-  useEffect(() => {
-    setPage(1);
-    setSelectedUsers([]);
-  }, [search]);
-
-  const handleViewDetails = useCallback(
-    (userId: string) => {
-      router.push(`/system/user-statistics/${userId}`);
-    },
-    [router]
+  const verifiedCount = useMemo(
+    () => users.filter(u => u.verified).length,
+    [users]
   );
 
-  // Table columns
-  const columns = useMemo(
+  const statusData: ChartDataPoint[] = useMemo(
     () => [
-      {
-        key: 'user',
-        label: 'User',
-        render: (value: unknown, user: UserStatisticsUser) => (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">
-                {user.firstName?.[0] || '?'}
-                {user.lastName?.[0] || ''}
-              </span>
-            </div>
-            <div>
-              <div className="font-medium">
-                {user.firstName} {user.lastName}
-              </div>
-              <div className="text-sm text-muted-foreground">{user.email}</div>
-            </div>
-          </div>
-        ),
-      },
-      {
-        key: 'userName',
-        label: 'Username',
-        render: (value: unknown, user: UserStatisticsUser) => (
-          <div className="text-sm">{user.userName || '--'}</div>
-        ),
-      },
-      {
-        key: 'id',
-        label: 'User ID',
-        render: (value: unknown, user: UserStatisticsUser) => (
-          <div className="text-sm font-mono text-muted-foreground">
-            {user._id}
-          </div>
-        ),
-      },
-      {
-        key: 'actions',
-        label: 'Actions',
-        render: (value: unknown, user: UserStatisticsUser) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                paddingStyles="h-8 w-8 p-0"
-                className="text-muted-foreground hover:text-foreground"
-                aria-label={`Actions for ${user.firstName} ${user.lastName}`}
-              >
-                ...
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" minWidth={180}>
-              <DropdownMenuItem onClick={() => handleViewDetails(user._id)}>
-                <span className="flex items-center gap-2">
-                  <AqEye className="w-4 h-4" />
-                  View Details
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-      },
+      { name: 'Active', value: stats.active },
+      { name: 'Inactive', value: stats.total - stats.active },
     ],
-    [handleViewDetails]
+    [stats]
   );
 
-  // Stats cards data
-  const statsCards = [
-    {
-      id: 'all',
-      title: 'Total Users',
-      count: stats?.users.number || 0,
-      icon: AqUsers01,
-      color: 'bg-blue-100 text-blue-800',
-    },
-    {
-      id: 'active',
-      title: 'Active Users',
-      count: stats?.active_users.number || 0,
-      icon: AqUsersCheck,
-      color: 'bg-green-100 text-green-800',
-    },
-    {
-      id: 'api',
-      title: 'API Users',
-      count: stats?.api_users.number || 0,
-      icon: AqKey01,
-      color: 'bg-purple-100 text-purple-800',
-    },
-  ];
+  const verificationData: ChartDataPoint[] = useMemo(
+    () => [
+      { name: 'Verified', value: verifiedCount },
+      { name: 'Unverified', value: stats.total - verifiedCount },
+    ],
+    [stats, verifiedCount]
+  );
 
-  const exportToCSV = () => {
-    const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
+  const organizationData: ChartDataPoint[] = useMemo(() => {
+    const counts = users.reduce<Record<string, number>>((acc, user) => {
+      const org = user.organization?.trim() || 'Unknown';
+      acc[org] = (acc[org] ?? 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [users]);
 
-    // Helper to safely extract string fields from possibly inconsistent shapes
-    const getField = (obj: unknown, ...keys: string[]): string => {
-      if (!obj || typeof obj !== 'object') return '';
-      const rec = obj as Record<string, unknown>;
-      for (const k of keys) {
-        const v = rec[k as string];
-        if (v == null) continue;
-        if (typeof v === 'string') return v;
-        if (typeof v === 'number') return String(v);
-      }
-      return '';
-    };
+  const loginRangesData: ChartDataPoint[] = useMemo(() => {
+    const ranges = [
+      { name: '0', min: 0, max: 0 },
+      { name: '1-5', min: 1, max: 5 },
+      { name: '6-10', min: 6, max: 10 },
+      { name: '11-20', min: 11, max: 20 },
+      { name: '21+', min: 21, max: Infinity },
+    ];
+    return ranges.map(range => ({
+      name: range.name,
+      value: users.filter(
+        u =>
+          (u.loginCount ?? 0) >= range.min &&
+          (range.max === Infinity || (u.loginCount ?? 0) <= range.max)
+      ).length,
+    }));
+  }, [users]);
 
-    const esc = (s: string) => {
-      if (!s) return '';
-      // Neutralize potential spreadsheet formulas by prefixing a single quote
-      // when the value begins with =, +, -, or @ (after leading whitespace),
-      // or when it literally starts with a tab or carriage return.
-      const firstNonWS = s.trimStart().charAt(0);
-      const startsWithFormulaChar =
-        firstNonWS === '=' ||
-        firstNonWS === '+' ||
-        firstNonWS === '-' ||
-        firstNonWS === '@';
-      const startsWithTabOrCR = s.charAt(0) === '\t' || s.charAt(0) === '\r';
-      const needsNeutralize = startsWithFormulaChar || startsWithTabOrCR;
-      const prefixed = needsNeutralize ? `'${s}` : s;
-      return prefixed.replace(/"/g, '""');
-    };
+  const signupsOverTimeData: ChartDataPoint[] = useMemo(() => {
+    const counts = users.reduce<Record<string, number>>((acc, user) => {
+      const date = user.createdAt
+        ? formatWithPattern(user.createdAt, 'yyyy-MM')
+        : 'Unknown';
+      acc[date] = (acc[date] ?? 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(-12);
+  }, [users]);
 
-    const csvData = currentData.map(user => {
-      const firstName = getField(user, 'firstName', 'firstname');
-      const lastName = getField(user, 'lastName', 'lastname');
-      const email = getField(user, 'email', 'userEmail');
-      const userName = getField(user, 'userName', 'username');
-      const id = getField(user, '_id', 'id');
-
-      return [
-        esc(firstName),
-        esc(lastName),
-        esc(email),
-        esc(userName),
-        esc(id),
-      ];
-    });
-
-    const rows = [headers, ...csvData];
-    const csvContent = rows
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-    // Add BOM for better Excel compatibility
-    const blob = new Blob(['\uFEFF' + csvContent], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const exportToPDF = () => {
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-
-    // Header
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AirQo User Statistics Report', 40, 50);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      `Category: ${activeTab === 'all' ? 'All Users' : activeTab === 'active' ? 'Active Users' : 'API Users'}`,
-      40,
-      70
-    );
-    doc.text(`Total Records: ${currentData.length}`, 40, 85);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 100);
-
-    const getField = (obj: unknown, ...keys: string[]): string => {
-      if (!obj || typeof obj !== 'object') return '';
-      const rec = obj as Record<string, unknown>;
-      for (const k of keys) {
-        const v = rec[k as string];
-        if (v == null) continue;
-        if (typeof v === 'string') return v;
-        if (typeof v === 'number') return String(v);
-      }
-      return '';
-    };
-
-    const tableData = currentData.map(user => {
-      const firstName = getField(user, 'firstName', 'firstname');
-      const lastName = getField(user, 'lastName', 'lastname');
-      const email = getField(user, 'email', 'userEmail');
-      const userName = getField(user, 'userName', 'username');
-      const id = getField(user, '_id', 'id');
-      return [firstName, lastName, email, userName, id];
-    });
-
-    autoTable(doc, {
-      head: [['First Name', 'Last Name', 'Email', 'Username', 'User ID']],
-      body: tableData,
-      startY: 120,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [22, 78, 99] },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
-      margin: { left: 40, right: 40 },
-      // Note: page footers are rendered after autoTable completes to ensure
-      // the correct total page count is available.
-    });
-
-    // Add "Page X of Y" footer on each page after table generation
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(9);
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        40,
-        doc.internal.pageSize.height - 30
-      );
-    }
-
-    doc.save(
-      `user-statistics-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`
-    );
-  };
+  const topGroupsData: ChartDataPoint[] = useMemo(() => {
+    const counts = users.reduce<Record<string, number>>((acc, user) => {
+      (user.groups ?? []).forEach(group => {
+        const title =
+          group.grp_title?.trim() || group.organization_slug || 'Unknown';
+        acc[title] = (acc[title] ?? 0) + 1;
+      });
+      return acc;
+    }, {});
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [users]);
 
   const handleRefresh = useCallback(async () => {
     try {
       await refreshWithToast(
-        () => mutate(),
+        () => Promise.all([mutateStats(), mutateUsers()]),
         'User statistics refreshed successfully'
       );
-    } catch (error) {
+    } catch (err) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Unable to refresh user statistics'
+        err instanceof Error ? err.message : 'Unable to refresh user statistics'
       );
     }
-  }, [mutate]);
+  }, [mutateStats, mutateUsers]);
 
   if (isLoading) {
     return (
@@ -351,17 +205,18 @@ const UserStatisticsPage: React.FC = () => {
       );
     }
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-4">
         <ErrorBanner
           title="Failed to load user statistics"
           message={error?.message || 'An error occurred while loading the data'}
         />
-        <button
+        <Button
           onClick={handleRefresh}
-          className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          Icon={AqRefreshCw05}
+          loading={isLoading}
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -370,121 +225,291 @@ const UserStatisticsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeading
         title="User Statistics"
-        subtitle="View and analyze user statistics across the entire platform"
+        subtitle="High-level insights and analytics across all platform users"
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outlined"
+              onClick={handleRefresh}
+              Icon={AqRefreshCw05}
+              loading={isLoading}
+            >
+              Refresh
+            </Button>
+            <Link href="/system/users">
+              <Button Icon={AqArrowRight}>Manage Users</Button>
+            </Link>
+          </div>
+        }
       />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statsCards.map(card => {
-          const Icon = card.icon;
-          const isActive = activeTab === card.id;
-          return (
-            <Card
-              key={card.id}
-              onClick={() => {
-                setActiveTab(card.id as 'all' | 'active' | 'api');
-                setPage(1);
-                setSearch('');
-                setSelectedUsers([]);
-              }}
-              className={`cursor-pointer p-6 transition-all ${
-                isActive ? 'border-primary bg-primary/5' : 'hover:shadow-md'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {card.title}
-                  </p>
-                  <p className="text-3xl font-bold mt-2">{card.count}</p>
-                </div>
-                <div className={`p-3 rounded-full ${card.color}`}>
-                  <Icon size={24} />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Users</p>
+              <p className="text-2xl font-bold mt-1">{stats.total}</p>
+            </div>
+            <div className="p-2.5 rounded-full bg-blue-100 text-blue-700">
+              <AqUsers01 className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Active Users</p>
+              <p className="text-2xl font-bold mt-1">{stats.active}</p>
+            </div>
+            <div className="p-2.5 rounded-full bg-green-100 text-green-700">
+              <AqUsersCheck className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Verified Users</p>
+              <p className="text-2xl font-bold mt-1">{verifiedCount}</p>
+            </div>
+            <div className="p-2.5 rounded-full bg-purple-100 text-purple-700">
+              <AqMail01 className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">API Users</p>
+              <p className="text-2xl font-bold mt-1">{stats.apiUsers}</p>
+            </div>
+            <div className="p-2.5 rounded-full bg-amber-100 text-amber-700">
+              <AqKey01 className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={handleRefresh}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartContainer
+          title="Account Status"
+          subtitle="Active vs inactive users"
+          showMoreButton={false}
+          loading={isLoading}
         >
-          Refresh
-        </button>
-        <div className="flex gap-2">
-          {selectedUsers.length > 0 && (
-            <Button
-              onClick={() => setShowBulkRoleDialog(true)}
-              variant="outlined"
-              showTextOnMobile
-            >
-              Assign Role ({selectedUsers.length})
-            </Button>
-          )}
-          <button
-            onClick={exportToCSV}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            Export CSV
-          </button>
-          <button
-            onClick={exportToPDF}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            Export PDF
-          </button>
-        </div>
-      </div>
-      <ServerSideTable
-        columns={columns}
-        data={paginatedData}
-        title={
-          activeTab === 'all'
-            ? 'All Users'
-            : activeTab === 'active'
-              ? 'Active Users'
-              : 'API Users'
-        }
-        currentPage={page}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={filteredData.length}
-        onPageChange={setPage}
-        onPageSizeChange={newSize => {
-          setPageSize(newSize);
-          setPage(1);
-        }}
-        searchTerm={search}
-        onSearchChange={value => {
-          setSearch(value);
-          setPage(1);
-        }}
-        loading={isLoading}
-        multiSelect
-        selectedItems={selectedUsers}
-        onSelectedItemsChange={ids =>
-          setSelectedUsers(ids.map(id => String(id)))
-        }
-      />
+          <StatsPieChart data={statusData} />
+        </ChartContainer>
 
-      <BulkRoleAssignmentDialog
-        isOpen={showBulkRoleDialog}
-        onClose={() => setShowBulkRoleDialog(false)}
-        userIds={selectedUsers}
-        userCount={selectedUsers.length}
-        onSuccess={() => {
-          setSelectedUsers([]);
-          mutate();
-        }}
-      />
+        <ChartContainer
+          title="Verification Status"
+          subtitle="Verified vs unverified users"
+          showMoreButton={false}
+          loading={isLoading}
+        >
+          <StatsPieChart data={verificationData} />
+        </ChartContainer>
+
+        <ChartContainer
+          title="Users by Organization"
+          subtitle="Top organizations by user count"
+          showMoreButton={false}
+          loading={isLoading}
+        >
+          {organizationData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={organizationData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(0)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Login Activity"
+          subtitle="Users grouped by login count"
+          showMoreButton={false}
+          loading={isLoading}
+        >
+          {loginRangesData.some(d => d.value > 0) ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={loginRangesData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(1)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Signups Over Time"
+          subtitle="New users by month"
+          showMoreButton={false}
+          loading={isLoading}
+        >
+          {signupsOverTimeData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={signupsOverTimeData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'New Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={getPrimaryColor(2)}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Top Groups"
+          subtitle="Groups with the most members"
+          showMoreButton={false}
+          loading={isLoading}
+        >
+          {topGroupsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={topGroupsData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Members',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(3)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+      </div>
     </div>
   );
 };
 
-// Wrap with permission guard
+const NoDataState: React.FC = () => (
+  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+    <div className="text-center">
+      <AqUsers01 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+      <p className="text-sm">No data available</p>
+    </div>
+  </div>
+);
+
 const ProtectedUserStatisticsPage: React.FC = () => {
   return (
     <PermissionGuard

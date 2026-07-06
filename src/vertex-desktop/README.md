@@ -60,19 +60,14 @@ Desktop CI and release are handled by:
 
 ### Auto-update release flow
 
-1. Bump `version` in `src/vertex-desktop/package.json`.
-2. Commit changes.
-3. Create and push a release tag (or run release workflow manually with an existing tag):
-
-```bash
-git tag vertex-desktop-v0.1.5
-git push origin vertex-desktop-v0.1.5
-```
-
-4. The `vertex-desktop-release` workflow builds and publishes installers to GitHub Releases for:
+1. Bump `version` in `src/vertex-desktop/package.json` and merge that change into `staging` (normal PR flow) — that's the only local step.
+2. On push to `staging` that triggers `vertex-desktop-ci.yml` (changes under `src/vertex-desktop/**` and/or the workflow files), `vertex-desktop-ci.yml` runs its `desktop-quality` job (typecheck + build), then its `auto-tag` job. `auto-tag` reads the version from `package.json`; if a `vertex-desktop-v<version>` tag doesn't already exist, it creates and pushes it automatically. If the tag already exists (i.e. you pushed without bumping the version), it skips.
+3. Pushing that tag triggers `vertex-desktop-release`, which builds and publishes installers to GitHub Releases for:
 - Windows (`nsis`)
 - macOS (`dmg`, `zip`)
 - Linux (`AppImage`, `deb`)
+
+You can still create/push a `vertex-desktop-v*` tag manually, or run `vertex-desktop-release` via `workflow_dispatch` with an existing tag, if you need to re-run a release.
 
 `electron-updater` consumes these release assets (`latest.yml` + installer) to deliver in-app updates.
 

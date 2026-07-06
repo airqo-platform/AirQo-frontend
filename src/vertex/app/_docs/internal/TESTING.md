@@ -197,6 +197,12 @@ Prioritize meaningful coverage for:
 
 Do not add low-value tests just to increase coverage numbers.
 
+`.github/workflows/vertex-ci.yml` runs the suite with coverage on every PR and push to `staging` that touches Vertex, and uploads results to Codecov under the `vertex` flag (see root `codecov.yml`). Project and patch coverage checks are currently informational (visible on the PR, non-blocking) rather than an enforced gate, consistent with treating coverage as a signal rather than a target. The build/test status and coverage badges in this app's `README.md` reflect the latest `staging` run.
+
+Vertex previously ran as a conditional job inside the shared `safe-checks.yml` (still used by the other frontend projects in this monorepo). It was split into its own workflow so it could push-trigger on `staging` independently — keeping Codecov's baseline fresh — without changing CI behavior for the other five projects.
+
+Flaky-test-rate tracking is deferred: it needs a separate mechanism (for example Codecov Test Analytics or a retry-count script) beyond the coverage upload above, and isn't wired up yet.
+
 ## Deferred test areas
 
 Proxy and network-heavy utilities should be tested in a later integration-style pass with explicit mocks for axios, NextAuth, environment config, and Next.js request/response objects.

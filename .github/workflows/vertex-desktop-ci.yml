@@ -16,6 +16,9 @@ on:
       - ".github/workflows/vertex-desktop-ci.yml"
       - ".github/workflows/vertex-desktop-release.yml"
 
+permissions:
+  contents: read
+
 jobs:
   desktop-quality:
     name: typecheck-and-build
@@ -42,3 +45,97 @@ jobs:
 
       - name: Build desktop runtime
         run: npm run build
+
+  auto-tag:
+    name: tag-release-if-version-bumped
+    needs: desktop-quality
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve version and tag
+        id: version
+        working-directory: src/vertex-desktop
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="vertex-desktop-v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: check
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push release tag
+        id: tag
+        if: steps.check.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          echo "tagged=false" >> "$GITHUB_OUTPUT"
+          if [[ "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            echo "No before SHA available (new branch); proceeding with tagging."
+          else
+            if ! DIFF_OUTPUT=$(git diff --unified=0 "${BEFORE_SHA}" "${AFTER_SHA}" -- src/vertex-desktop/package.json); then
+              echo "::error::git diff between ${BEFORE_SHA} and ${AFTER_SHA} failed; cannot determine if version changed."
+              exit 1
+            fi
+            if ! grep -qE '^[+-][[:space:]]*"version"[[:space:]]*:' <<< "${DIFF_OUTPUT}"; then
+              echo "No version change detected in src/vertex-desktop/package.json for this push; skipping auto-tag."
+              exit 0
+            fi
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Vertex desktop release ${TAG}"
+          git push origin "${TAG}"
+          echo "tagged=true" >> "$GITHUB_OUTPUT"
+          echo "Pushed tag ${TAG}"
+
+      - name: Trigger release workflow
+        if: steps.tag.outputs.tagged == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          # A tag pushed with the default GITHUB_TOKEN does not trigger other
+          # workflows' `on: push: tags:` (GitHub's anti-recursion guard), so
+          # dispatch vertex-desktop-release.yml directly via workflow_dispatch,
+          # which is explicitly exempt from that restriction. Dispatch with
+          # --ref set to the tag itself (not the branch) so the workflow
+          # definition GitHub loads matches the same commit the build later
+          # checks out, instead of whatever staging has moved to by then.
+          gh workflow run vertex-desktop-release.yml \
+            --repo "${REPO}" \
+            --ref "${TAG}" \
+            -f release_tag="${TAG}"
+          echo "Dispatched vertex-desktop-release.yml for ${TAG}"
+
+      - name: Skip (tag already exists)
+        if: steps.check.outputs.exists == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: echo "Tag ${TAG} already exists, skipping. Bump the version in src/vertex-desktop/package.json to cut a new release."
