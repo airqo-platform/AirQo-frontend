@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSWRConfig } from 'swr';
 import {
@@ -40,9 +46,7 @@ const DetailItem: React.FC<{ label: string; value: string }> = ({
   value,
 }) => (
   <div>
-    <label className="text-sm font-medium text-muted-foreground">
-      {label}
-    </label>
+    <label className="text-sm font-medium text-muted-foreground">{label}</label>
     <p className="text-sm mt-1 break-words">{value}</p>
   </div>
 );
@@ -339,10 +343,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                   : 'Never'
               }
             />
-            <DetailItem
-              label="Login Count"
-              value={String(user.loginCount)}
-            />
+            <DetailItem label="Login Count" value={String(user.loginCount)} />
             <DetailItem
               label="Current Primary Role"
               value={
@@ -379,9 +380,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
               <p className="text-sm text-muted-foreground">
                 Role groups loaded
               </p>
-              <p className="text-xl font-semibold">
-                {availableRoles.length}
-              </p>
+              <p className="text-xl font-semibold">{availableRoles.length}</p>
             </div>
 
             {rolesError ? (
@@ -395,7 +394,11 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                 onClick={openRoleDialog}
                 fullWidth
                 loading={rolesLoading}
-                disabled={rolesLoading || availableRoles.length === 0 || !activeGroup?.id}
+                disabled={
+                  rolesLoading ||
+                  availableRoles.length === 0 ||
+                  !activeGroup?.id
+                }
               >
                 Change Role
               </Button>
@@ -614,9 +617,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                             ? 'bg-primary/20 text-primary font-medium'
                             : 'text-foreground'
                         } ${
-                          highlightedRoleIndex === index
-                            ? 'bg-primary/10'
-                            : ''
+                          highlightedRoleIndex === index ? 'bg-primary/10' : ''
                         }`}
                       >
                         {role.role_name} - {role.group?.grp_title || 'No group'}

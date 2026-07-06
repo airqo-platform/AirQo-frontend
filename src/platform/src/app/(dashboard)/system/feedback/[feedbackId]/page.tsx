@@ -31,10 +31,7 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
-import {
-  EMAIL_MAX,
-  WATCHER_NAME_MAX,
-} from '@/shared/lib/validation-limits';
+import { EMAIL_MAX, WATCHER_NAME_MAX } from '@/shared/lib/validation-limits';
 import type {
   FeedbackSubmission,
   FeedbackReply,

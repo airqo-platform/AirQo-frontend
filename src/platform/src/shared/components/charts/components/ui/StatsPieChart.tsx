@@ -38,7 +38,10 @@ const StatsPieChart: React.FC<StatsPieChartProps> = ({
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center text-muted-foreground" style={{ height }}>
+      <div
+        className="flex items-center justify-center text-muted-foreground"
+        style={{ height }}
+      >
         <p className="text-sm">No data available</p>
       </div>
     );

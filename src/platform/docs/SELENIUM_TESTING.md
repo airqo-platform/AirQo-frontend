@@ -175,28 +175,28 @@ npx mocha --require ts-node/register --timeout 60000 tests/data/data.test.ts
 
 ### Coverage by Module
 
-| Module           | Pages                | Tests   | Status             |
-| ---------------- | -------------------- | ------- | ------------------ |
-| **Auth**         | Login                | 8       | Covered            |
-|                  | Register             | 7       | Covered            |
-|                  | Forgot Password      | 4       | Covered            |
-|                  | Reset Password       | 4       | Covered            |
-|                  | Protected Routes     | 7       | Covered            |
-|                  | Form Validation      | 5       | Covered            |
-| **User**         | Home                 | 8       | Covered            |
-|                  | Profile              | 9       | Covered            |
-|                  | Favorites/Analytics  | 2       | Covered            |
-|                  | Request Organization | 4       | Covered            |
-| **Organization** | Dashboard            | 3       | Covered            |
-|                  | Members              | 4       | Covered            |
-|                  | Settings             | 2       | Covered            |
-|                  | Roles                | 2       | Covered            |
-|                  | Member Requests      | 3       | Covered            |
-| **Admin**        | All System Pages     | 7       | Page loads covered |
-| **Data**         | Visualizer           | 2       | Covered            |
-|                  | Export               | 3       | Covered            |
-|                  | Map                  | 2       | Covered            |
-| **Total**        |                      | **86**  |                    |
+| Module           | Pages                | Tests  | Status             |
+| ---------------- | -------------------- | ------ | ------------------ |
+| **Auth**         | Login                | 8      | Covered            |
+|                  | Register             | 7      | Covered            |
+|                  | Forgot Password      | 4      | Covered            |
+|                  | Reset Password       | 4      | Covered            |
+|                  | Protected Routes     | 7      | Covered            |
+|                  | Form Validation      | 5      | Covered            |
+| **User**         | Home                 | 8      | Covered            |
+|                  | Profile              | 9      | Covered            |
+|                  | Favorites/Analytics  | 2      | Covered            |
+|                  | Request Organization | 4      | Covered            |
+| **Organization** | Dashboard            | 3      | Covered            |
+|                  | Members              | 4      | Covered            |
+|                  | Settings             | 2      | Covered            |
+|                  | Roles                | 2      | Covered            |
+|                  | Member Requests      | 3      | Covered            |
+| **Admin**        | All System Pages     | 7      | Page loads covered |
+| **Data**         | Visualizer           | 2      | Covered            |
+|                  | Export               | 3      | Covered            |
+|                  | Map                  | 2      | Covered            |
+| **Total**        |                      | **86** |                    |
 
 ### What Each Test Suite Covers
 

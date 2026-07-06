@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from 'react';
 import Dialog from '@/shared/components/ui/dialog';
 import { useUser } from '@/shared/hooks/useUser';
 import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks';
@@ -95,9 +101,9 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
 
   useEffect(() => {
     if (isDropdownOpen && highlightedIndex >= 0 && listRef.current) {
-      const highlightedElement = listRef.current.children[
-        highlightedIndex
-      ] as HTMLElement | undefined;
+      const highlightedElement = listRef.current.children[highlightedIndex] as
+        | HTMLElement
+        | undefined;
       highlightedElement?.scrollIntoView({ block: 'nearest' });
     }
   }, [isDropdownOpen, highlightedIndex]);
@@ -236,9 +242,7 @@ const BulkRoleAssignmentDialog: React.FC<BulkRoleAssignmentDialogProps> = ({
                         selectedRoleId === role._id
                           ? 'bg-primary/20 text-primary font-medium'
                           : 'text-foreground'
-                      } ${
-                        highlightedIndex === index ? 'bg-primary/10' : ''
-                      }`}
+                      } ${highlightedIndex === index ? 'bg-primary/10' : ''}`}
                     >
                       {role.role_name} - {role.group?.grp_title || 'No group'}
                     </li>

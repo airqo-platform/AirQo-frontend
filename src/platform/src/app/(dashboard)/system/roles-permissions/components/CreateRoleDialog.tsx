@@ -13,10 +13,7 @@ import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useCreateRole } from '@/shared/hooks/useAdmin';
 import type { UserRoleSummary } from '@/shared/types/api';
-import {
-  ROLE_NAME_MAX,
-  ROLE_CODE_MAX,
-} from '@/shared/lib/validation-limits';
+import { ROLE_NAME_MAX, ROLE_CODE_MAX } from '@/shared/lib/validation-limits';
 
 interface CreateRoleDialogProps {
   isOpen: boolean;

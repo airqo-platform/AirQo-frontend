@@ -100,7 +100,10 @@ const UserManagementPage: React.FC = () => {
 
   const handleRefresh = useCallback(async () => {
     try {
-      await refreshWithToast(() => mutate(), 'User list refreshed successfully');
+      await refreshWithToast(
+        () => mutate(),
+        'User list refreshed successfully'
+      );
     } catch (err) {
       toast.error(getUserFriendlyErrorMessage(err));
     }
@@ -184,7 +187,9 @@ const UserManagementPage: React.FC = () => {
       escape(user.country || ''),
       escape(user.jobTitle || ''),
       escape(
-        (user.groups ?? []).map(g => g.grp_title || g.organization_slug).join('; ')
+        (user.groups ?? [])
+          .map(g => g.grp_title || g.organization_slug)
+          .join('; ')
       ),
     ]);
 
@@ -359,10 +364,7 @@ const UserManagementPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <LoadingState
-        className="h-[calc(100vh-200px)]"
-        text="Loading users..."
-      />
+      <LoadingState className="h-[calc(100vh-200px)]" text="Loading users..." />
     );
   }
 
@@ -381,7 +383,11 @@ const UserManagementPage: React.FC = () => {
           title="Failed to load users"
           message={error?.message || 'An error occurred while loading users'}
         />
-        <Button onClick={handleRefresh} Icon={AqRefreshCw05}>
+        <Button
+          onClick={handleRefresh}
+          Icon={AqRefreshCw05}
+          loading={isLoading}
+        >
           Retry
         </Button>
       </div>
@@ -478,7 +484,11 @@ const UserManagementPage: React.FC = () => {
             />
             <Select
               value={selectedRoleId}
-              onChange={e => setSelectedRoleId((e as React.ChangeEvent<HTMLSelectElement>).target.value)}
+              onChange={e =>
+                setSelectedRoleId(
+                  (e as React.ChangeEvent<HTMLSelectElement>).target.value
+                )
+              }
               placeholder="Choose a role..."
               disabled={rolesLoading}
             >

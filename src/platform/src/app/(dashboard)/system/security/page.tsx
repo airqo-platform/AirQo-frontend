@@ -966,6 +966,7 @@ const SecurityPageContent: React.FC = () => {
                   variant="outlined"
                   Icon={AqRefreshCw05}
                   onClick={handleRefreshBlocked}
+                  loading={blockedLoading}
                   className="ml-auto"
                 >
                   Refresh
@@ -1016,6 +1017,7 @@ const SecurityPageContent: React.FC = () => {
                   variant="outlined"
                   Icon={AqRefreshCw05}
                   onClick={handleRefreshFlagged}
+                  loading={flaggedLoading}
                   className="ml-auto"
                 >
                   Refresh

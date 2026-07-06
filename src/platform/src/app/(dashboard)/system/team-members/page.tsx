@@ -4,7 +4,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
-import { Button, Card, LoadingState, PageHeading } from '@/shared/components/ui';
+import {
+  Button,
+  Card,
+  LoadingState,
+  PageHeading,
+} from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import BulkRoleAssignmentDialog from '@/shared/components/BulkRoleAssignmentDialog';
 import { feedbackService } from '@/modules/feedback';
@@ -34,29 +39,21 @@ const MembersContent: React.FC = () => {
     data: staffData,
     isLoading,
     error,
-  } = useSWR(
-    'feedback/staff',
-    () => feedbackService.getFeedbackStaff(),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000,
-    }
-  );
+  } = useSWR('feedback/staff', () => feedbackService.getFeedbackStaff(), {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
+  });
 
-  const allMembers = useMemo(
-    () => staffData?.staff || [],
-    [staffData?.staff]
-  );
+  const allMembers = useMemo(() => staffData?.staff || [], [staffData?.staff]);
 
   const filteredMembers = useMemo(() => {
     if (!search.trim()) return allMembers;
     const q = search.trim().toLowerCase();
-    return allMembers.filter(
-      (member: FeedbackStaffMember) =>
-        `${member.firstName} ${member.lastName} ${member.email} ${member.userName}`
-          .toLowerCase()
-          .includes(q)
+    return allMembers.filter((member: FeedbackStaffMember) =>
+      `${member.firstName} ${member.lastName} ${member.email} ${member.userName}`
+        .toLowerCase()
+        .includes(q)
     );
   }, [allMembers, search]);
 
@@ -106,9 +103,7 @@ const MembersContent: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              router.push(`/system/team-members/${member._id}`)
-            }
+            onClick={() => router.push(`/system/team-members/${member._id}`)}
             title="View member details"
             aria-label="View member details"
           >
@@ -121,12 +116,7 @@ const MembersContent: React.FC = () => {
   );
 
   if (isLoading) {
-    return (
-      <LoadingState
-        className="min-h-[400px]"
-        text="Loading members..."
-      />
-    );
+    return <LoadingState className="min-h-[400px]" text="Loading members..." />;
   }
 
   if (error) {

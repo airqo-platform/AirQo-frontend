@@ -181,9 +181,7 @@ const UserStatisticsPage: React.FC = () => {
       );
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : 'Unable to refresh user statistics'
+        err instanceof Error ? err.message : 'Unable to refresh user statistics'
       );
     }
   }, [mutateStats, mutateUsers]);
@@ -212,7 +210,11 @@ const UserStatisticsPage: React.FC = () => {
           title="Failed to load user statistics"
           message={error?.message || 'An error occurred while loading the data'}
         />
-        <Button onClick={handleRefresh} Icon={AqRefreshCw05}>
+        <Button
+          onClick={handleRefresh}
+          Icon={AqRefreshCw05}
+          loading={isLoading}
+        >
           Retry
         </Button>
       </div>
@@ -346,10 +348,7 @@ const UserStatisticsPage: React.FC = () => {
                   axisLine={AXIS_STYLE.axisLine}
                 />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar
-                  dataKey="value"
-                  fill={getPrimaryColor(0)}
-                />
+                <Bar dataKey="value" fill={getPrimaryColor(0)} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -394,10 +393,7 @@ const UserStatisticsPage: React.FC = () => {
                   axisLine={AXIS_STYLE.axisLine}
                 />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar
-                  dataKey="value"
-                  fill={getPrimaryColor(1)}
-                />
+                <Bar dataKey="value" fill={getPrimaryColor(1)} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -493,10 +489,7 @@ const UserStatisticsPage: React.FC = () => {
                   axisLine={AXIS_STYLE.axisLine}
                 />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar
-                  dataKey="value"
-                  fill={getPrimaryColor(3)}
-                />
+                <Bar dataKey="value" fill={getPrimaryColor(3)} />
               </BarChart>
             </ResponsiveContainer>
           ) : (

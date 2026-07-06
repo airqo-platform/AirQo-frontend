@@ -26,18 +26,27 @@ import {
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(1, 'Password is required').max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
 });
 
 export const registerSchema = z.object({
   firstName: z
     .string()
     .min(1, 'First name is required')
-    .max(FIRST_NAME_MAX, `First name must be ${FIRST_NAME_MAX} characters or less`),
+    .max(
+      FIRST_NAME_MAX,
+      `First name must be ${FIRST_NAME_MAX} characters or less`
+    ),
   lastName: z
     .string()
     .min(1, 'Last name is required')
-    .max(LAST_NAME_MAX, `Last name must be ${LAST_NAME_MAX} characters or less`),
+    .max(
+      LAST_NAME_MAX,
+      `Last name must be ${LAST_NAME_MAX} characters or less`
+    ),
   email: z
     .string()
     .min(1, 'Email is required')
@@ -71,7 +80,9 @@ export const resetPwdSchema = z
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
         'Password must include uppercase, lowercase, number, and special character'
       ),
-    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
+    confirmPassword: z
+      .string()
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(d => d.password === d.confirmPassword, {
     message: 'Passwords do not match',
@@ -88,7 +99,9 @@ export const setPasswordSchema = z
         /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*.,]+$/,
         'Password must include at least one letter and one number'
       ),
-    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
+    confirmPassword: z
+      .string()
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(data => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -99,26 +112,44 @@ export const profileSchema = z.object({
   firstName: z
     .string()
     .min(1, 'First name is required')
-    .max(FIRST_NAME_MAX, `First name must be ${FIRST_NAME_MAX} characters or less`),
+    .max(
+      FIRST_NAME_MAX,
+      `First name must be ${FIRST_NAME_MAX} characters or less`
+    ),
   lastName: z
     .string()
     .min(1, 'Last name is required')
-    .max(LAST_NAME_MAX, `Last name must be ${LAST_NAME_MAX} characters or less`),
+    .max(
+      LAST_NAME_MAX,
+      `Last name must be ${LAST_NAME_MAX} characters or less`
+    ),
   email: z
     .string()
     .min(1, 'Email is required')
     .email('Invalid email address')
     .max(EMAIL_MAX, `Email must be ${EMAIL_MAX} characters or less`),
-  phoneNumber: z.string().max(PHONE_MAX, `Phone number must be ${PHONE_MAX} characters or less`).optional(),
-  jobTitle: z.string().max(JOB_TITLE_MAX, `Job title must be ${JOB_TITLE_MAX} characters or less`).optional(),
+  phoneNumber: z
+    .string()
+    .max(PHONE_MAX, `Phone number must be ${PHONE_MAX} characters or less`)
+    .optional(),
+  jobTitle: z
+    .string()
+    .max(JOB_TITLE_MAX, `Job title must be ${JOB_TITLE_MAX} characters or less`)
+    .optional(),
   country: z.string().min(1, 'Country is required'),
-  description: z.string().max(USER_BIO_MAX, `Bio must be ${USER_BIO_MAX} characters or less`).optional(),
+  description: z
+    .string()
+    .max(USER_BIO_MAX, `Bio must be ${USER_BIO_MAX} characters or less`)
+    .optional(),
   profilePicture: z.string().optional(),
 });
 
 export const securitySchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required').max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
+    currentPassword: z
+      .string()
+      .min(1, 'Current password is required')
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
     newPassword: z
       .string()
       .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
@@ -127,7 +158,9 @@ export const securitySchema = z
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
         'Password must include uppercase, lowercase, number, and special character'
       ),
-    confirmPassword: z.string().max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
+    confirmPassword: z
+      .string()
+      .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
   })
   .refine(d => d.newPassword === d.confirmPassword, {
     message: 'Passwords do not match',
@@ -144,11 +177,17 @@ export const organizationRequestSchema = z.object({
   project_name: z
     .string()
     .min(2, 'Project name must be at least 2 characters')
-    .max(PROJECT_NAME_MAX, `Project name must be less than ${PROJECT_NAME_MAX} characters`),
+    .max(
+      PROJECT_NAME_MAX,
+      `Project name must be less than ${PROJECT_NAME_MAX} characters`
+    ),
 
   funder_partner: z
     .string()
-    .max(FUNDER_PARTNER_MAX, `Funder/partner must be less than ${FUNDER_PARTNER_MAX} characters`)
+    .max(
+      FUNDER_PARTNER_MAX,
+      `Funder/partner must be less than ${FUNDER_PARTNER_MAX} characters`
+    )
     .optional(),
 
   contact_email: z
@@ -160,12 +199,18 @@ export const organizationRequestSchema = z.object({
   contact_name: z
     .string()
     .min(2, 'Contact name must be at least 2 characters')
-    .max(CONTACT_NAME_MAX, `Contact name must be less than ${CONTACT_NAME_MAX} characters`),
+    .max(
+      CONTACT_NAME_MAX,
+      `Contact name must be less than ${CONTACT_NAME_MAX} characters`
+    ),
 
   use_case: z
     .string()
     .min(10, 'Use case description must be at least 10 characters')
-    .max(USE_CASE_MAX, `Use case description must be less than ${USE_CASE_MAX} characters`),
+    .max(
+      USE_CASE_MAX,
+      `Use case description must be less than ${USE_CASE_MAX} characters`
+    ),
 
   organization_type: z.enum([
     'government',
@@ -178,7 +223,10 @@ export const organizationRequestSchema = z.object({
   country: z
     .string()
     .min(2, 'Country is required')
-    .max(COUNTRY_MAX, `Country name must be less than ${COUNTRY_MAX} characters`),
+    .max(
+      COUNTRY_MAX,
+      `Country name must be less than ${COUNTRY_MAX} characters`
+    ),
 });
 
 // Role creation validation
@@ -197,7 +245,10 @@ export const createRoleSchema = z.object({
     .optional(),
   role_description: z
     .string()
-    .max(ROLE_DESCRIPTION_MAX, `Role description must be ${ROLE_DESCRIPTION_MAX} characters or less`)
+    .max(
+      ROLE_DESCRIPTION_MAX,
+      `Role description must be ${ROLE_DESCRIPTION_MAX} characters or less`
+    )
     .optional(),
 });
 
@@ -206,22 +257,37 @@ export const groupDetailsSchema = z.object({
   grp_title: z
     .string()
     .min(1, 'Group title is required')
-    .max(GROUP_TITLE_MAX, `Group title must be ${GROUP_TITLE_MAX} characters or less`),
+    .max(
+      GROUP_TITLE_MAX,
+      `Group title must be ${GROUP_TITLE_MAX} characters or less`
+    ),
   grp_description: z
     .string()
-    .max(GROUP_DESCRIPTION_MAX, `Description must be ${GROUP_DESCRIPTION_MAX} characters or less`)
+    .max(
+      GROUP_DESCRIPTION_MAX,
+      `Description must be ${GROUP_DESCRIPTION_MAX} characters or less`
+    )
     .optional(),
   grp_industry: z
     .string()
-    .max(GROUP_INDUSTRY_MAX, `Industry must be ${GROUP_INDUSTRY_MAX} characters or less`)
+    .max(
+      GROUP_INDUSTRY_MAX,
+      `Industry must be ${GROUP_INDUSTRY_MAX} characters or less`
+    )
     .optional(),
   grp_timezone: z
     .string()
-    .max(GROUP_TIMEZONE_MAX, `Timezone must be ${GROUP_TIMEZONE_MAX} characters or less`)
+    .max(
+      GROUP_TIMEZONE_MAX,
+      `Timezone must be ${GROUP_TIMEZONE_MAX} characters or less`
+    )
     .optional(),
   grp_website: z
     .string()
-    .max(GROUP_WEBSITE_MAX, `Website must be ${GROUP_WEBSITE_MAX} characters or less`)
+    .max(
+      GROUP_WEBSITE_MAX,
+      `Website must be ${GROUP_WEBSITE_MAX} characters or less`
+    )
     .optional(),
 });
 
