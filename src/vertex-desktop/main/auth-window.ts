@@ -6,7 +6,7 @@ const resolveApiOrigin = (): string | null => {
   const raw =
     process.env.NEXT_PUBLIC_API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    '';
+    "";
   try {
     return raw ? new URL(raw).origin : null;
   } catch {
@@ -20,7 +20,7 @@ const isOAuthUrl = (url: string): boolean => {
     const apiOrigin = resolveApiOrigin();
     const trustedOrigin = apiOrigin
       ? parsed.origin === apiOrigin
-      : parsed.hostname === 'airqo.net' || parsed.hostname.endsWith('.airqo.net');
+      : parsed.hostname === "airqo.net" || parsed.hostname.endsWith(".airqo.net");
     return trustedOrigin && parsed.pathname.includes('/users/auth/');
   } catch {
     return false;
