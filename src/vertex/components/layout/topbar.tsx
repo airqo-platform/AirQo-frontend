@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import ReusableButton from '../shared/button/ReusableButton';
 import { useLogout } from '@/core/hooks/useLogout';
+import { ConfirmationDialog } from '@/components/shared/dialog/ConfirmationDialog';
 import AppDropdown from './AppDropdown';
 import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
@@ -36,6 +37,7 @@ const LogoRaw = vertexConfig.org.logo;
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
@@ -198,12 +200,25 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="flex items-center"
-                  onClick={logout}
+                  onClick={() => setShowLogoutConfirm(true)}
                 >
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <ConfirmationDialog
+              open={showLogoutConfirm}
+              onOpenChange={setShowLogoutConfirm}
+              onConfirm={() => { 
+                setShowLogoutConfirm(false); 
+                logout();
+               }}
+              title="Log out"
+              description="Are you sure you want to log out? You'll need to sign in again to access your account."
+              confirmLabel="Log out"
+              destructive
+            />
           </div>
         </div>
       </Card>
