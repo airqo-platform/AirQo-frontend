@@ -23,6 +23,7 @@ interface MiniMapProps {
   zoom?: number;
   scrollZoom?: boolean;
   height?: string;
+  readOnly?: boolean;
 }
 
 const DEFAULT_CENTER: [number, number] = [32.58252, 0.347596]; // Kampala
@@ -103,6 +104,7 @@ function MiniMap({
   zoom = DEFAULT_ZOOM,
   scrollZoom = true,
   height = 'h-72',
+  readOnly = false,
 }: MiniMapProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -169,22 +171,24 @@ function MiniMap({
       map.addControl(new mapboxgl.NavigationControl());
 
       if (mapMode === 'marker') {
-        markerRef.current = new mapboxgl.Marker({ draggable: true })
+        markerRef.current = new mapboxgl.Marker({ draggable: !readOnly })
           .setLngLat(currentCenter)
           .addTo(map);
 
-        markerRef.current.on('dragend', () => {
-          const lngLat = markerRef.current?.getLngLat();
-          if (lngLat) {
-            handleCoordinateUpdate(lngLat.lat, lngLat.lng);
-          }
-        });
+        if (!readOnly) {
+          markerRef.current.on('dragend', () => {
+            const lngLat = markerRef.current?.getLngLat();
+            if (lngLat) {
+              handleCoordinateUpdate(lngLat.lat, lngLat.lng);
+            }
+          });
 
-        map.on('click', (event) => {
-          const { lng, lat } = event.lngLat;
-          markerRef.current?.setLngLat([lng, lat]);
-          handleCoordinateUpdate(lat, lng);
-        });
+          map.on('click', (event) => {
+            const { lng, lat } = event.lngLat;
+            markerRef.current?.setLngLat([lng, lat]);
+            handleCoordinateUpdate(lat, lng);
+          });
+        }
       } else if (mapMode === 'polygon') {
         const draw = new MapboxDraw({
           displayControlsDefault: false,
