@@ -11,7 +11,6 @@ import {
   useGridsSummary,
 } from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
-import type { Grid } from '@/types/grids';
 import {
   AIR_QUALITY_COLORS,
   AIR_QUALITY_INFO,
@@ -19,7 +18,8 @@ import {
   formatName,
   getAirQualityCategory,
   getAirQualityColor,
-} from '@/utils/airQuality';
+} from '@/lib/utils/airQuality';
+import type { Grid } from '@/types/grids';
 
 type AdminLevel =
   | 'city'

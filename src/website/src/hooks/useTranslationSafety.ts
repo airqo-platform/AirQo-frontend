@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 
-import { isGoogleTranslationActive } from '@/utils/googleTranslate';
+import { isGoogleTranslationActive } from '@/lib/utils/googleTranslate';
 
 /**
  * Safe navigation wrapper that handles translation state gracefully

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
+import SectionDisplay from '@/features/clean-air-forum/components/SectionDisplay';
 
 interface PaginatedSectionProps {
   sections: any[];

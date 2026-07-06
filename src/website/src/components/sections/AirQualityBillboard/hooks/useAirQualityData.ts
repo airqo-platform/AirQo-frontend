@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useGridsSummary } from '@/hooks/useApiHooks';
-import { gridsService } from '@/services/apiService';
-import { queryClient } from '@/services/queryClient';
-import { apiQueryKeys } from '@/services/queryKeys';
+import { queryClient } from '@/queries/query-client';
+import { apiQueryKeys } from '@/queries/query-keys';
+import { gridsService } from '@/services/website';
 
 import type { DataType, Grid } from '../types';
 import { parseNextPageParams } from '../utils';

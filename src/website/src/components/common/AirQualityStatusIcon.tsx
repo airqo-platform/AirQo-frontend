@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-import type { AirQualityLevel } from '@/utils/airQuality';
+import type { AirQualityLevel } from '@/lib/utils/airQuality';
 
 interface AirQualityStatusIconProps extends SVGProps<SVGSVGElement> {
   status: AirQualityLevel;

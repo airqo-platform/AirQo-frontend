@@ -7,8 +7,7 @@ module.exports = {
     '\\.(css|scss|sass)$': 'identity-obj-proxy',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
-    '^@/pages/(.*)$': '<rootDir>/src/pages/$1',
-    // Add other aliases as needed
+    '^@/features/(.*)$': '<rootDir>/src/features/$1',
   },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   modulePathIgnorePatterns: ['<rootDir>/.next/standalone/'],

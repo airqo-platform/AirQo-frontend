@@ -8,7 +8,7 @@ import {
   AIR_QUALITY_INFO,
   categoryToLevel,
   getAirQualityCategory,
-} from '@/utils/airQuality';
+} from '@/lib/utils/airQuality';
 
 import type { DataType, Forecast, Measurement } from '../types';
 import { getColorFromPM25, getLocationName, hexToRgba } from '../utils';

@@ -3,7 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { externalService, gridsService } from '@/services/apiService';
+import { externalService } from '@/services/external';
+import { gridsService } from '@/services/website';
 import { Grid } from '@/types/grids';
 
 import FloatingMiniBillboard from './FloatingMiniBillboard';
