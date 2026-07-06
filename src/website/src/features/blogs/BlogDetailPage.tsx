@@ -1,6 +1,9 @@
+'use client';
+
 import { format } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import mainConfig from '@/config/site.config';
 import { sanitizeAndCleanHTML } from '@/lib/utils/htmlValidator';
@@ -16,6 +19,28 @@ interface BlogDetailPageProps {
   blog: BlogPost;
 }
 
+const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div className={`${mainConfig.containerClass} mt-8 px-4`}>
+      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-gray-100">
+        {isLoading && (
+          <div className="absolute inset-0 animate-pulse bg-gray-200" />
+        )}
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          priority
+          onLoad={() => setIsLoading(false)}
+        />
+      </div>
+    </div>
+  );
+};
+
 const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
   const coverImage = normalizeBlogImageUrl(blog.cover_image_url);
   const authorImage = normalizeBlogImageUrl(blog.author_image_url);
@@ -25,201 +50,134 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
     : null;
 
   return (
-    <div className="pb-16">
-      <section className="mb-8 bg-[#F2F1F6]">
-        <div className={`${mainConfig.containerClass} py-12`}>
+    <div className="bg-white">
+      <section className="border-b border-gray-200 bg-[#FAFBFC]">
+        <div className={`${mainConfig.containerClass} py-12 px-4`}>
           <Link
             href="/blogs"
-            className="text-sm font-medium text-blue-700 hover:underline"
+            className="text-[14px] font-medium text-blue-600 hover:underline"
           >
-            ← Back to blogs
+            ← All articles
           </Link>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.38fr)] lg:items-start">
-            <div>
-              <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                {getBlogCategoryLabel(blog.website_category)} insights
-              </span>
+          <div className="mt-8">
+            <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-blue-600">
+              {getBlogCategoryLabel(blog.website_category)}
+            </span>
 
-              <h1 className="mt-3 text-4xl font-bold text-gray-900 leading-tight">
-                {blog.title}
-              </h1>
+            <h1 className="mt-3 text-[36px] font-semibold tracking-[-0.02em] text-[#111827] leading-[1.2]">
+              {blog.title}
+            </h1>
 
-              <p className="mt-4 text-lg text-gray-700">{blog.summary}</p>
+            <p className="mt-4 text-[18px] text-[#6b7280] leading-[1.5]">
+              {blog.summary}
+            </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-3">
-                  {authorImage ? (
+            <div className="mt-6 flex items-center gap-3 text-[14px] text-[#9ca3af]">
+              <div className="flex items-center gap-2.5">
+                {authorImage ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0">
                     <Image
                       src={authorImage}
                       alt={blog.author_name}
-                      width={40}
-                      height={40}
-                      className="h-10 w-10 rounded-full object-cover"
+                      fill
+                      sizes="32px"
+                      className="object-cover"
                     />
-                  ) : (
-                    <div className="grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-sm font-semibold text-blue-700">
-                      {blog.author_name
-                        ? blog.author_name
-                            .split(' ')
-                            .slice(0, 2)
-                            .map((part) => part.charAt(0))
-                            .join('')
-                        : 'AQ'}
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {blog.author_name || 'AirQo Team'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {blog.author_role || 'AirQo contributor'}
-                    </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-gray-500">
-                  <div>Published {publishedLabel}</div>
-                  {modifiedLabel && <div>Updated {modifiedLabel}</div>}
-                </div>
-              </div>
-            </div>
-
-            {/* cover image removed from hero for placement below banner */}
-          </div>
-        </div>
-      </section>
-
-      <section className={`${mainConfig.containerClass} mt-8`}>
-        {/* responsive cover image below the banner */}
-        {coverImage && (
-          <div className="mb-8">
-            <div className="mx-auto max-w-5xl overflow-hidden rounded-md shadow-sm">
-              <Image
-                src={coverImage}
-                alt={blog.title}
-                width={1200}
-                height={630}
-                className="w-full h-auto object-cover"
-                priority
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.55fr)] lg:items-start">
-          <article className="border border-slate-200 bg-white p-6 sm:p-8 lg:p-10">
-            <div className="space-y-6 text-[17px] leading-8 text-slate-700 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight [&_h2]:text-slate-950 [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h3]:text-slate-950 [&_p]:leading-8 [&_p]:text-slate-700 [&_a]:font-medium [&_a]:text-blue-700 [&_a]:underline-offset-4 [&_a:hover]:underline [&_ul]:space-y-3 [&_ul]:pl-6 [&_ul]:list-disc [&_ol]:space-y-3 [&_ol]:pl-6 [&_ol]:list-decimal [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:bg-blue-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:italic [&_blockquote]:text-slate-700 [&_img]:my-8 [&_img]:h-auto [&_img]:w-full [&_img]:rounded-md [&_img]:shadow-sm [&_table]:my-8 [&_table]:w-full [&_table]:overflow-hidden [&_table]:rounded-md [&_table]:border [&_table]:border-slate-200 [&_th]:bg-slate-100 [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:text-sm [&_th]:font-semibold [&_th]:text-slate-900 [&_td]:border-t [&_td]:border-slate-200 [&_td]:px-4 [&_td]:py-3">
-              {blog.content_html ? (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeAndCleanHTML(blog.content_html || ''),
-                  }}
-                />
-              ) : (
-                <div className="space-y-5 border border-slate-200 bg-slate-50 p-6 text-slate-700">
-                  <h2 className="text-2xl font-semibold text-slate-950">
-                    Story summary
-                  </h2>
-                  <p>{blog.summary}</p>
-                  <p>
-                    The full article content is not available yet. Check back
-                    soon or explore other blog posts from the AirQo team.
-                  </p>
-                </div>
-              )}
-            </div>
-          </article>
-
-          <aside className="space-y-6">
-            <div className="border border-slate-200 bg-slate-50 p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                About the author
-              </p>
-              <div className="mt-4 flex items-center gap-4">
-                {authorImage ? (
-                  <Image
-                    src={authorImage}
-                    alt={blog.author_name}
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 object-cover"
-                  />
                 ) : (
-                  <div className="grid h-14 w-14 place-items-center bg-blue-50 text-lg font-semibold text-blue-700">
-                    {blog.author_name
-                      ? blog.author_name
-                          .split(' ')
-                          .slice(0, 2)
-                          .map((part) => part.charAt(0))
-                          .join('')
-                      : 'AQ'}
+                  <div className="w-8 h-8 rounded-full bg-[#f3f4f6] flex items-center justify-center text-[12px] font-medium text-[#6b7280]">
+                    {blog.author_name?.charAt(0) || 'A'}
                   </div>
                 )}
-
-                <div>
-                  <p className="text-lg font-semibold text-slate-950">
-                    {blog.author_name || 'AirQo Team'}
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    {blog.author_role || 'AirQo contributor'}
-                  </p>
-                </div>
+                <span className="text-[#374151] font-medium">
+                  {blog.author_name || 'AirQo Team'}
+                </span>
               </div>
-
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                AirQo writes about air quality monitoring, community impact,
-                policy, technology, and the people using our data to shape
-                cleaner cities.
-              </p>
+              <span>·</span>
+              <span>{publishedLabel}</span>
+              {modifiedLabel && (
+                <>
+                  <span>·</span>
+                  <span>Updated {modifiedLabel}</span>
+                </>
+              )}
             </div>
-
-            <div className="border border-slate-200 bg-white p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                Article details
-              </p>
-
-              <dl className="mt-4 space-y-4 text-sm">
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Category</dt>
-                  <dd className="text-right font-medium text-slate-900">
-                    {getBlogCategoryLabel(blog.website_category)}
-                  </dd>
-                </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Published</dt>
-                  <dd className="text-right font-medium text-slate-900">
-                    {publishedLabel}
-                  </dd>
-                </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Last updated</dt>
-                  <dd className="text-right font-medium text-slate-900">
-                    {modifiedLabel || '—'}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className="border border-blue-200 bg-blue-50 p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">
-                Explore more
-              </p>
-              <p className="mt-3 text-sm leading-7 text-slate-700">
-                Browse the latest AirQo stories, then head back to the blog
-                index to discover more posts from the network.
-              </p>
-              <Link
-                href="/blogs"
-                className="mt-5 inline-flex rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                Back to blogs
-              </Link>
-            </div>
-          </aside>
+          </div>
         </div>
       </section>
+
+      {coverImage && <CoverImage src={coverImage} alt={blog.title} />}
+
+      <article className={`${mainConfig.containerClass} py-12 px-4`}>
+        <div className="prose prose-lg prose-slate prose-headings:font-semibold prose-headings:text-[#111827] prose-h2:text-[26px] prose-h2:tracking-[-0.015em] prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-[20px] prose-h3:tracking-[-0.01em] prose-h3:mt-10 prose-h3:mb-3 prose-p:text-[16px] prose-p:leading-[1.75] prose-p:text-[#374151] prose-p:mb-6 prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-600/30 prose-a:underline-offset-2 prose-a:hover:decoration-blue-600 prose-blockquote:border-l-[3px] prose-blockquote:border-blue-600 prose-blockquote:pl-5 prose-blockquote:italic prose-blockquote:text-[#4b5563] prose-img:rounded-lg prose-img:my-8 prose-code:text-[14px] prose-code:bg-[#f3f4f6] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
+          {blog.content_html ? (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeAndCleanHTML(blog.content_html),
+              }}
+            />
+          ) : (
+            <div>
+              <h2>Story summary</h2>
+              <p>{blog.summary}</p>
+              <p>
+                The full article content is not available yet. Check back soon.
+              </p>
+            </div>
+          )}
+        </div>
+      </article>
+
+      <div className={`${mainConfig.containerClass} px-4 pb-16`}>
+        <div className="flex items-start gap-4 py-6 border-t border-gray-200">
+          {authorImage ? (
+            <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0">
+              <Image
+                src={authorImage}
+                alt={blog.author_name}
+                fill
+                sizes="44px"
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-[#f3f4f6] flex items-center justify-center text-[14px] font-medium text-[#6b7280]">
+              {blog.author_name?.charAt(0) || 'A'}
+            </div>
+          )}
+          <div>
+            <p className="text-[15px] font-semibold text-[#111827]">
+              {blog.author_name || 'AirQo Team'}
+            </p>
+            <p className="text-[14px] text-[#6b7280] mt-0.5">
+              {blog.author_role || 'AirQo contributor'}
+            </p>
+            <p className="text-[14px] text-[#6b7280] mt-2 leading-[1.5]">
+              AirQo writes about air quality monitoring, community impact,
+              policy, technology, and the people using our data to shape cleaner
+              cities.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${mainConfig.containerClass} px-4 pb-16`}>
+        <div className="flex items-center gap-6 text-[13px] text-[#9ca3af] py-4 border-t border-gray-200">
+          <span>
+            Published:{' '}
+            <span className="text-[#374151] font-medium">{publishedLabel}</span>
+          </span>
+          {modifiedLabel && (
+            <span>
+              Updated:{' '}
+              <span className="text-[#374151] font-medium">
+                {modifiedLabel}
+              </span>
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

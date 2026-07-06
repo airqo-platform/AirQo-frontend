@@ -4,24 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Input,
-  NoData,
-  Pagination,
-} from '@/components/ui';
+import { NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useBlogs } from '@/hooks/useApiHooks';
 import type { BlogPost } from '@/types/api';
 
 import {
-  BLOG_CATEGORY_OPTIONS,
   BLOG_ORDER_OPTIONS,
   formatBlogDate,
   getBlogCategoryLabel,
@@ -29,119 +17,102 @@ import {
   normalizeBlogImageUrl,
 } from './blogUtils';
 
-const PAGE_SIZE = 6;
-const LEGACY_BLOGS_URL = 'https://blog.airqo.net/';
+const PAGE_SIZE = 9;
 
 const BlogCardSkeleton = () => (
-  <Card className="overflow-hidden border-gray-200 shadow-sm animate-pulse">
-    <div className="aspect-[16/9] bg-gray-200" />
-    <CardHeader className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="h-4 w-28 bg-gray-200" />
-        <div className="h-4 w-20 bg-gray-200" />
+  <div className="animate-pulse bg-white border border-[#f0f0f0] rounded-[10px] overflow-hidden">
+    <div className="aspect-[16/10] bg-gray-100" />
+    <div className="p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="h-3 w-16 bg-gray-200 rounded" />
+        <div className="h-3 w-20 bg-gray-100 rounded" />
       </div>
-      <div className="space-y-2">
-        <div className="h-6 w-11/12 bg-gray-200" />
-        <div className="h-6 w-4/5 bg-gray-200" />
+      <div className="space-y-2 mb-2">
+        <div className="h-5 w-11/12 bg-gray-200 rounded" />
+        <div className="h-5 w-3/4 bg-gray-200 rounded" />
       </div>
-    </CardHeader>
-    <CardContent className="space-y-3 px-6 pb-6 pt-0">
-      <div className="h-4 w-full bg-gray-200" />
-      <div className="h-4 w-5/6 bg-gray-200" />
-      <div className="h-4 w-2/3 bg-gray-200" />
-    </CardContent>
-  </Card>
+      <div className="space-y-1.5 mt-3">
+        <div className="h-3.5 w-full bg-gray-100 rounded" />
+        <div className="h-3.5 w-5/6 bg-gray-100 rounded" />
+      </div>
+      <div className="flex items-center gap-2.5 pt-4 mt-4 border-t border-[#f0f0f0]">
+        <div className="w-7 h-7 rounded-full bg-gray-200" />
+        <div className="h-3.5 w-20 bg-gray-200 rounded" />
+      </div>
+    </div>
+  </div>
 );
 
 const BlogCard = ({ blog }: { blog: BlogPost }) => {
   const slug = getBlogIdentifier(blog);
   const detailHref = `/blogs/${encodeURIComponent(slug)}`;
   const coverImage = normalizeBlogImageUrl(blog.cover_image_url);
-  const authorImage = normalizeBlogImageUrl(blog.author_image_url);
 
   return (
-    <Card className="overflow-hidden border-gray-200 shadow-sm transition-shadow hover:shadow-md">
+    <article className="group bg-white border border-[#f0f0f0] rounded-[10px] overflow-hidden transition-colors hover:border-[#d1d5db]">
       <Link href={detailHref} className="block">
-        <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
+        <div className="relative aspect-[16/10] overflow-hidden bg-[#f9fafb]">
           {coverImage ? (
             <Image
               src={coverImage}
               alt={blog.title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover transition duration-500 hover:scale-105"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="flex h-full w-full items-end bg-[#F2F1F6] p-6">
-              <div className="max-w-md space-y-3">
-                <span className="inline-flex bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 shadow-sm">
-                  {getBlogCategoryLabel(blog.website_category)}
-                </span>
-                <p className="text-lg font-semibold leading-7 text-gray-900">
-                  {blog.title}
-                </p>
-              </div>
+            <div className="flex h-full w-full items-end p-5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">
+                {getBlogCategoryLabel(blog.website_category)}
+              </span>
             </div>
           )}
         </div>
       </Link>
 
-      <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between gap-3 text-xs font-medium uppercase tracking-[0.18em] text-gray-500">
-          <span>{getBlogCategoryLabel(blog.website_category)}</span>
-          <span>{formatBlogDate(blog.published_at)}</span>
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-blue-600">
+            {getBlogCategoryLabel(blog.website_category)}
+          </span>
+          <span className="text-[11px] text-[#d1d5db]">&middot;</span>
+          <span className="text-[12px] text-[#9ca3af]">
+            {formatBlogDate(blog.published_at)}
+          </span>
         </div>
-        <CardTitle className="text-2xl leading-tight text-gray-900">
-          <Link href={detailHref} className="hover:text-blue-700">
-            {blog.title}
-          </Link>
-        </CardTitle>
-        <CardDescription className="line-clamp-4 text-base leading-7 text-gray-600">
-          {blog.summary}
-        </CardDescription>
-      </CardHeader>
 
-      <CardFooter className="flex items-center justify-between gap-5 border-t border-gray-100 px-6 pb-6 pt-5">
-        <div className="flex items-center gap-3">
-          {authorImage ? (
-            <Image
-              src={authorImage}
-              alt={blog.author_name}
-              width={44}
-              height={44}
-              className="rounded-full h-11 w-11 object-cover ring-2 ring-white shadow-sm"
-            />
+        <Link href={detailHref}>
+          <h3 className="text-[18px] font-semibold leading-[1.35] tracking-[-0.01em] text-[#111827] mb-2 group-hover:text-blue-600 transition-colors">
+            {blog.title}
+          </h3>
+        </Link>
+
+        <p className="text-[14px] leading-[1.55] text-[#6b7280] line-clamp-2 mb-4">
+          {blog.summary}
+        </p>
+
+        <div className="flex items-center gap-2.5 pt-3 border-t border-[#f0f0f0]">
+          {blog.author_image_url ? (
+            <div className="relative w-7 h-7 rounded-full overflow-hidden shrink-0">
+              <Image
+                src={normalizeBlogImageUrl(blog.author_image_url)}
+                alt={blog.author_name}
+                fill
+                sizes="28px"
+                className="object-cover"
+              />
+            </div>
           ) : (
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-blue-50 text-sm font-semibold text-blue-700">
-              {blog.author_name
-                ? blog.author_name
-                    .split(' ')
-                    .slice(0, 2)
-                    .map((part: string) => part.charAt(0))
-                    .join('')
-                : 'AQ'}
+            <div className="w-7 h-7 rounded-full bg-[#f3f4f6] flex items-center justify-center text-[11px] font-medium text-[#6b7280] shrink-0">
+              {blog.author_name?.charAt(0) || 'A'}
             </div>
           )}
-
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-gray-900">
-              {blog.author_name || 'AirQo Team'}
-            </p>
-            <p className="truncate text-xs text-gray-500">
-              {blog.author_role || 'AirQo contributor'}
-            </p>
-          </div>
+          <span className="text-[13px] text-[#374151] font-medium">
+            {blog.author_name || 'AirQo Team'}
+          </span>
         </div>
-
-        <Button
-          asChild
-          variant="outline"
-          className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-        >
-          <Link href={detailHref}>Read more</Link>
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   );
 };
 
@@ -149,7 +120,6 @@ const BlogsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [ordering, setOrdering] = useState('-published_at');
 
   useEffect(() => {
@@ -165,208 +135,124 @@ const BlogsPage: React.FC = () => {
     () => ({
       page: currentPage,
       page_size: PAGE_SIZE,
-      category: selectedCategory || undefined,
+      category: 'airqo',
       search: searchTerm || undefined,
       ordering,
     }),
-    [currentPage, ordering, searchTerm, selectedCategory],
+    [currentPage, ordering, searchTerm],
   );
 
   const { data, error, isLoading, isFetching, refetch } = useBlogs(queryParams);
 
   const blogs = data?.results ?? [];
-  const hasActiveFilters =
-    Boolean(searchTerm) ||
-    Boolean(selectedCategory) ||
-    ordering !== '-published_at';
+  const hasActiveFilters = Boolean(searchTerm) || ordering !== '-published_at';
   const isInitialLoading = isLoading && blogs.length === 0;
   const isEmpty = !isInitialLoading && !error && blogs.length === 0;
 
   const resetFilters = () => {
     setSearchInput('');
     setSearchTerm('');
-    setSelectedCategory('');
     setOrdering('-published_at');
     setCurrentPage(1);
   };
 
   return (
-    <div className="pb-16">
-      <section className="mb-12 bg-[#F2F1F6] px-4 py-16 lg:px-0">
-        <div className={`${mainConfig.containerClass} w-full`}>
-          <h1 className="mt-3 mb-2 text-4xl font-bold text-gray-900">
-            AirQo Blogs
+    <div className="min-h-screen bg-white">
+      <section className="border-b border-gray-200 bg-[#FAFBFC]">
+        <div className={`${mainConfig.containerClass} py-12 lg:py-16`}>
+          <h1 className="text-[40px] font-semibold tracking-[-0.02em] text-[#111827] leading-[1.15]">
+            Blog
           </h1>
-          <p className="max-w-3xl text-lg leading-8 text-gray-600">
+          <p className="mt-2 text-[17px] leading-[1.5] text-[#6b7280] max-w-[520px]">
             Stories, updates, and insights from AirQo&apos;s work across African
             cities.
           </p>
         </div>
       </section>
 
-      <section className={`${mainConfig.containerClass} p-2 md:p-4`}>
-        <Card className="mb-8 border-gray-200 shadow-sm">
-          <CardContent className="p-5 lg:p-6">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,0.8fr)_minmax(220px,0.8fr)] lg:items-end">
-              <div className="space-y-3">
-                <label
-                  htmlFor="blog-search"
-                  className="text-sm font-semibold text-gray-900"
-                >
-                  Search blogs
-                </label>
-                <Input
-                  id="blog-search"
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Search titles, summaries, or authors"
-                  className="h-12 rounded-xl border-gray-200 bg-white px-4 text-base shadow-none focus-visible:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label
-                  htmlFor="blog-category"
-                  className="text-sm font-semibold text-gray-900"
-                >
-                  Category
-                </label>
-                <select
-                  id="blog-category"
-                  value={selectedCategory}
-                  onChange={(event) => {
-                    setSelectedCategory(event.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700 shadow-none outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                >
-                  {BLOG_CATEGORY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-3">
-                <label
-                  htmlFor="blog-ordering"
-                  className="text-sm font-semibold text-gray-900"
-                >
-                  Sort by
-                </label>
-                <select
-                  id="blog-ordering"
-                  value={ordering}
-                  onChange={(event) => {
-                    setOrdering(event.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700 shadow-none outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                >
-                  {BLOG_ORDER_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetFilters}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Reset filters
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">
-              Latest stories
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold text-gray-900 sm:text-3xl">
-              {selectedCategory
-                ? `${getBlogCategoryLabel(selectedCategory)} stories`
-                : 'All blog posts'}
-            </h2>
-          </div>
-
-          <p className="text-sm text-gray-500">
-            {isFetching && !isInitialLoading
-              ? 'Updating results…'
-              : `${blogs.length} shown`}
-          </p>
-        </div>
-
-        <Card className="mt-8 border-blue-100 bg-[#F6F9FF] shadow-sm">
-          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2 text-left">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
-                Explore more AirQo stories
-              </p>
-              <p className="max-w-2xl text-sm leading-7 text-gray-700 sm:text-base">
-                Discover previous AirQo blog posts, updates, and insights from
-                our work across African cities.
-              </p>
-            </div>
-
-            <Button
-              asChild
-              className="bg-blue-600 text-white hover:bg-blue-700 sm:self-start"
+      <div className={`${mainConfig.containerClass} py-4`}>
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search articles..."
+            className="flex-1 h-10 px-4 text-[14px] border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-colors"
+          />
+          <select
+            value={ordering}
+            onChange={(e) => {
+              setOrdering(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="h-10 px-3 text-[14px] border border-gray-200 rounded-lg bg-white text-[#374151] focus:outline-none focus:border-blue-600"
+          >
+            {BLOG_ORDER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="h-10 px-3 text-[13px] font-medium text-[#6b7280] hover:text-[#111827] transition-colors"
             >
-              <a
-                href={LEGACY_BLOGS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View previous blogs
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
 
+      <div className={`${mainConfig.containerClass} py-4`}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-[20px] font-semibold text-[#111827]">
+            AirQo blogs
+          </h2>
+          <span className="text-[13px] text-[#9ca3af]">
+            {isFetching && !isInitialLoading
+              ? 'Updating…'
+              : `${blogs.length} article${blogs.length !== 1 ? 's' : ''}`}
+          </span>
+        </div>
+      </div>
+
+      <div className={`${mainConfig.containerClass} pb-16`}>
         {isInitialLoading ? (
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <BlogCardSkeleton />
+            <BlogCardSkeleton />
             <BlogCardSkeleton />
             <BlogCardSkeleton />
             <BlogCardSkeleton />
             <BlogCardSkeleton />
           </div>
         ) : error && blogs.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center shadow-sm">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-8 text-center">
             <NoData
               className="p-0"
               message="We could not load the latest blog posts right now. Please try again later."
             />
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button
+              <button
                 type="button"
                 onClick={() => refetch()}
-                className="bg-blue-600 text-white hover:bg-blue-700"
+                className="h-9 px-4 text-[13px] font-medium bg-[#111827] text-white rounded-lg hover:bg-[#1f2937] transition-colors"
               >
                 Try again
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="outline"
                 onClick={resetFilters}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="h-9 px-4 text-[13px] font-medium border border-gray-200 text-[#374151] rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Clear filters
-              </Button>
+              </button>
             </div>
           </div>
         ) : isEmpty ? (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
             <NoData
               className="p-0"
               message={
@@ -375,29 +261,27 @@ const BlogsPage: React.FC = () => {
                   : 'We are publishing the latest AirQo blog stories here soon. Check back shortly for new posts.'
               }
             />
-
             {hasActiveFilters && (
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Button
+                <button
                   type="button"
                   onClick={resetFilters}
-                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  className="h-9 px-4 text-[13px] font-medium bg-[#111827] text-white rounded-lg hover:bg-[#1f2937] transition-colors"
                 >
                   Reset filters
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                </button>
+                <Link
+                  href="/contact"
+                  className="h-9 px-4 inline-flex items-center text-[13px] font-medium border border-gray-200 text-[#374151] rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <Link href="/contact">Contact AirQo</Link>
-                </Button>
+                  Contact AirQo
+                </Link>
               </div>
             )}
           </div>
         ) : (
           <>
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {blogs.map((blog) => (
                 <BlogCard key={blog.public_identifier || blog.id} blog={blog} />
               ))}
@@ -415,7 +299,7 @@ const BlogsPage: React.FC = () => {
             )}
           </>
         )}
-      </section>
+      </div>
     </div>
   );
 };
