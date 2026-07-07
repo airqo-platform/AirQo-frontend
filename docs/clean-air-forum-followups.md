@@ -7,7 +7,7 @@ infra work existed for it. Everything below is scaffolding, explicitly
 marked `TEMPORARY` in code, and needs real ownership before/soon after the
 event it launches with.
 
-Related PR: [#3753](https://github.com/airqo-platform/AirQo-frontend/pull/3753)
+Related PRs: [#3755](https://github.com/airqo-platform/AirQo-frontend/pull/3755) (mobile), [#3756](https://github.com/airqo-platform/AirQo-frontend/pull/3756) (website)
 
 ## 1. Backend team — replace the mock submissions API
 
@@ -112,10 +112,8 @@ etc.). Given this is a public-facing conference wall, it may be worth
 asking whoever owns Cloudinary to enable an automated moderation add-on
 (see §2) as a first line of defense, with manual removal as the backstop.
 
-## Real event details still needed
+## Event details
 
 `src/mobile/lib/src/app/dashboard/utils/clean_air_forum_branding.dart`
-has `edition` and `dateRange` set to `'Pretoria 2026'` and
-`'13TH-16TH JULY'` based on the Figma design — please confirm these are
-the actual confirmed host city/year and dates before the forum, or update
-them.
+has `edition = 'Pretoria 2026'` and `dateRange = '13TH-16TH JULY'` — both
+confirmed correct as of 2026-07-07. No action needed here.
