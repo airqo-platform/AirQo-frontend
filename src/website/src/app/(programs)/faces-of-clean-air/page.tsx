@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import FacesOfCleanAirPage from '@/views/faces-of-clean-air/FacesOfCleanAirPage';
+import FacesOfCleanAirPage from '@/features/faces-of-clean-air/FacesOfCleanAirPage';
 
 export const metadata: Metadata = {
   title: 'Faces of Clean Air | AirQo',
