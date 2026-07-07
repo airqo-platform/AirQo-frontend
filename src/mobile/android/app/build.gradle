@@ -77,7 +77,7 @@ if (releaseKeystorePropertiesFile.exists()) {
 android {
     namespace "com.airqo.app"
     compileSdk 36
-    ndkVersion flutter.ndkVersion
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_9
@@ -98,7 +98,7 @@ android {
         applicationId "com.airqo.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 24
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
