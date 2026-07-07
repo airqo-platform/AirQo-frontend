@@ -1,6 +1,6 @@
-import 'dart:convert';
-
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/utils/air_quality_card_utils.dart';
+import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -16,28 +16,31 @@ class AirQualityShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final locationName = _sanitizeText(
-      measurement.siteDetails?.searchName ??
-          measurement.siteDetails?.name ??
-          fallbackLocationName ??
-          'AirQo location',
+    final locationName = sanitizeCardText(
+      measurementDisplayName(
+        measurement,
+        fallbackLocationName: fallbackLocationName ?? 'AirQo location',
+      ),
     );
-    final locationDescription = _sanitizeText(
+    final locationDescription = sanitizeCardText(
       _getLocationDescription(measurement),
     );
-    final category = _categoryLabel(
-      _sanitizeText(measurement.aqiCategory ?? 'Unavailable'),
+    final category = aqiCategoryLabel(
+      sanitizeCardText(measurement.aqiCategory ?? 'Unavailable'),
     );
     final pm25Value = measurement.pm25?.value;
-    final healthTip = _sanitizeText(
+    final healthTip = sanitizeCardText(
       measurement.healthTips?.firstOrNull?.tagLine ??
           measurement.healthTips?.firstOrNull?.description ??
           'Stay informed and plan your outdoor time wisely.',
     );
-    final categoryColor = _getAqiColor(measurement);
+    final categoryColor = getMeasurementAqiColor(measurement);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardTextColor = isDark ? Colors.white : const Color(0xFF122033);
-    final secondaryTextColor = cardTextColor.withValues(alpha: 0.72);
+    // Always white per the design system — the card background is a
+    // colored gradient regardless of app theme, so text stays white in
+    // both light and dark mode for consistent contrast.
+    const cardTextColor = Colors.white;
+    final secondaryTextColor = cardTextColor.withValues(alpha: 0.82);
     final titleFontSize = _titleFontSize(locationName);
     final categoryFontSize = _categoryFontSize(category);
 
@@ -52,7 +55,7 @@ class AirQualityShareCard extends StatelessWidget {
           colors: [
             categoryColor.withValues(alpha: isDark ? 0.75 : 0.92),
             AppColors.primaryColor,
-            isDark ? const Color(0xFF111827) : const Color(0xFFF4F8FF),
+            const Color(0xFF10233D),
           ],
           stops: const [0.0, 0.58, 1.0],
         ),
@@ -122,7 +125,7 @@ class AirQualityShareCard extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.84),
+                    color: categoryColor.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Center(
@@ -132,7 +135,7 @@ class AirQualityShareCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isDark ? Colors.white : categoryColor,
+                        color: categoryColor,
                         fontSize: categoryFontSize,
                         height: 1.0,
                         fontWeight: FontWeight.w700,
@@ -181,7 +184,7 @@ class AirQualityShareCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.82),
+              color: Colors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Text(
@@ -235,33 +238,6 @@ class AirQualityShareCard extends StatelessWidget {
     return parts.join(', ');
   }
 
-  Color _getAqiColor(Measurement measurement) {
-    if (measurement.aqiColor != null) {
-      try {
-        final colorString = measurement.aqiColor!.replaceAll('#', '');
-        return Color(int.parse('0xFF$colorString'));
-      } catch (_) {}
-    }
-
-    switch (measurement.aqiCategory?.toLowerCase() ?? '') {
-      case 'good':
-        return const Color(0xFF179D5B);
-      case 'moderate':
-        return const Color(0xFFC79000);
-      case 'unhealthy for sensitive groups':
-      case 'u4sg':
-        return const Color(0xFFE17827);
-      case 'unhealthy':
-        return const Color(0xFFD63A45);
-      case 'very unhealthy':
-        return const Color(0xFF7540B5);
-      case 'hazardous':
-        return const Color(0xFF6D4C41);
-      default:
-        return AppColors.primaryColor;
-    }
-  }
-
   double _titleFontSize(String title) {
     if (title.length <= 12) return 30;
     if (title.length <= 20) return 27;
@@ -273,28 +249,5 @@ class AirQualityShareCard extends StatelessWidget {
     if (category.length <= 10) return 12;
     if (category.length <= 16) return 11;
     return 10;
-  }
-
-  String _categoryLabel(String category) {
-    switch (category.toLowerCase()) {
-      case 'unhealthy for sensitive groups':
-        return 'Sensitive Groups';
-      case 'very unhealthy':
-        return 'Very Unhealthy';
-      default:
-        return category;
-    }
-  }
-
-  String _sanitizeText(String value) {
-    if (!value.contains('Ã') && !value.contains('Â') && !value.contains('â')) {
-      return value;
-    }
-
-    try {
-      return utf8.decode(latin1.encode(value));
-    } catch (_) {
-      return value;
-    }
   }
 }
