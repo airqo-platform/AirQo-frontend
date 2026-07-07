@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   check-website:
@@ -27,11 +28,13 @@ jobs:
         working-directory: src/website
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: true
 
       - name: Setup Node
+        id: setup-node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: "20"
@@ -39,15 +42,19 @@ jobs:
           cache-dependency-path: src/website/package-lock.json
 
       - name: Install dependencies
+        id: install
         run: npm ci
 
       - name: Lint
+        id: lint
         run: npm run lint
 
       - name: Type Check
+        id: typecheck
         run: npx tsc --noEmit
 
       - name: Unit Tests & Coverage
+        id: tests
         run: npm run test:coverage
 
       - name: Extract test stats
@@ -56,12 +63,10 @@ jobs:
         working-directory: src/website
         shell: bash
         run: |
-          # Extract total tests from jest output
           TESTS=$(npm run test:coverage 2>&1 | grep -oP 'Tests:\s+\K[\d,]+' || echo "0")
           TESTS=$(echo "$TESTS" | tr -d ',')
           echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
 
-          # Extract coverage percentage from coverage summary
           COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
           echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
 
@@ -73,7 +78,6 @@ jobs:
           TESTS=${{ steps.test-stats.outputs.tests }}
           COVERAGE=${{ steps.test-stats.outputs.coverage }}
           
-          # Default values if extraction failed
           if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
             TESTS=$(grep -oP 'Tests:\s+\K[\d,]+' <(npm run test:coverage 2>&1) | tail -1 | tr -d ',')
           fi
@@ -81,10 +85,8 @@ jobs:
             COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
           fi
 
-          # Round coverage to integer
           COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
           
-          # Determine badge color based on coverage
           if [ "$COVERAGE_INT" -ge 80 ]; then
             COLOR="brightgreen"
           elif [ "$COVERAGE_INT" -ge 60 ]; then
@@ -93,16 +95,12 @@ jobs:
             COLOR="red"
           fi
 
-          # Update README.md badges
           if [ -f README.md ]; then
-            # Update passing badge with test count
             sed -i "s|![passing](https://img.shields.io/badge/passing-[0-9]*%20.*brightgreen)|![passing](https://img.shields.io/badge/passing-${TESTS}%20%E2%80%94%20100%25-brightgreen?style=flat-square)|g" README.md
             
-            # Update or add coverage badge
             if grep -q "![coverage]" README.md; then
               sed -i "s|![coverage](https://img.shields.io/badge/coverage-[0-9]*%25.*)|![coverage](https://img.shields.io/badge/coverage-${COVERAGE_INT}%25-${COLOR}?style=flat-square)|g" README.md
             else
-              # Add coverage badge after the failing badge line
               sed -i "/![failing]/a ![coverage](https://img.shields.io/badge/coverage-${COVERAGE_INT}%25-${COLOR}?style=flat-square)" README.md
             fi
 
@@ -129,3 +127,90 @@ jobs:
           directory: src/website/coverage/
           flags: website
           fail_ci_if_error: false
+
+      - name: Comment on PR - Failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const fs = require('fs');
+            const steps = [
+              { name: 'Checkout', id: 'checkout', emoji: '📦' },
+              { name: 'Setup Node', id: 'setup-node', emoji: '⚙️' },
+              { name: 'Install dependencies', id: 'install', emoji: '📥' },
+              { name: 'Lint', id: 'lint', emoji: '🔍' },
+              { name: 'Type Check', id: 'typecheck', emoji: '🔎' },
+              { name: 'Unit Tests & Coverage', id: 'tests', emoji: '🧪' }
+            ];
+
+            const failedSteps = [];
+            for (const step of steps) {
+              const outcome = context.payload.workflow_run?.jobs?.[0]?.steps?.find(
+                s => s.name === step.name
+              )?.outcome;
+              if (outcome === 'failed') {
+                failedSteps.push(step);
+              }
+            }
+
+            // Fallback: if we couldn't determine exact step, assume tests or lint
+            if (failedSteps.length === 0) {
+              failedSteps.push({ name: 'Unknown step', id: 'unknown', emoji: '❌' });
+            }
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const failedList = failedSteps.map(s => `${s.emoji} **${s.name}**`).join('\n');
+
+            const body = [
+              '## ❌ Website CI Failed',
+              '',
+              `**Failed step(s):**`,
+              failedList,
+              '',
+              '### Next Steps',
+              '',
+            ];
+
+            if (failedSteps.some(s => s.id === 'lint')) {
+              body.push('- Run `npm run lint:fix` to auto-fix lint issues');
+            }
+            if (failedSteps.some(s => s.id === 'typecheck')) {
+              body.push('- Check TypeScript errors above and fix type issues');
+            }
+            if (failedSteps.some(s => s.id === 'tests')) {
+              body.push('- Run `npm run test:coverage` locally to see test failures');
+            }
+            if (failedSteps.some(s => s.id === 'install')) {
+              body.push('- Check for dependency issues, try `rm -rf node_modules && npm install`');
+            }
+
+            body.push('', `🔗 [View workflow run](${runUrl})`);
+            body.push('', '---');
+            body.push('*Please fix the issues and push again.*');
+
+            // Find and update existing comment or create new one
+            const marker = '## ❌ Website CI Failed';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body.join('\n')
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body.join('\n')
+              });
+            }
