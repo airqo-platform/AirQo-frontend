@@ -46,7 +46,7 @@ const routesConfig: RoutesConfig = {
   products: {
     index: { path: '/products', label: 'Products' },
     monitor: { path: '/products/monitor', label: 'Monitor' },
-    analytics: { path: '/products/analytics', label: 'Analytics' },
+    analytics: { path: '/products/analytics', label: 'AirQo Nexus' },
     calibrate: { path: '/products/calibrate', label: 'Calibrate' },
     mobile: { path: '/products/mobile', label: 'Mobile' },
     api: { path: '/products/api', label: 'API' },

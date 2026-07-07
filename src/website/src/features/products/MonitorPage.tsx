@@ -371,7 +371,7 @@ const MonitorPage = () => {
               <ol className="list-disc list-inside pl-5 mt-2">
                 <li>Where to place the monitor</li>
                 <li>How to install the monitor</li>
-                <li>How to access the data using our analytics dashboard</li>
+                <li>How to access the data using AirQo Nexus</li>
               </ol>
             </div>
 

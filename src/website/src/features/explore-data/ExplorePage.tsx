@@ -98,8 +98,8 @@ const ExplorePage = () => {
                 variants={textReveal}
               >
                 Access real-time and historic air quality information across
-                Africa through our easy-to-use air quality analytics dashboard
-                or mobile app.
+                Africa through our easy-to-use AirQo Nexus dashboard or mobile
+                app.
               </motion.p>
             </div>
 
@@ -136,7 +136,7 @@ const ExplorePage = () => {
                     <div className="relative w-32 h-32">
                       <Image
                         src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728918807/website/photos/explore/air-quality-platform_s8c3su.svg"
-                        alt="Air Quality Analytics"
+                        alt="AirQo Nexus"
                         fill
                         className="object-contain"
                         priority
@@ -144,7 +144,7 @@ const ExplorePage = () => {
                     </div>
                   </div>
                   <p className="text-gray-700 mb-2 text-sm text-center">
-                    An interactive Nexus platform
+                    An interactive AirQo Nexus platform
                   </p>
                   <CustomButton
                     onClick={() =>
@@ -156,7 +156,7 @@ const ExplorePage = () => {
                     }
                     className="text-white"
                   >
-                    Air Quality Analytics
+                    AirQo Nexus
                   </CustomButton>
                 </div>
               </div>

@@ -30,7 +30,7 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/ai-platform',
     },
     {
-      title: 'Nexus',
+      title: 'AirQo Nexus',
       description: 'Real-time air quality data for African cities',
       href: '/products/analytics',
     },
