@@ -1,6 +1,6 @@
 # Website
 
-![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz&flag=website) ![passing](https://img.shields.io/badge/passing-816%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-0-brightgreen?style=flat-square)
+![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz) ![passing](https://img.shields.io/badge/passing-816%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-0-brightgreen?style=flat-square)
 
 **Website** is the AirQo marketing and analytics application for air quality data visualization. Built with Next.js 14, React 18, TypeScript, Tailwind CSS, Redux Toolkit, and TanStack React Query. The live website is at [airqo.net](https://airqo.net).
 
