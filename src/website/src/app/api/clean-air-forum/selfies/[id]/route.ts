@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { checkSharedSecret } from '@/services/cleanAirForumAuth';
 import { hideSubmission } from '@/services/cleanAirForumSelfiesStore';
 
 // TEMPORARY mock API — see cleanAirForumSelfiesStore.ts for context.
@@ -10,7 +11,9 @@ export const dynamic = 'force-dynamic';
  * wall page's double-tap-to-remove gesture.
  *
  * Body: `{ pin: string }` — compared against `CLEAN_AIR_FORUM_WALL_PIN`.
- * If that env var isn't set, the PIN check is skipped (local/dev only).
+ * If that env var isn't set, the PIN check is skipped outside production
+ * (in production a missing PIN fails the request closed instead of leaving
+ * moderation wide open — see cleanAirForumAuth.ts).
  */
 export async function PATCH(
   request: NextRequest,
@@ -20,9 +23,14 @@ export async function PATCH(
     const body = await request
       .json()
       .catch(() => ({}) as Record<string, unknown>);
-    const expectedPin = process.env.CLEAN_AIR_FORUM_WALL_PIN;
 
-    if (expectedPin && body?.pin !== expectedPin) {
+    const isAuthorized = checkSharedSecret({
+      configuredSecret: process.env.CLEAN_AIR_FORUM_WALL_PIN,
+      providedSecret: typeof body?.pin === 'string' ? body.pin : null,
+      secretName: 'CLEAN_AIR_FORUM_WALL_PIN',
+    });
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Incorrect PIN' }, { status: 401 });
     }
 

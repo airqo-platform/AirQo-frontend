@@ -10,5 +10,14 @@
 export const CLEAN_AIR_FORUM_CURRENT_EVENT_ID =
   process.env.NEXT_PUBLIC_CLEAN_AIR_FORUM_EVENT_ID || 'clean-air-forum';
 
-/** How often the wall page polls for new submissions. */
-export const CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS = 8000;
+/**
+ * How often the wall page polls for new submissions. The wall is meant to
+ * refresh every couple of minutes rather than feel like a live feed.
+ */
+export const CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS = 2 * 60 * 1000;
+
+/** How many selfies are shown on screen at once. */
+export const CLEAN_AIR_FORUM_WALL_PAGE_SIZE = 8;
+
+/** How often the on-screen page of selfies advances to the next set. */
+export const CLEAN_AIR_FORUM_WALL_SLIDE_INTERVAL_MS = 8000;
