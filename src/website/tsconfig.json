@@ -41,5 +41,5 @@
     ".next/types/**/*.ts",
     "jest.config.js"
   ],
-  "exclude": ["node_modules", ".next", "out"]
+  "exclude": ["node_modules", ".next", "out", "e2e"]
 }

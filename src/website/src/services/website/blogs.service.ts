@@ -1,3 +1,4 @@
+import { normalizeListResponse } from '@/lib/utils/listResponseNormalizer';
 import { BaseApiService, ServiceOptions } from '@/services/api';
 import { BlogIdentifierPayload, BlogListResponse, BlogPost } from '@/types/api';
 
@@ -35,23 +36,6 @@ type BlogListApiResponse = {
   results: BlogPost[];
 };
 
-const normalizeBlogListResponse = (
-  response: BlogListApiResponse,
-  params: BlogListParams,
-): BlogListResponse => {
-  const pageSize = (params.page_size ?? response.results.length) || 10;
-
-  return {
-    count: response.count ?? 0,
-    next: response.next ?? null,
-    previous: response.previous ?? null,
-    results: response.results ?? [],
-    page_size: pageSize,
-    total_pages: Math.max(1, Math.ceil((response.count ?? 0) / pageSize)),
-    current_page: params.page ?? 1,
-  };
-};
-
 class BlogService extends BaseApiService {
   constructor() {
     super('BlogService');
@@ -71,10 +55,10 @@ class BlogService extends BaseApiService {
     );
 
     if (response.success) {
-      return normalizeBlogListResponse(response.data, params);
+      return normalizeListResponse(response.data, params);
     }
 
-    return normalizeBlogListResponse(
+    return normalizeListResponse(
       {
         count: 0,
         next: null,

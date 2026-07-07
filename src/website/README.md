@@ -1,5 +1,9 @@
 # Website
 
+![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz&flag=website) ![passing](https://img.shields.io/badge/passing-327%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-0-brightgreen?style=flat-square)
+
+**Website** is the AirQo analytics application for air quality data visualization, built with Next.js 14, React 18, TypeScript, and Tailwind CSS.
+
 Welcome to the Website repository, part of the AirQo Frontend project. This website is built with [Next.js](https://nextjs.org) and was bootstrapped using [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). The live website can be found at [airqo.net](https://airqo.net)
 
 > **Note:** This repository only contains the frontend portion of the project. The backend has been built with Django and is maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository. If you wish to use the database for the website, please contact the project admin to obtain the necessary database URL for the frontend configuration
@@ -17,6 +21,10 @@ This guide provides clear, step-by-step instructions to help you set up your loc
     - [2. Navigate to the Website Folder](#2-navigate-to-the-website-folder)
     - [3. Install Dependencies](#3-install-dependencies)
     - [4. Run the Development Server](#4-run-the-development-server)
+  - [Testing](#testing)
+    - [Unit Tests](#unit-tests)
+    - [E2E Tests](#e2e-tests)
+    - [Test Coverage](#test-coverage)
   - [Environment Variables \& Workflow Updates](#environment-variables--workflow-updates)
   - [Backend \& Database Integration](#backend--database-integration)
   - [Contributing](#contributing)
@@ -88,6 +96,159 @@ _Alternate Tips for Mac/Linux:_
 
 - Use your terminal’s tab completion to quickly navigate directories.
 - If you’re using a firewall or proxy, ensure your local ports are accessible.
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router routes
+│   ├── (main)/             # Route group (doesn't affect URLs)
+│   │   ├── (about)/        # About sub-pages
+│   │   └── [route]/        # Dynamic route pages
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Root redirect to /home
+│   └── api/                # API routes (proxy)
+├── views/                  # Page components (actual UI logic)
+├── components/             # Reusable components
+│   ├── ui/                 # shadcn/ui primitives
+│   └── layouts/            # MainLayout, Navbar, Footer
+├── services/               # API client and hooks
+│   └── apiClient.ts        # Server vs client routing
+├── store/                  # Redux slices
+├── configs/                # Static config data
+├── lib/                    # Shared utilities
+│   └── utils.ts            # cn() helper for Tailwind
+└── __mocks__/              # Jest mock files
+```
+
+---
+
+## Available Scripts
+
+| Command                 | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `npm run dev`           | Start development server on localhost:3000 |
+| `npm run build`         | Production build with standalone output    |
+| `npm run start`         | Start production server                    |
+| `npm run lint`          | Run ESLint                                 |
+| `npm run lint:fix`      | Run ESLint with auto-fix                   |
+| `npm run format`        | Format code with Prettier                  |
+| `npm test`              | Run all Jest tests                         |
+| `npm run test:watch`    | Run tests in watch mode                    |
+| `npm run test:coverage` | Run tests with coverage report             |
+| `npm run e2e`           | Run E2E tests (headless)                   |
+| `npm run e2e:headed`    | Run E2E tests with browser visible         |
+
+---
+
+## Testing
+
+This project uses **Jest** for unit testing and **Selenium WebDriver** for end-to-end (E2E) testing.
+
+### Unit Tests
+
+Unit tests are co-located with source files in `__tests__/` directories using the pattern `*.test.ts` or `*.test.tsx`.
+
+**Run unit tests:**
+
+```bash
+npm test              # run all tests
+npm run test:watch    # watch mode
+npm run test:coverage # with coverage report
+```
+
+**Run a specific test file:**
+
+```bash
+npm test -- src/lib/utils/__tests__/formatDate.test.ts
+npm test -- --testNamePattern="should format date"
+```
+
+**Test suites and current counts:**
+
+| Category          | Location                      | What it covers                                              |
+| ----------------- | ----------------------------- | ----------------------------------------------------------- |
+| Utility functions | `src/lib/utils/__tests__/`    | Date formatting, number parsing, string helpers, validation |
+| Redux store       | `src/store/slices/__tests__/` | State transitions, reducers, action creators                |
+| API services      | `src/services/api/__tests__/` | Request/response handling, error mapping                    |
+| Query hooks       | `src/queries/__tests__/`      | Query key factories, cache invalidation                     |
+| Config data       | `src/configs/__tests__/`      | Static data completeness, structure validation              |
+
+**Mocking strategy:**
+
+| What           | How                                 | Example                                     |
+| -------------- | ----------------------------------- | ------------------------------------------- |
+| Next.js router | `jest.mock('next/navigation')`      | Mock `useRouter`, `useSearchParams`         |
+| API responses  | `jest.mock('@/services/apiClient')` | Return fixture data                         |
+| Browser APIs   | `jest.fn().mockImplementation()`    | `window.matchMedia`, `IntersectionObserver` |
+| Static assets  | `identity-obj-proxy`                | CSS modules, images                         |
+| Time           | `jest.useFakeTimers()`              | Timer-dependent logic, polling              |
+| Mapbox GL      | `jest.mock('mapbox-gl')`            | Map component rendering                     |
+| Recharts       | `__mocks__/recharts.tsx`            | Chart component rendering                   |
+
+**Writing tests:**
+
+- Use `describe`/`it` blocks with descriptive names
+- Test edge cases, boundary conditions, and error cases
+- Mock external dependencies using `jest.mock()`
+- Use `@testing-library/react` for component tests
+- Use `jest.useFakeTimers()` for time-dependent logic
+
+### E2E Tests
+
+E2E tests use Selenium WebDriver with Mocha/Chai and follow the Page Object Model pattern.
+
+**Run E2E tests:**
+
+```bash
+npm run e2e        # headless mode
+npm run e2e:headed # with browser visible
+```
+
+**E2E structure:**
+
+```
+e2e/
+├── tests/           # Test files
+│   ├── navigation/  # Navigation tests
+│   └── pages/       # Page-specific tests
+├── pages/           # Page Object Model classes
+│   ├── base.page.ts # Base page with common methods
+│   └── home.page.ts # Home page object
+├── setup.ts         # Driver setup/teardown
+├── config.ts        # Configuration management
+└── .mocharc.yml     # Mocha configuration
+```
+
+**Configuration:**
+
+Create a `.env` file in the `e2e/` directory (copy from `.env.example`):
+
+```bash
+BASE_URL=http://localhost:3000
+BROWSER=chrome
+HEADLESS=true
+```
+
+### Test Coverage
+
+Coverage reports are generated when running `npm run test:coverage` and uploaded to Codecov in CI.
+
+**View HTML coverage report:**
+
+```bash
+npm run test:coverage
+# Then open coverage/index.html in your browser
+```
+
+**Coverage configuration:**
+
+- Provider: `v8`
+- Output: `coverage/`
+- Collects from: `src/**/*.{ts,tsx}`
+- Excludes: `node_modules`, `__mocks__`, `__tests__`, `*.d.ts`
 
 ---
 

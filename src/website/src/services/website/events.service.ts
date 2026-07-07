@@ -1,3 +1,4 @@
+import { normalizeListResponse } from '@/lib/utils/listResponseNormalizer';
 import { BaseApiService, ServiceOptions } from '@/services/api';
 import {
   EventIdentifierPayload,
@@ -54,23 +55,6 @@ type EventListApiResponse = {
   results: EventV2[];
 };
 
-const normalizeEventListResponse = (
-  response: EventListApiResponse,
-  params: EventListParams,
-): EventListResponse => {
-  const pageSize = (params.page_size ?? response.results.length) || 10;
-
-  return {
-    count: response.count ?? 0,
-    next: response.next ?? null,
-    previous: response.previous ?? null,
-    results: response.results ?? [],
-    page_size: pageSize,
-    total_pages: Math.max(1, Math.ceil((response.count ?? 0) / pageSize)),
-    current_page: params.page ?? 1,
-  };
-};
-
 const normalizeEventItems = (data: unknown): EventV2[] => {
   if (!data) return [];
 
@@ -112,10 +96,10 @@ class EventsService extends BaseApiService {
     );
 
     if (response.success) {
-      return normalizeEventListResponse(response.data, params);
+      return normalizeListResponse(response.data, params);
     }
 
-    return normalizeEventListResponse(
+    return normalizeListResponse(
       {
         count: 0,
         next: null,

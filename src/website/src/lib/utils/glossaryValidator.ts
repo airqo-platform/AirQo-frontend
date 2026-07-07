@@ -1,5 +1,7 @@
 // src/utils/glossaryValidator.ts
 
+import { containsInvalidSnippet } from './htmlValidator';
+
 /**
  * Checks if the provided glossary HTML content is valid for display.
  * It removes any empty paragraphs (e.g., <p><br/></p>) and then checks
@@ -14,17 +16,8 @@ export function isValidGlossaryContent(html: string): boolean {
   // Remove empty paragraphs. This regex will remove <p><br/></p> or similar variants.
   const cleanedHTML = html.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '').trim();
 
-  const invalidSnippets = [
-    '<p><br/></p>',
-    'No details available yet.',
-    'Details coming soon.',
-  ];
-
-  // Check if the cleaned HTML contains any of the invalid snippets.
-  for (const snippet of invalidSnippets) {
-    if (cleanedHTML === snippet || cleanedHTML.includes(snippet)) {
-      return false;
-    }
+  if (containsInvalidSnippet(cleanedHTML)) {
+    return false;
   }
 
   return cleanedHTML.length > 0;
