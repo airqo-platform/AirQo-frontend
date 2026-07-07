@@ -63,7 +63,7 @@ export const METADATA_CONFIGS = {
     url: '/products/analytics',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
-      alt: 'AirQo Analytics Platform - Real-time Air Quality Dashboard for Africa',
+      alt: 'Nexus Platform - Real-time Air Quality Dashboard for Africa',
       width: 1200,
       height: 630,
       type: 'image/png',

@@ -30,8 +30,8 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/ai-platform',
     },
     {
-      title: 'Analytics Dashboard',
-      description: 'Air quality analytics for African cities',
+      title: 'Nexus',
+      description: 'Real-time air quality data for African cities',
       href: '/products/analytics',
     },
     {

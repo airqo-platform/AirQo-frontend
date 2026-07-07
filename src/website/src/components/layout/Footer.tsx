@@ -15,7 +15,7 @@ import ScrollToTopButton from './ScrollToTopButton';
 const footerLinks = {
   products: [
     { label: 'Binos Monitor', href: '/products/monitor' },
-    { label: 'Analytics Dashboard', href: '/products/analytics' },
+    { label: 'Nexus', href: '/products/analytics' },
     { label: 'Air Quality API', href: '/products/api' },
     { label: 'Mobile App', href: '/products/mobile-app' },
     { label: 'AirQalibrate', href: '/products/calibrate' },

@@ -67,12 +67,12 @@ export default function PlatformIntegration() {
               className="text-lg text-gray-600 leading-relaxed"
               variants={animations.item}
             >
-              The AirQo Analytics Platform seamlessly integrates air quality
-              data from various air quality sensor manufacturers and networks
-              providing a comprehensive and accurate picture of air quality in
-              major African cities. This integration provides a holistic view of
-              air quality across African cities, ensuring access to more
-              comprehensive and reliable air quality data.
+              The Nexus Platform seamlessly integrates air quality data from
+              various air quality sensor manufacturers and networks, providing a
+              comprehensive and accurate picture of air quality in major African
+              cities. This integration provides a holistic view of air quality
+              across African cities, ensuring access to more comprehensive and
+              reliable air quality data.
             </motion.p>
 
             <motion.p

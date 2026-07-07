@@ -144,7 +144,7 @@ const ExplorePage = () => {
                     </div>
                   </div>
                   <p className="text-gray-700 mb-2 text-sm text-center">
-                    An interactive air quality analytics platform
+                    An interactive Nexus platform
                   </p>
                   <CustomButton
                     onClick={() =>
