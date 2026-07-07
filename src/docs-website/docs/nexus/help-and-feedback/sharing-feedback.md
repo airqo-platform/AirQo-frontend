@@ -5,7 +5,7 @@ sidebar_label: Sharing Feedback
 
 # Sharing Feedback
 
-Your feedback helps us improve AirQo Analytics. You can share suggestions, report problems, or tell us what is working well directly from the platform.
+Your feedback helps us improve AirQo Nexus. You can share suggestions, report problems, or tell us what is working well directly from the platform.
 
 ---
 

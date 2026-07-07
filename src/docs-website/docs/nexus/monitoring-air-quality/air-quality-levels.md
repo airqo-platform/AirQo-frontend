@@ -5,7 +5,7 @@ sidebar_label: Air Quality Levels
 
 # Air Quality Levels
 
-AirQo Analytics uses the following air quality categories to help you quickly understand air quality readings across the platform. The same categories appear on the dashboard, map, dataset visualizer, and data export pages.
+AirQo Nexus uses the following air quality categories to help you quickly understand air quality readings across the platform. The same categories appear on the dashboard, map, dataset visualizer, and data export pages.
 
 ---
 
@@ -30,7 +30,7 @@ These ranges are specific to AirQo's categorization. They may differ from air qu
 
 You will see these levels in several places:
 
-- **Analytics Dashboard** — on location cards and chart legends
+- **AirQo Nexus Dashboard** — on location cards and chart legends
 - **Interactive Map** — as marker colors and icons, and in the map legend
 - **Dataset Visualizer** — on map charts and reference lines
 - **Location Details Panel** — in the Current Air Quality card and forecast cards

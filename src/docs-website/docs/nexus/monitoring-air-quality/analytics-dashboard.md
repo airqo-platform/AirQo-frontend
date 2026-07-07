@@ -1,11 +1,11 @@
 ---
 sidebar_position: 2
-sidebar_label: Analytics Dashboard
+sidebar_label: AirQo Nexus Dashboard
 ---
 
-# Analytics Dashboard
+# AirQo Nexus Dashboard
 
-The Analytics Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow the dashboard is on the **My Favorites** page; in the **Organization** workflow it is on the **Dashboard** page. Both pages show the same analytics view, scoped to your personal or organization workspace.
+The AirQo Nexus Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow, the dashboard is on the **My Favorites** page; in the **Organization** workflow it is on the **Dashboard** page. Both pages show the same AirQo Nexus view, scoped to your personal or organization workspace.
 
 ---
 
@@ -13,10 +13,10 @@ The Analytics Dashboard shows air quality trends and readings for the locations 
 
 | Workflow | Sidebar Item | Web Address |
 |----------|--------------|-------------|
-| **Individual** | **My Favorites** | `https://analytics.airqo.net/user/favorites` |
-| **Organization** | **Dashboard** | `https://analytics.airqo.net/org/<your-org>/dashboard` |
+| **Individual** | **My Favorites** | `https://nexus.airqo.net//user/favorites` |
+| **Organization** | **Dashboard** | `https://nexus.airqo.net//org/<your-org>/dashboard` |
 
-After logging in, you land on the [Home page](https://analytics.airqo.net/user/home), which is a welcome screen with quick-action buttons. Select **My Favorites** or **Start here** to open the dashboard.
+After logging in, you land on the [Home page](https://nexus.airqo.net//user/home), which is a welcome screen with quick-action buttons. Select **My Favorites** or **Start here** to open the dashboard.
 
 ---
 
@@ -96,7 +96,7 @@ For detailed instructions, see [Favorite Locations](../managing-locations/favori
 
 ## Organization Dashboard
 
-In the Organization workflow, the Dashboard shows the same analytics view but scoped to the organization's sites:
+In the Organization workflow, the Dashboard shows the same AirQo Nexus view but scoped to the organization's sites:
 
 - Summary cards for the organization's selected monitoring sites
 - Trend and distribution charts for organization locations

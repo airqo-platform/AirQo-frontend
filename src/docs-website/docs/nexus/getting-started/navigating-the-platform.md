@@ -5,7 +5,7 @@ sidebar_label: Navigating the Platform
 
 # Navigating the Platform
 
-Learn how the AirQo Analytics interface is organised, how the Individual and Organization workflows differ, and how to move between them.
+Learn how the AirQo Nexus interface is organized, how the Individual and Organization workflows differ, and how to move between them.
 
 ---
 
@@ -13,7 +13,7 @@ Learn how the AirQo Analytics interface is organised, how the Individual and Org
 
 ### Individual Workflow
 
-The Individual workflow is your personal workspace. Use it to explore air quality data, save favorite locations, export datasets, and visualise your own data files.
+The Individual workflow is your personal workspace. Use it to explore air quality data, save favorite locations, export datasets, and visualize your own data files.
 
 **Navigation sidebar:**
 
@@ -36,7 +36,7 @@ The Organization workflow is a shared workspace for teams. It includes the same 
 |-------|------|-------------|
 | **Main** | Dashboard | Organization-level analytics dashboard with selected sites and charts |
 | | Visualization & Data Export | Download datasets for your organization's locations |
-| | Dataset Visualizer | Upload and visualise data files |
+| | Dataset Visualizer | Upload and visualize data files |
 | | Map | Interactive map for your organization's monitoring sites |
 | **Management** | Members | View and manage team members (requires permission) |
 | | Member Requests | Review join requests from new members (requires permission) |
