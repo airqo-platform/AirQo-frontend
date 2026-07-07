@@ -28,6 +28,7 @@ npm run e2e:headed   # E2E tests with visible browser
 Run from `src/website/`. No monorepo task runner; each app is independent.
 
 **Validation**: After making changes, always run:
+
 ```bash
 npm run lint && npm run format && npm run build
 ```
@@ -101,6 +102,7 @@ src/
 ## Path Aliases
 
 Configured in `tsconfig.json`:
+
 - `@/*` -> `./src/*`
 - `@/components/*` -> `./src/components/*`
 - `@/lib/*` -> `./src/lib/*`
@@ -117,10 +119,12 @@ Configured in `tsconfig.json`:
 ## API Client
 
 `src/services/api/api-client.ts` - Dual-mode API client:
+
 - **Server-side**: Direct backend API call using `API_URL` env var with `API_TOKEN` query param
 - **Client-side**: Next.js proxy at `/api/v2` (hides backend from browser)
 
 **Important**: API routes in `api-routes.ts` are defined differently for server vs client:
+
 - `WEBSITE` routes use `/website/api/v2/...` prefix (server-side normalization handles client proxy)
 - `USERS` routes use `users/selfies` format (no `/api/v2/` prefix, client proxy adds it)
 - Never hard-code backend URLs; always use `API_ROUTES` constants
@@ -128,6 +132,7 @@ Configured in `tsconfig.json`:
 ## Services Structure
 
 ### `src/services/api/` - Core API Layer
+
 - `api-client.ts` - Fetch-based API client with server/client dual routing
 - `api-routes.ts` - All API endpoint constants (WEBSITE, DEVICES, USERS, PREDICT, PAYMENTS)
 - `base.ts` - `BaseApiService` class with CRUD methods and pagination transformer
@@ -135,12 +140,14 @@ Configured in `tsconfig.json`:
 - `api-response.ts` - Response type definitions
 
 ### `src/services/external/` - External Integrations
+
 - `analytics.service.ts` - Analytics and grid data
 - `cloudinary.service.ts` - Cloudinary image management
 - `faces-of-clean-air.service.ts` - Faces of Clean Air API
 - `maps.service.ts` - Map-related services
 
 ### `src/services/website/` - Website Business Services (20 files)
+
 Services for blogs, careers, events, forum-events, grids, partners, press, publications, team, etc.
 
 ## Features Pattern
@@ -148,10 +155,11 @@ Services for blogs, careers, events, forum-events, grids, partners, press, publi
 Pages use the **features pattern** (NOT views pattern):
 
 1. **App pages are thin wrappers** that delegate to feature components:
+
    ```tsx
    // src/app/(site)/home/page.tsx
    import HomePage from '@/features/home/HomePage';
-   
+
    const page = () => <HomePage />;
    export default page;
    ```
@@ -165,28 +173,31 @@ Pages use the **features pattern** (NOT views pattern):
 Copy `.env.sample` to `.env`. Never commit `.env`.
 
 ### Server-side
-| Variable | Purpose |
-|---|---|
-| `API_URL` | Backend API base URL |
-| `API_TOKEN` | Authentication token for API requests |
-| `OPENCAGE_API_KEY` | OpenCage geocoding API key |
-| `SLACK_WEBHOOK_URL` | Slack notification webhook |
-| `SLACK_CHANNEL` | Slack notification channel |
-| `GOOGLE_SITE_VERIFICATION` | Google Search Console verification |
 
-### Client-side (NEXT_PUBLIC_ prefix)
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_SITE_URL` | Comma-separated site URLs (first = canonical base) |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics measurement ID |
-| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | Mapbox GL access token |
-| `NEXT_PUBLIC_CLEAN_AIR_FORUM_EVENT_ID` | Forum edition ID for faces-of-clean-air page |
+| Variable                   | Purpose                               |
+| -------------------------- | ------------------------------------- |
+| `API_URL`                  | Backend API base URL                  |
+| `API_TOKEN`                | Authentication token for API requests |
+| `OPENCAGE_API_KEY`         | OpenCage geocoding API key            |
+| `SLACK_WEBHOOK_URL`        | Slack notification webhook            |
+| `SLACK_CHANNEL`            | Slack notification channel            |
+| `GOOGLE_SITE_VERIFICATION` | Google Search Console verification    |
+
+### Client-side (NEXT*PUBLIC* prefix)
+
+| Variable                               | Purpose                                            |
+| -------------------------------------- | -------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`                 | Comma-separated site URLs (first = canonical base) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`        | Google Analytics measurement ID                    |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`      | Mapbox GL access token                             |
+| `NEXT_PUBLIC_CLEAN_AIR_FORUM_EVENT_ID` | Forum edition ID for faces-of-clean-air page       |
 
 When adding new env vars, update `.env.sample` and CI workflow YAML files in `.github/workflows/`.
 
 ## Linting
 
 ESLint enforces:
+
 - `simple-import-sort` (auto-sorted imports) - **error**
 - `unused-imports` (warn on unused)
 - `prettier` formatting errors
@@ -197,6 +208,7 @@ Fix order: `npm run lint:fix && npm run format`
 ## Testing
 
 ### Unit Tests (Jest)
+
 - Framework: Jest 29 with `ts-jest` preset (`js-with-ts-esm`)
 - Environment: `jsdom`
 - 36 test files across: `src/lib/utils/__tests__/`, `src/lib/security/__tests__/`, `src/store/slices/__tests__/`, `src/services/api/__tests__/`, `src/queries/__tests__/`, `src/hooks/__tests__/`, `src/config/__tests__/`
@@ -205,6 +217,7 @@ Fix order: `npm run lint:fix && npm run format`
 - Test patterns: `src/**/__tests__/**/*.{ts,tsx}` and `src/**/*.{spec,test}.{ts,tsx}`
 
 ### E2E Tests (Mocha + Selenium)
+
 - Framework: Mocha 11 with `selenium-webdriver` 4
 - Config: `e2e/.mocharc.yml` (60s timeout)
 - 9 page tests + 4 navigation tests

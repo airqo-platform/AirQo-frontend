@@ -1,8 +1,21 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from 'framer-motion';
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { FiCamera } from 'react-icons/fi';
 
 import {
   CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
@@ -11,169 +24,272 @@ import {
 import { facesOfCleanAirService } from '@/services/external';
 import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.service';
 
-const AIRQO_LOGO_URL =
-  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png';
+const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const CARDS_PER_PAGE = 6;
-const CAROUSEL_INTERVAL_MS = 6000;
-const EVENT_LABEL = 'Africa CLEAN - Air Forum';
-const EVENT_DATE = 'Pretoria 2026';
+const CAROUSEL_INTERVAL_MS = 7000;
+
+const EVENT_LABEL = 'Africa CLEAN-Air Forum';
+const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const EVENT_DATES_BADGE = '13TH-16TH JULY';
 
-function getAqiColor(aqi: number): string {
-  if (aqi <= 50) return '#22c55e';
-  if (aqi <= 100) return '#eab308';
-  if (aqi <= 150) return '#f97316';
-  return '#ef4444';
+type FetchState = 'idle' | 'loading' | 'success' | 'error';
+
+type CategoryStyle = {
+  label: string;
+  className: string;
+};
+
+function formatPm25(value: number | null | undefined): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '--';
+  return value.toFixed(1);
 }
 
-function getAqiCategory(aqi: number): string {
-  if (aqi <= 50) return 'Good';
-  if (aqi <= 100) return 'Moderate';
-  if (aqi <= 150) return 'Unhealthy for Sensitive';
-  return 'Unhealthy';
+function getFallbackCategory(pm25: number): CategoryStyle {
+  if (pm25 <= 12) {
+    return { label: 'Good', className: 'bg-emerald-100 text-emerald-700' };
+  }
+  if (pm25 <= 35.4) {
+    return { label: 'Moderate', className: 'bg-amber-100 text-amber-700' };
+  }
+  if (pm25 <= 55.4) {
+    return { label: 'Sensitive', className: 'bg-orange-100 text-orange-700' };
+  }
+  return { label: 'Unhealthy', className: 'bg-red-100 text-red-700' };
 }
 
-function SkeletonCard() {
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-white shadow-lg">
-      <div className="aspect-[4/5] animate-pulse bg-gradient-to-br from-gray-200 to-gray-100" />
-      <div className="space-y-3 p-4">
-        <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-        <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-16 animate-pulse rounded-full bg-gray-200" />
-          <div className="h-6 w-12 animate-pulse rounded-full bg-gray-200" />
-        </div>
-      </div>
-    </div>
-  );
+function getCategoryStyle(
+  category: string | null | undefined,
+  pm25: number,
+): CategoryStyle {
+  const normalized = category?.trim().toLowerCase();
+  if (!normalized) return getFallbackCategory(pm25);
+  if (normalized.includes('good'))
+    return { label: category!, className: 'bg-emerald-100 text-emerald-700' };
+  if (normalized.includes('moderate'))
+    return { label: category!, className: 'bg-amber-100 text-amber-700' };
+  if (normalized.includes('sensitive'))
+    return { label: category!, className: 'bg-orange-100 text-orange-700' };
+  return { label: category!, className: 'bg-red-100 text-red-700' };
 }
 
-function FaceCard({ submission }: { submission: CleanAirSubmission }) {
-  const pm25 = submission.pm25Value ?? 0;
-  const aqiEstimate = Math.round(pm25 * 2.5);
-  const aqiColor = getAqiColor(aqiEstimate);
-  const aqiLabel = submission.aqiCategory || getAqiCategory(aqiEstimate);
-
+function SkeletonCard({ index }: { index: number }) {
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.92, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.92, y: -20 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="group relative overflow-hidden rounded-2xl shadow-lg transition-shadow duration-300 hover:shadow-xl"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.35,
+        delay: index * 0.045,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="relative aspect-square w-full overflow-hidden rounded-lg bg-white/40"
+      aria-hidden="true"
     >
-      <div className="relative aspect-[3/4] overflow-hidden">
-        <Image
-          src={submission.imageUrl}
-          alt={submission.displayName || 'Air quality contributor'}
-          fill
-          unoptimized
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-        />
-
-        {/* Top gradient overlay */}
-        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/40 via-black/10 to-transparent" />
-
-        {/* AirQo logo badge - top left */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2 py-1 backdrop-blur-sm">
-          <Image
-            src={AIRQO_LOGO_URL}
-            alt="AirQo"
-            width={16}
-            height={11}
-            unoptimized
-            className="h-2.5 w-auto"
-          />
+      <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/60 via-blue-50 to-blue-100/60" />
+      <div className="absolute left-3 top-3 flex items-center gap-2">
+        <div className="h-6 w-9 rounded-full bg-white/60" />
+        <div className="space-y-1">
+          <div className="h-2 w-16 rounded bg-white/50" />
+          <div className="h-2 w-12 rounded bg-white/40" />
         </div>
-
-        {/* Event info - top right */}
-        <div className="absolute top-3 right-3 text-right">
-          <p className="text-[10px] font-semibold text-white drop-shadow-lg">
-            Clean Air Forum
-          </p>
-          <p className="text-[9px] text-white/90 drop-shadow-lg">
-            {EVENT_DATE}
-          </p>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-blue-600/70 via-blue-500/30 to-transparent" />
+      <div className="absolute inset-x-3 bottom-3 space-y-2">
+        <div className="h-5 w-3/4 rounded bg-white/70" />
+        <div className="h-2 w-1/2 rounded bg-white/50" />
+        <div className="flex items-end gap-2">
+          <div className="h-8 w-16 rounded bg-white/70" />
+          <div className="h-4 w-14 rounded-full bg-white/60" />
         </div>
-
-        {/* Bottom gradient overlay */}
-        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#0d9488] via-[#0d9488]/85 to-transparent" />
-
-        {/* Content overlay */}
-        <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-4 text-white">
-          {/* Location */}
-          <h3 className="text-base font-bold leading-tight drop-shadow-lg sm:text-lg">
-            {submission.locationName || 'Anonymous Location'}
-          </h3>
-
-          {/* Sub-location */}
-          {submission.locationName && (
-            <p className="mt-0.5 text-[10px] text-white/80">
-              {submission.locationName}
-            </p>
-          )}
-
-          {/* PM2.5 and AQI */}
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-2xl font-bold drop-shadow-lg sm:text-3xl">
-              {pm25.toFixed(1)}
-            </span>
-            <div className="flex flex-col gap-1">
-              <span className="text-[9px] text-white/70">PM2.5 µg/m³</span>
-              <span
-                className="inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
-                style={{ backgroundColor: aqiColor }}
-              >
-                {aqiLabel}
-              </span>
-            </div>
-          </div>
-
-          {/* Footer badges */}
-          <div className="mt-2.5 flex items-center justify-between border-t border-white/20 pt-2.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
-              Shared from the AirQo App
-            </span>
-            <span className="text-[10px] font-medium text-white/90">
-              {EVENT_DATES_BADGE}
-            </span>
-          </div>
+        <div className="flex justify-between border-t border-white/20 pt-2">
+          <div className="h-4 w-24 rounded-full bg-white/60" />
+          <div className="h-3 w-20 rounded bg-white/40" />
         </div>
       </div>
     </motion.div>
   );
 }
 
+function FaceCard({
+  submission,
+  priority,
+}: {
+  submission: CleanAirSubmission;
+  priority: boolean;
+}) {
+  const pm25 = submission.pm25Value ?? 0;
+  const category = getCategoryStyle(submission.aqiCategory, pm25);
+  const displayName =
+    submission.displayName?.trim() ||
+    submission.locationName?.trim() ||
+    'Clean Air Champion';
+  const location =
+    submission.locationName?.trim() || 'Pretoria, Gauteng, South Africa';
+
+  return (
+    <motion.article
+      variants={{
+        hidden: { opacity: 0, y: 18, scale: 0.97 },
+        visible: { opacity: 1, y: 0, scale: 1 },
+      }}
+      transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative aspect-square w-full overflow-hidden rounded-lg bg-blue-950"
+    >
+      <Image
+        src={submission.imageUrl}
+        alt={`${displayName} at ${location}`}
+        fill
+        priority={priority}
+        unoptimized
+        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+        sizes="(min-width: 1280px) 280px, (min-width: 1024px) 25vw, (min-width: 640px) 42vw, 92vw"
+      />
+
+      <div className="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[49%] bg-gradient-to-t from-blue-700 via-blue-600/90 via-[56%] to-transparent" />
+
+      <div className="absolute left-3 top-3 flex items-center gap-2 text-white">
+        <div className="rounded-full bg-white/90 px-1.5 py-1">
+          <Image
+            src={AIRQO_LOGO_URL}
+            alt="AirQo"
+            width={34}
+            height={22}
+            unoptimized
+            className="h-[16px] w-auto"
+          />
+        </div>
+        <div className="border-l border-white/50 pl-2 leading-[1.08]">
+          <p className="text-[8px] font-semibold sm:text-[9px]">
+            Clean Air Forum
+          </p>
+          <p className="text-[7px] italic text-white/85 sm:text-[8px]">
+            {EVENT_LOCATION_AND_YEAR}
+          </p>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white sm:px-3.5 sm:pb-3">
+        <h2
+          className="truncate text-[16px] font-semibold leading-tight sm:text-[17px]"
+          title={displayName}
+        >
+          {displayName}
+        </h2>
+        <p
+          className="mt-0.5 truncate text-[7px] font-medium text-white/80 sm:text-[8px]"
+          title={location}
+        >
+          {location}
+        </p>
+
+        <div className="mt-1.5 flex items-end gap-2">
+          <span className="text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-[30px]">
+            {formatPm25(submission.pm25Value)}
+          </span>
+          <div className="mb-0.5 flex min-w-0 items-center gap-1.5">
+            <span className="whitespace-nowrap text-[6px] font-semibold text-white/85 sm:text-[7px]">
+              PM2.5 µg/m³
+            </span>
+            <span
+              className={`max-w-[92px] truncate rounded-full px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
+              title={category.label}
+            >
+              {category.label}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
+          <span className="truncate rounded-full bg-white px-2 py-0.5 text-[6px] font-semibold text-blue-700 sm:text-[7px]">
+            Shared from the AirQo app
+          </span>
+          <span className="whitespace-nowrap text-[7px] font-semibold sm:text-[8px]">
+            {EVENT_DATES_BADGE}
+          </span>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+function EmptyState() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="mx-auto flex min-h-[220px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/50 bg-white/40 px-8 py-10 text-center backdrop-blur-sm"
+    >
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/30">
+        <FiCamera className="h-7 w-7 text-white" />
+      </div>
+      <h2 className="text-xl font-bold text-slate-900">No faces yet</h2>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-slate-600">
+        Be the first to share an air quality selfie from the Africa Clean Air
+        Forum.
+      </p>
+    </motion.div>
+  );
+}
+
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      role="alert"
+      className="mx-auto flex min-h-[220px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/50 bg-white/40 px-8 py-10 text-center backdrop-blur-sm"
+    >
+      <h2 className="text-xl font-bold text-slate-900">
+        We could not load the selfie wall
+      </h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        Please check the connection and try again.
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+      >
+        Try again
+      </button>
+    </motion.div>
+  );
+}
+
 export default function FacesOfCleanAirPage() {
+  const shouldReduceMotion = useReducedMotion();
   const [submissions, setSubmissions] = useState<CleanAirSubmission[]>([]);
+  const [fetchState, setFetchState] = useState<FetchState>('idle');
   const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [direction, setDirection] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+  const hasLoadedRef = useRef(false);
 
   const fetchSubmissions = useCallback(async () => {
+    if (!hasLoadedRef.current) setFetchState('loading');
     try {
       const data = await facesOfCleanAirService.getSubmissions(
         CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
       );
-      setSubmissions(data);
+      setSubmissions(Array.isArray(data) ? data : []);
+      setFetchState('success');
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error('Failed to load clean air faces:', error);
-    } finally {
-      setIsLoading(false);
+      if (!hasLoadedRef.current) setFetchState('error');
     }
   }, []);
 
   useEffect(() => {
-    fetchSubmissions();
-    const interval = setInterval(
-      fetchSubmissions,
+    void fetchSubmissions();
+    const pollingTimer = window.setInterval(
+      () => void fetchSubmissions(),
       CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS,
     );
-    return () => clearInterval(interval);
+    return () => window.clearInterval(pollingTimer);
   }, [fetchSubmissions]);
 
   const totalPages = useMemo(
@@ -182,169 +298,224 @@ export default function FacesOfCleanAirPage() {
   );
 
   useEffect(() => {
-    if (totalPages <= 1 || isLoading) return;
-    const timer = setInterval(() => {
-      setDirection(1);
-      setPage((prev) => (prev + 1) % totalPages);
-    }, CAROUSEL_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [totalPages, isLoading]);
+    setPage((currentPage) => Math.min(currentPage, totalPages - 1));
+  }, [totalPages]);
 
-  const pageItems = useMemo(
-    () =>
-      submissions.slice(
-        page * CARDS_PER_PAGE,
-        page * CARDS_PER_PAGE + CARDS_PER_PAGE,
-      ),
-    [submissions, page],
+  useEffect(() => {
+    if (
+      fetchState !== 'success' ||
+      totalPages <= 1 ||
+      isPaused ||
+      shouldReduceMotion
+    )
+      return;
+    const carouselTimer = window.setTimeout(() => {
+      setDirection(1);
+      setPage((currentPage) => (currentPage + 1) % totalPages);
+    }, CAROUSEL_INTERVAL_MS);
+    return () => window.clearTimeout(carouselTimer);
+  }, [fetchState, isPaused, page, shouldReduceMotion, totalPages]);
+
+  const pageItems = useMemo(() => {
+    const startIndex = page * CARDS_PER_PAGE;
+    return submissions.slice(startIndex, startIndex + CARDS_PER_PAGE);
+  }, [page, submissions]);
+
+  const hasSecondRow = pageItems.length > 3;
+
+  const goToPage = useCallback(
+    (nextPage: number) => {
+      if (nextPage === page || nextPage < 0 || nextPage >= totalPages) return;
+      setDirection(nextPage > page ? 1 : -1);
+      setPage(nextPage);
+    },
+    [page, totalPages],
   );
 
-  const goToPage = (index: number) => {
-    setDirection(index > page ? 1 : -1);
-    setPage(index);
+  const handleCarouselKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLElement>) => {
+      if (totalPages <= 1) return;
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToPage((page + 1) % totalPages);
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToPage((page - 1 + totalPages) % totalPages);
+      }
+    },
+    [goToPage, page, totalPages],
+  );
+
+  const slideVariants: Variants = {
+    enter: (slideDirection: number) => ({
+      x: shouldReduceMotion ? 0 : slideDirection > 0 ? 72 : -72,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        duration: shouldReduceMotion ? 0 : 0.52,
+        ease: [0.22, 1, 0.36, 1],
+        staggerChildren: shouldReduceMotion ? 0 : 0.055,
+      },
+    },
+    exit: (slideDirection: number) => ({
+      x: shouldReduceMotion ? 0 : slideDirection > 0 ? -72 : 72,
+      opacity: 0,
+      transition: {
+        duration: shouldReduceMotion ? 0 : 0.32,
+        ease: 'easeInOut',
+      },
+    }),
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
-      opacity: 0,
-      scale: 0.95,
-    }),
-    center: { x: 0, opacity: 1, scale: 1 },
-    exit: (dir: number) => ({
-      x: dir > 0 ? -300 : 300,
-      opacity: 0,
-      scale: 0.95,
-    }),
-  };
+  const isInitialLoading = fetchState === 'idle' || fetchState === 'loading';
+  const showError = fetchState === 'error' && submissions.length === 0;
+  const showEmpty = fetchState === 'success' && submissions.length === 0;
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0d9488] via-[#14b8a6] to-[#5eead4]" />
+    <div className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-blue-600 via-blue-500 to-blue-200">
+      {/* White fade at the bottom - extended further down */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/70 to-transparent" />
 
-      {/* Header */}
-      <header className="relative px-4 pt-8 sm:px-6 sm:pt-12">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row sm:gap-6">
-          {/* AirQo logo */}
-          <div className="flex-shrink-0">
+      <div className="relative mx-auto min-h-[100svh] w-full max-w-[1400px] px-5 pb-10 pt-8 sm:px-8 lg:px-12">
+        <header className="mx-auto grid w-full max-w-[1200px] items-center gap-5 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6">
+          <div className="flex justify-center sm:justify-start">
             <Image
               src={AIRQO_LOGO_URL}
               alt="AirQo"
-              width={100}
-              height={34}
+              width={78}
+              height={51}
+              priority
               unoptimized
-              className="h-8 w-auto sm:h-10"
+              className="h-auto w-[72px]"
             />
           </div>
 
-          {/* Title */}
-          <h1
-            className="text-center text-3xl font-bold text-white drop-shadow-lg sm:text-left sm:text-4xl md:text-5xl"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Faces of <span className="italic">Air Quality</span>
+          <h1 className="text-center leading-none text-white sm:text-left">
+            <span
+              className="text-[38px] font-normal tracking-[-0.05em] sm:text-[42px]"
+              style={{
+                fontFamily:
+                  '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
+              }}
+            >
+              Faces of
+            </span>{' '}
+            <span className="text-[36px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+              Air Quality
+            </span>
           </h1>
 
-          {/* Event info */}
-          <div className="flex-shrink-0 text-center sm:text-right">
-            <p className="text-xs font-semibold text-white/90 sm:text-sm">
-              {EVENT_LABEL}
+          <div className="text-center sm:text-left sm:text-white">
+            <p className="text-[13px] font-bold leading-tight">{EVENT_LABEL}</p>
+            <p className="mt-0.5 text-[13px] italic text-white/85">
+              {EVENT_LOCATION_AND_YEAR}
             </p>
-            <p className="text-[10px] text-white/70 sm:text-xs">{EVENT_DATE}</p>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Content */}
-      <main className="relative px-4 pb-12 sm:px-6 sm:pb-16">
-        <div className="mx-auto max-w-6xl">
-          {isLoading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-              {Array.from({ length: CARDS_PER_PAGE }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : submissions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center sm:py-20">
-              <div className="mb-6 rounded-full bg-white/10 p-6 backdrop-blur-sm">
-                <Image
-                  src={AIRQO_LOGO_URL}
-                  alt="AirQo"
-                  width={60}
-                  height={20}
-                  unoptimized
-                  className="h-5 w-auto opacity-50"
-                />
+        <main className="mx-auto flex min-h-[60svh] w-full max-w-[1200px] items-center justify-center pt-9 sm:pt-10">
+          <section
+            tabIndex={0}
+            aria-label="Faces of Air Quality selfie carousel"
+            aria-roledescription="carousel"
+            className="w-full rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
+            onKeyDown={handleCarouselKeyDown}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocusCapture={() => setIsPaused(true)}
+            onBlurCapture={() => setIsPaused(false)}
+          >
+            {isInitialLoading && (
+              <div className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: CARDS_PER_PAGE }).map((_, index) => (
+                  <div key={index} className="w-full max-w-[280px]">
+                    <SkeletonCard index={index} />
+                  </div>
+                ))}
               </div>
-              <h2 className="mb-2 text-xl font-bold text-white sm:text-2xl">
-                No faces yet
-              </h2>
-              <p className="max-w-md text-sm text-white/70">
-                Be the first to share your air quality selfie from the Clean Air
-                Forum!
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Carousel */}
-              <div className="relative overflow-hidden">
-                <AnimatePresence mode="wait" custom={direction}>
-                  <motion.div
-                    key={page}
+            )}
+
+            {showError && (
+              <ErrorState onRetry={() => void fetchSubmissions()} />
+            )}
+
+            {showEmpty && <EmptyState />}
+
+            {!isInitialLoading && !showError && !showEmpty && (
+              <>
+                <div
+                  className={`relative overflow-hidden ${
+                    hasSecondRow
+                      ? 'min-h-[280px] lg:min-h-[580px]'
+                      : 'min-h-[280px]'
+                  }`}
+                >
+                  <AnimatePresence
+                    initial={false}
+                    mode="wait"
                     custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 200, damping: 30 },
-                      opacity: { duration: 0.4 },
-                      scale: { duration: 0.4 },
-                    }}
-                    className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
                   >
-                    {pageItems.map((submission) => (
-                      <FaceCard key={submission.id} submission={submission} />
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Pagination dots */}
-              {totalPages > 1 && (
-                <div className="mt-8 flex items-center justify-center gap-2.5 sm:mt-10">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => goToPage(i)}
-                      aria-label={`Go to page ${i + 1}`}
+                    <motion.div
+                      key={page}
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      aria-live="polite"
+                      className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3"
                     >
-                      <span
-                        className="block rounded-full transition-all duration-300"
-                        style={{
-                          width: i === page ? 28 : 8,
-                          height: 8,
-                          backgroundColor:
-                            i === page ? '#0d9488' : 'rgba(255,255,255,0.5)',
-                        }}
-                      />
-                    </button>
-                  ))}
+                      {pageItems.map((submission, index) => (
+                        <div
+                          key={
+                            submission.id ??
+                            `${submission.imageUrl}-${page}-${index}`
+                          }
+                          className="w-full max-w-[280px]"
+                        >
+                          <FaceCard
+                            submission={submission}
+                            priority={page === 0 && index < 3}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-              )}
 
-              {/* Counter */}
-              <div className="mt-4 text-center">
-                <p className="text-[10px] text-white/60 sm:text-xs">
-                  {submissions.length} faces shared
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </main>
+                {totalPages > 1 && (
+                  <nav
+                    className="mt-8 flex items-center justify-center gap-3"
+                    aria-label="Selfie carousel pages"
+                  >
+                    {Array.from({ length: totalPages }).map((_, index) => {
+                      const isActive = index === page;
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => goToPage(index)}
+                          aria-label={`Show selfie page ${index + 1} of ${totalPages}`}
+                          aria-current={isActive ? 'page' : undefined}
+                          className={`h-2.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${
+                            isActive
+                              ? 'w-10 bg-white'
+                              : 'w-2.5 bg-white/40 hover:bg-white/60'
+                          }`}
+                        />
+                      );
+                    })}
+                  </nav>
+                )}
+              </>
+            )}
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
