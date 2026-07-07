@@ -13,9 +13,9 @@ type ProductItem = {
 
 const ProductList: ProductItem[] = [
     {
-        title: 'Analytics',
+        title: 'Nexus',
         description: 'Visualize and analyze air quality data with interactive dashboards and insights',
-        link: '/analytics/intro',
+        link: '/nexus/intro',
         Icon: AqBarChartSquarePlus,
     },
     {

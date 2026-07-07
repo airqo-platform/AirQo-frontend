@@ -5,15 +5,15 @@ sidebar_label: Roles & Permissions
 
 # Organization Roles & Permissions
 
-A guide to managing roles, permissions, and members within your organization on the AirQo Analytics platform.
+A guide to managing roles, permissions, and members within your organization on the Nexus platform.
 
 ---
 
 ## What Is an Organization?
 
-An organization is a workspace on the AirQo Analytics platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
+An organization is a workspace on the Nexus platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
 
-When you first join the AirQo Analytics platform, you are assigned to a default organization. Organization administrators can invite additional members, create custom roles, and configure settings.
+When you first join the Nexus platform, you are assigned to a default organization. Organization administrators can invite additional members, create custom roles, and configure settings.
 
 ---
 

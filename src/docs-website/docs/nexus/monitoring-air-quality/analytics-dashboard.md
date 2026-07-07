@@ -1,11 +1,11 @@
 ---
 sidebar_position: 2
-sidebar_label: Analytics Dashboard
+sidebar_label: Nexus Dashboard
 ---
 
-# Analytics Dashboard
+# Nexus Dashboard
 
-The Analytics Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow the dashboard is on the **My Favorites** page; in the **Organization** workflow it is on the **Dashboard** page. Both pages show the same analytics view, scoped to your personal or organization workspace.
+The Nexus Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow, the dashboard is on the **My Favorites** page; in the **Organization** workflow it is on the **Dashboard** page. Both pages show the same Nexus view, scoped to your personal or organization workspace.
 
 ---
 
@@ -96,7 +96,7 @@ For detailed instructions, see [Favorite Locations](../managing-locations/favori
 
 ## Organization Dashboard
 
-In the Organization workflow, the Dashboard shows the same analytics view but scoped to the organization's sites:
+In the Organization workflow, the Dashboard shows the same Nexus view but scoped to the organization's sites:
 
 - Summary cards for the organization's selected monitoring sites
 - Trend and distribution charts for organization locations

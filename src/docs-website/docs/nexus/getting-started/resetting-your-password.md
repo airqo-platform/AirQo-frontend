@@ -11,7 +11,7 @@ If you forget your password, you can reset it by email.
 
 ## Request a Reset Link
 
-1. Go to the [AirQo Analytics login page](https://analytics.airqo.net/user/login).
+1. Go to the [Nexus login page](https://analytics.airqo.net/user/login).
 2. Select **Forgot Password?**
 3. Enter the email address associated with your account.
 4. Select **Submit**.

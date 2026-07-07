@@ -11,7 +11,7 @@ The Interactive Map lets you explore air quality readings from monitoring sites 
 
 ## Accessing the Map
 
-1. Log in to [AirQo Analytics](https://analytics.airqo.net).
+1. Log in to [Nexus](https://analytics.airqo.net).
 2. Select **Map** in the sidebar.
 3. Direct links:
    - **Individual workflow:** `https://analytics.airqo.net/user/map`

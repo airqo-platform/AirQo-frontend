@@ -5,13 +5,13 @@ sidebar_label: Creating an Account
 
 # Creating an Account
 
-Create a free AirQo Analytics account to explore air quality data, save favorite locations, and collaborate with your organization.
+Create a free Nexus account to explore air quality data, save favorite locations, and collaborate with your organization.
 
 ---
 
 ## Before You Start
 
-AirQo Analytics supports two workflows:
+Nexus supports two workflows:
 
 | Workflow | Best For | Web Address |
 |----------|----------|-------------|
@@ -24,7 +24,7 @@ New accounts begin in the **Individual** workflow. You can switch to an organiza
 
 ## Sign Up
 
-1. Go to [AirQo Analytics](https://analytics.airqo.net).
+1. Go to [Nexus](https://analytics.airqo.net).
 2. Select **Sign Up** on the welcome page, or open the [registration page](https://analytics.airqo.net/user/creation/individual/register).
 3. Enter the following details:
    - **First name**
@@ -34,7 +34,7 @@ New accounts begin in the **Individual** workflow. You can switch to an organiza
 4. Read and accept the [Terms of Service](https://airqo.net/legal/terms-of-service) and [Privacy Policy](https://airqo.net/legal/privacy-policy).
 5. Select **Continue**.
 6. Check your email for a verification message and select the confirmation link.
-7. Once verified, return to AirQo Analytics and [log in](https://analytics.airqo.net/user/login).
+7. Once verified, return to Nexus and [log in](https://analytics.airqo.net/user/login).
 
 :::tip Can’t find the email?
 Check your spam or junk folder. If it is not there after a few minutes, try signing up again.

@@ -5,13 +5,13 @@ sidebar_label: Logging In
 
 # Logging In
 
-Access your AirQo Analytics account with your email and password or through a linked social account.
+Access your Nexus account with your email and password or through a linked social account.
 
 ---
 
 ## Log In with Email and Password
 
-1. Go to the [AirQo Analytics login page](https://analytics.airqo.net/user/login).
+1. Go to the [Nexus login page](https://analytics.airqo.net/user/login).
 2. Enter your **email address** and select **Continue**.
 3. Enter your **password** and select **Login**.
 4. You are taken to your [Home page](https://analytics.airqo.net/user/home).
@@ -24,7 +24,7 @@ You can use an existing Google, GitHub, LinkedIn, or X (Twitter) account to sign
 
 1. On the [login](https://analytics.airqo.net/user/login) or [registration](https://analytics.airqo.net/user/creation/individual/register) page, select the icon for the provider you want to use.
 2. Complete the provider's sign-in steps.
-3. You are returned to AirQo Analytics.
+3. You are returned to Nexus.
    - If you are new, an account is created automatically.
    - If you already have an AirQo account linked to that provider, you are signed in.
 

@@ -5,7 +5,7 @@ sidebar_label: Deleting Your Account
 
 # Deleting Your Account
 
-You can permanently delete your AirQo Analytics account from your profile settings.
+You can permanently delete your Nexus account from your profile settings.
 
 ---
 
@@ -13,7 +13,7 @@ You can permanently delete your AirQo Analytics account from your profile settin
 
 Deleting your account:
 
-- Removes your account and personal data from AirQo Analytics
+- Removes your account and personal data from Nexus
 - Revokes your access to all organizations
 - Cannot be undone
 

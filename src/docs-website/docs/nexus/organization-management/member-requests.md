@@ -5,7 +5,7 @@ sidebar_label: Member Requests
 
 # Member Requests
 
-Users can request to join your organization through the AirQo Analytics platform or a shared link. Administrators with the appropriate permissions can review, approve, or reject these requests.
+Users can request to join your organization through the Nexus platform or a shared link. Administrators with the appropriate permissions can review, approve, or reject these requests.
 
 ---
 
