@@ -13,7 +13,7 @@ interface ConfirmationDialogProps {
   cancelLabel?: string;
   destructive?: boolean;
   isPending?: boolean;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
 }
 
 export function ConfirmationDialog({
@@ -45,7 +45,7 @@ export function ConfirmationDialog({
           </ReusableButton>
           <ReusableButton
             variant="filled"
-            onClick={onConfirm}
+            onClick={() => !isPending && onConfirm()}
             disabled={isPending}
             className={
               destructive ? "bg-red-600 hover:bg-red-700 border-red-600" : undefined

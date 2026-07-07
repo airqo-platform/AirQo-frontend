@@ -210,10 +210,10 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
             <ConfirmationDialog
               open={showLogoutConfirm}
               onOpenChange={setShowLogoutConfirm}
-              onConfirm={() => { 
-                setShowLogoutConfirm(false); 
+              onConfirm={() => {
+                setShowLogoutConfirm(false);
                 logout();
-               }}
+              }}
               title="Log out"
               description="Are you sure you want to log out? You'll need to sign in again to access your account."
               confirmLabel="Log out"
