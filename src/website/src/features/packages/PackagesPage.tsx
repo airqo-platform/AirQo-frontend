@@ -15,23 +15,17 @@ export default function PackagesPage() {
     packages[0]?.frameworks[0]?.name || 'React',
   );
 
-  // Guard against empty packages array
   if (!packages || packages.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">No packages available.</p>
+        <p className="text-[#71717a]">No packages available.</p>
       </div>
     );
   }
 
-  // For now, use first package (icons). When more packages are added,
-  // this can be made dynamic with a selector/tabs
   const activePackage = packages[0];
-
-  // Calculate dynamic stats across all packages
   const totalPackages = packages.length;
 
-  // Get unique frameworks across all packages
   const allFrameworks = new Set(
     packages.flatMap((pkg) => pkg.frameworks.map((f) => f.name)),
   );
@@ -47,7 +41,7 @@ export default function PackagesPage() {
     const framework = activePackage.frameworks.find(
       (f) => f.name === activeFramework,
     );
-    if (!framework) return 'npm install @airqo/icons-react'; // Fallback
+    if (!framework) return 'npm install @airqo/icons-react';
     return framework.installCommand;
   };
 
@@ -55,21 +49,23 @@ export default function PackagesPage() {
     <>
       <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
 
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-[#1651C6] to-[#0D388E] text-white py-20">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center space-y-6">
-              <div className="inline-block px-4 py-2 bg-white/10 rounded-full text-sm font-medium mb-4">
-                Open Source Developer Tools
-              </div>
-              <h1 className="text-5xl md:text-6xl font-bold">AirQo Packages</h1>
-              <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+        <section className="border-b border-[#e4e4e7] bg-[#FAFBFC]">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <div className="max-w-2xl">
+              <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[#71717a] mb-3 block">
+                Open Source
+              </span>
+              <h1 className="text-[28px] md:text-[32px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.2]">
+                AirQo Packages
+              </h1>
+              <p className="mt-3 text-[16px] text-[#71717a] leading-[1.5] max-w-lg">
                 Open-source packages for building modern applications.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="mt-6 flex gap-3">
                 <Link href={`/packages/${activePackage.id}`} prefetch={false}>
-                  <CustomButton className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 py-3">
+                  <CustomButton className="px-5 py-3 text-[13px]">
                     Explore {activePackage.displayName}
                   </CustomButton>
                 </Link>
@@ -78,20 +74,20 @@ export default function PackagesPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <CustomButton className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-6 sm:px-8 py-3">
+                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5]">
                     View on GitHub
                   </CustomButton>
                 </a>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Stats Overview */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <StatCard
-              icon={<FiBox className="w-6 h-6" />}
+              icon={<FiBox className="w-5 h-5" />}
               label="Total Libraries"
               value={totalPackages}
               description={
@@ -101,13 +97,13 @@ export default function PackagesPage() {
               }
             />
             <StatCard
-              icon={<FiDownload className="w-6 h-6" />}
+              icon={<FiDownload className="w-5 h-5" />}
               label="Total Downloads"
               value={activePackage.totalDownloads}
               description="For this package"
             />
             <StatCard
-              icon={<FiCheckCircle className="w-6 h-6" />}
+              icon={<FiCheckCircle className="w-5 h-5" />}
               label="Framework Support"
               value={`${allFrameworks.size}+`}
               description={Array.from(allFrameworks).join(', ')}
@@ -116,41 +112,40 @@ export default function PackagesPage() {
         </div>
 
         {/* Main Package Showcase */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          <div className="bg-white border border-[#e4e4e7] rounded-lg overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-0">
               {/* Left: Info */}
-              <div className="p-6 sm:p-8 lg:p-12">
-                <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-4">
-                  Featured Package
-                </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <div className="p-6 lg:p-8">
+                <span className="inline-block px-2 py-0.5 bg-[#eff6ff] text-[#1e40af] text-[11px] font-medium rounded mb-3">
+                  Featured
+                </span>
+                <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-[#18181b] mb-2">
                   {activePackage.displayName}
                 </h2>
-                <p className="text-lg text-gray-600 mb-6">
+                <p className="text-[14px] text-[#71717a] mb-5">
                   {activePackage.description}
                 </p>
-
-                {/* Features */}
-                <div className="space-y-3 mb-8">
+                <div className="space-y-2 mb-6">
                   {activePackage.features.slice(0, 4).map((feature, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <FiCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">{feature}</span>
+                    <div key={index} className="flex items-start gap-2.5">
+                      <FiCheckCircle className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span className="text-[13px] text-[#52525b]">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
-
                 <Link href={`/packages/${activePackage.id}`} prefetch={false}>
-                  <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
-                    Explore More →
+                  <CustomButton className="px-5 py-3 text-[13px]">
+                    Explore package
                   </CustomButton>
                 </Link>
               </div>
 
               {/* Right: Quick Start */}
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 sm:p-8 lg:p-12 text-white">
-                <h3 className="text-xl font-semibold mb-6">Quick Start</h3>
+              <div className="bg-[#18181b] p-6 lg:p-8 text-white border-l border-[#27272a]">
+                <h3 className="text-[15px] font-semibold mb-4">Quick Start</h3>
 
                 {/* Framework Tabs */}
                 <div className="mb-6">
@@ -164,16 +159,18 @@ export default function PackagesPage() {
                 {/* Installation */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">
+                    <label className="block text-[12px] text-[#a1a1aa] mb-2">
                       Installation
                     </label>
                     <div className="relative">
-                      <pre className="bg-black/30 rounded-lg p-4 overflow-x-auto">
-                        <code className="text-sm">{getInstallCommand()}</code>
+                      <pre className="bg-black/30 rounded-md p-4 overflow-x-auto">
+                        <code className="text-[13px]">
+                          {getInstallCommand()}
+                        </code>
                       </pre>
                       <button
                         onClick={() => copyToClipboard(getInstallCommand())}
-                        className="absolute top-2 right-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                        className="absolute top-2 right-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium rounded transition-colors"
                       >
                         Copy
                       </button>
@@ -182,11 +179,11 @@ export default function PackagesPage() {
 
                   {/* Usage Example */}
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">
+                    <label className="block text-[12px] text-[#a1a1aa] mb-2">
                       Usage
                     </label>
-                    <div className="bg-black/30 rounded-lg p-4 overflow-x-auto">
-                      <code className="text-sm">
+                    <div className="bg-black/30 rounded-md p-4 overflow-x-auto">
+                      <code className="text-[13px]">
                         {activeFramework === 'React' && (
                           <>
                             {`import { AqHome01 } from '@airqo/icons-react';`}
@@ -217,11 +214,11 @@ export default function PackagesPage() {
                 </div>
 
                 {/* Links */}
-                <div className="flex gap-3 mt-6">
+                <div className="flex gap-2 mt-6">
                   <Link
                     href="/packages/icons/docs"
                     prefetch={false}
-                    className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
+                    className="flex-1 text-center px-3 py-2 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-[12px] font-medium"
                   >
                     Docs
                   </Link>
@@ -229,7 +226,7 @@ export default function PackagesPage() {
                     href={activePackage.npmPackage}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
+                    className="flex-1 text-center px-3 py-2 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-[12px] font-medium"
                   >
                     npm
                   </a>
@@ -237,7 +234,7 @@ export default function PackagesPage() {
                     href={activePackage.repository}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
+                    className="flex-1 text-center px-3 py-2 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-[12px] font-medium"
                   >
                     GitHub
                   </a>
@@ -248,12 +245,12 @@ export default function PackagesPage() {
         </div>
 
         {/* More Coming Soon */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-12 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="bg-[#fafafa] border border-[#e4e4e7] rounded-lg p-8 text-center">
+            <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-[#18181b] mb-2">
               More Packages Coming Soon
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            <p className="text-[14px] text-[#71717a] max-w-lg mx-auto mb-6">
               We&apos;re working on additional developer tools and libraries.
               Follow us on GitHub to stay updated with new releases.
             </p>
@@ -262,7 +259,7 @@ export default function PackagesPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+              <CustomButton className="px-5 py-3 text-[13px]">
                 Follow on GitHub
               </CustomButton>
             </a>
