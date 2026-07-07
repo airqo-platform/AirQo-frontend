@@ -438,7 +438,7 @@ const chartConfig = {
 
 ## 📄 License
 
-This chart component system is part of the AirQo Analytics and follows the project's licensing terms.
+This chart component system is part of the AirQo Nexus and follows the project's licensing terms.
 
 ---
 

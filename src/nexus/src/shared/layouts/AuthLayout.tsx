@@ -29,7 +29,7 @@ interface AuthLayoutProps {
 // ============================================================================
 
 const DEFAULT_TESTIMONIAL = {
-  text: "Before joining the AirQo Analytics I spent ages trying to send emails to AirQo support to get access to air quality data. What you've built here is so much better for air pollution monitoring than anything else on the market!",
+  text: "Before joining the AirQo Nexus I spent ages trying to send emails to AirQo support to get access to air quality data. What you've built here is so much better for air pollution monitoring than anything else on the market!",
   author: 'Jennifer',
   role: 'Environment officer',
   organization: 'NEMA',
@@ -79,7 +79,7 @@ const TestimonialSection = ({
           <div className="w-full">
             <Image
               src="/images/Account/analyticsImage.webp"
-              alt="Analytics dashboard preview"
+              alt="Nexus dashboard preview"
               width={920}
               height={480}
               className="object-contain w-full h-auto max-w-full rounded-lg"

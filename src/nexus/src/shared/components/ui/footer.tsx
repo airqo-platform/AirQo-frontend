@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           © {currentYear} AirQo. All rights reserved.
         </p>
         <p className="text-xs m-0 text-muted-foreground">
-          Air Quality Analytics Platform
+          Air Quality Nexus Platform
         </p>
       </div>
     </footer>

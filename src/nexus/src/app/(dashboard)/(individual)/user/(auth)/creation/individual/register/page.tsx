@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
       toast.success(
         'Registration successful!',
-        response.message || 'Welcome to AirQo Analytics'
+        response.message || 'Welcome to AirQo Nexus'
       );
 
       sessionStorage.setItem('registeredUserEmail', data.email);

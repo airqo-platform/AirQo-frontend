@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website: ${{ steps.check.outputs.website }}
-      platform: ${{ steps.check.outputs.platform }}
+      nexus: ${{ steps.check.outputs.nexus }}
       beacon: ${{ steps.check.outputs.beacon }}
       calibrate: ${{ steps.check.outputs.calibrate }}
       docs: ${{ steps.check.outputs.docs }}
@@ -34,7 +34,7 @@ jobs:
           cat files.txt
 
           echo "website=false"   >> $GITHUB_OUTPUT
-          echo "platform=false"  >> $GITHUB_OUTPUT
+          echo "nexus=false"  >> $GITHUB_OUTPUT
           echo "beacon=false"    >> $GITHUB_OUTPUT
           echo "calibrate=false" >> $GITHUB_OUTPUT
           echo "docs=false"      >> $GITHUB_OUTPUT
@@ -44,8 +44,8 @@ jobs:
             if [[ $file == src/website/* ]]; then
               echo "website=true" >> $GITHUB_OUTPUT
             fi
-            if [[ $file == src/platform/* ]]; then
-              echo "platform=true" >> $GITHUB_OUTPUT
+            if [[ $file == src/nexus/* ]]; then
+              echo "nexus=true" >> $GITHUB_OUTPUT
             fi
             if [[ $file == src/beacon/* ]]; then
               echo "beacon=true" >> $GITHUB_OUTPUT
@@ -76,9 +76,9 @@ jobs:
       - name: Lint
         run: cd src/website && npm run lint --if-present
 
-  check-platform:
+  check-nexus:
     needs: detect-changes
-    if: needs.detect-changes.outputs.platform == 'true'
+    if: needs.detect-changes.outputs.nexus == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -88,11 +88,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
-          cache-dependency-path: src/platform/yarn.lock
+          cache-dependency-path: src/nexus/yarn.lock
       - name: Install dependencies
-        run: cd src/platform && yarn install --frozen-lockfile
+        run: cd src/nexus && yarn install --frozen-lockfile
       - name: Lint
-        run: cd src/platform && yarn lint
+        run: cd src/nexus && yarn lint
 
   check-beacon:
     needs: detect-changes

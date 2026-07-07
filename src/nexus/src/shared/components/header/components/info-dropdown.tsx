@@ -42,7 +42,7 @@ const InfoDropdown: React.FC<InfoDropdownProps> = ({ className = '' }) => {
           onClick={() => window.open(DOCS_URL, '_blank', 'noopener,noreferrer')}
         >
           <AqBookOpen01 className="h-4 w-4 mr-2 flex-shrink-0 text-muted-foreground" />
-          <span>Learn about AirQo Analytics</span>
+          <span>Learn about AirQo Nexus</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

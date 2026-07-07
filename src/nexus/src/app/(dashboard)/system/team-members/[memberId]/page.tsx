@@ -253,7 +253,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
     return (
       <div className="space-y-6">
         <Button variant="ghost" onClick={handleBack} Icon={AqChevronLeft}>
-          Back to Team Members
+          Back to Members
         </Button>
         <Card className="p-6">
           <ErrorBanner
@@ -273,7 +273,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
     <div className="space-y-6">
       <div className="flex justify-start">
         <Button variant="ghost" onClick={handleBack} Icon={AqChevronLeft}>
-          Back to Team Members
+          Back to Members
         </Button>
       </div>
 

@@ -47,7 +47,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     // {
     //   name: 'Analytics',
     //   icon: AqBarChartSquarePlus,
-    //   href: getUrl('https://analytics.airqo.net/'),
+    //   href: getUrl('https://nexus.airqo.net/'),
     //   color: 'bg-green-500',
     // },
     {

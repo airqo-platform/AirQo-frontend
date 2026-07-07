@@ -10,8 +10,8 @@ interface Step {
 export const createSteps = (): Step[] => [
   {
     id: 1,
-    title: 'Introduction AirQo Analytics demo video',
-    description: 'Watch a short video explaining AirQo Analytics features',
+    title: 'Introduction AirQo Nexus demo video',
+    description: 'Watch a short video explaining AirQo Nexus features',
     link: '#',
     time: '3 min',
     isExternal: false,
@@ -26,7 +26,7 @@ export const createSteps = (): Step[] => [
   },
   {
     id: 3,
-    title: 'Complete your AirQo Analytics profile',
+    title: 'Complete your AirQo Nexus profile',
     description:
       'Customize your profile settings for a personalized experience',
     link: '/user/profile',

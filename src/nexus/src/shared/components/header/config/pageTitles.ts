@@ -27,7 +27,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
   '/system/feedback': 'Feedback',
-  '/system/team-members': 'Team Members',
+  '/system/team-members': 'Members',
   '/system/surveys': 'Survey Management',
   '/system/surveys/new': 'Create Survey',
 

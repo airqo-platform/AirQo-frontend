@@ -367,7 +367,7 @@ const globalSidebarConfig: NavGroup[] = [
           },
           {
             id: 'system-team-members',
-            label: 'Team Members',
+            label: 'Members',
             href: '/system/team-members',
             description: 'View staff members and manage role assignments',
           },

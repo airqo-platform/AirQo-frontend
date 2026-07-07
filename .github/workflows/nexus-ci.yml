@@ -1,4 +1,4 @@
-name: platform-ci
+name: nexus-ci
 
 on:
   pull_request:
@@ -6,25 +6,25 @@ on:
       - staging
       - main
     paths:
-      - "src/platform/**"
-      - ".github/workflows/platform-ci.yml"
+      - "src/nexus/**"
+      - ".github/workflows/nexus-ci.yml"
   push:
     branches:
       - staging
     paths:
-      - "src/platform/**"
-      - ".github/workflows/platform-ci.yml"
+      - "src/nexus/**"
+      - ".github/workflows/nexus-ci.yml"
 
 permissions:
   contents: read
 
 jobs:
-  check-platform:
-    name: check-platform
+  check-nexus:
+    name: check-nexus
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/platform
+        working-directory: src/nexus
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -36,7 +36,7 @@ jobs:
         with:
           node-version: "20"
           cache: "yarn"
-          cache-dependency-path: src/platform/yarn.lock
+          cache-dependency-path: src/nexus/yarn.lock
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -55,6 +55,18 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: src/platform/coverage/
-          flags: platform
+          directory: src/nexus/coverage/
+          flags: nexus
           fail_ci_if_error: false
+
+      - name: Comment on PR if failed
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Nexus CI Failed**\n\nThe nexus-ci workflow failed for this PR. Please check the logs for details.\n\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })

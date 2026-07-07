@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Interactive map showing real-time air quality data across monitoring locations in Africa.',
   openGraph: {
-    title: 'Air Quality Map | AirQo Analytics',
+    title: 'Air Quality Map | AirQo Nexus',
     description:
       'Interactive map showing real-time air quality data across monitoring locations in Africa.',
     images: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         url: '/images/illustration.jpg',
         width: 1200,
         height: 630,
-        alt: 'AirQo Analytics - Air Quality Map',
+        alt: 'AirQo Nexus - Air Quality Map',
       },
     ],
   },

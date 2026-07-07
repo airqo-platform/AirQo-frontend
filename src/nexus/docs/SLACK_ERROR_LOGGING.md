@@ -174,7 +174,7 @@ This prevents spam when the same error occurs multiple times in quick succession
 
 Error Type: TypeError
 Time: Nov 26, 2025, 10:30:45 AM
-URL: https://analytics.airqo.net/user/home
+URL: https://nexus.airqo.net/user/home
 Source: ErrorBoundary
 
 Error Message:

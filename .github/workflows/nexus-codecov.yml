@@ -1,4 +1,4 @@
-name: platform-codecov
+name: nexus-codecov
 
 on:
   workflow_call:
@@ -7,12 +7,12 @@ on:
         description: "Path to coverage directory"
         required: false
         type: string
-        default: "src/platform/coverage/"
+        default: "src/nexus/coverage/"
       flag:
         description: "Codecov flag name"
         required: false
         type: string
-        default: "platform"
+        default: "nexus"
     secrets:
       CODECOV_TOKEN:
         required: true
@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   upload-coverage:
-    name: Upload Platform Coverage
+    name: Upload Nexus Coverage
     runs-on: ubuntu-latest
     steps:
       - name: Upload coverage to Codecov
