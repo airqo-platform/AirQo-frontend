@@ -12,14 +12,11 @@ class MeasurementsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: measurements.length,
-      shrinkWrap: true,
-      padding: EdgeInsets.zero, // Remove any default padding
-      itemBuilder: (context, index) {
-        return AnalyticsCard(measurements[index]);
-      }
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => AnalyticsCard(measurements[index]),
+        childCount: measurements.length,
+      ),
     );
   }
 }

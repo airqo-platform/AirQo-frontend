@@ -99,48 +99,10 @@ class _MapSearchSheetState extends State<MapSearchSheet> {
             controller: widget.scrollController,
             slivers: [
               SliverToBoxAdapter(child: _buildSearchHeader()),
-              SliverToBoxAdapter(
-                child: BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
-                  builder: (context, placesState) {
-                    final trimmed = widget.searchController.text.trim();
-                    if (trimmed.isEmpty) {
-                      return _BrowseList(
-                        isDark: widget.isDark,
-                        selectedCountry: _selectedCountry,
-                        countries: _activeCountries,
-                        measurements: _browseMeasurements,
-                        hasUserPosition: widget.hasUserPosition,
-                        onCountrySelected: (country) {
-                          setState(() => _selectedCountry = country);
-                        },
-                        onMeasurementSelected: widget.onMeasurementSelected,
-                      );
-                    }
-
-                    if (placesState is SearchLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(children: [
-                          GooglePlacesLoader(),
-                          SizedBox(height: 12),
-                          GooglePlacesLoader(),
-                          SizedBox(height: 12),
-                          GooglePlacesLoader(),
-                        ]),
-                      );
-                    }
-
-                    if (placesState is SearchLoaded) {
-                      return _SearchResults(
-                        state: placesState,
-                        isDark: widget.isDark,
-                        localSearchResults: widget.localSearchResults,
-                        query: widget.searchController.text.trim(),
-                        onMeasurementSelected: widget.onMeasurementSelected,
-                        onPlaceSelected: widget.onPlaceSelected,
-                      );
-                    }
-
+              BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
+                builder: (context, placesState) {
+                  final trimmed = widget.searchController.text.trim();
+                  if (trimmed.isEmpty) {
                     return _BrowseList(
                       isDark: widget.isDark,
                       selectedCountry: _selectedCountry,
@@ -152,8 +114,48 @@ class _MapSearchSheetState extends State<MapSearchSheet> {
                       },
                       onMeasurementSelected: widget.onMeasurementSelected,
                     );
-                  },
-                ),
+                  }
+
+                  if (placesState is SearchLoading) {
+                    return const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(children: [
+                          GooglePlacesLoader(),
+                          SizedBox(height: 12),
+                          GooglePlacesLoader(),
+                          SizedBox(height: 12),
+                          GooglePlacesLoader(),
+                        ]),
+                      ),
+                    );
+                  }
+
+                  if (placesState is SearchLoaded) {
+                    return SliverToBoxAdapter(
+                      child: _SearchResults(
+                        state: placesState,
+                        isDark: widget.isDark,
+                        localSearchResults: widget.localSearchResults,
+                        query: widget.searchController.text.trim(),
+                        onMeasurementSelected: widget.onMeasurementSelected,
+                        onPlaceSelected: widget.onPlaceSelected,
+                      ),
+                    );
+                  }
+
+                  return _BrowseList(
+                    isDark: widget.isDark,
+                    selectedCountry: _selectedCountry,
+                    countries: _activeCountries,
+                    measurements: _browseMeasurements,
+                    hasUserPosition: widget.hasUserPosition,
+                    onCountrySelected: (country) {
+                      setState(() => _selectedCountry = country);
+                    },
+                    onMeasurementSelected: widget.onMeasurementSelected,
+                  );
+                },
               ),
             ],
           ),
@@ -215,44 +217,55 @@ class _BrowseList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (measurements.isEmpty && countries.isEmpty) {
-      return const SizedBox.shrink();
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
 
     final labelColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 6),
-          _CountryChips(
-            isDark: isDark,
-            countries: countries,
-            selectedCountry: selectedCountry,
-            onSelected: onCountrySelected,
+
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+          sliver: SliverToBoxAdapter(
+            child: _CountryChips(
+              isDark: isDark,
+              countries: countries,
+              selectedCountry: selectedCountry,
+              onSelected: onCountrySelected,
+            ),
           ),
-          const SizedBox(height: 8),
-          if (measurements.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        if (measurements.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Center(
                 child: TranslatedText(
                   'No locations available',
                   style: TextStyle(color: labelColor, fontSize: 13),
                 ),
               ),
-            )
-          else
-            ..._measurementRows(
-              context: context,
-              measurements: measurements,
-              isDark: isDark,
-              onSelected: onMeasurementSelected,
             ),
-          const SizedBox(height: 20),
-        ],
-      ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _measurementRow(
+                  context: context,
+                  measurement: measurements[index],
+                  isDark: isDark,
+                  onSelected: onMeasurementSelected,
+                  showDivider: index < measurements.length - 1,
+                ),
+                childCount: measurements.length,
+              ),
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+      ],
     );
   }
 }
@@ -475,55 +488,69 @@ List<Widget> _measurementRows({
 }) {
   return measurements.asMap().entries.map((entry) {
     final i = entry.key;
-    final measurement = entry.value;
-    final pm25 = measurement.pm25?.value;
-    final aqLevel = pm25 == null ? null : mapAqLevelFromPm25(pm25);
     final showDivider = i < measurements.length - 1 || addTrailingDivider;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        InkWell(
-          onTap: () => onSelected(measurement),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  aqLevel?.asset ??
-                      'assets/images/shared/airquality_indicators/unavailable.svg',
-                  width: 20,
-                  height: 20,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    measurement.siteDetails?.searchName ??
-                        measurement.siteDetails?.name ??
-                        '—',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppTextColors.headline(context),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _AqCategoryChip(
-                  label: pm25 == null
-                      ? 'No data'
-                      : (measurement.aqiCategory ?? ''),
-                  color: aqLevel?.color ?? Colors.grey,
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (showDivider) _rowDivider(isDark),
-      ],
+    return _measurementRow(
+      context: context,
+      measurement: entry.value,
+      isDark: isDark,
+      onSelected: onSelected,
+      showDivider: showDivider,
     );
   }).toList();
+}
+
+Widget _measurementRow({
+  required BuildContext context,
+  required Measurement measurement,
+  required bool isDark,
+  required ValueChanged<Measurement> onSelected,
+  required bool showDivider,
+}) {
+  final pm25 = measurement.pm25?.value;
+  final aqLevel = pm25 == null ? null : mapAqLevelFromPm25(pm25);
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      InkWell(
+        onTap: () => onSelected(measurement),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                aqLevel?.asset ??
+                    'assets/images/shared/airquality_indicators/unavailable.svg',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  measurement.siteDetails?.searchName ??
+                      measurement.siteDetails?.name ??
+                      '—',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppTextColors.headline(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _AqCategoryChip(
+                label:
+                    pm25 == null ? 'No data' : (measurement.aqiCategory ?? ''),
+                color: aqLevel?.color ?? Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ),
+      if (showDivider) _rowDivider(isDark),
+    ],
+  );
 }
 
 TextStyle _sectionLabelStyle(bool isDark) {

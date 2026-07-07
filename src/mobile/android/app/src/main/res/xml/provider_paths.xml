@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- pasteboard's writeImage writes to context.cacheDir, which needs a
+         cache-path entry — the external-path alone (from pasteboard's own
+         README) doesn't cover it, causing FileProvider to throw "failed to
+         find configured root" for that file. -->
+    <cache-path
+        name="cache"
+        path="." />
+    <external-path
+        name="external_files"
+        path="." />
+</paths>

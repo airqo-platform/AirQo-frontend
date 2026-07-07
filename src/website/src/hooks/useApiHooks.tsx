@@ -42,4 +42,4 @@ export {
   useTeamBiography,
   useTeamMembers,
   useUpcomingEvents,
-} from '@/services/hooks/endpointsNew';
+} from '@/hooks/endpointsNew';
