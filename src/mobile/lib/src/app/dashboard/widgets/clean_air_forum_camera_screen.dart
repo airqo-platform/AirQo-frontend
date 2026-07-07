@@ -49,7 +49,14 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
   }
 
   Future<void> _setUp() async {
-    final status = await Permission.camera.request();
+    PermissionStatus status;
+    try {
+      status = await Permission.camera.request();
+    } catch (_) {
+      setState(() => _errorMessage = 'Could not request camera permission.');
+      return;
+    }
+
     if (!status.isGranted) {
       setState(() => _errorMessage =
           'Camera permission was denied. Enable it in system settings to '
@@ -87,7 +94,10 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
     try {
       await _controller!.initialize();
     } catch (_) {
-      setState(() => _errorMessage = 'Could not start the camera.');
+      final failed = _controller;
+      _controller = null;
+      await failed?.dispose();
+      if (mounted) setState(() => _errorMessage = 'Could not start the camera.');
       return;
     } finally {
       await previous?.dispose();

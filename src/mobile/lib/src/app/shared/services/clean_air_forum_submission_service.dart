@@ -17,6 +17,14 @@ import 'package:loggy/loggy.dart';
 /// backend has equivalent endpoints. Swapping to the real backend later
 /// should only require changing [_baseUrl] (and the path, if different) —
 /// the request contract is designed to stay stable across that swap.
+///
+/// The `x-clean-air-forum-secret` header sent below is a **weak, interim
+/// deterrent only** — it's a static value bundled into the app binary, so
+/// it can be extracted and replayed by anyone who decompiles the app. It's
+/// good enough to block opportunistic abuse of a short-lived mock API, but
+/// the real backend swap should replace it with a proper request-specific
+/// mechanism (e.g. a short-lived token the backend mints per request/
+/// session) rather than carrying this static secret forward.
 class CleanAirForumSubmissionService with UiLoggy {
   CleanAirForumSubmissionService._();
 

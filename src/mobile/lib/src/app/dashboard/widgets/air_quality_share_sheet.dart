@@ -166,6 +166,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         preferredCameraDevice: CameraDevice.front,
       );
       if (picked == null) return;
+      if (!mounted) return;
 
       setState(() => _selfieFile = File(picked.path));
     } catch (_) {
@@ -249,7 +250,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
           ),
         ),
       );
-      if (file != null) {
+      if (file != null && mounted) {
         setState(() => _selfieFile = file);
       }
     } catch (_) {
@@ -318,6 +319,17 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       }
 
       await Pasteboard.writeImage(imageBytes);
+
+      // writeImage resolves successfully on iOS even when the image failed
+      // to decode there (UIPasteboard.general.image just gets set to nil) —
+      // read the clipboard back to confirm something was actually written
+      // before declaring success.
+      final clipboardImage = await Pasteboard.image;
+      if (clipboardImage == null || clipboardImage.isEmpty) {
+        _showMessage('Could not copy the sticker. Please try again.');
+        return;
+      }
+
       _showMessage('Copied! Paste it into your Instagram Story.');
       if (mounted) {
         setState(() => _stickerCopied = true);
