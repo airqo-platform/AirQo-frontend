@@ -29,6 +29,27 @@ Replaced system-browser OAuth flow with a dedicated Electron child window so the
 
 </details>
 
+### Release Pipeline Fixes
+
+Follow-up to 0.1.10's release automation: the auto-tag job's pushed tag wasn't actually triggering a release build, and the Linux job itself was broken.
+
+<details>
+<summary><strong>CI/CD Fixes (3)</strong></summary>
+
+- **Explicit Release Dispatch**: `auto-tag` now explicitly dispatches `vertex-desktop-release.yml` via `workflow_dispatch` after pushing the tag, since a tag pushed with the default `GITHUB_TOKEN` does not trigger other workflows' `on: push: tags:` (GitHub's anti-recursion guard). The dispatch is pinned to the tag itself (not the branch) so the workflow definition GitHub loads matches the same commit the build checks out.
+- **Context Values via env**: `github.repository`/`github.ref_name` are now passed through `env:` instead of interpolated directly into the shell script, avoiding raw template-expression expansion in `run:`.
+- **Linux Icon Size**: Upsized `assets/icon.png` from 96x96 to 512x512 (re-extracted from `icon.icns`); electron-builder's AppImage packaging requires at least 256x256, so the Linux build was failing on every run.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `.github/workflows/vertex-desktop-ci.yml`
+- `assets/icon.png`
+
+</details>
+
 ---
 
 ## Version 0.1.10
