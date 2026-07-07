@@ -12,379 +12,298 @@ import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
+const footerLinks = {
+  products: [
+    { label: 'Binos Monitor', href: '/products/monitor' },
+    { label: 'Analytics Dashboard', href: '/products/analytics' },
+    { label: 'Air Quality API', href: '/products/api' },
+    { label: 'Mobile App', href: '/products/mobile-app' },
+    { label: 'AirQalibrate', href: '/products/calibrate' },
+    { label: 'Vertex', href: '/products/vertex' },
+    { label: 'Beacon', href: '/products/beacon' },
+    { label: 'AirQo AI Platform', href: '/products/ai-platform' },
+  ],
+  solutions: [
+    { label: 'For African Cities', href: '/solutions/african-cities' },
+    { label: 'For Communities', href: '/solutions/communities' },
+    { label: 'For Research', href: '/solutions/research' },
+    {
+      label: 'Network Coverage',
+      href: '/solutions/network-coverage',
+      external: true,
+    },
+  ],
+  about: [
+    { label: 'About AirQo', href: '/about-us' },
+    { label: 'Resources', href: '/resources' },
+    { label: 'Events', href: '/events' },
+    { label: 'FAQs', href: '/faqs' },
+    { label: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
+    { label: 'Press', href: '/press' },
+    { label: 'Careers', href: '/careers' },
+    { label: 'Contact Us', href: '/contact' },
+    { label: 'Blogs', href: '/blogs' },
+  ],
+  developers: [
+    { label: 'Packages', href: '/packages' },
+    { label: 'AirQo DevCon 2026', href: '/developers/airqo-devcon' },
+    {
+      label: 'Documentation',
+      href: 'https://platform.airqo.net/docs/api/intro/',
+      external: true,
+    },
+    {
+      label: 'GitHub',
+      href: 'https://github.com/airqo-platform',
+      external: true,
+    },
+  ],
+};
+
+const socialLinks = [
+  {
+    icon: FaFacebookF,
+    href: 'https://www.facebook.com/AirQo',
+    label: 'Facebook',
+  },
+  {
+    icon: FaYoutube,
+    href: 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ',
+    label: 'YouTube',
+  },
+  {
+    icon: FaLinkedinIn,
+    href: 'https://www.linkedin.com/company/airqo/mycompany/',
+    label: 'LinkedIn',
+  },
+  {
+    icon: FaXTwitter,
+    href: 'https://x.com/AirQoProject',
+    label: 'X',
+  },
+];
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer
       id="WebsiteFooter"
-      className={`relative py-8 px-4 ${mainConfig.containerClass} text-[14px]`}
+      className={`relative pt-16 pb-8 px-4 ${mainConfig.containerClass}`}
     >
       <ScrollToTopButton />
-      {/* Top Section with Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Logo and Social Media */}
-        <div className="flex flex-col space-y-4">
-          <div>
-            <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
-              alt="AirQo"
-              width={70}
-              height={60}
-            />
-            <h1 className="text-gray-700 font-semibold mt-4">
-              Clean air for all <br /> African Cities.
-            </h1>
-          </div>
-          <div className="flex space-x-4 mt-6">
-            <Link
-              href="https://www.facebook.com/AirQo"
-              aria-label="Facebook"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-            >
-              <FaFacebookF size={14} />
-            </Link>
-            <Link
-              href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
-              aria-label="YouTube"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-            >
-              <FaYoutube size={14} />
-            </Link>
-            <Link
-              href="https://www.linkedin.com/company/airqo/mycompany/"
-              aria-label="LinkedIn"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-            >
-              <FaLinkedinIn size={14} />
-            </Link>
-            <Link
-              href="https://x.com/AirQoProject"
-              target="_blank"
-              aria-label="Twitter"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-            >
-              <FaXTwitter size={14} />
-            </Link>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+        {/* Brand Column */}
+        <div className="lg:col-span-4">
+          <Image
+            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+            alt="AirQo"
+            width={64}
+            height={54}
+            className="mb-5"
+          />
+          <p className="text-[15px] text-gray-600 leading-relaxed max-w-[260px]">
+            Clean air for all African Cities.
+          </p>
+          <div className="flex items-center gap-3 mt-6">
+            {socialLinks.map((social) => (
+              <Link
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-blue-600 hover:text-white transition-colors duration-200"
+              >
+                <social.icon size={14} />
+              </Link>
+            ))}
           </div>
         </div>
 
-        {/* Links Section */}
-        <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Products Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Products</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/products/monitor"
-                  className="text-gray-600 hover:underline"
-                >
-                  Binos Monitor
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/analytics"
-                  className="text-gray-600 hover:underline"
-                >
-                  Analytics Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/api"
-                  className="text-gray-600 hover:underline"
-                >
-                  Air Quality API
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/mobile-app"
-                  className="text-gray-600 hover:underline"
-                >
-                  Mobile App
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/calibrate"
-                  className="text-gray-600 hover:underline"
-                >
-                  AirQalibrate
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/vertex"
-                  className="text-gray-600 hover:underline"
-                >
-                  Vertex
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/beacon"
-                  className="text-gray-600 hover:underline"
-                >
-                  Beacon
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/products/ai-platform"
-                  className="text-gray-600 hover:underline"
-                >
-                  AirQo AI Platform
-                </Link>
-              </li>
+        {/* Links Columns */}
+        <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
+          <div>
+            <h3 className="text-[13px] font-semibold text-gray-900 mb-4">
+              Products
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.products.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-[14px] text-gray-500 hover:text-gray-900 transition-colors duration-150"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Solutions Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Solutions</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/solutions/african-cities"
-                  prefetch={false}
-                  className="text-gray-600 hover:underline"
-                >
-                  For African Cities
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/communities"
-                  className="text-gray-600 hover:underline"
-                >
-                  For Communities
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/research"
-                  className="text-gray-600 hover:underline"
-                >
-                  For Research
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/solutions/network-coverage"
-                  prefetch={false}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  Network Coverage
-                </Link>
-              </li>
+          <div>
+            <h3 className="text-[13px] font-semibold text-gray-900 mb-4">
+              Solutions
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.solutions.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    className="text-[14px] text-gray-500 hover:text-gray-900 transition-colors duration-150"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* About Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">About</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/about-us"
-                  className="text-gray-600 hover:underline"
-                >
-                  About AirQo
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/resources"
-                  className="text-gray-600 hover:underline"
-                >
-                  Resources
-                </Link>
-              </li>
-              <li>
-                <Link href="/events" className="text-gray-600 hover:underline">
-                  Events
-                </Link>
-              </li>
-              <li>
-                <Link href="/faqs" className="text-gray-600 hover:underline">
-                  FAQs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/africa-clean-air-forum"
-                  className="text-gray-600 hover:underline"
-                >
-                  Africa Clean Air Forum
-                </Link>
-              </li>
-              <li>
-                <Link href="/press" className="text-gray-600 hover:underline">
-                  Press
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="text-gray-600 hover:underline">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-600 hover:underline">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/blogs" className="text-gray-600 hover:underline">
-                  Blogs
-                </Link>
-              </li>
+          <div>
+            <h3 className="text-[13px] font-semibold text-gray-900 mb-4">
+              About
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.about.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-[14px] text-gray-500 hover:text-gray-900 transition-colors duration-150"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Developers Section */}
-          <div className="flex flex-col">
-            <h3 className="font-semibold text-gray-800 mb-4">Developers</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/packages"
-                  prefetch={false}
-                  className="text-gray-600 hover:underline"
-                >
-                  Packages
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/developers/airqo-devcon"
-                  className="text-gray-600 hover:underline"
-                >
-                  AirQo DevCon 2026
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://platform.airqo.net/docs/api/intro/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://github.com/airqo-platform"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:underline"
-                >
-                  GitHub
-                </Link>
-              </li>
+          <div>
+            <h3 className="text-[13px] font-semibold text-gray-900 mb-4">
+              Developers
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.developers.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
+                    className="text-[14px] text-gray-500 hover:text-gray-900 transition-colors duration-150"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </div>
 
-      <section aria-labelledby="footer-data-access" className="mt-10">
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 px-5 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-            <div className="space-y-3 lg:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                AirQo data access
-              </p>
-              <h3
-                id="footer-data-access"
-                className="text-lg font-semibold text-gray-800"
-              >
-                Guidance for responsible use
-              </h3>
-              <p className="leading-relaxed text-gray-600">
-                Access to AirQo data is guided by our commitment to openness,
-                responsible use, and impact. These documents provide guidance on
-                how to access and use AirQo air quality data.
-              </p>
-            </div>
+      {/* Data Access Section */}
+      <div className="mt-14 rounded-xl border border-gray-200 bg-gray-50/80 px-6 py-7 sm:px-8">
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-center">
+          <div className="lg:col-span-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
+              AirQo Data Access
+            </p>
+            <h3 className="text-[17px] font-semibold text-gray-900 mb-2">
+              Guidance for responsible use
+            </h3>
+            <p className="text-[14px] text-gray-500 leading-relaxed max-w-2xl">
+              Access to AirQo data is guided by our commitment to openness,
+              responsible use, and impact. These documents provide guidance on
+              how to access and use AirQo air quality data.
+            </p>
+          </div>
 
-            <div className="flex flex-col gap-3">
-              <Link
-                href="https://platform.airqo.net/docs/data-access/researchers-guide/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 transition hover:border-blue-200 hover:text-blue-700"
-              >
-                <span className="font-medium">Researchers Guide</span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 group-hover:text-blue-600">
-                  View Guide
-                </span>
-              </Link>
-              <Link
-                href="https://platform.airqo.net/docs/data-access/fair-usage-policy/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 transition hover:border-blue-200 hover:text-blue-700"
-              >
-                <span className="font-medium">Fair Usage Policy</span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 group-hover:text-blue-600">
-                  View Policy
-                </span>
-              </Link>
-            </div>
+          <div className="flex flex-col gap-2.5">
+            <Link
+              href="https://platform.airqo.net/docs/data-access/researchers-guide/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors"
+            >
+              <span className="text-[14px] font-medium text-gray-700">
+                Researchers Guide
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 group-hover:text-blue-600 transition-colors">
+                View Guide
+              </span>
+            </Link>
+            <Link
+              href="https://platform.airqo.net/docs/data-access/fair-usage-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors"
+            >
+              <span className="text-[14px] font-medium text-gray-700">
+                Fair Usage Policy
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 group-hover:text-blue-600 transition-colors">
+                View Policy
+              </span>
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
-      <div className="border-t border-gray-200 my-8"></div>
-
-      {/* Bottom Section */}
-      <div className="flex flex-col lg:flex-row lg:justify-between items-center space-y-4 lg:space-y-0">
-        {/* Location Button with Dialog */}
+      {/* Country & Monitors */}
+      <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <CountrySelectorDialog />
-
-        {/* Monitors in Uganda */}
         <MonitorDisplay />
       </div>
 
-      <div className="border-t border-gray-200 my-8"></div>
-
-      {/* Footer Bottom Section */}
-      <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-        {/* Footer Bottom Links */}
-        <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
-          &copy; {currentYear} AirQo
-          <Link href="/legal/terms-of-service" className="hover:underline">
+      {/* Bottom Bar */}
+      <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-gray-400">
+          <span>&copy; {currentYear} AirQo</span>
+          <Link
+            href="/legal/terms-of-service"
+            className="hover:text-gray-700 transition-colors"
+          >
             Terms of service
           </Link>
-          <Link href="/faqs" className="hover:underline">
+          <Link href="/faqs" className="hover:text-gray-700 transition-colors">
             FAQs
           </Link>
-          <Link href="/legal/privacy-policy" className="hover:underline">
+          <Link
+            href="/legal/privacy-policy"
+            className="hover:text-gray-700 transition-colors"
+          >
             Privacy Policy
           </Link>
-          <Link href="/legal/cookies" className="hover:underline">
+          <Link
+            href="/legal/cookies"
+            className="hover:text-gray-700 transition-colors"
+          >
             Cookies Policy
           </Link>
-          <Link href="/legal/airqo-data" className="hover:underline">
+          <Link
+            href="/legal/airqo-data"
+            className="hover:text-gray-700 transition-colors"
+          >
             AirQo Data
           </Link>
-          <Link href="/legal/payment-refund-policy" className="hover:underline">
+          <Link
+            href="/legal/payment-refund-policy"
+            className="hover:text-gray-700 transition-colors"
+          >
             Payment Terms
           </Link>
         </div>
 
-        {/* Makerere University Attribution */}
-        <div className="flex flex-col items-center lg:items-start">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] uppercase tracking-wider text-gray-400">
+            A project by
+          </span>
           <Image
             src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728142537/website/Logos/MakName_xmsi0k.png"
             alt="Makerere University"
-            width={237}
-            height={38}
+            width={160}
+            height={26}
           />
         </div>
       </div>
