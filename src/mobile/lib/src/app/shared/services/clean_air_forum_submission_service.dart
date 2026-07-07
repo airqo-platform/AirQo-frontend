@@ -53,11 +53,19 @@ class CleanAirForumSubmissionService with UiLoggy {
     final locationName = measurement.siteDetails?.searchName ??
         measurement.siteDetails?.name ??
         fallbackLocationName;
+    final submissionSecret = dotenv.env['CLEAN_AIR_FORUM_API_SECRET'];
 
     final response = await http
         .post(
           uri,
-          headers: const {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            // Lets the wall's API tell this app's submissions apart from
+            // anyone who finds the endpoint — must match the website's
+            // CLEAN_AIR_FORUM_SUBMISSION_SECRET.
+            if (submissionSecret != null && submissionSecret.isNotEmpty)
+              'x-clean-air-forum-secret': submissionSecret,
+          },
           body: jsonEncode({
             'eventId': eventId ?? defaultEventId,
             'imageUrl': imageUrl,
