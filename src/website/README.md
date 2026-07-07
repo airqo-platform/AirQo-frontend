@@ -1,316 +1,308 @@
 # Website
 
-Welcome to the Website repository, part of the AirQo Frontend project. This website is built with [Next.js](https://nextjs.org) and was bootstrapped using [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). The live website can be found at [airqo.net](https://airqo.net)
+![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz) ![passing](https://img.shields.io/badge/passing-816%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-0-brightgreen?style=flat-square)
 
-> **Note:** This repository only contains the frontend portion of the project. The backend has been built with Django and is maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository. If you wish to use the database for the website, please contact the project admin to obtain the necessary database URL for the frontend configuration
+**Website** is the AirQo marketing and analytics application for air quality data visualization. Built with Next.js 14, React 18, TypeScript, Tailwind CSS, Redux Toolkit, and TanStack React Query. The live website is at [airqo.net](https://airqo.net).
 
-This guide provides clear, step-by-step instructions to help you set up your local development environment, run the website, and contribute effectively. Additionally, it explains how to handle environment variables and update CI/CD workflows.
+> **Note:** This is the frontend portion of the project. The backend is built with Django and maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository.
 
 ---
 
 ## Table of Contents
 
-- [Website](#website)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [1. Clone the Repository](#1-clone-the-repository)
-    - [2. Navigate to the Website Folder](#2-navigate-to-the-website-folder)
-    - [3. Install Dependencies](#3-install-dependencies)
-    - [4. Run the Development Server](#4-run-the-development-server)
-  - [Environment Variables \& Workflow Updates](#environment-variables--workflow-updates)
-  - [Backend \& Database Integration](#backend--database-integration)
-  - [Contributing](#contributing)
-  - [Learn More](#learn-more)
-  - [Deployment](#deployment)
-  - [Running with Docker](#running-with-docker)
-    - [Server-side Variables](#server-side-variables)
-    - [Client-side Variables](#client-side-variables)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Available Scripts](#available-scripts)
+- [Environment Variables](#environment-variables)
+- [Testing](#testing)
+- [Running with Docker](#running-with-docker)
+- [Contributing](#contributing)
 
 ---
 
 ## Getting Started
 
-Follow these steps to set up your local development environment for the website. These instructions are applicable on Windows, Mac, and Linux.
+### Prerequisites
 
-### 1. Clone the Repository
-
-Clone the AirQo Frontend repository using the following command:
+- **Node.js 20 (LTS)** or newer
+- **npm** (comes with Node.js)
 
 ```bash
+node -v  # verify Node.js
+npm -v   # verify npm
+```
+
+### Installation
+
+```bash
+# Clone the repository
 git clone https://github.com/airqo-platform/AirQo-frontend.git
-```
 
-_Tip for Mac/Linux:_  
-If you encounter any permission issues with Git, ensure that Git is correctly installed on your system. You can install Git via [Homebrew](https://brew.sh) on Mac (`brew install git`) or use your package manager on Linux (e.g., `sudo apt-get install git` on Debian/Ubuntu).
+# Navigate to the website folder
+cd AirQo-frontend/src/website
 
-### 2. Navigate to the Website Folder
-
-After cloning the repository, navigate to the folder that contains the website application:
-
-```bash
-cd AirQo-frontend/src/website2
-```
-
-_Note:_  
-The folder structure is consistent across all operating systems. Use your terminal (Mac/Linux) or Command Prompt/PowerShell (Windows) to run this command.
-
-### 3. Install Dependencies
-
-This project targets **Node.js 20 (LTS) or newer**. Ensure you have Node.js and npm installed on your system by running:
-
-```bash
-node -v
-npm -v
-```
-
-If you need to install or update Node.js, download it from [nodejs.org](https://nodejs.org/) or use a version manager like [nvm](https://github.com/nvm-sh/nvm) (especially useful for Mac/Linux).
-
-To install the required dependencies using **npm**, run:
-
-```bash
+# Install dependencies
 npm install
-```
 
-_For Mac/Linux Users:_  
-If you experience permission issues while installing packages globally, consider using a Node version manager like [nvm](https://github.com/nvm-sh/nvm).
-
-### 4. Run the Development Server
-
-Launch the development server with the following command:
-
-```bash
+# Start the development server
 npm run dev
 ```
 
-Once the server starts, open [http://localhost:3000](http://localhost:3000) in your browser to view the website. The page will automatically reload as you make changes.
-
-_Alternate Tips for Mac/Linux:_
-
-- Use your terminal’s tab completion to quickly navigate directories.
-- If you’re using a firewall or proxy, ensure your local ports are accessible.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Features & Special Routes
+## Project Structure
 
-### Air Quality Billboard Display
-
-The website includes a specialized billboard display system optimized for large screens and public displays:
-
-#### Dynamic Billboard Routes
-
-- **Cohort Display:**
-  - `/billboard/cohort` - Randomly rotates through all cohorts (auto-refresh every 20s)
-  - `/billboard/cohort/{name}` - Displays a specific cohort location
-- **Grid Display:**
-  - `/billboard/grid` - Randomly rotates through all grids (auto-refresh every 20s)
-  - `/billboard/grid/{name}` - Displays a specific grid location
-
-#### Billboard Features
-
-- ✅ Clean, professional interface (no navigation controls)
-- ✅ Large, readable PM2.5 values with color-coded indicators
-- ✅ Air quality icons and 7-day forecasts
-- ✅ QR codes for mobile access
-- ✅ Optimized for 24/7 public display
-
-**Examples:**
-
-```text
-/billboard/cohort/airqo_g5429
-/billboard/grid/kampala_central
+```
+src/
+├── app/                    # Next.js 14 App Router routes
+│   ├── (site)/             # Main public pages (home, about, careers, etc.)
+│   ├── (content)/          # Blog content pages
+│   ├── (products)/         # Product detail pages
+│   ├── (solutions)/        # Solution/case-study pages
+│   ├── (legal)/            # Legal and policy pages
+│   ├── (programs)/         # Africa Clean Air Forum pages
+│   ├── (developers)/       # Developer resources and packages
+│   ├── (utility)/          # Data explorer, billboards
+│   └── api/                # API proxy routes
+├── components/             # Reusable React components
+│   ├── ui/                 # shadcn/ui primitives (button, card, dialog, etc.)
+│   ├── layout/             # Navbar, Footer, MainLayout
+│   ├── sections/           # Feature sections (AirQualityBillboard, etc.)
+│   ├── cards/              # Card components
+│   ├── dialogs/            # Modal dialogs
+│   ├── feedback/           # EmptyState, ErrorState, LoadingState
+│   ├── map/                # Map components (Mapbox GL)
+│   ├── providers/          # AppProviders, QueryProvider, ReduxProvider
+│   └── common/             # Shared components (AirQualityStatusIcon, etc.)
+├── features/               # Page-level feature components
+│   ├── home/               # Homepage sections
+│   ├── about/              # About page
+│   ├── blogs/              # Blog listing and detail
+│   ├── careers/            # Job listings
+│   ├── events/             # Events listing
+│   ├── products/           # Product pages
+│   ├── solutions/          # Solution pages (network-coverage, african-cities)
+│   ├── clean-air-forum/    # Africa Clean Air Forum
+│   ├── contact/            # Contact form
+│   ├── faqs/               # FAQ pages
+│   ├── legal/              # Legal pages (terms, privacy, cookies)
+│   ├── partners/           # Partner pages
+│   ├── press/              # Press page
+│   ├── resources/          # Resource downloads
+│   └── packages/           # Developer packages and icons
+├── hooks/                  # Custom React hooks
+│   ├── endpointsNew.ts     # TanStack Query hooks for API endpoints
+│   ├── reduxHooks.ts       # Typed Redux hooks (useDispatch, useSelector)
+│   ├── useResourceFilter.ts
+│   └── useLockBodyScroll.ts
+├── lib/                    # Utility functions and helpers
+│   ├── utils/              # Utility modules (formatDate, slugify, airQuality, etc.)
+│   ├── security/           # sanitizeHtml, safeExternalLink
+│   ├── analytics/          # Google Analytics helpers
+│   └── metadata/           # SEO metadata generation
+├── queries/                # TanStack Query definitions
+│   ├── query-keys.ts       # Query key factories
+│   └── *.queries.ts        # Domain-specific query hooks
+├── services/               # API service layer
+│   ├── api/                # ApiClient, BaseApiService, error handling
+│   ├── website/            # Website-specific API services (blogs, events, etc.)
+│   └── external/           # External services (analytics, cloudinary, maps)
+├── store/                  # Redux store
+│   └── slices/             # Redux slices (country, modal, forum)
+├── styles/                 # Global CSS (Tailwind theme, utilities)
+├── types/                  # TypeScript type definitions
+├── configs/                # Static configuration data
+└── __mocks__/              # Jest mock files (setup, fileMock, mapbox-gl, recharts)
 ```
 
-📖 **Complete Documentation:**
+---
 
-- [Air Quality Billboard Guide](docs/AIR_QUALITY_BILLBOARD.md) - Complete setup, usage, and technical documentation
+## Available Scripts
+
+| Command                 | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `npm run dev`           | Start development server on localhost:3000 |
+| `npm run build`         | Production build                           |
+| `npm run start`         | Start production server                    |
+| `npm run lint`          | Run ESLint                                 |
+| `npm run lint:fix`      | Run ESLint with auto-fix                   |
+| `npm run format`        | Format code with Prettier                  |
+| `npm test`              | Run all Jest unit tests                    |
+| `npm run test:watch`    | Run tests in watch mode                    |
+| `npm run test:coverage` | Run tests with coverage report             |
+| `npm run e2e`           | Run E2E tests with Selenium (headless)     |
+| `npm run e2e:headed`    | Run E2E tests with browser visible         |
 
 ---
 
-## Environment Variables & Workflow Updates
+## Environment Variables
 
-When adding new environment variables to the project, ensure that the CI/CD workflows remain consistent across staging, production, and preview environments.
+Copy `.env.sample` to `.env` and fill in the values.
 
-For example, if you add new variables, update your workflow YAML files as follows:
+### Server-side Variables
+
+| Variable                   | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `API_URL`                  | AirQo platform API base URL              |
+| `API_TOKEN`                | AirQo API authentication token           |
+| `OPENCAGE_API_KEY`         | OpenCage geocoding API key               |
+| `SLACK_WEBHOOK_URL`        | Slack webhook for error logging          |
+| `SLACK_CHANNEL`            | Slack channel for notifications          |
+| `GOOGLE_SITE_VERIFICATION` | Google Search Console verification token |
+
+### Client-side Variables
+
+| Variable                          | Description                                        |
+| --------------------------------- | -------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`            | Comma-separated site URLs (first = canonical base) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`   | Google Analytics tracking ID                       |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | Mapbox access token for maps                       |
+
+> **Security:** Never commit `.env` files. They are in `.gitignore`.
+
+---
+
+## Testing
+
+### Unit Tests (Jest)
+
+816 tests across 36 test suites covering utilities, Redux, hooks, services, config, and security modules.
 
 ```bash
-echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_OPENCAGE_API_KEY }}" >> .env.yaml
-echo "  API_TOKEN: ${{ secrets.WEBSITE_API_TOKEN }}" >> .env.yaml
-echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_SLACK_WEBHOOK_URL }}" >> .env.yaml
-echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_SLACK_CHANNEL }}" >> .env.yaml
+npm test                          # Run all tests
+npm run test:watch                # Watch mode
+npm run test:coverage             # Run with coverage report
+npm test -- --testPathPattern=slugify  # Run specific test file
 ```
 
-**Important Notes:**
+**Test categories:**
 
-- Verify that the secret names used in your workflows match those defined in your repository.
-- If you add new environment variables, please contact the project admin to have them added to the GitHub secrets.
-- Always update the workflow files whenever you introduce or modify environment variables.
-- You can find the workflow files for the different environments in the `.github/workflows` folder.
+| Category     | Location                      | What it covers                                                     |
+| ------------ | ----------------------------- | ------------------------------------------------------------------ |
+| Utils        | `src/lib/utils/__tests__/`    | formatDate, slugify, airQuality, calendarUtils, storageUtils, etc. |
+| Redux        | `src/store/slices/__tests__/` | countrySlice, modalSlice, forumSlice                               |
+| Hooks        | `src/hooks/__tests__/`        | useResourceFilter, useLockBodyScroll                               |
+| API Services | `src/services/api/__tests__/` | BaseApiService, api-routes                                         |
+| Query Keys   | `src/queries/__tests__/`      | Query key factories, parameter normalization                       |
+| Config       | `src/config/__tests__/`       | routes, navigation, packages, env, site config                     |
+| Security     | `src/lib/security/__tests__/` | sanitizeHtml, safeExternalLink                                     |
+| Lib          | `src/lib/__tests__/`          | siteUrl, environmentAwareUrl, logger                               |
 
----
+**Mocking strategy:**
 
-## Backend & Database Integration
+| Dependency     | Approach                                        |
+| -------------- | ----------------------------------------------- |
+| Next.js router | `jest.mock('next/navigation')`                  |
+| API responses  | Mock `apiClient.request` via `jest.mock()`      |
+| localStorage   | `Object.defineProperty` with mock functions     |
+| DOMPurify      | Works in jsdom; server path tested separately   |
+| Mapbox GL      | Manual mock in `src/__mocks__/mapbox-gl.ts`     |
+| Recharts       | Stub components in `src/__mocks__/recharts.tsx` |
+| CSS/SCSS       | `identity-obj-proxy`                            |
+| Time           | `jest.useFakeTimers()`                          |
 
-The backend for this project is built with Django and is maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository. If you wish to connect the website to a live database:
+### E2E Tests (Selenium + Mocha)
 
-- **Database Access:**  
-  You will need the database URL which is not publicly available.  
-  **Action Required:** Contact the project admin to obtain the database URL for frontend integration.
+End-to-end tests covering all website pages using Selenium WebDriver with Mocha/Chai and Page Object Model pattern.
 
-- **Environment Variables:**  
-  Once you receive the database URL, update your environment variables accordingly in the `.env.yaml` file and any other relevant configuration files.
+```bash
+# Start the dev server first
+npm run dev
 
----
+# In another terminal
+npm run e2e        # headless mode
+npm run e2e:headed # with browser visible
+```
 
-## Contributing
+**E2E structure:**
 
-We welcome contributions from the open source community. To help you get started, please follow these steps:
+```
+e2e/
+├── tests/
+│   ├── navigation/              # Navbar, footer, page transitions
+│   │   ├── navbar.test.ts
+│   │   ├── footer.test.ts
+│   │   └── page-transitions.test.ts
+│   └── pages/                   # Page-specific tests
+│       ├── home-page.test.ts
+│       ├── products-page.test.ts
+│       ├── solutions-page.test.ts
+│       ├── blogs-page.test.ts
+│       ├── legal-page.test.ts
+│       ├── contact-page.test.ts
+│       ├── about-page.test.ts
+│       ├── careers-page.test.ts
+│       └── events-page.test.ts
+├── pages/                       # Page Object Model classes
+│   ├── base.page.ts             # BasePage with common methods
+│   ├── navbar.page.ts
+│   ├── footer.page.ts
+│   ├── home.page.ts
+│   ├── products.page.ts
+│   ├── solutions.page.ts
+│   ├── blogs.page.ts
+│   ├── legal.page.ts
+│   ├── contact.page.ts
+│   ├── about.page.ts
+│   ├── careers.page.ts
+│   └── events.page.ts
+├── setup.ts                     # WebDriver setup/teardown
+├── config.ts                    # Configuration (BASE_URL, BROWSER, HEADLESS)
+├── tsconfig.json                # TypeScript config for E2E
+└── .mocharc.yml                 # Mocha configuration
+```
 
-1. **Fork and Clone:**
-   - Fork the repository on GitHub.
-   - Clone your fork to your local machine:
+**Configuration:** Create `e2e/.env` (copy from `e2e/.env.example`):
 
-     ```bash
-     git clone https://github.com/your-username/AirQo-frontend.git
-     ```
+```bash
+BASE_URL=http://localhost:3000
+BROWSER=chrome
+HEADLESS=true
+```
 
-2. **Create a Branch:**
-   - Create a feature or bug-fix branch:
+### Coverage
 
-     ```bash
-     git checkout -b feature/your-feature-name
-     ```
+Coverage reports are uploaded to Codecov in CI with the `website` flag.
 
-3. **Make Your Changes:**
-   - Follow the coding standards and guidelines established in the project.
-   - Update documentation as needed.
-   - Test your changes locally to ensure everything works as expected.
-
-4. **Commit and Push:**
-   - Commit your changes with a clear commit message:
-
-     ```bash
-     git commit -m "Description of your changes"
-     ```
-
-   - Push your branch to your fork:
-
-     ```bash
-     git push origin feature/your-feature-name
-     ```
-
-5. **Open a Pull Request:**
-   - Navigate to the main repository on GitHub and open a Pull Request against the `main` branch.
-   - Provide a detailed description of your changes and reference any related issues.
-
----
-
-## Learn More
-
-To expand your knowledge about Next.js and modern web development, consider exploring these resources:
-
-- **[Next.js Documentation](https://nextjs.org/docs)** – Learn about Next.js features and APIs.
-- **[Learn Next.js](https://nextjs.org/learn)** – An interactive tutorial for building Next.js applications.
-- **[Next.js GitHub Repository](https://github.com/vercel/next.js)** – Explore and contribute to the core Next.js codebase.
-
----
-
-## Deployment
-
-The simplest way to deploy the website is via the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme). For more detailed deployment instructions, refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
+```bash
+npm run test:coverage
+# Open coverage/index.html in your browser to view the report
+```
 
 ---
 
 ## Running with Docker
 
-This repository includes a `docker-compose.yml` that provides two services:
-
-- `web` - development service which bind-mounts the source and runs `npm run dev` with hot-reload on port 3000 (uses Node 20 image).
-- `web-prod` - production-like service that builds the standalone Next.js app using the provided `Dockerfile` (Node 20) and serves it on port 8080.
-
-Usage (run these from the website folder: `d:/projects/AirQo-frontend/src/website2`):
-
-- Start dev (hot-reload, port 3000):
-
 ```bash
+# Development (hot-reload, port 3000)
 docker compose up web
-# or detached
-docker compose up -d web
-```
 
-- Build and run production-like container (port 8080):
-
-```bash
+# Production-like (port 8080)
 docker compose up --build web-prod
-# or detached
-docker compose up -d --build web-prod
-```
 
-- Stop and remove containers (and anonymous volumes):
-
-```bash
+# Stop and remove containers
 docker compose down -v
 ```
 
-- Clean/rebuild the production image:
-
-```bash
-docker compose build --no-cache web-prod
-```
-
-Environment variables and build args
-
-**SECURITY UPDATE:** The project has been refactored to use server-side environment variables for sensitive data, improving security by not exposing credentials to the client.
-
-### Server-side Variables
-
-- API_URL (AirQo platform API base URL)
-- API_TOKEN (AirQo API authentication token)
-- OPENCAGE_API_KEY (OpenCage geocoding API key)
-- SLACK_WEBHOOK_URL (Slack webhook for logging)
-- SLACK_CHANNEL (Slack channel for notifications)
-- GOOGLE_SITE_VERIFICATION (Google Search Console verification token)
-
-### Client-side Variables
-
-- NEXT_PUBLIC_SITE_URL (comma-separated site URLs; the first entry is the canonical base)
-- NEXT_PUBLIC_GA_MEASUREMENT_ID (Google Analytics tracking ID)
-- NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN (Mapbox access token)
-
-How to provide them:
-
-- Preferred: use the `.env` file in the project root. The `web` and `web-prod` services load `.env` via `env_file` in `docker-compose.yml`.
-
-```bash
-# Edit .env and fill in the values (do NOT commit secrets)
-# The .env file is already in .gitignore
-```
-
-- Alternative: pass build args on the command line during build:
-
-```bash
-docker compose build --build-arg API_URL="https://api.example.com" web-prod
-```
-
-Notes and safety
-
-- The Dockerfile uses Node 20 (LTS) and is optimized for production with minimal layers
-- Do NOT commit files that contain secrets (`.env` is already in `.gitignore`)
-- Docker Compose (v2) prefers the `docker compose` subcommand (without a hyphen)
-- Do NOT commit files that contain secrets (for example `.env`, `.env.compose`). The repository now also includes `.env` in `.gitignore` for extra safety.
-- Docker Compose (v2) prefers the `docker compose` subcommand (without a hyphen). Depending on your setup you may still have `docker-compose` available; both may work but `docker compose` is the recommended form for Compose v2.
-
-Troubleshooting
-
-- If the browser cannot reach the site but `curl` shows responses, try `http://127.0.0.1:8080` instead of `http://localhost:8080` (IPv4 vs IPv6 / proxy differences can cause issues).
-- If a build inside Docker fails, first ensure the app builds locally with `npm ci` and `npm run build` and check the logs:
-
-```bash
-docker compose logs web-prod --tail 200
-```
-
-If you need to debug the build environment, you can run an interactive build container and inspect environment variables before running `npm run build`.
-
-Thank you for your interest in contributing to our website. Your support and contributions are vital to the ongoing success and improvement of the project!
+Ensure you have a `.env` file in the website directory before building.
 
 ---
+
+## Contributing
+
+1. Fork and clone the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes following the existing code style
+4. Run `npm run lint:fix && npm run format` before committing
+5. Run `npm test` to ensure all tests pass
+6. Push and open a Pull Request against `staging`
+
+---
+
+## Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Learn Next.js](https://nextjs.org/learn)
+- [AirQo API Repository](https://github.com/airqo-platform/airqo-api)

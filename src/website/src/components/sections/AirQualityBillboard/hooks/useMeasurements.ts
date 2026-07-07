@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { useGridMeasurements } from '@/hooks/useApiHooks';
-import { queryClient } from '@/services/queryClient';
-import { apiQueryKeys } from '@/services/queryKeys';
+import { queryClient } from '@/queries/query-client';
+import { apiQueryKeys } from '@/queries/query-keys';
 
 import type { DataType, Item, Measurement } from '../types';
 import { getValidMeasurements } from '../utils';

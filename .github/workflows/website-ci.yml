@@ -1,0 +1,60 @@
+name: website-ci
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+    paths:
+      - "src/website/**"
+      - ".github/workflows/website-ci.yml"
+  push:
+    branches:
+      - staging
+    paths:
+      - "src/website/**"
+      - ".github/workflows/website-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-website:
+    name: check-website
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/website
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/website/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Unit Tests & Coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: src/website/coverage/
+          flags: website
+          fail_ci_if_error: false

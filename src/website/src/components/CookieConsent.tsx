@@ -12,7 +12,7 @@ import {
   hasAnalyticsConsent,
   setConsentPreferences,
   shouldShowConsentBanner,
-} from '@/utils/cookieConsent';
+} from '@/lib/utils/cookieConsent';
 
 /**
  * GDPR-compliant Cookie Consent Banner
