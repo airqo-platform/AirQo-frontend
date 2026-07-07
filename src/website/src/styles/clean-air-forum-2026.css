@@ -1,0 +1,66 @@
+:root {
+  --caf-2026-background: #f8fbff;
+  --caf-2026-surface: rgba(255, 255, 255, 0.88);
+  --caf-2026-border: rgba(148, 163, 184, 0.24);
+  --caf-2026-text: #0f172a;
+  --caf-2026-muted: #475569;
+  --caf-2026-accent: #0f6cbd;
+  --caf-2026-accent-strong: #0a4f8a;
+  --caf-2026-radius: 1.5rem;
+  --caf-2026-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.caf-2026-page {
+  background:
+    radial-gradient(circle at top, #e0f2fe 0%, #ffffff 42%, #ecfdf5 100%);
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-surface {
+  background: var(--caf-2026-surface);
+  border-color: var(--caf-2026-border);
+  box-shadow: var(--caf-2026-shadow);
+}
+
+.caf-2026-text {
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-card {
+  background: var(--caf-2026-surface);
+  border-color: var(--caf-2026-border);
+  box-shadow: var(--caf-2026-shadow);
+}
+
+.caf-2026-badge {
+  background: rgba(14, 116, 204, 0.1);
+  color: var(--caf-2026-accent);
+}
+
+.caf-2026-button {
+  background: var(--caf-2026-accent);
+  color: #ffffff;
+}
+
+.caf-2026-button:hover {
+  background: var(--caf-2026-accent-strong);
+}
+
+.caf-2026-input {
+  background: #ffffff;
+  border-color: var(--caf-2026-border);
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-input::placeholder {
+  color: var(--caf-2026-muted);
+}
+
+.caf-2026-input:focus {
+  border-color: rgba(15, 108, 189, 0.45);
+  box-shadow: 0 0 0 4px rgba(14, 116, 204, 0.12);
+}
+
+.caf-2026-screen {
+  min-height: 100vh;
+}
