@@ -149,7 +149,7 @@ const ExplorePage = () => {
                   <CustomButton
                     onClick={() =>
                       window.open(
-                        'https://analytics.airqo.net/',
+                        'https://nexus.airqo.net/',
                         '_blank',
                         'noopener,noreferrer',
                       )

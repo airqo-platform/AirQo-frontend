@@ -264,9 +264,7 @@ const AnalyticsPage = () => {
             {/* Button */}
 
             <CustomButton
-              onClick={() =>
-                window.open('https://analytics.airqo.net/', '_blank')
-              }
+              onClick={() => window.open('https://nexus.airqo.net/', '_blank')}
               className=" text-white"
             >
               Explore data
