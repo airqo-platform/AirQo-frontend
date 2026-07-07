@@ -9,7 +9,7 @@ export type RoutesConfig = {
   products: {
     index: Route;
     monitor: Route;
-    analytics: Route;
+    nexus: Route;
     calibrate: Route;
     mobile: Route;
     api: Route;
@@ -46,7 +46,7 @@ const routesConfig: RoutesConfig = {
   products: {
     index: { path: '/products', label: 'Products' },
     monitor: { path: '/products/monitor', label: 'Monitor' },
-    analytics: { path: '/products/analytics', label: 'AirQo Nexus' },
+    nexus: { path: '/products/nexus', label: 'AirQo Nexus' },
     calibrate: { path: '/products/calibrate', label: 'Calibrate' },
     mobile: { path: '/products/mobile', label: 'Mobile' },
     api: { path: '/products/api', label: 'API' },

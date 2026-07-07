@@ -5,7 +5,7 @@ import {
   METADATA_CONFIGS,
 } from '@/lib/metadata';
 
-export const metadata = createMetadata(METADATA_CONFIGS.analytics);
+export const metadata = createMetadata(METADATA_CONFIGS.nexus);
 export const viewport = generateViewport();
 
 const page = () => {

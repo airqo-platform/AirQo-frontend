@@ -16,7 +16,7 @@ on:
       - ".github/workflows/website-ci.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check-website:
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Setup Node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -49,6 +49,77 @@ jobs:
 
       - name: Unit Tests & Coverage
         run: npm run test:coverage
+
+      - name: Extract test stats
+        id: test-stats
+        if: github.event_name == 'push'
+        working-directory: src/website
+        shell: bash
+        run: |
+          # Extract total tests from jest output
+          TESTS=$(npm run test:coverage 2>&1 | grep -oP 'Tests:\s+\K[\d,]+' || echo "0")
+          TESTS=$(echo "$TESTS" | tr -d ',')
+          echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
+
+          # Extract coverage percentage from coverage summary
+          COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Update README badges
+        if: github.event_name == 'push'
+        working-directory: src/website
+        shell: bash
+        run: |
+          TESTS=${{ steps.test-stats.outputs.tests }}
+          COVERAGE=${{ steps.test-stats.outputs.coverage }}
+          
+          # Default values if extraction failed
+          if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
+            TESTS=$(grep -oP 'Tests:\s+\K[\d,]+' <(npm run test:coverage 2>&1) | tail -1 | tr -d ',')
+          fi
+          if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
+            COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
+          fi
+
+          # Round coverage to integer
+          COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
+          
+          # Determine badge color based on coverage
+          if [ "$COVERAGE_INT" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_INT" -ge 60 ]; then
+            COLOR="yellow"
+          else
+            COLOR="red"
+          fi
+
+          # Update README.md badges
+          if [ -f README.md ]; then
+            # Update passing badge with test count
+            sed -i "s|![passing](https://img.shields.io/badge/passing-[0-9]*%20.*brightgreen)|![passing](https://img.shields.io/badge/passing-${TESTS}%20%E2%80%94%20100%25-brightgreen?style=flat-square)|g" README.md
+            
+            # Update or add coverage badge
+            if grep -q "![coverage]" README.md; then
+              sed -i "s|![coverage](https://img.shields.io/badge/coverage-[0-9]*%25.*)|![coverage](https://img.shields.io/badge/coverage-${COVERAGE_INT}%25-${COLOR}?style=flat-square)|g" README.md
+            else
+              # Add coverage badge after the failing badge line
+              sed -i "/![failing]/a ![coverage](https://img.shields.io/badge/coverage-${COVERAGE_INT}%25-${COLOR}?style=flat-square)" README.md
+            fi
+
+            echo "Updated README badges: tests=$TESTS, coverage=${COVERAGE_INT}%"
+          fi
+
+      - name: Commit README updates
+        if: github.event_name == 'push'
+        working-directory: src/website
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git diff --staged --quiet || git commit -m "chore: update README test/coverage badges [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0

@@ -481,7 +481,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    { path: '/products/analytics', changeFrequency: 'monthly', priority: 0.9 },
+    { path: '/products/nexus', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/api', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/mobile-app', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/calibrate', changeFrequency: 'monthly', priority: 0.8 },

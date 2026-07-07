@@ -53,14 +53,14 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
-  analytics: {
+  nexus: {
     title:
       'AirQo Nexus | Uganda, Kenya, Nigeria, Ghana Real-time Air Quality Dashboard - 200+ Monitors',
     description:
       'Track Kampala, Nairobi, Lagos, Accra air quality live. Real-time PM2.5 data from 200+ Uganda, Kenya, Nigeria, Ghana monitors. Historical trends, pollution hotspots, health alerts. Free access to African air quality data. Platform: platform.airqo.net. Coverage: Kampala, Jinja, Entebbe, Nairobi, Mombasa, Kisumu, Lagos, Abuja, Accra.',
     keywords:
       'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, AirQo Nexus Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities AirQo Nexus, platform.airqo.net Uganda',
-    url: '/products/analytics',
+    url: '/products/nexus',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
       alt: 'AirQo Nexus Platform - Real-time Air Quality Dashboard for Africa',
