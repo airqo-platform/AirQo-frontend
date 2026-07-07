@@ -67,7 +67,7 @@ const MonitorPage = () => {
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Binos Monitor
+              Our Products {'/'} Binos Monitor
             </p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
               Built in Africa for African cities.

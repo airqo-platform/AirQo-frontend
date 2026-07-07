@@ -100,7 +100,7 @@ const ResearchPage = () => {
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-[#E9F7EF]"
-        breadcrumbText="Solutions > For Research"
+        breadcrumbText="Solutions / For Research"
         title="For Research"
         description="We actively collaborate with researchers across the world to jointly tackle air quality research challenges."
         containerVariants={animations.container}

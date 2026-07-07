@@ -25,7 +25,7 @@ const AIPlatformPage = () => {
     <ProductMarketingPage
       theme={aiTheme}
       hero={{
-        breadcrumb: 'Our Products > AirQo AI Platform',
+        breadcrumb: 'Our Products / AirQo AI Platform',
         title: 'Turn air quality data into environmental intelligence.',
         description:
           'AirQo AI Platform combines forecasting, site recommendation, categorization, reporting, and spatial analysis in one workspace so teams can move from raw observations to clearer environmental decisions.',

@@ -56,7 +56,7 @@ const AnalyticsPage = () => {
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Air quality analytics Dashboard
+              Our Products {'/'} Air quality analytics Dashboard
             </p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
               Access and visualise air quality data in African Cities.

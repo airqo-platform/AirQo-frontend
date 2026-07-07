@@ -59,7 +59,7 @@ const AfricanCityPage = () => {
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-blue-50"
-        breadcrumbText="Solutions > For African Cities"
+        breadcrumbText="Solutions / For African Cities"
         title="For African cities"
         description="Leveraging a high-resolution air quality monitoring network to
               advance air quality management in African cities."

@@ -28,7 +28,7 @@ const BeaconPage = () => {
     <ProductMarketingPage
       theme={beaconTheme}
       hero={{
-        breadcrumb: 'Our Products > Beacon',
+        breadcrumb: 'Our Products / Beacon',
         title:
           'Keep your air quality monitoring network visible, reliable, and easier to manage.',
         description:

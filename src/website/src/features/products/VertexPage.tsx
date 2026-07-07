@@ -28,7 +28,7 @@ const VertexPage = () => {
     <ProductMarketingPage
       theme={vertexTheme}
       hero={{
-        breadcrumb: 'Our Products > Vertex',
+        breadcrumb: 'Our Products / Vertex',
         title: 'Connect your air quality monitors and share data publicly.',
         description:
           'Collecting air quality data is only the first step. For that data to inform decisions, support public awareness, and drive clean air action, it must be visible, accessible, and usable. Vertex helps monitor owners, organisations, and network managers connect air quality monitors, manage device visibility, track network health, and share data through an open air quality data platform.',
