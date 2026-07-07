@@ -1,17 +1,19 @@
 import { act, renderHook } from '@testing-library/react';
 
+import type { Resource } from '@/types';
+
 import { useResourceFilter } from '../useResourceFilter';
 
-const createResources = (count: number) =>
+const createResources = (count: number): Resource[] =>
   Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     resource_title: `Resource ${i + 1}`,
     resource_category:
       i % 3 === 0
-        ? 'technical_report'
+        ? ('technical_report' as const)
         : i % 3 === 1
-          ? 'toolkit'
-          : 'research_publication',
+          ? ('toolkit' as const)
+          : ('research_publication' as const),
     resource_file_url: `https://example.com/file${i + 1}.pdf`,
     created: '2024-01-01',
     modified: '2024-01-02',

@@ -100,11 +100,10 @@ describe('cookieConsent', () => {
         analytics: true,
         marketing: false,
       });
-      const stored = JSON.parse(
-        localStorageMock.setItem.mock.calls.find(
-          (call: any[]) => call[0] === 'airqo_cookie_consent',
-        )[1],
+      const call = localStorageMock.setItem.mock.calls.find(
+        (call: any[]) => call[0] === 'airqo_cookie_consent',
       );
+      const stored = JSON.parse(call![1]);
       expect(stored.necessary).toBe(true);
       expect(stored.analytics).toBe(true);
       expect(stored.marketing).toBe(false);
@@ -117,11 +116,10 @@ describe('cookieConsent', () => {
         analytics: true,
         marketing: true,
       });
-      const stored = JSON.parse(
-        localStorageMock.setItem.mock.calls.find(
-          (call: any[]) => call[0] === 'airqo_cookie_consent',
-        )[1],
+      const call = localStorageMock.setItem.mock.calls.find(
+        (call: any[]) => call[0] === 'airqo_cookie_consent',
       );
+      const stored = JSON.parse(call![1]);
       expect(stored.necessary).toBe(true);
     });
 
@@ -132,11 +130,10 @@ describe('cookieConsent', () => {
         analytics: false,
         marketing: false,
       });
-      const stored = JSON.parse(
-        localStorageMock.setItem.mock.calls.find(
-          (call: any[]) => call[0] === 'airqo_cookie_consent',
-        )[1],
+      const call = localStorageMock.setItem.mock.calls.find(
+        (call: any[]) => call[0] === 'airqo_cookie_consent',
       );
+      const stored = JSON.parse(call![1]);
       expect(stored.timestamp).toBe(now);
     });
   });
@@ -290,11 +287,10 @@ describe('cookieConsent', () => {
     it('stores dismissal info with 7-day expiry', () => {
       const before = Date.now();
       dismissConsentBanner();
-      const stored = JSON.parse(
-        localStorageMock.setItem.mock.calls.find(
-          (call: any[]) => call[0] === 'airqo_consent_banner_dismissed',
-        )[1],
+      const call = localStorageMock.setItem.mock.calls.find(
+        (call: any[]) => call[0] === 'airqo_consent_banner_dismissed',
       );
+      const stored = JSON.parse(call![1]);
       expect(stored.timestamp).toBeGreaterThanOrEqual(before);
       const expectedExpiry = 7 * 24 * 60 * 60 * 1000;
       expect(stored.expiresAt - stored.timestamp).toBe(expectedExpiry);

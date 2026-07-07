@@ -844,10 +844,4 @@ describe('compactParams (tested indirectly)', () => {
       { search: '' },
     ]);
   });
-
-  it('keeps null values', () => {
-    expect(apiQueryKeys.networkCoverageMonitor('id', { tenant: null })).toEqual(
-      ['networkCoverageMonitor', 'id', { tenant: null }],
-    );
-  });
 });

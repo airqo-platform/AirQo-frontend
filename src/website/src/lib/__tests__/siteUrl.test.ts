@@ -8,13 +8,21 @@ import {
 describe('siteUrl', () => {
   const originalEnv = process.env;
 
+  const setNodeEnv = (value: string) => {
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value,
+      writable: true,
+      configurable: true,
+    });
+  };
+
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
     delete process.env.NEXT_PUBLIC_SITE_URL;
     delete process.env.NEXT_PUBLIC_VERCEL_URL;
     delete process.env.NEXT_PUBLIC_REQUIRE_SITE_URL;
-    process.env.NODE_ENV = 'test';
+    setNodeEnv('test');
   });
 
   afterAll(() => {
@@ -141,12 +149,12 @@ describe('siteUrl', () => {
     });
 
     it('returns localhost fallback in non-production without NEXT_PUBLIC_REQUIRE_SITE_URL', () => {
-      process.env.NODE_ENV = 'development';
+      setNodeEnv('development');
       expect(getPrimarySiteUrl()).toBe('http://localhost:3000');
     });
 
     it('throws in production when NEXT_PUBLIC_REQUIRE_SITE_URL=true', () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
       process.env.NEXT_PUBLIC_REQUIRE_SITE_URL = 'true';
       expect(() => getPrimarySiteUrl()).toThrow(
         'NEXT_PUBLIC_SITE_URL must be configured in production.',
@@ -154,7 +162,7 @@ describe('siteUrl', () => {
     });
 
     it('falls back to localhost in production when NEXT_PUBLIC_REQUIRE_SITE_URL is not true', () => {
-      process.env.NODE_ENV = 'production';
+      setNodeEnv('production');
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
       const result = getPrimarySiteUrl();
       expect(result).toBe('http://localhost:3000');
