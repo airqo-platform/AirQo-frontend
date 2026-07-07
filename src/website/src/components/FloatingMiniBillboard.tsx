@@ -81,7 +81,7 @@ export default function FloatingMiniBillboard({
         color: '#ffffff',
         border: `1px solid ${hexToRgba(categoryColor, 0.9)}`,
         boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)',
-        fontFamily: '"Helvetica Neue", Arial, sans-serif',
+        fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
       } as React.CSSProperties;
     }
 
@@ -90,7 +90,7 @@ export default function FloatingMiniBillboard({
       backgroundColor: hexToRgba(categoryColor, 0.14),
       color: categoryColor,
       border: `1px solid ${hexToRgba(categoryColor, 0.16)}`,
-      fontFamily: '"Times New Roman", Times, serif',
+      fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
     } as React.CSSProperties;
   })();
 

@@ -13,7 +13,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "e2e": "cross-env TS_NODE_PROJECT=e2e/tsconfig.json mocha --config e2e/.mocharc.yml",
-    "e2e:headed": "HEADLESS=false npm run e2e"
+    "e2e:headed": "cross-env TS_NODE_PROJECT=e2e/tsconfig.json HEADLESS=false mocha --config e2e/.mocharc.yml"
   },
   "dependencies": {
     "@airqo/icons-react": "0.2.7",

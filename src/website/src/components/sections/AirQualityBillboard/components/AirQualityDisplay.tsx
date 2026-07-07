@@ -13,6 +13,8 @@ import {
 import type { DataType, Forecast, Measurement } from '../types';
 import { getColorFromPM25, getLocationName, hexToRgba } from '../utils';
 
+const BILLBOARD_FONT = '"Inter", system-ui, -apple-system, sans-serif';
+
 interface AirQualityDisplayProps {
   dataType: DataType;
   currentMeasurement: Measurement | null;
@@ -110,7 +112,9 @@ const AirQualityDisplay = ({
                 role="group"
                 aria-label={`Forecast ${index + 1}`}
                 className={`${cardBg} rounded-lg ${cardPadding} ${cardMinW} flex flex-col items-center justify-between ${minH}`}
-                style={{ fontFamily: '"Times New Roman", Times, serif' }}
+                style={{
+                  fontFamily: BILLBOARD_FONT,
+                }}
               >
                 <div className="w-full flex items-center justify-center mb-[clamp(0.25rem,0.5vw,0.5rem)]">
                   <span
@@ -182,7 +186,7 @@ const AirQualityDisplay = ({
             <div
               className="font-bold leading-tight tracking-tight"
               style={{
-                fontFamily: '"Times New Roman", Times, serif',
+                fontFamily: BILLBOARD_FONT,
                 fontSize: 'clamp(1.25rem, 2.8vw, 2.5rem)',
               }}
             >
@@ -204,7 +208,7 @@ const AirQualityDisplay = ({
               <span
                 className="font-bold tracking-wide"
                 style={{
-                  fontFamily: '"Times New Roman", Times, serif',
+                  fontFamily: BILLBOARD_FONT,
                   fontSize: 'clamp(0.875rem, 1.8vw, 1.25rem)',
                 }}
               >
@@ -221,7 +225,7 @@ const AirQualityDisplay = ({
                     pm25Value !== null && pm25Value !== undefined
                       ? getColorFromPM25(pm25Value)
                       : '#808080',
-                  fontFamily: '"Times New Roman", Times, serif',
+                  fontFamily: BILLBOARD_FONT,
                   fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
                 }}
               >
@@ -232,7 +236,7 @@ const AirQualityDisplay = ({
               <span
                 className="opacity-90 self-end pb-1 font-medium"
                 style={{
-                  fontFamily: '"Times New Roman", Times, serif',
+                  fontFamily: BILLBOARD_FONT,
                   fontSize: 'clamp(1rem, 1.8vw, 1.75rem)',
                 }}
               >
@@ -340,7 +344,7 @@ const AirQualityDisplay = ({
                     backgroundColor: badgeBg,
                     color: badgeText,
                     border: `1px solid ${badgeBorder}`,
-                    fontFamily: '"Times New Roman", Times, serif',
+                    fontFamily: BILLBOARD_FONT,
                     padding:
                       'clamp(0.375rem, 0.8vw, 0.625rem) clamp(1.25rem, 2.5vw, 2rem)',
                     fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
@@ -353,7 +357,7 @@ const AirQualityDisplay = ({
             <span
               className="font-medium"
               style={{
-                fontFamily: '"Times New Roman", Times, serif',
+                fontFamily: BILLBOARD_FONT,
                 fontSize: 'clamp(0.75rem, 1.4vw, 1rem)',
               }}
             >
@@ -381,7 +385,7 @@ const AirQualityDisplay = ({
             <span
               className="font-bold tracking-wide truncate"
               style={{
-                fontFamily: '"Times New Roman", Times, serif',
+                fontFamily: BILLBOARD_FONT,
                 fontSize: 'clamp(1.25rem, 2.8vw, 2.5rem)',
               }}
             >
