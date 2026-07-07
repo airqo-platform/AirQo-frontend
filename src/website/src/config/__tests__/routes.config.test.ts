@@ -36,10 +36,10 @@ describe('routesConfig', () => {
   });
 
   describe('product routes', () => {
-    it('has index, monitor, analytics, calibrate, mobile, api', () => {
+    it('has index, monitor, nexus, calibrate, mobile, api', () => {
       expect(routesConfig.products.index).toBeDefined();
       expect(routesConfig.products.monitor).toBeDefined();
-      expect(routesConfig.products.analytics).toBeDefined();
+      expect(routesConfig.products.nexus).toBeDefined();
       expect(routesConfig.products.calibrate).toBeDefined();
       expect(routesConfig.products.mobile).toBeDefined();
       expect(routesConfig.products.api).toBeDefined();

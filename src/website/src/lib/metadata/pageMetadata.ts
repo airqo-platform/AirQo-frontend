@@ -53,17 +53,17 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
-  analytics: {
+  nexus: {
     title:
-      'Air Quality Analytics | Uganda, Kenya, Nigeria, Ghana Real-time Dashboard - 200+ Monitors',
+      'AirQo Nexus | Uganda, Kenya, Nigeria, Ghana Real-time Air Quality Dashboard - 200+ Monitors',
     description:
       'Track Kampala, Nairobi, Lagos, Accra air quality live. Real-time PM2.5 data from 200+ Uganda, Kenya, Nigeria, Ghana monitors. Historical trends, pollution hotspots, health alerts. Free access to African air quality data. Platform: platform.airqo.net. Coverage: Kampala, Jinja, Entebbe, Nairobi, Mombasa, Kisumu, Lagos, Abuja, Accra.',
     keywords:
-      'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, air quality analytics Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities air analytics, platform.airqo.net Uganda',
-    url: '/products/analytics',
+      'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, AirQo Nexus Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities AirQo Nexus, platform.airqo.net Uganda',
+    url: '/products/nexus',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
-      alt: 'AirQo Analytics Platform - Real-time Air Quality Dashboard for Africa',
+      alt: 'AirQo Nexus Platform - Real-time Air Quality Dashboard for Africa',
       width: 1200,
       height: 630,
       type: 'image/png',
@@ -86,9 +86,10 @@ export const METADATA_CONFIGS = {
     },
   },
   beacon: {
-    title: 'Beacon | Device Health Monitoring for Air Quality Sensor Networks',
+    title:
+      'AirQo Beacon | Device Health Monitoring for Air Quality Sensor Networks',
     description:
-      'Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
+      'AirQo Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
     keywords:
       'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
@@ -101,9 +102,9 @@ export const METADATA_CONFIGS = {
     },
   },
   vertex: {
-    title: 'Vertex | Open Air Quality Data Sharing Platform',
+    title: 'AirQo Vertex | Open Air Quality Data Sharing Platform',
     description:
-      'Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
+      'AirQo Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
     keywords:
       'open air quality data sharing platform, open air quality data, public air quality data, open data platform, air quality monitoring network, connect air quality monitors, low-cost air quality sensors, sensor network management, device health monitoring, open air quality network',
     url: '/products/vertex',

@@ -110,7 +110,7 @@ export const metadata: Metadata = {
     'real-time pollution data',
     'low-cost air sensors',
     'clean air Africa',
-    'air quality analytics',
+    'AirQo Nexus',
     'pollution mitigation',
     'environmental monitoring Africa',
     'PM2.5 Africa',

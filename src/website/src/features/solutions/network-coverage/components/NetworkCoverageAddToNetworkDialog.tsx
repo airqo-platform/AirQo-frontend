@@ -100,7 +100,7 @@ const NetworkCoverageAddToNetworkDialog = ({
             Select the monitor manufacturer or platform that best matches your
             devices. This list contains common air quality monitor families and
             related deployment options. After selecting a provider, continue to
-            Vertex to link devices and stream your data.
+            AirQo Vertex to link devices and stream your data.
           </DialogDescription>
         </DialogHeader>
 
@@ -154,8 +154,8 @@ const NetworkCoverageAddToNetworkDialog = ({
           </div>
 
           <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            If you do not see your device listed, use Vertex anyway and choose
-            the closest compatible hardware profile during setup.
+            If you do not see your device listed, use AirQo Vertex anyway and
+            choose the closest compatible hardware profile during setup.
           </div>
         </div>
 
@@ -163,7 +163,7 @@ const NetworkCoverageAddToNetworkDialog = ({
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
               Your selection helps us guide you to the right linking flow in
-              Vertex.
+              AirQo Vertex.
             </p>
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
               <Button
