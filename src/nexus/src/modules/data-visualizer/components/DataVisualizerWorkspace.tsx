@@ -79,6 +79,7 @@ import {
   saveWorkspaceDraft,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
+import { FileUploadProgress, type FileUploadProgressItem } from './FileUploadProgress';
 import { VisualizerChartCard } from './VisualizerChartCard';
 import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -556,6 +557,7 @@ export const DataVisualizerWorkspace: React.FC<
   const sourceFilesRef = React.useRef(new Map<string, File>());
   const hasTrackedViewRef = React.useRef(false);
   const parseAbortRef = React.useRef<AbortController | null>(null);
+  const retryFilesRef = React.useRef<Map<string, File>>(new Map());
   const [datasets, setDatasets] = React.useState<UploadedDataset[]>([]);
   const [charts, setCharts] = React.useState<VisualizerChartConfig[]>([]);
   const [activeChartId, setActiveChartId] = React.useState<
@@ -583,6 +585,7 @@ export const DataVisualizerWorkspace: React.FC<
   const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
   const [toolbarStickyEnabled, setToolbarStickyEnabled] = React.useState(false);
   const [isToolbarFloating, setIsToolbarFloating] = React.useState(false);
+  const [uploadProgressItems, setUploadProgressItems] = React.useState<FileUploadProgressItem[]>([]);
 
   // Cycle through friendly status messages while parsing
   React.useEffect(() => {
@@ -911,81 +914,141 @@ export const DataVisualizerWorkspace: React.FC<
   const handleFiles = React.useCallback(
     async (fileList: FileList | File[]) => {
       const files = Array.from(fileList);
-      if (files.length === 0) {
-        return;
-      }
+      if (files.length === 0) return;
 
       parseAbortRef.current?.abort();
-
       const abortController = new AbortController();
       parseAbortRef.current = abortController;
 
       setIsParsing(true);
       setError(null);
 
+      // Initialize progress items
+      const progressItems: FileUploadProgressItem[] = files.map(file => ({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        file,
+        progress: 0,
+        status: 'parsing' as const,
+      }));
+      setUploadProgressItems(progressItems);
+
+      // Store files for potential retry
+      files.forEach(file => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        retryFilesRef.current.set(key, file);
+      });
+
       try {
         const { datasets: parsedDatasets, errors } = await parseUploadedFiles(
           files,
-          abortController.signal
-        );
-
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        const filesBySourceKey = new Map(
-          files.map(file => [buildSourceFileKey(file), file])
-        );
-
-        parsedDatasets.forEach(dataset => {
-          const file = dataset.sourceFileKey
-            ? filesBySourceKey.get(dataset.sourceFileKey)
-            : undefined;
-
-          if (file) {
-            sourceFilesRef.current.set(dataset.id, file);
+          abortController.signal,
+          (fileIndex, progress) => {
+            // Update progress for the current file
+            setUploadProgressItems(prev =>
+              prev.map((item, idx) =>
+                idx === fileIndex ? { ...item, progress } : item
+              )
+            );
           }
+        );
+
+        if (abortController.signal.aborted) return;
+
+        // Mark completed files
+        setUploadProgressItems(prev =>
+          prev.map(item => {
+            if (item.status === 'parsing') {
+              return { ...item, progress: 100, status: 'complete' as const };
+            }
+            return item;
+          })
+        );
+
+        // Store source File references for later use
+        const filesBySourceKey = new Map(files.map(file => [buildSourceFileKey(file), file]));
+        parsedDatasets.forEach(dataset => {
+          const file = dataset.sourceFileKey ? filesBySourceKey.get(dataset.sourceFileKey) : undefined;
+          if (file) sourceFilesRef.current.set(dataset.id, file);
         });
 
         applyNewDatasets(parsedDatasets);
 
         if (errors.length > 0) {
-          const message = errors
-            .map(item => `${item.fileName}: ${item.message}`)
-            .join(' ');
+          // Mark failed files
+          setUploadProgressItems(prev =>
+            prev.map(item => {
+              const error = errors.find(e => e.fileName === item.file.name);
+              if (error) {
+                return { ...item, status: 'error' as const, errorMessage: error.message };
+              }
+              return item;
+            })
+          );
+          const message = errors.map(item => `${item.fileName}: ${item.message}`).join(' ');
           setError(message);
           toast.warning('Some files were skipped', message);
-          trackVisualizerEvent('air_quality_explorer_import_warning', {
-            file_count: files.length,
-            skipped_count: errors.length,
-            imported_dataset_count: parsedDatasets.length,
-          });
+        } else {
+          // All files parsed successfully, clear progress after a delay
+          setTimeout(() => setUploadProgressItems([]), 2000);
         }
       } catch (error) {
         if (!isAbortError(error)) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : 'The selected files could not be read.';
-
+          const message = error instanceof Error ? error.message : 'The selected files could not be read.';
           setError(message);
           toast.error('Upload failed', message);
+          // Mark all as error
+          setUploadProgressItems(prev =>
+            prev.map(item => ({
+              ...item,
+              status: 'error' as const,
+              errorMessage: 'Parsing failed. Click retry to try again.',
+            }))
+          );
+        } else {
+          setUploadProgressItems([]);
         }
       } finally {
         if (parseAbortRef.current === abortController) {
           parseAbortRef.current = null;
-
-          if (!abortController.signal.aborted) {
-            setIsParsing(false);
-          }
+          if (!abortController.signal.aborted) setIsParsing(false);
         }
-
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
     [applyNewDatasets, trackVisualizerEvent]
+  );
+
+  const handleRetryFile = React.useCallback(
+    async (fileId: string) => {
+      const file = retryFilesRef.current.get(fileId);
+      if (!file) return;
+
+      // Update status to retrying
+      setUploadProgressItems(prev =>
+        prev.map(item =>
+          item.id === fileId
+            ? { ...item, status: 'retrying' as const, progress: 0, errorMessage: undefined }
+            : item
+        )
+      );
+
+      // Re-trigger the upload for this single file
+      await handleFiles([file]);
+    },
+    [handleFiles]
+  );
+
+  const handleCancelFileUpload = React.useCallback(
+    (fileId: string) => {
+      parseAbortRef.current?.abort();
+      setUploadProgressItems(prev =>
+        prev.map(item =>
+          item.id === fileId ? { ...item, status: 'cancelled' as const } : item
+        )
+      );
+      setIsParsing(false);
+    },
+    []
   );
 
   const resetWorkspace = React.useCallback(async () => {
@@ -1756,6 +1819,14 @@ export const DataVisualizerWorkspace: React.FC<
             >
               {isParsing ? (
                 <div className="flex flex-col items-center gap-3">
+                  {uploadProgressItems.length > 0 && (
+                    <FileUploadProgress
+                      files={uploadProgressItems}
+                      onCancel={handleCancelFileUpload}
+                      onRetry={handleRetryFile}
+                      className="w-full max-w-md"
+                    />
+                  )}
                   <LoadingSpinner />
                   <span className="text-sm text-muted-foreground transition-all duration-500">
                     {parseMessage}
@@ -1798,6 +1869,14 @@ export const DataVisualizerWorkspace: React.FC<
                 </>
               )}
             </div>
+
+            {!isParsing && uploadProgressItems.length > 0 && uploadProgressItems.some(item => item.status === 'error') && (
+              <FileUploadProgress
+                files={uploadProgressItems}
+                onRetry={handleRetryFile}
+                className="w-full"
+              />
+            )}
 
             {error && (
               <div className="mt-3">

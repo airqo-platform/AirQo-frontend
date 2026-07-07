@@ -9,11 +9,14 @@ import type {
 } from '../types';
 import { makeUniqueHeaders, normalizeHeader } from './dataProfiling';
 
+export type ParseProgressCallback = (progress: number) => void;
+
 interface ParseUploadedFileOptions {
   sheetName?: string;
   knownSheets?: SheetOption[];
   label?: string;
   signal?: AbortSignal;
+  onProgress?: ParseProgressCallback;
 }
 
 type TabularRow = readonly unknown[];
@@ -183,11 +186,14 @@ const parseCsvFileWithWorker = (
   useWorker: boolean
 ): Promise<UploadedDataset> =>
   new Promise((resolve, reject) => {
-    const { signal } = options;
+    const { signal, onProgress } = options;
     const retainedRows: TabularRow[] = [];
     let nonEmptyRowCount = 0;
     const warnings: string[] = [];
     let activeParser: Papa.Parser | null = null;
+    const totalBytes = file.size;
+    let avgRowSize = 0;
+    let rowCountEstimate = 0;
 
     throwIfAborted(signal);
 
@@ -202,9 +208,6 @@ const parseCsvFileWithWorker = (
       skipEmptyLines: 'greedy',
       dynamicTyping: false,
       worker: useWorker,
-      // Use `step` (not `chunk`) — step is the reliable row-by-row streaming
-      // API for worker:false. The `chunk` callback has known issues in Next.js
-      // where it causes `complete` to receive undefined, breaking the parse.
       step: (results, parser) => {
         activeParser = parser;
 
@@ -221,7 +224,6 @@ const parseCsvFileWithWorker = (
           warnings.push(`${row}: ${error.message}`);
         });
 
-        // With step + header:false, results.data is the current row (unknown[])
         const row = results.data as readonly unknown[];
 
         if (!Array.isArray(row) || countFilledCells(row) === 0) {
@@ -230,8 +232,30 @@ const parseCsvFileWithWorker = (
 
         nonEmptyRowCount += 1;
 
+        if (nonEmptyRowCount <= 100) {
+          const rowStr = JSON.stringify(row);
+          avgRowSize =
+            (avgRowSize * (nonEmptyRowCount - 1) + rowStr.length) /
+            nonEmptyRowCount;
+        } else if (nonEmptyRowCount === 101 && avgRowSize > 0) {
+          rowCountEstimate = Math.ceil(totalBytes / avgRowSize);
+        }
+
         if (retainedRows.length < CSV_RETAINED_ROW_LIMIT) {
           retainedRows.push(row);
+        }
+
+        if (onProgress && totalBytes > 0) {
+          if (rowCountEstimate > 0) {
+            const progress = Math.min(
+              95,
+              (nonEmptyRowCount / rowCountEstimate) * 100
+            );
+            onProgress(progress);
+          } else {
+            const progress = Math.min(50, (nonEmptyRowCount / 100) * 50);
+            onProgress(progress);
+          }
         }
       },
       complete: results => {
@@ -269,6 +293,8 @@ const parseCsvFileWithWorker = (
             `Only the first ${MAX_VISUALIZER_ROWS.toLocaleString()} rows were loaded to keep charts responsive.`
           );
         }
+
+        onProgress?.(100);
 
         resolve({
           id: createDatasetId(),
@@ -342,11 +368,16 @@ const parseExcelFile = async (
 ): Promise<UploadedDataset> => {
   throwIfAborted(options.signal);
 
+  options.onProgress?.(10);
+
   if (options.sheetName && options.knownSheets?.length) {
+    options.onProgress?.(30);
     const sheetData = await readSheet(file, options.sheetName);
+    options.onProgress?.(70);
 
     throwIfAborted(options.signal);
 
+    options.onProgress?.(100);
     return buildExcelDataset(
       file,
       options.sheetName,
@@ -356,7 +387,9 @@ const parseExcelFile = async (
     );
   }
 
+  options.onProgress?.(30);
   const sheets = await readExcelFile(file);
+  options.onProgress?.(70);
 
   throwIfAborted(options.signal);
 
@@ -372,6 +405,7 @@ const parseExcelFile = async (
     throw new Error('No readable sheets were found in this workbook.');
   }
 
+  options.onProgress?.(100);
   return buildExcelDataset(
     file,
     getExcelSheetName(selectedSheet),
@@ -414,23 +448,29 @@ export const parseUploadedFile = async (
 
 export const parseUploadedFiles = async (
   files: File[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  onFileProgress?: (fileIndex: number, progress: number) => void
 ) => {
   const datasets: UploadedDataset[] = [];
   const errors: Array<{ fileName: string; message: string }> = [];
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
     throwIfAborted(signal);
 
     try {
-      datasets.push(await parseUploadedFile(file, { signal }));
+      datasets.push(
+        await parseUploadedFile(files[i], {
+          signal,
+          onProgress: progress => onFileProgress?.(i, progress),
+        })
+      );
     } catch (error) {
       if (isAbortError(error)) {
         throw error;
       }
 
       errors.push({
-        fileName: file.name,
+        fileName: files[i].name,
         message:
           error instanceof Error ? error.message : 'Could not parse file.',
       });
