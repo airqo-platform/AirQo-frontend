@@ -124,6 +124,12 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
     if (controller == null || !controller.value.isInitialized) return;
 
     if (state == AppLifecycleState.inactive) {
+      // Clear the field before disposing — otherwise it keeps pointing at a
+      // disposed controller (dispose() doesn't flip isInitialized back to
+      // false), so a rebuild triggered before _openCamera() finishes on
+      // resume could still try to paint CameraPreview against it.
+      _controller = null;
+      if (mounted) setState(() {});
       controller.dispose();
     } else if (state == AppLifecycleState.resumed) {
       _openCamera(_cameraIndex);
