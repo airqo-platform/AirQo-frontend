@@ -88,7 +88,12 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                <span className={cn('text-xs font-medium', getStatusColor(item.status))}>
+                <span
+                  className={cn(
+                    'text-xs font-medium',
+                    getStatusColor(item.status)
+                  )}
+                >
                   {getStatusText(item.status)}
                 </span>
                 {item.status === 'parsing' && (
@@ -122,7 +127,9 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
-                style={{ width: `${Math.min(100, Math.max(0, item.progress))}%` }}
+                style={{
+                  width: `${Math.min(100, Math.max(0, item.progress))}%`,
+                }}
               />
             </div>
           )}

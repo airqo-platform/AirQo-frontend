@@ -79,7 +79,10 @@ import {
   saveWorkspaceDraft,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
-import { FileUploadProgress, type FileUploadProgressItem } from './FileUploadProgress';
+import {
+  FileUploadProgress,
+  type FileUploadProgressItem,
+} from './FileUploadProgress';
 import { VisualizerChartCard } from './VisualizerChartCard';
 import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -585,7 +588,9 @@ export const DataVisualizerWorkspace: React.FC<
   const [toolbarCollapsed, setToolbarCollapsed] = React.useState(false);
   const [toolbarStickyEnabled, setToolbarStickyEnabled] = React.useState(false);
   const [isToolbarFloating, setIsToolbarFloating] = React.useState(false);
-  const [uploadProgressItems, setUploadProgressItems] = React.useState<FileUploadProgressItem[]>([]);
+  const [uploadProgressItems, setUploadProgressItems] = React.useState<
+    FileUploadProgressItem[]
+  >([]);
 
   // Cycle through friendly status messages while parsing
   React.useEffect(() => {
@@ -965,9 +970,13 @@ export const DataVisualizerWorkspace: React.FC<
         );
 
         // Store source File references for later use
-        const filesBySourceKey = new Map(files.map(file => [buildSourceFileKey(file), file]));
+        const filesBySourceKey = new Map(
+          files.map(file => [buildSourceFileKey(file), file])
+        );
         parsedDatasets.forEach(dataset => {
-          const file = dataset.sourceFileKey ? filesBySourceKey.get(dataset.sourceFileKey) : undefined;
+          const file = dataset.sourceFileKey
+            ? filesBySourceKey.get(dataset.sourceFileKey)
+            : undefined;
           if (file) sourceFilesRef.current.set(dataset.id, file);
         });
 
@@ -979,12 +988,18 @@ export const DataVisualizerWorkspace: React.FC<
             prev.map(item => {
               const error = errors.find(e => e.fileName === item.file.name);
               if (error) {
-                return { ...item, status: 'error' as const, errorMessage: error.message };
+                return {
+                  ...item,
+                  status: 'error' as const,
+                  errorMessage: error.message,
+                };
               }
               return item;
             })
           );
-          const message = errors.map(item => `${item.fileName}: ${item.message}`).join(' ');
+          const message = errors
+            .map(item => `${item.fileName}: ${item.message}`)
+            .join(' ');
           setError(message);
           toast.warning('Some files were skipped', message);
         } else {
@@ -993,7 +1008,10 @@ export const DataVisualizerWorkspace: React.FC<
         }
       } catch (error) {
         if (!isAbortError(error)) {
-          const message = error instanceof Error ? error.message : 'The selected files could not be read.';
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'The selected files could not be read.';
           setError(message);
           toast.error('Upload failed', message);
           // Mark all as error
@@ -1027,7 +1045,12 @@ export const DataVisualizerWorkspace: React.FC<
       setUploadProgressItems(prev =>
         prev.map(item =>
           item.id === fileId
-            ? { ...item, status: 'retrying' as const, progress: 0, errorMessage: undefined }
+            ? {
+                ...item,
+                status: 'retrying' as const,
+                progress: 0,
+                errorMessage: undefined,
+              }
             : item
         )
       );
@@ -1038,18 +1061,15 @@ export const DataVisualizerWorkspace: React.FC<
     [handleFiles]
   );
 
-  const handleCancelFileUpload = React.useCallback(
-    (fileId: string) => {
-      parseAbortRef.current?.abort();
-      setUploadProgressItems(prev =>
-        prev.map(item =>
-          item.id === fileId ? { ...item, status: 'cancelled' as const } : item
-        )
-      );
-      setIsParsing(false);
-    },
-    []
-  );
+  const handleCancelFileUpload = React.useCallback((fileId: string) => {
+    parseAbortRef.current?.abort();
+    setUploadProgressItems(prev =>
+      prev.map(item =>
+        item.id === fileId ? { ...item, status: 'cancelled' as const } : item
+      )
+    );
+    setIsParsing(false);
+  }, []);
 
   const resetWorkspace = React.useCallback(async () => {
     const previousDatasetCount = datasets.length;
@@ -1870,13 +1890,15 @@ export const DataVisualizerWorkspace: React.FC<
               )}
             </div>
 
-            {!isParsing && uploadProgressItems.length > 0 && uploadProgressItems.some(item => item.status === 'error') && (
-              <FileUploadProgress
-                files={uploadProgressItems}
-                onRetry={handleRetryFile}
-                className="w-full"
-              />
-            )}
+            {!isParsing &&
+              uploadProgressItems.length > 0 &&
+              uploadProgressItems.some(item => item.status === 'error') && (
+                <FileUploadProgress
+                  files={uploadProgressItems}
+                  onRetry={handleRetryFile}
+                  className="w-full"
+                />
+              )}
 
             {error && (
               <div className="mt-3">
