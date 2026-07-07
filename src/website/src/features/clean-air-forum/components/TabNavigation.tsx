@@ -27,11 +27,11 @@ const TabNavigation: React.FC = () => {
   // Define the tabs list.
   const tabs = [
     { href: '/about', text: 'About' },
-    { href: '/program-committee', text: 'Programme Committee' },
-    { href: '/sessions', text: 'Schedule' },
+    { href: '/committee', text: 'Programme Committee' },
+    { href: '/program', text: 'Schedule' },
     { href: '/speakers', text: 'Speakers' },
     { href: '/partners', text: 'Partners' },
-    { href: '/sponsorships', text: 'Sponsorships' },
+    { href: '/sponsorship', text: 'Sponsorships' },
     { href: '/logistics', text: 'Travel Logistics' },
     { href: '/glossary', text: 'Glossary' },
     { href: '/resources', text: 'Resources' },
