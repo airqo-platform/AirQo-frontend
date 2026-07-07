@@ -109,23 +109,21 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
       {coverImage && <CoverImage src={coverImage} alt={blog.title} />}
 
       <article className="max-w-[800px] mx-auto py-12 px-4">
-        <div className="prose prose-lg prose-slate prose-headings:font-semibold prose-headings:text-[#111827] prose-h2:text-[26px] prose-h2:tracking-[-0.015em] prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-[20px] prose-h3:tracking-[-0.01em] prose-h3:mt-6 prose-h3:mb-2 prose-p:text-[16px] prose-p:leading-[1.75] prose-p:text-[#374151] prose-p:mb-4 prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-600/30 prose-a:underline-offset-2 prose-a:hover:decoration-blue-600 prose-blockquote:border-l-[3px] prose-blockquote:border-blue-600 prose-blockquote:pl-5 prose-blockquote:italic prose-blockquote:text-[#4b5563] prose-img:rounded-lg prose-img:my-6 prose-code:text-[14px] prose-code:bg-[#f3f4f6] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-li:my-1">
-          {blog.content_html ? (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeAndCleanHTML(blog.content_html),
-              }}
-            />
-          ) : (
-            <div>
-              <h2>Story summary</h2>
-              <p>{blog.summary}</p>
-              <p>
-                The full article content is not available yet. Check back soon.
-              </p>
-            </div>
-          )}
-        </div>
+        {blog.content_html ? (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: sanitizeAndCleanHTML(blog.content_html),
+            }}
+          />
+        ) : (
+          <div>
+            <h2>Story summary</h2>
+            <p>{blog.summary}</p>
+            <p>
+              The full article content is not available yet. Check back soon.
+            </p>
+          </div>
+        )}
       </article>
 
       <div className="max-w-[800px] mx-auto px-4 pb-16">
