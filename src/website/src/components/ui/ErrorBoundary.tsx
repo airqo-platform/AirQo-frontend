@@ -1,12 +1,12 @@
 'use client';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
-import { isGoogleTranslationActive } from '@/utils/googleTranslate';
-import logger from '@/utils/logger';
+import { isGoogleTranslationActive } from '@/lib/utils/googleTranslate';
+import logger from '@/lib/utils/logger';
 import {
   getSessionStorageItem,
   setSessionStorageItem,
-} from '@/utils/storageUtils';
+} from '@/lib/utils/storageUtils';
 
 import CustomButton from './CustomButton';
 

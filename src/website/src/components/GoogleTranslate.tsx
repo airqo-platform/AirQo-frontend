@@ -8,8 +8,8 @@ import {
   GOOGLE_TRANSLATE_LOAD_EVENT,
   isGoogleTranslationActive,
   normalizeGoogleLanguageCode,
-} from '@/utils/googleTranslate';
-import { languages } from '@/utils/languages';
+} from '@/lib/utils/googleTranslate';
+import { languages } from '@/lib/utils/languages';
 
 declare global {
   interface Window {

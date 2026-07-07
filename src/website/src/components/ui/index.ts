@@ -45,8 +45,6 @@ export { default as ForumDetailSkeleton } from './ForumDetailSkeleton';
 export { default as ForumListSkeleton } from './ForumListSkeleton';
 export { default as ForumLoading } from './ForumLoading';
 export { Input } from './input';
-export { default as MediaContentSection } from './MediaContentSection';
-export { default as MemberCard } from './MemberCard';
 export {
   NavigationMenu,
   NavigationMenuContent,
@@ -58,5 +56,7 @@ export {
   navigationMenuTriggerStyle,
   NavigationMenuViewport,
 } from './navigation-menu';
-export { default as NoData } from './NoData';
 export { default as Pagination } from './Pagination';
+export { default as MemberCard } from '@/components/cards/MemberCard';
+export { default as NoData } from '@/components/feedback/NoData';
+export { default as MediaContentSection } from '@/components/sections/MediaContentSection';

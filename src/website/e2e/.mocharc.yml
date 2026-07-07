@@ -1,0 +1,10 @@
+spec: 'e2e/tests/**/*.test.ts'
+timeout: 60000
+reporter: mochawesome
+require:
+  - ts-node/register/transpile-only
+reporter-options:
+  - reportDir: ./e2e/reports
+  - reportFilename: e2e-report
+  - html: true
+  - json: true

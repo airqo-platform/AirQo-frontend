@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Language, languages } from '@/utils/languages';
+import { Language, languages } from '@/lib/utils/languages';
 
 interface LanguageModalProps {
   isOpen: boolean;

@@ -1,4 +1,7 @@
-import { getAirQualityCategory, getAirQualityColor } from '@/utils/airQuality';
+import {
+  getAirQualityCategory,
+  getAirQualityColor,
+} from '@/lib/utils/airQuality';
 
 /**
  * Utility to format display names
