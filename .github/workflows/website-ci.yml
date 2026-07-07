@@ -196,7 +196,7 @@ jobs:
             body.push('**Failed step(s):**');
             body.push('');
             for (const s of failedSteps) {
-              body.push(`| ${s.emoji} | **${s.name}** |`);
+              body.push(`- ${s.emoji} **${s.name}**`);
             }
             body.push('');
 

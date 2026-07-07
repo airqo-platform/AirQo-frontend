@@ -1,13 +1,10 @@
-import type { Metadata } from 'next';
-
 import FacesOfCleanAirPage from '@/features/faces-of-clean-air/FacesOfCleanAirPage';
+import {
+  generateMetadata as createMetadata,
+  METADATA_CONFIGS,
+} from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Faces of Clean Air | AirQo',
-  description:
-    'See the faces of clean air advocates from the Africa Clean Air Forum. View selfies shared by attendees showcasing air quality readings from their locations.',
-  robots: { index: false, follow: false },
-};
+export const metadata = createMetadata(METADATA_CONFIGS.facesOfCleanAir);
 
 export default function FacesOfCleanAirRoute() {
   return <FacesOfCleanAirPage />;
