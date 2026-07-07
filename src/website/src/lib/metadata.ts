@@ -514,9 +514,10 @@ export const METADATA_CONFIGS = {
     },
   },
   beacon: {
-    title: 'Beacon | Device Health Monitoring for Air Quality Sensor Networks',
+    title:
+      'AirQo Beacon | Device Health Monitoring for Air Quality Sensor Networks',
     description:
-      'Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
+      'AirQo Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
     keywords:
       'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
@@ -529,9 +530,9 @@ export const METADATA_CONFIGS = {
     },
   },
   vertex: {
-    title: 'Vertex | Open Air Quality Data Sharing Platform',
+    title: 'AirQo Vertex | Open Air Quality Data Sharing Platform',
     description:
-      'Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
+      'AirQo Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
     keywords:
       'open air quality data sharing platform, open air quality data, public air quality data, open data platform, air quality monitoring network, connect air quality monitors, low-cost air quality sensors, sensor network management, device health monitoring, open air quality network',
     url: '/products/vertex',

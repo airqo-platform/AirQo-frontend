@@ -19,8 +19,8 @@ const footerLinks = {
     { label: 'Air Quality API', href: '/products/api' },
     { label: 'Mobile App', href: '/products/mobile-app' },
     { label: 'AirQalibrate', href: '/products/calibrate' },
-    { label: 'Vertex', href: '/products/vertex' },
-    { label: 'Beacon', href: '/products/beacon' },
+    { label: 'AirQo Vertex', href: '/products/vertex' },
+    { label: 'AirQo Beacon', href: '/products/beacon' },
     { label: 'AirQo AI Platform', href: '/products/ai-platform' },
   ],
   solutions: [

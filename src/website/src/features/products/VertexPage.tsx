@@ -28,17 +28,17 @@ const VertexPage = () => {
     <ProductMarketingPage
       theme={vertexTheme}
       hero={{
-        breadcrumb: 'Our Products / Vertex',
+        breadcrumb: 'Our Products / AirQo Vertex',
         title: 'Connect your air quality monitors and share data publicly.',
         description:
-          'Collecting air quality data is only the first step. For that data to inform decisions, support public awareness, and drive clean air action, it must be visible, accessible, and usable. Vertex helps monitor owners, organisations, and network managers connect air quality monitors, manage device visibility, track network health, and share data through an open air quality data platform.',
+          'Collecting air quality data is only the first step. For that data to inform decisions, support public awareness, and drive clean air action, it must be visible, accessible, and usable. AirQo Vertex helps monitor owners, organisations, and network managers connect air quality monitors, manage device visibility, track network health, and share data through an open air quality data platform.',
         image: {
           src: '/assets/images/products/vertex/bring-device.webp',
-          alt: 'Vertex device health and visibility dashboard product showcase',
+          alt: 'AirQo Vertex device health and visibility dashboard product showcase',
         },
         actions: [
           {
-            label: 'Get Started on Vertex',
+            label: 'Get Started on AirQo Vertex',
             href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           },
           {
@@ -65,7 +65,7 @@ const VertexPage = () => {
               enough. The data also needs to move into systems where it can be
               managed, shared, and used to inform action.
             </p>
-            <p className="mt-4">Vertex helps close that gap.</p>
+            <p className="mt-4">AirQo Vertex helps close that gap.</p>
             <p className="mt-4">
               It gives monitor owners a clear way to connect their devices,
               manage their sensor network and share air quality data publicly.
@@ -79,11 +79,13 @@ const VertexPage = () => {
         title: (
           <>
             What you can do with{' '}
-            <span className={vertexTheme.accentTextClassName}>Vertex</span>
+            <span className={vertexTheme.accentTextClassName}>
+              AirQo Vertex
+            </span>
           </>
         ),
         description:
-          'Vertex provides a simple way to move from device deployment to public data sharing.',
+          'AirQo Vertex provides a simple way to move from device deployment to public data sharing.',
         items: [
           {
             title: 'Add your air quality monitors',
@@ -94,7 +96,7 @@ const VertexPage = () => {
           {
             title: 'Connect monitors from different manufacturers',
             description:
-              'Bring together air quality monitors from different hardware providers and sensor networks. Vertex is built to support more open data sharing without tying users to one device ecosystem.',
+              'Bring together air quality monitors from different hardware providers and sensor networks. AirQo Vertex is built to support more open data sharing without tying users to one device ecosystem.',
             Icon: FiLayers,
           },
           {
@@ -127,12 +129,14 @@ const VertexPage = () => {
         title: (
           <>
             Download{' '}
-            <span className={vertexTheme.accentTextClassName}>Vertex</span>{' '}
+            <span className={vertexTheme.accentTextClassName}>
+              AirQo Vertex
+            </span>{' '}
             Desktop
           </>
         ),
         description:
-          'Get the Vertex desktop application for Windows to manage your devices and air quality data locally.',
+          'Get the AirQo Vertex desktop application for Windows to manage your devices and air quality data locally.',
         actions: [
           {
             label: 'Download for Windows',
@@ -145,16 +149,16 @@ const VertexPage = () => {
         title: 'From deployed monitors to public impact',
         description: [
           'Air quality data becomes more useful when it can be accessed, understood and used by more people.',
-          'By opening up more sensor data, organisations can support better research, stronger public awareness, more informed policy and cleaner air decisions. Vertex makes this easier by giving monitor owners the tools to manage their devices and share selected data through one open platform.',
+          'By opening up more sensor data, organisations can support better research, stronger public awareness, more informed policy and cleaner air decisions. AirQo Vertex makes this easier by giving monitor owners the tools to manage their devices and share selected data through one open platform.',
         ],
         image: {
           src: '/assets/images/products/vertex/vertex-dashboard-showcase.webp',
-          alt: 'Vertex application interface with device health and visibility sections',
+          alt: 'AirQo Vertex application interface with device health and visibility sections',
         },
         cardBackgroundClassName: 'bg-[#EEF8F1]',
         reverse: true,
         action: {
-          label: 'Read Vertex Docs',
+          label: 'Read AirQo Vertex Docs',
           href: 'https://platform.airqo.net/docs/vertex/intro/',
           variant: 'secondary',
         },
@@ -169,14 +173,14 @@ const VertexPage = () => {
           </>
         ),
         description:
-          'Use Vertex to onboard devices, manage visibility, and bring more air quality data into public circulation through AirQo.',
+          'Use AirQo Vertex to onboard devices, manage visibility, and bring more air quality data into public circulation through AirQo.',
         actions: [
           {
-            label: 'Get Started on Vertex',
+            label: 'Get Started on AirQo Vertex',
             href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           },
           {
-            label: 'Vertex IoT Kit',
+            label: 'AirQo Vertex IoT Kit',
             href: 'https://forms.gle/9FKfbpGFxtYCmrui9',
             variant: 'secondary',
           },
@@ -185,11 +189,11 @@ const VertexPage = () => {
           {
             title: 'Import Your Devices',
             description:
-              'Start onboarding monitors through the main Vertex workflow.',
+              'Start onboarding monitors through the main AirQo Vertex workflow.',
             href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
           },
           {
-            title: 'Vertex Docs',
+            title: 'AirQo Vertex Docs',
             description:
               'Review setup and integration guidance for the deployment platform.',
             href: 'https://platform.airqo.net/docs/vertex/intro/',
@@ -197,7 +201,7 @@ const VertexPage = () => {
           {
             title: 'IoT Kit Waitlist',
             description:
-              'Join the early access path for the self-hostable Vertex core.',
+              'Join the early access path for the self-hostable AirQo Vertex core.',
             href: 'https://forms.gle/9FKfbpGFxtYCmrui9',
           },
         ],
