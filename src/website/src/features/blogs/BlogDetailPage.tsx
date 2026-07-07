@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import mainConfig from '@/config/site.config';
 import { sanitizeAndCleanHTML } from '@/lib/utils/htmlValidator';
 import type { BlogPost } from '@/types/api';
 
@@ -23,7 +22,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <div className={`${mainConfig.containerClass} mt-8 px-4`}>
+    <div className="max-w-[800px] mx-auto mt-8 px-4">
       <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-gray-100">
         {isLoading && (
           <div className="absolute inset-0 animate-pulse bg-gray-200" />
@@ -52,7 +51,7 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
   return (
     <div className="bg-white">
       <section className="border-b border-gray-200 bg-[#FAFBFC]">
-        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+        <div className="max-w-[800px] mx-auto py-12 px-4">
           <Link
             href="/blogs"
             className="text-[14px] font-medium text-blue-600 hover:underline"
@@ -109,7 +108,7 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
 
       {coverImage && <CoverImage src={coverImage} alt={blog.title} />}
 
-      <article className={`${mainConfig.containerClass} py-12 px-4`}>
+      <article className="max-w-[800px] mx-auto py-12 px-4">
         <div className="prose prose-lg prose-slate prose-headings:font-semibold prose-headings:text-[#111827] prose-h2:text-[26px] prose-h2:tracking-[-0.015em] prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-[20px] prose-h3:tracking-[-0.01em] prose-h3:mt-10 prose-h3:mb-3 prose-p:text-[16px] prose-p:leading-[1.75] prose-p:text-[#374151] prose-p:mb-6 prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-600/30 prose-a:underline-offset-2 prose-a:hover:decoration-blue-600 prose-blockquote:border-l-[3px] prose-blockquote:border-blue-600 prose-blockquote:pl-5 prose-blockquote:italic prose-blockquote:text-[#4b5563] prose-img:rounded-lg prose-img:my-8 prose-code:text-[14px] prose-code:bg-[#f3f4f6] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
           {blog.content_html ? (
             <div
@@ -129,7 +128,7 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
         </div>
       </article>
 
-      <div className={`${mainConfig.containerClass} px-4 pb-16`}>
+      <div className="max-w-[800px] mx-auto px-4 pb-16">
         <div className="flex items-start gap-4 py-6 border-t border-gray-200">
           {authorImage ? (
             <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0">
@@ -162,7 +161,7 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
         </div>
       </div>
 
-      <div className={`${mainConfig.containerClass} px-4 pb-16`}>
+      <div className="max-w-[800px] mx-auto px-4 pb-16">
         <div className="flex items-center gap-6 text-[13px] text-[#9ca3af] py-4 border-t border-gray-200">
           <span>
             Published:{' '}

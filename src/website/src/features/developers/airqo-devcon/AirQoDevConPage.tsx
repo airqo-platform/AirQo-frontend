@@ -253,7 +253,7 @@ const AirQoDevConPage = () => {
               Pick your superpower.
             </h2>
           </div>
-          <div className="border border-[#e4e4e7] rounded-lg divide-y divide-[#e4e4e7]">
+          <div className="bg-white border border-blue-200 rounded-lg divide-y divide-blue-100">
             {tracks.map((track) => {
               const Icon = track.icon;
               return (
