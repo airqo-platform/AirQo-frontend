@@ -14,6 +14,7 @@ import {
   FiUsers,
 } from 'react-icons/fi';
 
+import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import {
   DEVCON_APPLY_URL,
@@ -42,24 +43,6 @@ const devconStats: InfoCard[] = [
   { icon: FiTool, label: 'Format', value: '100% hands on' },
   { icon: FiUsers, label: 'Access', value: 'Free for students' },
   { icon: FiAward, label: 'Finish line', value: 'Gear + certificate' },
-];
-
-const focusAreas: InfoCard[] = [
-  {
-    icon: FiCpu,
-    label: 'Hardware & Firmware',
-    value: 'CAD design, PCB layouts, soldering, and sensor assembly.',
-  },
-  {
-    icon: FiCode,
-    label: 'Software & Deployment',
-    value: 'APIs, dashboards, cloud pipelines, and open-source contribution.',
-  },
-  {
-    icon: FiBarChart2,
-    label: 'Data Science & AI',
-    value: 'Air quality modelling, ML analysis, and predictive systems.',
-  },
 ];
 
 const tracks: Track[] = [
@@ -96,76 +79,72 @@ const outcomes = [
 
 const AirQoDevConPage = () => {
   return (
-    <div className="flex w-full flex-col space-y-20 pb-16">
-      <section className="bg-blue-50 px-4 py-16">
-        <div
-          className={`${mainConfig.containerClass} grid grid-cols-1 items-center gap-12 md:grid-cols-2`}
-        >
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center gap-3 text-[14px] text-gray-500">
-              <span>Developers {'>'}</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-700 shadow-sm sm:px-4 sm:py-2 sm:text-xs">
-                <span
-                  className="h-2.5 w-2.5 rounded-full bg-blue-600"
-                  aria-hidden="true"
-                />
-                AirQo DevCon 2026
-              </span>
+    <div className="flex w-full flex-col space-y-16 pb-12">
+      <section className="border-b border-[#e4e4e7] bg-[#FAFBFC]">
+        <div className={`${mainConfig.containerClass} py-12 lg:py-16 px-4`}>
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <div className="flex items-center gap-2.5 mb-4">
+                <span className="text-[13px] text-[#71717a]">Developers</span>
+                <span className="text-[13px] text-[#a1a1aa]">/</span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-[#e4e4e7] bg-white text-[11px] font-medium text-[#52525b] rounded">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                  AirQo DevCon 2026
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-5">
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#71717a]">
+                  <FiMapPin className="w-3.5 h-3.5" /> Makerere University
+                </span>
+                <span className="text-[#d4d4d8]">&middot;</span>
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#71717a]">
+                  <FiCalendar className="w-3.5 h-3.5" /> 17&ndash;18 June 2026
+                </span>
+                <span className="text-[#d4d4d8]">&middot;</span>
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#059669]">
+                  <FiCheckCircle className="w-3.5 h-3.5" /> Applications open
+                </span>
+              </div>
+              <h1 className="text-[32px] md:text-[36px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.15] mb-4">
+                Build the Future of Clean Air
+              </h1>
+              <p className="text-[16px] text-[#71717a] leading-[1.6] max-w-lg mb-5">
+                A 2-day hands-on DevCon for engineering, computer science, and
+                tech-curious students ready to design, build, and deploy
+                real-world air quality solutions across Uganda.
+              </p>
+              <p className="text-[14px] font-medium text-[#18181b] mb-6">
+                Learn. Build. Break things. Fix them. Ship.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={DEVCON_APPLY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <CustomButton className="px-5 py-3 text-[13px]">
+                    Apply Now
+                    <FiExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                  </CustomButton>
+                </a>
+                <Link href="#devcon-tracks">
+                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5]">
+                    Explore tracks
+                  </CustomButton>
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
-                <FiMapPin aria-hidden="true" />
-                Makerere University
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
-                <FiCalendar aria-hidden="true" />
-                17 - 18 June 2026
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 font-medium text-blue-700">
-                <FiCheckCircle aria-hidden="true" />
-                Applications open
-              </span>
-            </div>
-            <h1 className="max-w-xl text-[44px] font-bold leading-[52px] text-gray-900 md:text-[48px] md:leading-[56px]">
-              Build the Future of Clean Air
-            </h1>
-            <p className="text-[18px] leading-8 text-gray-700">
-              A 2-day hands-on DevCon for engineering, computer science, and
-              tech-curious students ready to design, build, and deploy
-              real-world air quality solutions across Uganda.
-            </p>
 
-            <p className="font-medium text-blue-700">
-              Learn. Build. Break things. Fix them. Ship.
-            </p>
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <a
-                href={DEVCON_APPLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-6 py-4 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95"
-              >
-                Apply Now. It&apos;s Free
-                <FiExternalLink aria-hidden="true" />
-              </a>
-              <Link
-                href="#devcon-tracks"
-                className="inline-flex items-center justify-center bg-blue-100 px-6 py-4 text-sm font-medium text-blue-700 transition hover:bg-blue-200 active:scale-95"
-              >
-                Explore tracks
-              </Link>
+            <div className="flex justify-center">
+              <Image
+                src={DEVCON_IMAGE_SRC}
+                alt="AirQo DevCon"
+                width={720}
+                height={540}
+                priority
+                className="w-full rounded-lg"
+              />
             </div>
-          </div>
-
-          <div className="flex justify-center">
-            <Image
-              src={DEVCON_IMAGE_SRC}
-              alt="Students building air quality hardware and software at AirQo DevCon"
-              width={720}
-              height={540}
-              priority
-              className="h-auto w-full rounded-lg object-cover shadow-md"
-            />
           </div>
         </div>
       </section>
@@ -175,14 +154,14 @@ const AirQoDevConPage = () => {
           className={`${mainConfig.containerClass} grid grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center`}
         >
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600">
               Countdown
             </p>
-            <h2 className="mb-4 text-[32px] font-semibold leading-tight text-gray-900">
+            <h2 className="text-[20px] md:text-[24px] font-semibold tracking-[-0.015em] text-[#18181b] mb-3">
               June 17, 2026 build window starts in.
             </h2>
-            <p className="text-lg leading-8 text-gray-700">
-              AirQo DevCon runs on 17 - 18 June 2026 at Makerere University.
+            <p className="text-[15px] text-[#71717a] leading-[1.6]">
+              AirQo DevCon runs on 17&ndash;18 June 2026 at Makerere University.
               Register your interest now and we will share joining details and
               preparation notes with registered students.
             </p>
@@ -193,72 +172,68 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
-      <section className="bg-[#EDF3FF] px-4 py-16">
-        <div
-          className={`${mainConfig.containerClass} grid gap-4 md:grid-cols-5`}
-        >
-          {devconStats.map((stat) => {
-            const Icon = stat.icon;
-
-            return (
-              <div
-                key={stat.label}
-                className="rounded-lg bg-white p-5 shadow-sm"
-              >
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                  <Icon size={20} aria-hidden="true" />
+      <section className="bg-blue-50">
+        <div className={`${mainConfig.containerClass} py-10 px-4`}>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {devconStats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={stat.label}
+                  className="border border-[#e4e4e7] rounded-lg p-4"
+                >
+                  <Icon className="w-5 h-5 text-[#71717a] mb-3" />
+                  <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-[#a1a1aa] mb-1">
+                    {stat.label}
+                  </p>
+                  <p className="text-[15px] font-semibold text-[#18181b]">
+                    {stat.value}
+                  </p>
                 </div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {stat.label}
-                </p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {stat.value}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
       <section className={`${mainConfig.containerClass} px-4`}>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-5">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
               About AirQo DevCon
             </p>
-            <h2 className="text-[40px] font-semibold leading-tight text-gray-900">
+            <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] text-[#18181b] mb-3">
               Uganda&apos;s most technical student event.
             </h2>
-            <p className="text-lg leading-8 text-gray-700">
+            <p className="text-[15px] text-[#71717a] leading-[1.6] mb-3">
               AirQo DevCon is a boots-on-the-ground, full-stack workshop where
               students get hands-on with real hardware, ship real code, and
               train real AI models in service of cleaner air for African cities.
             </p>
-            <p className="text-lg leading-8 text-gray-700">
+            <p className="text-[15px] text-[#71717a] leading-[1.6]">
               AirQo is a national asset. This is a chance for students to learn
               how the systems behind clean air data are built, maintained, and
               improved.
             </p>
           </div>
 
-          <div className="grid gap-4">
-            {focusAreas.map((area) => {
-              const Icon = area.icon;
-
+          <div className="grid gap-3">
+            {tracks.map((track) => {
+              const Icon = track.icon;
               return (
                 <div
-                  key={area.label}
-                  className="rounded-lg border border-gray-200 bg-gray-50 p-6"
+                  key={track.title}
+                  className="border border-[#e4e4e7] rounded-lg p-5"
                 >
                   <div className="flex gap-4">
-                    <div className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-blue-100 text-blue-700">
-                      <Icon size={22} aria-hidden="true" />
-                    </div>
+                    <Icon className="w-5 h-5 text-[#71717a] mt-0.5 shrink-0" />
                     <div>
-                      <h3 className="mb-2 text-xl font-semibold text-gray-900">
-                        {area.label}
+                      <h3 className="text-[16px] font-semibold text-[#18181b] mb-1.5">
+                        {track.title}
                       </h3>
-                      <p className="leading-7 text-gray-700">{area.value}</p>
+                      <p className="text-[14px] text-[#71717a] leading-[1.6]">
+                        {track.description}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -268,52 +243,38 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
-      <section id="devcon-tracks" className="bg-[#EDF3FF] px-4 py-16">
-        <div className={`${mainConfig.containerClass} space-y-8`}>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-end">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">
-                Your track
-              </p>
-              <h2 className="text-[40px] font-semibold leading-tight text-gray-900">
-                Pick your superpower.
-              </h2>
-            </div>
-            <p className="text-lg leading-8 text-gray-700">
-              Each track is practical, student-friendly, and connected to a real
-              AirQo workflow.
+      <section id="devcon-tracks" className="bg-[#EDF3FF]">
+        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+          <div className="mb-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
+              Your track
             </p>
+            <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] text-[#18181b]">
+              Pick your superpower.
+            </h2>
           </div>
-
-          <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+          <div className="border border-[#e4e4e7] rounded-lg divide-y divide-[#e4e4e7]">
             {tracks.map((track) => {
               const Icon = track.icon;
-
               return (
                 <article
                   key={track.title}
-                  className="grid gap-5 border-b border-blue-100 p-6 last:border-b-0 lg:grid-cols-[56px_1fr_280px] lg:items-start"
+                  className="p-6 grid gap-4 lg:grid-cols-[48px_1fr_200px] lg:items-start"
                 >
-                  <div className="flex items-center lg:items-start">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                      <Icon size={22} aria-hidden="true" />
-                    </div>
-                  </div>
-
+                  <Icon className="w-6 h-6 text-[#71717a] mt-0.5" />
                   <div>
-                    <h3 className="text-2xl font-semibold text-gray-900">
+                    <h3 className="text-[18px] font-semibold text-[#18181b] mb-2">
                       {track.title}
                     </h3>
-                    <p className="mt-4 max-w-2xl leading-7 text-gray-700">
+                    <p className="text-[14px] text-[#71717a] leading-[1.6]">
                       {track.description}
                     </p>
                   </div>
-
-                  <div className="rounded-lg bg-blue-50 p-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                  <div className="bg-[#f4f4f5] rounded-md p-3">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.06em] text-[#a1a1aa] mb-1.5">
                       Toolkit
                     </p>
-                    <p className="text-sm font-medium leading-7 text-gray-800">
+                    <p className="text-[13px] text-[#52525b]">
                       {track.tools.join(' / ')}
                     </p>
                   </div>
@@ -324,68 +285,60 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
-      <section className={`${mainConfig.containerClass} px-4`}>
-        <div className="grid grid-cols-1 gap-8 rounded-lg border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-green-50 p-8 lg:grid-cols-[1fr_0.8fr] lg:p-12">
-          <div className="space-y-5">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
-              What you leave with
-            </p>
-            <h2 className="text-[32px] font-semibold leading-tight text-gray-900 lg:text-[40px]">
-              Practical skills, open-source credits, and proof you built
-              something real.
-            </h2>
-            <p className="text-lg leading-8 text-gray-700">
-              The event is designed for students who want more than a talk. It
-              is a guided build experience across hardware, software, and data.
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <ul className="space-y-4">
-              {outcomes.map((outcome) => (
-                <li key={outcome} className="flex gap-3 text-gray-700">
-                  <FiCheckCircle
-                    className="mt-1 flex-none text-blue-700"
-                    aria-hidden="true"
-                  />
-                  <span>{outcome}</span>
-                </li>
-              ))}
-            </ul>
+      <section className="border-t border-[#e4e4e7]">
+        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr]">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
+                What you leave with
+              </p>
+              <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] text-[#18181b] mb-3">
+                Practical skills, open-source credits, and proof you built
+                something real.
+              </h2>
+              <p className="text-[15px] text-[#71717a] leading-[1.6]">
+                The event is designed for students who want more than a talk.
+              </p>
+            </div>
+            <div className="border border-[#e4e4e7] rounded-lg p-5">
+              <ul className="space-y-3">
+                {outcomes.map((outcome) => (
+                  <li
+                    key={outcome}
+                    className="flex gap-2.5 text-[14px] text-[#52525b]"
+                  >
+                    <FiCheckCircle className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                    <span>{outcome}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4">
-        <div
-          className={`${mainConfig.containerClass} rounded-lg bg-blue-600 p-8 text-white lg:p-12`}
-        >
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-100">
-                Ready to build something real?
-              </p>
-              <h2 className="mb-4 text-[32px] font-semibold leading-tight lg:text-[40px]">
-                Spots are limited. Apply while registration is open.
-              </h2>
-              <p className="text-lg leading-8 text-blue-50">
-                Free to attend | Official AirQo gear | Certificate of completion
-                | Open-source credits | AirQo squad membership
-              </p>
-              <p className="mt-3 text-sm font-medium text-blue-100">
-                June 2026 at Makerere University | Event details shared with
-                registered students
-              </p>
-            </div>
-            <div>
+      <section>
+        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+          <div className="bg-blue-600 rounded-lg p-6 lg:p-8 text-white">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] mb-2">
+                  Spots are limited. Apply while registration is open.
+                </h2>
+                <p className="text-[14px] text-blue-100">
+                  Free to attend &middot; Official AirQo gear &middot;
+                  Certificate &middot; Open-source credits
+                </p>
+              </div>
               <a
                 href={DEVCON_APPLY_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 bg-white px-6 py-4 text-sm font-medium text-blue-700 transition-transform duration-300 hover:bg-blue-50 active:scale-95 sm:w-auto"
               >
-                Apply Now. It&apos;s Free
-                <FiExternalLink aria-hidden="true" />
+                <CustomButton className="px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50">
+                  Apply Now
+                  <FiExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                </CustomButton>
               </a>
             </div>
           </div>

@@ -51,21 +51,21 @@ export default function PackagesPage() {
 
       <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="border-b border-[#e4e4e7] bg-[#FAFBFC]">
+        <section className="bg-blue-600">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
             <div className="max-w-2xl">
-              <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[#71717a] mb-3 block">
+              <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-200 mb-3 block">
                 Open Source
               </span>
-              <h1 className="text-[28px] md:text-[32px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.2]">
+              <h1 className="text-[28px] md:text-[32px] font-semibold tracking-[-0.025em] text-white leading-[1.2]">
                 AirQo Packages
               </h1>
-              <p className="mt-3 text-[16px] text-[#71717a] leading-[1.5] max-w-lg">
+              <p className="mt-3 text-[16px] text-blue-100 leading-[1.5] max-w-lg">
                 Open-source packages for building modern applications.
               </p>
               <div className="mt-6 flex gap-3">
                 <Link href={`/packages/${activePackage.id}`} prefetch={false}>
-                  <CustomButton className="px-5 py-3 text-[13px]">
+                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50">
                     Explore {activePackage.displayName}
                   </CustomButton>
                 </Link>
@@ -74,7 +74,7 @@ export default function PackagesPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5]">
+                  <CustomButton className="px-5 py-3 text-[13px] bg-blue-700 text-white hover:bg-blue-800">
                     View on GitHub
                   </CustomButton>
                 </a>

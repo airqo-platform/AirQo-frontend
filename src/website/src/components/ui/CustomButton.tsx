@@ -17,7 +17,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   return (
     <button
       className={cn(
-        'px-6 py-4 text-sm font-medium transition-transform duration-300',
+        'inline-flex items-center px-6 py-4 text-sm font-medium transition-transform duration-300',
         'active:scale-95',
         'bg-blue-600 text-white',
         'shadow-none focus:outline-none',

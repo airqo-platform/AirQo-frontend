@@ -9,20 +9,20 @@ export default function IconsPackagePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="border-b border-[#e4e4e7] bg-[#FAFBFC]">
+      <section className="bg-blue-600">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="mb-4">
             <BackButton
               fallbackUrl="/packages"
               label="Back to Packages"
-              className="text-[#71717a] hover:text-[#18181b]"
+              className="text-blue-200 hover:text-white"
             />
           </div>
           <div className="max-w-2xl">
-            <h1 className="text-[28px] md:text-[32px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.2]">
+            <h1 className="text-[28px] md:text-[32px] font-semibold tracking-[-0.025em] text-white leading-[1.2]">
               AirQo Icon Library
             </h1>
-            <p className="mt-3 text-[16px] text-[#71717a] leading-[1.5] max-w-lg">
+            <p className="mt-3 text-[16px] text-blue-100 leading-[1.5] max-w-lg">
               1,383+ beautiful icons for React, Vue, and Flutter. Fully
               customizable with TypeScript support.
             </p>
