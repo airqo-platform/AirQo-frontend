@@ -510,14 +510,6 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
-  facesOfCleanAir: {
-    title: 'Faces of Clean Air | AirQo',
-    description:
-      'See the faces of clean air advocates from the Africa Clean Air Forum. View selfies shared by attendees showcasing air quality readings from their locations.',
-    keywords:
-      'Faces of Clean Air, Africa Clean Air Forum selfies, air quality advocates, PM2.5 readings Africa, clean air community, air quality conference photos',
-    url: '/faces-of-clean-air',
-  },
   careers: {
     title:
       'Jobs at AirQo Uganda | Environmental Careers Kampala - Data Science, Engineering Jobs Kenya',
