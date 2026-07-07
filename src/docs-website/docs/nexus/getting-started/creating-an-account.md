@@ -15,8 +15,8 @@ AirQo Nexus supports two workflows:
 
 | Workflow | Best For | Web Address |
 |----------|----------|-------------|
-| **Individual** | Personal research, analysis, and exploration | `https://analytics.airqo.net/user/*` |
-| **Organization** | Teams, government agencies, and NGOs managing sensor networks | `https://analytics.airqo.net/org/<your-org>/*` |
+| **Individual** | Personal research, analysis, and exploration | `https://nexus.airqo.net//user/*` |
+| **Organization** | Teams, government agencies, and NGOs managing sensor networks | `https://nexus.airqo.net//org/<your-org>/*` |
 
 New accounts begin in the **Individual** workflow. You can switch to an organization from the header once you have been invited.
 
@@ -24,8 +24,8 @@ New accounts begin in the **Individual** workflow. You can switch to an organiza
 
 ## Sign Up
 
-1. Go to [AirQo Nexus](https://analytics.airqo.net).
-2. Select **Sign Up** on the welcome page, or open the [registration page](https://analytics.airqo.net/user/creation/individual/register).
+1. Go to [AirQo Nexus](https://nexus.airqo.net/).
+2. Select **Sign Up** on the welcome page, or open the [registration page](https://nexus.airqo.net//user/creation/individual/register).
 3. Enter the following details:
    - **First name**
    - **Last name**
@@ -34,7 +34,7 @@ New accounts begin in the **Individual** workflow. You can switch to an organiza
 4. Read and accept the [Terms of Service](https://airqo.net/legal/terms-of-service) and [Privacy Policy](https://airqo.net/legal/privacy-policy).
 5. Select **Continue**.
 6. Check your email for a verification message and select the confirmation link.
-7. Once verified, return to AirQo Nexus and [log in](https://analytics.airqo.net/user/login).
+7. Once verified, return to AirQo Nexus and [log in](https://nexus.airqo.net//user/login).
 
 :::tip Can’t find the email?
 Check your spam or junk folder. If it is not there after a few minutes, try signing up again.

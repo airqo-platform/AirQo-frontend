@@ -11,11 +11,11 @@ The Data Export page lets you download air quality datasets from AirQo Nexus. Se
 
 ## Accessing the Export Page
 
-1. Log in to [AirQo Nexus](https://analytics.airqo.net).
+1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
 2. Open the sidebar and select **Visualization & Data Export** under the Data & Analysis section.
 3. Direct links:
-   - **Individual workflow:** [analytics.airqo.net/user/data-export](https://analytics.airqo.net/user/data-export)
-   - **Organization workflow:** `https://analytics.airqo.net/org/<your-org>/data-export`
+   - **Individual workflow:** [nexus.airqo.net//user/data-export](https://nexus.airqo.net//user/data-export)
+   - **Organization workflow:** `https://nexus.airqo.net//org/<your-org>/data-export`
 
 ---
 
