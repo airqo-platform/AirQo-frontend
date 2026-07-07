@@ -5,7 +5,7 @@ sidebar_label: Navigating the Platform
 
 # Navigating the Platform
 
-Learn how the Nexus interface is organized, how the Individual and Organization workflows differ, and how to move between them.
+Learn how the AirQo Nexus interface is organized, how the Individual and Organization workflows differ, and how to move between them.
 
 ---
 

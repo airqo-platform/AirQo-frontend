@@ -3,9 +3,9 @@ sidebar_position: 1
 sidebar_label: Overview
 ---
 
-# About Nexus
+# About AirQo Nexus
 
-Here you’ll find comprehensive information for navigating Nexus, accessing high-resolution air quality data, and integrating our tools into your workflow. We’ve designed this documentation to be user-friendly, catering to everyone from policy makers and researchers to developers and data scientists.
+Here you’ll find comprehensive information for navigating AirQo Nexus, accessing high-resolution air quality data, and integrating our tools into your workflow. We’ve designed this documentation to be user-friendly, catering to everyone from policy makers and researchers to developers and data scientists.
 
 As an open-source initiative, AirQo is built on the principles of transparency and collaboration. Our **data is open access**, provided that it is used with appropriate attribution to AirQo. Furthermore, our **codebase is entirely open source**; we believe that community-driven innovation is the fastest path to cleaner air. Whether you are here to download a local air quality report or to help us squash bugs in the code, you are a vital part of our mission.
 
@@ -15,9 +15,9 @@ For developers looking to contribute or run the platform locally, you can find o
 
 ## Overview
 
-Nexus provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through a conversion-optimized user interface, Nexus makes it easy to visualize complex environmental data in minutes.
+AirQo Nexus provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through a conversion-optimized user interface, AirQo Nexus makes it easy to visualize complex environmental data in minutes.
 
-With Nexus, you can explore real-time and historical air quality trends through interactive maps and custom dashboards. The platform allows you to:
+With AirQo Nexus, you can explore real-time and historical air quality trends through interactive maps and custom dashboards. The platform allows you to:
 
 * **Visualize Data:** Monitor PM2.5 and PM10 levels across various locations using maps and time-series charts.
 * **Export & Analyze:** Download calibrated air quality data in CSV, Excel, or PDF formats for in-depth offline analysis in tools like Microsoft Excel or R.
