@@ -28,12 +28,12 @@ Run from `src/website/`. No monorepo task runner; each app is independent.
 - `src/components/` - Reusable components. `ui/` has shadcn primitives, `layouts/` has MainLayout/Navbar/Footer.
 - `src/services/` - API client and hooks. `apiClient.ts` handles server vs client routing.
 - `src/store/` - Redux slices.
-- `src/configs/` - Static config data (package listings, etc.).
+- `src/config/` - Static config data (package listings, etc.).
 - `src/lib/utils.ts` - `cn()` helper for Tailwind class merging.
 
 ## Path Aliases
 
-Configured in `tsconfig.json`: `@/*` maps to `./src/*`. Also `@/components/*`, `@/utils/*`, `@/hooks/*`, `@/store/*`, `@/types/*`, `@/lib/*`, `@/services/*`, `@/context/*`, `@/views/*`, `@/configs/*`.
+Configured in `tsconfig.json`: `@/*` maps to `./src/*`. Also `@/components/*`, `@/utils/*`, `@/hooks/*`, `@/store/*`, `@/types/*`, `@/lib/*`, `@/services/*`, `@/context/*`, `@/views/*`, `@/config/*`.
 
 ## API Client
 

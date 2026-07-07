@@ -1,8 +1,8 @@
 /**
- * Config for the Clean Air Forum selfie filter + conference wall display.
+ * Config for the Clean Air Forum conference wall display.
  *
- * The wall page (`/selfies`) and the mobile app's submission flow both need
- * to agree on which forum edition is "current" — update
+ * The wall page (`/faces-of-clean-air`) and the mobile app's submission flow both
+ * need to agree on which forum edition is "current" — update
  * `NEXT_PUBLIC_CLEAN_AIR_FORUM_EVENT_ID` (website) and
  * `CLEAN_AIR_FORUM_EVENT_ID` (mobile `.env`) together when a new edition
  * starts.
@@ -15,9 +15,3 @@ export const CLEAN_AIR_FORUM_CURRENT_EVENT_ID =
  * refresh every couple of minutes rather than feel like a live feed.
  */
 export const CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS = 2 * 60 * 1000;
-
-/** How many selfies are shown on screen at once. */
-export const CLEAN_AIR_FORUM_WALL_PAGE_SIZE = 8;
-
-/** How often the on-screen page of selfies advances to the next set. */
-export const CLEAN_AIR_FORUM_WALL_SLIDE_INTERVAL_MS = 8000;
