@@ -376,10 +376,12 @@ export default function FacesOfCleanAirPage() {
   const showEmpty = fetchState === 'success' && submissions.length === 0;
 
   return (
-    <div className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-blue-600 via-blue-500 to-blue-200">
-      {/* White fade at the bottom - extended further down */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/70 to-transparent" />
-
+    <div
+      className="relative min-h-[100svh] overflow-hidden"
+      style={{
+        background: `linear-gradient(180deg, #02143B 0%, #145FFF 50%, #FFFFFF 100%)`,
+      }}
+    >
       <div className="relative mx-auto min-h-[100svh] w-full max-w-[1400px] px-5 pb-10 pt-8 sm:px-8 lg:px-12">
         <header className="mx-auto grid w-full max-w-[1200px] items-center gap-5 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6">
           <div className="flex justify-center sm:justify-start">
