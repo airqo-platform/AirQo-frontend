@@ -53,7 +53,7 @@ jobs:
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
 
-          for SERVICE in website beacon calibrate-app nexus vertex docs; do
+          for SERVICE in website beacon calibrate-app analytics-p vertex docs; do
             APP="${BRANCH}-${SERVICE}-preview"
             echo "Attempting to delete $APP..."
             az containerapp delete \

@@ -11,8 +11,8 @@ on:
         description: "Deploy Calibrate app"
         required: false
         type: boolean
-      nexus:
-        description: "Deploy Nexus"
+      analytics_platform:
+        description: "Deploy Analytics Platform"
         required: false
         type: boolean
       vertex:
@@ -149,10 +149,10 @@ jobs:
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate production image tag"
 
-  nexus:
-    name: build-push-nexus
+  analytics-platform:
+    name: build-push-analytics-platform
     needs: [image-tag]
-    if: inputs.nexus == true
+    if: inputs.analytics_platform == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -170,30 +170,30 @@ jobs:
         run: |
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
-            --name prod-env-next-nexus \
+            --name prod-env-next-platform \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
 
       - name: Build and Push Docker Image
         run: |
-          cd src/nexus/
-          docker build -t ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-nexus:latest
-          docker push ${{ env.REGISTRY_URL }}/airqo-nexus:latest
+          cd src/platform/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
 
       - name: Update Helm values
         uses: Wandalen/wretry.action@v1.2.0
         with:
           action: fjogeleit/yaml-update-action@main
           with: |
-            valueFile: "k8s/nexus/k8s-aks/airqo-nexus/values-prod.yaml"
+            valueFile: "k8s/platform/k8s-aks/airqo-platform/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update nexus production image tag"
+            message: "Update analytics production image tag"
 
   vertex:
     name: build-push-vertex
