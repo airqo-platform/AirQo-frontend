@@ -1,0 +1,72 @@
+name: nexus-ci
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+    paths:
+      - "src/nexus/**"
+      - ".github/workflows/nexus-ci.yml"
+  push:
+    branches:
+      - staging
+    paths:
+      - "src/nexus/**"
+      - ".github/workflows/nexus-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-nexus:
+    name: check-nexus
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/nexus
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: src/nexus/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Unit Tests & Coverage
+        run: yarn test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: src/nexus/coverage/
+          flags: nexus
+          fail_ci_if_error: false
+
+      - name: Comment on PR if job fails
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ **Nexus CI Failed**\n\nThe nexus-ci workflow failed for commit \`${context.sha}\`.\n\nPlease check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`
+            })

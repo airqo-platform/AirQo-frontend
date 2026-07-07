@@ -10,7 +10,7 @@
 <img src="https://github.com/airqo-platform/AirQo-frontend/workflows/mobile-app-code-analysis/badge.svg" alt="Build Status">
 </a>
 
-This repo contains the frontend code for the AirQo platform. It includes web, desktop, and mobile applications plus deployment and infrastructure configuration.
+This repo contains the frontend code for the AirQo Nexus. It includes web, desktop, and mobile applications plus deployment and infrastructure configuration.
 
 ## What is AirQo?
 
@@ -23,7 +23,7 @@ This is a monorepo with all frontend applications under `src/`. Outside `src/` a
 ## Projects under `src/`
 
 - `src/website`: AirQo public website
-- `src/platform`: Analytics platform
+- `src/nexus`: Nexus
 - `src/vertex`: Vertex web application
 - `src/vertex-desktop`: Vertex Electron desktop wrapper
 - `src/beacon`: Beacon application
@@ -42,7 +42,7 @@ This is a monorepo with all frontend applications under `src/`. Outside `src/` a
 |   |-- beacon
 |   |-- calibrate
 |   |-- docs-website
-|   |-- platform
+|   |-- nexus
 |   `-- vertex
 `-- src
     |-- beacon
@@ -50,7 +50,7 @@ This is a monorepo with all frontend applications under `src/`. Outside `src/` a
     |-- docs-website
     |-- mobile
     |-- netmanager
-    |-- platform
+    |-- nexus
     |-- vertex
     |-- vertex-desktop
     `-- website

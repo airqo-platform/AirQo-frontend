@@ -18,7 +18,7 @@ jobs:
     name: check for available deploy previews
     outputs:
       remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }} # remove calibrate app preview
-      remove_analytics_platform: ${{ steps.check_files.outputs.remove_analytics_platform }} # analytics platform
+      remove_nexus: ${{ steps.check_files.outputs.remove_nexus }} # analytics platform
       remove_vertex: ${{ steps.check_files.outputs.remove_vertex }} # vertex
       remove_beacon: ${{ steps.check_files.outputs.remove_beacon }} # remove beacon
       remove_docs: ${{ steps.check_files.outputs.remove_docs }} # remove docs
@@ -41,7 +41,7 @@ jobs:
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
-          echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_nexus=false" >>$GITHUB_OUTPUT
           echo "remove_vertex=false" >>$GITHUB_OUTPUT
           echo "remove_beacon=false" >>$GITHUB_OUTPUT
           echo "remove_docs=false" >>$GITHUB_OUTPUT
@@ -54,8 +54,8 @@ jobs:
               echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/platform/* ]]; then
-              echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/nexus/* ]]; then
+              echo "remove_nexus=true" >>$GITHUB_OUTPUT
             fi
             
             if [[ $file == src/vertex/* ]]; then
@@ -94,10 +94,10 @@ jobs:
             --quiet
 
   ### remove analytics platform deploy preview ###
-  remove-analytics-platform-preview:
-    name: remove-analytics-platform-preview
+  remove-nexus-preview:
+    name: remove-nexus-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.remove_analytics_platform == 'true'
+    if: needs.check.outputs.remove_nexus == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Google login
@@ -110,7 +110,7 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-analytics-platform-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-nexus-preview \
             --region=${{ secrets.REGION }} \
             --quiet
           

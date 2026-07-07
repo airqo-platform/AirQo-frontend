@@ -55,7 +55,7 @@ jobs:
       pull-requests: read
     outputs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
-      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
+      run_nexus: ${{ steps.check_files.outputs.run_nexus }}
       run_website: ${{ steps.check_files.outputs.run_website }}
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
@@ -72,7 +72,7 @@ jobs:
             --paginate --jq '.[].filename' | tee files.txt
 
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_nexus=false" >>$GITHUB_OUTPUT
           echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
@@ -84,8 +84,8 @@ jobs:
             if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
-            if [[ $file == src/platform/* ]]; then
-              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/nexus/* ]]; then
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
             fi
             if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
@@ -350,13 +350,13 @@ jobs:
             })
 
   #########################################
-  # ANALYTICS PLATFORM PREVIEW
+  # NEXUS PREVIEW
   #########################################
 
-  analytics_platform:
-    name: build-push-deploy-analytics-platform-preview
+  nexus:
+    name: build-push-deploy-nexus-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_analytics_platform == 'true'
+    if: needs.check.outputs.run_nexus == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview.outputs.url }}
@@ -377,7 +377,7 @@ jobs:
       - name: Pull secrets from Key Vault
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
-          APP="${BRANCH}-analytics-p-preview"
+          APP="${BRANCH}-nexus-preview"
 
           DEFAULT_DOMAIN=$(az containerapp env show \
             --name ${{ env.PR_PREVIEW_ENV }} \
@@ -388,25 +388,25 @@ jobs:
 
           az keyvault secret show \
             --vault-name ${{ env.KEYVAULT }} \
-            --name sta-env-next-platform \
+            --name sta-env-nexus \
             --query value -o tsv > secrets.json
 
-          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
           {
             echo "NEXTAUTH_URL=$NEXTAUTH_URL"
             echo "NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL"
             echo "AUTH_TRUST_HOST=true"
-          } >> src/platform/.env
+          } >> src/nexus/.env
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} src/platform
-          docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.sha }} src/nexus
+          docker push ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.sha }}
 
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
-          APP="${BRANCH}-analytics-p-preview"
+          APP="${BRANCH}-nexus-preview"
 
           DEFAULT_DOMAIN=$(az containerapp env show \
             --name ${{ env.PR_PREVIEW_ENV }} \
@@ -426,7 +426,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -453,7 +453,7 @@ jobs:
       - id: preview
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
-          APP="${BRANCH}-analytics-p-preview"
+          APP="${BRANCH}-nexus-preview"
 
           URL=$(az containerapp show \
             --name $APP \
@@ -462,9 +462,9 @@ jobs:
 
           echo "url=https://$URL" >> $GITHUB_OUTPUT
 
-  analytics-pr-comment:
-    needs: [check, analytics_platform]
-    if: needs.check.outputs.run_analytics_platform == 'true'
+  nexus-pr-comment:
+    needs: [check, nexus]
+    if: needs.check.outputs.run_nexus == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -474,7 +474,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
+              body: 'New azure nexus changes available for preview [here](${{ needs.nexus.outputs.url }})'
             })
 
   #########################################

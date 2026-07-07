@@ -32,7 +32,7 @@ jobs:
     outputs:
       run_website2: ${{ steps.check_files.outputs.run_website2 }}
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }}
-      run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }}
+      run_nexus: ${{ steps.check_files.outputs.run_nexus }}
       run_reports: ${{ steps.check_files.outputs.run_reports }}
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
@@ -56,7 +56,7 @@ jobs:
 
           echo "run_website2=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
+          echo "run_nexus=false" >>$GITHUB_OUTPUT
           echo "run_reports=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
@@ -73,8 +73,8 @@ jobs:
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/platform/* ]]; then
-              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/nexus/* ]]; then
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == src/reports/* ]]; then
@@ -96,7 +96,7 @@ jobs:
             if [[ $file == workflow-trigger ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
-              echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
               echo "run_reports=true" >>$GITHUB_OUTPUT
               echo "run_vertex=true" >>$GITHUB_OUTPUT
               echo "run_beacon=true" >>$GITHUB_OUTPUT
@@ -396,11 +396,11 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
 
-  ### build and push analytics platform image ###
-  analytics-platform:
-    name: build-push-analytics-platform-image
+  ### build and push nexus image ###
+  nexus:
+    name: build-push-nexus-image
     needs: [check, image-tag]
-    if: needs.check.outputs.run_analytics_platform == 'true'
+    if: needs.check.outputs.run_nexus == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -415,7 +415,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > src/platform/.env
+        run: gcloud secrets versions access latest --secret="sta-env-nexus" > src/nexus/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -426,23 +426,23 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd src/platform/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-next-platform:latest
+          cd src/nexus/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-nexus:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-nexus:latest
 
       - name: Update corresponding helm values file(with retry)
         uses: Wandalen/wretry.action@v1.2.0
         with:
           action: fjogeleit/yaml-update-action@main
           with: |
-            valueFile: "k8s/platform/values-stage.yaml"
+            valueFile: "k8s/nexus/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+            message: "Update nexus staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v3
@@ -453,7 +453,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/platform/.env env-next-platform-staging | kubectl replace -f - -n staging
+          --from-env-file=src/nexus/.env env-nexus-staging | kubectl replace -f - -n staging
 
 
   ### build and push vertex image ###
