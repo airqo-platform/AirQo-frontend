@@ -1,7 +1,9 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { FiArrowRight } from 'react-icons/fi';
 
 import Screen from '@/components/clean-air-forum-2026/Screen';
+import { CLEAN_AIR_FORUM_2026_QUIZ_ROUTE } from '@/features/clean-air-forum-2026/constants/learn';
 
 export default function LandingScreen() {
   return (
@@ -20,8 +22,8 @@ export default function LandingScreen() {
               />
             </div>
 
-            <button
-              type="button"
+            <Link
+              href={CLEAN_AIR_FORUM_2026_QUIZ_ROUTE}
               aria-label="Attempt Quiz"
               className="group mt-6 inline-flex items-center gap-3 rounded-[1.75rem] bg-transparent text-left text-white transition-transform duration-200 ease-out hover:translate-x-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20 active:translate-y-1 active:opacity-90 sm:mt-0"
             >
@@ -31,7 +33,7 @@ export default function LandingScreen() {
               <span className="mt-2 inline-flex shrink-0 items-center justify-center transition-transform duration-200 group-hover:translate-x-1 group-active:scale-95">
                 <FiArrowRight className="h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
