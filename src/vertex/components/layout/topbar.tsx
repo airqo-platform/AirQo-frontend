@@ -20,7 +20,7 @@ import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import ReusableButton from '../shared/button/ReusableButton';
 import { useLogout } from '@/core/hooks/useLogout';
-import { ConfirmationDialog } from '@/components/shared/dialog/ConfirmationDialog';
+import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import AppDropdown from './AppDropdown';
 import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
@@ -207,18 +207,26 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <ConfirmationDialog
-              open={showLogoutConfirm}
-              onOpenChange={setShowLogoutConfirm}
-              onConfirm={() => {
-                setShowLogoutConfirm(false);
-                logout();
+            <ReusableDialog
+              isOpen={showLogoutConfirm}
+              onClose={() => setShowLogoutConfirm(false)}
+              title="Sign out of your AirQo account?"
+              size="md"
+              primaryAction={{
+                label: "Log out",
+                onClick: () => { setShowLogoutConfirm(false); logout(); },
+                className: "bg-red-600 hover:bg-red-700 border-red-600",
               }}
-              title="Log out"
-              description="Are you sure you want to log out? You'll need to sign in again to access your account."
-              confirmLabel="Log out"
-              destructive
-            />
+              secondaryAction={{
+                label: "Cancel",
+                onClick: () => setShowLogoutConfirm(false),
+                variant: "outline",
+              }}
+            >
+              <p className="text-gray-600 dark:text-gray-300 py-2">
+                You&apos;ll be signed out of all AirQo apps on this device and will need to sign in again to continue.
+              </p>
+            </ReusableDialog>
           </div>
         </div>
       </Card>
