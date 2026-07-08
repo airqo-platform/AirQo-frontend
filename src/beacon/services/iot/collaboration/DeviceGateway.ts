@@ -69,6 +69,9 @@ export class DeviceGateway {
     const rawChunk = this.logBuffer.join('');
     this.logBuffer = [];
 
+    // Keep the local serial terminal/store updated even if this gateway overwrote the adapter log callback.
+    useIotStore.getState().addLog(rawChunk);
+
     // 1. Process and update local store state & terminal logs
     const { logs, telemetryList } = telemetryManager.processIncomingData(rawChunk);
 
