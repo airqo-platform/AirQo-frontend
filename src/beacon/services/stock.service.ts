@@ -3,7 +3,8 @@
  * Handles all stock management operations
  */
 
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from '@/lib/api-client';
+import { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
 import { isMockMode, getMockStockItems } from '@/lib/mock-data';

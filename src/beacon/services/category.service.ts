@@ -3,7 +3,8 @@
  * Handles all category management operations
  */
 
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from '@/lib/api-client';
+import { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
 import { isMockMode, getMockCategories } from '@/lib/mock-data';

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { ConnectionStatus, DeviceInfo, FlashProgress, PortInfo } from '@/types/iot';
-import { DeviceAdapter } from '@/services/iot/adapters/ESPAdapter'; // Generic interface
+import { ConnectionStatus, DeviceInfo, FlashProgress, PortInfo, DeviceAdapter } from '@/types/iot';
 
 interface IotState {
   // Agent Status
