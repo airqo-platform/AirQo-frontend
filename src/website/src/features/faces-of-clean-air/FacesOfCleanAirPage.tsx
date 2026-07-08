@@ -149,22 +149,20 @@ function FaceCard({
       <div className="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-[49%] bg-gradient-to-t from-blue-700 via-blue-600/90 via-[56%] to-transparent" />
 
-      <div className="absolute left-3 top-3 flex items-center gap-2 text-white">
-        <div className="rounded-full bg-white/90 px-1.5 py-1">
-          <Image
-            src={AIRQO_LOGO_URL}
-            alt="AirQo"
-            width={34}
-            height={22}
-            unoptimized
-            className="h-[16px] w-auto"
-          />
-        </div>
-        <div className="border-l border-white/50 pl-2 leading-[1.08]">
-          <p className="text-[8px] font-semibold sm:text-[9px]">
+      <div className="absolute left-3 top-3 flex items-center gap-2.5 text-white">
+        <Image
+          src={AIRQO_LOGO_URL}
+          alt="AirQo"
+          width={40}
+          height={26}
+          unoptimized
+          className="h-6 w-auto drop-shadow-lg"
+        />
+        <div className="border-l border-white/40 pl-2.5 leading-[1.1]">
+          <p className="text-[11px] font-semibold drop-shadow-sm">
             Clean Air Forum
           </p>
-          <p className="text-[7px] italic text-white/85 sm:text-[8px]">
+          <p className="text-[10px] italic text-white/85">
             {EVENT_LOCATION_AND_YEAR}
           </p>
         </div>
@@ -503,10 +501,10 @@ export default function FacesOfCleanAirPage() {
                           onClick={() => goToPage(index)}
                           aria-label={`Show selfie page ${index + 1} of ${totalPages}`}
                           aria-current={isActive ? 'page' : undefined}
-                          className={`h-2.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 ${
+                          className={`h-2.5 rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
                             isActive
-                              ? 'w-10 bg-white'
-                              : 'w-2.5 bg-white/40 hover:bg-white/60'
+                              ? 'w-10 bg-blue-600'
+                              : 'w-2.5 bg-blue-600/40 hover:bg-blue-600/60'
                           }`}
                         />
                       );
