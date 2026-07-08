@@ -1,0 +1,863 @@
+'use client';
+
+import {
+  SessionProvider,
+  useSession,
+  getSession,
+  signIn,
+} from 'next-auth/react';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { UserDataFetcher } from './UserDataFetcher';
+import {
+  selectActiveGroup,
+  selectGroups,
+  selectLoggingOut,
+} from '@/shared/store/selectors';
+import {
+  useLogout,
+  CROSS_TAB_LOGOUT_KEY,
+  CROSS_TAB_LOGIN_KEY,
+} from '@/shared/hooks/useLogout';
+import { toast } from '@/shared/components/ui/toast';
+import logger from '@/shared/lib/logger';
+import { SWRProvider } from '@/shared/providers/swr-provider';
+import { QueryProvider } from '@/shared/providers/query-provider';
+import SetPasswordPromptDialog from '@/shared/components/auth/SetPasswordPromptDialog';
+import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
+import {
+  normalizeCallbackUrl,
+  redirectWithReload,
+} from '@/shared/lib/auth-redirect';
+import {
+  clearCachedSessionAccessToken,
+  getSessionAccessTokenFromSession,
+  setCachedSessionAccessToken,
+} from '@/shared/services/sessionAuthToken';
+import {
+  clearBackendOAuthSignedOutFlag,
+  consumeOAuthTokenHandoffFromUrl,
+  buildSessionFromProfile,
+  setLastUsedOAuthProvider,
+  normalizeOAuthAccessToken,
+  type BackendOAuthSession,
+  shouldSkipBackendOAuthBootstrap,
+  verifyBackendOAuthSession,
+} from '@/shared/lib/oauth-session';
+import { useUserActions } from '@/shared/hooks';
+import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
+
+// Component to guard and redirect based on active group for all pages
+function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  // Use the centralized user actions helper when switching groups so that
+  // SWR caches related to the previous group are invalidated consistently.
+  // Do NOT call `dispatch(setActiveGroup(...))` here directly because that
+  // bypasses the cache invalidation implemented in `useUserActions.switchGroup`.
+  const { switchGroup } = useUserActions();
+  const activeGroup = useSelector(selectActiveGroup);
+  const groups = useSelector(selectGroups);
+
+  const normalizedPath = pathname.toLowerCase();
+  const isUserPath = normalizedPath.startsWith('/user/');
+  const isOrgPath = normalizedPath.startsWith('/org/');
+  const orgSlugFromPath = isOrgPath
+    ? (pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null)
+    : null;
+  const airqoGroup = groups.find(group => {
+    const title = group.title.trim().toLowerCase();
+    const slug = group.organizationSlug.trim().toLowerCase();
+    return title === 'airqo' || slug === 'airqo';
+  });
+  const groupForCurrentOrgPath = orgSlugFromPath
+    ? groups.find(
+        group => group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
+      )
+    : null;
+  const activeGroupSlug = activeGroup?.organizationSlug?.trim().toLowerCase();
+  const activeGroupTitle = activeGroup?.title?.trim().toLowerCase();
+  const isAirQoActiveGroup =
+    activeGroupTitle === 'airqo' || activeGroupSlug === 'airqo';
+  const shouldSyncToUserGroup =
+    isUserPath && !!airqoGroup && activeGroup?.id !== airqoGroup.id;
+  const shouldSyncToRouteOrgGroup =
+    isOrgPath &&
+    !!groupForCurrentOrgPath &&
+    activeGroup?.id !== groupForCurrentOrgPath.id;
+
+  useEffect(() => {
+    if (shouldSyncToUserGroup && airqoGroup) {
+      // Use the shared helper to perform the group switch and trigger
+      // SWR cache invalidation to avoid stale cross-group data.
+      switchGroup(airqoGroup);
+      return;
+    }
+
+    if (shouldSyncToRouteOrgGroup && groupForCurrentOrgPath) {
+      switchGroup(groupForCurrentOrgPath);
+      return;
+    }
+
+    if (!activeGroup) return;
+
+    if (isAirQoActiveGroup) {
+      if (isOrgPath) {
+        router.replace('/user/home');
+      }
+      return;
+    }
+
+    if (isUserPath) {
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+      return;
+    }
+
+    if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
+      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+    }
+  }, [
+    activeGroup,
+    activeGroupSlug,
+    airqoGroup,
+    groupForCurrentOrgPath,
+    isAirQoActiveGroup,
+    isOrgPath,
+    isUserPath,
+    orgSlugFromPath,
+    router,
+    shouldSyncToRouteOrgGroup,
+    shouldSyncToUserGroup,
+    switchGroup,
+  ]);
+
+  // Block children from mounting while the group sync is in progress.
+  // This prevents dashboard components from making API calls with the wrong
+  // group context. The sync completes in a single effect tick (synchronous
+  // Redux dispatch), so the overlay flicker is imperceptible.
+  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
+    return <LoadingOverlay delayMs={0} />;
+  }
+
+  return <>{children}</>;
+}
+
+// Define public routes that don't require authentication
+const publicRoutes = [
+  '/user/login',
+  '/user/creation/individual/register',
+  '/user/creation/individual/verify-email',
+  '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
+  '/user/forgotPwd',
+  '/user/forgotPwd/reset',
+  '/user/delete/confirm', // covers /user/delete/confirm/[token]
+  '/org-invite', // Public invitation acceptance page
+  '/request-organization',
+];
+
+const isPublicAuthRoute = (pathname: string): boolean =>
+  publicRoutes.some(route => pathname.startsWith(route)) ||
+  /^\/org\/[^/]+\/(login|register)$/.test(pathname);
+
+const isAuthenticatedAccessiblePublicRoute = (pathname: string): boolean =>
+  pathname.startsWith('/org-invite') ||
+  pathname.startsWith('/request-organization');
+
+const UNAUTHORIZED_WINDOW_MS = 30000;
+const UNAUTHORIZED_THRESHOLD = 3;
+const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
+const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
+const NEXTAUTH_SESSION_RETRY_DELAY_MS = 150;
+const NEXTAUTH_SESSION_RETRY_ATTEMPTS = 8;
+
+const getSessionCacheScope = (session: unknown): string | null => {
+  const user = (session as { user?: { _id?: string; email?: string } })?.user;
+  const userId = typeof user?._id === 'string' ? user._id.trim() : '';
+  if (userId) {
+    return `id:${userId}`;
+  }
+
+  const email =
+    typeof user?.email === 'string' ? user.email.trim().toLowerCase() : '';
+  if (email) {
+    return `email:${email}`;
+  }
+
+  return null;
+};
+
+const toNormalizedPath = (url?: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(
+      url,
+      typeof window !== 'undefined' ? window.location.origin : 'http://local'
+    );
+    return parsed.pathname.toLowerCase();
+  } catch {
+    return url.split('?')[0].toLowerCase();
+  }
+};
+
+const stripApiVersionPrefix = (path: string): string => {
+  return path.replace(/^\/api\/v\d+/i, '');
+};
+
+const matchesPermissionScopedPath = (
+  path: string,
+  scopedPath: string
+): boolean => {
+  const normalizedPath = path.replace(/\/+$/, '') || '/';
+  const normalizedScopedPath = scopedPath.replace(/\/+$/, '') || '/';
+
+  return (
+    normalizedPath === normalizedScopedPath ||
+    normalizedPath.startsWith(`${normalizedScopedPath}/`)
+  );
+};
+
+const isPermissionScopedUnauthorizedPath = (url?: string): boolean => {
+  const normalizedPath = stripApiVersionPrefix(toNormalizedPath(url));
+
+  return (
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/recent') ||
+    matchesPermissionScopedPath(normalizedPath, '/devices/readings/map') ||
+    matchesPermissionScopedPath(normalizedPath, '/analytics/data-download')
+  );
+};
+
+const waitForNextAuthSession = async (
+  shouldContinue: () => boolean,
+  expectedAccessToken?: string | null,
+  attempts = NEXTAUTH_SESSION_RETRY_ATTEMPTS,
+  delayMs = NEXTAUTH_SESSION_RETRY_DELAY_MS
+) => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const session = await getSession();
+    const sessionAccessToken = getSessionAccessTokenFromSession(session);
+    const hasExpectedSession =
+      session?.user &&
+      (!expectedAccessToken || sessionAccessToken === expectedAccessToken);
+
+    if (hasExpectedSession) {
+      return session;
+    }
+
+    if (attempt === attempts - 1 || !shouldContinue()) {
+      break;
+    }
+
+    await new Promise<void>(resolve => {
+      window.setTimeout(resolve, delayMs);
+    });
+  }
+
+  return null;
+};
+
+function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const cacheScope = getSessionCacheScope(session);
+  const enablePersistence = status === 'authenticated' && !!cacheScope;
+
+  // Derive a stable provider key that ignores the interim 'loading' status.
+  // Without this, the login flow causes two key changes:
+  //   unauthenticated → loading → authenticated
+  // Each key change remounts SWR/QueryClient providers and unmounts all children,
+  // producing two white flashes. By freezing the key during 'loading', we get
+  // at most one remount (unauthenticated → authenticated).
+  const stableKeyRef = useRef<string>('anon');
+  if (status !== 'loading') {
+    stableKeyRef.current = cacheScope ?? 'anon';
+  }
+  const providerKey = stableKeyRef.current;
+
+  return (
+    <SWRProvider
+      key={`swr:${providerKey}`}
+      scopeKey={cacheScope}
+      enablePersistence={enablePersistence}
+    >
+      <QueryProvider
+        key={`query:${providerKey}`}
+        scopeKey={cacheScope}
+        enablePersistence={enablePersistence}
+      >
+        {children}
+      </QueryProvider>
+    </SWRProvider>
+  );
+}
+
+function AuthWrapper({ children }: { children: React.ReactNode }) {
+  const { data: session, status, update } = useSession();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeGroup = useSelector(selectActiveGroup);
+  const isLoggingOut = useSelector(selectLoggingOut);
+  const isHandlingUnauthorizedRef = useRef(false);
+  const hasHandledUnauthorizedRef = useRef(false);
+  const hasStartedLogoutRef = useRef(false);
+  const unauthorizedStatsRef = useRef({ count: 0, lastAt: 0 });
+
+  const isPublicRoute = isPublicAuthRoute(pathname);
+  const callbackUrl = normalizeCallbackUrl(searchParams.get('callbackUrl'));
+  const currentProtectedPath = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+  const protectedRouteLoginUrl = `/user/login?callbackUrl=${encodeURIComponent(currentProtectedPath)}`;
+  const logout = useLogout(protectedRouteLoginUrl);
+
+  const clearAccountDeletionFlags = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      localStorage.removeItem('account_deleted');
+      localStorage.removeItem('account_deleted_timestamp');
+      localStorage.removeItem(ACCOUNT_DELETION_USER_IDENTIFIER_KEY);
+    } catch (error) {
+      console.warn('Error clearing account deletion flags:', error);
+    }
+  }, []);
+
+  const getCurrentSessionUserIdentifier = useCallback((): string | null => {
+    const currentUser = session?.user as
+      | { _id?: string; id?: string; email?: string }
+      | undefined;
+    // Check both _id and id — vertex sets account_deleted_user_identifier with id
+    const userId =
+      (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||
+      (typeof currentUser?.id === 'string' && currentUser.id.trim()) ||
+      '';
+    if (userId) {
+      return `id:${userId}`;
+    }
+
+    const email =
+      typeof currentUser?.email === 'string'
+        ? currentUser.email.trim().toLowerCase()
+        : '';
+    if (email) {
+      return `email:${email}`;
+    }
+
+    return null;
+  }, [session?.user]);
+
+  const resetUnauthorizedTracking = useCallback(() => {
+    unauthorizedStatsRef.current = { count: 0, lastAt: 0 };
+    hasHandledUnauthorizedRef.current = false;
+    isHandlingUnauthorizedRef.current = false;
+    hasStartedLogoutRef.current = false;
+  }, []);
+
+  const executeLogout = useCallback(
+    async (toastConfig?: {
+      title: string;
+      description: string;
+      duration?: number;
+    }) => {
+      if (hasStartedLogoutRef.current || isLoggingOut) {
+        return;
+      }
+
+      hasStartedLogoutRef.current = true;
+      hasHandledUnauthorizedRef.current = true;
+
+      if (toastConfig) {
+        toast.error(
+          toastConfig.title,
+          toastConfig.description,
+          toastConfig.duration
+        );
+      }
+
+      await logout();
+    },
+    [isLoggingOut, logout]
+  );
+
+  const checkAccountDeletionFlag = useCallback((): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    let accountDeleted: string | null = null;
+    let deletionTimestamp: string | null = null;
+    let deletionUserIdentifier: string | null = null;
+    try {
+      accountDeleted = localStorage.getItem('account_deleted');
+      deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+      deletionUserIdentifier = localStorage.getItem(
+        ACCOUNT_DELETION_USER_IDENTIFIER_KEY
+      );
+    } catch {
+      // Safari private mode / blocked storage — skip check
+      return false;
+    }
+    const parsedTimestamp = deletionTimestamp
+      ? Number.parseInt(deletionTimestamp, 10)
+      : NaN;
+    const hasValidTimestamp = Number.isFinite(parsedTimestamp);
+    const now = Date.now();
+
+    if (accountDeleted === 'true') {
+      if (!hasValidTimestamp) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      if (now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      const currentUserIdentifier = getCurrentSessionUserIdentifier();
+      if (
+        !deletionUserIdentifier ||
+        !currentUserIdentifier ||
+        deletionUserIdentifier !== currentUserIdentifier
+      ) {
+        logger.warn(
+          'Ignoring stale account deletion flag due to missing or mismatched user identifier'
+        );
+        clearAccountDeletionFlags();
+        return false;
+      }
+
+      logger.info('Account deletion detected, logging out...');
+      executeLogout({
+        title: 'Account Deleted',
+        description: 'Your account has been deleted. You have been logged out.',
+        duration: 5000,
+      });
+      return true;
+    }
+
+    if (hasValidTimestamp && now - parsedTimestamp > ACCOUNT_DELETION_TTL_MS) {
+      clearAccountDeletionFlags();
+    }
+
+    return false;
+  }, [
+    clearAccountDeletionFlags,
+    executeLogout,
+    getCurrentSessionUserIdentifier,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'account_deleted' && event.newValue === 'true') {
+        checkAccountDeletionFlag();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [checkAccountDeletionFlag]);
+
+  // Cross-tab logout propagation: when another tab/app logs out, detect via storage event
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGOUT_KEY &&
+        event.newValue &&
+        !isLoggingOut &&
+        !hasStartedLogoutRef.current &&
+        status === 'authenticated'
+      ) {
+        logger.info('Cross-tab logout detected, logging out');
+        hasStartedLogoutRef.current = true;
+        logout();
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogout);
+    return () => window.removeEventListener('storage', handleCrossTabLogout);
+  }, [isLoggingOut, logout, status]);
+
+  // Cross-tab login propagation: when another tab/app logs in, refresh session
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCrossTabLogin = (event: StorageEvent) => {
+      if (
+        event.key === CROSS_TAB_LOGIN_KEY &&
+        event.newValue &&
+        status !== 'authenticated' &&
+        !isLoggingOut
+      ) {
+        logger.info('Cross-tab login detected, refreshing session');
+        update().catch(() => {
+          // Transient network error — session will be revalidated on next focus/navigation
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleCrossTabLogin);
+    return () => window.removeEventListener('storage', handleCrossTabLogin);
+  }, [status, isLoggingOut, update]);
+
+  // Listen for unauthorized events from API client
+  const handleUnauthorized = useCallback(
+    async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { url } = (customEvent.detail as { url?: string }) || {};
+
+      // Some endpoints can return 401 for permission-scoped resources without
+      // indicating an expired session; avoid triggering global auth handling.
+      if (isPermissionScopedUnauthorizedPath(url)) {
+        logger.info(
+          '401 on permission-scoped API endpoint; skipping global logout handling',
+          { url }
+        );
+        return;
+      }
+
+      // Don't handle unauthorized on public routes (login, register, etc.)
+      if (isPublicRoute) return;
+
+      // Don't handle if we're already logging out
+      if (isLoggingOut) return;
+
+      // Prevent storms caused by concurrent 401 responses.
+      if (
+        hasHandledUnauthorizedRef.current ||
+        isHandlingUnauthorizedRef.current
+      )
+        return;
+      isHandlingUnauthorizedRef.current = true;
+
+      try {
+        if (checkAccountDeletionFlag()) {
+          return;
+        }
+
+        // Check if session is expired before logging out.
+        await update();
+
+        const freshSession = await getSession();
+        if (freshSession && freshSession.user) {
+          logger.warn(
+            '401 received but session is valid - likely permissions issue or account deleted'
+          );
+
+          const now = Date.now();
+          const lastAt = unauthorizedStatsRef.current.lastAt;
+          const withinWindow = now - lastAt < UNAUTHORIZED_WINDOW_MS;
+          unauthorizedStatsRef.current.count = withinWindow
+            ? unauthorizedStatsRef.current.count + 1
+            : 1;
+          unauthorizedStatsRef.current.lastAt = now;
+
+          if (unauthorizedStatsRef.current.count >= UNAUTHORIZED_THRESHOLD) {
+            logger.warn(
+              'Multiple 401s with valid session - possible account deletion, logging out...'
+            );
+            executeLogout({
+              title: 'Access Denied',
+              description: 'Your access has been revoked. Please log in again.',
+              duration: 5000,
+            });
+          }
+          return;
+        }
+
+        // Session is expired.
+        logger.info('Session expired, logging out...');
+        executeLogout({
+          title: 'Session Expired',
+          description: 'Your session has expired. Please log in again.',
+          duration: 5000,
+        });
+      } catch (error) {
+        console.error('Error handling unauthorized event:', error);
+        executeLogout();
+      } finally {
+        isHandlingUnauthorizedRef.current = false;
+      }
+    },
+    [
+      checkAccountDeletionFlag,
+      executeLogout,
+      isLoggingOut,
+      isPublicRoute,
+      update,
+    ]
+  );
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth:unauthorized', handleUnauthorized);
+      return () =>
+        window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    }
+  }, [handleUnauthorized]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleTokenRefreshed = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const detail = (customEvent.detail || {}) as {
+        token?: string;
+        expiresIn?: number;
+      };
+      const normalizedToken = normalizeOAuthAccessToken(
+        typeof detail.token === 'string' ? detail.token : ''
+      );
+      if (!normalizedToken) return;
+
+      const expiresAt =
+        typeof detail.expiresIn === 'number'
+          ? new Date(Date.now() + detail.expiresIn * 1000).toISOString()
+          : undefined;
+
+      setCachedSessionAccessToken(normalizedToken);
+
+      try {
+        await update({ accessToken: normalizedToken, expiresAt });
+      } catch (error) {
+        logger.warn('Failed to update session after token refresh', error);
+      }
+    };
+
+    window.addEventListener(
+      'auth:token-refreshed',
+      handleTokenRefreshed as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        'auth:token-refreshed',
+        handleTokenRefreshed as EventListener
+      );
+    };
+  }, [update]);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || !isPublicRoute) {
+      return;
+    }
+
+    if (isAuthenticatedAccessiblePublicRoute(pathname)) {
+      return;
+    }
+
+    if (callbackUrl) {
+      // Avoid reloading back to a public auth route (e.g., /user/login).
+      // Normalize the callback path and only perform a full reload when
+      // the path does not point to a public auth route.
+      const normalizedCallbackPath = toNormalizedPath(callbackUrl);
+      if (!isPublicAuthRoute(normalizedCallbackPath)) {
+        redirectWithReload(callbackUrl);
+        return;
+      }
+      // If the callback points to a public auth route, ignore it and let
+      // the normal post-auth flow decide the best destination.
+    }
+
+    if (activeGroup) {
+      if (activeGroup.title.toLowerCase() === 'airqo') {
+        redirectWithReload('/user/home');
+      } else {
+        redirectWithReload(`/org/${activeGroup.organizationSlug}/dashboard`);
+      }
+      return;
+    }
+
+    redirectWithReload('/user/home');
+  }, [status, isPublicRoute, activeGroup, pathname, callbackUrl]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      resetUnauthorizedTracking();
+    }
+  }, [resetUnauthorizedTracking, status]);
+
+  // Logout when status becomes unauthenticated on protected routes
+  // But skip if we're already logging out or if logout has already started.
+  useEffect(() => {
+    if (
+      status === 'unauthenticated' &&
+      !isPublicRoute &&
+      !isLoggingOut &&
+      !hasStartedLogoutRef.current
+    ) {
+      logger.info('Status unauthenticated on protected route, logging out');
+      hasStartedLogoutRef.current = true;
+      logout();
+    }
+  }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
+
+  // While session is being fetched, show a loading overlay with a short delay.
+  // A small delay prevents double-glitch with app/loading.tsx Suspense boundary
+  // that also renders a LoadingOverlay during page transitions.
+  // Exception: For public routes, don't show loading overlay (let them render immediately)
+  if (status === 'loading' && !isPublicRoute) {
+    return <LoadingOverlay delayMs={150} />;
+  }
+
+  // For public routes, allow rendering even if unauthenticated
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
+  // For protected routes, require authentication
+  if (!session) {
+    return <LoadingOverlay delayMs={150} />;
+  }
+
+  return (
+    <UserDataFetcher>
+      <GroupSwitchOverlay />
+      <ActiveGroupGuard>{children}</ActiveGroupGuard>
+      <SetPasswordPromptDialog />
+    </UserDataFetcher>
+  );
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isPublicRoute = isPublicAuthRoute(pathname);
+  const [bootstrapSession, setBootstrapSession] = useState<
+    BackendOAuthSession | null | undefined
+  >(isPublicRoute ? null : undefined);
+
+  useEffect(() => {
+    runClientCacheMaintenance();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const currentPathname =
+      typeof window !== 'undefined' ? window.location.pathname : '';
+    const currentSearch =
+      typeof window !== 'undefined' ? window.location.search : '';
+    const currentUrl = `${currentPathname || '/user/home'}${currentSearch}`;
+    const isCurrentPublicRoute = isPublicAuthRoute(currentPathname);
+
+    const bootstrap = async () => {
+      try {
+        const oauthTokenHandoff = consumeOAuthTokenHandoffFromUrl();
+        const normalizedOAuthHandoffToken = oauthTokenHandoff?.token
+          ? normalizeOAuthAccessToken(oauthTokenHandoff.token)
+          : null;
+
+        if (oauthTokenHandoff?.token) {
+          // A fresh OAuth fragment indicates a new sign-in attempt, not an
+          // intentional logout, so remove any stale marker before bootstrapping.
+          clearBackendOAuthSignedOutFlag();
+          clearCachedSessionAccessToken();
+
+          const signInResult = await signIn('credentials', {
+            redirect: false,
+            callbackUrl: currentUrl,
+            oauthToken: oauthTokenHandoff.token,
+            oauthProvider: oauthTokenHandoff.provider ?? undefined,
+          });
+
+          if (!isMounted) return;
+
+          if (signInResult?.error) {
+            logger.warn('OAuth token handoff sign-in failed', {
+              provider: oauthTokenHandoff.provider,
+              error: signInResult.error,
+            });
+          } else {
+            // Signal other tabs/apps that login occurred via OAuth
+            try {
+              localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
+            } catch {
+              // Ignore storage errors
+            }
+          }
+        }
+
+        const nextAuthSession = oauthTokenHandoff?.token
+          ? await waitForNextAuthSession(
+              () => isMounted,
+              normalizedOAuthHandoffToken
+            )
+          : await getSession();
+        if (!isMounted) return;
+
+        if (nextAuthSession?.user) {
+          setCachedSessionAccessToken(
+            getSessionAccessTokenFromSession(nextAuthSession)
+          );
+          clearBackendOAuthSignedOutFlag();
+
+          if (oauthTokenHandoff?.provider) {
+            setLastUsedOAuthProvider(oauthTokenHandoff.provider);
+          }
+
+          setBootstrapSession(nextAuthSession as BackendOAuthSession);
+          return;
+        }
+
+        clearCachedSessionAccessToken();
+
+        if (shouldSkipBackendOAuthBootstrap()) {
+          setBootstrapSession(null);
+          return;
+        }
+
+        if (isCurrentPublicRoute) {
+          // No existing session found — show login/register page.
+          setBootstrapSession(null);
+          return;
+        }
+
+        const backendProfile = await verifyBackendOAuthSession();
+        if (!isMounted) return;
+
+        if (backendProfile) {
+          setCachedSessionAccessToken(backendProfile.accessToken);
+          clearBackendOAuthSignedOutFlag();
+          setBootstrapSession(buildSessionFromProfile(backendProfile));
+          return;
+        }
+
+        setBootstrapSession(null);
+      } catch (error) {
+        if (!isMounted) return;
+
+        clearCachedSessionAccessToken();
+        logger.warn('Failed to bootstrap auth session', error);
+        setBootstrapSession(null);
+      }
+    };
+
+    void bootstrap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (bootstrapSession === undefined) {
+    return <LoadingOverlay delayMs={150} />;
+  }
+
+  return (
+    <SessionProvider
+      session={bootstrapSession}
+      refetchOnWindowFocus
+      refetchInterval={0}
+    >
+      <AuthScopedCacheProviders>
+        <AuthWrapper>{children}</AuthWrapper>
+      </AuthScopedCacheProviders>
+    </SessionProvider>
+  );
+}
