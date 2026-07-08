@@ -33,11 +33,12 @@ import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.
 
 const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
-const CARDS_PER_PAGE = 6;
+const DESKTOP_CARDS_PER_PAGE = 6;
 const CAROUSEL_INTERVAL_MS = 7600;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
+const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
 const EVENT_LABEL = 'Africa CLEAN-Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
@@ -55,6 +56,27 @@ type CategoryStyle = {
   label: string;
   className: string;
 };
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+
+    const updateMatch = () => {
+      setMatches(mediaQuery.matches);
+    };
+
+    updateMatch();
+    mediaQuery.addEventListener('change', updateMatch);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateMatch);
+    };
+  }, [query]);
+
+  return matches;
+}
 
 function formatPm25(value: number | null | undefined): string {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
@@ -135,7 +157,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* Futuristic grid lines retained over the original gradient */}
+      {/* Main grid lines */}
       <div
         className="absolute inset-0 opacity-[0.1]"
         style={{
@@ -158,7 +180,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
         }}
       />
 
-      {/* Fine secondary grid for extra visual depth */}
+      {/* Fine secondary grid */}
       <div
         className="absolute inset-0 opacity-[0.035]"
         style={{
@@ -180,9 +202,9 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
         }}
       />
 
-      {/* Right-side atmospheric glow */}
+      {/* Right atmospheric glow */}
       <motion.div
-        className="absolute -right-[14%] top-[4%] h-[540px] w-[540px] rounded-full bg-blue-300/20 blur-[110px]"
+        className="absolute -right-[55%] top-[5%] h-[420px] w-[420px] rounded-full bg-blue-300/20 blur-[100px] sm:-right-[14%] sm:h-[540px] sm:w-[540px] sm:blur-[110px]"
         animate={
           reduceMotion
             ? undefined
@@ -201,7 +223,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Left atmospheric glow */}
       <motion.div
-        className="absolute -left-[13%] top-[20%] h-[450px] w-[450px] rounded-full bg-cyan-300/12 blur-[115px]"
+        className="absolute -left-[60%] top-[28%] h-[380px] w-[380px] rounded-full bg-cyan-300/12 blur-[100px] sm:-left-[13%] sm:top-[20%] sm:h-[450px] sm:w-[450px] sm:blur-[115px]"
         animate={
           reduceMotion
             ? undefined
@@ -220,7 +242,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Travelling soft light */}
       <motion.div
-        className="absolute left-[34%] top-[12%] h-40 w-40 rounded-full bg-white/10 blur-[68px]"
+        className="absolute left-[28%] top-[17%] h-32 w-32 rounded-full bg-white/10 blur-[60px] sm:left-[34%] sm:top-[12%] sm:h-40 sm:w-40 sm:blur-[68px]"
         animate={
           reduceMotion
             ? undefined
@@ -237,8 +259,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
         }}
       />
 
-      {/* Bottom fade integrated into original gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-b from-transparent via-white/20 to-white/80" />
+      <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-b from-transparent via-white/15 to-white/70 sm:h-[36%] sm:via-white/20 sm:to-white/80" />
     </div>
   );
 }
@@ -387,7 +408,9 @@ function FaceCard({
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
-      if (reduceMotion) return;
+      if (reduceMotion || event.pointerType !== 'mouse') {
+        return;
+      }
 
       const cardBounds = event.currentTarget.getBoundingClientRect();
 
@@ -449,8 +472,8 @@ function FaceCard({
         fill
         priority={priority}
         unoptimized
-        className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
-        sizes="(min-width: 1280px) 280px, (min-width: 1024px) 25vw, (min-width: 640px) 42vw, 92vw"
+        className="object-cover transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
+        sizes="(max-width: 639px) 86vw, (min-width: 1280px) 280px, (min-width: 1024px) 25vw, 42vw"
       />
 
       <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
@@ -619,9 +642,9 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
         duration: reduceMotion ? 0 : 0.68,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="mx-auto flex min-h-[240px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-8 py-10 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl"
+      className="mx-auto flex min-h-[200px] w-[90vw] max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-5 py-7 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl sm:min-h-[240px] sm:w-full sm:px-8 sm:py-10"
     >
-      <div className="relative mb-5 flex h-16 w-16 items-center justify-center">
+      <div className="relative mb-4 flex h-14 w-14 items-center justify-center sm:mb-5 sm:h-16 sm:w-16">
         {!reduceMotion && (
           <>
             <motion.span
@@ -667,15 +690,15 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-white/20 shadow-lg backdrop-blur-md"
+          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-white/20 shadow-lg backdrop-blur-md sm:h-14 sm:w-14"
         >
-          <FiCamera className="h-7 w-7 text-white" />
+          <FiCamera className="h-6 w-6 text-white sm:h-7 sm:w-7" />
         </motion.div>
       </div>
 
-      <h2 className="text-xl font-bold text-white">No faces yet</h2>
+      <h2 className="text-lg font-bold text-white sm:text-xl">No faces yet</h2>
 
-      <p className="mt-2 max-w-sm text-sm leading-6 text-blue-50/80">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
         Be the first to share an air quality selfie from the Africa Clean Air
         Forum.
       </p>
@@ -718,13 +741,13 @@ function ErrorState({
         duration: reduceMotion ? 0 : 0.64,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="mx-auto flex min-h-[240px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-8 py-10 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl"
+      className="mx-auto flex min-h-[200px] w-[90vw] max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-5 py-7 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl sm:min-h-[240px] sm:w-full sm:px-8 sm:py-10"
     >
-      <h2 className="text-xl font-bold text-white">
+      <h2 className="text-lg font-bold text-white sm:text-xl">
         We could not load the selfie wall
       </h2>
 
-      <p className="mt-2 text-sm leading-6 text-blue-50/80">
+      <p className="mt-2 text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
         Please check the connection and try again.
       </p>
 
@@ -754,7 +777,7 @@ function ErrorState({
   );
 }
 
-function CarouselPagination({
+function DesktopPagination({
   page,
   totalPages,
   isPaused,
@@ -769,7 +792,7 @@ function CarouselPagination({
 }) {
   return (
     <nav
-      className="mt-8 flex items-center justify-center gap-3"
+      className="mt-8 hidden items-center justify-center gap-3 sm:flex"
       aria-label="Selfie carousel pages"
     >
       {Array.from({ length: totalPages }).map((_, index) => {
@@ -823,7 +846,7 @@ function CarouselPagination({
 
                 {!reduceMotion && !isPaused && (
                   <motion.span
-                    key={`progress-${page}`}
+                    key={`desktop-progress-${page}`}
                     initial={{
                       scaleX: 0,
                     }}
@@ -847,6 +870,44 @@ function CarouselPagination({
         );
       })}
     </nav>
+  );
+}
+
+function MobilePagination({
+  page,
+  totalPages,
+  reduceMotion,
+}: {
+  page: number;
+  totalPages: number;
+  reduceMotion: boolean | null;
+}) {
+  return (
+    <div
+      className="mt-3 flex items-center justify-center gap-3 sm:hidden"
+      aria-label={`Selfie ${page + 1} of ${totalPages}`}
+    >
+      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/20">
+        <motion.div
+          key={`mobile-progress-${page}`}
+          initial={{
+            scaleX: 0,
+          }}
+          animate={{
+            scaleX: 1,
+          }}
+          transition={{
+            duration: reduceMotion ? 0 : CAROUSEL_INTERVAL_MS / 1000,
+            ease: 'linear',
+          }}
+          className="h-full origin-left rounded-full bg-white"
+        />
+      </div>
+
+      <span className="min-w-[38px] text-center text-[11px] font-semibold tabular-nums text-white/85">
+        {page + 1}/{totalPages}
+      </span>
+    </div>
   );
 }
 
@@ -879,6 +940,7 @@ const headerItemVariants: Variants = {
 
 export default function FacesOfCleanAirPage() {
   const shouldReduceMotion = useReducedMotion();
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
   const [submissions, setSubmissions] = useState<CleanAirSubmission[]>([]);
   const [fetchState, setFetchState] = useState<FetchState>('idle');
@@ -918,52 +980,74 @@ export default function FacesOfCleanAirPage() {
       CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS,
     );
 
-    return () => window.clearInterval(pollingTimer);
+    return () => {
+      window.clearInterval(pollingTimer);
+    };
   }, [fetchSubmissions]);
 
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(submissions.length / CARDS_PER_PAGE)),
-    [submissions.length],
-  );
+  const totalSlides = useMemo(() => {
+    if (isMobile) {
+      return Math.max(1, submissions.length);
+    }
 
-  const pageItems = useMemo(() => {
-    const startIndex = page * CARDS_PER_PAGE;
+    return Math.max(1, Math.ceil(submissions.length / DESKTOP_CARDS_PER_PAGE));
+  }, [isMobile, submissions.length]);
 
-    return submissions.slice(startIndex, startIndex + CARDS_PER_PAGE);
-  }, [page, submissions]);
+  const visibleItems = useMemo(() => {
+    if (isMobile) {
+      return submissions.slice(page, page + 1);
+    }
+
+    const startIndex = page * DESKTOP_CARDS_PER_PAGE;
+
+    return submissions.slice(startIndex, startIndex + DESKTOP_CARDS_PER_PAGE);
+  }, [isMobile, page, submissions]);
+
+  /*
+   * Mobile indexes individual cards while desktop indexes groups of six.
+   * Reset when crossing the breakpoint so an old index is never reused
+   * against a different pagination model.
+   */
+  useEffect(() => {
+    setPage(0);
+    setDirection(1);
+    setIsPaused(false);
+  }, [isMobile]);
+
+  useEffect(() => {
+    setPage((currentPage) => Math.min(currentPage, totalSlides - 1));
+  }, [totalSlides]);
 
   const goToPage = useCallback(
     (nextPage: number) => {
-      if (nextPage === page || nextPage < 0 || nextPage >= totalPages) {
+      if (nextPage === page || nextPage < 0 || nextPage >= totalSlides) {
         return;
       }
 
       setDirection(nextPage > page ? 1 : -1);
       setPage(nextPage);
     },
-    [page, totalPages],
+    [page, totalSlides],
   );
 
   const goToRelativePage = useCallback(
     (offset: number) => {
-      if (totalPages <= 1) return;
+      if (totalSlides <= 1) {
+        return;
+      }
 
-      const nextPage = (page + offset + totalPages) % totalPages;
+      const nextPage = (page + offset + totalSlides) % totalSlides;
 
       setDirection(offset > 0 ? 1 : -1);
       setPage(nextPage);
     },
-    [page, totalPages],
+    [page, totalSlides],
   );
-
-  useEffect(() => {
-    setPage((currentPage) => Math.min(currentPage, totalPages - 1));
-  }, [totalPages]);
 
   useEffect(() => {
     if (
       fetchState !== 'success' ||
-      totalPages <= 1 ||
+      totalSlides <= 1 ||
       isPaused ||
       shouldReduceMotion
     ) {
@@ -974,19 +1058,23 @@ export default function FacesOfCleanAirPage() {
       goToRelativePage(1);
     }, CAROUSEL_INTERVAL_MS);
 
-    return () => window.clearTimeout(carouselTimer);
+    return () => {
+      window.clearTimeout(carouselTimer);
+    };
   }, [
     fetchState,
     goToRelativePage,
     isPaused,
     page,
     shouldReduceMotion,
-    totalPages,
+    totalSlides,
   ]);
 
   const handleCarouselKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
-      if (totalPages <= 1) return;
+      if (totalSlides <= 1) {
+        return;
+      }
 
       if (event.key === 'ArrowRight') {
         event.preventDefault();
@@ -998,7 +1086,7 @@ export default function FacesOfCleanAirPage() {
         goToRelativePage(-1);
       }
     },
-    [goToRelativePage, totalPages],
+    [goToRelativePage, totalSlides],
   );
 
   const handleDragEnd = useCallback(
@@ -1006,7 +1094,9 @@ export default function FacesOfCleanAirPage() {
       _event: MouseEvent | TouchEvent | globalThis.PointerEvent,
       info: PanInfo,
     ) => {
-      if (totalPages <= 1) return;
+      if (totalSlides <= 1) {
+        return;
+      }
 
       const movedLeft =
         info.offset.x < -SWIPE_DISTANCE_THRESHOLD ||
@@ -1022,39 +1112,78 @@ export default function FacesOfCleanAirPage() {
         goToRelativePage(-1);
       }
     },
-    [goToRelativePage, totalPages],
+    [goToRelativePage, totalSlides],
   );
 
   const pageVariants: Variants = {
     enter: (slideDirection: number) => ({
-      x: shouldReduceMotion ? 0 : slideDirection > 0 ? 120 : -120,
+      x: shouldReduceMotion
+        ? 0
+        : slideDirection > 0
+          ? isMobile
+            ? 78
+            : 120
+          : isMobile
+            ? -78
+            : -120,
+      rotateY: shouldReduceMotion
+        ? 0
+        : isMobile
+          ? slideDirection > 0
+            ? 9
+            : -9
+          : 0,
       opacity: 0,
-      scale: 0.96,
-      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(11px)',
+      scale: isMobile ? 0.92 : 0.96,
+      filter: shouldReduceMotion
+        ? 'blur(0px)'
+        : isMobile
+          ? 'blur(12px)'
+          : 'blur(11px)',
     }),
 
     center: {
       x: 0,
+      rotateY: 0,
       opacity: 1,
       scale: 1,
       filter: 'blur(0px)',
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.74,
+        duration: shouldReduceMotion ? 0 : isMobile ? 0.82 : 0.74,
         ease: [0.22, 1, 0.36, 1],
-        staggerChildren: shouldReduceMotion ? 0 : 0.08,
-        delayChildren: shouldReduceMotion ? 0 : 0.07,
+        staggerChildren: shouldReduceMotion ? 0 : isMobile ? 0 : 0.08,
+        delayChildren: shouldReduceMotion ? 0 : isMobile ? 0 : 0.07,
       },
     },
 
     exit: (slideDirection: number) => ({
-      x: shouldReduceMotion ? 0 : slideDirection > 0 ? -100 : 100,
+      x: shouldReduceMotion
+        ? 0
+        : slideDirection > 0
+          ? isMobile
+            ? -72
+            : -100
+          : isMobile
+            ? 72
+            : 100,
+      rotateY: shouldReduceMotion
+        ? 0
+        : isMobile
+          ? slideDirection > 0
+            ? -8
+            : 8
+          : 0,
       opacity: 0,
-      scale: 0.972,
-      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(8px)',
+      scale: isMobile ? 0.94 : 0.972,
+      filter: shouldReduceMotion
+        ? 'blur(0px)'
+        : isMobile
+          ? 'blur(10px)'
+          : 'blur(8px)',
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.46,
+        duration: shouldReduceMotion ? 0 : isMobile ? 0.56 : 0.46,
         ease: [0.4, 0, 1, 1],
-        staggerChildren: shouldReduceMotion ? 0 : 0.035,
+        staggerChildren: shouldReduceMotion ? 0 : isMobile ? 0 : 0.035,
         staggerDirection: -1,
       },
     }),
@@ -1066,9 +1195,11 @@ export default function FacesOfCleanAirPage() {
 
   const showEmpty = fetchState === 'success' && submissions.length === 0;
 
+  const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
+
   return (
     <div
-      className="relative min-h-[100svh] overflow-hidden"
+      className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
       style={{
         background:
           'linear-gradient(180deg, #02143B 0%, #145FFF 50%, #FFFFFF 100%)',
@@ -1076,18 +1207,18 @@ export default function FacesOfCleanAirPage() {
     >
       <AmbientBackground reduceMotion={shouldReduceMotion} />
 
-      <div className="relative mx-auto min-h-[100svh] w-full max-w-[1400px] px-5 pb-12 pt-8 sm:px-8 lg:px-12">
+      <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:min-h-[100svh] sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
         <motion.header
           variants={headerContainerVariants}
           initial={shouldReduceMotion ? false : 'hidden'}
           animate="visible"
-          className="mx-auto grid w-full max-w-[1200px] items-center gap-5 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6"
+          className="mx-auto grid w-full max-w-[1200px] flex-none grid-cols-[52px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6"
         >
           <motion.div
             variants={headerItemVariants}
-            className="flex justify-center sm:justify-start"
+            className="flex justify-start"
           >
-            <Link href="/home">
+            <Link href="/home" aria-label="Go to the AirQo homepage">
               <Image
                 src={AIRQO_LOGO_URL}
                 alt="AirQo"
@@ -1095,32 +1226,43 @@ export default function FacesOfCleanAirPage() {
                 height={51}
                 priority
                 unoptimized
-                className="h-auto w-[72px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+                className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
               />
             </Link>
           </motion.div>
 
-          <motion.h1
-            variants={headerItemVariants}
-            className="text-center leading-none text-white sm:text-left"
-          >
-            <span
-              className="text-[38px] font-normal tracking-[-0.05em] sm:text-[42px]"
-              style={{
-                fontFamily:
-                  '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
-              }}
+          <div className="min-w-0">
+            <motion.h1
+              variants={headerItemVariants}
+              className="whitespace-nowrap text-left leading-none text-white"
             >
-              Faces of
-            </span>{' '}
-            <span className="text-[36px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
-              Air Quality
-            </span>
-          </motion.h1>
+              <span
+                className="text-[25px] font-normal tracking-[-0.05em] sm:text-[42px]"
+                style={{
+                  fontFamily:
+                    '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
+                }}
+              >
+                Faces of
+              </span>{' '}
+              <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                Air Quality
+              </span>
+            </motion.h1>
+
+            <motion.div
+              variants={headerItemVariants}
+              className="mt-1 flex items-center gap-2 text-[9px] leading-tight text-white/85 sm:hidden"
+            >
+              <span className="font-bold">{EVENT_LABEL}</span>
+              <span aria-hidden="true">•</span>
+              <span className="italic">{EVENT_LOCATION_AND_YEAR}</span>
+            </motion.div>
+          </div>
 
           <motion.div
             variants={headerItemVariants}
-            className="text-center text-white sm:text-left"
+            className="hidden text-left text-white sm:block"
           >
             <p className="text-[13px] font-bold leading-tight">{EVENT_LABEL}</p>
 
@@ -1130,17 +1272,33 @@ export default function FacesOfCleanAirPage() {
           </motion.div>
         </motion.header>
 
-        <main className="mx-auto flex min-h-[60svh] w-full max-w-[1200px] items-center justify-center pt-9 sm:pt-10">
+        <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
           <section
             tabIndex={0}
             aria-label="Faces of Air Quality selfie carousel"
             aria-roledescription="carousel"
-            className="w-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
+            className="flex h-full w-full min-h-0 flex-col justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
             onKeyDown={handleCarouselKeyDown}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            onFocusCapture={() => setIsPaused(true)}
-            onBlurCapture={() => setIsPaused(false)}
+            onMouseEnter={() => {
+              if (!isMobile) {
+                setIsPaused(true);
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isMobile) {
+                setIsPaused(false);
+              }
+            }}
+            onFocusCapture={() => {
+              if (!isMobile) {
+                setIsPaused(true);
+              }
+            }}
+            onBlurCapture={() => {
+              if (!isMobile) {
+                setIsPaused(false);
+              }
+            }}
           >
             <AnimatePresence mode="wait" initial={false}>
               {isInitialLoading && (
@@ -1162,10 +1320,26 @@ export default function FacesOfCleanAirPage() {
                   transition={{
                     duration: shouldReduceMotion ? 0 : 0.64,
                   }}
-                  className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  className={
+                    isMobile
+                      ? 'flex h-full min-h-0 items-center justify-center'
+                      : 'grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                  }
                 >
-                  {Array.from({ length: CARDS_PER_PAGE }).map((_, index) => (
-                    <div key={index} className="w-full max-w-[280px]">
+                  {Array.from({
+                    length: skeletonCount,
+                  }).map((_, index) => (
+                    <div
+                      key={index}
+                      className={isMobile ? 'w-full' : 'w-full max-w-[280px]'}
+                      style={
+                        isMobile
+                          ? {
+                              width: 'min(86vw, calc(100svh - 205px), 360px)',
+                            }
+                          : undefined
+                      }
+                    >
                       <SkeletonCard
                         index={index}
                         reduceMotion={shouldReduceMotion}
@@ -1213,62 +1387,107 @@ export default function FacesOfCleanAirPage() {
                     duration: shouldReduceMotion ? 0 : 0.68,
                     ease: [0.22, 1, 0.36, 1],
                   }}
+                  className={
+                    isMobile
+                      ? 'flex h-full min-h-0 flex-col items-center justify-center'
+                      : undefined
+                  }
                 >
-                  <AnimatePresence
-                    initial={false}
-                    mode="wait"
-                    custom={direction}
+                  <div
+                    className={
+                      isMobile
+                        ? 'flex min-h-0 w-full flex-1 items-center justify-center'
+                        : undefined
+                    }
                   >
-                    <motion.div
-                      key={page}
+                    <AnimatePresence
+                      initial={false}
+                      mode="wait"
                       custom={direction}
-                      variants={pageVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      aria-live="polite"
-                      drag={totalPages > 1 && !shouldReduceMotion ? 'x' : false}
-                      dragConstraints={{
-                        left: 0,
-                        right: 0,
-                      }}
-                      dragElastic={0.14}
-                      dragMomentum={false}
-                      onDragEnd={handleDragEnd}
-                      className="grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-6 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-3"
                     >
-                      {pageItems.map((submission, index) => (
-                        <div
-                          key={
-                            submission.id ??
-                            `${submission.imageUrl}-${page}-${index}`
-                          }
-                          className="w-full max-w-[280px]"
-                        >
-                          <FaceCard
-                            submission={submission}
-                            priority={page === 0 && index < 3}
-                            reduceMotion={shouldReduceMotion}
-                          />
-                        </div>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
+                      <motion.div
+                        key={`${isMobile ? 'mobile' : 'desktop'}-${page}`}
+                        custom={direction}
+                        variants={pageVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        aria-live="polite"
+                        drag={
+                          totalSlides > 1 && !shouldReduceMotion ? 'x' : false
+                        }
+                        dragConstraints={{
+                          left: 0,
+                          right: 0,
+                        }}
+                        dragElastic={isMobile ? 0.2 : 0.14}
+                        dragMomentum={false}
+                        onDragEnd={handleDragEnd}
+                        style={{
+                          transformPerspective: 1200,
+                        }}
+                        className={
+                          isMobile
+                            ? 'flex touch-pan-y cursor-grab items-center justify-center active:cursor-grabbing'
+                            : 'grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-6 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-3'
+                        }
+                      >
+                        {visibleItems.map((submission, index) => (
+                          <div
+                            key={
+                              submission.id ??
+                              `${submission.imageUrl}-${page}-${index}`
+                            }
+                            className={
+                              isMobile ? 'w-full' : 'w-full max-w-[280px]'
+                            }
+                            style={
+                              isMobile
+                                ? {
+                                    width:
+                                      'min(86vw, calc(100svh - 205px), 360px)',
+                                  }
+                                : undefined
+                            }
+                          >
+                            <FaceCard
+                              submission={submission}
+                              priority={
+                                isMobile ? page === 0 : page === 0 && index < 3
+                              }
+                              reduceMotion={shouldReduceMotion}
+                            />
+                          </div>
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
 
-                  {totalPages > 1 && (
-                    <CarouselPagination
-                      page={page}
-                      totalPages={totalPages}
-                      isPaused={isPaused}
-                      reduceMotion={shouldReduceMotion}
-                      onPageChange={goToPage}
-                    />
+                  {totalSlides > 1 && (
+                    <>
+                      <MobilePagination
+                        page={page}
+                        totalPages={totalSlides}
+                        reduceMotion={shouldReduceMotion}
+                      />
+
+                      <DesktopPagination
+                        page={page}
+                        totalPages={totalSlides}
+                        isPaused={isPaused}
+                        reduceMotion={shouldReduceMotion}
+                        onPageChange={goToPage}
+                      />
+                    </>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
           </section>
         </main>
+
+        {/* Keeps mobile spacing balanced without making the page scroll. */}
+        <div className="h-2 flex-none sm:hidden" />
       </div>
     </div>
   );
