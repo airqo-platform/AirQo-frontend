@@ -32,9 +32,10 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    const token = request.nextauth.token
-    const isAuthenticated = !!token
-    
+    const token = request.nextauth.token as any;
+    const isAirqoTokenExpired =
+      typeof token?.airqoExp === 'number' && Date.now() / 1000 > token.airqoExp;
+    const isAuthenticated = !!token && !isAirqoTokenExpired;
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
     
     // Redirect unauthenticated users to login
