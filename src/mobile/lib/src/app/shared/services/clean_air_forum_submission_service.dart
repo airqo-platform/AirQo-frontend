@@ -18,13 +18,18 @@ import 'package:loggy/loggy.dart';
 /// avatar when none is supplied. When the user is logged in, their JWT is
 /// attached so the wall shows their real name instead of a generated one.
 class CleanAirForumSubmissionService with UiLoggy {
-  CleanAirForumSubmissionService._();
+  /// Injected refresher — defaults to [DefaultTokenRefresher].
+  /// Swap out in tests without touching production code (DIP).
+  final TokenRefresher _tokenRefresher;
+
+  CleanAirForumSubmissionService({TokenRefresher? tokenRefresher})
+      : _tokenRefresher = tokenRefresher ?? const DefaultTokenRefresher();
 
   static final CleanAirForumSubmissionService instance =
-      CleanAirForumSubmissionService._();
+      CleanAirForumSubmissionService();
 
-  /// The forum edition submissions are grouped under. Kept in sync with the
-  /// website wall page's "current event" config.
+  /// The forum edition submissions are grouped under — must match the
+  /// `eventId` the conference wall queries, or submissions never appear.
   static String get defaultEventId =>
       dotenv.env['CLEAN_AIR_FORUM_EVENT_ID'] ?? 'clean-air-forum';
 
@@ -50,8 +55,7 @@ class CleanAirForumSubmissionService with UiLoggy {
         fallbackLocationName;
     // Only attach a token the refresher considers valid — a stale one would
     // 401 the whole request, whereas an anonymous submission always works.
-    final userToken =
-        await const DefaultTokenRefresher().refreshTokenIfNeeded();
+    final userToken = await _tokenRefresher.refreshTokenIfNeeded();
 
     final response = await http
         .post(
