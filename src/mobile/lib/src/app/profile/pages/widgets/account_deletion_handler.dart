@@ -350,7 +350,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
                         Navigator.pop(context);
                         await Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                          MaterialPageRoute(settings: const RouteSettings(name: 'welcome'), builder: (_) => const WelcomeScreen()),
                           (route) => false,
                         );
                       }

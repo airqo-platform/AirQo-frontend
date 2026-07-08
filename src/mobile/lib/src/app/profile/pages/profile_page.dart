@@ -161,6 +161,10 @@ const ErrorPage(),
                                               child: InkWell(
                                             onTap: () => Navigator.of(context)
                                                 .push(MaterialPageRoute(
+                                                    settings:
+                                                        const RouteSettings(
+                                                            name:
+                                                                'edit_profile'),
                                                     builder: (context) =>
                                                         EditProfile())),
                                             child: Row(

@@ -123,6 +123,7 @@ class _GuestAboutPageState extends State<GuestAboutPage> {
               ),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
+                  settings: const RouteSettings(name: 'guest_account_access'),
                   builder: (_) => const GuestAccountAccessPage(),
                 ),
               ),

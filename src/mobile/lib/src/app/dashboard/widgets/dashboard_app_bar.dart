@@ -103,6 +103,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
+            settings: const RouteSettings(name: 'guest_profile'),
             builder: (context) => const GuestProfilePage(),
           ),
         );
@@ -148,6 +149,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
+                    settings: const RouteSettings(name: 'profile'),
                     builder: (context) => ProfilePage(),
                   ),
                 );
@@ -185,6 +187,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
+                    settings: const RouteSettings(name: 'login'),
                     builder: (context) => LoginPage(),
                   ),
                 );

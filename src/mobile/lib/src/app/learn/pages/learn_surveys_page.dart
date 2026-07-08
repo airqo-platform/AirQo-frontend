@@ -341,6 +341,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
     Navigator.of(context)
         .push(
       MaterialPageRoute(
+        settings: const RouteSettings(name: 'survey_detail'),
         builder: (context) => SurveyDetailPage(
           survey: survey,
           existingResponse: existingResponse,

@@ -68,6 +68,7 @@ class _LoginPageState extends State<LoginPage> {
       listener: (context, state) {
         if (state is AuthLoaded) {
           Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+            settings: const RouteSettings(name: 'home'),
             builder: (context) => NavPage(),
           ), (_) => false);
         } else if (state is EmailUnverifiedError) {
@@ -128,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.push(
                       context, 
                       MaterialPageRoute(
+                        settings: const RouteSettings(name: 'email_verification'),
                         builder: (context) => EmailVerificationScreen(
                           email: state.email,
                         ),
@@ -357,6 +359,7 @@ class _LoginPageState extends State<LoginPage> {
                               InkWell(
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute(
+                                    settings: const RouteSettings(name: 'create_account'),
                                     builder: (context) => CreateAccountScreen(),
                                   ),
                                 ),
@@ -383,6 +386,7 @@ class _LoginPageState extends State<LoginPage> {
                                 InkWell(
                                   onTap: () => Navigator.of(context).push(
                                     MaterialPageRoute(
+                                      settings: const RouteSettings(name: 'forgot_password'),
                                       builder: (context) => ForgotPasswordPage(),
                                     ),
                                   ),
@@ -455,6 +459,7 @@ class VerificationOption extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
+            settings: const RouteSettings(name: 'email_verification'),
             builder: (context) => EmailVerificationScreen(
               email: email,
             ),

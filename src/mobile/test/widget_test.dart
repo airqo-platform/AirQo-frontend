@@ -11,6 +11,7 @@ import 'package:airqo/src/app/profile/repository/user_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -85,6 +86,15 @@ void main() {
 
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
+
+    // PosthogObserver fires Posthog().screen on every navigation; without a
+    // platform implementation the channel throws MissingPluginException,
+    // which the SDK does not catch (it only handles PlatformException).
+    TestWidgetsFlutterBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('posthog_flutter'),
+      (call) async => null,
+    );
 
     try {
       final path = '.';
