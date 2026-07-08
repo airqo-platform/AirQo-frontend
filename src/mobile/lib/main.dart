@@ -73,8 +73,11 @@ void main() async {
         final postHogConfig = PostHogConfig(postHogApiKey);
         postHogConfig.host = postHogHost;
         postHogConfig.debug = !kReleaseMode;
-        postHogConfig.captureApplicationLifecycleEvents = false;
-        postHogConfig.personProfiles = PostHogPersonProfiles.always;
+        // SDK defaults kept explicit: lifecycle events give Application
+        // Opened/Backgrounded/Installed/Updated; identifiedOnly keeps guest
+        // events anonymous until identify() merges them on login.
+        postHogConfig.captureApplicationLifecycleEvents = true;
+        postHogConfig.personProfiles = PostHogPersonProfiles.identifiedOnly;
         try {
           await Posthog().setup(postHogConfig);
           Object().logInfo('PostHog initialized successfully');
@@ -195,6 +198,9 @@ class AirqoMobile extends StatelessWidget {
 
               return MaterialApp(
                 navigatorKey: navigatorKey,
+                // Captures $screen events for named PageRoutes; routes are
+                // named via RouteSettings at each push site.
+                navigatorObservers: [PosthogObserver()],
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),

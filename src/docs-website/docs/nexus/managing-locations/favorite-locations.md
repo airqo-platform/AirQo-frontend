@@ -13,10 +13,10 @@ Favorites let you follow up to four monitoring sites so they appear on your dash
 
 | Workflow | Sidebar Item | Web Address |
 |----------|--------------|-------------|
-| **Individual** | **My Favorites** | `https://analytics.airqo.net/user/favorites` |
-| **Organization** | **Dashboard** | `https://analytics.airqo.net/org/<your-org>/dashboard` |
+| **Individual** | **My Favorites** | `https://nexus.airqo.net//user/favorites` |
+| **Organization** | **Dashboard** | `https://nexus.airqo.net//org/<your-org>/dashboard` |
 
-You can also reach the Individual Favorites page from the [Home page](https://analytics.airqo.net/user/home) by selecting **My Favorites** or **Start here**.
+You can also reach the Individual Favorites page from the [Home page](https://nexus.airqo.net//user/home) by selecting **My Favorites** or **Start here**.
 
 ---
 

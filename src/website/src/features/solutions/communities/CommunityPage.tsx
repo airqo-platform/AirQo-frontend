@@ -42,7 +42,7 @@ const CommunitiesPage = () => {
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-yellow-50"
-        breadcrumbText="Solutions > For Communities"
+        breadcrumbText="Solutions / For Communities"
         title="For Communities"
         description="We harness the value that comes with bringing together community members passionate about clean air and a healthy environment."
         containerVariants={containerVariants}

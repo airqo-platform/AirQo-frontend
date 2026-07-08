@@ -9,6 +9,7 @@ import 'package:airqo/src/app/dashboard/widgets/forecast_day_selector.dart';
 import 'package:airqo/src/app/dashboard/widgets/forecast_guidance_section.dart';
 import 'package:airqo/src/app/dashboard/widgets/forecast_hourly_section.dart';
 import 'package:airqo/src/app/dashboard/widgets/forecast_time_scope_selector.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -93,6 +94,10 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
   void initState() {
     super.initState();
     context.read<ForecastBloc>().add(LoadForecast(widget.siteId));
+    AnalyticsService().trackForecastViewed(
+      siteId: widget.siteId,
+      siteName: widget.siteName,
+    );
   }
 
   void _selectDay(int index) {
@@ -114,6 +119,7 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
       _timeScope = scope;
       _selectedHourIndex = 0;
     });
+    AnalyticsService().trackForecastScopeChanged(scope: scope.name);
     _scrollToTop();
   }
 
@@ -165,6 +171,7 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     await showAirQualityShareSheet(
       context,
       measurement: measurement,
+      source: 'forecast',
       sharePositionOrigin: shareOrigin,
     );
   }

@@ -23,8 +23,8 @@ type Product = {
 
 const PRODUCTS: Product[] = [
     {
-        title: 'Analytics',
-        path: '/docs/analytics',
+        title: 'Nexus',
+        path: '/docs/nexus',
         icon: AqBarChartSquarePlus,
     },
     {

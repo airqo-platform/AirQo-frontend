@@ -28,14 +28,14 @@ const BeaconPage = () => {
     <ProductMarketingPage
       theme={beaconTheme}
       hero={{
-        breadcrumb: 'Our Products > Beacon',
+        breadcrumb: 'Our Products / AirQo Beacon',
         title:
           'Keep your air quality monitoring network visible, reliable, and easier to manage.',
         description:
-          'Beacon helps air quality network management teams see what is happening across their air quality monitoring network in one place. From device status and uptime to collocation performance and site-level issues, Beacon makes it easier to spot problems early and ensure data reliability.',
+          'AirQo Beacon helps air quality network management teams see what is happening across their air quality monitoring network in one place. From device status and uptime to collocation performance and site-level issues, AirQo Beacon makes it easier to spot problems early and ensure data reliability.',
         image: {
           src: '/assets/images/products/beacon/beacon-home.webp',
-          alt: 'Beacon hardware device render mounted under a solar panel',
+          alt: 'AirQo Beacon hardware device render mounted under a solar panel',
         },
       }}
       intro={{
@@ -57,8 +57,8 @@ const BeaconPage = () => {
               perform differently from a reference monitor.
             </p>
             <p className="mt-4">
-              Beacon gives operations, engineering, and data quality teams the
-              visibility they need to understand which devices are working,
+              AirQo Beacon gives operations, engineering, and data quality teams
+              the visibility they need to understand which devices are working,
               which sites need attention, and where network performance is
               changing over time.
             </p>
@@ -70,16 +70,16 @@ const BeaconPage = () => {
         title:
           'Know what is working, what is offline, and what needs attention',
         description: [
-          'Beacon brings device status, deployment information, uptime, online and offline tracking, location details, and site performance into one air quality monitoring dashboard.',
+          'AirQo Beacon brings device status, deployment information, uptime, online and offline tracking, location details, and site performance into one air quality monitoring dashboard.',
           'This helps teams move from reactive troubleshooting to more planned network management, with clearer information on where to act, what to prioritize, and how to keep the network reliable over time.',
         ],
         image: {
           src: '/assets/images/products/beacon/beacon-dashboard-showcase.webp',
-          alt: 'Beacon device monitoring dashboard product showcase',
+          alt: 'AirQo Beacon device monitoring dashboard product showcase',
         },
         cardBackgroundClassName: 'bg-[#EEF8F1]',
         action: {
-          label: 'Get started on Beacon',
+          label: 'Get started on AirQo Beacon',
           href: getEnvironmentAwareUrl(
             'https://beacon.airqo.net/dashboard/maintenance',
           ),
@@ -90,11 +90,13 @@ const BeaconPage = () => {
         title: (
           <>
             What you get with{' '}
-            <span className={beaconTheme.accentTextClassName}>Beacon</span>
+            <span className={beaconTheme.accentTextClassName}>
+              AirQo Beacon
+            </span>
           </>
         ),
         description:
-          'Beacon is designed for the everyday work of managing air quality monitoring networks. It helps teams track device health, review site performance, support collocation management, and understand whether the network is reliable enough to support research, public communication, and decision-making.',
+          'AirQo Beacon is designed for the everyday work of managing air quality monitoring networks. It helps teams track device health, review site performance, support collocation management, and understand whether the network is reliable enough to support research, public communication, and decision-making.',
         items: [
           {
             title: 'Device health dashboard',
@@ -139,11 +141,11 @@ const BeaconPage = () => {
         title: 'Protect data quality before problems spread across the network',
         description: [
           'Reliable air quality data depends on more than deploying devices. Teams also need to know whether devices are performing as expected, whether reference monitors are reporting, and whether low-cost sensors remain aligned with reference grade monitors.',
-          'Beacon supports collocation management by helping teams compare low-cost sensors with reference monitors at site level. This makes it easier to identify performance concerns early, support calibration workflows, and maintain confidence in the air quality data produced by the network.',
+          'AirQo Beacon supports collocation management by helping teams compare low-cost sensors with reference monitors at site level. This makes it easier to identify performance concerns early, support calibration workflows, and maintain confidence in the air quality data produced by the network.',
         ],
         image: {
           src: '/assets/images/products/beacon/person-call.webp',
-          alt: 'Beacon hardware render used on the product page',
+          alt: 'AirQo Beacon hardware render used on the product page',
         },
         cardBackgroundClassName: 'bg-[#FFF7E8]',
         reverse: true,
@@ -164,10 +166,10 @@ const BeaconPage = () => {
           </>
         ),
         description:
-          'Open Beacon to review device health, track site performance, inspect collocation workflows, and maintain stronger operational control across your air quality monitoring network.',
+          'Open AirQo Beacon to review device health, track site performance, inspect collocation workflows, and maintain stronger operational control across your air quality monitoring network.',
         actions: [
           {
-            label: 'Get Started on Beacon',
+            label: 'Get Started on AirQo Beacon',
             href: getEnvironmentAwareUrl('https://beacon.airqo.net'),
           },
           {

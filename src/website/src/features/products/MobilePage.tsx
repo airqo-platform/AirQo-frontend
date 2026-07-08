@@ -55,7 +55,7 @@ const MobilePage = () => {
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Mobile App
+              Our Products {'/'} Mobile App
             </p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
               Discover the quality of air around you.

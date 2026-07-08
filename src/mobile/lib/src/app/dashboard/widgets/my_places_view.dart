@@ -290,7 +290,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => LocationSelectionScreen()),
+      MaterialPageRoute(settings: const RouteSettings(name: 'location_selection'), builder: (context) => LocationSelectionScreen()),
     );
 
     if (result != null && mounted) {
@@ -372,6 +372,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
+                      settings: const RouteSettings(name: 'login'),
                       builder: (context) => const LoginPage(),
                     ),
                     (route) => false,
@@ -530,7 +531,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
               context.read<DashboardBloc>().add(LoadUserPreferences());
             } else if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
+                MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (context) => const LoginPage()),
                 (route) => false,
               );
             }

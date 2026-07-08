@@ -332,7 +332,7 @@ class _EmptyState extends StatelessWidget {
   Future<void> _goAddFavourites(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => LocationSelectionScreen()),
+      MaterialPageRoute(settings: const RouteSettings(name: 'location_selection'), builder: (_) => LocationSelectionScreen()),
     );
     // Reload declared places so newly added favourites appear immediately.
     if (context.mounted) {

@@ -5,17 +5,17 @@ sidebar_label: Export Air Quality Data
 
 # Export Air Quality Data
 
-The Data Export page lets you download air quality datasets from AirQo Analytics. Select locations across Africa, configure date ranges and pollutants, and export in multiple formats for offline analysis.
+The Data Export page lets you download air quality datasets from AirQo Nexus. Select locations across Africa, configure date ranges and pollutants, and export in multiple formats for offline analysis.
 
 ---
 
 ## Accessing the Export Page
 
-1. Log in to [AirQo Analytics](https://analytics.airqo.net).
+1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
 2. Open the sidebar and select **Visualization & Data Export** under the Data & Analysis section.
 3. Direct links:
-   - **Individual workflow:** [analytics.airqo.net/user/data-export](https://analytics.airqo.net/user/data-export)
-   - **Organization workflow:** `https://analytics.airqo.net/org/<your-org>/data-export`
+   - **Individual workflow:** [nexus.airqo.net//user/data-export](https://nexus.airqo.net//user/data-export)
+   - **Organization workflow:** `https://nexus.airqo.net//org/<your-org>/data-export`
 
 ---
 

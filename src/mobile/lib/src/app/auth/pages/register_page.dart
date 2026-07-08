@@ -59,6 +59,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         if (state is AuthLoaded && state.authPurpose == AuthPurpose.register) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
+              settings: const RouteSettings(name: 'email_verification'),
               builder: (context) => EmailVerificationScreen(
                 email: emailController.text.trim(),
               ),
@@ -300,6 +301,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   InkWell(
                                     onTap: () => Navigator.of(context).push(
                                         MaterialPageRoute(
+                                            settings: const RouteSettings(name: 'login'),
                                             builder: (context) =>
                                                 LoginPage())),
                                     child: TranslatedText(
@@ -343,6 +345,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           InkWell(
                             onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
+                                    settings: const RouteSettings(name: 'login'),
                                     builder: (context) => LoginPage())),
                             child: Container(
                               height: 56,
@@ -371,6 +374,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 InkWell(
                                   onTap: () => Navigator.of(context).push(
                                       MaterialPageRoute(
+                                          settings: const RouteSettings(name: 'login'),
                                           builder: (context) => LoginPage())),
                                 )
                               ]),
