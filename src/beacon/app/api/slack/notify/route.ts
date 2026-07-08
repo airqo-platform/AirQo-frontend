@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -5,6 +7,11 @@ export const dynamic = "force-dynamic";
 const IGNORED_CODES = new Set([400, 401, 403, 404]);
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
   const webhookUrl = process.env.BEACON_WEB_SLACK_WEBHOOK_URL;
   if (!webhookUrl) {
     console.warn("[beacon-web/slack] BEACON_WEB_SLACK_WEBHOOK_URL not set");
@@ -13,7 +20,6 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { level = "error", message, context = {} } = body;
-
   if (context.statusCode && IGNORED_CODES.has(context.statusCode)) {
     return NextResponse.json({ ok: true });
   }
