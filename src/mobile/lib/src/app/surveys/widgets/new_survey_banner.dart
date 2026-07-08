@@ -131,6 +131,7 @@ class _NewSurveyBannerState extends State<NewSurveyBanner> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
+                  settings: const RouteSettings(name: 'learn'),
                   builder: (context) => const KyaPage(initialIndex: 1),
                 ),
               );

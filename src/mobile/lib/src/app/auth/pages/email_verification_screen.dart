@@ -86,7 +86,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           );
 
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginPage()),
+            MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (context) => const LoginPage()),
             (route) => false,
           );
         } else if (state is AuthLoadingError) {

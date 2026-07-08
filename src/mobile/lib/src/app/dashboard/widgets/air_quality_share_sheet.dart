@@ -11,6 +11,7 @@ import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_sticker_frame.da
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/services/air_quality_share_service.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/clean_air_forum_submission_service.dart';
 import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -19,10 +20,12 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
+import 'package:share_plus/share_plus.dart';
 
 Future<void> showAirQualityShareSheet(
   BuildContext context, {
   required Measurement measurement,
+  required String source,
   String? fallbackLocationName,
   Rect? sharePositionOrigin,
 }) {
@@ -33,39 +36,43 @@ Future<void> showAirQualityShareSheet(
     backgroundColor: Colors.transparent,
     builder: (_) => AirQualityShareSheet(
       measurement: measurement,
+      source: source,
       fallbackLocationName: fallbackLocationName,
       sharePositionOrigin: sharePositionOrigin,
     ),
   );
 }
 
-enum _ShareTab { filter, card, sticker }
+/// One entry per share tab — adding a future filter/format is a single line
+/// here rather than a new copy-pasted chip + switch branch. [analyticsName]
+/// is the stable `tab` property on share_tab_selected and the `format` on
+/// share_completed; don't rename shipped values.
+enum _ShareTab {
+  filter(label: 'Forum filter', analyticsName: 'forum_filter'),
+  card(label: 'Card', analyticsName: 'card'),
+  sticker(label: 'IG sticker', analyticsName: 'ig_sticker');
+
+  final String label;
+  final String analyticsName;
+
+  const _ShareTab({required this.label, required this.analyticsName});
+}
 
 enum _SelfieSource { liveCamera, gallery }
 
-/// Describes one share tab so adding a future filter/format is a single
-/// entry here rather than a new copy-pasted chip + switch branch.
-class _ShareTabSpec {
-  final _ShareTab tab;
-  final String label;
-
-  const _ShareTabSpec({required this.tab, required this.label});
-}
-
-const List<_ShareTabSpec> _shareTabSpecs = [
-  _ShareTabSpec(tab: _ShareTab.filter, label: 'Forum filter'),
-  _ShareTabSpec(tab: _ShareTab.card, label: 'Card'),
-  _ShareTabSpec(tab: _ShareTab.sticker, label: 'IG sticker'),
-];
-
 class AirQualityShareSheet extends StatefulWidget {
   final Measurement measurement;
+
+  /// Where the sheet was opened from (e.g. 'dashboard', 'forecast') —
+  /// reported as the `source` property on share_sheet_opened.
+  final String source;
   final String? fallbackLocationName;
   final Rect? sharePositionOrigin;
 
   const AirQualityShareSheet({
     super.key,
     required this.measurement,
+    required this.source,
     this.fallbackLocationName,
     this.sharePositionOrigin,
   });
@@ -95,6 +102,30 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
 
   String? _inlineMessage;
   Timer? _inlineMessageTimer;
+
+  bool _cafFilterTabTracked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService().trackShareSheetOpened(source: widget.source);
+    if (_tab == _ShareTab.filter) _trackCafFilterTabOpened();
+  }
+
+  /// caf_filter_tab_opened confirms discovery of the forum filter, so it
+  /// fires once per sheet open — whether the tab was the default or tapped.
+  void _trackCafFilterTabOpened() {
+    if (_cafFilterTabTracked) return;
+    _cafFilterTabTracked = true;
+    AnalyticsService().trackCafFilterTabOpened();
+  }
+
+  void _selectTab(_ShareTab tab) {
+    if (_tab == tab) return;
+    setState(() => _tab = tab);
+    AnalyticsService().trackShareTabSelected(tab: tab.analyticsName);
+    if (tab == _ShareTab.filter) _trackCafFilterTabOpened();
+  }
 
   @override
   void dispose() {
@@ -141,12 +172,18 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         return;
       }
 
-      await AirQualityShareService.shareMeasurementCard(
+      final result = await AirQualityShareService.shareMeasurementCard(
         imageBytes,
         widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
         sharePositionOrigin: widget.sharePositionOrigin,
       );
+      if (result.status == ShareResultStatus.success) {
+        AnalyticsService().trackShareCompleted(
+          format: _ShareTab.card.analyticsName,
+          method: 'share_sheet',
+        );
+      }
     } catch (_) {
       _showMessage('Could not share the card. Please try again.');
     } finally {
@@ -226,9 +263,11 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
 
     switch (choice) {
       case _SelfieSource.liveCamera:
+        AnalyticsService().trackCafSelfieSourceSelected(source: 'live_camera');
         await _openLiveCamera();
         break;
       case _SelfieSource.gallery:
+        AnalyticsService().trackCafSelfieSourceSelected(source: 'gallery');
         await _pickSelfie(ImageSource.gallery);
         break;
       case null:
@@ -243,6 +282,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     try {
       final file = await Navigator.of(context).push<File>(
         MaterialPageRoute(
+          settings: const RouteSettings(name: 'clean_air_forum_camera'),
           fullscreenDialog: true,
           builder: (_) => CleanAirForumCameraScreen(
             measurement: widget.measurement,
@@ -252,6 +292,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       );
       if (file != null && mounted) {
         setState(() => _selfieFile = file);
+        AnalyticsService().trackCafSelfieCaptured();
       }
     } catch (_) {
       _showMessage('Could not open the live camera. Please try again.');
@@ -271,12 +312,19 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         return;
       }
 
-      await AirQualityShareService.shareCleanAirForumFilter(
+      final result = await AirQualityShareService.shareCleanAirForumFilter(
         imageBytes,
         widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
         sharePositionOrigin: widget.sharePositionOrigin,
       );
+      if (result.status == ShareResultStatus.success) {
+        AnalyticsService().trackCafFilterShared();
+        AnalyticsService().trackShareCompleted(
+          format: _ShareTab.filter.analyticsName,
+          method: 'share_sheet',
+        );
+      }
 
       if (_consentToDisplay) {
         unawaited(_submitToConferenceWall(imageBytes));
@@ -295,8 +343,13 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         measurement: widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
       );
+      AnalyticsService().trackCafWallSubmissionSent();
       _showMessage('Sent to the Clean Air Forum screen!');
-    } catch (_) {
+    } catch (e) {
+      // Report only the exception type — raw messages can carry API
+      // response details that don't belong in analytics.
+      AnalyticsService()
+          .trackCafWallSubmissionFailed(error: e.runtimeType.toString());
       _showMessage(
         'Your photo shared fine, but sending it to the conference screen '
         "didn't work. Please try again.",
@@ -330,6 +383,10 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         return;
       }
 
+      AnalyticsService().trackShareCompleted(
+        format: _ShareTab.sticker.analyticsName,
+        method: 'clipboard_copy',
+      );
       _showMessage('Copied! Paste it into your Instagram Story.');
       if (mounted) {
         setState(() => _stickerCopied = true);
@@ -423,13 +480,13 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   Widget _buildTabSelector() {
     return Row(
       children: [
-        for (final spec in _shareTabSpecs) ...[
-          if (spec != _shareTabSpecs.first) const SizedBox(width: 8),
+        for (final tab in _ShareTab.values) ...[
+          if (tab != _ShareTab.values.first) const SizedBox(width: 8),
           Expanded(
             child: _TabChip(
-              label: spec.label,
-              selected: _tab == spec.tab,
-              onTap: () => setState(() => _tab = spec.tab),
+              label: tab.label,
+              selected: _tab == tab,
+              onTap: () => _selectTab(tab),
             ),
           ),
         ],
@@ -570,7 +627,10 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         const SizedBox(width: 12),
         CustomSwitch(
           value: _consentToDisplay,
-          onChanged: (value) => setState(() => _consentToDisplay = value),
+          onChanged: (value) {
+            setState(() => _consentToDisplay = value);
+            if (value) AnalyticsService().trackCafWallConsentGiven();
+          },
         ),
       ],
     );

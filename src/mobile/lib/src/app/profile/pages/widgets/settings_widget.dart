@@ -197,7 +197,7 @@ void _showLogoutConfirmation() {
             if (!mounted) break;
           }
           await navigator.pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            MaterialPageRoute(settings: const RouteSettings(name: 'welcome'), builder: (_) => const WelcomeScreen()),
             (route) => false,
           );
           break;
@@ -245,6 +245,7 @@ void _showLogoutConfirmation() {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
+                    settings: const RouteSettings(name: 'select_language'),
                     builder: (context) => SelectLanguagePage(),
                   ),
                 );
@@ -268,6 +269,7 @@ void _showLogoutConfirmation() {
                   }
                   Navigator.of(context).push(
                     MaterialPageRoute(
+                      settings: const RouteSettings(name: 'feedback'),
                       builder: (context) =>
                           FeedbackScreen(initialEmail: email),
                     ),

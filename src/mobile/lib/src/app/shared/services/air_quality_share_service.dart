@@ -11,7 +11,7 @@ class AirQualityShareService {
   /// can be tracked back to this feature.
   static const String appLink = 'https://www.airqo.net/explore-data';
 
-  static Future<void> shareMeasurement(
+  static Future<ShareResult> shareMeasurement(
     Measurement measurement, {
     String? fallbackLocationName,
     Rect? sharePositionOrigin,
@@ -28,7 +28,7 @@ class AirQualityShareService {
     );
   }
 
-  static Future<void> shareMeasurementCard(
+  static Future<ShareResult> shareMeasurementCard(
     Uint8List imageBytes,
     Measurement measurement, {
     String? fallbackLocationName,
@@ -46,7 +46,7 @@ class AirQualityShareService {
   }
 
   /// Shares the composited selfie + Clean Air Forum branded card.
-  static Future<void> shareCleanAirForumFilter(
+  static Future<ShareResult> shareCleanAirForumFilter(
     Uint8List imageBytes,
     Measurement measurement, {
     String? fallbackLocationName,
@@ -69,7 +69,7 @@ class AirQualityShareService {
 
   /// Shares the transparent branding sticker meant to be pasted onto an
   /// Instagram Story (or similar) as an overlay.
-  static Future<void> shareStickerFrame(
+  static Future<ShareResult> shareStickerFrame(
     Uint8List imageBytes, {
     Rect? sharePositionOrigin,
   }) {
@@ -82,7 +82,7 @@ class AirQualityShareService {
     );
   }
 
-  static Future<void> _shareImage(
+  static Future<ShareResult> _shareImage(
     Uint8List imageBytes, {
     required String fileName,
     required String text,

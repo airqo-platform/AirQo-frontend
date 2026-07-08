@@ -63,7 +63,7 @@ class _PasswordResetPage extends State<PasswordResetPage> {
           passwordConfirmController.clear();
           passwordController.clear();
           Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => ResetSuccessPage()));
+              MaterialPageRoute(settings: const RouteSettings(name: 'reset_success'), builder: (context) => ResetSuccessPage()));
         } else if (state is PasswordResetError) {
           setState(() {
             error = state.message.replaceAll("Exception: ", "");
