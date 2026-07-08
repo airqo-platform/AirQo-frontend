@@ -83,6 +83,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
         loggy.error(
             "Failed to clear auth data after startup error: $clearError");
       }
+      await analytics.resetUser();
       emit(GuestUser());
     }
   }
@@ -176,6 +177,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     emit(AuthLoading());
     try {
       await authRepository.deleteUserAccount();
+      await analytics.resetUser();
       emit(GuestUser());
     } catch (e) {
       debugPrint("Account deletion error: $e");
@@ -194,6 +196,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
       loggy.error("Session expiry cleanup error: $e");
+      await analytics.resetUser();
       emit(SessionExpiredState());
       emit(GuestUser());
     }
