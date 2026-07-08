@@ -26,8 +26,9 @@ import { FiCamera } from 'react-icons/fi';
 
 import {
   CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
-  CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS,
+  CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
 } from '@/config/cleanAirForumConfig';
+import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
 import { facesOfCleanAirService } from '@/services/external';
 import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.service';
 
@@ -280,21 +281,19 @@ function SkeletonCard({
               opacity: 0,
               y: 24,
               scale: 0.96,
-              filter: 'blur(6px)',
             }
       }
       animate={{
         opacity: 1,
         y: 0,
         scale: 1,
-        filter: 'blur(0px)',
       }}
       transition={{
         duration: reduceMotion ? 0 : 0.62,
         delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
+      className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-blue-100/15 to-blue-600/20" />
@@ -349,19 +348,16 @@ const cardVariants: Variants = {
     opacity: 0,
     y: 28,
     scale: 0.94,
-    filter: 'blur(9px)',
   },
   center: {
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: 'blur(0px)',
   },
   exit: {
     opacity: 0,
     y: -16,
     scale: 0.96,
-    filter: 'blur(6px)',
   },
 };
 
@@ -464,7 +460,7 @@ function FaceCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-blue-950 shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-blue-950 shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -591,7 +587,7 @@ function FaceCard({
                       scale: 1.07,
                     }
               }
-              className={`max-w-[92px] truncate rounded-full px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
+              className={`max-w-[92px] truncate rounded px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
               title={category.label}
             >
               {category.label}
@@ -623,20 +619,17 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
               opacity: 0,
               y: 26,
               scale: 0.96,
-              filter: 'blur(8px)',
             }
       }
       animate={{
         opacity: 1,
         y: 0,
         scale: 1,
-        filter: 'blur(0px)',
       }}
       exit={{
         opacity: 0,
         y: -16,
         scale: 0.97,
-        filter: 'blur(5px)',
       }}
       transition={{
         duration: reduceMotion ? 0 : 0.68,
@@ -722,14 +715,12 @@ function ErrorState({
               opacity: 0,
               y: 22,
               scale: 0.97,
-              filter: 'blur(7px)',
             }
       }
       animate={{
         opacity: 1,
         y: 0,
         scale: 1,
-        filter: 'blur(0px)',
       }}
       exit={{
         opacity: 0,
@@ -925,12 +916,10 @@ const headerItemVariants: Variants = {
   hidden: {
     opacity: 0,
     y: -20,
-    filter: 'blur(7px)',
   },
   visible: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     transition: {
       duration: 0.78,
       ease: [0.22, 1, 0.36, 1],
@@ -972,18 +961,10 @@ export default function FacesOfCleanAirPage() {
     }
   }, []);
 
-  useEffect(() => {
-    void fetchSubmissions();
-
-    const pollingTimer = window.setInterval(
-      () => void fetchSubmissions(),
-      CLEAN_AIR_FORUM_WALL_POLL_INTERVAL_MS,
-    );
-
-    return () => {
-      window.clearInterval(pollingTimer);
-    };
-  }, [fetchSubmissions]);
+  usePollingWithVisibility(
+    fetchSubmissions,
+    CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
+  );
 
   const totalSlides = useMemo(() => {
     if (isMobile) {
@@ -1135,11 +1116,6 @@ export default function FacesOfCleanAirPage() {
           : 0,
       opacity: 0,
       scale: isMobile ? 0.92 : 0.96,
-      filter: shouldReduceMotion
-        ? 'blur(0px)'
-        : isMobile
-          ? 'blur(12px)'
-          : 'blur(11px)',
     }),
 
     center: {
@@ -1147,7 +1123,6 @@ export default function FacesOfCleanAirPage() {
       rotateY: 0,
       opacity: 1,
       scale: 1,
-      filter: 'blur(0px)',
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.82 : 0.74,
         ease: [0.22, 1, 0.36, 1],
@@ -1175,11 +1150,6 @@ export default function FacesOfCleanAirPage() {
           : 0,
       opacity: 0,
       scale: isMobile ? 0.94 : 0.972,
-      filter: shouldReduceMotion
-        ? 'blur(0px)'
-        : isMobile
-          ? 'blur(10px)'
-          : 'blur(8px)',
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.56 : 0.46,
         ease: [0.4, 0, 1, 1],
@@ -1252,7 +1222,7 @@ export default function FacesOfCleanAirPage() {
 
             <motion.div
               variants={headerItemVariants}
-              className="mt-1 flex items-center gap-2 text-[9px] leading-tight text-white/85 sm:hidden"
+              className="mt-1 text-[9px] leading-tight text-white/85 sm:hidden"
             >
               <span className="font-bold">{EVENT_LABEL}</span>
               <span aria-hidden="true">•</span>
@@ -1306,16 +1276,13 @@ export default function FacesOfCleanAirPage() {
                   key="loading"
                   initial={{
                     opacity: 0,
-                    filter: 'blur(5px)',
                   }}
                   animate={{
                     opacity: 1,
-                    filter: 'blur(0px)',
                   }}
                   exit={{
                     opacity: 0,
                     scale: 0.985,
-                    filter: 'blur(6px)',
                   }}
                   transition={{
                     duration: shouldReduceMotion ? 0 : 0.64,
@@ -1370,18 +1337,15 @@ export default function FacesOfCleanAirPage() {
                       : {
                           opacity: 0,
                           y: 18,
-                          filter: 'blur(6px)',
                         }
                   }
                   animate={{
                     opacity: 1,
                     y: 0,
-                    filter: 'blur(0px)',
                   }}
                   exit={{
                     opacity: 0,
                     y: -12,
-                    filter: 'blur(4px)',
                   }}
                   transition={{
                     duration: shouldReduceMotion ? 0 : 0.68,

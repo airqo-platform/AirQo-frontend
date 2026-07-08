@@ -56,7 +56,7 @@ export const AIR_QUALITY_COLORS: Record<AirQualityLevel, string> = {
   unhealthy: '#F7453C',
   'very-unhealthy': '#AC5CD9',
   hazardous: '#D95BA3',
-  'no-value': '#6B7280',
+  'no-value': '#475569',
 } as const;
 
 export const AIR_QUALITY_INFO = {

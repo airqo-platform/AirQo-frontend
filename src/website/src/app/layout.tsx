@@ -313,6 +313,8 @@ export default async function RootLayout({
           crossOrigin="anonymous"
         />
 
+        <meta name="referrer" content="no-referrer" />
+
         {/* Structured data */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static JSON-LD data, not user input */}
         <Script

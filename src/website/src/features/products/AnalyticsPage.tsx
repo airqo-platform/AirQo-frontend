@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import React from 'react';
-import { BiDownload } from 'react-icons/bi';
+import { BiLinkExternal } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
@@ -143,14 +143,12 @@ const AnalyticsPage = () => {
 
             <CustomButton
               onClick={() =>
-                window.open(
-                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038899/website/docs/AirQoAnalyticsPlatformUserGuide_ssyebk.pdf?#view=FitH',
-                )
+                window.open('https://platform.airqo.net/docs/nexus/intro/')
               }
               className="flex items-center justify-center bg-transparent text-gray-700 border-2 border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
             >
-              User Guide
-              <BiDownload className="ml-2 text-xl" />
+              Documentation
+              <BiLinkExternal className="ml-2 text-xl" />
             </CustomButton>
           </motion.div>
 
