@@ -13,10 +13,17 @@ export class DeviceGateway {
   // --- HOST FUNCTIONS ---
 
   async connectDevice(adapter: DeviceAdapter): Promise<void> {
+    // Prevent duplicate timers/buffers if connectDevice is called more than once.
+    if (this.logFlushInterval) {
+      clearInterval(this.logFlushInterval);
+      this.logFlushInterval = null;
+    }
+    this.logBuffer = [];
+
     this.activeAdapter = adapter;
-    
+
     useCollaborationStore.getState().setDeviceStatus('connected');
-    
+
     // Broadcast device status update to peers
     peerManager.broadcast({
       type: 'deviceConnected'
