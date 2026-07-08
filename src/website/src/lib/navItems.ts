@@ -15,12 +15,12 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/monitor',
     },
     {
-      title: 'Vertex',
+      title: 'AirQo Vertex',
       description: 'Open air quality data sharing platform',
       href: '/products/vertex',
     },
     {
-      title: 'Beacon',
+      title: 'AirQo Beacon',
       description: 'Monitor device health and collocation performance',
       href: '/products/beacon',
     },
@@ -30,9 +30,9 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/ai-platform',
     },
     {
-      title: 'Analytics Dashboard',
-      description: 'Air quality analytics for African cities',
-      href: '/products/analytics',
+      title: 'AirQo Nexus',
+      description: 'Real-time air quality data for African cities',
+      href: '/products/nexus',
     },
     {
       title: 'Mobile App',

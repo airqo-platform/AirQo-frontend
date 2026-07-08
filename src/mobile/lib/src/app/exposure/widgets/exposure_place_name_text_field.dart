@@ -11,6 +11,7 @@ class ExposurePlaceNameTextField extends StatefulWidget {
   final int? maxLines;
   final int? minLines;
   final bool enabled;
+  final FocusNode? focusNode;
 
   const ExposurePlaceNameTextField({
     super.key,
@@ -21,6 +22,7 @@ class ExposurePlaceNameTextField extends StatefulWidget {
     this.maxLines = 1,
     this.minLines,
     this.enabled = true,
+    this.focusNode,
   });
 
   static const _borderIdle = Color(0xFFD0D5DD);
@@ -34,21 +36,25 @@ class ExposurePlaceNameTextField extends StatefulWidget {
 }
 
 class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField> {
-  late final FocusNode _focusNode;
+  FocusNode? _internalFocusNode;
   bool _focused = false;
+
+  FocusNode get _focusNode => widget.focusNode ?? (_internalFocusNode ??= FocusNode());
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _focusNode.addListener(() {
-      setState(() => _focused = _focusNode.hasFocus);
-    });
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    setState(() => _focused = _focusNode.hasFocus);
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _focusNode.removeListener(_handleFocusChange);
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 

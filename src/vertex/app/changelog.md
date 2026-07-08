@@ -2,7 +2,7 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.15
+## Version 2.0.16
 **Released:** July 8, 2026
 
 ### Logout Confirmation Modal & ReusableDialog Focus Fixes
@@ -25,6 +25,41 @@ Added a confirmation step before signing out, and fixed two focus-management bug
 - **Stale timer fixed**: the `setTimeout` that moves focus into the dialog is now cleared in the effect cleanup, preventing it from firing against an already-closed dialog.
 - **First focusable element**: focus now lands on the first interactive element that is not the close (×) button — typically the Cancel button in a confirmation flow or the first input in a form dialog. Falls back to the × button, then the dialog root.
 - **Title casing**: removed the `capitalize` CSS class from the title `<h2>` so titles render exactly as passed (sentence-case titles like *"Sign out of your AirQo account?"* no longer have every word force-capitalised). Existing title-cased strings are unaffected.
+
+</details>
+
+---
+
+## Version 2.0.15
+**Released:** July 6, 2026
+
+### Device Activity Crash Fix & Root-Layout Error Boundary
+
+Fixed a crash on the Device Details page caused by activity records with a missing `description`, and closed a gap where errors escaping the root layout fell through to Next.js's generic, unstyled error screen instead of the app's branded error UI.
+
+<details>
+<summary><strong>Device Activity Timeline Crash Fix (2)</strong></summary>
+
+- **`device-activity-item.tsx`**: `activity.description.charAt(0)` was called unconditionally, crashing the whole page whenever the API returned an activity record with a `null`/missing `description` (the rest of the file already guarded this field with a `typeof` check — this one call site was missed). Now falls back to `"No description available"` when the field isn't a non-empty string.
+- Applied the identical guard to the duplicated component in `vertex-template` for consistency.
+
+</details>
+
+<details>
+<summary><strong>New: `app/global-error.tsx`</strong></summary>
+
+- Next.js's `app/error.tsx` only catches errors thrown in nested route segments — it can't catch errors thrown in the root layout itself (e.g. a crash inside `Providers`/`ClientLayout`). Without a `global-error.tsx`, those errors fell through to Next's hardcoded "Application error: a client-side exception has occurred" fallback.
+- Added a self-contained `global-error.tsx` (own `<html>`/`<body>`, no Redux dependency since the store itself may be the thing that crashed) styled to match the existing `ForbiddenError` page — same `OopsIcon`, "Oops!" heading pattern, `ReusableButton` actions ("Go to Login" / "Try again"), and error-code footer convention.
+- Verified against a production build (`next build && next start`); dev mode's overlay masks this boundary entirely, so testing had to happen outside dev mode.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (3)</strong></summary>
+
+- `src/vertex/components/features/devices/device-activity-item.tsx` [MODIFIED]
+- `src/vertex-template/components/features/devices/device-activity-item.tsx` [MODIFIED]
+- `src/vertex/app/global-error.tsx` [NEW]
 
 </details>
 

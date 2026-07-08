@@ -455,22 +455,12 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
 
           if (isLoading && _nearbyMeasurementsWithDistance.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 120),
-                  CircularProgressIndicator(color: AppColors.primaryColor),
-                  const SizedBox(height: 16),
-                  TranslatedText(
-                    "Getting your location...",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                ],
-              ),
+            return ListView.builder(
+              itemCount: _maxNearbyLocations,
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) => const NearbyMeasurementCardLoader(),
             );
           }
 

@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { HiChevronDown } from 'react-icons/hi';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import {
   AqDownload01,
   AqPalette,
@@ -469,6 +467,10 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
     setIsExporting(true);
     try {
       await document.fonts?.ready;
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
       const exportElement = captureRef.current;
       const exportRect = exportElement.getBoundingClientRect();
       const canvas = await html2canvas(exportElement, {

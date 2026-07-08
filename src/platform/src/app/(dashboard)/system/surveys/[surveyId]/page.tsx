@@ -3,8 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { PermissionGuard } from '@/shared/components';
 import {
   Button,
@@ -197,10 +195,14 @@ const exportSurveyResponsesAsCsv = (
   URL.revokeObjectURL(url);
 };
 
-const exportSurveyResponsesAsPdf = (
+const exportSurveyResponsesAsPdf = async (
   survey: Survey | null | undefined,
   responses: SurveyResponseItem[]
 ) => {
+  const [{ jsPDF }, { autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
   const rows = buildSurveyResponseExportRows(survey, responses);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const generatedAt = new Date().toLocaleString();
@@ -460,8 +462,12 @@ const SurveyDetailsPage: React.FC = () => {
     exportSurveyResponsesAsCsv(currentSurvey, filteredResponses);
   }, [currentSurvey, filteredResponses]);
 
-  const handleExportPdf = useCallback(() => {
-    exportSurveyResponsesAsPdf(currentSurvey, filteredResponses);
+  const handleExportPdf = useCallback(async () => {
+    try {
+      await exportSurveyResponsesAsPdf(currentSurvey, filteredResponses);
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+    }
   }, [currentSurvey, filteredResponses]);
 
   const responseColumns = useMemo(

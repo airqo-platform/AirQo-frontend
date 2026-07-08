@@ -3,9 +3,69 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
+import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
+
+/// Shimmer skeleton matching [NearbyMeasurementCard]'s layout, shown per-slot
+/// while nearby measurements are still being resolved (location + dashboard
+/// fetch), so the "Near You" tab doesn't show a single blocking spinner.
+class NearbyMeasurementCardLoader extends StatelessWidget {
+  const NearbyMeasurementCardLoader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: AppSurfaceColors.elevatedCardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerText(width: 140, height: 20),
+                      SizedBox(height: 8),
+                      ShimmerText(width: 100, height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(thickness: .5, color: Theme.of(context).dividerColor),
+          Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerText(width: 70, height: 14),
+                    SizedBox(height: 8),
+                    ShimmerText(width: 90, height: 30),
+                  ],
+                ),
+                ShimmerContainer(height: 86, width: 86, borderRadius: 100),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
   final Measurement measurement;

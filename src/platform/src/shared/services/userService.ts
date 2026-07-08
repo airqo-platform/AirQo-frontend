@@ -351,14 +351,19 @@ export class UserService {
       }
 
       return data as GetGroupJoinRequestsResponse;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If the error has response data with success: true, return it
+      const axiosError = error as {
+        response?: {
+          data?: GetGroupJoinRequestsResponse & { success?: boolean };
+        };
+      };
       if (
-        error.response?.data &&
-        'success' in error.response.data &&
-        error.response.data.success
+        axiosError.response?.data &&
+        'success' in axiosError.response.data &&
+        axiosError.response.data.success
       ) {
-        return error.response.data as GetGroupJoinRequestsResponse;
+        return axiosError.response.data as GetGroupJoinRequestsResponse;
       }
       throw error;
     }
@@ -526,9 +531,10 @@ export class UserService {
       }
 
       return data as GetPendingInvitationsResponse;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle 404 gracefully - the endpoint might not exist yet
-      if (error.response?.status === 404) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 404) {
         console.warn('Pending invitations endpoint not found (404)');
         return {
           success: true,
@@ -537,7 +543,7 @@ export class UserService {
         };
       }
       // Handle 401 gracefully - user not authenticated, return empty
-      if (error.response?.status === 401) {
+      if (axiosError.response?.status === 401) {
         console.warn('User not authenticated for pending invitations (401)');
         return {
           success: true,

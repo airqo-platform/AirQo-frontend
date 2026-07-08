@@ -8,6 +8,10 @@
 
 # testing
 /coverage
+/e2e/screenshots
+/e2e/reports
+/e2e/dist
+mochawesome-report/
 
 # next.js
 /.next/

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { AuthOptions } from 'next-auth';
 import { authService } from '../services/authService';
 import {
   fetchEnhancedUserProfile,
@@ -144,7 +144,7 @@ const normalizeAuthMethods = (value: unknown): AuthMethods | undefined => {
   };
 };
 
-export const authOptions: any = {
+export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   useSecureCookies: isProduction,
   providers: [
@@ -246,12 +246,13 @@ export const authOptions: any = {
             phoneNumber: loginData.phoneNumber || '',
             exp: 0,
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Enhanced error handling to include status and full response data
+          const err = error as Record<string, unknown>;
           const errorData = {
-            message: error?.message || 'Login failed',
-            status: error?.status || 500,
-            data: error?.data || null,
+            message: error instanceof Error ? error.message : 'Login failed',
+            status: typeof err?.status === 'number' ? err.status : 500,
+            data: err?.data ?? null,
             success: false,
           };
 
@@ -276,8 +277,7 @@ export const authOptions: any = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token._id = user._id;
@@ -288,12 +288,12 @@ export const authOptions: any = {
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.authMethods = normalizeAuthMethods(user.authMethods);
-        token.userName = user.userName || user.email;
+        token.userName = user.userName || user.email || undefined;
         token.organization = user.organization || '';
         token.privilege = user.privilege || '';
         token.country = user.country || '';
         token.phoneNumber = user.phoneNumber || '';
-        token.image = user.image;
+        token.image = user.image || undefined;
         token.exp = user.exp || 0;
       }
 
@@ -315,39 +315,35 @@ export const authOptions: any = {
 
       return token;
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       // Only invalidate if token is missing or malformed; expired JWTs can be refreshed
       const accessToken =
-        typeof (token as any)?.accessToken === 'string'
-          ? normalizeOAuthAccessToken((token as any).accessToken as string) ||
-            undefined
+        typeof token?.accessToken === 'string'
+          ? normalizeOAuthAccessToken(token.accessToken) || undefined
           : undefined;
       const expiresAt =
-        typeof (token as any)?.expiresAt === 'string'
-          ? ((token as any).expiresAt as string)
-          : undefined;
-      const authMethods = normalizeAuthMethods((token as any)?.authMethods);
+        typeof token?.expiresAt === 'string' ? token.expiresAt : undefined;
+      const authMethods = normalizeAuthMethods(token?.authMethods);
       if (isTokenInvalid(accessToken, expiresAt)) {
-        return { user: null };
+        return { user: null, expires: new Date().toISOString() };
       }
 
       // Add access token and user ID to session
-      (session as any).accessToken = accessToken;
-      (session as any).expiresAt = expiresAt;
-      (session as any).authMethods = authMethods;
+      session.accessToken = accessToken;
+      session.expiresAt = expiresAt;
+      session.authMethods = authMethods;
       if (session.user) {
-        (session.user as any)._id = (token as any)._id || (token as any).id;
-        (session.user as any).firstName = (token as any).firstName;
-        (session.user as any).lastName = (token as any).lastName;
-        (session.user as any).userName =
-          (token as any).userName || (session.user as any).email;
-        (session.user as any).organization = (token as any).organization || '';
-        (session.user as any).privilege = (token as any).privilege || '';
-        (session.user as any).country = (token as any).country || '';
-        (session.user as any).phoneNumber = (token as any).phoneNumber || '';
-        if ((token as any).image) {
-          (session.user as any).image = (token as any).image;
+        session.user._id = token._id || token.id;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+        session.user.userName =
+          token.userName || session.user.email || undefined;
+        session.user.organization = token.organization || '';
+        session.user.privilege = token.privilege || '';
+        session.user.country = token.country || '';
+        session.user.phoneNumber = token.phoneNumber || '';
+        if (token.image) {
+          session.user.image = token.image;
         }
       }
       return session;

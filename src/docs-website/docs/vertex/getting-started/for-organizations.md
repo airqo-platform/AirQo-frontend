@@ -9,8 +9,8 @@ An Organization Workspace is built for teams that manage a fleet of devices coll
 * **Delegate work through roles:** Invite team members and assign roles so people can manage devices without needing full workspace control.
 
 ## Getting Started
-1. **Switch to your Organization Workspace:** Select your organization from the workspace dropdown in the top right corner of Vertex. *(If your organization doesn't exist yet, you'll need to initialize it through the AirQo Analytics platform first.)*
-2. **Invite your team and assign roles from AirQo Analytics:** Team management isn't done in Vertex — it's handled on the AirQo Analytics platform. Under your organization's **Management** section, open **Members** to invite people by email, and use **Roles & Permissions** to create roles and control what each person can access. See the Analytics [Roles & Permissions guide](/docs/analytics/organization-management/roles-and-permissions) for details.
+1. **Switch to your Organization Workspace:** Select your organization from the workspace dropdown in the top right corner of Vertex. *(If your organization doesn't exist yet, you'll need to initialize it through the AirQo Nexus platform first.)*
+2. **Invite your team and assign roles from AirQo Nexus:** Team management isn't done in Vertex — it's handled on the AirQo Nexus platform. Under your organization's **Management** section, open **Members** to invite people by email, and use **Roles & Permissions** to create roles and control what each person can access. See the AirQo Nexus [Roles & Permissions guide](/docs/nexus/organization-management/roles-and-permissions) for details.
 
 ## What to Do Next
 With your team invited and your workspace configured, you're ready to start managing hardware.

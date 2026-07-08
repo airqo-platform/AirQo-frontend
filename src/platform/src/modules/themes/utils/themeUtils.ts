@@ -256,7 +256,7 @@ export function getThemeScript(): string {
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { console.debug('Failed to parse stored theme:', e); }
 
         // Fallback to general theme key
         if (!themeData) {

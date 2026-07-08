@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import TopBanner from '@/components/layouts/TopBanner';
+import TopBanner from '@/components/layout/TopBanner';
 import { CustomButton } from '@/components/ui';
 
 const NotFoundPage = () => {

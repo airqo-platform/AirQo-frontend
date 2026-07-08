@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 
-import TopBanner from '@/components/layouts/TopBanner';
+import TopBanner from '@/components/layout/TopBanner';
 import { CustomButton } from '@/components/ui';
 
 export default function GlobalError({
