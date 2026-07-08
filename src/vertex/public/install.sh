@@ -77,6 +77,30 @@ json_string_field() {
   sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n1
 }
 
+# Looks up the browser_download_url for the release asset whose "name" field
+# exactly matches $1. Used instead of hand-constructing the GitHub download
+# URL from the tag and asset name, since the asset name is derived from the
+# app's product name and isn't guaranteed to be URL-safe (e.g. no spaces).
+asset_download_url() {
+  local name="$1"
+  awk -v name="$name" '
+    /"name"[[:space:]]*:/ {
+      line = $0
+      sub(/.*"name"[[:space:]]*:[[:space:]]*"/, "", line)
+      sub(/".*/, "", line)
+      matched = (line == name)
+      next
+    }
+    matched && /"browser_download_url"[[:space:]]*:/ {
+      line = $0
+      sub(/.*"browser_download_url"[[:space:]]*:[[:space:]]*"/, "", line)
+      sub(/".*/, "", line)
+      print line
+      exit
+    }
+  '
+}
+
 verify_checksum() {
   local tag="$1" asset_name="$2" file_path="$3"
 
@@ -184,10 +208,13 @@ main() {
 
   log "Latest release: ${tag} (${asset_name})"
 
-  local workdir asset_url
+  local asset_url
+  asset_url="$(printf '%s' "$release_json" | asset_download_url "$asset_name")"
+  [ -n "$asset_url" ] || err "Could not determine the download URL for ${asset_name}."
+
+  local workdir
   workdir="$(mktemp -d)"
   trap 'rm -rf "${workdir}"' EXIT
-  asset_url="https://github.com/${REPO}/releases/download/${tag}/${asset_name}"
 
   log "Downloading ${asset_name}..."
   curl -fsSL -A "$USER_AGENT" -o "${workdir}/${asset_name}" "$asset_url" ||
