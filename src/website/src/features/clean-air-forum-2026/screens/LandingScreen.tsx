@@ -1,9 +1,5 @@
-import { cleanAirForum2026Theme } from '../constants/theme';
+import Screen from '@/components/clean-air-forum-2026/Screen';
 
 export default function LandingScreen() {
-  return (
-    <main
-      className={`${cleanAirForum2026Theme.pageClassName} ${cleanAirForum2026Theme.textClassName} min-h-screen`}
-    />
-  );
+  return <Screen />;
 }

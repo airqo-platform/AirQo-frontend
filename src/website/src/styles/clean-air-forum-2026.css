@@ -11,8 +11,34 @@
 }
 
 .caf-2026-page {
-  background:
-    radial-gradient(circle at top, #e0f2fe 0%, #ffffff 42%, #ecfdf5 100%);
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(2, 173, 183, 0.9) 0%,
+      rgba(68, 198, 207, 0.72) 22%,
+      rgba(133, 222, 228, 0.42) 52%,
+      rgba(255, 255, 255, 0) 88%
+    ),
+    radial-gradient(
+      ellipse 58% 42% at 84% 10%,
+      rgba(2, 173, 183, 0.68) 0%,
+      rgba(2, 173, 183, 0.42) 28%,
+      rgba(2, 173, 183, 0.18) 54%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    radial-gradient(
+      ellipse 78% 64% at 52% 30%,
+      rgba(170, 234, 238, 0.6) 0%,
+      rgba(205, 243, 246, 0.28) 42%,
+      rgba(255, 255, 255, 0) 82%
+    ),
+    radial-gradient(
+      ellipse 70% 54% at 16% 76%,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.56) 34%,
+      rgba(255, 255, 255, 0) 74%
+    );
   color: var(--caf-2026-text);
 }
 
