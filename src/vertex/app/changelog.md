@@ -2,6 +2,45 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.16
+**Released:** July 7, 2026
+
+### Terminal Installer for Vertex Desktop (Linux)
+
+Added a one-line `curl | bash` installer for Vertex Desktop on Linux, matching the pattern used by tools like Cursor (`cursor.com/install`), so Linux users don't need to manually pick between `.deb`/`.AppImage` from the GitHub Releases page.
+
+<details>
+<summary><strong>New: <code>public/install.sh</code></strong></summary>
+
+- Served at `https://vertex.airqo.net/install.sh`; run via `curl -fsSL https://vertex.airqo.net/install.sh | bash`.
+- Resolves the exact "latest" `vertex-desktop-v*` release and asset via the GitHub API rather than a hardcoded/guessed URL, with explicit handling for API rate-limit (403/429) and network failures.
+- Parses the GitHub API's JSON response with portable POSIX `sed` rather than `grep -P`, so it doesn't abort mid-parse on minimal distros (e.g. Alpine/BusyBox) that lack PCRE support in `grep`.
+- Prefers the `.deb` (via `apt install`, which pulls in missing dependencies automatically) when `apt` is available, otherwise falls back to a portable `.AppImage` installed under `~/.local/bin` — no root required for that path at all.
+- Rejects unsupported architectures (e.g. `arm64`, not built yet) instead of silently downloading the wrong binary.
+
+</details>
+
+<details>
+<summary><strong>Security hardening</strong></summary>
+
+- Never re-execs itself as root; only the single `apt install` step escalates via `sudo`, and only when not already running as root.
+- Verifies the downloaded binary's `sha512` against the official `latest-linux.yml` manifest that `electron-builder` already publishes (the same manifest `electron-updater` trusts for auto-updates) — refuses to install on a mismatch instead of proceeding with a warning.
+- Uses `mktemp -d` plus an `EXIT` trap for safe, cleaned-up temp file handling; no predictable `/tmp` paths.
+- Verified end-to-end against the real `v0.1.11` release: real JSON/YAML parsing, a real checksum-verified download, and a deliberately corrupted file correctly failing verification.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (3)</strong></summary>
+
+- `src/vertex/public/install.sh` [NEW]
+- `src/vertex/next.config.js` [MODIFIED] — `Cache-Control`/`Content-Type` headers for `/install.sh`
+- `src/vertex/next.config.mjs` [MODIFIED] — same headers, kept in sync with `next.config.js`
+
+</details>
+
+---
+
 ## Version 2.0.15
 **Released:** July 6, 2026
 
