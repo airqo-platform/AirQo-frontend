@@ -35,7 +35,7 @@ AirQo Vertex Desktop installer (Linux)
 
 Usage: curl -fsSL https://vertex.airqo.net/install.sh | bash
 
-Detects whether apt/dpkg is available and installs the .deb package;
+Detects whether apt is available and installs the .deb package;
 otherwise falls back to a portable .AppImage in ~/.local/bin.
 
 For macOS/Windows, download from ${DOWNLOAD_PAGE} instead.
@@ -70,10 +70,11 @@ fetch_latest_release() {
 }
 
 # Extracts the value of the first top-level "key": "value" match in a JSON
-# blob. Good enough for GitHub's release API without requiring jq.
+# blob. Good enough for GitHub's release API without requiring jq. Uses
+# POSIX sed (not grep -P) so it works on systems without PCRE support.
 json_string_field() {
   local key="$1"
-  grep -oP "\"${key}\"\\s*:\\s*\"\\K[^\"]+" | head -n1
+  sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n1
 }
 
 verify_checksum() {
@@ -172,12 +173,12 @@ main() {
   [ -n "$tag" ] || err "Could not determine the latest release tag from GitHub's response."
 
   local install_kind asset_name
-  if command -v apt >/dev/null 2>&1 || command -v dpkg >/dev/null 2>&1; then
+  if command -v apt >/dev/null 2>&1; then
     install_kind="deb"
-    asset_name="$(printf '%s' "$release_json" | grep -oP '"name"\s*:\s*"\K[^"]+_amd64\.deb' | head -n1)"
+    asset_name="$(printf '%s' "$release_json" | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*_amd64\.deb\)".*/\1/p' | head -n1)"
   else
     install_kind="appimage"
-    asset_name="$(printf '%s' "$release_json" | grep -oP '"name"\s*:\s*"\K[^"]+\.AppImage' | head -n1)"
+    asset_name="$(printf '%s' "$release_json" | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\.AppImage\)".*/\1/p' | head -n1)"
   fi
   [ -n "$asset_name" ] || err "No Linux ${install_kind} asset found in the latest release (${tag})."
 
