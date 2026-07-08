@@ -55,6 +55,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
         if (state is PasswordResetSuccess) {
           Navigator.of(context).push(
               MaterialPageRoute(
+                  settings: const RouteSettings(name: 'reset_link_sent'),
                   builder: (context) => ResetLinkSentPage()));
         } else if (state is PasswordResetError) {
           setState(() {
@@ -220,6 +221,7 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
 
               InkWell(
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    settings: const RouteSettings(name: 'login'),
                     builder: (context) => LoginPage())),
                 child: Center(
                   child: TranslatedText(

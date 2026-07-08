@@ -106,6 +106,7 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
+                  settings: const RouteSettings(name: 'feedback'),
                   builder: (context) => const FeedbackScreen(),
                 ),
               );
@@ -117,6 +118,7 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
+                settings: const RouteSettings(name: 'guest_about'),
                 builder: (context) => const GuestAboutPage(),
               ),
             );

@@ -80,6 +80,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
     await showAirQualityShareSheet(
       context,
       measurement: widget.measurement,
+      source: 'dashboard',
       fallbackLocationName: widget.fallbackLocationName,
       sharePositionOrigin: shareOrigin,
     );

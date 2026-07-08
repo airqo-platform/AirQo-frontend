@@ -12,10 +12,6 @@ class AnalyticsService with UiLoggy {
     String eventName, {
     Map<String, Object>? properties,
   }) async {
-    if (!FeatureFlagService.instance.isAnalyticsEnabled) {
-      return;
-    }
-
     try {
       await Posthog().capture(
         eventName: eventName,
@@ -53,6 +49,53 @@ class AnalyticsService with UiLoggy {
   Future<void> trackLocationSearched({String? location}) =>
       trackEvent('location_searched', properties: {
         if (location != null) 'location': location,
+      });
+
+  // Forecast events
+  Future<void> trackForecastViewed({String? siteId, String? siteName}) =>
+      trackEvent('forecast_viewed', properties: {
+        if (siteId != null) 'site_id': siteId,
+        if (siteName != null) 'site_name': siteName,
+      });
+
+  Future<void> trackForecastScopeChanged({required String scope}) =>
+      trackEvent('forecast_scope_changed', properties: {'scope': scope});
+
+  // Share events (card / forum filter / IG sticker funnel)
+  Future<void> trackShareSheetOpened({required String source}) =>
+      trackEvent('share_sheet_opened', properties: {'source': source});
+
+  Future<void> trackShareTabSelected({required String tab}) =>
+      trackEvent('share_tab_selected', properties: {'tab': tab});
+
+  Future<void> trackShareCompleted({
+    required String format,
+    required String method,
+  }) =>
+      trackEvent('share_completed', properties: {
+        'format': format,
+        'method': method,
+      });
+
+  // Clean Air Forum filter events
+  Future<void> trackCafFilterTabOpened() => trackEvent('caf_filter_tab_opened');
+
+  Future<void> trackCafSelfieSourceSelected({required String source}) =>
+      trackEvent('caf_selfie_source_selected', properties: {'source': source});
+
+  Future<void> trackCafSelfieCaptured() => trackEvent('caf_selfie_captured');
+
+  Future<void> trackCafFilterShared() => trackEvent('caf_filter_shared');
+
+  Future<void> trackCafWallConsentGiven() =>
+      trackEvent('caf_wall_consent_given');
+
+  Future<void> trackCafWallSubmissionSent() =>
+      trackEvent('caf_wall_submission_sent');
+
+  Future<void> trackCafWallSubmissionFailed({String? error}) =>
+      trackEvent('caf_wall_submission_failed', properties: {
+        if (error != null) 'error': error,
       });
 
   // Survey events
@@ -182,32 +225,15 @@ class AnalyticsService with UiLoggy {
         if (errorMessage != null) 'error_message': errorMessage,
       });
 
-  // Session
-  Future<void> trackSessionStarted({
-    required String sessionId,
-    String? userId,
-    bool isGuest = false,
-  }) =>
-      trackEvent('session_started', properties: {
-        'session_id': sessionId,
-        if (userId != null) 'user_id': userId,
-        'is_guest': isGuest,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-
-  Future<void> trackSessionEnded({
-    required String sessionId,
-    required int durationSeconds,
-    String? userId,
-    bool isGuest = false,
-  }) =>
-      trackEvent('session_ended', properties: {
-        'session_id': sessionId,
-        'duration_seconds': durationSeconds,
-        if (userId != null) 'user_id': userId,
-        'is_guest': isGuest,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+  /// Marks this device's events as a guest session — attached to every
+  /// subsequent event as a super property until login overwrites it.
+  Future<void> markGuestSession() async {
+    try {
+      await Posthog().register('is_guest', true);
+    } catch (e, stackTrace) {
+      loggy.error('Failed to register guest session property', e, stackTrace);
+    }
+  }
 
   /// Identify user in PostHog and reload feature flags.
   /// Called on login, registration, and app start with existing session.
@@ -221,6 +247,7 @@ class AnalyticsService with UiLoggy {
         userId: userId,
         userProperties: userProperties,
       );
+      await Posthog().register('is_guest', false);
       await FeatureFlagService.instance.reloadFlags();
     } catch (e, stackTrace) {
       loggy.error('Failed to identify user: $userId', e, stackTrace);

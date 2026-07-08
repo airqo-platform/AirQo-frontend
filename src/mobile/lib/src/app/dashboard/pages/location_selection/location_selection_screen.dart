@@ -145,7 +145,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                 label: 'Log In',
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (context) => const LoginPage()),
                     (route) => false,
                   );
                 },

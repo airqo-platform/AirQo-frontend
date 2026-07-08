@@ -38,6 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
     on<UseAsGuest>((event, emit) async {
       GlobalAuthManager.instance.resetSessionExpiredGuard();
+      await AnalyticsService().markGuestSession();
       await AnalyticsService().trackGuestModeAccessed();
       emit(GuestUser());
     });
@@ -59,6 +60,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           loggy.warning(
               'Token found on app start but silent refresh failed — treating as session expiry');
           await _clearAuthData();
+          await AnalyticsService().resetUser();
+          await AnalyticsService().markGuestSession();
           emit(SessionExpiredState());
           emit(GuestUser());
         } else {
