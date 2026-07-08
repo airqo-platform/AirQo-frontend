@@ -121,7 +121,7 @@ class CleanAirForumSubmissionService with UiLoggy {
       );
     }
 
-    loggy.info('Submitted selfie to Clean Air Forum wall: $imageUrl');
+    loggy.info('Submitted selfie to Clean Air Forum wall');
     return _displayNameFrom(response.body);
   }
 
@@ -179,9 +179,19 @@ class CleanAirForumSubmissionService with UiLoggy {
       );
     }
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final url = data['secure_url'] as String?;
-    if (url == null) {
+    // A 200 with a malformed body is still an upload failure — callers rely
+    // on every failure surfacing as a SelfieSubmissionException.
+    final Object? data;
+    try {
+      data = jsonDecode(response.body);
+    } on FormatException {
+      throw const SelfieSubmissionException(
+        SelfieSubmissionFailure.server,
+        'upload response was not valid JSON',
+      );
+    }
+    final url = data is Map ? data['secure_url'] : null;
+    if (url is! String || url.isEmpty) {
       throw const SelfieSubmissionException(
         SelfieSubmissionFailure.server,
         'upload response had no secure_url',

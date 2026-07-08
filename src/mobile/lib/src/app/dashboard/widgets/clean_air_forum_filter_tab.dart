@@ -250,7 +250,12 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
   }
 
   Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
-    if (mounted) setState(() => _isSendingToWall = true);
+    // Retry (which can fire from the root SnackBar even after dismissal)
+    // and repeated shares must not enqueue duplicate wall submissions, so
+    // the flag is set outside setState and checked before every start.
+    if (_isSendingToWall) return;
+    _isSendingToWall = true;
+    if (mounted) setState(() {});
     try {
       final wallName = await _submissionService.submitSelfie(
         imageBytes: imageBytes,
@@ -278,7 +283,8 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
         onAction: () => _submitToConferenceWall(imageBytes),
       );
     } finally {
-      if (mounted) setState(() => _isSendingToWall = false);
+      _isSendingToWall = false;
+      if (mounted) setState(() {});
     }
   }
 

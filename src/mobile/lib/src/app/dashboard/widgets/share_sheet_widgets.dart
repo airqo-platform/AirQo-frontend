@@ -25,9 +25,12 @@ Future<Uint8List?> captureShareBoundary(
   if (boundary == null) return null;
 
   final image = await boundary.toImage(pixelRatio: pixelRatio);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-  return byteData?.buffer.asUint8List();
+  try {
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return byteData?.buffer.asUint8List();
+  } finally {
+    image.dispose();
+  }
 }
 
 /// Signature the share tabs use to surface a short status line in the
