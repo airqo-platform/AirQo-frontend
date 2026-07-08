@@ -39,9 +39,8 @@ export class DeviceGateway {
       this.logFlushInterval = null;
     }
 
-    if (this.activeAdapter) {
-      this.activeAdapter = null;
-    }
+    this.activeAdapter = null;
+    this.logBuffer = [];
 
     useCollaborationStore.getState().setDeviceStatus('disconnected');
 
