@@ -43,39 +43,22 @@ Future<void> showAirQualityShareSheet(
   );
 }
 
-enum _ShareTab { filter, card, sticker }
+/// One entry per share tab — adding a future filter/format is a single line
+/// here rather than a new copy-pasted chip + switch branch. [analyticsName]
+/// is the stable `tab` property on share_tab_selected and the `format` on
+/// share_completed; don't rename shipped values.
+enum _ShareTab {
+  filter(label: 'Forum filter', analyticsName: 'forum_filter'),
+  card(label: 'Card', analyticsName: 'card'),
+  sticker(label: 'IG sticker', analyticsName: 'ig_sticker');
 
-/// Stable analytics names for the share tabs/formats — used as the `tab`
-/// property on share_tab_selected and the `format` on share_completed.
-extension on _ShareTab {
-  String get analyticsName {
-    switch (this) {
-      case _ShareTab.filter:
-        return 'forum_filter';
-      case _ShareTab.card:
-        return 'card';
-      case _ShareTab.sticker:
-        return 'ig_sticker';
-    }
-  }
+  final String label;
+  final String analyticsName;
+
+  const _ShareTab({required this.label, required this.analyticsName});
 }
 
 enum _SelfieSource { liveCamera, gallery }
-
-/// Describes one share tab so adding a future filter/format is a single
-/// entry here rather than a new copy-pasted chip + switch branch.
-class _ShareTabSpec {
-  final _ShareTab tab;
-  final String label;
-
-  const _ShareTabSpec({required this.tab, required this.label});
-}
-
-const List<_ShareTabSpec> _shareTabSpecs = [
-  _ShareTabSpec(tab: _ShareTab.filter, label: 'Forum filter'),
-  _ShareTabSpec(tab: _ShareTab.card, label: 'Card'),
-  _ShareTabSpec(tab: _ShareTab.sticker, label: 'IG sticker'),
-];
 
 class AirQualityShareSheet extends StatefulWidget {
   final Measurement measurement;
@@ -494,13 +477,13 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   Widget _buildTabSelector() {
     return Row(
       children: [
-        for (final spec in _shareTabSpecs) ...[
-          if (spec != _shareTabSpecs.first) const SizedBox(width: 8),
+        for (final tab in _ShareTab.values) ...[
+          if (tab != _ShareTab.values.first) const SizedBox(width: 8),
           Expanded(
             child: _TabChip(
-              label: spec.label,
-              selected: _tab == spec.tab,
-              onTap: () => _selectTab(spec.tab),
+              label: tab.label,
+              selected: _tab == tab,
+              onTap: () => _selectTab(tab),
             ),
           ),
         ],

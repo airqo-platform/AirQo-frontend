@@ -19,11 +19,14 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   final AuthRepository authRepository;
   final SocialAuthRepository socialAuthRepository;
+  final AnalyticsService analytics;
 
   AuthBloc({
     required this.authRepository,
     required this.socialAuthRepository,
-  }) : super(GuestUser()) {
+    AnalyticsService? analytics,
+  })  : analytics = analytics ?? AnalyticsService(),
+        super(GuestUser()) {
     on<AppStarted>(_onAppStarted);
 
     on<LoginUser>(_onLoginUser);
@@ -38,8 +41,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
 
     on<UseAsGuest>((event, emit) async {
       GlobalAuthManager.instance.resetSessionExpiredGuard();
-      await AnalyticsService().markGuestSession();
-      await AnalyticsService().trackGuestModeAccessed();
+      await this.analytics.markGuestSession();
+      await this.analytics.trackGuestModeAccessed();
       emit(GuestUser());
     });
 
@@ -60,15 +63,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
           loggy.warning(
               'Token found on app start but silent refresh failed — treating as session expiry');
           await _clearAuthData();
-          await AnalyticsService().resetUser();
-          await AnalyticsService().markGuestSession();
+          await analytics.resetUser();
+          await analytics.markGuestSession();
           emit(SessionExpiredState());
           emit(GuestUser());
         } else {
           final userId =
               await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
           if (userId != null) {
-            await AnalyticsService().setUserIdentity(userId: userId);
+            await analytics.setUserIdentity(userId: userId);
           }
           emit(AuthLoaded(AuthPurpose.login));
         }
@@ -94,12 +97,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
-        await AnalyticsService().setUserIdentity(
+        await analytics.setUserIdentity(
           userId: userId,
           userProperties: {'email': event.username},
         );
       }
-      await AnalyticsService().trackUserLoggedIn();
+      await analytics.trackUserLoggedIn();
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.login));
     } catch (e) {
@@ -125,12 +128,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
-        await AnalyticsService().setUserIdentity(
+        await analytics.setUserIdentity(
           userId: userId,
           userProperties: {'email': event.model.email ?? ''},
         );
       }
-      await AnalyticsService().trackUserRegistered();
+      await analytics.trackUserRegistered();
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
@@ -159,8 +162,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     try {
       loggy.info('Starting logout process - clearing auth tokens');
       await _clearAuthData();
-      await AnalyticsService().trackUserLoggedOut();
-      await AnalyticsService().resetUser();
+      await analytics.trackUserLoggedOut();
+      await analytics.resetUser();
       emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
@@ -204,9 +207,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
       final userId =
           await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId != null) {
-        await AnalyticsService().setUserIdentity(userId: userId);
+        await analytics.setUserIdentity(userId: userId);
       }
-      await AnalyticsService().trackUserLoggedIn(method: event.provider);
+      await analytics.trackUserLoggedIn(method: event.provider);
       GlobalAuthManager.instance.resetSessionExpiredGuard();
       loggy.info('OAuth login successful via ${event.provider}');
       emit(AuthLoaded(AuthPurpose.login));
