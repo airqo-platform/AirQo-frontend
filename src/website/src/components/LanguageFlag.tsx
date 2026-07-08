@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { getFlagUrl } from '@/utils/languages';
+import { getFlagUrl } from '@/lib/utils/languages';
 
 interface LanguageFlagProps {
   flag: string;

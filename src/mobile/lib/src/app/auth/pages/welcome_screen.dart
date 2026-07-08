@@ -50,7 +50,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           Future.microtask(() {
             if (!context.mounted) return;
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => NavPage()),
+              MaterialPageRoute(settings: const RouteSettings(name: 'home'), builder: (context) => NavPage()),
             );
           });
         }
@@ -105,6 +105,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     InkWell(
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
+                            settings: const RouteSettings(name: 'create_account'),
                             builder: (context) => CreateAccountScreen()),
                       ),
                       child: Container(
@@ -127,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     SizedBox(height: 18),
                     InkWell(
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => LoginPage()),
+                        MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (context) => LoginPage()),
                       ),
                       child: Container(
                         height: 56,
@@ -152,7 +153,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     InkWell(
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => NavPage()),
+                          MaterialPageRoute(settings: const RouteSettings(name: 'home'), builder: (context) => NavPage()),
                         );
                         context.read<AuthBloc>().add(UseAsGuest());
                       },

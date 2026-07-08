@@ -76,7 +76,7 @@ const config: Config = {
       attributes: {
         name: 'description',
         content:
-          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+          'Official AirQo product documentation for Nexus, Vertex, Beacon, API, and AI Platform.',
       },
     },
     {
@@ -84,7 +84,7 @@ const config: Config = {
       attributes: {
         name: 'keywords',
         content:
-          'AirQo, air quality, product documentation, API docs, analytics docs, vertex docs, beacon docs',
+          'AirQo, air quality, product documentation, API docs, Nexus docs, vertex docs, beacon docs',
       },
     },
     {
@@ -113,7 +113,7 @@ const config: Config = {
       attributes: {
         property: 'og:description',
         content:
-          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+          'Official AirQo product documentation for Nexus, Vertex, Beacon, API, and AI Platform.',
       },
     },
     {
@@ -149,7 +149,7 @@ const config: Config = {
       attributes: {
         name: 'twitter:description',
         content:
-          'Official AirQo product documentation for Analytics, Vertex, Beacon, API, and AI Platform.',
+          'Official AirQo product documentation for Nexus, Vertex, Beacon, API, and AI Platform.',
       },
     },
   ],

@@ -10,9 +10,10 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
-import mainConfig from '@/configs/mainConfigs';
+import mainConfig from '@/config/site.config';
 import { useDispatch, useSelector } from '@/hooks';
-import { externalService } from '@/services/apiService';
+import { externalService } from '@/services/external';
+import type { RootState } from '@/store';
 import { closeModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
@@ -111,7 +112,7 @@ const errorVariants = {
 
 const EngagementDialog = () => {
   const dispatch = useDispatch();
-  const isOpen = useSelector((state: any) => state.modal.isOpen);
+  const isOpen = useSelector((state: RootState) => state.modal.isOpen);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false);
@@ -330,14 +331,14 @@ const EngagementDialog = () => {
             <label htmlFor="terms" className="text-gray-600">
               I agree to the{' '}
               <a
-                href="/terms"
+                href="/legal/terms-of-service"
                 className="text-blue-600 underline hover:text-blue-800"
               >
                 Terms of Service
               </a>{' '}
               and{' '}
               <a
-                href="/privacy"
+                href="/legal/privacy-policy"
                 className="text-blue-600 underline hover:text-blue-800"
               >
                 Privacy Policy
@@ -441,7 +442,7 @@ const EngagementDialog = () => {
               </h2>
               <p className="text-gray-500">
                 Access real-time and historic air quality information across
-                Africa through our easy-to-use air quality analytics dashboard.
+                Africa through our easy-to-use AirQo Nexus dashboard.
               </p>
             </motion.div>
           </motion.div>

@@ -14,8 +14,11 @@ part 'survey_state.dart';
 
 class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   final SurveyRepository repository;
+  final AnalyticsService analytics;
 
-  SurveyBloc(this.repository) : super(SurveyInitial()) {
+  SurveyBloc(this.repository, {AnalyticsService? analytics})
+      : analytics = analytics ?? AnalyticsService(),
+        super(SurveyInitial()) {
     on<LoadSurveys>(_onLoadSurveys);
     on<LoadSurvey>(_onLoadSurvey);
     on<StartSurvey>(_onStartSurvey);
@@ -42,7 +45,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
 
       // Track each survey presented to user
       for (final survey in surveys) {
-        await AnalyticsService().trackSurveyPresented(surveyId: survey.id);
+        await analytics.trackSurveyPresented(surveyId: survey.id);
       }
     } catch (e) {
       loggy.error('Error loading surveys: $e');
@@ -96,7 +99,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         contextData: event.contextData,
       ));
 
-      await AnalyticsService().trackSurveyStarted(
+      await analytics.trackSurveyStarted(
         surveyId: event.survey.id,
         deviceId: deviceId,
       );
@@ -104,7 +107,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       // Track first question viewed
       if (event.survey.questions.isNotEmpty) {
         final firstQuestion = event.survey.questions[0];
-        await AnalyticsService().trackSurveyQuestionViewed(
+        await analytics.trackSurveyQuestionViewed(
           surveyId: event.survey.id,
           questionId: firstQuestion.id,
           questionNumber: 1,
@@ -152,7 +155,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         currentResponse: updatedResponse,
       ));
 
-      await AnalyticsService().trackSurveyQuestionAnswered(
+      await analytics.trackSurveyQuestionAnswered(
         surveyId: currentState.survey.id,
         questionId: event.questionId,
       );
@@ -173,7 +176,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         ));
 
         // Track question viewed
-        await AnalyticsService().trackSurveyQuestionViewed(
+        await analytics.trackSurveyQuestionViewed(
           surveyId: currentState.survey.id,
           questionId: nextQuestion.id,
           questionNumber: nextQuestionIndex + 1,
@@ -197,7 +200,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         ));
 
         // Track question viewed when navigating backwards
-        await AnalyticsService().trackSurveyQuestionViewed(
+        await analytics.trackSurveyQuestionViewed(
           surveyId: currentState.survey.id,
           questionId: previousQuestion.id,
           questionNumber: previousQuestionIndex + 1,
@@ -252,7 +255,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
 
         emit(SurveySubmitted(finalResponse, submittedSuccessfully: success));
 
-        await AnalyticsService().trackSurveyCompleted(
+        await analytics.trackSurveyCompleted(
           surveyId: currentState.survey.id,
           responseTime: completionTime.inSeconds,
           deviceId: currentState.currentResponse.deviceId,
@@ -268,9 +271,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         emit(SurveyDuplicateSubmission(currentState.currentResponse));
       } catch (e) {
         loggy.error('Error submitting survey: $e');
-        await AnalyticsService().trackSurveySubmissionFailed(
+        await analytics.trackSurveySubmissionFailed(
           surveyId: currentState.survey.id,
-          error: e.toString(),
+          // Exception type only — raw messages can carry API details.
+          error: e.runtimeType.toString(),
           deviceId: currentState.currentResponse.deviceId,
         );
         emit(SurveyError('Failed to submit survey', error: e));

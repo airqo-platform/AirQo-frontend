@@ -27,6 +27,7 @@ class NavigationService with UiLoggy {
     try {
       await _navigator!.push(
         MaterialPageRoute(
+          settings: const RouteSettings(name: 'survey_detail'),
           builder: (context) => SurveyDetailPage(
             survey: survey,
             existingResponse: null,

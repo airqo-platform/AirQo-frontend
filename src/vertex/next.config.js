@@ -43,6 +43,18 @@ const nextConfig = {
           },
         ],
       },
+      {
+        // Keep the install script short-lived in caches so bug fixes reach
+        // `curl | bash` users quickly instead of being served stale.
+        source: '/install.sh',
+        headers: [
+          { key: 'Content-Type', value: 'text/x-shellscript; charset=utf-8' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, must-revalidate',
+          },
+        ],
+      },
     ];
   },
 };

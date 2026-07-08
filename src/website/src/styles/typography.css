@@ -1,0 +1,15 @@
+body {
+  font-family: var(--font-inter);
+}
+
+.font-dm-mono {
+  font-family: 'DM Mono', monospace;
+}
+
+/* Billboard Component Zoom-Responsive Typography */
+/* Improve text rendering at various zoom levels */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

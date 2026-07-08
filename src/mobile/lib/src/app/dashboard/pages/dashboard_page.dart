@@ -144,9 +144,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                     },
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: _buildContentForCurrentView(isGuest: isGuest),
-                ),
+                _buildContentForCurrentView(isGuest: isGuest),
               ],
             ),
           ),
@@ -159,6 +157,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
+                      settings: const RouteSettings(name: 'location_selection'),
                       builder: (context) => LocationSelectionScreen(),
                     ),
                   ).then((value) {
@@ -180,56 +179,58 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
         if (state is DashboardLoading && state.previousState == null) {
-          return DashboardLoadingPage();
+          return const SliverToBoxAdapter(child: DashboardLoadingPage());
         }
 
         if (state is DashboardLoadingError && !state.hasCache) {
           final isOffline = state.isOffline;
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isOffline ? Icons.cloud_off : Icons.error_outline,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                TranslatedText(
-                  isOffline
-                      ? "Couldn't connect to the internet"
-                      : "Couldn't load air quality data",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.headlineMedium?.color,
+          return SliverToBoxAdapter(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isOffline ? Icons.cloud_off : Icons.error_outline,
+                    size: 64,
+                    color: Colors.grey,
                   ),
-                ),
-                SizedBox(height: 8),
-                TranslatedText(
-                  isOffline
-                      ? "Please check your connection and try again"
-                      : "Something went wrong. Please try again later",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  SizedBox(height: 16),
+                  TranslatedText(
+                    isOffline
+                        ? "Couldn't connect to the internet"
+                        : "Couldn't load air quality data",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineMedium?.color,
+                    ),
                   ),
-                ),
-                SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    context
-                        .read<DashboardBloc>()
-                        .add(LoadDashboard(forceRefresh: true));
-                  },
-                  icon: Icon(Icons.refresh),
-                  label: TranslatedText('Try Again'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
+                  SizedBox(height: 8),
+                  TranslatedText(
+                    isOffline
+                        ? "Please check your connection and try again"
+                        : "Something went wrong. Please try again later",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context
+                          .read<DashboardBloc>()
+                          .add(LoadDashboard(forceRefresh: true));
+                    },
+                    icon: Icon(Icons.refresh),
+                    label: TranslatedText('Try Again'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -244,16 +245,21 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                     'User has ${state.selectedLocationIds.length} selected locations');
               }
 
-              return MyPlacesView(
-                userPreferences: state.userPreferences,
+              return SliverToBoxAdapter(
+                child: MyPlacesView(
+                  userPreferences: state.userPreferences,
+                ),
               );
 
             case DashboardView.nearYou:
-              return NearbyView(
-                onNavigateToFavorites: () => setView(DashboardView.favorites),
-                onExploreCities: isGuest
-                    ? () => setView(DashboardView.explore)
-                    : null,
+              return SliverToBoxAdapter(
+                child: NearbyView(
+                  onNavigateToFavorites: () =>
+                      setView(DashboardView.favorites),
+                  onExploreCities: isGuest
+                      ? () => setView(DashboardView.explore)
+                      : null,
+                ),
               );
 
             case DashboardView.country:
@@ -265,8 +271,10 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               return MeasurementsList(measurements: countryMeasurements);
 
             case DashboardView.explore:
-              return ExploreCountriesView(
-                measurements: state.response.measurements ?? [],
+              return SliverToBoxAdapter(
+                child: ExploreCountriesView(
+                  measurements: state.response.measurements ?? [],
+                ),
               );
 
             default:
@@ -277,7 +285,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
           }
         }
 
-        return DashboardLoadingPage();
+        return const SliverToBoxAdapter(child: DashboardLoadingPage());
       },
     );
   }

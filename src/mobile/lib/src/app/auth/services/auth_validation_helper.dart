@@ -64,6 +64,7 @@ class AuthValidationHelper with UiLoggy {
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
+                      settings: const RouteSettings(name: 'login'),
                       builder: (context) => const LoginPage(),
                     ),
                     (route) => false,

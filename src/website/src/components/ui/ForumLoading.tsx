@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import mainConfig from '@/configs/mainConfigs';
+import mainConfig from '@/config/site.config';
 import { cn } from '@/lib/utils';
 
 interface ForumLoadingProps {

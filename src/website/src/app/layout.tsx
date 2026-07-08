@@ -11,8 +11,8 @@ import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import GoogleTranslate from '@/components/GoogleTranslate';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { ErrorBoundary } from '@/components/ui';
-import { ReduxDataProvider } from '@/context/ReduxDataProvider';
-import { QueryProvider } from '@/services/providers/QueryProvider';
+import { ReduxDataProvider } from '@/components/providers/ReduxProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 import { getPrimarySiteUrl } from '@/lib/siteUrl';
 
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
     'real-time pollution data',
     'low-cost air sensors',
     'clean air Africa',
-    'air quality analytics',
+    'AirQo Nexus',
     'pollution mitigation',
     'environmental monitoring Africa',
     'PM2.5 Africa',
