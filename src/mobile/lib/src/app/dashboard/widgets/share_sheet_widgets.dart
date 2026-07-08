@@ -20,8 +20,8 @@ Future<Uint8List?> captureShareBoundary(
 
   await Future<void>.delayed(const Duration(milliseconds: 16));
 
-  final boundary =
-      key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+  final renderObject = key.currentContext?.findRenderObject();
+  final boundary = renderObject is RenderRepaintBoundary ? renderObject : null;
   if (boundary == null) return null;
 
   final image = await boundary.toImage(pixelRatio: pixelRatio);
