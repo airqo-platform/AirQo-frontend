@@ -1,13 +1,9 @@
 "use client";
 
-import { lazy, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { useRouter, usePathname } from "next/navigation";
-import { MapPin } from "lucide-react";
 import { Device, DeviceSite } from "@/app/types/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-
-const MiniMap = lazy(() => import("@/components/features/mini-map/mini-map"));
 
 interface DeviceLocationCardProps {
   device: Device;
@@ -26,7 +22,6 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
 
   const lat = toNumberOrNull(device.latitude);
   const lon = toNumberOrNull(device.longitude);
-  const hasCoordinates = lat !== null && lon !== null;
 
   const siteId = Array.isArray(device.site)
     ? device.site[0]?._id
@@ -40,7 +35,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   };
 
   return (
-    <Card className="w-full rounded-lg flex flex-col justify-between overflow-hidden">
+    <Card className="w-full rounded-lg flex flex-col justify-between">
       <div className="px-3 py-2 flex flex-col gap-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           Site Details
@@ -83,28 +78,6 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="px-3 pb-3">
-        {hasCoordinates ? (
-          <Suspense fallback={<div className="h-48 rounded-md bg-muted animate-pulse" />}>
-            <MiniMap
-              latitude={String(lat)}
-              longitude={String(lon)}
-              readOnly
-              scrollZoom={false}
-              height="h-48"
-              zoom={13}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-48 rounded-md border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/30">
-            <MapPin className="h-6 w-6 opacity-40" />
-            <p className="text-sm text-center px-4">
-              Location data is currently unavailable for this device
-            </p>
-          </div>
-        )}
       </div>
 
       {siteId && (

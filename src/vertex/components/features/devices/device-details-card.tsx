@@ -1,7 +1,12 @@
+"use client";
+
+import { lazy, Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { useDeviceDetails, useUpdateDeviceLocal } from "@/core/hooks/useDevices";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import React, { useState, useEffect } from "react";
+
+const MiniMap = lazy(() => import("@/components/features/mini-map/mini-map"));
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Badge } from "@/components/ui/badge";
 import { AqEdit01 } from "@airqo/icons-react";
@@ -36,6 +41,12 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
     );
   };
 
+  const toNumberOrNull = (v: unknown) => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(String(v));
+    return Number.isFinite(n) ? n : null;
+  };
+
   if (isLoading) {
     return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
   }
@@ -43,8 +54,12 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
     return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8 text-sm text-center text-muted-foreground">Error loading device details.</Card>;
   }
 
+  const lat = toNumberOrNull(device?.latitude);
+  const lon = toNumberOrNull(device?.longitude);
+  const hasCoordinates = lat !== null && lon !== null;
+
   return (
-    <Card className="w-full rounded-lg flex flex-col justify-between">
+    <Card className="w-full rounded-lg flex flex-col justify-between overflow-hidden">
       <div className="px-3 py-2 flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Device Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -89,6 +104,29 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
           </div>
         </div>
       </div>
+
+      <div className="px-3 pb-3">
+        {hasCoordinates ? (
+          <Suspense fallback={<div className="h-48 rounded-md bg-muted animate-pulse" />}>
+            <MiniMap
+              latitude={String(lat)}
+              longitude={String(lon)}
+              readOnly
+              scrollZoom={false}
+              height="h-48"
+              zoom={13}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-48 rounded-md border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/30">
+            <MapPin className="h-6 w-6 opacity-40" />
+            <p className="text-sm text-center px-4">
+              Location data is currently unavailable for this device
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="border-t px-2 flex justify-end">
         <ReusableButton variant="text" className="p-1 text-xs m-1" onClick={onShowDetailsModal}>
           View more details

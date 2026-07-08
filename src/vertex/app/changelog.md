@@ -7,14 +7,22 @@
 
 ### Device Details — Localized Map Card
 
-Added an embedded map to the Device Location card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed.
+Added an embedded map to the Device Details card, giving field teams an immediate visual reference for where a device is deployed. The Site Details card remains as a separate card showing site name and coordinates text only.
 
 <details>
-<summary><strong>Device Location Card (`device-location-card.tsx`)</strong></summary>
+<summary><strong>Device Details Card (`device-details-card.tsx`)</strong></summary>
 
-- **Embedded map**: Renders a read-only `MiniMap` centred on the device's stored coordinates at zoom level 13.
+- **Embedded map**: Renders a read-only `MiniMap` below the device fields, centred on the device's stored coordinates at zoom level 13.
 - **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
 - **Empty state**: When a device has no coordinates, a dashed-border placeholder with a `MapPin` icon and a short message is shown instead of blank space.
+
+</details>
+
+<details>
+<summary><strong>Site Details Card (`device-location-card.tsx`)</strong></summary>
+
+- Retained as a separate card showing site name, latitude, longitude, and a "View site details" link.
+- Map lives in the Device Details card — not rendered here.
 
 </details>
 
