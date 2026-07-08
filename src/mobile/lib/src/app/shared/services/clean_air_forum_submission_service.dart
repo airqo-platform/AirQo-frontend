@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
@@ -9,6 +10,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:loggy/loggy.dart';
+
+/// Why a wall submission failed — lets the UI show a short, accurate
+/// message and analytics record a real failure category.
+enum SelfieSubmissionFailure { offline, timeout, server }
+
+class SelfieSubmissionException implements Exception {
+  final SelfieSubmissionFailure kind;
+  final String detail;
+
+  const SelfieSubmissionException(this.kind, this.detail);
+
+  @override
+  String toString() => 'SelfieSubmissionException(${kind.name}): $detail';
+}
 
 /// Handles opt-in submissions of a user's Clean Air Forum selfie filter
 /// image to the conference "wall" display screen, via the AirQo backend's
@@ -39,8 +54,13 @@ class CleanAirForumSubmissionService with UiLoggy {
   ///
   /// This is a best-effort background action: callers should catch errors
   /// and surface a soft warning without blocking the user's personal share
-  /// action, which must always succeed independently of this call.
-  Future<void> submitSelfie({
+  /// action, which must always succeed independently of this call. Failures
+  /// are thrown as [SelfieSubmissionException] so callers can message by
+  /// cause.
+  ///
+  /// Returns the display name the wall used for this submission, when the
+  /// API provides one (it generates a name for anonymous submitters).
+  Future<String?> submitSelfie({
     required Uint8List imageBytes,
     required Measurement measurement,
     String? fallbackLocationName,
@@ -57,39 +77,65 @@ class CleanAirForumSubmissionService with UiLoggy {
     // 401 the whole request, whereas an anonymous submission always works.
     final userToken = await _tokenRefresher.refreshTokenIfNeeded();
 
-    final response = await http
-        .post(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'User-Agent': ApiUtils.mobileUserAgent,
-            if (userToken != null) 'Authorization': 'JWT $userToken',
-          },
-          // Optional fields are omitted rather than sent as null — the API
-          // treats them as "leave out if unknown", not nullable.
-          body: jsonEncode({
-            'eventId': eventId ?? defaultEventId,
-            'imageUrl': imageUrl,
-            if (locationName != null) 'locationName': locationName,
-            if (measurement.pm25?.value != null)
-              'pm25Value': measurement.pm25?.value,
-            if (measurement.aqiCategory != null)
-              'aqiCategory': measurement.aqiCategory,
-            if (displayName != null && displayName.trim().isNotEmpty)
-              'displayName': displayName.trim(),
-          }),
-        )
-        .timeout(const Duration(seconds: 30));
+    final http.Response response;
+    try {
+      response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': '*/*',
+              'User-Agent': ApiUtils.mobileUserAgent,
+              if (userToken != null) 'Authorization': 'JWT $userToken',
+            },
+            // Optional fields are omitted rather than sent as null — the API
+            // treats them as "leave out if unknown", not nullable.
+            body: jsonEncode({
+              'eventId': eventId ?? defaultEventId,
+              'imageUrl': imageUrl,
+              if (locationName != null) 'locationName': locationName,
+              if (measurement.pm25?.value != null)
+                'pm25Value': measurement.pm25?.value,
+              if (measurement.aqiCategory != null)
+                'aqiCategory': measurement.aqiCategory,
+              if (displayName != null && displayName.trim().isNotEmpty)
+                'displayName': displayName.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+    } on SocketException catch (e) {
+      throw SelfieSubmissionException(
+          SelfieSubmissionFailure.offline, e.message);
+    } on http.ClientException catch (e) {
+      throw SelfieSubmissionException(
+          SelfieSubmissionFailure.offline, e.message);
+    } on TimeoutException {
+      throw const SelfieSubmissionException(
+          SelfieSubmissionFailure.timeout, 'submission timed out');
+    }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Clean Air Forum submission failed: '
-        '${response.statusCode} ${response.body}',
+      throw SelfieSubmissionException(
+        SelfieSubmissionFailure.server,
+        'submission failed: status ${response.statusCode}',
       );
     }
 
     loggy.info('Submitted selfie to Clean Air Forum wall: $imageUrl');
+    return _displayNameFrom(response.body);
+  }
+
+  /// Pulls `created_selfie.displayName` out of the submission response, or
+  /// null if the payload doesn't carry one.
+  String? _displayNameFrom(String body) {
+    try {
+      final data = jsonDecode(body);
+      final created = data is Map ? data['created_selfie'] : null;
+      final name = created is Map ? created['displayName'] : null;
+      return name is String && name.trim().isNotEmpty ? name.trim() : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String> _uploadToCloudinary(Uint8List imageBytes) async {
@@ -110,22 +156,36 @@ class CleanAirForumSubmissionService with UiLoggy {
         ),
       );
 
-    final streamedResponse = await request.send().timeout(
-          const Duration(seconds: 60),
-          onTimeout: () => throw TimeoutException('Image upload timed out'),
-        );
-    final response = await http.Response.fromStream(streamedResponse);
+    final http.Response response;
+    try {
+      final streamedResponse =
+          await request.send().timeout(const Duration(seconds: 60));
+      response = await http.Response.fromStream(streamedResponse);
+    } on SocketException catch (e) {
+      throw SelfieSubmissionException(
+          SelfieSubmissionFailure.offline, 'upload: ${e.message}');
+    } on http.ClientException catch (e) {
+      throw SelfieSubmissionException(
+          SelfieSubmissionFailure.offline, 'upload: ${e.message}');
+    } on TimeoutException {
+      throw const SelfieSubmissionException(
+          SelfieSubmissionFailure.timeout, 'image upload timed out');
+    }
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Cloudinary upload failed: ${response.statusCode}, ${response.body}',
+      throw SelfieSubmissionException(
+        SelfieSubmissionFailure.server,
+        'upload failed: status ${response.statusCode}',
       );
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     final url = data['secure_url'] as String?;
     if (url == null) {
-      throw Exception('Cloudinary response did not include a secure_url');
+      throw const SelfieSubmissionException(
+        SelfieSubmissionFailure.server,
+        'upload response had no secure_url',
+      );
     }
 
     return url;

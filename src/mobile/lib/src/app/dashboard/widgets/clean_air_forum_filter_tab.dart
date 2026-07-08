@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_camera_screen.dart';
@@ -14,8 +13,10 @@ import 'package:airqo/src/app/shared/services/clean_air_forum_submission_service
 import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 enum _SelfieSource { liveCamera, gallery }
@@ -42,7 +43,7 @@ class CleanAirForumFilterTab extends StatefulWidget {
   final ValueChanged<bool> onConsentChanged;
 
   /// Surfaces status/error text in the sheet's inline banner.
-  final ValueChanged<String> onMessage;
+  final ShareSheetMessenger onMessage;
 
   /// Injected for tests — defaults to the app-wide
   /// [CleanAirForumSubmissionService.instance] (DIP).
@@ -72,6 +73,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
 
   bool _isPickingSelfie = false;
   bool _isSharingFilter = false;
+  bool _isSendingToWall = false;
 
   CleanAirForumSubmissionService get _submissionService =>
       widget.submissionService ?? CleanAirForumSubmissionService.instance;
@@ -91,8 +93,33 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       if (!mounted) return;
 
       widget.onSelfieChanged(File(picked.path));
+    } on PlatformException catch (e) {
+      // "Try again" is wrong advice when access is denied — the fix lives
+      // in system settings, so link straight there.
+      if (e.code.contains('denied')) {
+        widget.onMessage(
+          source == ImageSource.camera
+              ? 'Camera access is off.'
+              : 'Photo access is off.',
+          isError: true,
+          actionLabel: 'Settings',
+          onAction: openAppSettings,
+        );
+      } else {
+        widget.onMessage(
+          source == ImageSource.camera
+              ? "Couldn't open the camera."
+              : "Couldn't open the gallery.",
+          isError: true,
+        );
+      }
     } catch (_) {
-      widget.onMessage('Could not access the camera/gallery. Please try again.');
+      widget.onMessage(
+        source == ImageSource.camera
+            ? "Couldn't open the camera."
+            : "Couldn't open the gallery.",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _isPickingSelfie = false);
     }
@@ -180,7 +207,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
         AnalyticsService().trackCafSelfieCaptured();
       }
     } catch (_) {
-      widget.onMessage('Could not open the live camera. Please try again.');
+      widget.onMessage("Couldn't open the camera.", isError: true);
     } finally {
       if (mounted) setState(() => _isPickingSelfie = false);
     }
@@ -193,7 +220,8 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
     try {
       final imageBytes = await captureShareBoundary(context, _filterKey);
       if (imageBytes == null) {
-        widget.onMessage('Could not prepare the filter. Please try again.');
+        widget.onMessage("Couldn't share the filter. Try again.",
+            isError: true);
         return;
       }
 
@@ -215,31 +243,57 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
         unawaited(_submitToConferenceWall(imageBytes));
       }
     } catch (_) {
-      widget.onMessage('Could not share the filter. Please try again.');
+      widget.onMessage("Couldn't share the filter. Try again.", isError: true);
     } finally {
       if (mounted) setState(() => _isSharingFilter = false);
     }
   }
 
   Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
+    if (mounted) setState(() => _isSendingToWall = true);
     try {
-      await _submissionService.submitSelfie(
+      final wallName = await _submissionService.submitSelfie(
         imageBytes: imageBytes,
         measurement: widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
       );
       AnalyticsService().trackCafWallSubmissionSent();
-      widget.onMessage('Sent to the Clean Air Forum screen!');
-    } catch (e) {
-      // Report only the exception type — raw messages can carry API
-      // response details that don't belong in analytics.
-      AnalyticsService()
-          .trackCafWallSubmissionFailed(error: e.runtimeType.toString());
       widget.onMessage(
-        'Your photo shared fine, but sending it to the conference screen '
-        "didn't work. Please try again.",
+        wallName == null
+            ? "You're on the forum wall!"
+            : "You're on the wall as $wallName!",
       );
+    } catch (e) {
+      // Report only the failure category — raw messages can carry API
+      // response details that don't belong in analytics.
+      AnalyticsService().trackCafWallSubmissionFailed(
+        error: e is SelfieSubmissionException
+            ? e.kind.name
+            : e.runtimeType.toString(),
+      );
+      widget.onMessage(
+        _wallFailureMessage(e),
+        isError: true,
+        actionLabel: 'Retry',
+        onAction: () => _submitToConferenceWall(imageBytes),
+      );
+    } finally {
+      if (mounted) setState(() => _isSendingToWall = false);
     }
+  }
+
+  String _wallFailureMessage(Object e) {
+    if (e is SelfieSubmissionException) {
+      switch (e.kind) {
+        case SelfieSubmissionFailure.offline:
+          return "You're offline — couldn't reach the wall.";
+        case SelfieSubmissionFailure.timeout:
+          return "Slow connection — couldn't reach the wall.";
+        case SelfieSubmissionFailure.server:
+          break;
+      }
+    }
+    return "Couldn't send to the wall.";
   }
 
   @override
@@ -312,6 +366,26 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
             loading: _isSharingFilter,
             onPressed: _isSharingFilter ? null : _shareFilter,
           ),
+          // The wall submission runs in the background after the share —
+          // without this the user gets no sign anything is still happening.
+          if (_isSendingToWall) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Sending to the wall…',
+                  style: LearnDesignTokens.completionCaption(context),
+                ),
+              ],
+            ),
+          ],
         ],
       ],
     );

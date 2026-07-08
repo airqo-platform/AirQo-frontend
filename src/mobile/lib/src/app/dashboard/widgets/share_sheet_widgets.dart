@@ -30,27 +30,68 @@ Future<Uint8List?> captureShareBoundary(
   return byteData?.buffer.asUint8List();
 }
 
+/// Signature the share tabs use to surface a short status line in the
+/// sheet's inline banner. [actionLabel]/[onAction] add a single tap action
+/// (e.g. Retry, Settings).
+typedef ShareSheetMessenger = void Function(
+  String message, {
+  bool isError,
+  String? actionLabel,
+  VoidCallback? onAction,
+});
+
 class InlineMessageBanner extends StatelessWidget {
   final String message;
+  final bool isError;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
-  const InlineMessageBanner({super.key, required this.message});
+  const InlineMessageBanner({
+    super.key,
+    required this.message,
+    this.isError = false,
+    this.actionLabel,
+    this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: LearnDesignTokens.nestedSurface(context),
+        color: isError
+            ? errorColor.withValues(alpha: 0.10)
+            : LearnDesignTokens.nestedSurface(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Text(
-          message,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: LearnDesignTokens.headline(context),
-          ),
+        padding: EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: actionLabel == null ? 10 : 4,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isError
+                      ? errorColor
+                      : LearnDesignTokens.headline(context),
+                ),
+              ),
+            ),
+            if (actionLabel != null) ...[
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: onAction,
+                child: Text(actionLabel!),
+              ),
+            ],
+          ],
         ),
       ),
     );

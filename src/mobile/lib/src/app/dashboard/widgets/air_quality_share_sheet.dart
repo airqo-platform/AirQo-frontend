@@ -13,6 +13,7 @@ import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/clean_air_forum_submission_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:share_plus/share_plus.dart';
@@ -96,7 +97,14 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   bool _stickerCopied = false;
 
   String? _inlineMessage;
+  bool _inlineIsError = false;
+  String? _inlineActionLabel;
+  VoidCallback? _inlineOnAction;
   Timer? _inlineMessageTimer;
+
+  /// Captured while mounted so late results (the background wall
+  /// submission) can still surface after the sheet is closed.
+  ScaffoldMessengerState? _rootMessenger;
 
   bool _cafFilterTabTracked = false;
 
@@ -105,6 +113,12 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     super.initState();
     AnalyticsService().trackShareSheetOpened(source: widget.source);
     if (_tab == _ShareTab.filter) _trackCafFilterTabOpened();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _rootMessenger = ScaffoldMessenger.maybeOf(context);
   }
 
   /// caf_filter_tab_opened confirms discovery of the forum filter, so it
@@ -131,11 +145,48 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   /// Shows an inline banner rather than a `SnackBar` — this sheet is a
   /// modal route above the app's own Scaffold, so a SnackBar raised via
   /// `ScaffoldMessenger` renders underneath it and is never actually seen.
-  void _showMessage(String message) {
-    if (!mounted) return;
+  ///
+  /// If the sheet has already been closed (the background wall submission
+  /// can finish after dismissal), the result falls back to a root SnackBar
+  /// instead of being silently dropped.
+  void _showMessage(
+    String message, {
+    bool isError = false,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    if (!mounted) {
+      _rootMessenger?.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: actionLabel == null || onAction == null
+              ? null
+              : SnackBarAction(label: actionLabel, onPressed: onAction),
+        ),
+      );
+      return;
+    }
+
+    // The banner self-dismisses, so screen-reader users would miss it
+    // entirely without an explicit announcement.
+    unawaited(SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    ));
+
     _inlineMessageTimer?.cancel();
-    setState(() => _inlineMessage = message);
-    _inlineMessageTimer = Timer(const Duration(seconds: 3), () {
+    setState(() {
+      _inlineMessage = message;
+      _inlineIsError = isError;
+      _inlineActionLabel = actionLabel;
+      _inlineOnAction = onAction;
+    });
+    // Errors and longer messages linger; short confirmations clear fast.
+    final duration = Duration(
+      milliseconds: (2500 + message.length * 35).clamp(3000, 6500),
+    );
+    _inlineMessageTimer = Timer(duration, () {
       if (mounted) setState(() => _inlineMessage = null);
     });
   }
@@ -147,7 +198,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     try {
       final imageBytes = await captureShareBoundary(context, _cardKey);
       if (imageBytes == null) {
-        _showMessage('Could not prepare the share card. Please try again.');
+        _showMessage("Couldn't share the card. Try again.", isError: true);
         return;
       }
 
@@ -164,7 +215,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         );
       }
     } catch (_) {
-      _showMessage('Could not share the card. Please try again.');
+      _showMessage("Couldn't share the card. Try again.", isError: true);
     } finally {
       if (mounted) setState(() => _isSharingCard = false);
     }
@@ -180,7 +231,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     try {
       final imageBytes = await captureShareBoundary(context, _stickerKey);
       if (imageBytes == null) {
-        _showMessage('Could not prepare the sticker. Please try again.');
+        _showMessage("Couldn't copy the sticker. Try again.", isError: true);
         return;
       }
 
@@ -192,7 +243,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       // before declaring success.
       final clipboardImage = await Pasteboard.image;
       if (clipboardImage == null || clipboardImage.isEmpty) {
-        _showMessage('Could not copy the sticker. Please try again.');
+        _showMessage("Couldn't copy the sticker. Try again.", isError: true);
         return;
       }
 
@@ -200,7 +251,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         format: _ShareTab.sticker.analyticsName,
         method: 'clipboard_copy',
       );
-      _showMessage('Copied! Paste it into your Instagram Story.');
+      _showMessage('Copied! Paste it into your Story.');
       if (mounted) {
         setState(() => _stickerCopied = true);
         Timer(const Duration(seconds: 2), () {
@@ -208,7 +259,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         });
       }
     } catch (_) {
-      _showMessage('Could not copy the sticker. Please try again.');
+      _showMessage("Couldn't copy the sticker. Try again.", isError: true);
     } finally {
       if (mounted) setState(() => _isCopyingSticker = false);
     }
@@ -264,7 +315,18 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
                       _buildTabSelector(),
                       if (_inlineMessage != null) ...[
                         const SizedBox(height: 12),
-                        InlineMessageBanner(message: _inlineMessage!),
+                        InlineMessageBanner(
+                          message: _inlineMessage!,
+                          isError: _inlineIsError,
+                          actionLabel: _inlineActionLabel,
+                          onAction: _inlineOnAction == null
+                              ? null
+                              : () {
+                                  final action = _inlineOnAction!;
+                                  setState(() => _inlineMessage = null);
+                                  action();
+                                },
+                        ),
                       ],
                       const SizedBox(height: 20),
                       _buildTabContent(),
