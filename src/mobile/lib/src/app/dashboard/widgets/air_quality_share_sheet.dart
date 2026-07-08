@@ -69,12 +69,17 @@ class AirQualityShareSheet extends StatefulWidget {
   final String? fallbackLocationName;
   final Rect? sharePositionOrigin;
 
+  /// Injected for tests — defaults to the app-wide
+  /// [CleanAirForumSubmissionService.instance] (DIP).
+  final CleanAirForumSubmissionService? submissionService;
+
   const AirQualityShareSheet({
     super.key,
     required this.measurement,
     required this.source,
     this.fallbackLocationName,
     this.sharePositionOrigin,
+    this.submissionService,
   });
 
   @override
@@ -336,9 +341,12 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     }
   }
 
+  CleanAirForumSubmissionService get _submissionService =>
+      widget.submissionService ?? CleanAirForumSubmissionService.instance;
+
   Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
     try {
-      await CleanAirForumSubmissionService.instance.submitSelfie(
+      await _submissionService.submitSelfie(
         imageBytes: imageBytes,
         measurement: widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
