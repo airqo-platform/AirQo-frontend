@@ -34,7 +34,7 @@ import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.
 
 const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
-const DESKTOP_CARDS_PER_PAGE = 6;
+const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
@@ -43,7 +43,7 @@ const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
 const EVENT_LABEL = 'Africa CLEAN-Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
-const EVENT_DATES_BADGE = '13TH-16TH JULY';
+const EVENT_DATES_BADGE = '14TH-16TH JULY';
 
 const SMOOTH_SPRING = {
   stiffness: 150,
@@ -158,6 +158,15 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
+      {/* Dark blue gradient from top right corner */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse at 100% 0%, #02143B 0%, transparent 60%)',
+        }}
+      />
+
       {/* Main grid lines */}
       <div
         className="absolute inset-0 opacity-[0.1]"
@@ -469,7 +478,7 @@ function FaceCard({
         priority={priority}
         unoptimized
         className="object-cover transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
-        sizes="(max-width: 639px) 86vw, (min-width: 1280px) 280px, (min-width: 1024px) 25vw, 42vw"
+        sizes="(max-width: 639px) 86vw, (max-width: 1023px) 42vw, (max-width: 1279px) 25vw, 22vw"
       />
 
       <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
@@ -596,7 +605,7 @@ function FaceCard({
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-          <span className="truncate rounded-full bg-white px-2 py-0.5 text-[6px] font-semibold text-blue-700 sm:text-[7px]">
+          <span className="truncate rounded bg-white px-2 py-0.5 text-[6px] font-semibold text-blue-700 sm:text-[7px]">
             Shared from the AirQo app
           </span>
 
@@ -1290,7 +1299,7 @@ export default function FacesOfCleanAirPage() {
                   className={
                     isMobile
                       ? 'flex h-full min-h-0 items-center justify-center'
-                      : 'grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                      : 'grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'
                   }
                 >
                   {Array.from({
@@ -1298,7 +1307,11 @@ export default function FacesOfCleanAirPage() {
                   }).map((_, index) => (
                     <div
                       key={index}
-                      className={isMobile ? 'w-full' : 'w-full max-w-[280px]'}
+                      className={
+                        isMobile
+                          ? 'w-full'
+                          : 'w-full max-w-[320px] lg:max-w-[360px] xl:max-w-[400px]'
+                      }
                       style={
                         isMobile
                           ? {
@@ -1393,7 +1406,7 @@ export default function FacesOfCleanAirPage() {
                         className={
                           isMobile
                             ? 'flex touch-pan-y cursor-grab items-center justify-center active:cursor-grabbing'
-                            : 'grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-6 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-3'
+                            : 'grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-4 active:cursor-grabbing sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'
                         }
                       >
                         {visibleItems.map((submission, index) => (
@@ -1403,7 +1416,9 @@ export default function FacesOfCleanAirPage() {
                               `${submission.imageUrl}-${page}-${index}`
                             }
                             className={
-                              isMobile ? 'w-full' : 'w-full max-w-[280px]'
+                              isMobile
+                                ? 'w-full'
+                                : 'w-full max-w-[320px] lg:max-w-[360px] xl:max-w-[400px]'
                             }
                             style={
                               isMobile
