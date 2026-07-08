@@ -6,3 +6,7 @@ export const CLEAN_AIR_FORUM_2026_GUEST_NAME_STORAGE_KEY =
   'clean_air_forum_2026_guest_name';
 export const CLEAN_AIR_FORUM_2026_LESSON_CACHE_STORAGE_KEY =
   'clean_air_forum_2026_lesson_payload';
+export const CLEAN_AIR_FORUM_2026_QUIZ_ANSWERS_STORAGE_KEY =
+  'clean_air_forum_2026_quiz_answers';
+export const CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY =
+  'clean_air_forum_2026_quiz_index';

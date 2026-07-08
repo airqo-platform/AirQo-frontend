@@ -6,6 +6,8 @@
   --caf-2026-muted: #475569;
   --caf-2026-accent: #0f6cbd;
   --caf-2026-accent-strong: #0a4f8a;
+  --caf-2026-interactive: #02adb7;
+  --caf-2026-interactive-strong: #0299a2;
   --caf-2026-radius: 1.5rem;
   --caf-2026-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
@@ -64,12 +66,12 @@
 }
 
 .caf-2026-button {
-  background: var(--caf-2026-accent);
+  background: var(--caf-2026-interactive);
   color: #ffffff;
 }
 
 .caf-2026-button:hover {
-  background: var(--caf-2026-accent-strong);
+  background: var(--caf-2026-interactive-strong);
 }
 
 .caf-2026-input {

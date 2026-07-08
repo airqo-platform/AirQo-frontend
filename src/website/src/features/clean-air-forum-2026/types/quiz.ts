@@ -6,6 +6,18 @@ export type CleanAirForum2026GuestSession = {
   displayName: string | null;
 };
 
+export type CleanAirForum2026QuizAnswer = {
+  activityId: string;
+  format: string;
+  selectedIndex: number;
+  isCorrect: boolean;
+};
+
+export type CleanAirForum2026QuizAnswerMap = Record<
+  string,
+  CleanAirForum2026QuizAnswer
+>;
+
 export type CleanAirForum2026QuizSetupStatus =
   | 'idle'
   | 'loading'
