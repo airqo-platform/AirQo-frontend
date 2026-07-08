@@ -6,4 +6,6 @@ export const CLEAN_AIR_FORUM_2026_QUIZ_ROUTE =
 export const CLEAN_AIR_FORUM_2026_RESULTS_ROUTE =
   '/africa-clean-air-forum-2026/results';
 
+export const cleanAirForum2026GuestSessionPath =
+  '/api/v2/devices/learn/sessions/anonymous';
 export const cleanAirForum2026LessonPath = `/api/v2/devices/learn/lessons/${CLEAN_AIR_FORUM_2026_LESSON_ID}`;
