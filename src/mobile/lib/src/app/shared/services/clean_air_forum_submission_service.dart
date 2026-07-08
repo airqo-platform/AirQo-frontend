@@ -31,7 +31,7 @@ class CleanAirForumSubmissionService with UiLoggy {
   /// The forum edition submissions are grouped under — must match the
   /// `eventId` the conference wall queries, or submissions never appear.
   static String get defaultEventId =>
-      dotenv.env['CLEAN_AIR_FORUM_EVENT_ID'] ?? 'clean-air-forum';
+      dotenv.env['CLEAN_AIR_FORUM_EVENT_ID'] ?? 'clean-air-forum-2026';
 
   /// Uploads [imageBytes] (the composited filter card PNG) to Cloudinary,
   /// then posts it (plus AQI metadata) to the conference wall submissions
@@ -66,12 +66,16 @@ class CleanAirForumSubmissionService with UiLoggy {
             'User-Agent': ApiUtils.mobileUserAgent,
             if (userToken != null) 'Authorization': 'JWT $userToken',
           },
+          // Optional fields are omitted rather than sent as null — the API
+          // treats them as "leave out if unknown", not nullable.
           body: jsonEncode({
             'eventId': eventId ?? defaultEventId,
             'imageUrl': imageUrl,
-            'locationName': locationName,
-            'pm25Value': measurement.pm25?.value,
-            'aqiCategory': measurement.aqiCategory,
+            if (locationName != null) 'locationName': locationName,
+            if (measurement.pm25?.value != null)
+              'pm25Value': measurement.pm25?.value,
+            if (measurement.aqiCategory != null)
+              'aqiCategory': measurement.aqiCategory,
             if (displayName != null && displayName.trim().isNotEmpty)
               'displayName': displayName.trim(),
           }),
