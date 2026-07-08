@@ -11,7 +11,6 @@ import {
   FiCheckCircle,
   FiCode,
   FiCpu,
-  FiExternalLink,
   FiMapPin,
   FiTool,
   FiUsers,
@@ -19,11 +18,7 @@ import {
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
-import {
-  DEVCON_APPLY_URL,
-  DEVCON_COUNTDOWN_TARGET,
-  DEVCON_IMAGE_SRC,
-} from '@/lib/devcon';
+import { DEVCON_COUNTDOWN_TARGET, DEVCON_IMAGE_SRC } from '@/lib/devcon';
 
 import CountdownTimer from './CountdownTimer';
 
@@ -133,16 +128,6 @@ const AirQoDevConPage = () => {
                 Learn. Build. Break things. Fix them. Ship.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={DEVCON_APPLY_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <CustomButton className="px-5 py-3 text-[13px]">
-                    Apply Now
-                    <FiExternalLink className="w-3.5 h-3.5 ml-1.5" />
-                  </CustomButton>
-                </a>
                 <Link href="#devcon-tracks">
                   <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5]">
                     Explore tracks
@@ -384,23 +369,13 @@ const AirQoDevConPage = () => {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] mb-2">
-                  Spots are limited. Apply while registration is open.
+                  Applications are now closed.
                 </h2>
                 <p className="text-[14px] text-blue-100">
                   Free to attend &middot; Official AirQo gear &middot;
                   Certificate &middot; Open-source credits
                 </p>
               </div>
-              <a
-                href={DEVCON_APPLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CustomButton className="px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50">
-                  Apply Now
-                  <FiExternalLink className="w-3.5 h-3.5 ml-1.5" />
-                </CustomButton>
-              </a>
             </div>
           </motion.div>
         </div>
