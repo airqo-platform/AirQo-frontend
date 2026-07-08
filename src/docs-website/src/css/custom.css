@@ -350,7 +350,7 @@ pre code {
      the sidebar's clipped edge instead - taking the caret icon with them. */
   min-width: 0;
   white-space: normal;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Never let the expand/collapse caret shrink or get pushed out of view by a
