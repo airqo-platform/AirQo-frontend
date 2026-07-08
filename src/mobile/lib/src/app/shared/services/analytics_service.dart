@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
@@ -16,10 +17,21 @@ export 'package:airqo/src/app/shared/services/analytics/analytics_survey_events.
 /// super properties. Domain-specific event methods are extensions — see the
 /// files under `analytics/`.
 class AnalyticsService with UiLoggy {
-  static final AnalyticsService _instance = AnalyticsService._internal();
+  static AnalyticsService _instance = AnalyticsService._internal();
 
   factory AnalyticsService() => _instance;
   AnalyticsService._internal();
+
+  /// For test fakes/spies to extend — production code must go through the
+  /// factory so the whole app shares one instance.
+  @visibleForTesting
+  AnalyticsService.forTesting();
+
+  /// Swap the shared instance for a fake in tests. Every `AnalyticsService()`
+  /// call site resolves through this single choke point, so overriding it
+  /// here gives all widgets a test seam without changing their convention.
+  @visibleForTesting
+  static set instance(AnalyticsService value) => _instance = value;
 
   Future<void> trackEvent(
     String eventName, {
