@@ -178,7 +178,14 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: '/web-app-manifest-192x192.png',
+    icon: [
+      { url: '/assets/images/white-logo.png', sizes: 'any', type: 'image/png' },
+      {
+        url: '/web-app-manifest-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+    ],
     apple: '/web-app-manifest-192x192.png',
   },
   verification: {
@@ -325,8 +332,12 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <GoogleTranslate />
-        <ExternalLinkDecorator />
+        <ErrorBoundary fallback={null}>
+          <GoogleTranslate />
+        </ErrorBoundary>
+        <ErrorBoundary fallback={null}>
+          <ExternalLinkDecorator />
+        </ErrorBoundary>
         <Suspense fallback={null}>
           <GoogleAnalytics measurementId={GOOGLE_ANALYTICS_MEASUREMENT_ID} />
         </Suspense>

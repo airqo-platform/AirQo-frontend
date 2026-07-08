@@ -143,7 +143,10 @@ const AnalyticsPage = () => {
 
             <CustomButton
               onClick={() =>
-                window.open('https://platform.airqo.net/docs/nexus/intro/')
+                window.open(
+                  'https://platform.airqo.net/docs/nexus/intro/',
+                  '_blank',
+                )
               }
               className="flex items-center justify-center bg-transparent text-gray-700 border-2 border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
             >

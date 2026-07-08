@@ -9,7 +9,8 @@ const BACKOFF_MULTIPLIER = 1.5;
  * Polls `callback` at `activeIntervalMs` when the page is visible,
  * and pauses entirely when the tab is hidden (Page Visibility API).
  *
- * Implements exponential backoff on errors to avoid overloading servers.
+ * Implements exponential backoff on errors and guards against overlapping
+ * async invocations to avoid stale data overwriting fresh results.
  * Returns a `refresh` function that triggers an immediate fetch.
  */
 export function usePollingWithVisibility(
@@ -18,6 +19,7 @@ export function usePollingWithVisibility(
 ): { refresh: () => void } {
   const callbackRef = useRef(callback);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inFlightRef = useRef(false);
   const backoffRef = useRef(1);
   const errorCountRef = useRef(0);
 
@@ -31,6 +33,16 @@ export function usePollingWithVisibility(
     }
   }, []);
 
+  const invoke = useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    try {
+      await callbackRef.current();
+    } finally {
+      inFlightRef.current = false;
+    }
+  }, []);
+
   const start = useCallback(() => {
     stop();
     const currentInterval = Math.min(
@@ -38,23 +50,23 @@ export function usePollingWithVisibility(
       MAX_BACKOFF_MS,
     );
     intervalRef.current = setInterval(() => {
-      void callbackRef.current();
+      void invoke();
     }, currentInterval);
-  }, [activeIntervalMs, stop]);
+  }, [activeIntervalMs, stop, invoke]);
 
   const refresh = useCallback(() => {
     errorCountRef.current = 0;
     backoffRef.current = 1;
-    void callbackRef.current();
-  }, []);
+    void invoke();
+  }, [invoke]);
 
   // Kick off an initial fetch + start polling.
   useEffect(() => {
-    void callbackRef.current();
+    void invoke();
     start();
 
     return stop;
-  }, [start, stop]);
+  }, [invoke, start, stop]);
 
   // React to visibility changes.
   useEffect(() => {
