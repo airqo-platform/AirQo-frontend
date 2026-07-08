@@ -24,6 +24,35 @@ export type CleanAirForum2026LessonResponse = {
   lesson: CleanAirForum2026Lesson;
 };
 
+export type CleanAirForum2026LessonQuizAttempt = {
+  activity_id: string;
+  format: string;
+  selected_index?: number;
+  is_correct: boolean;
+};
+
+export type CleanAirForum2026LessonProgressRequest = {
+  furthest_activity_index: number;
+  completed: boolean;
+  quiz_attempts: CleanAirForum2026LessonQuizAttempt[];
+};
+
+export type CleanAirForum2026LessonProgressResponse = {
+  success: boolean;
+  lesson_id: string;
+  stars: number;
+  points_earned: number;
+  total_points: number;
+  current_stage: {
+    index: number;
+    name: string;
+  };
+  unlock: {
+    next_lesson_id: string;
+    course_complete: boolean;
+  } | null;
+};
+
 export type CleanAirForum2026GuestSessionResponse = {
   success: boolean;
   guest_id: string;

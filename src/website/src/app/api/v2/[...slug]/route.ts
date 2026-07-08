@@ -134,6 +134,16 @@ async function handleRequest(
     }
     headers.set('Accept', 'application/json');
 
+    const forwardedDeviceId = request.headers.get('x-device-id');
+    if (forwardedDeviceId) {
+      headers.set('X-Device-Id', forwardedDeviceId);
+    }
+
+    const forwardedGuestId = request.headers.get('x-guest-id');
+    if (forwardedGuestId) {
+      headers.set('X-Guest-Id', forwardedGuestId);
+    }
+
     // Handle authentication - use query parameter method for all endpoints
     // Add the API token as a query parameter for authentication
     final.searchParams.set('token', API_TOKEN);

@@ -14,7 +14,11 @@ import {
   CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY,
 } from '@/features/clean-air-forum-2026/constants/storage';
 import { useCleanAirForumQuizSetup } from '@/features/clean-air-forum-2026/hooks/useCleanAirForumQuizSetup';
-import type { CleanAirForum2026LessonActivity } from '@/features/clean-air-forum-2026/types/learn';
+import { submitCleanAirForum2026LessonCompletion } from '@/features/clean-air-forum-2026/lib/learn-progress';
+import type {
+  CleanAirForum2026LessonActivity,
+  CleanAirForum2026LessonProgressResponse,
+} from '@/features/clean-air-forum-2026/types/learn';
 import type { CleanAirForum2026QuizAnswerMap } from '@/features/clean-air-forum-2026/types/quiz';
 
 const EMPTY_ACTIVITIES: CleanAirForum2026LessonActivity[] = [];
@@ -24,11 +28,18 @@ export default function QuizScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answersByActivityId, setAnswersByActivityId] =
     useState<CleanAirForum2026QuizAnswerMap>({});
+  const [submissionStatus, setSubmissionStatus] = useState<
+    'idle' | 'submitting' | 'submitted' | 'error'
+  >('idle');
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [submissionResult, setSubmissionResult] =
+    useState<CleanAirForum2026LessonProgressResponse | null>(null);
 
   const lessonActivities = quizSetup.lessonPayload?.lesson.activities;
   const activities = lessonActivities ?? EMPTY_ACTIVITIES;
   const currentActivity = activities[currentQuestionIndex] ?? null;
   const totalQuestions = activities.length;
+  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
   const selectedOptionIndex =
     currentActivity && answersByActivityId[currentActivity.id]
       ? answersByActivityId[currentActivity.id].selectedIndex
@@ -149,6 +160,64 @@ export default function QuizScreen() {
     totalQuestions,
   ]);
 
+  const handleSubmitQuiz = async () => {
+    if (
+      quizSetup.status !== 'ready' ||
+      !quizSetup.guestSession ||
+      activities.length === 0 ||
+      submissionStatus === 'submitting' ||
+      submissionStatus === 'submitted'
+    ) {
+      return;
+    }
+
+    const quizAttempts = activities
+      .map((activity) => answersByActivityId[activity.id])
+      .filter((answer) => Boolean(answer))
+      .map((answer) => ({
+        activity_id: answer.activityId,
+        format: answer.format,
+        selected_index: answer.selectedIndex,
+        is_correct: answer.isCorrect,
+      }));
+
+    setSubmissionStatus('submitting');
+    setSubmissionError(null);
+
+    try {
+      const response = await submitCleanAirForum2026LessonCompletion(
+        quizSetup.guestSession,
+        {
+          furthest_activity_index: totalQuestions - 1,
+          completed: true,
+          quiz_attempts: quizAttempts,
+        },
+      );
+
+      setSubmissionResult(response);
+      setSubmissionStatus('submitted');
+
+      console.group('[CAF 2026] Quiz completion submitted');
+      console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
+      console.info('lesson_id', CLEAN_AIR_FORUM_2026_LESSON_ID);
+      console.info('guest_session', quizSetup.guestSession);
+      console.info('submission_payload', {
+        furthest_activity_index: totalQuestions - 1,
+        completed: true,
+        quiz_attempts: quizAttempts,
+      });
+      console.info('submission_response', response);
+      console.groupEnd();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to submit quiz';
+
+      setSubmissionStatus('error');
+      setSubmissionError(message);
+      console.error('[CAF 2026] Quiz completion failed', message);
+    }
+  };
+
   if (
     quizSetup.status !== 'ready' ||
     !quizSetup.lessonPayload ||
@@ -216,8 +285,7 @@ export default function QuizScreen() {
               })}
             </div>
 
-            {selectedOptionIndex !== null &&
-            currentQuestionIndex < totalQuestions - 1 ? (
+            {selectedOptionIndex !== null && !isLastQuestion ? (
               <Button
                 className="rounded-[1.4rem] px-7 py-3 text-base font-semibold"
                 onClick={() =>
@@ -226,6 +294,33 @@ export default function QuizScreen() {
               >
                 Next Question
               </Button>
+            ) : null}
+
+            {selectedOptionIndex !== null && isLastQuestion ? (
+              <Button
+                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                onClick={handleSubmitQuiz}
+                disabled={submissionStatus === 'submitting'}
+              >
+                {submissionStatus === 'submitting'
+                  ? 'Submitting Quiz...'
+                  : submissionStatus === 'submitted'
+                    ? 'Quiz Submitted'
+                    : 'Submit Quiz'}
+              </Button>
+            ) : null}
+
+            {submissionStatus === 'error' && submissionError ? (
+              <p className="text-sm font-medium text-[#8a1f1f]">
+                {submissionError}
+              </p>
+            ) : null}
+
+            {submissionStatus === 'submitted' && submissionResult ? (
+              <p className="text-sm font-medium text-[#0d4f57]">
+                Submission recorded: {submissionResult.points_earned} points
+                earned.
+              </p>
             ) : null}
           </div>
         </div>
