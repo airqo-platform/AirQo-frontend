@@ -226,6 +226,13 @@ export class PeerManager {
 
   broadcast(message: any): void {
     const jsonStr = JSON.stringify(message);
+
+    // If Participant, send to Host
+    if (this.hostPeer?.channel && this.hostPeer.channel.readyState === 'open') {
+      this.hostPeer.channel.send(jsonStr);
+    }
+
+    // If Host, send to all Participants
     this.peers.forEach((peer) => {
       if (peer.channel && peer.channel.readyState === 'open') {
         peer.channel.send(jsonStr);
