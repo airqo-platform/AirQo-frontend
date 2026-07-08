@@ -346,7 +346,10 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       AnalyticsService().trackCafWallSubmissionSent();
       _showMessage('Sent to the Clean Air Forum screen!');
     } catch (e) {
-      AnalyticsService().trackCafWallSubmissionFailed(error: e.toString());
+      // Report only the exception type — raw messages can carry API
+      // response details that don't belong in analytics.
+      AnalyticsService()
+          .trackCafWallSubmissionFailed(error: e.runtimeType.toString());
       _showMessage(
         'Your photo shared fine, but sending it to the conference screen '
         "didn't work. Please try again.",

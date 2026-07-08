@@ -64,11 +64,14 @@ class AnalyticsService with UiLoggy {
     }
   }
 
-  /// Reset user on logout — clears PostHog identity and all feature flags.
+  /// Reset user on logout/session expiry — clears PostHog identity and all
+  /// feature flags, then marks the device as a guest session so subsequent
+  /// events always carry an accurate is_guest super property.
   Future<void> resetUser() async {
     try {
       await Posthog().reset();
       FeatureFlagService.instance.reset();
+      await markGuestSession();
       loggy.info('User reset — analytics identity and feature flags cleared');
     } catch (e, stackTrace) {
       loggy.error('Failed to reset user', e, stackTrace);

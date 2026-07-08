@@ -273,7 +273,8 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         loggy.error('Error submitting survey: $e');
         await analytics.trackSurveySubmissionFailed(
           surveyId: currentState.survey.id,
-          error: e.toString(),
+          // Exception type only — raw messages can carry API details.
+          error: e.runtimeType.toString(),
           deviceId: currentState.currentResponse.deviceId,
         );
         emit(SurveyError('Failed to submit survey', error: e));

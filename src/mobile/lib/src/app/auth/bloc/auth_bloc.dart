@@ -64,7 +64,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
               'Token found on app start but silent refresh failed — treating as session expiry');
           await _clearAuthData();
           await analytics.resetUser();
-          await analytics.markGuestSession();
           emit(SessionExpiredState());
           emit(GuestUser());
         } else {
@@ -189,6 +188,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
     try {
       loggy.info('Session expired - clearing auth tokens and cached data');
       await _clearAuthData();
+      await analytics.resetUser();
       emit(SessionExpiredState());
       emit(GuestUser());
     } catch (e) {
