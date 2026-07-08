@@ -7,27 +7,35 @@
 
 ### Device Details — Localized Map Card
 
-Added an embedded map to the Device Details card, giving field teams an immediate visual reference for where a device is deployed. The Site Details card remains as a separate card showing site name and coordinates text only.
+Added an embedded map to the Site Details card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed. The map is extracted into a reusable standalone component so it can also be used on the Site Details page.
 
 <details>
-<summary><strong>Device Details Card (`device-details-card.tsx`)</strong></summary>
+<summary><strong>New: <code>DeviceLocationMap</code> component (<code>device-location-map.tsx</code>)</strong></summary>
 
-- **Embedded map**: Renders a read-only `MiniMap` below the device fields, centred on the device's stored coordinates at zoom level 13.
+- Standalone reusable component that renders a read-only map for a given latitude/longitude.
 - **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
-- **Empty state**: When a device has no coordinates, a dashed-border placeholder with a `MapPin` icon and a short message is shown instead of blank space.
+- **Empty state**: When coordinates are unavailable, a dashed-border placeholder with a `MapPin` icon is shown instead of blank space.
+- Accepts `height` and `zoom` props (defaults: `h-48`, zoom `13`) for reuse at different sizes.
 
 </details>
 
 <details>
-<summary><strong>Site Details Card (`device-location-card.tsx`)</strong></summary>
+<summary><strong>Site Details Card (<code>device-location-card.tsx</code>)</strong></summary>
 
-- Retained as a separate card showing site name, latitude, longitude, and a "View site details" link.
-- Map lives in the Device Details card — not rendered here.
+- Embeds `<DeviceLocationMap>` below the site name and coordinate fields, centred on the device's stored coordinates.
+- Added `overflow-hidden` to the card so the map respects the card's rounded corners.
 
 </details>
 
 <details>
-<summary><strong>MiniMap — `readOnly` prop (`mini-map.tsx`)</strong></summary>
+<summary><strong>Device Details Card (<code>device-details-card.tsx</code>)</strong></summary>
+
+- No map here — map lives in the Site Details card only.
+
+</details>
+
+<details>
+<summary><strong>MiniMap — <code>readOnly</code> prop (<code>mini-map.tsx</code>)</strong></summary>
 
 - Added `readOnly?: boolean` (default `false`). When `true`, the marker is non-draggable and click-to-move is disabled — the existing add/edit device flows are unaffected.
 
