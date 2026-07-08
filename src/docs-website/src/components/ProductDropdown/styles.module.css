@@ -29,6 +29,17 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* Allow the title to shrink/truncate instead of pushing the arrow
+     (below) out past the button's edge. */
+  min-width: 0;
+  flex: 1;
+}
+
+.productInfo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .productIcon {
@@ -36,6 +47,7 @@
   align-items: center;
   justify-content: center;
   color: var(--ifm-color-primary);
+  flex-shrink: 0;
 }
 
 .productIcon svg {
@@ -47,6 +59,7 @@
   color: var(--ifm-color-emphasis-600);
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .dropdownMenu {
@@ -82,6 +95,13 @@
   font-family: inherit;
 }
 
+.dropdownItem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .dropdownItem:hover {
   background-color: var(--ifm-color-emphasis-100);
   color: var(--ifm-color-primary);
@@ -94,6 +114,7 @@
 
 .checkIcon {
   margin-left: auto;
+  flex-shrink: 0;
   color: var(--ifm-color-primary);
 }
 

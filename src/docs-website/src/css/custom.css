@@ -81,6 +81,14 @@
   --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
 }
 
+/* Widen the default sidebar so longer category/section titles have more
+   room to wrap before hitting the edge. */
+@media (min-width: 997px) {
+  :root {
+    --doc-sidebar-width: 340px;
+  }
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -330,11 +338,25 @@ pre code {
   margin-right: 0.5rem;
   margin-left: 0.5rem;
   padding-right: 1rem;
-  
+
   /* Match p element typography */
   font-size: 0.875rem;
   font-weight: 400;
   line-height: calc(1.25 / 0.875);
+
+  /* .menu__link is itself a flex container (label text + caret pseudo-element).
+     Flex items default to min-width: auto, which stops long labels from
+     wrapping in some browsers (notably Safari) and lets them overflow past
+     the sidebar's clipped edge instead - taking the caret icon with them. */
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Never let the expand/collapse caret shrink or get pushed out of view by a
+   long label sharing its flex row. */
+.menu__link--sublist-caret:after {
+  flex-shrink: 0;
 }
 
 .menu__link:hover {
