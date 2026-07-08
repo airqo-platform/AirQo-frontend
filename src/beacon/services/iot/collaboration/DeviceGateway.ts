@@ -52,6 +52,8 @@ export class DeviceGateway {
   }
 
   private handleIncomingDeviceLogs(data: string) {
+    // If the gateway is not actively connected, ignore incoming logs to avoid unbounded buffering.
+    if (!this.activeAdapter) return;
     this.logBuffer.push(data);
   }
 
