@@ -32,7 +32,7 @@ const HomePage = () => {
       <AnalyticsContentSection
         title="An interactive air quality platform"
         subtitle="AirQo Nexus"
-        description="Access and visualise real-time and historical air quality information across Africa through our easy-to-use AirQo Nexus dashboard."
+        description="Access and visualise real-time and historical air quality information across Africa through our easy-to-use AirQo Nexus."
         buttonText="Learn more"
         buttonLink="/products/analytics"
         imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png"

@@ -1,3 +1,6 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
@@ -23,6 +26,19 @@ import {
 } from '@/lib/devcon';
 
 import CountdownTimer from './CountdownTimer';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
 type InfoCard = {
   icon: IconType;
@@ -101,8 +117,8 @@ const AirQoDevConPage = () => {
                   <FiCalendar className="w-3.5 h-3.5" /> 17&ndash;18 June 2026
                 </span>
                 <span className="text-[#d4d4d8]">&middot;</span>
-                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#059669]">
-                  <FiCheckCircle className="w-3.5 h-3.5" /> Applications open
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#dc2626]">
+                  <FiCheckCircle className="w-3.5 h-3.5" /> Applications closed
                 </span>
               </div>
               <h1 className="text-[32px] md:text-[36px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.15] mb-4">
@@ -149,11 +165,17 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
-      <section className="px-4">
+      <motion.section
+        className="px-4"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div
           className={`${mainConfig.containerClass} grid grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center`}
         >
-          <div>
+          <motion.div variants={itemVariants}>
             <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600">
               Countdown
             </p>
@@ -165,21 +187,28 @@ const AirQoDevConPage = () => {
               Register your interest now and we will share joining details and
               preparation notes with registered students.
             </p>
-          </div>
-          <div>
+          </motion.div>
+          <motion.div variants={itemVariants}>
             <CountdownTimer targetDate={DEVCON_COUNTDOWN_TARGET} />
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="bg-blue-50">
+      <motion.section
+        className="bg-blue-50"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div className={`${mainConfig.containerClass} py-10 px-4`}>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {devconStats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div
+                <motion.div
                   key={stat.label}
+                  variants={itemVariants}
                   className="border border-[#e4e4e7] rounded-lg p-4"
                 >
                   <Icon className="w-5 h-5 text-[#71717a] mb-3" />
@@ -189,16 +218,22 @@ const AirQoDevConPage = () => {
                   <p className="text-[15px] font-semibold text-[#18181b]">
                     {stat.value}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className={`${mainConfig.containerClass} px-4`}>
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
+          <motion.div variants={itemVariants}>
             <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
               About AirQo DevCon
             </p>
@@ -215,14 +250,15 @@ const AirQoDevConPage = () => {
               how the systems behind clean air data are built, maintained, and
               improved.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-3">
             {tracks.map((track) => {
               const Icon = track.icon;
               return (
-                <div
+                <motion.div
                   key={track.title}
+                  variants={itemVariants}
                   className="border border-[#e4e4e7] rounded-lg p-5"
                 >
                   <div className="flex gap-4">
@@ -236,29 +272,37 @@ const AirQoDevConPage = () => {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section id="devcon-tracks" className="bg-[#EDF3FF]">
+      <motion.section
+        id="devcon-tracks"
+        className="bg-[#EDF3FF]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div className={`${mainConfig.containerClass} py-12 px-4`}>
-          <div className="mb-8">
+          <motion.div className="mb-8" variants={itemVariants}>
             <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
               Your track
             </p>
             <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] text-[#18181b]">
               Pick your superpower.
             </h2>
-          </div>
+          </motion.div>
           <div className="bg-white border border-blue-200 rounded-lg divide-y divide-blue-100">
             {tracks.map((track) => {
               const Icon = track.icon;
               return (
-                <article
+                <motion.article
                   key={track.title}
+                  variants={itemVariants}
                   className="p-6 grid gap-4 lg:grid-cols-[48px_1fr_200px] lg:items-start"
                 >
                   <Icon className="w-6 h-6 text-[#71717a] mt-0.5" />
@@ -278,17 +322,23 @@ const AirQoDevConPage = () => {
                       {track.tools.join(' / ')}
                     </p>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="border-t border-[#e4e4e7]">
+      <motion.section
+        className="border-t border-[#e4e4e7]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div className={`${mainConfig.containerClass} py-12 px-4`}>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr]">
-            <div>
+            <motion.div variants={itemVariants}>
               <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
                 What you leave with
               </p>
@@ -299,8 +349,11 @@ const AirQoDevConPage = () => {
               <p className="text-[15px] text-[#71717a] leading-[1.6]">
                 The event is designed for students who want more than a talk.
               </p>
-            </div>
-            <div className="border border-[#e4e4e7] rounded-lg p-5">
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="border border-[#e4e4e7] rounded-lg p-5"
+            >
               <ul className="space-y-3">
                 {outcomes.map((outcome) => (
                   <li
@@ -312,14 +365,22 @@ const AirQoDevConPage = () => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
         <div className={`${mainConfig.containerClass} py-12 px-4`}>
-          <div className="bg-blue-600 rounded-lg p-6 lg:p-8 text-white">
+          <motion.div
+            variants={itemVariants}
+            className="bg-blue-600 rounded-lg p-6 lg:p-8 text-white"
+          >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] mb-2">
@@ -341,9 +402,9 @@ const AirQoDevConPage = () => {
                 </CustomButton>
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };
