@@ -31,7 +31,12 @@ class AnalyticsService with UiLoggy {
   /// call site resolves through this single choke point, so overriding it
   /// here gives all widgets a test seam without changing their convention.
   @visibleForTesting
-  static set instance(AnalyticsService value) => _instance = value;
+  static set instance(AnalyticsService value) {
+    if (!kDebugMode) {
+      throw UnsupportedError('AnalyticsService.instance is for testing only');
+    }
+    _instance = value;
+  }
 
   Future<void> trackEvent(
     String eventName, {
