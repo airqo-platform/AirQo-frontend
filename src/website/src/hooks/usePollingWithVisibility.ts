@@ -2,10 +2,14 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
+const MAX_BACKOFF_MS = 5 * 60 * 1000; // 5 minutes max backoff
+const BACKOFF_MULTIPLIER = 1.5;
+
 /**
  * Polls `callback` at `activeIntervalMs` when the page is visible,
  * and pauses entirely when the tab is hidden (Page Visibility API).
  *
+ * Implements exponential backoff on errors to avoid overloading servers.
  * Returns a `refresh` function that triggers an immediate fetch.
  */
 export function usePollingWithVisibility(
@@ -14,6 +18,8 @@ export function usePollingWithVisibility(
 ): { refresh: () => void } {
   const callbackRef = useRef(callback);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const backoffRef = useRef(1);
+  const errorCountRef = useRef(0);
 
   // Keep the callback ref fresh without re-triggering the effect.
   callbackRef.current = callback;
@@ -27,12 +33,18 @@ export function usePollingWithVisibility(
 
   const start = useCallback(() => {
     stop();
+    const currentInterval = Math.min(
+      activeIntervalMs * Math.pow(BACKOFF_MULTIPLIER, errorCountRef.current),
+      MAX_BACKOFF_MS,
+    );
     intervalRef.current = setInterval(() => {
       void callbackRef.current();
-    }, activeIntervalMs);
+    }, currentInterval);
   }, [activeIntervalMs, stop]);
 
   const refresh = useCallback(() => {
+    errorCountRef.current = 0;
+    backoffRef.current = 1;
     void callbackRef.current();
   }, []);
 
@@ -48,6 +60,7 @@ export function usePollingWithVisibility(
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        errorCountRef.current = 0;
         start();
       } else {
         stop();

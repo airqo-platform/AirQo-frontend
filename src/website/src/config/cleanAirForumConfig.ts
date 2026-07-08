@@ -8,10 +8,10 @@ export const CLEAN_AIR_FORUM_CURRENT_EVENT_ID = 'clean-air-forum-2026';
 
 /**
  * How often the wall page polls for new submissions when the tab is active.
- * Optimised for the booth scenario where attendees take a photo and want to
- * see it on screen quickly.
+ * 45 seconds balances responsiveness for the booth scenario with server load.
+ * Pauses entirely when the tab is hidden (Page Visibility API).
  */
-export const CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS = 30 * 1000;
+export const CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS = 45 * 1000;
 
 /**
  * Fallback polling interval used when the Page Visibility API is unavailable.
