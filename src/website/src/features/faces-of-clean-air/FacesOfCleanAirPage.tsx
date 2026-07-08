@@ -15,7 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   type KeyboardEvent,
-  type PointerEvent,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -34,7 +34,8 @@ import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.
 const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const CARDS_PER_PAGE = 6;
-const CAROUSEL_INTERVAL_MS = 7000;
+const CAROUSEL_INTERVAL_MS = 7600;
+
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
@@ -43,9 +44,9 @@ const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const EVENT_DATES_BADGE = '13TH-16TH JULY';
 
 const SMOOTH_SPRING = {
-  stiffness: 170,
-  damping: 24,
-  mass: 0.8,
+  stiffness: 150,
+  damping: 25,
+  mass: 0.9,
 };
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
@@ -134,80 +135,110 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* Subtle futuristic grid */}
+      {/* Futuristic grid lines retained over the original gradient */}
       <div
-        className="absolute inset-0 opacity-[0.08]"
+        className="absolute inset-0 opacity-[0.1]"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)
+            linear-gradient(
+              rgba(255, 255, 255, 0.32) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.32) 1px,
+              transparent 1px
+            )
           `,
           backgroundSize: '72px 72px',
-          maskImage: 'linear-gradient(to bottom, black 0%, transparent 76%)',
+          maskImage:
+            'linear-gradient(to bottom, black 0%, black 45%, transparent 84%)',
           WebkitMaskImage:
-            'linear-gradient(to bottom, black 0%, transparent 76%)',
+            'linear-gradient(to bottom, black 0%, black 45%, transparent 84%)',
         }}
       />
 
-      {/* Primary floating glow */}
+      {/* Fine secondary grid for extra visual depth */}
+      <div
+        className="absolute inset-0 opacity-[0.035]"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              rgba(255, 255, 255, 0.45) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.45) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: '24px 24px',
+          maskImage: 'linear-gradient(to bottom, black 0%, transparent 70%)',
+          WebkitMaskImage:
+            'linear-gradient(to bottom, black 0%, transparent 70%)',
+        }}
+      />
+
+      {/* Right-side atmospheric glow */}
       <motion.div
-        className="absolute -right-[12%] top-[4%] h-[520px] w-[520px] rounded-full bg-blue-300/25 blur-[100px]"
+        className="absolute -right-[14%] top-[4%] h-[540px] w-[540px] rounded-full bg-blue-300/20 blur-[110px]"
         animate={
           reduceMotion
             ? undefined
             : {
-                x: [0, -45, 15, 0],
-                y: [0, 30, -15, 0],
-                scale: [1, 1.12, 0.96, 1],
+                x: [0, -38, 14, 0],
+                y: [0, 26, -12, 0],
+                scale: [1, 1.09, 0.97, 1],
               }
         }
         transition={{
-          duration: 18,
+          duration: 22,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       />
 
-      {/* Secondary glow */}
+      {/* Left atmospheric glow */}
       <motion.div
-        className="absolute -left-[12%] top-[20%] h-[430px] w-[430px] rounded-full bg-cyan-300/15 blur-[110px]"
+        className="absolute -left-[13%] top-[20%] h-[450px] w-[450px] rounded-full bg-cyan-300/12 blur-[115px]"
         animate={
           reduceMotion
             ? undefined
             : {
-                x: [0, 50, -10, 0],
-                y: [0, -25, 30, 0],
-                scale: [1, 0.92, 1.08, 1],
+                x: [0, 45, -8, 0],
+                y: [0, -22, 28, 0],
+                scale: [1, 0.94, 1.06, 1],
               }
         }
         transition={{
-          duration: 21,
+          duration: 25,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       />
 
-      {/* Small travelling light */}
+      {/* Travelling soft light */}
       <motion.div
-        className="absolute left-[34%] top-[12%] h-40 w-40 rounded-full bg-white/10 blur-[65px]"
+        className="absolute left-[34%] top-[12%] h-40 w-40 rounded-full bg-white/10 blur-[68px]"
         animate={
           reduceMotion
             ? undefined
             : {
-                x: [-50, 130, -20, -50],
-                y: [0, 65, -30, 0],
-                opacity: [0.25, 0.55, 0.3, 0.25],
+                x: [-45, 120, -15, -45],
+                y: [0, 58, -26, 0],
+                opacity: [0.2, 0.5, 0.28, 0.2],
               }
         }
         transition={{
-          duration: 16,
+          duration: 20,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       />
 
-      {/* Soft bottom fade */}
-      <div className="absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-b from-transparent via-white/35 to-white" />
+      {/* Bottom fade integrated into original gradient */}
+      <div className="absolute inset-x-0 bottom-0 h-[36%] bg-gradient-to-b from-transparent via-white/20 to-white/80" />
     </div>
   );
 }
@@ -221,11 +252,25 @@ function SkeletonCard({
 }) {
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, y: 22, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={
+        reduceMotion
+          ? false
+          : {
+              opacity: 0,
+              y: 24,
+              scale: 0.96,
+              filter: 'blur(6px)',
+            }
+      }
+      animate={{
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        filter: 'blur(0px)',
+      }}
       transition={{
-        duration: reduceMotion ? 0 : 0.5,
-        delay: reduceMotion ? 0 : index * 0.06,
+        duration: reduceMotion ? 0 : 0.62,
+        delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
@@ -236,12 +281,14 @@ function SkeletonCard({
       {!reduceMotion && (
         <motion.div
           className="absolute inset-y-0 -left-[75%] w-[65%] skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/45 to-transparent"
-          animate={{ x: ['0%', '330%'] }}
+          animate={{
+            x: ['0%', '330%'],
+          }}
           transition={{
-            duration: 1.8,
-            delay: index * 0.08,
+            duration: 2.15,
+            delay: index * 0.1,
             repeat: Infinity,
-            repeatDelay: 0.5,
+            repeatDelay: 0.7,
             ease: 'easeInOut',
           }}
         />
@@ -279,9 +326,9 @@ function SkeletonCard({
 const cardVariants: Variants = {
   enter: {
     opacity: 0,
-    y: 26,
+    y: 28,
     scale: 0.94,
-    filter: 'blur(8px)',
+    filter: 'blur(9px)',
   },
   center: {
     opacity: 1,
@@ -291,9 +338,9 @@ const cardVariants: Variants = {
   },
   exit: {
     opacity: 0,
-    y: -14,
+    y: -16,
     scale: 0.96,
-    filter: 'blur(5px)',
+    filter: 'blur(6px)',
   },
 };
 
@@ -339,7 +386,7 @@ function FaceCard({
     submission.locationName?.trim() || 'Pretoria, Gauteng, South Africa';
 
   const handlePointerMove = useCallback(
-    (event: PointerEvent<HTMLElement>) => {
+    (event: ReactPointerEvent<HTMLElement>) => {
       if (reduceMotion) return;
 
       const cardBounds = event.currentTarget.getBoundingClientRect();
@@ -364,19 +411,19 @@ function FaceCard({
       layout
       variants={cardVariants}
       transition={{
-        duration: reduceMotion ? 0 : 0.58,
+        duration: reduceMotion ? 0 : 0.68,
         ease: [0.22, 1, 0.36, 1],
       }}
       whileHover={
         reduceMotion
           ? undefined
           : {
-              y: -9,
-              scale: 1.018,
+              y: -8,
+              scale: 1.015,
               transition: {
                 type: 'spring',
-                stiffness: 280,
-                damping: 22,
+                stiffness: 240,
+                damping: 24,
               },
             }
       }
@@ -384,7 +431,7 @@ function FaceCard({
         reduceMotion
           ? undefined
           : {
-              scale: 0.985,
+              scale: 0.986,
             }
       }
       onPointerMove={handlePointerMove}
@@ -402,26 +449,24 @@ function FaceCard({
         fill
         priority={priority}
         unoptimized
-        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.055]"
+        className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
         sizes="(min-width: 1280px) 280px, (min-width: 1024px) 25vw, (min-width: 640px) 42vw, 92vw"
       />
 
-      {/* Image contrast */}
       <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
 
-      {/* Tailwind blue-600 overlay */}
       <div className="absolute inset-x-0 bottom-0 h-[51%] bg-gradient-to-t from-blue-800 via-blue-600/95 via-[58%] to-transparent" />
 
-      {/* Interactive glass reflection */}
       {!reduceMotion && (
         <motion.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 mix-blend-screen"
-          style={{ backgroundImage: glareBackground }}
+          style={{
+            backgroundImage: glareBackground,
+          }}
         />
       )}
 
-      {/* Futuristic inner edge */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-[1px] rounded-[11px] ring-1 ring-inset ring-white/10"
@@ -437,17 +482,13 @@ function FaceCard({
               }
         }
         transition={{
-          duration: 4.5,
+          duration: 5.2,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       />
 
-      {/* Card header */}
-      <motion.div
-        className="absolute left-3 top-3 flex items-center gap-2.5 text-white"
-        whileHover={reduceMotion ? undefined : { x: 2 }}
-      >
+      <div className="absolute left-3 top-3 flex items-center gap-2.5 text-white">
         <Image
           src={AIRQO_LOGO_URL}
           alt="AirQo"
@@ -466,14 +507,23 @@ function FaceCard({
             {EVENT_LOCATION_AND_YEAR}
           </p>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Card details */}
       <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white sm:px-3.5 sm:pb-3">
         <motion.div
           initial={false}
-          whileHover={reduceMotion ? undefined : { x: 2 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+          whileHover={
+            reduceMotion
+              ? undefined
+              : {
+                  x: 2,
+                }
+          }
+          transition={{
+            type: 'spring',
+            stiffness: 260,
+            damping: 25,
+          }}
         >
           <h2
             className="truncate text-[16px] font-semibold leading-tight sm:text-[17px]"
@@ -515,7 +565,7 @@ function FaceCard({
                 reduceMotion
                   ? undefined
                   : {
-                      scale: 1.08,
+                      scale: 1.07,
                     }
               }
               className={`max-w-[92px] truncate rounded-full px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
@@ -548,7 +598,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
           ? false
           : {
               opacity: 0,
-              y: 24,
+              y: 26,
               scale: 0.96,
               filter: 'blur(8px)',
             }
@@ -561,12 +611,12 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
       }}
       exit={{
         opacity: 0,
-        y: -15,
+        y: -16,
         scale: 0.97,
         filter: 'blur(5px)',
       }}
       transition={{
-        duration: reduceMotion ? 0 : 0.58,
+        duration: reduceMotion ? 0 : 0.68,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="mx-auto flex min-h-[240px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-8 py-10 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl"
@@ -581,7 +631,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
                 opacity: [0.55, 0],
               }}
               transition={{
-                duration: 2.2,
+                duration: 2.6,
                 repeat: Infinity,
                 ease: 'easeOut',
               }}
@@ -594,8 +644,8 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
                 opacity: [0.45, 0],
               }}
               transition={{
-                duration: 2.2,
-                delay: 0.8,
+                duration: 2.6,
+                delay: 0.9,
                 repeat: Infinity,
                 ease: 'easeOut',
               }}
@@ -613,7 +663,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
                 }
           }
           transition={{
-            duration: 3.4,
+            duration: 4,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -647,7 +697,7 @@ function ErrorState({
           ? false
           : {
               opacity: 0,
-              y: 20,
+              y: 22,
               scale: 0.97,
               filter: 'blur(7px)',
             }
@@ -660,33 +710,19 @@ function ErrorState({
       }}
       exit={{
         opacity: 0,
-        y: -12,
+        y: -14,
         scale: 0.98,
       }}
       role="alert"
       transition={{
-        duration: reduceMotion ? 0 : 0.5,
+        duration: reduceMotion ? 0 : 0.64,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="mx-auto flex min-h-[240px] w-full max-w-[520px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-8 py-10 text-center shadow-[0_30px_80px_-45px_rgba(2,6,23,0.85)] backdrop-blur-xl"
     >
-      <motion.div
-        animate={
-          reduceMotion
-            ? undefined
-            : {
-                x: [0, -4, 4, -3, 3, 0],
-              }
-        }
-        transition={{
-          duration: 0.55,
-          delay: 0.25,
-        }}
-      >
-        <h2 className="text-xl font-bold text-white">
-          We could not load the selfie wall
-        </h2>
-      </motion.div>
+      <h2 className="text-xl font-bold text-white">
+        We could not load the selfie wall
+      </h2>
 
       <p className="mt-2 text-sm leading-6 text-blue-50/80">
         Please check the connection and try again.
@@ -699,7 +735,7 @@ function ErrorState({
           reduceMotion
             ? undefined
             : {
-                scale: 1.045,
+                scale: 1.04,
                 y: -2,
               }
         }
@@ -751,7 +787,7 @@ function CarouselPagination({
               reduceMotion
                 ? undefined
                 : {
-                    scale: 1.12,
+                    scale: 1.1,
                     y: -1,
                   }
             }
@@ -764,8 +800,8 @@ function CarouselPagination({
             }
             transition={{
               type: 'spring',
-              stiffness: 360,
-              damping: 28,
+              stiffness: 320,
+              damping: 30,
             }}
             className={`relative h-2.5 overflow-hidden rounded-full border border-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
               isActive
@@ -780,16 +816,20 @@ function CarouselPagination({
                   className="absolute inset-0 rounded-full bg-blue-300/20"
                   transition={{
                     type: 'spring',
-                    stiffness: 360,
-                    damping: 30,
+                    stiffness: 320,
+                    damping: 32,
                   }}
                 />
 
                 {!reduceMotion && !isPaused && (
                   <motion.span
                     key={`progress-${page}`}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
+                    initial={{
+                      scaleX: 0,
+                    }}
+                    animate={{
+                      scaleX: 1,
+                    }}
                     transition={{
                       duration: CAROUSEL_INTERVAL_MS / 1000,
                       ease: 'linear',
@@ -814,8 +854,8 @@ const headerContainerVariants: Variants = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.08,
-      staggerChildren: 0.12,
+      delayChildren: 0.1,
+      staggerChildren: 0.16,
     },
   },
 };
@@ -823,7 +863,7 @@ const headerContainerVariants: Variants = {
 const headerItemVariants: Variants = {
   hidden: {
     opacity: 0,
-    y: -18,
+    y: -20,
     filter: 'blur(7px)',
   },
   visible: {
@@ -831,7 +871,7 @@ const headerItemVariants: Variants = {
     y: 0,
     filter: 'blur(0px)',
     transition: {
-      duration: 0.65,
+      duration: 0.78,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -962,7 +1002,10 @@ export default function FacesOfCleanAirPage() {
   );
 
   const handleDragEnd = useCallback(
-    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    (
+      _event: MouseEvent | TouchEvent | globalThis.PointerEvent,
+      info: PanInfo,
+    ) => {
       if (totalPages <= 1) return;
 
       const movedLeft =
@@ -984,10 +1027,10 @@ export default function FacesOfCleanAirPage() {
 
   const pageVariants: Variants = {
     enter: (slideDirection: number) => ({
-      x: shouldReduceMotion ? 0 : slideDirection > 0 ? 110 : -110,
+      x: shouldReduceMotion ? 0 : slideDirection > 0 ? 120 : -120,
       opacity: 0,
-      scale: 0.965,
-      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(10px)',
+      scale: 0.96,
+      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(11px)',
     }),
 
     center: {
@@ -996,22 +1039,22 @@ export default function FacesOfCleanAirPage() {
       scale: 1,
       filter: 'blur(0px)',
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.62,
+        duration: shouldReduceMotion ? 0 : 0.74,
         ease: [0.22, 1, 0.36, 1],
-        staggerChildren: shouldReduceMotion ? 0 : 0.065,
-        delayChildren: shouldReduceMotion ? 0 : 0.05,
+        staggerChildren: shouldReduceMotion ? 0 : 0.08,
+        delayChildren: shouldReduceMotion ? 0 : 0.07,
       },
     },
 
     exit: (slideDirection: number) => ({
-      x: shouldReduceMotion ? 0 : slideDirection > 0 ? -90 : 90,
+      x: shouldReduceMotion ? 0 : slideDirection > 0 ? -100 : 100,
       opacity: 0,
-      scale: 0.975,
-      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(7px)',
+      scale: 0.972,
+      filter: shouldReduceMotion ? 'blur(0px)' : 'blur(8px)',
       transition: {
-        duration: shouldReduceMotion ? 0 : 0.38,
+        duration: shouldReduceMotion ? 0 : 0.46,
         ease: [0.4, 0, 1, 1],
-        staggerChildren: shouldReduceMotion ? 0 : 0.025,
+        staggerChildren: shouldReduceMotion ? 0 : 0.035,
         staggerDirection: -1,
       },
     }),
@@ -1027,16 +1070,8 @@ export default function FacesOfCleanAirPage() {
     <div
       className="relative min-h-[100svh] overflow-hidden"
       style={{
-        background: `
-          linear-gradient(
-            180deg,
-            #020617 0%,
-            #172554 24%,
-            #2563eb 58%,
-            #dbeafe 84%,
-            #ffffff 100%
-          )
-        `,
+        background:
+          'linear-gradient(180deg, #02143B 0%, #145FFF 50%, #FFFFFF 100%)',
       }}
     >
       <AmbientBackground reduceMotion={shouldReduceMotion} />
@@ -1078,27 +1113,9 @@ export default function FacesOfCleanAirPage() {
             >
               Faces of
             </span>{' '}
-            <motion.span
-              animate={
-                shouldReduceMotion
-                  ? undefined
-                  : {
-                      textShadow: [
-                        '0 0 0 rgba(191,219,254,0)',
-                        '0 0 22px rgba(191,219,254,0.30)',
-                        '0 0 0 rgba(191,219,254,0)',
-                      ],
-                    }
-              }
-              transition={{
-                duration: 4.8,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              className="text-[36px] font-extrabold tracking-[-0.045em] sm:text-[40px]"
-            >
+            <span className="text-[36px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
               Air Quality
-            </motion.span>
+            </span>
           </motion.h1>
 
           <motion.div
@@ -1129,12 +1146,21 @@ export default function FacesOfCleanAirPage() {
               {isInitialLoading && (
                 <motion.div
                   key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{
+                    opacity: 0,
+                    filter: 'blur(5px)',
+                  }}
+                  animate={{
+                    opacity: 1,
+                    filter: 'blur(0px)',
+                  }}
                   exit={{
                     opacity: 0,
                     scale: 0.985,
-                    filter: 'blur(5px)',
+                    filter: 'blur(6px)',
+                  }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.64,
                   }}
                   className="grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 >
@@ -1169,16 +1195,23 @@ export default function FacesOfCleanAirPage() {
                       ? false
                       : {
                           opacity: 0,
-                          y: 15,
+                          y: 18,
+                          filter: 'blur(6px)',
                         }
                   }
                   animate={{
                     opacity: 1,
                     y: 0,
+                    filter: 'blur(0px)',
                   }}
                   exit={{
                     opacity: 0,
-                    y: -10,
+                    y: -12,
+                    filter: 'blur(4px)',
+                  }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.68,
+                    ease: [0.22, 1, 0.36, 1],
                   }}
                 >
                   <AnimatePresence
