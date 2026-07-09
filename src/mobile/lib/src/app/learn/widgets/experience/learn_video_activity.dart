@@ -51,9 +51,6 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       } else if (_isDirectVideo(url)) {
         _directController = VideoPlayerController.networkUrl(Uri.parse(url));
         await _directController!.initialize();
-        // dispose() may have run while initialize() was in flight.
-        if (!mounted) return;
-        _directController!.addListener(_onDirectVideoTick);
       } else {
         _error = 'Unsupported video URL';
       }
@@ -61,10 +58,6 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       _error = 'Could not load video';
     }
     if (mounted) setState(() => _ready = true);
-  }
-
-  void _onDirectVideoTick() {
-    if (mounted) setState(() {});
   }
 
   void _toggleDirectPlayback() {
@@ -82,7 +75,6 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
 
   @override
   void dispose() {
-    _directController?.removeListener(_onDirectVideoTick);
     _directController?.dispose();
     _youtubeController?.close();
     super.dispose();
@@ -175,13 +167,20 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
           alignment: Alignment.center,
           children: [
             VideoPlayer(controller),
-            if (!controller.value.isPlaying)
-              IconButton(
-                iconSize: 56,
-                color: Colors.white,
-                onPressed: _toggleDirectPlayback,
-                icon: const Icon(Icons.play_circle_fill),
-              ),
+            // Only the small overlay rebuilds on controller ticks; a
+            // whole-activity setState listener would rebuild at frame rate.
+            ValueListenableBuilder<VideoPlayerValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                if (value.isPlaying) return const SizedBox.shrink();
+                return IconButton(
+                  iconSize: 56,
+                  color: Colors.white,
+                  onPressed: _toggleDirectPlayback,
+                  icon: const Icon(Icons.play_circle_fill),
+                );
+              },
+            ),
             Positioned(
               left: 0,
               right: 0,
