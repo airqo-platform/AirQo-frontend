@@ -3,9 +3,11 @@ export type DetectedPlatform = 'win' | 'mac' | 'linux' | 'other'
 export function getDetectedPlatform(): DetectedPlatform {
   if (typeof window === 'undefined') return 'other'
   const ua = window.navigator.userAgent.toLowerCase()
-  if (ua.includes('win')) return 'win'
-  if (ua.includes('mac')) return 'mac'
-  if (ua.includes('linux')) return 'linux'
+  const isIOS = /iphone|ipad|ipod/.test(ua)
+  const isAndroid = /android/.test(ua)
+  if (!isIOS && /windows nt|win32|win64/.test(ua)) return 'win'
+  if (!isIOS && /macintosh|mac os x/.test(ua)) return 'mac'
+  if (!isAndroid && /linux/.test(ua)) return 'linux'
   return 'other'
 }
 

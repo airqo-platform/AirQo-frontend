@@ -11,6 +11,7 @@ import {
   type DesktopReleaseUrls,
 } from '@/core/constants/app-downloads';
 import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
+import { getMacArchitecture } from '@/core/utils/platform';
 import { vertexConfig } from '@/vertex.config';
 
 const WindowsIcon = ({ className }: { className?: string }) => (
@@ -29,9 +30,13 @@ function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard unavailable (non-secure context, permissions denied)
+    }
   };
 
   return (
@@ -45,12 +50,21 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function getPrimaryRelease(platform: string, release: DesktopReleaseUrls) {
+function getPrimaryRelease(
+  platform: string,
+  release: DesktopReleaseUrls,
+  macArch: 'arm64' | 'x64' | 'unknown',
+) {
   switch (platform) {
     case 'win':
       return { label: 'Download for Windows', href: release.windows.exe, Icon: WindowsIcon };
-    case 'mac':
-      return { label: 'Download for macOS', href: release.mac.arm64Dmg, Icon: AppleIcon };
+    case 'mac': {
+      const href =
+        macArch === 'arm64'
+          ? (release.mac.arm64Dmg ?? release.mac.intelDmg)
+          : (release.mac.intelDmg ?? release.mac.arm64Dmg);
+      return { label: 'Download for macOS', href, Icon: AppleIcon };
+    }
     case 'linux':
       return { label: 'Download for Linux', href: release.linux.appImage, Icon: FaLinux };
     default:
@@ -61,7 +75,12 @@ function getPrimaryRelease(platform: string, release: DesktopReleaseUrls) {
 export default function DownloadHero() {
   const [mounted, setMounted] = useState(false);
   const [release, setRelease] = useState<DesktopReleaseUrls>(VERTEX_DESKTOP_DOWNLOAD_FALLBACKS);
+  const [macArch, setMacArch] = useState<'arm64' | 'x64' | 'unknown'>('unknown');
   const { platform } = useDetectedPlatform();
+
+  useEffect(() => {
+    if (platform === 'mac') getMacArchitecture().then(setMacArch);
+  }, [platform]);
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 100);
@@ -75,7 +94,7 @@ export default function DownloadHero() {
       .catch(() => {});
   }, []);
 
-  const primary = getPrimaryRelease(platform, release);
+  const primary = getPrimaryRelease(platform, release, macArch);
 
   const platformCards = [
     {

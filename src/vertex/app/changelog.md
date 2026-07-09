@@ -56,7 +56,7 @@ Redesigned the `/download` page with a dynamic primary download button that dete
 </details>
 
 <details>
-<summary><strong>Files Modified &amp; Added (8)</strong></summary>
+<summary><strong>Files Modified &amp; Added (10)</strong></summary>
 
 - `src/vertex/app/api/latest-release/route.ts` [NEW]
 - `src/vertex/core/hooks/useDetectedPlatform.ts` [NEW]
