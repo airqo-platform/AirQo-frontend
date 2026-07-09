@@ -29,13 +29,13 @@ class CleanAirForumBrand {
   static const Color sharedCaptionText = Color(0xFF1F3D3D);
 
   /// Wordmark shown top-left on the selfie filter card.
-  static const String title = 'Africa CLEAN - Air Forum';
+  static const String title = 'Africa Clean Air Forum';
 
   /// Host city + year shown under the [title] wordmark.
   static const String edition = 'Pretoria 2026';
 
   /// Event date range shown in the corner of the filter card.
-  static const String dateRange = '14TH-16TH JULY';
+  static const String dateRange = '13TH-16TH JULY';
 }
 
 /// Reference canvas width the Figma "AQ/CAF" templates were designed at.

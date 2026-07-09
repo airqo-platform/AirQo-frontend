@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
@@ -33,11 +34,23 @@ class CleanAirForumCameraScreen extends StatefulWidget {
 
 class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
     with WidgetsBindingObserver {
+  // A hung native camera session (e.g. after a lock-screen interruption
+  // mid-capture) must not be able to strand the UI on the loading spinner
+  // or the shutter button forever — every call into the camera plugin is
+  // bounded by this.
+  static const _cameraOpTimeout = Duration(seconds: 10);
+
   CameraController? _controller;
   List<CameraDescription> _cameras = const [];
   int _cameraIndex = 0;
   Future<void>? _initializeFuture;
   bool _isCapturing = false;
+  // Retry-on-failure and lifecycle-resume can both call _openCamera close
+  // together; without this, the second call would see the first's nulled
+  // _controller and start its own CameraController before the first has
+  // finished disposing/initializing — two sessions open at once, which the
+  // Camera2 HAL rejects.
+  bool _isOpeningCamera = false;
   String? _errorMessage;
 
   @override
@@ -84,25 +97,44 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
   }
 
   Future<void> _openCamera(int index) async {
-    final previous = _controller;
-    _controller = CameraController(
-      _cameras[index],
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.jpeg,
-    );
+    // Only one open/teardown sequence may run at a time — see
+    // _isOpeningCamera's doc comment.
+    if (_isOpeningCamera) return;
+    _isOpeningCamera = true;
     try {
-      await _controller!.initialize();
-    } catch (_) {
-      final failed = _controller;
+      // The previous session must be fully torn down *before* a new one
+      // starts initializing — the Camera2 HAL only allows one open session
+      // per device, so overlapping old/new controllers (as when switching
+      // front/back) throws CAMERA_ERROR "Error configuring streams: Broken
+      // pipe" instead of cleanly handing off.
+      final previous = _controller;
       _controller = null;
-      await failed?.dispose();
-      if (mounted) setState(() => _errorMessage = 'Could not start the camera.');
-      return;
-    } finally {
+      if (mounted) setState(() {});
       await previous?.dispose();
+
+      final controller = CameraController(
+        _cameras[index],
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      try {
+        await controller.initialize().timeout(_cameraOpTimeout);
+      } catch (_) {
+        // Don't await this dispose — if initialize() just timed out because
+        // the native session is stuck, dispose() on that same stuck session
+        // could hang too, and we'd be right back to an unrecoverable spinner.
+        unawaited(controller.dispose());
+        if (mounted) {
+          setState(() => _errorMessage = 'Could not start the camera.');
+        }
+        return;
+      }
+      _controller = controller;
+      if (mounted) setState(() {});
+    } finally {
+      _isOpeningCamera = false;
     }
-    if (mounted) setState(() {});
   }
 
   Future<void> _switchCamera() async {
@@ -120,29 +152,47 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
 
     setState(() => _isCapturing = true);
     try {
-      final file = await controller.takePicture();
+      final file = await controller.takePicture().timeout(_cameraOpTimeout);
       if (!mounted) return;
       Navigator.of(context).pop(File(file.path));
     } catch (_) {
-      if (mounted) setState(() => _isCapturing = false);
+      if (!mounted) return;
+      setState(() => _isCapturing = false);
+      // A failed/timed-out capture (e.g. the screen locking mid-shot) can
+      // leave the native session in a state that still looks live in the
+      // preview but can no longer actually shoot — force a fresh session
+      // rather than leaving a dead-but-looks-fine camera screen.
+      unawaited(_openCamera(_cameraIndex));
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
-
     if (state == AppLifecycleState.inactive) {
+      final controller = _controller;
+      if (controller == null || !controller.value.isInitialized) return;
       // Clear the field before disposing — otherwise it keeps pointing at a
       // disposed controller (dispose() doesn't flip isInitialized back to
       // false), so a rebuild triggered before _openCamera() finishes on
       // resume could still try to paint CameraPreview against it.
       _controller = null;
       if (mounted) setState(() {});
-      controller.dispose();
+      unawaited(controller.dispose());
     } else if (state == AppLifecycleState.resumed) {
-      _openCamera(_cameraIndex);
+      // The above guard used to run unconditionally, before this branch
+      // check — so once `inactive` nulled `_controller`, the very next
+      // `resumed` event read that null and bailed out immediately, never
+      // reopening the camera. That left the screen stuck on the loading
+      // spinner forever after any lock/unlock, not just the capture-mid-
+      // interruption case that surfaced it.
+      final controller = _controller;
+      // _openCamera indexes into _cameras directly — without this guard, a
+      // resume after permission denial or on a cameraless device (both
+      // leave _cameras empty and _controller null) would crash.
+      if (_cameras.isNotEmpty &&
+          (controller == null || !controller.value.isInitialized)) {
+        unawaited(_openCamera(_cameraIndex));
+      }
     }
   }
 
