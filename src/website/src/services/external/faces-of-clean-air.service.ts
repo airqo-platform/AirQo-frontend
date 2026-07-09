@@ -1,4 +1,5 @@
 import { API_ROUTES, BaseApiService, ServiceOptions } from '@/services/api';
+import apiClient from '@/services/api/api-client';
 
 export interface CleanAirSubmission {
   id: string;
@@ -32,6 +33,34 @@ class FacesOfCleanAirService extends BaseApiService {
     }
 
     return [];
+  }
+
+  async deleteSubmission(id: string, token: string): Promise<boolean> {
+    try {
+      const response = await apiClient.request<unknown>({
+        method: 'DELETE',
+        url: API_ROUTES.USERS.SELFIE_BY_ID(id),
+        params: { token },
+      });
+
+      return response.success;
+    } catch {
+      return false;
+    }
+  }
+
+  async hideSubmission(id: string, token: string): Promise<boolean> {
+    try {
+      const response = await apiClient.request<unknown>({
+        method: 'PATCH',
+        url: API_ROUTES.USERS.SELFIE_BY_ID(id),
+        params: { token },
+      });
+
+      return response.success;
+    } catch {
+      return false;
+    }
   }
 }
 

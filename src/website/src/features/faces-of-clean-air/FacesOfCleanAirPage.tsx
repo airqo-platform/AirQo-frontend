@@ -4,7 +4,6 @@ import {
   AnimatePresence,
   motion,
   type PanInfo,
-  useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useSpring,
@@ -43,7 +42,6 @@ const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
 const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
-const EVENT_DATES_BADGE = '13TH-16TH JULY';
 
 const SMOOTH_SPRING = {
   stiffness: 150,
@@ -52,11 +50,6 @@ const SMOOTH_SPRING = {
 };
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
-
-type CategoryStyle = {
-  label: string;
-  className: string;
-};
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -77,79 +70,6 @@ function useMediaQuery(query: string): boolean {
   }, [query]);
 
   return matches;
-}
-
-function formatPm25(value: number | null | undefined): string {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return '--';
-  }
-
-  return value.toFixed(1);
-}
-
-function getFallbackCategory(pm25: number): CategoryStyle {
-  if (pm25 <= 12) {
-    return {
-      label: 'Good',
-      className: 'bg-emerald-100 text-emerald-700',
-    };
-  }
-
-  if (pm25 <= 35.4) {
-    return {
-      label: 'Moderate',
-      className: 'bg-amber-100 text-amber-700',
-    };
-  }
-
-  if (pm25 <= 55.4) {
-    return {
-      label: 'Sensitive',
-      className: 'bg-orange-100 text-orange-700',
-    };
-  }
-
-  return {
-    label: 'Unhealthy',
-    className: 'bg-red-100 text-red-700',
-  };
-}
-
-function getCategoryStyle(
-  category: string | null | undefined,
-  pm25: number,
-): CategoryStyle {
-  const normalizedCategory = category?.trim().toLowerCase();
-
-  if (!normalizedCategory) {
-    return getFallbackCategory(pm25);
-  }
-
-  if (normalizedCategory.includes('good')) {
-    return {
-      label: category!,
-      className: 'bg-emerald-100 text-emerald-700',
-    };
-  }
-
-  if (normalizedCategory.includes('moderate')) {
-    return {
-      label: category!,
-      className: 'bg-amber-100 text-amber-700',
-    };
-  }
-
-  if (normalizedCategory.includes('sensitive')) {
-    return {
-      label: category!,
-      className: 'bg-orange-100 text-orange-700',
-    };
-  }
-
-  return {
-    label: category!,
-    className: 'bg-red-100 text-red-700',
-  };
 }
 
 function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
@@ -302,7 +222,7 @@ function SkeletonCard({
         delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
+      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-[#39BFC7]/15 to-[#39BFC7]/20" />
@@ -374,10 +294,12 @@ function FaceCard({
   submission,
   priority,
   reduceMotion,
+  onDeleteRequest,
 }: {
   submission: CleanAirSubmission;
   priority: boolean;
   reduceMotion: boolean | null;
+  onDeleteRequest?: (submission: CleanAirSubmission) => void;
 }) {
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -387,21 +309,6 @@ function FaceCard({
 
   const rotateX = useSpring(transformedRotateX, SMOOTH_SPRING);
   const rotateY = useSpring(transformedRotateY, SMOOTH_SPRING);
-
-  const glareX = useTransform(pointerX, [0, 1], [0, 100]);
-  const glareY = useTransform(pointerY, [0, 1], [0, 100]);
-
-  const glareBackground = useMotionTemplate`
-    radial-gradient(
-      circle at ${glareX}% ${glareY}%,
-      rgba(255,255,255,0.30) 0%,
-      rgba(255,255,255,0.12) 16%,
-      rgba(255,255,255,0) 44%
-    )
-  `;
-
-  const pm25 = submission.pm25Value ?? 0;
-  const category = getCategoryStyle(submission.aqiCategory, pm25);
 
   const displayName =
     submission.displayName?.trim() ||
@@ -464,12 +371,13 @@ function FaceCard({
       }
       onPointerMove={handlePointerMove}
       onPointerLeave={resetPointerPosition}
+      onDoubleClick={() => onDeleteRequest?.(submission)}
       style={{
         rotateX: reduceMotion ? 0 : rotateX,
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -477,143 +385,9 @@ function FaceCard({
         fill
         priority={priority}
         unoptimized
-        className="object-cover transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
+        className="object-contain transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
         sizes="(max-width: 639px) 86vw, (max-width: 1023px) 42vw, (max-width: 1279px) 25vw, 22vw"
       />
-
-      <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
-
-      <div className="absolute inset-x-0 bottom-0 h-[51%] bg-gradient-to-t from-[#005257] via-[#39BFC7]/95 via-[58%] to-transparent" />
-
-      {!reduceMotion && (
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 mix-blend-screen"
-          style={{
-            backgroundImage: glareBackground,
-          }}
-        />
-      )}
-
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[1px] rounded-[11px] ring-1 ring-inset ring-white/10"
-        animate={
-          reduceMotion
-            ? undefined
-            : {
-                boxShadow: [
-                  'inset 0 0 0 rgba(255,255,255,0)',
-                  'inset 0 0 24px rgba(255,255,255,0.05)',
-                  'inset 0 0 0 rgba(255,255,255,0)',
-                ],
-              }
-        }
-        transition={{
-          duration: 5.2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <div className="absolute left-3 top-3 flex items-center gap-2.5 text-white">
-        <Image
-          src={AIRQO_LOGO_URL}
-          alt="AirQo"
-          width={40}
-          height={26}
-          unoptimized
-          className="h-6 w-auto drop-shadow-lg"
-        />
-
-        <div className="border-l border-white/40 pl-2.5 leading-[1.1]">
-          <p className="text-[11px] font-semibold drop-shadow-sm">
-            Africa Clean Air Forum
-          </p>
-
-          <p className="text-[10px] italic text-white/85">
-            {EVENT_LOCATION_AND_YEAR}
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white sm:px-3.5 sm:pb-3">
-        <motion.div
-          initial={false}
-          whileHover={
-            reduceMotion
-              ? undefined
-              : {
-                  x: 2,
-                }
-          }
-          transition={{
-            type: 'spring',
-            stiffness: 260,
-            damping: 25,
-          }}
-        >
-          <h2
-            className="truncate text-[16px] font-semibold leading-tight sm:text-[17px]"
-            title={displayName}
-          >
-            {displayName}
-          </h2>
-
-          <p
-            className="mt-0.5 truncate text-[7px] font-medium text-white/80 sm:text-[8px]"
-            title={location}
-          >
-            {location}
-          </p>
-        </motion.div>
-
-        <div className="mt-1.5 flex items-end gap-2">
-          <motion.span
-            className="text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-[30px]"
-            whileHover={
-              reduceMotion
-                ? undefined
-                : {
-                    scale: 1.04,
-                    x: 1,
-                  }
-            }
-          >
-            {formatPm25(submission.pm25Value)}
-          </motion.span>
-
-          <div className="mb-0.5 flex min-w-0 items-center gap-1.5">
-            <span className="whitespace-nowrap text-[6px] font-semibold text-white/85 sm:text-[7px]">
-              PM2.5 µg/m³
-            </span>
-
-            <motion.span
-              whileHover={
-                reduceMotion
-                  ? undefined
-                  : {
-                      scale: 1.07,
-                    }
-              }
-              className={`max-w-[92px] truncate rounded px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
-              title={category.label}
-            >
-              {category.label}
-            </motion.span>
-          </div>
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-          <span className="truncate rounded bg-white px-2 py-0.5 text-[6px] font-semibold text-[#005257] sm:text-[7px]">
-            Shared from the AirQo app
-          </span>
-
-          <span className="whitespace-nowrap text-[7px] font-semibold sm:text-[8px]">
-            {EVENT_DATES_BADGE}
-          </span>
-        </div>
-      </div>
     </motion.article>
   );
 }
@@ -945,6 +719,10 @@ export default function FacesOfCleanAirPage() {
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CleanAirSubmission | null>(
+    null,
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const hasLoadedRef = useRef(false);
 
@@ -974,6 +752,90 @@ export default function FacesOfCleanAirPage() {
     fetchSubmissions,
     CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
   );
+
+  const handleDeleteRequest = useCallback((submission: CleanAirSubmission) => {
+    setDeleteTarget(submission);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget?.id) {
+      setDeleteTarget(null);
+      return;
+    }
+
+    const idToDelete = deleteTarget.id;
+
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('auth_token')
+        : undefined;
+
+    if (!token) {
+      console.error('No auth token found');
+      setDeleteTarget(null);
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const success = await facesOfCleanAirService.deleteSubmission(
+        idToDelete,
+        token,
+      );
+
+      if (success) {
+        setSubmissions((prev) => prev.filter((s) => s.id !== idToDelete));
+      }
+    } catch (error) {
+      console.error('Failed to delete submission:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget]);
+
+  const handleConfirmHide = useCallback(async () => {
+    if (!deleteTarget?.id) {
+      setDeleteTarget(null);
+      return;
+    }
+
+    const idToHide = deleteTarget.id;
+
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('auth_token')
+        : undefined;
+
+    if (!token) {
+      console.error('No auth token found');
+      setDeleteTarget(null);
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const success = await facesOfCleanAirService.hideSubmission(
+        idToHide,
+        token,
+      );
+
+      if (success) {
+        setSubmissions((prev) => prev.filter((s) => s.id !== idToHide));
+      }
+    } catch (error) {
+      console.error('Failed to hide submission:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget]);
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
 
   const totalSlides = useMemo(() => {
     if (isMobile) {
@@ -1435,6 +1297,7 @@ export default function FacesOfCleanAirPage() {
                                 isMobile ? page === 0 : page === 0 && index < 3
                               }
                               reduceMotion={shouldReduceMotion}
+                              onDeleteRequest={handleDeleteRequest}
                             />
                           </div>
                         ))}
@@ -1468,6 +1331,68 @@ export default function FacesOfCleanAirPage() {
         {/* Keeps mobile spacing balanced without making the page scroll. */}
         <div className="h-2 flex-none sm:hidden" />
       </div>
+
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+            onClick={handleCancelDelete}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#005257] p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold text-white">
+                Moderate Submission
+              </h3>
+
+              <p className="mt-2 text-sm text-white/80">
+                Choose an action for{' '}
+                <span className="font-semibold text-white">
+                  {deleteTarget.displayName ?? 'this submission'}
+                </span>
+                .
+              </p>
+
+              <div className="mt-6 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleConfirmHide}
+                  disabled={isDeleting}
+                  className="rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-50"
+                >
+                  {isDeleting ? 'Processing...' : 'Hide from wall'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                  className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isDeleting ? 'Processing...' : 'Delete permanently'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCancelDelete}
+                  disabled={isDeleting}
+                  className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/60 transition-colors hover:text-white disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
