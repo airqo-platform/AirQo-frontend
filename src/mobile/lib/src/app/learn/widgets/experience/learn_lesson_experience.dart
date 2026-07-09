@@ -14,6 +14,7 @@ import 'package:airqo/src/app/learn/widgets/experience/learn_video_activity.dart
 import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
+import 'package:loggy/loggy.dart';
 
 class LearnLessonExperience extends StatefulWidget {
   final LearnLessonSlot slot;
@@ -47,7 +48,8 @@ class LearnLessonExperience extends StatefulWidget {
   State<LearnLessonExperience> createState() => _LearnLessonExperienceState();
 }
 
-class _LearnLessonExperienceState extends State<LearnLessonExperience> {
+class _LearnLessonExperienceState extends State<LearnLessonExperience>
+    with UiLoggy {
   late final List<LearnLessonActivity> _script;
   late int _activityIndex;
   final _progress = LearnProgressService.instance;
@@ -70,6 +72,8 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     if (_progress.isLessonComplete(key)) {
       _activityIndex = 0;
       _progress.clearLessonSession(key);
+      loggy.info(
+          'Lesson $key: replaying from start (${_script.length} activities)');
     } else {
       final saved = _progress.furthestStep(key);
       _activityIndex = _script.isEmpty ? 0 : saved.clamp(0, _script.length - 1);
@@ -77,6 +81,9 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
         _progress.sessionQuizAttempts(key).map(QuizAttemptData.fromJson),
       );
       _freeTextResponses.addAll(_progress.sessionFreeTextResponses(key));
+      loggy.info('Lesson $key: opening at activity ${_activityIndex + 1}'
+          '/${_script.length}, restored ${_quizAttempts.length} quiz '
+          'attempt(s), ${_freeTextResponses.length} free-text response(s)');
     }
   }
 
@@ -103,6 +110,9 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       await _completeLesson();
     } else {
       setState(() => _activityIndex++);
+      loggy.info('Lesson ${widget.slot.progressKey}: advanced to activity '
+          '${_activityIndex + 1}/${_script.length} '
+          '(${_current.type.name})');
     }
   }
 
@@ -120,6 +130,10 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       freeText: result.freeTextResponse,
     );
     await _progress.clearLessonSession(widget.slot.progressKey);
+    final correctCount = _quizAttempts.where((a) => a.isCorrect).length;
+    loggy.info('Lesson ${widget.slot.progressKey}: completed — '
+        '$correctCount/${_quizAttempts.length} quizzes correct, '
+        '${result.stars} star(s), ${result.pointsEarned} points');
     LearnSyncService.instance.reportCompletion(
       widget.slot.progressKey,
       totalActivities: _script.length,
@@ -181,6 +195,10 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
     } else {
       _quizAttempts.add(attempt);
     }
+    loggy.info('Lesson ${widget.slot.progressKey}: quiz activity '
+        '${_current.index} (${attempt.format}) graded '
+        '${attempt.isCorrect ? 'correct' : 'incorrect'}'
+        '${attempt.selectedIndex != null ? ', selected index ${attempt.selectedIndex}' : ''}');
     _progress.saveSessionQuizAttempts(
       widget.slot.progressKey,
       _quizAttempts.map((a) => a.toJson()).toList(),
@@ -189,6 +207,8 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   void _recordFreeText(String text) {
     _freeTextResponses[_current.index] = text;
+    loggy.info('Lesson ${widget.slot.progressKey}: free-text response '
+        'recorded for activity ${_current.index} (${text.length} chars)');
     _progress.saveSessionFreeTextResponses(
       widget.slot.progressKey,
       Map.of(_freeTextResponses),
