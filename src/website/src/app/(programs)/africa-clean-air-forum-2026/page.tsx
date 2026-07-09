@@ -1,6 +1,4 @@
-import { redirect } from 'next/navigation';
-
-import { CLEAN_AIR_FORUM_2026_QUIZ_ROUTE } from '@/features/clean-air-forum-2026/constants/learn';
+import LandingScreen from '@/features/clean-air-forum-2026/screens/LandingScreen';
 import {
   generateMetadata as createMetadata,
   generateViewport,
@@ -16,7 +14,7 @@ export const metadata = createMetadata({
 export const viewport = generateViewport();
 
 const page = () => {
-  redirect(CLEAN_AIR_FORUM_2026_QUIZ_ROUTE);
+  return <LandingScreen />;
 };
 
 export default page;

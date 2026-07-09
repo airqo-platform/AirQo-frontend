@@ -1,4 +1,5 @@
 import {
+  CLEAN_AIR_FORUM_2026_EVENT_ID,
   cleanAirForum2026LeaderboardPath,
   cleanAirForum2026LessonProgressPath,
 } from '@/features/clean-air-forum-2026/constants/learn';
@@ -72,7 +73,14 @@ function normalizeLeaderboardPoints(entry: CleanAirForum2026LeaderboardEntry) {
 }
 
 export async function fetchCleanAirForum2026Leaderboard(signal?: AbortSignal) {
-  const response = await fetch(cleanAirForum2026LeaderboardPath, {
+  const leaderboardUrl = new URL(
+    cleanAirForum2026LeaderboardPath,
+    window.location.origin,
+  );
+  leaderboardUrl.searchParams.set('limit', '20');
+  leaderboardUrl.searchParams.set('event_id', CLEAN_AIR_FORUM_2026_EVENT_ID);
+
+  const response = await fetch(leaderboardUrl.toString(), {
     method: 'GET',
     headers: {
       Accept: 'application/json',
@@ -128,7 +136,14 @@ export async function fetchCleanAirForum2026LeaderboardPosition(
   guestSession: CleanAirForum2026GuestSession,
   signal?: AbortSignal,
 ) {
-  const response = await fetch(cleanAirForum2026LeaderboardPath, {
+  const leaderboardUrl = new URL(
+    cleanAirForum2026LeaderboardPath,
+    window.location.origin,
+  );
+  leaderboardUrl.searchParams.set('limit', '20');
+  leaderboardUrl.searchParams.set('event_id', CLEAN_AIR_FORUM_2026_EVENT_ID);
+
+  const response = await fetch(leaderboardUrl.toString(), {
     method: 'GET',
     headers: {
       Accept: 'application/json',
@@ -164,7 +179,7 @@ export async function fetchCleanAirForum2026LeaderboardPosition(
   const entries = extractLeaderboardEntries(payload);
 
   const matchedEntry =
-    entries.find((entry) => entry.is_me) ||
+    entries.find((entry) => entry.is_current_user || entry.is_me) ||
     entries.find(
       (entry) =>
         guestSession.guestId && entry.guest_id === guestSession.guestId,

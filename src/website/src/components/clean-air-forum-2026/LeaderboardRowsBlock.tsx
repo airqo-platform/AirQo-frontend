@@ -3,6 +3,7 @@ import LeaderboardRow from './LeaderboardRow';
 type LeaderboardRowsBlockProps = {
   rows: Array<{
     avatar?: string;
+    avatarImageUrl?: string;
     rank: number;
     name: string;
     points: string;
@@ -14,6 +15,7 @@ const placeholderRows: LeaderboardRowsBlockProps['rows'] = Array.from(
   { length: 5 },
   (_, index) => ({
     avatar: '',
+    avatarImageUrl: '',
     rank: index + 1,
     name: 'Loading...',
     points: '-- pts',
@@ -32,6 +34,7 @@ export default function LeaderboardRowsBlock({
         <LeaderboardRow
           key={`${row.rank}-${row.name}`}
           avatar={row.avatar}
+          avatarImageUrl={row.avatarImageUrl}
           rank={row.rank}
           name={row.name}
           points={row.points}

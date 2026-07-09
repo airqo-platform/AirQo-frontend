@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import Button from '@/components/clean-air-forum-2026/Button';
@@ -8,12 +9,18 @@ import Screen from '@/components/clean-air-forum-2026/Screen';
 import {
   CLEAN_AIR_FORUM_2026_COURSE_ID,
   CLEAN_AIR_FORUM_2026_LESSON_ID,
+  CLEAN_AIR_FORUM_2026_ROUTE,
 } from '@/features/clean-air-forum-2026/constants/learn';
 import {
   CLEAN_AIR_FORUM_2026_QUIZ_ANSWERS_STORAGE_KEY,
   CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY,
 } from '@/features/clean-air-forum-2026/constants/storage';
 import { useCleanAirForumQuizSetup } from '@/features/clean-air-forum-2026/hooks/useCleanAirForumQuizSetup';
+import {
+  hasCompletedCleanAirForum2026ParticipantSession,
+  markCleanAirForum2026ParticipantComplete,
+  resetCleanAirForum2026ParticipantSession,
+} from '@/features/clean-air-forum-2026/lib/guest-session';
 import {
   fetchCleanAirForum2026LeaderboardPosition,
   submitCleanAirForum2026LessonCompletion,
@@ -27,7 +34,9 @@ import type { CleanAirForum2026QuizAnswerMap } from '@/features/clean-air-forum-
 const EMPTY_ACTIVITIES: CleanAirForum2026LessonActivity[] = [];
 
 export default function QuizScreen() {
-  const quizSetup = useCleanAirForumQuizSetup();
+  const router = useRouter();
+  const [setupResetKey, setSetupResetKey] = useState(0);
+  const quizSetup = useCleanAirForumQuizSetup(setupResetKey, true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answersByActivityId, setAnswersByActivityId] =
     useState<CleanAirForum2026QuizAnswerMap>({});
@@ -80,6 +89,37 @@ export default function QuizScreen() {
     };
   }, []);
 
+  const handleStartNextParticipant = () => {
+    if (revealTimeoutRef.current) {
+      window.clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+
+    resetCleanAirForum2026ParticipantSession();
+    setAnswersByActivityId({});
+    setCurrentQuestionIndex(0);
+    setScreenStage('questions');
+    setSubmissionStatus('idle');
+    setSubmissionError(null);
+    setSubmissionResult(null);
+    setLeaderboardPosition(null);
+    setLeaderboardStatus('idle');
+    setRevealedActivityId(null);
+    setSetupResetKey((currentKey) => currentKey + 1);
+    router.push(CLEAN_AIR_FORUM_2026_ROUTE);
+  };
+
+  useEffect(() => {
+    if (
+      screenStage === 'questions' &&
+      quizSetup.status === 'ready' &&
+      hasCompletedCleanAirForum2026ParticipantSession()
+    ) {
+      resetCleanAirForum2026ParticipantSession();
+      router.replace(CLEAN_AIR_FORUM_2026_ROUTE);
+    }
+  }, [quizSetup.status, router, screenStage]);
+
   useEffect(() => {
     if (quizSetup.status !== 'ready' || !quizSetup.lessonPayload) {
       return;
@@ -104,8 +144,13 @@ export default function QuizScreen() {
       return;
     }
 
+    if (quizSetup.errorMessage === 'participant session required') {
+      router.replace(CLEAN_AIR_FORUM_2026_ROUTE);
+      return;
+    }
+
     console.error('[CAF 2026] Quiz setup failed', quizSetup.errorMessage);
-  }, [quizSetup.errorMessage, quizSetup.status]);
+  }, [quizSetup.errorMessage, quizSetup.status, router]);
 
   useEffect(() => {
     if (quizSetup.status !== 'ready' || activities.length === 0) {
@@ -274,6 +319,7 @@ export default function QuizScreen() {
       );
 
       setSubmissionResult(response);
+      markCleanAirForum2026ParticipantComplete();
       setSubmissionStatus('submitted');
       setScreenStage('results');
 
@@ -299,7 +345,11 @@ export default function QuizScreen() {
   };
 
   const handleSubmitCurrentQuestion = () => {
-    if (!currentActivity || selectedOptionIndex === null || isRevealingCurrentQuestion) {
+    if (
+      !currentActivity ||
+      selectedOptionIndex === null ||
+      isRevealingCurrentQuestion
+    ) {
       return;
     }
 
@@ -309,7 +359,8 @@ export default function QuizScreen() {
         activityId: currentActivity.id,
         format: currentActivity.payload.format,
         selectedIndex: selectedOptionIndex,
-        isCorrect: selectedOptionIndex === currentActivity.payload.correct_index,
+        isCorrect:
+          selectedOptionIndex === currentActivity.payload.correct_index,
       },
     };
 
@@ -404,6 +455,13 @@ export default function QuizScreen() {
                   </p>
                 </div>
               </div>
+
+              <Button
+                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold"
+                onClick={handleStartNextParticipant}
+              >
+                Start Next Participant
+              </Button>
             </div>
           </div>
         </section>
@@ -519,7 +577,10 @@ export default function QuizScreen() {
               <Button
                 className="caf-2026-quiz-action rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                 onClick={handleSubmitCurrentQuestion}
-                disabled={isRevealingCurrentQuestion || submissionStatus === 'submitting'}
+                disabled={
+                  isRevealingCurrentQuestion ||
+                  submissionStatus === 'submitting'
+                }
               >
                 {isRevealingCurrentQuestion
                   ? selectedAnswer?.isCorrect

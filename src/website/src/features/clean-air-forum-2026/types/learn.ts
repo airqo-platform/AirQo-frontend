@@ -57,6 +57,10 @@ export type CleanAirForum2026GuestSessionResponse = {
   success: boolean;
   guest_id: string;
   display_name?: string;
+  avatar_icon?: string;
+  avatar_image_url?: string;
+  username?: string;
+  event_id?: string;
   created_at?: string;
 };
 
@@ -76,10 +80,17 @@ export type CleanAirForum2026LeaderboardEntry = {
   } | null;
   avatar?: string;
   emoji?: string;
+  avatar_icon?: string;
+  avatar_image_url?: string;
+  learner_type?: string;
+  completed_lessons?: number;
+  is_current_user?: boolean;
 };
 
 export type CleanAirForum2026LeaderboardResponse = {
   success?: boolean;
+  scope?: string;
+  event_id?: string;
   leaderboard?: CleanAirForum2026LeaderboardEntry[];
   entries?: CleanAirForum2026LeaderboardEntry[];
   results?: CleanAirForum2026LeaderboardEntry[];

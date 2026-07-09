@@ -4,6 +4,10 @@ export type CleanAirForum2026GuestSession = {
   deviceId: string;
   guestId: string | null;
   displayName: string | null;
+  avatarIcon: string | null;
+  avatarImageUrl: string | null;
+  username: string | null;
+  eventId: string | null;
 };
 
 export type CleanAirForum2026QuizAnswer = {

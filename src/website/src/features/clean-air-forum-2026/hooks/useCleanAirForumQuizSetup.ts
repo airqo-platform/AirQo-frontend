@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-import { initializeCleanAirForum2026GuestSession } from '@/features/clean-air-forum-2026/lib/guest-session';
+import {
+  getStoredCleanAirForum2026GuestSession,
+  initializeCleanAirForum2026GuestSession,
+} from '@/features/clean-air-forum-2026/lib/guest-session';
 import {
   fetchCleanAirForum2026LessonPayload,
   readCachedCleanAirForum2026LessonPayload,
@@ -17,7 +20,10 @@ const initialState: CleanAirForum2026QuizSetupState = {
   errorMessage: null,
 };
 
-export function useCleanAirForumQuizSetup() {
+export function useCleanAirForumQuizSetup(
+  resetKey = 0,
+  requireExistingGuestSession = false,
+) {
   const [state, setState] =
     useState<CleanAirForum2026QuizSetupState>(initialState);
 
@@ -42,9 +48,15 @@ export function useCleanAirForumQuizSetup() {
       }
 
       try {
-        const guestSession = await initializeCleanAirForum2026GuestSession(
-          abortController.signal,
-        );
+        const existingGuestSession = getStoredCleanAirForum2026GuestSession();
+
+        if (requireExistingGuestSession && !existingGuestSession?.guestId) {
+          throw new Error('participant session required');
+        }
+
+        const guestSession = await initializeCleanAirForum2026GuestSession({
+          signal: abortController.signal,
+        });
         const lessonPayload =
           cachedLessonPayload ||
           (await fetchCleanAirForum2026LessonPayload(abortController.signal));
@@ -94,7 +106,7 @@ export function useCleanAirForumQuizSetup() {
     return () => {
       abortController.abort();
     };
-  }, []);
+  }, [requireExistingGuestSession, resetKey]);
 
   return state;
 }

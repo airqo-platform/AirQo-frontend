@@ -27,7 +27,7 @@ function formatName(entry: CleanAirForum2026LeaderboardEntry, index: number) {
 }
 
 function formatAvatar(entry: CleanAirForum2026LeaderboardEntry) {
-  return entry.avatar || entry.emoji || '';
+  return entry.avatar_icon || entry.avatar || entry.emoji || '';
 }
 
 export default function LeaderboardScreen() {
@@ -112,6 +112,7 @@ export default function LeaderboardScreen() {
         if (entry) {
           return {
             avatar: formatAvatar(entry),
+            avatarImageUrl: entry.avatar_image_url || '',
             rank: entry.rank ?? index + 1,
             name: formatName(entry, index),
             points: formatPoints(entry.points),
@@ -121,6 +122,7 @@ export default function LeaderboardScreen() {
 
         return {
           avatar: '',
+          avatarImageUrl: '',
           rank: index + 1,
           name: ' ',
           points: ' ',

@@ -1,39 +1,142 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { FiArrowRight } from 'react-icons/fi';
+'use client';
 
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useState } from 'react';
+
+import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
-import { CLEAN_AIR_FORUM_2026_QUIZ_ROUTE } from '@/features/clean-air-forum-2026/constants/learn';
+import {
+  CLEAN_AIR_FORUM_2026_EVENT_ID,
+  CLEAN_AIR_FORUM_2026_QUIZ_ROUTE,
+} from '@/features/clean-air-forum-2026/constants/learn';
+import {
+  initializeCleanAirForum2026GuestSession,
+  resetCleanAirForum2026ParticipantSession,
+} from '@/features/clean-air-forum-2026/lib/guest-session';
+
+const USERNAME_PATTERN = /^[A-Za-z0-9._ -]{3,30}$/;
 
 export default function LandingScreen() {
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [submitState, setSubmitState] = useState<'idle' | 'submitting'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername) {
+      setErrorMessage('Enter a username to continue.');
+      return;
+    }
+
+    if (!USERNAME_PATTERN.test(trimmedUsername)) {
+      setErrorMessage(
+        'Use 3 to 30 characters: letters, numbers, spaces, underscores, hyphens, or periods.',
+      );
+      return;
+    }
+
+    setSubmitState('submitting');
+    setErrorMessage(null);
+
+    try {
+      resetCleanAirForum2026ParticipantSession();
+
+      await initializeCleanAirForum2026GuestSession({
+        username: trimmedUsername,
+        eventId: CLEAN_AIR_FORUM_2026_EVENT_ID,
+      });
+
+      router.push(CLEAN_AIR_FORUM_2026_QUIZ_ROUTE);
+    } catch (error) {
+      setSubmitState('idle');
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to start this participant session.',
+      );
+    }
+  };
+
   return (
     <Screen>
-      <section className="caf-2026-screen mx-auto flex w-full max-w-[1600px] items-start px-5 pb-10 pt-20 sm:px-8 sm:pt-24 md:px-12 md:pt-28 lg:px-16 lg:pt-36 xl:px-20">
-        <div className="flex w-full justify-center lg:justify-start lg:pl-[6%] xl:pl-[8%]">
-          <div className="flex w-full max-w-[34.125rem] flex-col items-start gap-24 sm:gap-28 lg:gap-36">
-            <div className="relative w-[min(86vw,34rem)] sm:w-[min(72vw,34rem)] md:w-[min(58vw,34rem)] lg:w-[34rem] xl:w-[34.125rem]">
-              <Image
-                src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-logo.svg"
-                alt="Africa CLEAN Air Forum Pretoria 2026"
-                width={546}
-                height={94}
-                priority
-                className="h-auto w-full"
-              />
-            </div>
+      <section className="caf-2026-screen mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+        <div className="flex w-full flex-col items-center">
+          <div className="flex w-full justify-center">
+            <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
+                <div className="relative w-fit shrink-0">
+                  <Image
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    alt="AirQo"
+                    width={90.95}
+                    height={61.53}
+                    priority
+                    className="h-auto w-auto"
+                  />
+                </div>
 
-            <Link
-              href={CLEAN_AIR_FORUM_2026_QUIZ_ROUTE}
-              aria-label="Attempt Quiz"
-              className="group mt-6 inline-flex items-center gap-3 rounded-[1.75rem] bg-transparent text-left text-white transition-transform duration-200 ease-out hover:translate-x-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20 active:translate-y-1 active:opacity-90 sm:mt-0"
+                <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+                  Air Quality Quiz
+                </h1>
+              </div>
+
+              <div className="hidden shrink-0 text-left text-white md:block">
+                <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
+                  Africa clean air forum
+                </p>
+                <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
+                  Pretoria 2026
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex w-full flex-1 items-start justify-center pt-14 sm:pt-16 md:pt-20 lg:pt-24">
+            <form
+              onSubmit={handleSubmit}
+              className="flex w-full max-w-[38rem] flex-col items-center gap-5 text-center"
             >
-              <span className="max-w-[11.5ch] text-balance text-[clamp(3rem,8vw,6.25rem)] font-bold leading-[0.98] tracking-[-0.02em]">
-                Attempt Quiz
-              </span>
-              <span className="mt-2 inline-flex shrink-0 items-center justify-center transition-transform duration-200 group-hover:translate-x-1 group-active:scale-95">
-                <FiArrowRight className="h-7 w-7 sm:h-9 sm:w-9 lg:h-12 lg:w-12 xl:h-14 xl:w-14" />
-              </span>
-            </Link>
+              <label
+                htmlFor="caf-2026-username"
+                className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72"
+              >
+                Enter username
+              </label>
+
+              <input
+                id="caf-2026-username"
+                name="username"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Type your username"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={30}
+                className="caf-2026-input w-full rounded-[1.6rem] border border-white/35 px-6 py-5 text-center text-[clamp(1.1rem,2vw,1.6rem)] font-semibold tracking-[-0.02em] shadow-[0_18px_42px_rgba(7,43,49,0.12)] outline-none"
+              />
+
+              {errorMessage ? (
+                <p className="text-sm font-medium text-[#8a1f1f]">
+                  {errorMessage}
+                </p>
+              ) : null}
+
+              <Button
+                type="submit"
+                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={submitState === 'submitting'}
+              >
+                {submitState === 'submitting'
+                  ? 'Starting Quiz...'
+                  : 'Start Quiz'}
+              </Button>
+            </form>
           </div>
         </div>
       </section>
