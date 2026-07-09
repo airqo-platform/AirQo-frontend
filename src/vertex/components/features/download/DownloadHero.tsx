@@ -128,9 +128,9 @@ export default function DownloadHero() {
                 rel="noopener noreferrer"
                 variant="filled"
                 Icon={primary.Icon}
-                iconClassName="h-3.5 w-3.5"
-                className="inline-flex w-full justify-center gap-2 rounded-md border-border bg-primary text-sm font-medium text-white shadow-none transition-all hover:border-foreground/20 hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:w-auto"
-                padding="px-4 py-2"
+                iconClassName="h-5 w-5"
+                className="inline-flex w-full justify-center gap-2 rounded-lg border-border bg-primary text-base font-semibold text-white shadow-none transition-all hover:border-foreground/20 hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:w-auto"
+                padding="px-8 py-4"
               >
                 {primary.label}
               </ReusableButton>
