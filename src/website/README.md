@@ -1,6 +1,6 @@
 # Website
 
-![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz) ![passing](https://img.shields.io/badge/passing-803%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-1-brightgreen?style=flat-square) ![coverage](https://img.shields.io/badge/coverage-84%25-brightgreen?style=flat-square) ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript&logoColor=white)
+[![CI](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml/badge.svg)](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend) [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 **Website** is the AirQo marketing and analytics application for air quality data visualization. Built with Next.js 14, React 18, TypeScript, Tailwind CSS, Redux Toolkit, and TanStack React Query. The live website is at [airqo.net](https://airqo.net).
 

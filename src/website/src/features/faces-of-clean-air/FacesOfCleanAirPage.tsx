@@ -4,7 +4,6 @@ import {
   AnimatePresence,
   motion,
   type PanInfo,
-  useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useSpring,
@@ -30,7 +29,7 @@ import {
 } from '@/config/cleanAirForumConfig';
 import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
 import { facesOfCleanAirService } from '@/services/external';
-import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.service';
+import type { CleanAirSubmissionWithId } from '@/services/external/faces-of-clean-air.service';
 
 const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
@@ -41,9 +40,8 @@ const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
-const EVENT_LABEL = 'Africa CLEAN-Air Forum';
+const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
-const EVENT_DATES_BADGE = '14TH-16TH JULY';
 
 const SMOOTH_SPRING = {
   stiffness: 150,
@@ -52,11 +50,6 @@ const SMOOTH_SPRING = {
 };
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
-
-type CategoryStyle = {
-  label: string;
-  className: string;
-};
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -79,79 +72,6 @@ function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-function formatPm25(value: number | null | undefined): string {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return '--';
-  }
-
-  return value.toFixed(1);
-}
-
-function getFallbackCategory(pm25: number): CategoryStyle {
-  if (pm25 <= 12) {
-    return {
-      label: 'Good',
-      className: 'bg-emerald-100 text-emerald-700',
-    };
-  }
-
-  if (pm25 <= 35.4) {
-    return {
-      label: 'Moderate',
-      className: 'bg-amber-100 text-amber-700',
-    };
-  }
-
-  if (pm25 <= 55.4) {
-    return {
-      label: 'Sensitive',
-      className: 'bg-orange-100 text-orange-700',
-    };
-  }
-
-  return {
-    label: 'Unhealthy',
-    className: 'bg-red-100 text-red-700',
-  };
-}
-
-function getCategoryStyle(
-  category: string | null | undefined,
-  pm25: number,
-): CategoryStyle {
-  const normalizedCategory = category?.trim().toLowerCase();
-
-  if (!normalizedCategory) {
-    return getFallbackCategory(pm25);
-  }
-
-  if (normalizedCategory.includes('good')) {
-    return {
-      label: category!,
-      className: 'bg-emerald-100 text-emerald-700',
-    };
-  }
-
-  if (normalizedCategory.includes('moderate')) {
-    return {
-      label: category!,
-      className: 'bg-amber-100 text-amber-700',
-    };
-  }
-
-  if (normalizedCategory.includes('sensitive')) {
-    return {
-      label: category!,
-      className: 'bg-orange-100 text-orange-700',
-    };
-  }
-
-  return {
-    label: category!,
-    className: 'bg-red-100 text-red-700',
-  };
-}
-
 function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
   return (
     <div
@@ -163,7 +83,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse at 100% 0%, #02143B 0%, transparent 60%)',
+            'radial-gradient(ellipse at 100% 0%, #005257 0%, transparent 60%)',
         }}
       />
 
@@ -214,7 +134,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Right atmospheric glow */}
       <motion.div
-        className="absolute -right-[55%] top-[5%] h-[420px] w-[420px] rounded-full bg-blue-300/20 blur-[100px] sm:-right-[14%] sm:h-[540px] sm:w-[540px] sm:blur-[110px]"
+        className="absolute -right-[55%] top-[5%] h-[420px] w-[420px] rounded-full bg-[#39BFC7]/20 blur-[100px] sm:-right-[14%] sm:h-[540px] sm:w-[540px] sm:blur-[110px]"
         animate={
           reduceMotion
             ? undefined
@@ -233,7 +153,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Left atmospheric glow */}
       <motion.div
-        className="absolute -left-[60%] top-[28%] h-[380px] w-[380px] rounded-full bg-cyan-300/12 blur-[100px] sm:-left-[13%] sm:top-[20%] sm:h-[450px] sm:w-[450px] sm:blur-[115px]"
+        className="absolute -left-[60%] top-[28%] h-[380px] w-[380px] rounded-full bg-[#39BFC7]/12 blur-[100px] sm:-left-[13%] sm:top-[20%] sm:h-[450px] sm:w-[450px] sm:blur-[115px]"
         animate={
           reduceMotion
             ? undefined
@@ -302,10 +222,10 @@ function SkeletonCard({
         delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
+      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
       aria-hidden="true"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-blue-100/15 to-blue-600/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-[#39BFC7]/15 to-[#39BFC7]/20" />
 
       {!reduceMotion && (
         <motion.div
@@ -332,7 +252,7 @@ function SkeletonCard({
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-blue-700/80 via-blue-600/50 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-[#005257]/80 via-[#39BFC7]/50 to-transparent" />
 
       <div className="absolute inset-x-3 bottom-3 space-y-2">
         <div className="h-5 w-3/4 rounded-full bg-white/45" />
@@ -375,7 +295,7 @@ function FaceCard({
   priority,
   reduceMotion,
 }: {
-  submission: CleanAirSubmission;
+  submission: CleanAirSubmissionWithId;
   priority: boolean;
   reduceMotion: boolean | null;
 }) {
@@ -387,21 +307,6 @@ function FaceCard({
 
   const rotateX = useSpring(transformedRotateX, SMOOTH_SPRING);
   const rotateY = useSpring(transformedRotateY, SMOOTH_SPRING);
-
-  const glareX = useTransform(pointerX, [0, 1], [0, 100]);
-  const glareY = useTransform(pointerY, [0, 1], [0, 100]);
-
-  const glareBackground = useMotionTemplate`
-    radial-gradient(
-      circle at ${glareX}% ${glareY}%,
-      rgba(255,255,255,0.30) 0%,
-      rgba(255,255,255,0.12) 16%,
-      rgba(255,255,255,0) 44%
-    )
-  `;
-
-  const pm25 = submission.pm25Value ?? 0;
-  const category = getCategoryStyle(submission.aqiCategory, pm25);
 
   const displayName =
     submission.displayName?.trim() ||
@@ -469,7 +374,7 @@ function FaceCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-blue-950 shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -477,143 +382,9 @@ function FaceCard({
         fill
         priority={priority}
         unoptimized
-        className="object-cover transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
+        className="object-contain transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
         sizes="(max-width: 639px) 86vw, (max-width: 1023px) 42vw, (max-width: 1279px) 25vw, 22vw"
       />
-
-      <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
-
-      <div className="absolute inset-x-0 bottom-0 h-[51%] bg-gradient-to-t from-blue-800 via-blue-600/95 via-[58%] to-transparent" />
-
-      {!reduceMotion && (
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 mix-blend-screen"
-          style={{
-            backgroundImage: glareBackground,
-          }}
-        />
-      )}
-
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[1px] rounded-[11px] ring-1 ring-inset ring-white/10"
-        animate={
-          reduceMotion
-            ? undefined
-            : {
-                boxShadow: [
-                  'inset 0 0 0 rgba(255,255,255,0)',
-                  'inset 0 0 24px rgba(255,255,255,0.05)',
-                  'inset 0 0 0 rgba(255,255,255,0)',
-                ],
-              }
-        }
-        transition={{
-          duration: 5.2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <div className="absolute left-3 top-3 flex items-center gap-2.5 text-white">
-        <Image
-          src={AIRQO_LOGO_URL}
-          alt="AirQo"
-          width={40}
-          height={26}
-          unoptimized
-          className="h-6 w-auto drop-shadow-lg"
-        />
-
-        <div className="border-l border-white/40 pl-2.5 leading-[1.1]">
-          <p className="text-[11px] font-semibold drop-shadow-sm">
-            Clean Air Forum
-          </p>
-
-          <p className="text-[10px] italic text-white/85">
-            {EVENT_LOCATION_AND_YEAR}
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white sm:px-3.5 sm:pb-3">
-        <motion.div
-          initial={false}
-          whileHover={
-            reduceMotion
-              ? undefined
-              : {
-                  x: 2,
-                }
-          }
-          transition={{
-            type: 'spring',
-            stiffness: 260,
-            damping: 25,
-          }}
-        >
-          <h2
-            className="truncate text-[16px] font-semibold leading-tight sm:text-[17px]"
-            title={displayName}
-          >
-            {displayName}
-          </h2>
-
-          <p
-            className="mt-0.5 truncate text-[7px] font-medium text-white/80 sm:text-[8px]"
-            title={location}
-          >
-            {location}
-          </p>
-        </motion.div>
-
-        <div className="mt-1.5 flex items-end gap-2">
-          <motion.span
-            className="text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-[30px]"
-            whileHover={
-              reduceMotion
-                ? undefined
-                : {
-                    scale: 1.04,
-                    x: 1,
-                  }
-            }
-          >
-            {formatPm25(submission.pm25Value)}
-          </motion.span>
-
-          <div className="mb-0.5 flex min-w-0 items-center gap-1.5">
-            <span className="whitespace-nowrap text-[6px] font-semibold text-white/85 sm:text-[7px]">
-              PM2.5 µg/m³
-            </span>
-
-            <motion.span
-              whileHover={
-                reduceMotion
-                  ? undefined
-                  : {
-                      scale: 1.07,
-                    }
-              }
-              className={`max-w-[92px] truncate rounded px-1.5 py-0.5 text-[6px] font-semibold sm:text-[7px] ${category.className}`}
-              title={category.label}
-            >
-              {category.label}
-            </motion.span>
-          </div>
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-          <span className="truncate rounded bg-white px-2 py-0.5 text-[6px] font-semibold text-blue-700 sm:text-[7px]">
-            Shared from the AirQo app
-          </span>
-
-          <span className="whitespace-nowrap text-[7px] font-semibold sm:text-[8px]">
-            {EVENT_DATES_BADGE}
-          </span>
-        </div>
-      </div>
     </motion.article>
   );
 }
@@ -663,7 +434,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
             />
 
             <motion.span
-              className="absolute inset-0 rounded-full border border-blue-200/30"
+              className="absolute inset-0 rounded-full border border-[#39BFC7]/30"
               animate={{
                 scale: [1, 1.45],
                 opacity: [0.45, 0],
@@ -700,7 +471,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       <h2 className="text-lg font-bold text-white sm:text-xl">No faces yet</h2>
 
-      <p className="mt-2 max-w-sm text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
         Be the first to share an air quality selfie from the Africa Clean Air
         Forum.
       </p>
@@ -747,7 +518,7 @@ function ErrorState({
         We could not load the selfie wall
       </h2>
 
-      <p className="mt-2 text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
         Please check the connection and try again.
       </p>
 
@@ -769,7 +540,7 @@ function ErrorState({
                 scale: 0.96,
               }
         }
-        className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition-colors hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+        className="mt-5 rounded-lg bg-[#39BFC7] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#005257]/20 transition-colors hover:bg-[#39BFC7]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#39BFC7]"
       >
         Try again
       </motion.button>
@@ -836,7 +607,7 @@ function DesktopPagination({
               <>
                 <motion.span
                   layoutId="active-carousel-indicator"
-                  className="absolute inset-0 rounded-full bg-blue-300/20"
+                  className="absolute inset-0 rounded-full bg-[#39BFC7]/20"
                   transition={{
                     type: 'spring',
                     stiffness: 320,
@@ -857,12 +628,12 @@ function DesktopPagination({
                       duration: CAROUSEL_INTERVAL_MS / 1000,
                       ease: 'linear',
                     }}
-                    className="absolute inset-0 origin-left rounded-full bg-blue-600"
+                    className="absolute inset-0 origin-left rounded-full bg-[#39BFC7]"
                   />
                 )}
 
                 {(reduceMotion || isPaused) && (
-                  <span className="absolute inset-0 rounded-full bg-blue-600" />
+                  <span className="absolute inset-0 rounded-full bg-[#39BFC7]" />
                 )}
               </>
             )}
@@ -940,7 +711,9 @@ export default function FacesOfCleanAirPage() {
   const shouldReduceMotion = useReducedMotion();
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
-  const [submissions, setSubmissions] = useState<CleanAirSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<CleanAirSubmissionWithId[]>(
+    [],
+  );
   const [fetchState, setFetchState] = useState<FetchState>('idle');
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -1181,7 +954,7 @@ export default function FacesOfCleanAirPage() {
       className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
       style={{
         background:
-          'linear-gradient(180deg, #02143B 0%, #145FFF 50%, #FFFFFF 100%)',
+          'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
       }}
     >
       <AmbientBackground reduceMotion={shouldReduceMotion} />
@@ -1411,10 +1184,7 @@ export default function FacesOfCleanAirPage() {
                       >
                         {visibleItems.map((submission, index) => (
                           <div
-                            key={
-                              submission.id ??
-                              `${submission.imageUrl}-${page}-${index}`
-                            }
+                            key={submission.id}
                             className={
                               isMobile
                                 ? 'w-full'

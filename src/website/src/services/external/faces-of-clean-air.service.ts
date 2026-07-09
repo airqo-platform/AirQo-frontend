@@ -1,7 +1,8 @@
 import { API_ROUTES, BaseApiService, ServiceOptions } from '@/services/api';
 
 export interface CleanAirSubmission {
-  id: string;
+  id?: string | null;
+  _id?: string | null;
   eventId: string;
   imageUrl: string;
   locationName: string | null;
@@ -12,6 +13,10 @@ export interface CleanAirSubmission {
   createdAt: string;
 }
 
+export type CleanAirSubmissionWithId = CleanAirSubmission & {
+  id: string;
+};
+
 class FacesOfCleanAirService extends BaseApiService {
   constructor() {
     super('FacesOfCleanAirService');
@@ -20,7 +25,7 @@ class FacesOfCleanAirService extends BaseApiService {
   async getSubmissions(
     eventId: string,
     options: ServiceOptions = {},
-  ): Promise<CleanAirSubmission[]> {
+  ): Promise<CleanAirSubmissionWithId[]> {
     const response = await this.get<{ selfies: CleanAirSubmission[] }>(
       API_ROUTES.USERS.SELFIES,
       { eventId },
@@ -28,7 +33,26 @@ class FacesOfCleanAirService extends BaseApiService {
     );
 
     if (response.success && response.data) {
-      return response.data.selfies ?? [];
+      const selfies = response.data.selfies ?? [];
+
+      return selfies
+        .map((submission) => {
+          const normalizedId =
+            submission.id?.trim() || submission._id?.trim() || '';
+
+          if (!normalizedId) {
+            return null;
+          }
+
+          return {
+            ...submission,
+            id: normalizedId,
+          };
+        })
+        .filter(
+          (submission): submission is CleanAirSubmissionWithId =>
+            submission !== null,
+        );
     }
 
     return [];
