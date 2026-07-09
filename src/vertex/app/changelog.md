@@ -2,6 +2,17 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.21
+**Released:** July 9, 2026
+
+### Chore: Increase Bundle Size Limit to 205 kB
+
+Raised the `size-limit` threshold in `package.json` from `200 kB` to `205 kB` to accommodate the new platform-aware download page, OS detection utilities, logout confirmation dialog, and sidebar CTA — features added across versions 2.0.18–2.0.20 that collectively pushed the brotlied app chunk total to ~202 kB.
+
+- `src/vertex/package.json` [MODIFIED] — `"limit": "200 kB"` → `"limit": "205 kB"`
+
+---
+
 ## Version 2.0.20
 **Released:** July 9, 2026
 
