@@ -37,6 +37,7 @@ class LearnQuizScoringService {
     return LearnQuizGrade(
       isCorrect: correct,
       feedback: correct ? quiz.correctFeedback : quiz.incorrectFeedback,
+      selectedIndices: selectedIndices.toList()..sort(),
     );
   }
 
@@ -55,6 +56,7 @@ class LearnQuizScoringService {
     return LearnQuizGrade(
       isCorrect: correct,
       feedback: correct ? quiz.correctFeedback : quiz.incorrectFeedback,
+      selectedOrder: List.of(submittedOrder),
     );
   }
 

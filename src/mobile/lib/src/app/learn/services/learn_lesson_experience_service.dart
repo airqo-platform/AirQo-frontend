@@ -26,6 +26,7 @@ class LearnLessonExperienceService {
         if (body.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.article,
           title: p['title'] as String? ?? 'Read',
           article: LearnArticlePayload(
@@ -38,6 +39,7 @@ class LearnLessonExperienceService {
         if (url.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.video,
           title: p['title'] as String? ?? 'Watch',
           video: LearnVideoPayload(
@@ -51,6 +53,7 @@ class LearnLessonExperienceService {
         if (url.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.image,
           title: p['title'] as String? ?? 'Look',
           image: LearnImagePayload(
@@ -64,6 +67,7 @@ class LearnLessonExperienceService {
         if (quiz == null) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.quiz,
           title: p['title'] as String? ?? 'Quiz',
           quiz: quiz,

@@ -1,21 +1,28 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
+
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class QuizAttemptData {
   final String activityId;
   final String format;
   final int? selectedIndex;
+  final List<int>? selectedIndices;
+  final List<int>? selectedOrder;
   final bool isCorrect;
 
   const QuizAttemptData({
     required this.activityId,
     required this.format,
     this.selectedIndex,
+    this.selectedIndices,
+    this.selectedOrder,
     required this.isCorrect,
   });
 
@@ -23,8 +30,14 @@ class QuizAttemptData {
         'activity_id': activityId,
         'format': format,
         if (selectedIndex != null) 'selected_index': selectedIndex,
+        if (selectedIndices != null) 'selected_indices': selectedIndices,
+        if (selectedOrder != null) 'selected_order': selectedOrder,
         'is_correct': isCorrect,
       };
+
+  static List<int>? _intList(dynamic value) => value is List
+      ? value.whereType<int>().toList()
+      : null;
 
   factory QuizAttemptData.fromJson(Map<String, dynamic> json) =>
       QuizAttemptData(
@@ -32,6 +45,8 @@ class QuizAttemptData {
         format: json['format'] as String? ?? '',
         selectedIndex:
             json['selected_index'] is int ? json['selected_index'] as int : null,
+        selectedIndices: _intList(json['selected_indices']),
+        selectedOrder: _intList(json['selected_order']),
         isCorrect: json['is_correct'] as bool? ?? false,
       );
 }
@@ -83,9 +98,8 @@ abstract class LearnSyncService {
   Future<void> linkProgressToAccount(String authToken);
   Future<void> reportCompletion(
     String lessonId, {
-    required int totalActivities,
+    required int furthestActivityIndex,
     List<QuizAttemptData> quizAttempts,
-    String? freeTextResponse,
   });
   Future<void> syncPendingProgress();
 }
@@ -104,6 +118,14 @@ class _LearnSyncServiceImpl extends BaseRepository
     if (_prefs != null) return;
     _prefs = await SharedPreferences.getInstance();
     _buffer = _ProgressBuffer(_prefs!);
+  }
+
+  Future<String> _appVersion() async {
+    try {
+      return (await PackageInfo.fromPlatform()).version;
+    } catch (_) {
+      return 'unknown';
+    }
   }
 
   Future<Map<String, String>> _guestHeaders() async {
@@ -129,7 +151,11 @@ class _LearnSyncServiceImpl extends BaseRepository
       final deviceId = await DeviceIdManager.getDeviceId();
       final response = await http.post(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnSessions}'),
-        body: json.encode({'device_id': deviceId, 'platform': 'mobile'}),
+        body: json.encode({
+          'device_id': deviceId,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'app_version': await _appVersion(),
+        }),
         headers: {
           'Content-Type': 'application/json',
           'Accept': '*/*',
@@ -162,7 +188,7 @@ class _LearnSyncServiceImpl extends BaseRepository
       final deviceId = await DeviceIdManager.getDeviceId();
       final response = await http.post(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressLink}'),
-        body: json.encode({'guest_id': guestId}),
+        body: json.encode({'device_id': deviceId, 'guest_id': guestId}),
         headers: {
           'Content-Type': 'application/json',
           'Accept': '*/*',
@@ -187,19 +213,16 @@ class _LearnSyncServiceImpl extends BaseRepository
   @override
   Future<void> reportCompletion(
     String lessonId, {
-    required int totalActivities,
+    required int furthestActivityIndex,
     List<QuizAttemptData> quizAttempts = const [],
-    String? freeTextResponse,
   }) async {
     await _ensurePrefs();
 
     final body = <String, dynamic>{
-      'total_activities': totalActivities,
+      'furthest_activity_index': furthestActivityIndex,
       'completed': true,
       if (quizAttempts.isNotEmpty)
         'quiz_attempts': quizAttempts.map((q) => q.toJson()).toList(),
-      if (freeTextResponse != null && freeTextResponse.isNotEmpty)
-        'free_text_response': freeTextResponse,
     };
 
     try {
@@ -211,7 +234,7 @@ class _LearnSyncServiceImpl extends BaseRepository
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        loggy.info('Reported completion for lesson $lessonId');
+        _logServerProgress(lessonId, response.body);
       } else {
         loggy.warning(
             'Progress report failed (${response.statusCode}), buffering');
@@ -220,6 +243,19 @@ class _LearnSyncServiceImpl extends BaseRepository
     } catch (e) {
       loggy.warning('Progress report error: $e — buffering');
       await _buffer!.append(lessonId, body);
+    }
+  }
+
+  void _logServerProgress(String lessonId, String responseBody) {
+    try {
+      final data = json.decode(responseBody) as Map<String, dynamic>;
+      final stage = data['current_stage'];
+      loggy.info('Reported completion for lesson $lessonId — server says '
+          '${data['stars']} star(s), ${data['points_earned']} pts earned, '
+          '${data['total_points']} total pts'
+          '${stage is Map ? ', stage ${stage['name']}' : ''}');
+    } catch (_) {
+      loggy.info('Reported completion for lesson $lessonId');
     }
   }
 
@@ -233,9 +269,10 @@ class _LearnSyncServiceImpl extends BaseRepository
 
     try {
       final headers = await _guestHeaders();
+      final deviceId = await DeviceIdManager.getDeviceId();
       final response = await http.post(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressSync}'),
-        body: json.encode({'progress': pending}),
+        body: json.encode({'device_id': deviceId, 'updates': pending}),
         headers: headers,
       ).timeout(const Duration(seconds: 15));
 

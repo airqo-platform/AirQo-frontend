@@ -117,8 +117,13 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
   }
 
   Future<void> _completeLesson() async {
+    // Free-text attempts are reported to the API but excluded from scoring.
+    final gradedResults = _quizAttempts
+        .where((a) => a.format != LearnQuizFormat.freeText.apiKey)
+        .map((a) => a.isCorrect)
+        .toList();
     final result = LearnQuizScoringService.computeLessonResult(
-      gradedQuizResults: _quizAttempts.map((a) => a.isCorrect).toList(),
+      gradedQuizResults: gradedResults,
       freeTextResponse: _combinedFreeText,
     );
     await _progress.markLessonComplete(widget.slot.progressKey);
@@ -130,15 +135,14 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
       freeText: result.freeTextResponse,
     );
     await _progress.clearLessonSession(widget.slot.progressKey);
-    final correctCount = _quizAttempts.where((a) => a.isCorrect).length;
+    final correctCount = gradedResults.where((r) => r).length;
     loggy.info('Lesson ${widget.slot.progressKey}: completed — '
-        '$correctCount/${_quizAttempts.length} quizzes correct, '
+        '$correctCount/${gradedResults.length} quizzes correct, '
         '${result.stars} star(s), ${result.pointsEarned} points');
     LearnSyncService.instance.reportCompletion(
       widget.slot.progressKey,
-      totalActivities: _script.length,
+      furthestActivityIndex: _script.length - 1,
       quizAttempts: List.unmodifiable(_quizAttempts),
-      freeTextResponse: _combinedFreeText,
     ).catchError((_) {});
     _result = result;
     _presentCompletionSheet();
@@ -181,11 +185,16 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
 
   void _recordQuizGrade(LearnQuizGrade grade) {
     if (_current.type != LearnActivityType.quiz) return;
-    if (_current.quiz?.format == LearnQuizFormat.freeText) return;
     final attempt = QuizAttemptData(
-      activityId: _current.index.toString(),
+      // The API needs the catalog `_id` for server-side verification; fall
+      // back to the positional index for legacy content without ids.
+      activityId: _current.activityId.isNotEmpty
+          ? _current.activityId
+          : _current.index.toString(),
       format: _current.quiz!.format.apiKey,
       selectedIndex: grade.selectedIndex,
+      selectedIndices: grade.selectedIndices,
+      selectedOrder: grade.selectedOrder,
       isCorrect: grade.isCorrect,
     );
     final existing =

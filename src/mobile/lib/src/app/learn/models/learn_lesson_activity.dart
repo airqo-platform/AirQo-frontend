@@ -82,6 +82,10 @@ class LearnQuizPayload {
 
 class LearnLessonActivity {
   final int index;
+
+  /// Backend `_id` of the activity — required by the progress API so the
+  /// server can verify quiz answers against the catalog.
+  final String activityId;
   final LearnActivityType type;
   final String title;
   final LearnArticlePayload? article;
@@ -91,6 +95,7 @@ class LearnLessonActivity {
 
   const LearnLessonActivity({
     required this.index,
+    this.activityId = '',
     required this.type,
     required this.title,
     this.article,
@@ -120,10 +125,14 @@ class LearnQuizGrade {
   final bool isCorrect;
   final String feedback;
   final int? selectedIndex;
+  final List<int>? selectedIndices;
+  final List<int>? selectedOrder;
 
   const LearnQuizGrade({
     required this.isCorrect,
     required this.feedback,
     this.selectedIndex,
+    this.selectedIndices,
+    this.selectedOrder,
   });
 }
