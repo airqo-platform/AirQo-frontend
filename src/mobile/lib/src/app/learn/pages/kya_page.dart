@@ -107,6 +107,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
       body: ValueListenableBuilder<int>(
         valueListenable: _progress.revision,
         builder: (context, _, __) {
+          if (_selectedIndex == 0) {
+            return _buildCoursesContent();
+          }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -115,11 +118,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: _buildTabSelector(),
               ),
-              Expanded(
-                child: _selectedIndex == 0
-                    ? _buildCoursesContent()
-                    : const LearnSurveysPage(),
-              ),
+              const Expanded(child: LearnSurveysPage()),
             ],
           );
         },
@@ -171,18 +170,37 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     );
   }
 
+  List<Widget> _headerSlivers() {
+    return [
+      const SliverToBoxAdapter(child: LearnDashboardHeader()),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: _buildTabSelector(),
+        ),
+      ),
+    ];
+  }
+
   Widget _buildCoursesContent() {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         if (state is LessonsLoading || _isRetrying) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: const [
-              ShimmerContainer(
-                  height: 120, borderRadius: 12, width: double.infinity),
-              SizedBox(height: 16),
-              ShimmerContainer(
-                  height: 200, borderRadius: 12, width: double.infinity),
+          return CustomScrollView(
+            slivers: [
+              ..._headerSlivers(),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(const [
+                    ShimmerContainer(
+                        height: 120, borderRadius: 12, width: double.infinity),
+                    SizedBox(height: 16),
+                    ShimmerContainer(
+                        height: 200, borderRadius: 12, width: double.infinity),
+                  ]),
+                ),
+              ),
             ],
           );
         }
@@ -222,6 +240,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              ..._headerSlivers(),
               SliverToBoxAdapter(
                 child: LearnLevelSummaryCard(
                   stage: stage,
@@ -282,9 +301,17 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   Widget _buildErrorState(LessonsLoadingError state) {
     return RefreshIndicator(
       onRefresh: () async => _retryLoading(),
+      color: AppColors.primaryColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          const SizedBox(height: 100),
+          const LearnDashboardHeader(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: _buildTabSelector(),
+          ),
+          const SizedBox(height: 60),
           Center(
             child: Column(
               children: [
