@@ -759,30 +759,15 @@ export default function FacesOfCleanAirPage() {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget?.id) {
-      setDeleteTarget(null);
       return;
     }
 
     const idToDelete = deleteTarget.id;
 
-    const token =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('auth_token')
-        : undefined;
-
-    if (!token) {
-      console.error('No auth token found');
-      setDeleteTarget(null);
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
-      const success = await facesOfCleanAirService.deleteSubmission(
-        idToDelete,
-        token,
-      );
+      const success = await facesOfCleanAirService.deleteSubmission(idToDelete);
 
       if (success) {
         setSubmissions((prev) => prev.filter((s) => s.id !== idToDelete));
@@ -797,30 +782,15 @@ export default function FacesOfCleanAirPage() {
 
   const handleConfirmHide = useCallback(async () => {
     if (!deleteTarget?.id) {
-      setDeleteTarget(null);
       return;
     }
 
     const idToHide = deleteTarget.id;
 
-    const token =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('auth_token')
-        : undefined;
-
-    if (!token) {
-      console.error('No auth token found');
-      setDeleteTarget(null);
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
-      const success = await facesOfCleanAirService.hideSubmission(
-        idToHide,
-        token,
-      );
+      const success = await facesOfCleanAirService.hideSubmission(idToHide);
 
       if (success) {
         setSubmissions((prev) => prev.filter((s) => s.id !== idToHide));

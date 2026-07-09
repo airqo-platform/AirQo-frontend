@@ -14,4 +14,5 @@ export interface RequestConfig {
   data?: any;
   params?: Record<string, any>;
   headers?: Record<string, string>;
+  authToken?: string;
 }

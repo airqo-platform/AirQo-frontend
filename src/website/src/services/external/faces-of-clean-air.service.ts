@@ -3,6 +3,7 @@ import apiClient from '@/services/api/api-client';
 
 export interface CleanAirSubmission {
   id: string;
+  _id: string;
   eventId: string;
   imageUrl: string;
   locationName: string | null;
@@ -29,18 +30,18 @@ class FacesOfCleanAirService extends BaseApiService {
     );
 
     if (response.success && response.data) {
-      return response.data.selfies ?? [];
+      const selfies = response.data.selfies ?? [];
+      return selfies.map((s) => ({ ...s, id: s.id || s._id }));
     }
 
     return [];
   }
 
-  async deleteSubmission(id: string, token: string): Promise<boolean> {
+  async deleteSubmission(id: string): Promise<boolean> {
     try {
       const response = await apiClient.request<unknown>({
         method: 'DELETE',
         url: API_ROUTES.USERS.SELFIE_BY_ID(id),
-        params: { token },
       });
 
       return response.success;
@@ -49,12 +50,11 @@ class FacesOfCleanAirService extends BaseApiService {
     }
   }
 
-  async hideSubmission(id: string, token: string): Promise<boolean> {
+  async hideSubmission(id: string): Promise<boolean> {
     try {
       const response = await apiClient.request<unknown>({
         method: 'PATCH',
         url: API_ROUTES.USERS.SELFIE_BY_ID(id),
-        params: { token },
       });
 
       return response.success;

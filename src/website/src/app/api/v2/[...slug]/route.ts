@@ -62,6 +62,13 @@ export async function PUT(
   return handleRequest(request, params.slug, 'PUT');
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { slug: string[] } },
+) {
+  return handleRequest(request, params.slug, 'PATCH');
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { slug: string[] } },
