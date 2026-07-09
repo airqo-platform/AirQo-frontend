@@ -400,7 +400,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           } else if (state is DashboardLoadingError) {
             isLoading = false;
           } else if (state is DashboardLoading) {
-            isLoading = _nearbyMeasurementsWithDistance.isEmpty;
+            isLoading = _isLoading && _nearbyMeasurementsWithDistance.isEmpty;
           } else {
             isLoading = _isLoading && _nearbyMeasurementsWithDistance.isEmpty;
           }
