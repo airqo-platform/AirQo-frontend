@@ -1,9 +1,8 @@
 import { API_ROUTES, BaseApiService, ServiceOptions } from '@/services/api';
-import apiClient from '@/services/api/api-client';
 
 export interface CleanAirSubmission {
-  id: string;
-  _id: string;
+  id?: string | null;
+  _id?: string | null;
   eventId: string;
   imageUrl: string;
   locationName: string | null;
@@ -14,6 +13,10 @@ export interface CleanAirSubmission {
   createdAt: string;
 }
 
+export type CleanAirSubmissionWithId = CleanAirSubmission & {
+  id: string;
+};
+
 class FacesOfCleanAirService extends BaseApiService {
   constructor() {
     super('FacesOfCleanAirService');
@@ -22,7 +25,7 @@ class FacesOfCleanAirService extends BaseApiService {
   async getSubmissions(
     eventId: string,
     options: ServiceOptions = {},
-  ): Promise<CleanAirSubmission[]> {
+  ): Promise<CleanAirSubmissionWithId[]> {
     const response = await this.get<{ selfies: CleanAirSubmission[] }>(
       API_ROUTES.USERS.SELFIES,
       { eventId },
@@ -31,36 +34,28 @@ class FacesOfCleanAirService extends BaseApiService {
 
     if (response.success && response.data) {
       const selfies = response.data.selfies ?? [];
-      return selfies.map((s) => ({ ...s, id: s.id || s._id }));
+
+      return selfies
+        .map((submission) => {
+          const normalizedId =
+            submission.id?.trim() || submission._id?.trim() || '';
+
+          if (!normalizedId) {
+            return null;
+          }
+
+          return {
+            ...submission,
+            id: normalizedId,
+          };
+        })
+        .filter(
+          (submission): submission is CleanAirSubmissionWithId =>
+            submission !== null,
+        );
     }
 
     return [];
-  }
-
-  async deleteSubmission(id: string): Promise<boolean> {
-    try {
-      const response = await apiClient.request<unknown>({
-        method: 'DELETE',
-        url: API_ROUTES.USERS.SELFIE_BY_ID(id),
-      });
-
-      return response.success;
-    } catch {
-      return false;
-    }
-  }
-
-  async hideSubmission(id: string): Promise<boolean> {
-    try {
-      const response = await apiClient.request<unknown>({
-        method: 'PATCH',
-        url: API_ROUTES.USERS.SELFIE_BY_ID(id),
-      });
-
-      return response.success;
-    } catch {
-      return false;
-    }
   }
 }
 

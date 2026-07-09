@@ -29,7 +29,7 @@ import {
 } from '@/config/cleanAirForumConfig';
 import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
 import { facesOfCleanAirService } from '@/services/external';
-import type { CleanAirSubmission } from '@/services/external/faces-of-clean-air.service';
+import type { CleanAirSubmissionWithId } from '@/services/external/faces-of-clean-air.service';
 
 const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
@@ -294,12 +294,10 @@ function FaceCard({
   submission,
   priority,
   reduceMotion,
-  onDeleteRequest,
 }: {
-  submission: CleanAirSubmission;
+  submission: CleanAirSubmissionWithId;
   priority: boolean;
   reduceMotion: boolean | null;
-  onDeleteRequest?: (submission: CleanAirSubmission) => void;
 }) {
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -371,7 +369,6 @@ function FaceCard({
       }
       onPointerMove={handlePointerMove}
       onPointerLeave={resetPointerPosition}
-      onDoubleClick={() => onDeleteRequest?.(submission)}
       style={{
         rotateX: reduceMotion ? 0 : rotateX,
         rotateY: reduceMotion ? 0 : rotateY,
@@ -714,17 +711,13 @@ export default function FacesOfCleanAirPage() {
   const shouldReduceMotion = useReducedMotion();
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
-  const [submissions, setSubmissions] = useState<CleanAirSubmission[]>([]);
+  const [submissions, setSubmissions] = useState<CleanAirSubmissionWithId[]>(
+    [],
+  );
   const [fetchState, setFetchState] = useState<FetchState>('idle');
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<CleanAirSubmission | null>(
-    null,
-  );
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [moderationError, setModerationError] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
   const hasLoadedRef = useRef(false);
 
@@ -754,90 +747,6 @@ export default function FacesOfCleanAirPage() {
     fetchSubmissions,
     CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
   );
-
-  const handleDeleteRequest = useCallback((submission: CleanAirSubmission) => {
-    setDeleteTarget(submission);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!deleteTarget?.id) {
-      return;
-    }
-
-    const idToDelete = deleteTarget.id;
-
-    setIsDeleting(true);
-    setModerationError(null);
-
-    try {
-      const success = await facesOfCleanAirService.deleteSubmission(idToDelete);
-
-      if (success) {
-        setSubmissions((prev) => prev.filter((s) => s.id !== idToDelete));
-        setDeleteTarget(null);
-      } else {
-        setModerationError('Delete failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Failed to delete submission:', error);
-      setModerationError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [deleteTarget]);
-
-  const handleConfirmHide = useCallback(async () => {
-    if (!deleteTarget?.id) {
-      return;
-    }
-
-    const idToHide = deleteTarget.id;
-
-    setIsDeleting(true);
-    setModerationError(null);
-
-    try {
-      const success = await facesOfCleanAirService.hideSubmission(idToHide);
-
-      if (success) {
-        setSubmissions((prev) => prev.filter((s) => s.id !== idToHide));
-        setDeleteTarget(null);
-      } else {
-        setModerationError('Hide failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Failed to hide submission:', error);
-      setModerationError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [deleteTarget]);
-
-  const handleCancelDelete = useCallback(() => {
-    setDeleteTarget(null);
-    setModerationError(null);
-  }, []);
-
-  useEffect(() => {
-    if (!deleteTarget) {
-      return;
-    }
-
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleCancelDelete();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [deleteTarget, handleCancelDelete]);
-
-  useEffect(() => {
-    if (deleteTarget && dialogRef.current) {
-      dialogRef.current.focus();
-    }
-  }, [deleteTarget]);
 
   const totalSlides = useMemo(() => {
     if (isMobile) {
@@ -1275,10 +1184,7 @@ export default function FacesOfCleanAirPage() {
                       >
                         {visibleItems.map((submission, index) => (
                           <div
-                            key={
-                              submission.id ??
-                              `${submission.imageUrl}-${page}-${index}`
-                            }
+                            key={submission.id}
                             className={
                               isMobile
                                 ? 'w-full'
@@ -1299,7 +1205,6 @@ export default function FacesOfCleanAirPage() {
                                 isMobile ? page === 0 : page === 0 && index < 3
                               }
                               reduceMotion={shouldReduceMotion}
-                              onDeleteRequest={handleDeleteRequest}
                             />
                           </div>
                         ))}
@@ -1333,84 +1238,6 @@ export default function FacesOfCleanAirPage() {
         {/* Keeps mobile spacing balanced without making the page scroll. */}
         <div className="h-2 flex-none sm:hidden" />
       </div>
-
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
-            onClick={() => {
-              handleCancelDelete();
-            }}
-          >
-            <motion.div
-              ref={dialogRef}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="moderate-submission-title"
-              tabIndex={-1}
-              className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#005257] p-6 shadow-2xl outline-none"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3
-                id="moderate-submission-title"
-                className="text-lg font-bold text-white"
-              >
-                Moderate Submission
-              </h3>
-
-              <p className="mt-2 text-sm text-white/80">
-                Choose an action for{' '}
-                <span className="font-semibold text-white">
-                  {deleteTarget.displayName ?? 'this submission'}
-                </span>
-                .
-              </p>
-
-              {moderationError && (
-                <p className="mt-3 rounded-lg bg-red-500/20 px-3 py-2 text-xs text-red-300">
-                  {moderationError}
-                </p>
-              )}
-
-              <div className="mt-6 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleConfirmHide}
-                  disabled={isDeleting}
-                  className="rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-50"
-                >
-                  {isDeleting ? 'Processing...' : 'Hide from wall'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                  className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
-                >
-                  {isDeleting ? 'Processing...' : 'Delete permanently'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCancelDelete}
-                  disabled={isDeleting}
-                  className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/60 transition-colors hover:text-white disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
