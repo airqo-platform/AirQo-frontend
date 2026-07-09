@@ -85,6 +85,17 @@ export default function FloatingMiniBillboard({
       } as React.CSSProperties;
     }
 
+    // Use solid dark background for 'no-value' to ensure visibility
+    if (level === 'no-value') {
+      return {
+        backgroundColor: categoryColor,
+        color: '#ffffff',
+        border: `1px solid ${hexToRgba(categoryColor, 0.9)}`,
+        boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)',
+        fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+      } as React.CSSProperties;
+    }
+
     // Default subtle style for other categories
     return {
       backgroundColor: hexToRgba(categoryColor, 0.14),

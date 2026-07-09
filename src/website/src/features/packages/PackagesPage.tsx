@@ -1,4 +1,5 @@
 'use client';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -8,6 +9,19 @@ import FrameworkTabs from '@/components/packages/FrameworkTabs';
 import StatCard from '@/components/packages/StatCard';
 import { CustomButton } from '@/components/ui';
 import { getAllPackages } from '@/config/packages.config';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
 export default function PackagesPage() {
   const packages = getAllPackages();
@@ -84,36 +98,57 @@ export default function PackagesPage() {
         </section>
 
         {/* Stats Overview */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <StatCard
-              icon={<FiBox className="w-5 h-5" />}
-              label="Total Libraries"
-              value={totalPackages}
-              description={
-                totalPackages === 1
-                  ? 'More coming soon'
-                  : 'Production-ready packages'
-              }
-            />
-            <StatCard
-              icon={<FiDownload className="w-5 h-5" />}
-              label="Total Downloads"
-              value={activePackage.totalDownloads}
-              description="For this package"
-            />
-            <StatCard
-              icon={<FiCheckCircle className="w-5 h-5" />}
-              label="Framework Support"
-              value={`${allFrameworks.size}+`}
-              description={Array.from(allFrameworks).join(', ')}
-            />
+            <motion.div variants={itemVariants}>
+              <StatCard
+                icon={<FiBox className="w-5 h-5" />}
+                label="Total Libraries"
+                value={totalPackages}
+                description={
+                  totalPackages === 1
+                    ? 'More coming soon'
+                    : 'Production-ready packages'
+                }
+              />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <StatCard
+                icon={<FiDownload className="w-5 h-5" />}
+                label="Total Downloads"
+                value={activePackage.totalDownloads}
+                description="For this package"
+              />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <StatCard
+                icon={<FiCheckCircle className="w-5 h-5" />}
+                label="Framework Support"
+                value={`${allFrameworks.size}+`}
+                description={Array.from(allFrameworks).join(', ')}
+              />
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Package Showcase */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-          <div className="bg-white border border-[#e4e4e7] rounded-lg overflow-hidden">
+        <motion.div
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          <motion.div
+            variants={itemVariants}
+            className="bg-white border border-[#e4e4e7] rounded-lg overflow-hidden"
+          >
             <div className="grid lg:grid-cols-2 gap-0">
               {/* Left: Info */}
               <div className="p-6 lg:p-8">
@@ -241,12 +276,21 @@ export default function PackagesPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* More Coming Soon */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="bg-[#fafafa] border border-[#e4e4e7] rounded-lg p-8 text-center">
+        <motion.div
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          <motion.div
+            variants={itemVariants}
+            className="bg-[#fafafa] border border-[#e4e4e7] rounded-lg p-8 text-center"
+          >
             <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-[#18181b] mb-2">
               More Packages Coming Soon
             </h2>
@@ -263,8 +307,8 @@ export default function PackagesPage() {
                 Follow on GitHub
               </CustomButton>
             </a>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   );

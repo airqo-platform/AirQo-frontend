@@ -53,7 +53,8 @@ export default function FloatingMiniBillboardWrapper() {
   useEffect(() => {
     if (
       pathname?.startsWith('/packages') ||
-      pathname?.startsWith('/solutions/network-coverage')
+      pathname?.startsWith('/solutions/network-coverage') ||
+      pathname?.startsWith('/faces-of-clean-air')
     ) {
       // Suppressed routes: skip fetching to avoid unnecessary load
       setLoading(false);
@@ -193,12 +194,13 @@ export default function FloatingMiniBillboardWrapper() {
     };
   }, [pathname]);
 
-  // Don't render anything while loading or if there's no data or if on packages page
+  // Don't render anything while loading or if there's no data or if on suppressed pages
   if (
     loading ||
     billboardData.length === 0 ||
     pathname?.startsWith('/packages') ||
-    pathname?.startsWith('/solutions/network-coverage')
+    pathname?.startsWith('/solutions/network-coverage') ||
+    pathname?.startsWith('/faces-of-clean-air')
   ) {
     return null;
   }
