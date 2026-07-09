@@ -116,6 +116,7 @@ class LearnLessonExperienceService {
       case LearnQuizFormat.ranking:
         if (options.length < 2 ||
             correctOrder == null ||
+            correctOrder.length != options.length ||
             correctOrder.toSet().length != options.length ||
             correctOrder.any((i) => i < 0 || i >= options.length)) {
           return null;

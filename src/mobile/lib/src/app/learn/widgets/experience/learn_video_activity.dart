@@ -51,6 +51,8 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       } else if (_isDirectVideo(url)) {
         _directController = VideoPlayerController.networkUrl(Uri.parse(url));
         await _directController!.initialize();
+        // dispose() may have run while initialize() was in flight.
+        if (!mounted) return;
         _directController!.addListener(_onDirectVideoTick);
       } else {
         _error = 'Unsupported video URL';
