@@ -341,15 +341,34 @@ export default function QuizScreen() {
       <Screen className="caf-2026-screen">
         <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
           <div className="flex w-full flex-col items-center">
-            <div className="relative w-[min(84vw,34rem)] sm:w-[min(62vw,34rem)] md:w-[min(46vw,34rem)] lg:w-[30rem] xl:w-[34.125rem]">
-              <Image
-                src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-logo.svg"
-                alt="Africa CLEAN Air Forum Pretoria 2026"
-                width={546}
-                height={94}
-                priority
-                className="h-auto w-full"
-              />
+            <div className="flex w-full justify-center">
+              <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-5">
+                  <div className="relative w-fit shrink-0">
+                    <Image
+                      src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                      alt="AirQo"
+                      width={90.95}
+                      height={61.53}
+                      priority
+                      className="h-auto w-auto"
+                    />
+                  </div>
+
+                  <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+                    Air Quality Quiz
+                  </h1>
+                </div>
+
+                <div className="hidden shrink-0 text-left text-white md:block">
+                  <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
+                    Africa CLEAN - Air Forum
+                  </p>
+                  <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
+                    Pretoria 2026
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="mt-16 flex w-full max-w-4xl flex-col items-center gap-8 text-center sm:mt-20 sm:gap-10">
@@ -396,15 +415,34 @@ export default function QuizScreen() {
     <Screen className="caf-2026-screen">
       <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
         <div className="flex w-full flex-col items-center">
-          <div className="relative w-[min(84vw,34rem)] sm:w-[min(62vw,34rem)] md:w-[min(46vw,34rem)] lg:w-[30rem] xl:w-[34.125rem]">
-            <Image
-              src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-logo.svg"
-              alt="Africa CLEAN Air Forum Pretoria 2026"
-              width={546}
-              height={94}
-              priority
-              className="h-auto w-full"
-            />
+          <div className="flex w-full justify-center">
+            <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
+                <div className="relative w-fit shrink-0">
+                  <Image
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    alt="AirQo"
+                    width={90.95}
+                    height={61.53}
+                    priority
+                    className="h-auto w-auto"
+                  />
+                </div>
+
+                <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+                  Air Quality Quiz
+                </h1>
+              </div>
+
+              <div className="hidden shrink-0 text-left text-white md:block">
+                <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
+                  Africa CLEAN - Air Forum
+                </p>
+                <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
+                  Pretoria 2026
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-16 flex w-full max-w-5xl flex-col items-center gap-8 sm:mt-20 sm:gap-10">
