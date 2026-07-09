@@ -117,7 +117,7 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
   }
 
   Future<void> _completeLesson() async {
-    // Free-text attempts are reported to the API but excluded from scoring.
+    // Free-text responses are saved locally and excluded from scoring.
     final gradedResults = _quizAttempts
         .where((a) => a.format != LearnQuizFormat.freeText.apiKey)
         .map((a) => a.isCorrect)
