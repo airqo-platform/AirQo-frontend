@@ -25,7 +25,7 @@ export function DeviceLocationMap({
       <div className={`${height} rounded-md border border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/30`}>
         <MapPin className="h-6 w-6 opacity-40" />
         <p className="text-sm text-center px-4">
-          Location data is currently unavailable
+          Location data is currently unavailable for this device
         </p>
       </div>
     );
