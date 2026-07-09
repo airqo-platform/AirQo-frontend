@@ -140,10 +140,14 @@ class LearnLessonExperienceService {
     );
   }
 
+  /// Memoized per lesson instance — this runs inside widget builds, and a
+  /// catalog refresh produces new lesson objects, naturally invalidating it.
+  static final Expando<int> _gradedQuizCountCache = Expando<int>();
+
   /// Number of gradeable (non-free-text) quizzes in a lesson, using the same
   /// parsing rules as the lesson experience — the basis for max points.
   static int gradedQuizCount(LearnV2Lesson lesson) {
-    return buildFromV2Lesson(lesson: lesson)
+    return _gradedQuizCountCache[lesson] ??= buildFromV2Lesson(lesson: lesson)
         .where((a) =>
             a.type == LearnActivityType.quiz &&
             a.quiz?.format != LearnQuizFormat.freeText)
