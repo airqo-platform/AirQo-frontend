@@ -255,6 +255,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
   /// the user *also* shared the filter externally.
   Future<void> _submitCurrentSelfieToWall() async {
     if (widget.selfieFile == null) return;
+    if (_isSendingToWall) return;
     final imageBytes = await captureShareBoundary(context, _filterKey);
     if (imageBytes == null) {
       widget.onMessage("Couldn't prepare the filter. Try again.",

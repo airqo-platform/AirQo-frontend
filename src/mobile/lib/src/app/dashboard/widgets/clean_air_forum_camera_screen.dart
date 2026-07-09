@@ -45,6 +45,12 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
   int _cameraIndex = 0;
   Future<void>? _initializeFuture;
   bool _isCapturing = false;
+  // Retry-on-failure and lifecycle-resume can both call _openCamera close
+  // together; without this, the second call would see the first's nulled
+  // _controller and start its own CameraController before the first has
+  // finished disposing/initializing — two sessions open at once, which the
+  // Camera2 HAL rejects.
+  bool _isOpeningCamera = false;
   String? _errorMessage;
 
   @override
@@ -91,34 +97,44 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
   }
 
   Future<void> _openCamera(int index) async {
-    // The previous session must be fully torn down *before* a new one
-    // starts initializing — the Camera2 HAL only allows one open session
-    // per device, so overlapping old/new controllers (as when switching
-    // front/back) throws CAMERA_ERROR "Error configuring streams: Broken
-    // pipe" instead of cleanly handing off.
-    final previous = _controller;
-    _controller = null;
-    if (mounted) setState(() {});
-    await previous?.dispose();
-
-    final controller = CameraController(
-      _cameras[index],
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.jpeg,
-    );
+    // Only one open/teardown sequence may run at a time — see
+    // _isOpeningCamera's doc comment.
+    if (_isOpeningCamera) return;
+    _isOpeningCamera = true;
     try {
-      await controller.initialize().timeout(_cameraOpTimeout);
-    } catch (_) {
-      // Don't await this dispose — if initialize() just timed out because
-      // the native session is stuck, dispose() on that same stuck session
-      // could hang too, and we'd be right back to an unrecoverable spinner.
-      unawaited(controller.dispose());
-      if (mounted) setState(() => _errorMessage = 'Could not start the camera.');
-      return;
+      // The previous session must be fully torn down *before* a new one
+      // starts initializing — the Camera2 HAL only allows one open session
+      // per device, so overlapping old/new controllers (as when switching
+      // front/back) throws CAMERA_ERROR "Error configuring streams: Broken
+      // pipe" instead of cleanly handing off.
+      final previous = _controller;
+      _controller = null;
+      if (mounted) setState(() {});
+      await previous?.dispose();
+
+      final controller = CameraController(
+        _cameras[index],
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      try {
+        await controller.initialize().timeout(_cameraOpTimeout);
+      } catch (_) {
+        // Don't await this dispose — if initialize() just timed out because
+        // the native session is stuck, dispose() on that same stuck session
+        // could hang too, and we'd be right back to an unrecoverable spinner.
+        unawaited(controller.dispose());
+        if (mounted) {
+          setState(() => _errorMessage = 'Could not start the camera.');
+        }
+        return;
+      }
+      _controller = controller;
+      if (mounted) setState(() {});
+    } finally {
+      _isOpeningCamera = false;
     }
-    _controller = controller;
-    if (mounted) setState(() {});
   }
 
   Future<void> _switchCamera() async {
@@ -161,7 +177,7 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
       // resume could still try to paint CameraPreview against it.
       _controller = null;
       if (mounted) setState(() {});
-      controller.dispose();
+      unawaited(controller.dispose());
     } else if (state == AppLifecycleState.resumed) {
       // The above guard used to run unconditionally, before this branch
       // check — so once `inactive` nulled `_controller`, the very next
@@ -170,8 +186,12 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
       // spinner forever after any lock/unlock, not just the capture-mid-
       // interruption case that surfaced it.
       final controller = _controller;
-      if (controller == null || !controller.value.isInitialized) {
-        _openCamera(_cameraIndex);
+      // _openCamera indexes into _cameras directly — without this guard, a
+      // resume after permission denial or on a cameraless device (both
+      // leave _cameras empty and _controller null) would crash.
+      if (_cameras.isNotEmpty &&
+          (controller == null || !controller.value.isInitialized)) {
+        unawaited(_openCamera(_cameraIndex));
       }
     }
   }
