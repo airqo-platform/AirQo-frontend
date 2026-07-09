@@ -98,8 +98,7 @@ const ExplorePage = () => {
                 variants={textReveal}
               >
                 Access real-time and historic air quality information across
-                Africa through our easy-to-use AirQo Nexus dashboard or mobile
-                app.
+                Africa through our easy-to-use AirQo Nexus or mobile app.
               </motion.p>
             </div>
 
@@ -144,7 +143,7 @@ const ExplorePage = () => {
                     </div>
                   </div>
                   <p className="text-gray-700 mb-2 text-sm text-center">
-                    An interactive AirQo Nexus platform
+                    An interactive AirQo Nexus
                   </p>
                   <CustomButton
                     onClick={() =>
