@@ -292,7 +292,22 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
 
   Widget _buildErrorState(LessonsLoadingError state) {
     return RefreshIndicator(
-      onRefresh: () async => _retryLoading(),
+      onRefresh: () async {
+        final bloc = kyaBloc;
+        if (bloc == null) return;
+
+        final done = bloc.stream.firstWhere(
+          (s) => s is LessonsLoaded || s is LessonsLoadingError,
+        );
+
+        _retryLoading();
+
+        try {
+          await done.timeout(const Duration(seconds: 30));
+        } on TimeoutException {
+          loggy.warning('Learn catalog retry timed out');
+        }
+      },
       color: AppColors.primaryColor,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
