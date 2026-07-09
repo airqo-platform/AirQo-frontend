@@ -27,6 +27,7 @@ import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { motion, AnimatePresence } from "framer-motion";
 import { vertexConfig } from "@/vertex.config";
+import { useDetectedPlatform } from "@/core/hooks/useDetectedPlatform";
 
 
 const loginSchema = z.object({
@@ -84,8 +85,7 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
   const isMounted = useRef(true);
 
-  const [platform, setPlatform] = useState<'win' | 'linux' | 'other' | null>(null);
-  const [isElectron, setIsElectron] = useState(false);
+  const { isElectron } = useDetectedPlatform();
 
   useEffect(() => {
     isMounted.current = true;
@@ -114,20 +114,6 @@ export default function LoginPage() {
       }
     };
     checkExistingSession();
-
-    // OS Detection for download link and platform check
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isWin = userAgent.includes('win');
-    const isLinux = userAgent.includes('linux');
-    setIsElectron(userAgent.includes('electron'));
-    
-    if (isWin) {
-      setPlatform('win');
-    } else if (isLinux) {
-      setPlatform('linux');
-    } else {
-      setPlatform('other');
-    }
 
     const authError = searchParams.get('error');
     if (authError === 'oauth_failed') {
@@ -257,7 +243,7 @@ export default function LoginPage() {
             />
           </div>
           
-          {!isElectron && platform === 'win' && (
+          {!isElectron && (
             <div className="flex items-center">
               <Link
                 href={ROUTE_LINKS.DOWNLOAD}
@@ -265,10 +251,7 @@ export default function LoginPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M0 3.449L9.75 2.1V11.7H0V3.449zm0 9.151h9.75v9.6L0 20.551V12.6zm10.55-10.701L24 0v11.7h-13.45V1.899zm0 10.701H24V24l-13.45-1.899V12.6z"/>
-                </svg>
-                Download for Windows
+                Get Desktop app
               </Link>
             </div>
           )}
