@@ -138,16 +138,33 @@ export default function LeaderboardScreen() {
     <Screen>
       <section className="caf-2026-screen mx-auto flex w-full max-w-[1600px] items-start px-5 pb-10 pt-16 sm:px-8 sm:pt-20 md:px-12 md:pt-24 lg:px-16 lg:pt-16 xl:px-20">
         <div className="flex w-full flex-col items-center">
-          <div className="flex w-full justify-center lg:justify-start lg:pl-[12%] xl:pl-[9%]">
-            <div className="relative w-[min(86vw,34rem)] sm:w-[min(72vw,34rem)] md:w-[min(58vw,34rem)] lg:w-[34rem] xl:w-[34.125rem]">
-              <Image
-                src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg"
-                alt="Africa CLEAN Air Forum Pretoria 2026"
-                width={546}
-                height={94}
-                priority
-                className="h-auto w-full"
-              />
+          <div className="flex w-full justify-center">
+            <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
+                <div className="relative w-fit shrink-0">
+                  <Image
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    alt="AirQo"
+                    width={90.95}
+                    height={61.53}
+                    priority
+                    className="h-auto w-auto"
+                  />
+                </div>
+
+                <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+                  Air Quality Quiz Leaderboard
+                </h1>
+              </div>
+
+              <div className="hidden shrink-0 text-left text-white md:block">
+                <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
+                  Africa CLEAN - Air Forum
+                </p>
+                <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
+                  Pretoria 2026
+                </p>
+              </div>
             </div>
           </div>
 
