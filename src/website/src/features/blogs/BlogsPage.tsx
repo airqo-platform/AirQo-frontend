@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -15,6 +16,19 @@ import {
   getBlogIdentifier,
   normalizeBlogImageUrl,
 } from './blogUtils';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
 const PAGE_SIZE = 9;
 
@@ -307,14 +321,22 @@ const BlogsPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="divide-y divide-gray-200">
+              <motion.div
+                className="divide-y divide-gray-200"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
+                variants={containerVariants}
+              >
                 {blogs.map((blog) => (
-                  <BlogCard
+                  <motion.div
                     key={blog.public_identifier || blog.id}
-                    blog={blog}
-                  />
+                    variants={itemVariants}
+                  >
+                    <BlogCard blog={blog} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {!error && data && data.total_pages > 1 && blogs.length > 0 && (
                 <div className="mt-10">

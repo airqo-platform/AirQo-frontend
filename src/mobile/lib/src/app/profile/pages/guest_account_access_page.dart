@@ -46,7 +46,7 @@ class GuestAccountAccessPage extends StatelessWidget {
                   elevation: 0,
                 ),
                 onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => CreateAccountScreen()),
+                  MaterialPageRoute(settings: const RouteSettings(name: 'create_account'), builder: (_) => CreateAccountScreen()),
                 ),
                 child: const TranslatedText(
                   'Create Account',
@@ -74,7 +74,7 @@ class GuestAccountAccessPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => LoginPage()),
+                  MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (_) => LoginPage()),
                   (route) => false,
                 ),
                 child: TranslatedText(

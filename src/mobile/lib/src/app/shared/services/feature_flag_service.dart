@@ -2,7 +2,6 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:loggy/loggy.dart';
 
 enum AppFeatureFlag {
-  researchMode('research_mode'),
   exposureTracking('exposure_tracking'),
   surveys('surveys'),
   dataSharing('data_sharing'),
@@ -23,13 +22,11 @@ class FeatureFlagService with UiLoggy {
 
   bool isEnabled(AppFeatureFlag flag) => _flags[flag] ?? false;
 
-  bool get isAnalyticsEnabled => isEnabled(AppFeatureFlag.researchMode);
-
   Future<void> reloadFlags() async {
     try {
       await Posthog().reloadFeatureFlags();
       for (final flag in AppFeatureFlag.values) {
-        _flags[flag] = await Posthog().isFeatureEnabled(flag.key) ?? false;
+        _flags[flag] = await Posthog().isFeatureEnabled(flag.key);
       }
       loggy.info('Feature flags reloaded: $_flags');
     } catch (e, stackTrace) {

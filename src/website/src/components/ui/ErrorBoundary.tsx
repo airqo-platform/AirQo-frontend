@@ -23,6 +23,36 @@ type ErrorBoundaryState = {
   errorId: string | null;
 };
 
+const GOOGLE_TRANSLATE_DOM_ERROR_PATTERNS = [
+  'removeChild',
+  'insertBefore',
+  'Hydration',
+  'Minified React error',
+  'Failed to execute',
+  'NotFoundError',
+];
+
+function isGoogleTranslateDomError(error: Error): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!isGoogleTranslationActive()) return false;
+
+  return GOOGLE_TRANSLATE_DOM_ERROR_PATTERNS.some(
+    (pattern) =>
+      error.message.includes(pattern) || error.name.includes(pattern),
+  );
+}
+
+function shouldSilentlyReload(error: Error): boolean {
+  if (typeof window === 'undefined') return false;
+  return isGoogleTranslateDomError(error);
+}
+
+function canAttemptSilentReload(): boolean {
+  const lastReload = getSessionStorageItem<string>('gt_reload_ts');
+  if (!lastReload) return true;
+  return Date.now() - parseInt(lastReload, 10) > 10000;
+}
+
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -35,7 +65,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    // Generate a unique error ID for tracking
+    // For Google Translate DOM errors, trigger silent reload instead of showing error UI
+    if (shouldSilentlyReload(error) && canAttemptSilentReload()) {
+      setSessionStorageItem('gt_reload_ts', Date.now().toString());
+      // Delay reload to avoid synchronous navigation during render
+      setTimeout(() => window.location.reload(), 0);
+      // Return no error state — keep children mounted while reload pending
+      return {};
+    }
+
     const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     return {
       hasError: true,
@@ -47,7 +85,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const errorId = this.state.errorId || 'UNKNOWN';
 
-    // Enhanced error logging with structured data
     logger.error('React Error Boundary caught an error', error, {
       errorId,
       errorInfo: {
@@ -64,36 +101,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       url: typeof window !== 'undefined' ? window.location.href : 'SSR',
     });
 
-    // Auto-recovery for Google Translate related errors
-    if (typeof window !== 'undefined') {
-      const isTranslated = isGoogleTranslationActive();
-
-      if (isTranslated) {
-        const isDomError =
-          error.message.includes('removeChild') ||
-          error.message.includes('insertBefore') ||
-          error.message.includes('Hydration') ||
-          error.message.includes('Minified React error');
-
-        if (isDomError) {
-          const lastReload = getSessionStorageItem<string>('gt_reload_ts');
-          const now = Date.now();
-
-          // Prevent infinite loops: only reload if last reload was > 10 seconds ago
-          if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
-            setSessionStorageItem('gt_reload_ts', now.toString());
-            window.location.reload();
-            return;
-          }
-        }
-      }
-    }
-
     this.setState({ errorInfo });
   }
 
   private handleReload = () => {
-    // Log the reload action
     logger.info('User initiated page reload from error boundary', {
       errorId: this.state.errorId,
       action: 'reload',
@@ -103,7 +114,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   private handleRetry = () => {
-    // Log the retry action
     logger.info('User initiated error boundary retry', {
       errorId: this.state.errorId,
       action: 'retry',
@@ -119,7 +129,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   render() {
     if (this.state.hasError) {
-      // Use custom fallback if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
@@ -129,7 +138,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
       return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 text-center px-4">
-          {/* Error Icon */}
           <div className="mb-6">
             <svg
               className="w-20 h-20 text-red-500 mx-auto"
@@ -147,7 +155,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             </svg>
           </div>
 
-          {/* Error Message */}
           <div className="max-w-2xl space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Oops! Something went wrong
@@ -157,7 +164,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               and is working to fix this issue.
             </p>
 
-            {/* Error ID for support */}
             {errorId && (
               <div className="bg-gray-100 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-700">
@@ -172,7 +178,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </div>
             )}
 
-            {/* Development Error Details */}
             {isDevelopment && this.props.showErrorDetails && error && (
               <details className="bg-red-50 border border-red-200 rounded-lg p-4 text-left mb-6">
                 <summary className="font-semibold text-red-800 cursor-pointer mb-2">
@@ -205,7 +210,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </details>
             )}
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <CustomButton
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
@@ -221,7 +225,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </CustomButton>
             </div>
 
-            {/* Contact Support */}
             <div className="mt-8 text-sm text-gray-500">
               <p>
                 If this problem persists, please{' '}

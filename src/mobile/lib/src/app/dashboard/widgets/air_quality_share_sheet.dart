@@ -1,28 +1,27 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/air_quality_share_card.dart';
-import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_camera_screen.dart';
-import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_filter_card.dart';
+import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_filter_tab.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_sticker_frame.dart';
+import 'package:airqo/src/app/dashboard/widgets/share_sheet_widgets.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/services/air_quality_share_service.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/clean_air_forum_submission_service.dart';
-import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
+import 'package:share_plus/share_plus.dart';
 
 Future<void> showAirQualityShareSheet(
   BuildContext context, {
   required Measurement measurement,
+  required String source,
   String? fallbackLocationName,
   Rect? sharePositionOrigin,
 }) {
@@ -33,41 +32,48 @@ Future<void> showAirQualityShareSheet(
     backgroundColor: Colors.transparent,
     builder: (_) => AirQualityShareSheet(
       measurement: measurement,
+      source: source,
       fallbackLocationName: fallbackLocationName,
       sharePositionOrigin: sharePositionOrigin,
     ),
   );
 }
 
-enum _ShareTab { filter, card, sticker }
+/// One entry per share tab — adding a future filter/format is a single line
+/// here rather than a new copy-pasted chip + switch branch. [analyticsName]
+/// is the stable `tab` property on share_tab_selected and the `format` on
+/// share_completed; don't rename shipped values.
+enum _ShareTab {
+  filter(label: 'Forum filter', analyticsName: 'forum_filter'),
+  card(label: 'Card', analyticsName: 'card'),
+  sticker(label: 'IG sticker', analyticsName: 'ig_sticker');
 
-enum _SelfieSource { liveCamera, gallery }
-
-/// Describes one share tab so adding a future filter/format is a single
-/// entry here rather than a new copy-pasted chip + switch branch.
-class _ShareTabSpec {
-  final _ShareTab tab;
   final String label;
+  final String analyticsName;
 
-  const _ShareTabSpec({required this.tab, required this.label});
+  const _ShareTab({required this.label, required this.analyticsName});
 }
-
-const List<_ShareTabSpec> _shareTabSpecs = [
-  _ShareTabSpec(tab: _ShareTab.filter, label: 'Forum filter'),
-  _ShareTabSpec(tab: _ShareTab.card, label: 'Card'),
-  _ShareTabSpec(tab: _ShareTab.sticker, label: 'IG sticker'),
-];
 
 class AirQualityShareSheet extends StatefulWidget {
   final Measurement measurement;
+
+  /// Where the sheet was opened from (e.g. 'dashboard', 'forecast') —
+  /// reported as the `source` property on share_sheet_opened.
+  final String source;
   final String? fallbackLocationName;
   final Rect? sharePositionOrigin;
+
+  /// Injected for tests — defaults to the app-wide
+  /// [CleanAirForumSubmissionService.instance] (DIP).
+  final CleanAirForumSubmissionService? submissionService;
 
   const AirQualityShareSheet({
     super.key,
     required this.measurement,
+    required this.source,
     this.fallbackLocationName,
     this.sharePositionOrigin,
+    this.submissionService,
   });
 
   @override
@@ -79,22 +85,56 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   _ShareTab _tab = _ShareTab.filter;
 
   final GlobalKey _cardKey = GlobalKey();
-  final GlobalKey _filterKey = GlobalKey();
   final GlobalKey _stickerKey = GlobalKey();
 
-  final ImagePicker _picker = ImagePicker();
-
+  // Lifted from the filter tab: its subtree is unmounted on tab switch, so
+  // the picked selfie and consent choice live here to survive switching.
   File? _selfieFile;
   bool _consentToDisplay = false;
 
-  bool _isPickingSelfie = false;
   bool _isSharingCard = false;
-  bool _isSharingFilter = false;
   bool _isCopyingSticker = false;
   bool _stickerCopied = false;
 
   String? _inlineMessage;
+  bool _inlineIsError = false;
+  String? _inlineActionLabel;
+  VoidCallback? _inlineOnAction;
   Timer? _inlineMessageTimer;
+
+  /// Captured while mounted so late results (the background wall
+  /// submission) can still surface after the sheet is closed.
+  ScaffoldMessengerState? _rootMessenger;
+
+  bool _cafFilterTabTracked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService().trackShareSheetOpened(source: widget.source);
+    if (_tab == _ShareTab.filter) _trackCafFilterTabOpened();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _rootMessenger = ScaffoldMessenger.maybeOf(context);
+  }
+
+  /// caf_filter_tab_opened confirms discovery of the forum filter, so it
+  /// fires once per sheet open — whether the tab was the default or tapped.
+  void _trackCafFilterTabOpened() {
+    if (_cafFilterTabTracked) return;
+    _cafFilterTabTracked = true;
+    AnalyticsService().trackCafFilterTabOpened();
+  }
+
+  void _selectTab(_ShareTab tab) {
+    if (_tab == tab) return;
+    setState(() => _tab = tab);
+    AnalyticsService().trackShareTabSelected(tab: tab.analyticsName);
+    if (tab == _ShareTab.filter) _trackCafFilterTabOpened();
+  }
 
   @override
   void dispose() {
@@ -102,30 +142,51 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     super.dispose();
   }
 
-  Future<Uint8List?> _captureBoundary(GlobalKey key) async {
-    final pixelRatio =
-        MediaQuery.of(context).devicePixelRatio.clamp(2.0, 3.0).toDouble();
-
-    await Future<void>.delayed(const Duration(milliseconds: 16));
-
-    final boundary =
-        key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return null;
-
-    final image = await boundary.toImage(pixelRatio: pixelRatio);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    return byteData?.buffer.asUint8List();
-  }
-
   /// Shows an inline banner rather than a `SnackBar` — this sheet is a
   /// modal route above the app's own Scaffold, so a SnackBar raised via
   /// `ScaffoldMessenger` renders underneath it and is never actually seen.
-  void _showMessage(String message) {
-    if (!mounted) return;
+  ///
+  /// If the sheet has already been closed (the background wall submission
+  /// can finish after dismissal), the result falls back to a root SnackBar
+  /// instead of being silently dropped.
+  void _showMessage(
+    String message, {
+    bool isError = false,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    if (!mounted) {
+      _rootMessenger?.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: actionLabel == null || onAction == null
+              ? null
+              : SnackBarAction(label: actionLabel, onPressed: onAction),
+        ),
+      );
+      return;
+    }
+
+    // The banner self-dismisses, so screen-reader users would miss it
+    // entirely without an explicit announcement.
+    unawaited(SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    ));
+
     _inlineMessageTimer?.cancel();
-    setState(() => _inlineMessage = message);
-    _inlineMessageTimer = Timer(const Duration(seconds: 3), () {
+    setState(() {
+      _inlineMessage = message;
+      _inlineIsError = isError;
+      _inlineActionLabel = actionLabel;
+      _inlineOnAction = onAction;
+    });
+    // Errors and longer messages linger; short confirmations clear fast.
+    final duration = Duration(
+      milliseconds: (2500 + message.length * 35).clamp(3000, 6500),
+    );
+    _inlineMessageTimer = Timer(duration, () {
       if (mounted) setState(() => _inlineMessage = null);
     });
   }
@@ -135,172 +196,28 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     setState(() => _isSharingCard = true);
 
     try {
-      final imageBytes = await _captureBoundary(_cardKey);
+      final imageBytes = await captureShareBoundary(context, _cardKey);
       if (imageBytes == null) {
-        _showMessage('Could not prepare the share card. Please try again.');
+        _showMessage("Couldn't share the card. Try again.", isError: true);
         return;
       }
 
-      await AirQualityShareService.shareMeasurementCard(
+      final result = await AirQualityShareService.shareMeasurementCard(
         imageBytes,
         widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
         sharePositionOrigin: widget.sharePositionOrigin,
       );
+      if (result.status == ShareResultStatus.success) {
+        AnalyticsService().trackShareCompleted(
+          format: _ShareTab.card.analyticsName,
+          method: 'share_sheet',
+        );
+      }
     } catch (_) {
-      _showMessage('Could not share the card. Please try again.');
+      _showMessage("Couldn't share the card. Try again.", isError: true);
     } finally {
       if (mounted) setState(() => _isSharingCard = false);
-    }
-  }
-
-  Future<void> _pickSelfie(ImageSource source) async {
-    if (_isPickingSelfie) return;
-    setState(() => _isPickingSelfie = true);
-
-    try {
-      final picked = await _picker.pickImage(
-        source: source,
-        maxWidth: 1440,
-        imageQuality: 90,
-        preferredCameraDevice: CameraDevice.front,
-      );
-      if (picked == null) return;
-      if (!mounted) return;
-
-      setState(() => _selfieFile = File(picked.path));
-    } catch (_) {
-      _showMessage('Could not access the camera/gallery. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isPickingSelfie = false);
-    }
-  }
-
-  Future<void> _showSelfieSourceSheet() async {
-    final choice = await showModalBottomSheet<_SelfieSource>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        // Same flush-to-bottom treatment as the main sheet — fold the
-        // safe-area inset into the content's own padding rather than
-        // leaving a transparent gap below the sheet.
-        final bottomSafeArea = MediaQuery.paddingOf(sheetContext).bottom;
-
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            color: AppSurfaceColors.sheet(sheetContext),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(LearnDesignTokens.sheetTopRadius),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LearnDesignTokens.dragHandle(sheetContext),
-              Padding(
-                padding: EdgeInsets.only(bottom: 8 + bottomSafeArea),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _SelfieSourceTile(
-                      iconAsset: 'assets/icons/camera.svg',
-                      title: 'Take photo',
-                      subtitle: 'See the branding while you frame your shot',
-                      onTap: () => Navigator.of(sheetContext)
-                          .pop(_SelfieSource.liveCamera),
-                    ),
-                    _SelfieSourceTile(
-                      iconAsset: 'assets/icons/gallery.svg',
-                      title: 'Choose from gallery',
-                      onTap: () =>
-                          Navigator.of(sheetContext).pop(_SelfieSource.gallery),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    switch (choice) {
-      case _SelfieSource.liveCamera:
-        await _openLiveCamera();
-        break;
-      case _SelfieSource.gallery:
-        await _pickSelfie(ImageSource.gallery);
-        break;
-      case null:
-        break;
-    }
-  }
-
-  Future<void> _openLiveCamera() async {
-    if (_isPickingSelfie) return;
-    setState(() => _isPickingSelfie = true);
-
-    try {
-      final file = await Navigator.of(context).push<File>(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => CleanAirForumCameraScreen(
-            measurement: widget.measurement,
-            fallbackLocationName: widget.fallbackLocationName,
-          ),
-        ),
-      );
-      if (file != null && mounted) {
-        setState(() => _selfieFile = file);
-      }
-    } catch (_) {
-      _showMessage('Could not open the live camera. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isPickingSelfie = false);
-    }
-  }
-
-  Future<void> _shareFilter() async {
-    if (_isSharingFilter || _selfieFile == null) return;
-    setState(() => _isSharingFilter = true);
-
-    try {
-      final imageBytes = await _captureBoundary(_filterKey);
-      if (imageBytes == null) {
-        _showMessage('Could not prepare the filter. Please try again.');
-        return;
-      }
-
-      await AirQualityShareService.shareCleanAirForumFilter(
-        imageBytes,
-        widget.measurement,
-        fallbackLocationName: widget.fallbackLocationName,
-        sharePositionOrigin: widget.sharePositionOrigin,
-      );
-
-      if (_consentToDisplay) {
-        unawaited(_submitToConferenceWall(imageBytes));
-      }
-    } catch (_) {
-      _showMessage('Could not share the filter. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isSharingFilter = false);
-    }
-  }
-
-  Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
-    try {
-      await CleanAirForumSubmissionService.instance.submitSelfie(
-        imageBytes: imageBytes,
-        measurement: widget.measurement,
-        fallbackLocationName: widget.fallbackLocationName,
-      );
-      _showMessage('Sent to the Clean Air Forum screen!');
-    } catch (_) {
-      _showMessage(
-        'Your photo shared fine, but sending it to the conference screen '
-        "didn't work. Please try again.",
-      );
     }
   }
 
@@ -312,9 +229,9 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     setState(() => _isCopyingSticker = true);
 
     try {
-      final imageBytes = await _captureBoundary(_stickerKey);
+      final imageBytes = await captureShareBoundary(context, _stickerKey);
       if (imageBytes == null) {
-        _showMessage('Could not prepare the sticker. Please try again.');
+        _showMessage("Couldn't copy the sticker. Try again.", isError: true);
         return;
       }
 
@@ -326,11 +243,15 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       // before declaring success.
       final clipboardImage = await Pasteboard.image;
       if (clipboardImage == null || clipboardImage.isEmpty) {
-        _showMessage('Could not copy the sticker. Please try again.');
+        _showMessage("Couldn't copy the sticker. Try again.", isError: true);
         return;
       }
 
-      _showMessage('Copied! Paste it into your Instagram Story.');
+      AnalyticsService().trackShareCompleted(
+        format: _ShareTab.sticker.analyticsName,
+        method: 'clipboard_copy',
+      );
+      _showMessage('Copied! Paste it into your Story.');
       if (mounted) {
         setState(() => _stickerCopied = true);
         Timer(const Duration(seconds: 2), () {
@@ -338,7 +259,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
         });
       }
     } catch (_) {
-      _showMessage('Could not copy the sticker. Please try again.');
+      _showMessage("Couldn't copy the sticker. Try again.", isError: true);
     } finally {
       if (mounted) setState(() => _isCopyingSticker = false);
     }
@@ -394,7 +315,18 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
                       _buildTabSelector(),
                       if (_inlineMessage != null) ...[
                         const SizedBox(height: 12),
-                        _InlineMessageBanner(message: _inlineMessage!),
+                        InlineMessageBanner(
+                          message: _inlineMessage!,
+                          isError: _inlineIsError,
+                          actionLabel: _inlineActionLabel,
+                          onAction: _inlineOnAction == null
+                              ? null
+                              : () {
+                                  final action = _inlineOnAction!;
+                                  setState(() => _inlineMessage = null);
+                                  action();
+                                },
+                        ),
                       ],
                       const SizedBox(height: 20),
                       _buildTabContent(),
@@ -423,13 +355,13 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   Widget _buildTabSelector() {
     return Row(
       children: [
-        for (final spec in _shareTabSpecs) ...[
-          if (spec != _shareTabSpecs.first) const SizedBox(width: 8),
+        for (final tab in _ShareTab.values) ...[
+          if (tab != _ShareTab.values.first) const SizedBox(width: 8),
           Expanded(
-            child: _TabChip(
-              label: spec.label,
-              selected: _tab == spec.tab,
-              onTap: () => setState(() => _tab = spec.tab),
+            child: ShareTabChip(
+              label: tab.label,
+              selected: _tab == tab,
+              onTap: () => _selectTab(tab),
             ),
           ),
         ],
@@ -440,7 +372,19 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   Widget _buildTabContent() {
     switch (_tab) {
       case _ShareTab.filter:
-        return _buildFilterTab();
+        return CleanAirForumFilterTab(
+          measurement: widget.measurement,
+          fallbackLocationName: widget.fallbackLocationName,
+          sharePositionOrigin: widget.sharePositionOrigin,
+          analyticsFormat: _ShareTab.filter.analyticsName,
+          selfieFile: _selfieFile,
+          onSelfieChanged: (file) => setState(() => _selfieFile = file),
+          consentToDisplay: _consentToDisplay,
+          onConsentChanged: (value) =>
+              setState(() => _consentToDisplay = value),
+          onMessage: _showMessage,
+          submissionService: widget.submissionService,
+        );
       case _ShareTab.card:
         return _buildCardTab();
       case _ShareTab.sticker:
@@ -460,117 +404,10 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
           ),
         ),
         const SizedBox(height: 16),
-        _ShareButton(
+        ShareActionButton(
           label: _isSharingCard ? 'Preparing card...' : 'Share card',
           loading: _isSharingCard,
           onPressed: _isSharingCard ? null : _shareCard,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterTab() {
-    final hasSelfie = _selfieFile != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // The template is always visible — even before a selfie is picked —
-        // so it stays previewable while switching between share tabs. Full
-        // width (no artificial max-width cap) so it matches the Card tab's
-        // size for a consistent look across all three share formats.
-        RepaintBoundary(
-          key: _filterKey,
-          child: CleanAirForumFilterCard(
-            selfieFile: _selfieFile,
-            measurement: widget.measurement,
-            fallbackLocationName: widget.fallbackLocationName,
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (hasSelfie)
-          OutlinedButton.icon(
-            onPressed: _isPickingSelfie ? null : _showSelfieSourceSheet,
-            style: learnExposureSecondaryButtonStyle(context),
-            icon: SvgPicture.asset(
-              'assets/icons/camera.svg',
-              width: 18,
-              height: 18,
-              colorFilter: ColorFilter.mode(
-                LearnDesignTokens.headline(context),
-                BlendMode.srcIn,
-              ),
-            ),
-            label: const Text('Change photo'),
-          )
-        else
-          ElevatedButton.icon(
-            onPressed: _isPickingSelfie ? null : _showSelfieSourceSheet,
-            style: learnExposurePrimaryButtonStyle(enabled: !_isPickingSelfie),
-            icon: _isPickingSelfie
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : SvgPicture.asset(
-                    'assets/icons/camera.svg',
-                    width: 18,
-                    height: 18,
-                    colorFilter: ColorFilter.mode(
-                      _isPickingSelfie
-                          ? AppColors.boldHeadlineColor3
-                          : Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-            label: const Text('Take selfie'),
-          ),
-        if (hasSelfie) ...[
-          const SizedBox(height: 12),
-          _buildConsentSection(),
-          const SizedBox(height: 16),
-          _ShareButton(
-            label: _isSharingFilter ? 'Preparing filter...' : 'Share filter',
-            loading: _isSharingFilter,
-            onPressed: _isSharingFilter ? null : _shareFilter,
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildConsentSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Display my photo on the conference screen',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: LearnDesignTokens.headline(context),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Shown live on the Clean Air Forum wall display.',
-                style: LearnDesignTokens.completionCaption(context),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        CustomSwitch(
-          value: _consentToDisplay,
-          onChanged: (value) => setState(() => _consentToDisplay = value),
         ),
       ],
     );
@@ -580,7 +417,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CheckerboardBackground(
+        CheckerboardBackground(
           borderRadius: 26,
           child: RepaintBoundary(
             key: _stickerKey,
@@ -642,206 +479,4 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
       ],
     );
   }
-}
-
-class _InlineMessageBanner extends StatelessWidget {
-  final String message;
-
-  const _InlineMessageBanner({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: LearnDesignTokens.nestedSurface(context),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Text(
-          message,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: LearnDesignTokens.headline(context),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SelfieSourceTile extends StatelessWidget {
-  final String iconAsset;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
-
-  const _SelfieSourceTile({
-    required this.iconAsset,
-    required this.title,
-    this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: LearnDesignTokens.iconBg(context),
-        child: SvgPicture.asset(
-          iconAsset,
-          width: 20,
-          height: 20,
-          colorFilter: ColorFilter.mode(
-            LearnDesignTokens.headline(context),
-            BlendMode.srcIn,
-          ),
-        ),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: LearnDesignTokens.headline(context),
-        ),
-      ),
-      subtitle: subtitle == null
-          ? null
-          : Text(subtitle!,
-              style: LearnDesignTokens.completionCaption(context)),
-    );
-  }
-}
-
-/// Matches the pill-shaped view/country selector used on the dashboard, map,
-/// and learn tab (see `ViewSelector._buildViewButton`).
-class _TabChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TabChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primaryColor
-              : (isDark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: selected
-                ? Colors.white
-                : (isDark ? Colors.white : Colors.black87),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ShareButton extends StatelessWidget {
-  final String label;
-  final bool loading;
-  final VoidCallback? onPressed;
-
-  const _ShareButton({
-    required this.label,
-    required this.loading,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      style: learnExposurePrimaryButtonStyle(enabled: onPressed != null),
-      icon: loading
-          ? const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : SvgPicture.asset(
-              'assets/icons/share-icon.svg',
-              width: 18,
-              height: 18,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
-      label: Text(label),
-    );
-  }
-}
-
-/// Simple checkerboard backdrop shown only in-app (not part of the captured
-/// image) so users can see the sticker preview really is transparent.
-class _CheckerboardBackground extends StatelessWidget {
-  final Widget child;
-  final double borderRadius;
-
-  const _CheckerboardBackground({required this.child, this.borderRadius = 0});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: CustomPaint(
-        painter: _CheckerboardPainter(),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _CheckerboardPainter extends CustomPainter {
-  static const double _tile = 10;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final light = Paint()..color = const Color(0xFFEDEDED);
-    final dark = Paint()..color = const Color(0xFFD8D8D8);
-
-    canvas.drawRect(Offset.zero & size, light);
-
-    for (double y = 0; y < size.height; y += _tile) {
-      for (double x = 0; x < size.width; x += _tile) {
-        final isDark = ((x / _tile).floor() + (y / _tile).floor()) % 2 == 0;
-        if (isDark) {
-          canvas.drawRect(Rect.fromLTWH(x, y, _tile, _tile), dark);
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

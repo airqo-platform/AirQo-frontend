@@ -50,6 +50,7 @@ export const API_ROUTES = {
   USERS: {
     NEWSLETTER_SUBSCRIBE: '/api/v2/users/newsletter/subscribe',
     CONTACT_US: '/api/v2/users/inquiries/register',
+    SELFIES: 'users/selfies',
   },
   PREDICT: {
     DAILY_FORECAST: 'predict/daily-forecast',

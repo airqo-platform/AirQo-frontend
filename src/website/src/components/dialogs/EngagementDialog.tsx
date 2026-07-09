@@ -442,7 +442,7 @@ const EngagementDialog = () => {
               </h2>
               <p className="text-gray-500">
                 Access real-time and historic air quality information across
-                Africa through our easy-to-use AirQo Nexus dashboard.
+                Africa through our easy-to-use AirQo Nexus.
               </p>
             </motion.div>
           </motion.div>

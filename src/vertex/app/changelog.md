@@ -2,8 +2,8 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.16
-**Released:** July 8, 2026
+## Version 2.0.18
+**Released:** July 9, 2026
 
 ### Logout Confirmation Modal & ReusableDialog Focus Fixes
 
@@ -25,6 +25,86 @@ Added a confirmation step before signing out, and fixed two focus-management bug
 - **Stale timer fixed**: the `setTimeout` that moves focus into the dialog is now cleared in the effect cleanup, preventing it from firing against an already-closed dialog.
 - **First focusable element**: focus now lands on the first interactive element that is not the close (×) button — typically the Cancel button in a confirmation flow or the first input in a form dialog. Falls back to the × button, then the dialog root.
 - **Title casing**: removed the `capitalize` CSS class from the title `<h2>` so titles render exactly as passed (sentence-case titles like *"Sign out of your AirQo account?"* no longer have every word force-capitalised). Existing title-cased strings are unaffected.
+
+</details>
+
+---
+
+## Version 2.0.17
+**Released:** July 7, 2026
+
+### Terminal Installer for Vertex Desktop (Linux)
+
+Added a one-line `curl | bash` installer for Vertex Desktop on Linux, matching the pattern used by tools like Cursor (`cursor.com/install`), so Linux users don't need to manually pick between `.deb`/`.AppImage` from the GitHub Releases page.
+
+<details>
+<summary><strong>New: <code>public/install.sh</code></strong></summary>
+
+- Served at `https://vertex.airqo.net/install.sh`; run via `curl -fsSL https://vertex.airqo.net/install.sh | bash`.
+- Resolves the exact "latest" `vertex-desktop-v*` release and asset via the GitHub API rather than a hardcoded/guessed URL, with explicit handling for API rate-limit (403/429) and network failures.
+- Parses the GitHub API's JSON response with portable POSIX `sed` rather than `grep -P`, so it doesn't abort mid-parse on minimal distros (e.g. Alpine/BusyBox) that lack PCRE support in `grep`.
+- Prefers the `.deb` (via `apt install`, which pulls in missing dependencies automatically) when `apt` is available, otherwise falls back to a portable `.AppImage` installed under `~/.local/bin` — no root required for that path at all.
+- Rejects unsupported architectures (e.g. `arm64`, not built yet) instead of silently downloading the wrong binary.
+
+</details>
+
+<details>
+<summary><strong>Security hardening</strong></summary>
+
+- Never re-execs itself as root; only the single `apt install` step escalates via `sudo`, and only when not already running as root.
+- Verifies the downloaded binary's `sha512` against the official `latest-linux.yml` manifest that `electron-builder` already publishes (the same manifest `electron-updater` trusts for auto-updates) — refuses to install on a mismatch instead of proceeding with a warning.
+- Uses `mktemp -d` plus an `EXIT` trap for safe, cleaned-up temp file handling; no predictable `/tmp` paths.
+- Verified end-to-end against the real `v0.1.11` release: real JSON/YAML parsing, a real checksum-verified download, and a deliberately corrupted file correctly failing verification.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (3)</strong></summary>
+
+- `src/vertex/public/install.sh` [NEW]
+- `src/vertex/next.config.js` [MODIFIED] — `Cache-Control`/`Content-Type` headers for `/install.sh`
+- `src/vertex/next.config.mjs` [MODIFIED] — same headers, kept in sync with `next.config.js`
+
+</details>
+
+---
+
+## Version 2.0.16
+**Released:** July 6, 2026
+
+### Device Details — Localized Map Card
+
+Added an embedded map to the Site Details card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed. The map is extracted into a reusable standalone component so it can also be used on the Site Details page.
+
+<details>
+<summary><strong>New: <code>DeviceLocationMap</code> component (<code>device-location-map.tsx</code>)</strong></summary>
+
+- Standalone reusable component that renders a read-only map for a given latitude/longitude.
+- **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
+- **Empty state**: When coordinates are unavailable, a dashed-border placeholder with a `MapPin` icon is shown instead of blank space.
+- Accepts `height` and `zoom` props (defaults: `h-48`, zoom `13`) for reuse at different sizes.
+
+</details>
+
+<details>
+<summary><strong>Site Details Card (<code>device-location-card.tsx</code>)</strong></summary>
+
+- Embeds `<DeviceLocationMap>` below the site name and coordinate fields, centred on the device's stored coordinates.
+- Added `overflow-hidden` to the card so the map respects the card's rounded corners.
+
+</details>
+
+<details>
+<summary><strong>Device Details Card (<code>device-details-card.tsx</code>)</strong></summary>
+
+- No map here — map lives in the Site Details card only.
+
+</details>
+
+<details>
+<summary><strong>MiniMap — <code>readOnly</code> prop (<code>mini-map.tsx</code>)</strong></summary>
+
+- Added `readOnly?: boolean` (default `false`). When `true`, the marker is non-draggable and click-to-move is disabled — the existing add/edit device flows are unaffected.
 
 </details>
 
