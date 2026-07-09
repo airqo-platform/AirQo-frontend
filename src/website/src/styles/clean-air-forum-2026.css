@@ -94,3 +94,53 @@
 .caf-2026-screen {
   min-height: 100vh;
 }
+
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+  .caf-2026-quiz-stage {
+    min-height: 100dvh;
+    overflow: hidden;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .caf-2026-quiz-shell {
+    min-height: calc(100dvh - 3rem);
+  }
+
+  .caf-2026-quiz-content {
+    flex: 1;
+    justify-content: space-between;
+    margin-top: 2rem;
+    gap: 1.5rem;
+    overflow: hidden;
+  }
+
+  .caf-2026-quiz-question-block {
+    gap: 1.5rem;
+  }
+
+  .caf-2026-quiz-question {
+    max-width: 68rem;
+    font-size: clamp(1.05rem, 1.85vw, 1.8rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .caf-2026-quiz-options {
+    gap: 0.75rem;
+  }
+
+  .caf-2026-quiz-option {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+  }
+
+  .caf-2026-quiz-option-label {
+    font-size: 1.2rem;
+    line-height: 1.14;
+  }
+
+  .caf-2026-quiz-action {
+    margin-bottom: 0.25rem;
+  }
+}

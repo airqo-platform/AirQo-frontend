@@ -159,7 +159,7 @@ export default function LeaderboardScreen() {
 
               <div className="hidden shrink-0 text-left text-white md:block">
                 <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                  Africa CLEAN - Air Forum
+                  Africa clean air forum
                 </p>
                 <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
                   Pretoria 2026

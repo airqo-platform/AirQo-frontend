@@ -362,7 +362,7 @@ export default function QuizScreen() {
 
                 <div className="hidden shrink-0 text-left text-white md:block">
                   <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                    Africa CLEAN - Air Forum
+                    Africa clean air forum
                   </p>
                   <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
                     Pretoria 2026
@@ -413,8 +413,8 @@ export default function QuizScreen() {
 
   return (
     <Screen className="caf-2026-screen">
-      <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
-        <div className="flex w-full flex-col items-center">
+      <section className="caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+        <div className="caf-2026-quiz-shell flex w-full flex-col items-center">
           <div className="flex w-full justify-center">
             <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
@@ -436,7 +436,7 @@ export default function QuizScreen() {
 
               <div className="hidden shrink-0 text-left text-white md:block">
                 <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                  Africa CLEAN - Air Forum
+                  Africa clean air forum
                 </p>
                 <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
                   Pretoria 2026
@@ -445,19 +445,19 @@ export default function QuizScreen() {
             </div>
           </div>
 
-          <div className="mt-16 flex w-full max-w-5xl flex-col items-center gap-8 sm:mt-20 sm:gap-10">
+          <div className="caf-2026-quiz-content mt-16 flex w-full max-w-5xl flex-col items-center gap-8 sm:mt-20 sm:gap-10">
             <div
               key={currentActivity.id}
-              className="animate-fade-in flex w-full flex-col items-center gap-8 sm:gap-10"
+              className="caf-2026-quiz-question-block animate-fade-in flex w-full flex-col items-center gap-8 sm:gap-10"
             >
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72">
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </p>
-              <h1 className="w-full max-w-none text-balance text-left text-[clamp(1.2rem,2vw,2.1rem)] font-bold leading-[1.12] tracking-[-0.025em] text-[#072b31] md:text-center">
+              <h1 className="caf-2026-quiz-question w-full max-w-none text-balance text-left text-[clamp(1.2rem,2vw,2.1rem)] font-bold leading-[1.12] tracking-[-0.025em] text-[#072b31] md:text-center">
                 {currentActivity.payload.question}
               </h1>
 
-              <div className="flex w-full max-w-4xl flex-col gap-4">
+              <div className="caf-2026-quiz-options flex w-full max-w-4xl flex-col gap-4">
                 {currentActivity.payload.options.map((option, optionIndex) => {
                   const isSelected = selectedOptionIndex === optionIndex;
                   const isCorrectOption = correctOptionIndex === optionIndex;
@@ -478,7 +478,7 @@ export default function QuizScreen() {
                         : 'bg-white text-[#072b31] opacity-72'
                     : isSelected
                       ? 'bg-[var(--caf-2026-interactive)] text-white'
-                      : 'bg-white text-[#072b31]'
+                      : 'bg-white text-[#072b31]';
 
                   return (
                     <button
@@ -502,11 +502,11 @@ export default function QuizScreen() {
                         }));
                       }}
                       className={[
-                        'rounded-[1.5rem] px-5 py-4 text-left transition-colors sm:px-6 sm:py-5',
+                        'caf-2026-quiz-option rounded-[1.5rem] px-5 py-4 text-left transition-colors sm:px-6 sm:py-5',
                         optionStateClass,
                       ].join(' ')}
                     >
-                      <p className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[1.45rem]">
+                      <p className="caf-2026-quiz-option-label text-lg font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[1.45rem]">
                         {option.trim()}
                       </p>
                     </button>
@@ -517,7 +517,7 @@ export default function QuizScreen() {
 
             {hasSelectedCurrentQuestion ? (
               <Button
-                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                className="caf-2026-quiz-action rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                 onClick={handleSubmitCurrentQuestion}
                 disabled={isRevealingCurrentQuestion || submissionStatus === 'submitting'}
               >
