@@ -34,11 +34,14 @@ Future<Uint8List?> captureShareBoundary(
 }
 
 /// Signature the share tabs use to surface a short status line in the
-/// sheet's inline banner. [actionLabel]/[onAction] add a single tap action
+/// sheet's inline banner. [loading] shows a spinner and keeps the banner
+/// up until replaced by the next message (success/error), instead of
+/// auto-dismissing. [actionLabel]/[onAction] add a single tap action
 /// (e.g. Retry, Settings).
 typedef ShareSheetMessenger = void Function(
   String message, {
   bool isError,
+  bool loading,
   String? actionLabel,
   VoidCallback? onAction,
 });
@@ -46,6 +49,7 @@ typedef ShareSheetMessenger = void Function(
 class InlineMessageBanner extends StatelessWidget {
   final String message;
   final bool isError;
+  final bool loading;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -53,37 +57,80 @@ class InlineMessageBanner extends StatelessWidget {
     super.key,
     required this.message,
     this.isError = false,
+    this.loading = false,
     this.actionLabel,
     this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
+    // Three tones: in-progress messages stay neutral (nothing to celebrate
+    // or warn about yet); success/error match the Figma "Alert" component
+    // (WM-Rebrand-Jam, node 187:2721) — bordered card, tone-matched icon,
+    // and action colour drawn from the same tone rather than a flat brand
+    // blue, since the reference never mixes an unrelated colour into an
+    // alert's own family.
+    final Color contentColor;
+    final Color backgroundColor;
+    final Color? borderColor;
+    final String? iconAsset;
+    if (loading) {
+      contentColor = LearnDesignTokens.headline(context);
+      backgroundColor = LearnDesignTokens.nestedSurface(context);
+      borderColor = null;
+      iconAsset = null;
+    } else if (isError) {
+      contentColor = AppAlertColors.errorForeground(context);
+      backgroundColor = AppAlertColors.errorBackground(context);
+      borderColor = AppAlertColors.errorBorder(context);
+      iconAsset = 'assets/icons/alert-circle.svg';
+    } else {
+      contentColor = AppAlertColors.successForeground(context);
+      backgroundColor = AppAlertColors.successBackground(context);
+      borderColor = AppAlertColors.successBorder(context);
+      iconAsset = 'assets/icons/check-circle.svg';
+    }
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: isError
-            ? errorColor.withValues(alpha: 0.10)
-            : LearnDesignTokens.nestedSurface(context),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
+        border: borderColor == null ? null : Border.all(color: borderColor),
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: actionLabel == null ? 10 : 4,
-        ),
+        // Same padding regardless of the action button — it's sized with
+        // minimumSize: Size.zero and no vertical padding of its own, so it
+        // never needed the old shrunk padding; that just made banners with
+        // an action (e.g. Retry) noticeably thinner than plain ones.
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
           children: [
+            if (loading) ...[
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(contentColor),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ] else if (iconAsset != null) ...[
+              SvgPicture.asset(
+                iconAsset,
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
+              ),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: Text(
                 message,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isError
-                      ? errorColor
-                      : LearnDesignTokens.headline(context),
+                  color: contentColor,
                 ),
               ),
             ),
@@ -91,7 +138,19 @@ class InlineMessageBanner extends StatelessWidget {
               const SizedBox(width: 8),
               TextButton(
                 onPressed: onAction,
-                child: Text(actionLabel!),
+                style: TextButton.styleFrom(
+                  foregroundColor: contentColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  actionLabel!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ],
           ],

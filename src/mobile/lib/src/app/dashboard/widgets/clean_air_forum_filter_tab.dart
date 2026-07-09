@@ -93,6 +93,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       if (!mounted) return;
 
       widget.onSelfieChanged(File(picked.path));
+      if (widget.consentToDisplay) unawaited(_submitCurrentSelfieToWall());
     } on PlatformException catch (e) {
       // "Try again" is wrong advice when access is denied — the fix lives
       // in system settings, so link straight there.
@@ -205,6 +206,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       if (file != null && mounted) {
         widget.onSelfieChanged(file);
         AnalyticsService().trackCafSelfieCaptured();
+        if (widget.consentToDisplay) unawaited(_submitCurrentSelfieToWall());
       }
     } catch (_) {
       widget.onMessage("Couldn't open the camera.", isError: true);
@@ -238,10 +240,6 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
           method: 'share_sheet',
         );
       }
-
-      if (widget.consentToDisplay) {
-        unawaited(_submitToConferenceWall(imageBytes));
-      }
     } catch (_) {
       widget.onMessage("Couldn't share the filter. Try again.", isError: true);
     } finally {
@@ -249,25 +247,42 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
     }
   }
 
+  /// Captures the current filter card and sends it to the wall — triggered
+  /// the moment consent is given (or a new/changed photo is picked while
+  /// already consented), rather than being bundled into the personal
+  /// "Share" action. Piggybacking on share made consent look like it should
+  /// be enough on its own, but nothing was actually sent to the wall until
+  /// the user *also* shared the filter externally.
+  Future<void> _submitCurrentSelfieToWall() async {
+    if (widget.selfieFile == null) return;
+    if (_isSendingToWall) return;
+    final imageBytes = await captureShareBoundary(context, _filterKey);
+    if (imageBytes == null) {
+      widget.onMessage("Couldn't prepare the filter. Try again.",
+          isError: true);
+      return;
+    }
+    await _submitToConferenceWall(imageBytes);
+  }
+
   Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
     // Retry (which can fire from the root SnackBar even after dismissal)
-    // and repeated shares must not enqueue duplicate wall submissions, so
-    // the flag is set outside setState and checked before every start.
+    // and repeated shares must not enqueue duplicate wall submissions.
+    // Not rendered directly — the sheet's inline banner (via onMessage's
+    // `loading: true`) is the only visible sign of progress now.
     if (_isSendingToWall) return;
     _isSendingToWall = true;
-    if (mounted) setState(() {});
+    widget.onMessage('Sending to the wall…', loading: true);
     try {
-      final wallName = await _submissionService.submitSelfie(
+      // The API's displayName can be the user's email when they're logged
+      // in — never surface it here, since the wall itself hides identity.
+      await _submissionService.submitSelfie(
         imageBytes: imageBytes,
         measurement: widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
       );
       AnalyticsService().trackCafWallSubmissionSent();
-      widget.onMessage(
-        wallName == null
-            ? "You're on the forum wall!"
-            : "You're on the wall as $wallName!",
-      );
+      widget.onMessage("You're on the forum wall!");
     } catch (e) {
       // Report only the failure category — raw messages can carry API
       // response details that don't belong in analytics.
@@ -284,7 +299,6 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       );
     } finally {
       _isSendingToWall = false;
-      if (mounted) setState(() {});
     }
   }
 
@@ -372,26 +386,6 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
             loading: _isSharingFilter,
             onPressed: _isSharingFilter ? null : _shareFilter,
           ),
-          // The wall submission runs in the background after the share —
-          // without this the user gets no sign anything is still happening.
-          if (_isSendingToWall) ...[
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Sending to the wall…',
-                  style: LearnDesignTokens.completionCaption(context),
-                ),
-              ],
-            ),
-          ],
         ],
       ],
     );
@@ -426,7 +420,10 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
           value: widget.consentToDisplay,
           onChanged: (value) {
             widget.onConsentChanged(value);
-            if (value) AnalyticsService().trackCafWallConsentGiven();
+            if (value) {
+              AnalyticsService().trackCafWallConsentGiven();
+              unawaited(_submitCurrentSelfieToWall());
+            }
           },
         ),
       ],
