@@ -41,9 +41,9 @@ const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
-const EVENT_LABEL = 'Africa CLEAN-Air Forum';
+const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
-const EVENT_DATES_BADGE = '14TH-16TH JULY';
+const EVENT_DATES_BADGE = '13TH-16TH JULY';
 
 const SMOOTH_SPRING = {
   stiffness: 150,
@@ -163,7 +163,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse at 100% 0%, #02143B 0%, transparent 60%)',
+            'radial-gradient(ellipse at 100% 0%, #005257 0%, transparent 60%)',
         }}
       />
 
@@ -214,7 +214,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Right atmospheric glow */}
       <motion.div
-        className="absolute -right-[55%] top-[5%] h-[420px] w-[420px] rounded-full bg-blue-300/20 blur-[100px] sm:-right-[14%] sm:h-[540px] sm:w-[540px] sm:blur-[110px]"
+        className="absolute -right-[55%] top-[5%] h-[420px] w-[420px] rounded-full bg-[#39BFC7]/20 blur-[100px] sm:-right-[14%] sm:h-[540px] sm:w-[540px] sm:blur-[110px]"
         animate={
           reduceMotion
             ? undefined
@@ -233,7 +233,7 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       {/* Left atmospheric glow */}
       <motion.div
-        className="absolute -left-[60%] top-[28%] h-[380px] w-[380px] rounded-full bg-cyan-300/12 blur-[100px] sm:-left-[13%] sm:top-[20%] sm:h-[450px] sm:w-[450px] sm:blur-[115px]"
+        className="absolute -left-[60%] top-[28%] h-[380px] w-[380px] rounded-full bg-[#39BFC7]/12 blur-[100px] sm:-left-[13%] sm:top-[20%] sm:h-[450px] sm:w-[450px] sm:blur-[115px]"
         animate={
           reduceMotion
             ? undefined
@@ -305,7 +305,7 @@ function SkeletonCard({
       className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
       aria-hidden="true"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-blue-100/15 to-blue-600/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-[#39BFC7]/15 to-[#39BFC7]/20" />
 
       {!reduceMotion && (
         <motion.div
@@ -332,7 +332,7 @@ function SkeletonCard({
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-blue-700/80 via-blue-600/50 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-[#005257]/80 via-[#39BFC7]/50 to-transparent" />
 
       <div className="absolute inset-x-3 bottom-3 space-y-2">
         <div className="h-5 w-3/4 rounded-full bg-white/45" />
@@ -469,7 +469,7 @@ function FaceCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-blue-950 shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -483,7 +483,7 @@ function FaceCard({
 
       <div className="absolute inset-x-0 top-0 h-[31%] bg-gradient-to-b from-black/35 via-black/10 to-transparent" />
 
-      <div className="absolute inset-x-0 bottom-0 h-[51%] bg-gradient-to-t from-blue-800 via-blue-600/95 via-[58%] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-[51%] bg-gradient-to-t from-[#005257] via-[#39BFC7]/95 via-[58%] to-transparent" />
 
       {!reduceMotion && (
         <motion.div
@@ -528,7 +528,7 @@ function FaceCard({
 
         <div className="border-l border-white/40 pl-2.5 leading-[1.1]">
           <p className="text-[11px] font-semibold drop-shadow-sm">
-            Clean Air Forum
+            Africa Clean Air Forum
           </p>
 
           <p className="text-[10px] italic text-white/85">
@@ -605,7 +605,7 @@ function FaceCard({
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-          <span className="truncate rounded bg-white px-2 py-0.5 text-[6px] font-semibold text-blue-700 sm:text-[7px]">
+          <span className="truncate rounded bg-white px-2 py-0.5 text-[6px] font-semibold text-[#005257] sm:text-[7px]">
             Shared from the AirQo app
           </span>
 
@@ -663,7 +663,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
             />
 
             <motion.span
-              className="absolute inset-0 rounded-full border border-blue-200/30"
+              className="absolute inset-0 rounded-full border border-[#39BFC7]/30"
               animate={{
                 scale: [1, 1.45],
                 opacity: [0.45, 0],
@@ -700,7 +700,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       <h2 className="text-lg font-bold text-white sm:text-xl">No faces yet</h2>
 
-      <p className="mt-2 max-w-sm text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
         Be the first to share an air quality selfie from the Africa Clean Air
         Forum.
       </p>
@@ -747,7 +747,7 @@ function ErrorState({
         We could not load the selfie wall
       </h2>
 
-      <p className="mt-2 text-xs leading-5 text-blue-50/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
         Please check the connection and try again.
       </p>
 
@@ -769,7 +769,7 @@ function ErrorState({
                 scale: 0.96,
               }
         }
-        className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition-colors hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+        className="mt-5 rounded-lg bg-[#39BFC7] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#005257]/20 transition-colors hover:bg-[#39BFC7]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#39BFC7]"
       >
         Try again
       </motion.button>
@@ -836,7 +836,7 @@ function DesktopPagination({
               <>
                 <motion.span
                   layoutId="active-carousel-indicator"
-                  className="absolute inset-0 rounded-full bg-blue-300/20"
+                  className="absolute inset-0 rounded-full bg-[#39BFC7]/20"
                   transition={{
                     type: 'spring',
                     stiffness: 320,
@@ -857,12 +857,12 @@ function DesktopPagination({
                       duration: CAROUSEL_INTERVAL_MS / 1000,
                       ease: 'linear',
                     }}
-                    className="absolute inset-0 origin-left rounded-full bg-blue-600"
+                    className="absolute inset-0 origin-left rounded-full bg-[#39BFC7]"
                   />
                 )}
 
                 {(reduceMotion || isPaused) && (
-                  <span className="absolute inset-0 rounded-full bg-blue-600" />
+                  <span className="absolute inset-0 rounded-full bg-[#39BFC7]" />
                 )}
               </>
             )}
@@ -1181,7 +1181,7 @@ export default function FacesOfCleanAirPage() {
       className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
       style={{
         background:
-          'linear-gradient(180deg, #02143B 0%, #145FFF 50%, #FFFFFF 100%)',
+          'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
       }}
     >
       <AmbientBackground reduceMotion={shouldReduceMotion} />
