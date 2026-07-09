@@ -101,6 +101,40 @@ class LearnProgressService {
     _notify();
   }
 
+  /// Merges one lesson's server-side progress into local storage, keeping
+  /// whichever side is further along. Returns true if anything changed.
+  /// Callers batch-merging several lessons should call [notifyChanged] once
+  /// afterwards.
+  Future<bool> mergeServerLesson({
+    required String lessonKey,
+    required bool completed,
+    int? furthestStep,
+    required int stars,
+    required int points,
+  }) async {
+    await ensureInitialized();
+    var changed = false;
+    if (completed && !isLessonComplete(lessonKey)) {
+      await _prefs!.setBool('$_completePrefix$lessonKey', true);
+      changed = true;
+    }
+    if (furthestStep != null && furthestStep > this.furthestStep(lessonKey)) {
+      await _prefs!.setInt('$_stepPrefix$lessonKey', furthestStep);
+      changed = true;
+    }
+    final localPoints = lessonPoints(lessonKey);
+    final localStars = lessonStars(lessonKey);
+    if (points > localPoints ||
+        (points == localPoints && stars > localStars)) {
+      await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
+      await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
+      changed = true;
+    }
+    return changed;
+  }
+
+  void notifyChanged() => _notify();
+
   // ---- In-lesson session state (quiz attempts, free-text drafts) ----------
   // Persisted per lesson so quitting mid-lesson and resuming keeps earlier
   // answers; cleared on completion or replay.

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
@@ -49,6 +50,61 @@ class QuizAttemptData {
         selectedOrder: _intList(json['selected_order']),
         isCorrect: json['is_correct'] as bool? ?? false,
       );
+}
+
+/// One lesson's progress as returned by GET /learn/progress.
+class LearnServerLessonProgress {
+  final bool completed;
+  final int? furthestActivityIndex;
+  final int stars;
+  final int pointsEarned;
+
+  const LearnServerLessonProgress({
+    required this.completed,
+    this.furthestActivityIndex,
+    required this.stars,
+    required this.pointsEarned,
+  });
+
+  factory LearnServerLessonProgress.fromJson(Map<String, dynamic> json) =>
+      LearnServerLessonProgress(
+        completed: json['completed'] as bool? ?? false,
+        furthestActivityIndex: json['furthest_activity_index'] is int
+            ? json['furthest_activity_index'] as int
+            : null,
+        stars: json['stars'] as int? ?? 0,
+        pointsEarned: json['points_earned'] as int? ?? 0,
+      );
+}
+
+/// Account/guest progress as returned by GET /learn/progress. The API returns
+/// `lessons` as an object keyed by lesson id, not an array.
+class LearnServerProgress {
+  final int totalPoints;
+  final Map<String, LearnServerLessonProgress> lessons;
+
+  const LearnServerProgress({
+    required this.totalPoints,
+    required this.lessons,
+  });
+
+  factory LearnServerProgress.fromJson(Map<String, dynamic> json) {
+    final rawLessons = json['lessons'];
+    final lessons = <String, LearnServerLessonProgress>{};
+    if (rawLessons is Map) {
+      for (final entry in rawLessons.entries) {
+        if (entry.value is Map) {
+          lessons[entry.key.toString()] = LearnServerLessonProgress.fromJson(
+            Map<String, dynamic>.from(entry.value as Map),
+          );
+        }
+      }
+    }
+    return LearnServerProgress(
+      totalPoints: json['total_points'] as int? ?? 0,
+      lessons: lessons,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +158,8 @@ abstract class LearnSyncService {
     List<QuizAttemptData> quizAttempts,
   });
   Future<void> syncPendingProgress();
+  Future<LearnServerProgress?> fetchProgress({String? authToken});
+  Future<void> hydrateLocalProgress({String? authToken});
 }
 
 class _LearnSyncServiceImpl extends BaseRepository
@@ -244,6 +302,65 @@ class _LearnSyncServiceImpl extends BaseRepository
       loggy.warning('Progress report error: $e — buffering');
       await _buffer!.append(lessonId, body);
     }
+  }
+
+  // ---- Progress restore ---------------------------------------------------
+
+  @override
+  Future<LearnServerProgress?> fetchProgress({String? authToken}) async {
+    await _ensurePrefs();
+    try {
+      final headers = await _guestHeaders();
+      if (authToken != null) headers['Authorization'] = 'JWT $authToken';
+      final response = await http.get(
+        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressFetch}'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        loggy.warning('Learn progress fetch failed (${response.statusCode})');
+        return null;
+      }
+      final progress = LearnServerProgress.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
+      loggy.info('Fetched Learn progress: ${progress.lessons.length} '
+          'lesson(s), ${progress.totalPoints} total pts');
+      return progress;
+    } catch (e) {
+      loggy.warning('Learn progress fetch error: $e');
+      return null;
+    }
+  }
+
+  /// Fetches server-side progress and merges it into local storage,
+  /// keeping the best of each lesson (never downgrades local progress).
+  @override
+  Future<void> hydrateLocalProgress({String? authToken}) async {
+    final server = await fetchProgress(authToken: authToken);
+    if (server == null || server.lessons.isEmpty) return;
+
+    final progress = LearnProgressService.instance;
+    await progress.ensureInitialized();
+    var merged = 0;
+    for (final entry in server.lessons.entries) {
+      final lesson = entry.value;
+      final changed = await progress.mergeServerLesson(
+        lessonKey: entry.key,
+        completed: lesson.completed,
+        // Server stores the furthest activity *index*; local furthest step
+        // is a count of completed steps.
+        furthestStep: lesson.furthestActivityIndex != null
+            ? lesson.furthestActivityIndex! + 1
+            : null,
+        stars: lesson.stars,
+        points: lesson.pointsEarned,
+      );
+      if (changed) merged++;
+    }
+    if (merged > 0) progress.notifyChanged();
+    loggy.info('Hydrated Learn progress from server: '
+        '$merged of ${server.lessons.length} lesson(s) updated locally');
   }
 
   void _logServerProgress(String lessonId, String responseBody) {
