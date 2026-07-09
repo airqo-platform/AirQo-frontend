@@ -88,13 +88,12 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       if (position != null && mounted) {
         setState(() {
           _userPosition = position;
-          _isLoading = false;
         });
-        
+
         // Update nearby locations with this position
         await _updateNearbyLocations();
       }
-      
+
       // Then get current position for more accuracy
       try {
         position = await Geolocator.getCurrentPosition(
@@ -103,11 +102,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             timeLimit: Duration(seconds: 5),
           ),
         );
-        
+
         if (mounted) {
           setState(() {
             _userPosition = position;
-            _isLoading = false;
           });
         }
         
@@ -210,6 +208,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     
     final state = context.read<DashboardBloc>().state;
     if (state is! DashboardLoaded || state.response.measurements == null) {
+      // Dashboard loaded but has no measurements: nothing to filter, stop
+      // showing the loading skeleton so the empty state can render.
+      if (state is DashboardLoaded && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       return;
     }
     
@@ -279,6 +284,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     if (mounted) {
       setState(() {
         _nearbyMeasurementsWithDistance = visibleMeasurements;
+        _isLoading = false;
       });
     }
   }
@@ -349,6 +355,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   }
 
   void _retry() {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     _initializeLocationAndData();
   }
 
@@ -377,32 +387,26 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
         }
       },
-      child: BlocSelector<DashboardBloc, DashboardState, dynamic>(
-        selector: (state) {
+      child: BlocBuilder<DashboardBloc, DashboardState>(
+        builder: (context, state) {
+          // Local init (cache read, location fetch, distance filtering) may
+          // still be running even though the dashboard data is already
+          // loaded; keep showing the skeleton until it produces a result.
+          // This must be computed in the builder (not a BlocSelector) so
+          // local setState calls re-evaluate it against current fields.
+          final bool isLoading;
           if (state is DashboardLoaded) {
-            return {
-              'isLoading': false,
-              'error': null,
-            };
+            isLoading = _isLoading && _nearbyMeasurementsWithDistance.isEmpty;
           } else if (state is DashboardLoadingError) {
-            return {
-              'isLoading': false,
-              'error': state.message,
-            };
+            isLoading = false;
           } else if (state is DashboardLoading) {
-            return {
-              'isLoading': _nearbyMeasurementsWithDistance.isEmpty,
-              'error': null,
-            };
+            isLoading = _nearbyMeasurementsWithDistance.isEmpty;
+          } else {
+            isLoading = _isLoading && _nearbyMeasurementsWithDistance.isEmpty;
           }
-          return {
-            'isLoading': _isLoading && _nearbyMeasurementsWithDistance.isEmpty,
-            'error': _errorMessage,
-          };
-        },
-        builder: (context, selectedState) {
-          final isLoading = selectedState['isLoading'] as bool;
-          final error = selectedState['error'] as String? ?? _errorMessage;
+          final error =
+              (state is DashboardLoadingError ? state.message : null) ??
+                  _errorMessage;
 
           if (error != null && error.contains('permission') && _nearbyMeasurementsWithDistance.isEmpty) {
             return NearbyViewEmptyState(
