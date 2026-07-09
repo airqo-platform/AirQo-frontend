@@ -112,12 +112,6 @@ class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
             textAlign: TextAlign.center,
             style: LearnDesignTokens.completionCaption(context),
           ),
-          const SizedBox(height: 4),
-          TranslatedText(
-            '(${learnCourseCompletionRarityLabel()})',
-            textAlign: TextAlign.center,
-            style: LearnDesignTokens.completionCaption(context),
-          ),
         ],
       ),
       actions: [

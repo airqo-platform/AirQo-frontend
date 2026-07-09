@@ -17,6 +17,7 @@ class LearnQuizScoringService {
     return LearnQuizGrade(
       isCorrect: correct,
       feedback: correct ? quiz.correctFeedback : quiz.incorrectFeedback,
+      selectedIndex: selectedIndex,
     );
   }
 

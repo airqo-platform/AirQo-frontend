@@ -119,9 +119,11 @@ class LearnLessonResult {
 class LearnQuizGrade {
   final bool isCorrect;
   final String feedback;
+  final int? selectedIndex;
 
   const LearnQuizGrade({
     required this.isCorrect,
     required this.feedback,
+    this.selectedIndex,
   });
 }

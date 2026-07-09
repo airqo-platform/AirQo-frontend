@@ -25,6 +25,15 @@ class QuizAttemptData {
         if (selectedIndex != null) 'selected_index': selectedIndex,
         'is_correct': isCorrect,
       };
+
+  factory QuizAttemptData.fromJson(Map<String, dynamic> json) =>
+      QuizAttemptData(
+        activityId: json['activity_id']?.toString() ?? '',
+        format: json['format'] as String? ?? '',
+        selectedIndex:
+            json['selected_index'] is int ? json['selected_index'] as int : null,
+        isCorrect: json['is_correct'] as bool? ?? false,
+      );
 }
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_experience_shell.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_quiz_option.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class LearnQuizRankingActivity extends StatefulWidget {
@@ -28,12 +29,20 @@ class LearnQuizRankingActivity extends StatefulWidget {
 class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
   late List<int> _order;
   bool _submitted = false;
+  bool _reordered = false;
   LearnQuizGrade? _grade;
 
   @override
   void initState() {
     super.initState();
     _order = List.generate(widget.quiz.options.length, (i) => i);
+    // Present the items shuffled so the correct order is never pre-filled.
+    if (_order.length > 1) {
+      final expected = widget.quiz.correctOrder ?? List.of(_order);
+      do {
+        _order.shuffle();
+      } while (listEquals(_order, expected));
+    }
   }
 
   void _submit() {
@@ -60,7 +69,13 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
         ),
         child: Row(
           children: [
-            Icon(Icons.drag_handle, color: LearnDesignTokens.muted(context)),
+            ReorderableDragStartListener(
+              index: listIndex,
+              child: Icon(
+                Icons.drag_handle,
+                color: LearnDesignTokens.muted(context),
+              ),
+            ),
             const SizedBox(width: 8),
             Container(
               width: 22,
@@ -115,6 +130,11 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
                       color: LearnDesignTokens.headline(context),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  TranslatedText(
+                    'Drag the handle to arrange the items in order',
+                    style: LearnDesignTokens.activitySubtitle(context),
+                  ),
                   const SizedBox(height: 12),
                   Expanded(
                     child: Theme(
@@ -147,6 +167,7 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
                             if (newIndex > oldIndex) newIndex -= 1;
                             final item = _order.removeAt(oldIndex);
                             _order.insert(newIndex, item);
+                            _reordered = true;
                           });
                         },
                         itemBuilder: (context, index) {
@@ -167,6 +188,7 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
           ),
           LearnExperienceBottomBar(
             primaryLabel: _submitted ? 'Continue' : 'Check order',
+            primaryEnabled: _submitted || _reordered,
             onPrimary: _submitted ? widget.onContinue : _submit,
           ),
         ],
