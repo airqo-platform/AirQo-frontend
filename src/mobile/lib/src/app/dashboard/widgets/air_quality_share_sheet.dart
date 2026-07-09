@@ -98,6 +98,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
 
   String? _inlineMessage;
   bool _inlineIsError = false;
+  bool _inlineIsLoading = false;
   String? _inlineActionLabel;
   VoidCallback? _inlineOnAction;
   Timer? _inlineMessageTimer;
@@ -146,12 +147,19 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   /// modal route above the app's own Scaffold, so a SnackBar raised via
   /// `ScaffoldMessenger` renders underneath it and is never actually seen.
   ///
+  /// [loading] keeps the banner up indefinitely (no auto-dismiss timer) —
+  /// callers are expected to replace it with a follow-up success/error
+  /// message once the operation finishes, rather than leaving it stuck. A
+  /// non-null [actionLabel] (e.g. Retry) does the same — an action that
+  /// vanishes before the user can tap it isn't actually usable.
+  ///
   /// If the sheet has already been closed (the background wall submission
   /// can finish after dismissal), the result falls back to a root SnackBar
   /// instead of being silently dropped.
   void _showMessage(
     String message, {
     bool isError = false,
+    bool loading = false,
     String? actionLabel,
     VoidCallback? onAction,
   }) {
@@ -169,8 +177,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
 
     // The banner self-dismisses, so screen-reader users would miss it
     // entirely without an explicit announcement.
-    unawaited(SemanticsService.sendAnnouncement(
-      View.of(context),
+    unawaited(SemanticsService.announce(
       message,
       Directionality.of(context),
     ));
@@ -179,9 +186,11 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
     setState(() {
       _inlineMessage = message;
       _inlineIsError = isError;
+      _inlineIsLoading = loading;
       _inlineActionLabel = actionLabel;
       _inlineOnAction = onAction;
     });
+    if (loading || actionLabel != null) return;
     // Errors and longer messages linger; short confirmations clear fast.
     final duration = Duration(
       milliseconds: (2500 + message.length * 35).clamp(3000, 6500),
@@ -318,6 +327,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
                         InlineMessageBanner(
                           message: _inlineMessage!,
                           isError: _inlineIsError,
+                          loading: _inlineIsLoading,
                           actionLabel: _inlineActionLabel,
                           onAction: _inlineOnAction == null
                               ? null

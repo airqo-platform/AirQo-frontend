@@ -78,6 +78,39 @@ class AppTextColors {
       isDark(context) ? Colors.white : AppColors.boldHeadlineColor4;
 }
 
+/// Bordered status-banner palette matching the Figma "Alert" component
+/// (WM-Rebrand-Jam, node 187:2721) — distinct from [AppTextColors]'s older
+/// error/success pair, which predates this rebrand's colour scale. Only the
+/// tones currently in use (Error, Success) are defined here.
+class AppAlertColors {
+  const AppAlertColors._();
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color errorBackground(BuildContext context) => isDark(context)
+      ? const Color(0xffB42318).withValues(alpha: 0.16)
+      : const Color(0xffFFFBFA); // Error/25
+
+  static Color errorBorder(BuildContext context) => isDark(context)
+      ? const Color(0xffB42318).withValues(alpha: 0.4)
+      : const Color(0xffFDA29B); // Error/300
+
+  static Color errorForeground(BuildContext context) =>
+      isDark(context) ? Colors.white : const Color(0xffB42318); // Error/700
+
+  static Color successBackground(BuildContext context) => isDark(context)
+      ? const Color(0xff027A48).withValues(alpha: 0.16)
+      : const Color(0xffF6FEF9); // Success/25
+
+  static Color successBorder(BuildContext context) => isDark(context)
+      ? const Color(0xff027A48).withValues(alpha: 0.4)
+      : const Color(0xff6CE9A6); // Success/300
+
+  static Color successForeground(BuildContext context) =>
+      isDark(context) ? Colors.white : const Color(0xff027A48); // Success/700
+}
+
 /// Theme-aware surfaces and borders — one palette for cards, sheets, and modals.
 class AppSurfaceColors {
   const AppSurfaceColors._();
