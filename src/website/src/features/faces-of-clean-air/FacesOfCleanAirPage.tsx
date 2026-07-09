@@ -723,6 +723,8 @@ export default function FacesOfCleanAirPage() {
     null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
+  const [moderationError, setModerationError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const hasLoadedRef = useRef(false);
 
@@ -765,18 +767,22 @@ export default function FacesOfCleanAirPage() {
     const idToDelete = deleteTarget.id;
 
     setIsDeleting(true);
+    setModerationError(null);
 
     try {
       const success = await facesOfCleanAirService.deleteSubmission(idToDelete);
 
       if (success) {
         setSubmissions((prev) => prev.filter((s) => s.id !== idToDelete));
+        setDeleteTarget(null);
+      } else {
+        setModerationError('Delete failed. Please try again.');
       }
     } catch (error) {
       console.error('Failed to delete submission:', error);
+      setModerationError('An unexpected error occurred. Please try again.');
     } finally {
       setIsDeleting(false);
-      setDeleteTarget(null);
     }
   }, [deleteTarget]);
 
@@ -788,24 +794,50 @@ export default function FacesOfCleanAirPage() {
     const idToHide = deleteTarget.id;
 
     setIsDeleting(true);
+    setModerationError(null);
 
     try {
       const success = await facesOfCleanAirService.hideSubmission(idToHide);
 
       if (success) {
         setSubmissions((prev) => prev.filter((s) => s.id !== idToHide));
+        setDeleteTarget(null);
+      } else {
+        setModerationError('Hide failed. Please try again.');
       }
     } catch (error) {
       console.error('Failed to hide submission:', error);
+      setModerationError('An unexpected error occurred. Please try again.');
     } finally {
       setIsDeleting(false);
-      setDeleteTarget(null);
     }
   }, [deleteTarget]);
 
   const handleCancelDelete = useCallback(() => {
     setDeleteTarget(null);
+    setModerationError(null);
   }, []);
+
+  useEffect(() => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleCancelDelete();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [deleteTarget, handleCancelDelete]);
+
+  useEffect(() => {
+    if (deleteTarget && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+  }, [deleteTarget]);
 
   const totalSlides = useMemo(() => {
     if (isMobile) {
@@ -1309,17 +1341,27 @@ export default function FacesOfCleanAirPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
-            onClick={handleCancelDelete}
+            onClick={() => {
+              handleCancelDelete();
+            }}
           >
             <motion.div
+              ref={dialogRef}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#005257] p-6 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="moderate-submission-title"
+              tabIndex={-1}
+              className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#005257] p-6 shadow-2xl outline-none"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-white">
+              <h3
+                id="moderate-submission-title"
+                className="text-lg font-bold text-white"
+              >
                 Moderate Submission
               </h3>
 
@@ -1330,6 +1372,12 @@ export default function FacesOfCleanAirPage() {
                 </span>
                 .
               </p>
+
+              {moderationError && (
+                <p className="mt-3 rounded-lg bg-red-500/20 px-3 py-2 text-xs text-red-300">
+                  {moderationError}
+                </p>
+              )}
 
               <div className="mt-6 flex flex-col gap-2">
                 <button

@@ -27,11 +27,10 @@ class ApiClient {
       params,
       headers = {},
       timeout = this.defaultTimeout,
-      authToken,
     } = config;
 
     // Build the full URL
-    const fullUrl = this.buildUrl(url, params, authToken);
+    const fullUrl = this.buildUrl(url, params);
 
     // Prepare headers
     const requestHeaders: Record<string, string> = {
@@ -84,11 +83,7 @@ class ApiClient {
     }
   }
 
-  private buildUrl(
-    endpoint: string,
-    params?: Record<string, any>,
-    authToken?: string,
-  ): string {
+  private buildUrl(endpoint: string, params?: Record<string, any>): string {
     const isServerSide = typeof window === 'undefined';
     let url: string;
 
@@ -136,11 +131,6 @@ class ApiClient {
       if (apiToken) {
         searchParams.set('token', apiToken);
       }
-    }
-
-    // Add auth token for client-side authenticated requests
-    if (!isServerSide && authToken) {
-      searchParams.set('token', authToken);
     }
 
     // Add other params
