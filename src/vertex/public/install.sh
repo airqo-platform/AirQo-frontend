@@ -77,30 +77,6 @@ json_string_field() {
   sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n1
 }
 
-# Looks up the browser_download_url for the release asset whose "name" field
-# exactly matches $1. Used instead of hand-constructing the GitHub download
-# URL from the tag and asset name, since the asset name is derived from the
-# app's product name and isn't guaranteed to be URL-safe (e.g. no spaces).
-asset_download_url() {
-  local name="$1"
-  awk -v name="$name" '
-    /"name"[[:space:]]*:/ {
-      line = $0
-      sub(/.*"name"[[:space:]]*:[[:space:]]*"/, "", line)
-      sub(/".*/, "", line)
-      matched = (line == name)
-      next
-    }
-    matched && /"browser_download_url"[[:space:]]*:/ {
-      line = $0
-      sub(/.*"browser_download_url"[[:space:]]*:[[:space:]]*"/, "", line)
-      sub(/".*/, "", line)
-      print line
-      exit
-    }
-  '
-}
-
 verify_checksum() {
   local tag="$1" asset_name="$2" file_path="$3"
 
@@ -208,13 +184,18 @@ main() {
 
   log "Latest release: ${tag} (${asset_name})"
 
-  local asset_url
-  asset_url="$(printf '%s' "$release_json" | asset_download_url "$asset_name")"
-  [ -n "$asset_url" ] || err "Could not determine the download URL for ${asset_name}."
+  # GitHub's release download URLs follow this stable, documented pattern;
+  # no need to look up browser_download_url from the API response for it.
+  # (asset_name comes from electron-builder's artifact naming, which is
+  # already URL-safe - e.g. "AirQo-Vertex-0.1.11.AppImage", no raw spaces.)
+  local asset_url="https://github.com/${REPO}/releases/download/${tag}/${asset_name}"
 
   local workdir
   workdir="$(mktemp -d)"
-  trap 'rm -rf "${workdir}"' EXIT
+  # Early-expand $workdir into the trap command itself: if the script exits
+  # via `set -e` while unwinding out of main(), this local variable would
+  # otherwise be out of scope by the time the EXIT trap actually runs.
+  trap "rm -rf '${workdir}'" EXIT
 
   log "Downloading ${asset_name}..."
   curl -fsSL -A "$USER_AGENT" -o "${workdir}/${asset_name}" "$asset_url" ||
