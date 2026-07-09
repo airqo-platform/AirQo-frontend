@@ -2,6 +2,39 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.19
+**Released:** July 9, 2026
+
+### Fix: Terminal Installer Failed to Resolve Download URL
+
+A live user report surfaced two bugs in the `install.sh` terminal installer (added in 2.0.17): every run failed with `error: Could not determine the download URL for <asset>`, and a separate crash could occur during cleanup after a failed step.
+
+<details>
+<summary><strong>Broken download URL lookup (<code>public/install.sh</code>)</strong></summary>
+
+- A follow-up commit after 2.0.17 shipped replaced direct URL construction with an `awk`-based lookup of `browser_download_url` from the GitHub API response, parsed as a two-line state machine (match `"name":`, then expect `"browser_download_url":` on a later line). That only works on pretty-printed JSON.
+- The actual response the script receives (`Accept: application/vnd.github+json`) is **compact JSON with no line breaks** — confirmed directly (`wc -l`, which counts newline characters, returns `0` with that header vs `583` without it, i.e. the whole payload is one line rather than an empty response) — so the lookup silently returned empty for every user since that commit merged.
+- Reverted to constructing the download URL directly from the release tag and asset name, GitHub's documented, stable release-asset URL pattern, which doesn't depend on API response formatting at all.
+
+</details>
+
+<details>
+<summary><strong>Unbound variable on cleanup</strong></summary>
+
+- The `workdir` cleanup trap used late variable expansion (`trap 'rm -rf "${workdir}"' EXIT`), referencing a `local` variable from `main()`. If a later step failed (e.g. `sudo` unavailable) and `set -e` unwound out of `main()`, that local was out of scope by the time the `EXIT` trap fired, so `set -u` threw `unbound variable` instead of cleaning up.
+- Fixed with early expansion, baking the literal path into the trap command at registration time.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/public/install.sh` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.18
 **Released:** July 9, 2026
 
