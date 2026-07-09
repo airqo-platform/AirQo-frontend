@@ -3,120 +3,16 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/learn/models/learn_progress_models.dart';
+import 'package:airqo/src/app/learn/services/learn_api_client.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
-import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
-import 'package:airqo/src/meta/utils/api_utils.dart';
-import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class QuizAttemptData {
-  final String activityId;
-  final String format;
-  final int? selectedIndex;
-  final List<int>? selectedIndices;
-  final List<int>? selectedOrder;
-  final bool isCorrect;
-
-  const QuizAttemptData({
-    required this.activityId,
-    required this.format,
-    this.selectedIndex,
-    this.selectedIndices,
-    this.selectedOrder,
-    required this.isCorrect,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'activity_id': activityId,
-        'format': format,
-        if (selectedIndex != null) 'selected_index': selectedIndex,
-        if (selectedIndices != null) 'selected_indices': selectedIndices,
-        if (selectedOrder != null) 'selected_order': selectedOrder,
-        'is_correct': isCorrect,
-      };
-
-  static List<int>? _intList(dynamic value) => value is List
-      ? value.whereType<int>().toList()
-      : null;
-
-  factory QuizAttemptData.fromJson(Map<String, dynamic> json) =>
-      QuizAttemptData(
-        activityId: json['activity_id']?.toString() ?? '',
-        format: json['format'] as String? ?? '',
-        selectedIndex:
-            json['selected_index'] is int ? json['selected_index'] as int : null,
-        selectedIndices: _intList(json['selected_indices']),
-        selectedOrder: _intList(json['selected_order']),
-        isCorrect: json['is_correct'] as bool? ?? false,
-      );
-}
-
-/// One lesson's progress as returned by GET /learn/progress.
-class LearnServerLessonProgress {
-  final bool completed;
-  final int? furthestActivityIndex;
-  final int stars;
-  final int pointsEarned;
-  final double? quizScoreRatio;
-  final String? freeTextResponse;
-
-  const LearnServerLessonProgress({
-    required this.completed,
-    this.furthestActivityIndex,
-    required this.stars,
-    required this.pointsEarned,
-    this.quizScoreRatio,
-    this.freeTextResponse,
-  });
-
-  factory LearnServerLessonProgress.fromJson(Map<String, dynamic> json) =>
-      LearnServerLessonProgress(
-        completed: json['completed'] as bool? ?? false,
-        furthestActivityIndex: json['furthest_activity_index'] is int
-            ? json['furthest_activity_index'] as int
-            : null,
-        stars: json['stars'] as int? ?? 0,
-        pointsEarned: json['points_earned'] as int? ?? 0,
-        quizScoreRatio: json['quiz_score_ratio'] is num
-            ? (json['quiz_score_ratio'] as num).toDouble()
-            : null,
-        freeTextResponse: json['free_text_response'] as String?,
-      );
-}
-
-/// Account/guest progress as returned by GET /learn/progress. The API returns
-/// `lessons` as an object keyed by lesson id, not an array.
-class LearnServerProgress {
-  final int totalPoints;
-  final Map<String, LearnServerLessonProgress> lessons;
-
-  const LearnServerProgress({
-    required this.totalPoints,
-    required this.lessons,
-  });
-
-  factory LearnServerProgress.fromJson(Map<String, dynamic> json) {
-    final rawLessons = json['lessons'];
-    final lessons = <String, LearnServerLessonProgress>{};
-    if (rawLessons is Map) {
-      for (final entry in rawLessons.entries) {
-        if (entry.value is Map) {
-          lessons[entry.key.toString()] = LearnServerLessonProgress.fromJson(
-            Map<String, dynamic>.from(entry.value as Map),
-          );
-        }
-      }
-    }
-    return LearnServerProgress(
-      totalPoints: json['total_points'] as int? ?? 0,
-      lessons: lessons,
-    );
-  }
-}
+export 'package:airqo/src/app/learn/models/learn_progress_models.dart';
 
 // ---------------------------------------------------------------------------
 // Private: offline progress buffer — append / drain / clear SharedPrefs list.
@@ -159,7 +55,9 @@ class _ProgressBuffer with UiLoggy {
 // ---------------------------------------------------------------------------
 
 abstract class LearnSyncService {
-  static final LearnSyncService instance = _LearnSyncServiceImpl._();
+  /// App-wide instance. Deliberately settable so tests (or a future DI
+  /// container) can substitute an implementation before widgets read it.
+  static LearnSyncService instance = LearnSyncServiceImpl();
 
   Future<void> ensureGuestSession();
   Future<void> linkProgressToAccount(String authToken);
@@ -174,22 +72,61 @@ abstract class LearnSyncService {
   Future<void> hydrateLocalProgress({String? authToken});
 }
 
-class _LearnSyncServiceImpl extends BaseRepository
-    with UiLoggy
-    implements LearnSyncService {
-  _LearnSyncServiceImpl._();
+/// Orchestrates Learn progress sync: guest-session lifecycle, buffering of
+/// failed reports, offline flush, and server→local hydration. Transport
+/// lives in [LearnApiClient]; local persistence in [LearnProgressService].
+class LearnSyncServiceImpl with UiLoggy implements LearnSyncService {
+  LearnSyncServiceImpl({
+    LearnApiClient? api,
+    LearnProgressService? progress,
+    CacheManager? cacheManager,
+    Future<String?> Function()? authTokenProvider,
+    Future<String> Function()? deviceIdProvider,
+    Future<SharedPreferences> Function()? prefsProvider,
+    Future<String> Function()? appVersionProvider,
+  })  : _api = api ?? LearnApiClient(),
+        _progress = progress ?? LearnProgressService.instance,
+        _cacheManager = cacheManager ?? CacheManager(),
+        _authTokenProvider = authTokenProvider ?? _defaultAuthToken,
+        _deviceIdProvider = deviceIdProvider ?? DeviceIdManager.getDeviceId,
+        _prefsProvider = prefsProvider ?? SharedPreferences.getInstance,
+        _appVersionProvider = appVersionProvider ?? _defaultAppVersion;
 
   static const _guestIdKey = 'learn_guest_id';
+
+  final LearnApiClient _api;
+  final LearnProgressService _progress;
+  final CacheManager _cacheManager;
+  final Future<String?> Function() _authTokenProvider;
+  final Future<String> Function() _deviceIdProvider;
+  final Future<SharedPreferences> Function() _prefsProvider;
+  final Future<String> Function() _appVersionProvider;
 
   SharedPreferences? _prefs;
   _ProgressBuffer? _buffer;
   StreamSubscription<ConnectionType>? _connectivitySub;
 
+  static Future<String?> _defaultAuthToken() async {
+    try {
+      return await AuthHelper.refreshTokenIfNeeded();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<String> _defaultAppVersion() async {
+    try {
+      return (await PackageInfo.fromPlatform()).version;
+    } catch (_) {
+      return 'unknown';
+    }
+  }
+
   /// Flushes buffered progress as soon as connectivity returns instead of
   /// waiting for the next app launch. Lives for the app's lifetime (the
   /// service is a singleton), so the subscription is never cancelled.
   void _ensureReconnectFlush() {
-    _connectivitySub ??= CacheManager().connectionChange.listen((type) {
+    _connectivitySub ??= _cacheManager.connectionChange.listen((type) {
       if (type != ConnectionType.none) {
         syncPendingProgress().catchError((_) {});
       }
@@ -198,41 +135,19 @@ class _LearnSyncServiceImpl extends BaseRepository
 
   Future<void> _ensurePrefs() async {
     if (_prefs != null) return;
-    _prefs = await SharedPreferences.getInstance();
+    _prefs = await _prefsProvider();
     _buffer = _ProgressBuffer(_prefs!);
   }
 
-  Future<String> _appVersion() async {
-    try {
-      return (await PackageInfo.fromPlatform()).version;
-    } catch (_) {
-      return 'unknown';
-    }
-  }
-
-  /// Headers for progress calls: guest identity headers plus, when the user
+  /// Identity for progress calls: device + guest headers plus, when the user
   /// is logged in, the JWT — the server resolves the JWT identity first, so
   /// logged-in progress is attributed to the account unambiguously.
-  Future<Map<String, String>> _progressHeaders({String? authToken}) async {
-    final deviceId = await DeviceIdManager.getDeviceId();
-    final guestId = _prefs?.getString(_guestIdKey);
-    final token = authToken ?? await _currentAuthToken();
-    return {
-      'Content-Type': 'application/json',
-      'Accept': '*/*',
-      'X-Device-Id': deviceId,
-      if (guestId != null) 'X-Guest-Id': guestId,
-      if (token != null) 'Authorization': 'JWT $token',
-      'User-Agent': ApiUtils.mobileUserAgent,
-    };
-  }
-
-  Future<String?> _currentAuthToken() async {
-    try {
-      return await AuthHelper.refreshTokenIfNeeded();
-    } catch (_) {
-      return null;
-    }
+  Future<LearnCallerIdentity> _identity({String? authToken}) async {
+    return LearnCallerIdentity(
+      deviceId: await _deviceIdProvider(),
+      guestId: _prefs?.getString(_guestIdKey),
+      authToken: authToken ?? await _authTokenProvider(),
+    );
   }
 
   // ---- Guest session management ------------------------------------------
@@ -244,30 +159,14 @@ class _LearnSyncServiceImpl extends BaseRepository
     if (_prefs!.getString(_guestIdKey) != null) return;
 
     try {
-      final deviceId = await DeviceIdManager.getDeviceId();
-      final response = await http.post(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnSessions}'),
-        body: json.encode({
-          'device_id': deviceId,
-          'platform': Platform.isIOS ? 'ios' : 'android',
-          'app_version': await _appVersion(),
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': '*/*',
-          'X-Device-Id': deviceId,
-          'User-Agent': ApiUtils.mobileUserAgent,
-        },
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = json.decode(response.body) as Map<String, dynamic>;
-        final guestId =
-            body['guest_id'] as String? ?? body['session_id'] as String?;
-        if (guestId != null) {
-          await _prefs!.setString(_guestIdKey, guestId);
-          loggy.info('Guest Learn session created');
-        }
+      final guestId = await _api.createAnonymousSession(
+        identity: LearnCallerIdentity(deviceId: await _deviceIdProvider()),
+        platform: Platform.isIOS ? 'ios' : 'android',
+        appVersion: await _appVersionProvider(),
+      );
+      if (guestId != null) {
+        await _prefs!.setString(_guestIdKey, guestId);
+        loggy.info('Guest Learn session created');
       }
     } catch (e) {
       loggy.warning('Failed to create guest Learn session: $e');
@@ -281,20 +180,14 @@ class _LearnSyncServiceImpl extends BaseRepository
     if (guestId == null) return;
 
     try {
-      final deviceId = await DeviceIdManager.getDeviceId();
-      final response = await http.post(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressLink}'),
-        body: json.encode({'device_id': deviceId, 'guest_id': guestId}),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': '*/*',
-          'Authorization': 'JWT $authToken',
-          'X-Device-Id': deviceId,
-          'User-Agent': ApiUtils.mobileUserAgent,
-        },
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      final linked = await _api.linkGuestProgress(
+        identity: LearnCallerIdentity(
+          deviceId: await _deviceIdProvider(),
+          authToken: authToken,
+        ),
+        guestId: guestId,
+      );
+      if (linked) {
         await syncPendingProgress();
         await _prefs!.remove(_guestIdKey);
         loggy.info('Guest Learn progress linked to account');
@@ -326,18 +219,15 @@ class _LearnSyncServiceImpl extends BaseRepository
     };
 
     try {
-      final headers = await _progressHeaders();
-      final response = await http.put(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgress}/${Uri.encodeComponent(lessonId)}'),
-        body: json.encode(body),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        _logServerProgress(lessonId, response.body);
+      final responseBody = await _api.putLessonProgress(
+        identity: await _identity(),
+        lessonId: lessonId,
+        body: body,
+      );
+      if (responseBody != null) {
+        _logServerProgress(lessonId, responseBody);
       } else {
-        loggy.warning(
-            'Progress report failed (${response.statusCode}), buffering');
+        loggy.warning('Progress report failed, buffering');
         await _buffer!.append(lessonId, body);
       }
     } catch (e) {
@@ -352,21 +242,13 @@ class _LearnSyncServiceImpl extends BaseRepository
   Future<LearnServerProgress?> fetchProgress({String? authToken}) async {
     await _ensurePrefs();
     try {
-      final headers = await _progressHeaders(authToken: authToken);
-      final response = await http.get(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressFetch}'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        loggy.warning('Learn progress fetch failed (${response.statusCode})');
-        return null;
-      }
-      final progress = LearnServerProgress.fromJson(
-        json.decode(response.body) as Map<String, dynamic>,
+      final progress = await _api.getProgress(
+        identity: await _identity(authToken: authToken),
       );
-      loggy.info('Fetched Learn progress: ${progress.lessons.length} '
-          'lesson(s), ${progress.totalPoints} total pts');
+      if (progress != null) {
+        loggy.info('Fetched Learn progress: ${progress.lessons.length} '
+            'lesson(s), ${progress.totalPoints} total pts');
+      }
       return progress;
     } catch (e) {
       loggy.warning('Learn progress fetch error: $e');
@@ -381,12 +263,11 @@ class _LearnSyncServiceImpl extends BaseRepository
     final server = await fetchProgress(authToken: authToken);
     if (server == null || server.lessons.isEmpty) return;
 
-    final progress = LearnProgressService.instance;
-    await progress.ensureInitialized();
+    await _progress.ensureInitialized();
     var merged = 0;
     for (final entry in server.lessons.entries) {
       final lesson = entry.value;
-      final changed = await progress.mergeServerLesson(
+      final changed = await _progress.mergeServerLesson(
         lessonKey: entry.key,
         completed: lesson.completed,
         // Server stores the furthest activity *index*; local furthest step
@@ -401,7 +282,7 @@ class _LearnSyncServiceImpl extends BaseRepository
       );
       if (changed) merged++;
     }
-    if (merged > 0) progress.notifyChanged();
+    if (merged > 0) _progress.notifyChanged();
     loggy.info('Hydrated Learn progress from server: '
         '$merged of ${server.lessons.length} lesson(s) updated locally');
   }
@@ -428,15 +309,11 @@ class _LearnSyncServiceImpl extends BaseRepository
     if (pending == null || pending.isEmpty) return;
 
     try {
-      final headers = await _progressHeaders();
-      final deviceId = await DeviceIdManager.getDeviceId();
-      final response = await http.post(
-        Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressSync}'),
-        body: json.encode({'device_id': deviceId, 'updates': pending}),
-        headers: headers,
-      ).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      final synced = await _api.postSyncUpdates(
+        identity: await _identity(),
+        updates: pending,
+      );
+      if (synced) {
         await _buffer!.clear();
         loggy.info('Synced ${pending.length} pending Learn progress entries');
       }

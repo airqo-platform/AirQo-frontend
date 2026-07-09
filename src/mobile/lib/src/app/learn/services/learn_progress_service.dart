@@ -11,6 +11,10 @@ class LearnProgressService {
   LearnProgressService._();
   static final LearnProgressService instance = LearnProgressService._();
 
+  /// Non-singleton constructor for tests — injects the prefs store directly.
+  @visibleForTesting
+  LearnProgressService.withPrefs(SharedPreferences prefs) : _prefs = prefs;
+
   static const _pilotSeedKey = 'learn_pilot_seeded_v3';
   static const _pilotCleanupDoneKey = 'learn_pilot_cleanup_v1';
   static const _stepPrefix = 'learn_step_';

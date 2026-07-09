@@ -2,9 +2,9 @@ import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
+import 'package:airqo/src/app/learn/services/learn_lesson_completion_service.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
-import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
 import 'package:airqo/src/app/learn/services/learn_sync_service.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_article_activity.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_experience_shell.dart';
@@ -29,6 +29,10 @@ class LearnLessonExperience extends StatefulWidget {
   final VoidCallback onClose;
   final BuildContext completionContext;
 
+  /// Injectable for tests; default to the app-wide instances.
+  final LearnProgressService? progressService;
+  final LearnLessonCompletionService? completionService;
+
   const LearnLessonExperience({
     super.key,
     required this.slot,
@@ -42,6 +46,8 @@ class LearnLessonExperience extends StatefulWidget {
     required this.completionContext,
     this.allCourses,
     this.continuation,
+    this.progressService,
+    this.completionService,
   });
 
   @override
@@ -52,7 +58,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
     with UiLoggy {
   late final List<LearnLessonActivity> _script;
   late int _activityIndex;
-  final _progress = LearnProgressService.instance;
+  late final LearnProgressService _progress =
+      widget.progressService ?? LearnProgressService.instance;
+  late final LearnLessonCompletionService _completion =
+      widget.completionService ??
+          LearnLessonCompletionService(progress: _progress);
   final List<QuizAttemptData> _quizAttempts = [];
   final Map<int, String> _freeTextResponses = {};
   LearnLessonResult? _result;
@@ -117,37 +127,14 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
   }
 
   Future<void> _completeLesson() async {
-    // Free-text responses are saved locally and excluded from scoring.
-    final gradedResults = _quizAttempts
-        .where((a) => a.format != LearnQuizFormat.freeText.apiKey)
-        .map((a) => a.isCorrect)
-        .toList();
-    final result = LearnQuizScoringService.computeLessonResult(
-      gradedQuizResults: gradedResults,
-      freeTextResponse: _combinedFreeText,
-    );
-    await _progress.markLessonComplete(widget.slot.progressKey);
-    await _progress.saveLessonResult(
+    _result = await _completion.completeLesson(
       lessonKey: widget.slot.progressKey,
-      stars: result.stars,
-      points: result.pointsEarned,
-      quizScoreRatio: result.quizScoreRatio,
-      freeText: result.freeTextResponse,
-    );
-    await _progress.clearLessonSession(widget.slot.progressKey);
-    final correctCount = gradedResults.where((r) => r).length;
-    loggy.info('Lesson ${widget.slot.progressKey}: completed — '
-        '$correctCount/${gradedResults.length} quizzes correct, '
-        '${result.stars} star(s), ${result.pointsEarned} points');
-    LearnSyncService.instance.reportCompletion(
-      widget.slot.progressKey,
+      quizAttempts: List.unmodifiable(_quizAttempts),
       // Report the catalog index of the last activity — the script can be
       // shorter than the catalog list when invalid activities are skipped.
       furthestActivityIndex: _script.isNotEmpty ? _script.last.index : 0,
-      quizAttempts: List.unmodifiable(_quizAttempts),
-      freeTextResponse: result.freeTextResponse,
-    ).catchError((_) {});
-    _result = result;
+      combinedFreeText: _combinedFreeText,
+    );
     _presentCompletionSheet();
   }
 
