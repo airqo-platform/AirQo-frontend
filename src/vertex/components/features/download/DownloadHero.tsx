@@ -114,7 +114,7 @@ export default function DownloadHero() {
         <div className="grid items-center gap-10 lg:min-h-[calc(60vh)] lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
           <div className="max-w-3xl">
             <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-normal text-heading sm:text-5xl lg:text-6xl">
-              Deploy Devices. Share Air Data
+              Change Devices. Share Air Data
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-7">
               Install {vertexConfig.org.name} Desktop for a focused workspace built around field
