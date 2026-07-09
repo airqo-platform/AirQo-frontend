@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
+import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
@@ -58,12 +61,16 @@ class LearnServerLessonProgress {
   final int? furthestActivityIndex;
   final int stars;
   final int pointsEarned;
+  final double? quizScoreRatio;
+  final String? freeTextResponse;
 
   const LearnServerLessonProgress({
     required this.completed,
     this.furthestActivityIndex,
     required this.stars,
     required this.pointsEarned,
+    this.quizScoreRatio,
+    this.freeTextResponse,
   });
 
   factory LearnServerLessonProgress.fromJson(Map<String, dynamic> json) =>
@@ -74,6 +81,10 @@ class LearnServerLessonProgress {
             : null,
         stars: json['stars'] as int? ?? 0,
         pointsEarned: json['points_earned'] as int? ?? 0,
+        quizScoreRatio: json['quiz_score_ratio'] is num
+            ? (json['quiz_score_ratio'] as num).toDouble()
+            : null,
+        freeTextResponse: json['free_text_response'] as String?,
       );
 }
 
@@ -156,6 +167,7 @@ abstract class LearnSyncService {
     String lessonId, {
     required int furthestActivityIndex,
     List<QuizAttemptData> quizAttempts,
+    String? freeTextResponse,
   });
   Future<void> syncPendingProgress();
   Future<LearnServerProgress?> fetchProgress({String? authToken});
@@ -171,6 +183,18 @@ class _LearnSyncServiceImpl extends BaseRepository
 
   SharedPreferences? _prefs;
   _ProgressBuffer? _buffer;
+  StreamSubscription<ConnectionType>? _connectivitySub;
+
+  /// Flushes buffered progress as soon as connectivity returns instead of
+  /// waiting for the next app launch. Lives for the app's lifetime (the
+  /// service is a singleton), so the subscription is never cancelled.
+  void _ensureReconnectFlush() {
+    _connectivitySub ??= CacheManager().connectionChange.listen((type) {
+      if (type != ConnectionType.none) {
+        syncPendingProgress().catchError((_) {});
+      }
+    });
+  }
 
   Future<void> _ensurePrefs() async {
     if (_prefs != null) return;
@@ -186,16 +210,29 @@ class _LearnSyncServiceImpl extends BaseRepository
     }
   }
 
-  Future<Map<String, String>> _guestHeaders() async {
+  /// Headers for progress calls: guest identity headers plus, when the user
+  /// is logged in, the JWT — the server resolves the JWT identity first, so
+  /// logged-in progress is attributed to the account unambiguously.
+  Future<Map<String, String>> _progressHeaders({String? authToken}) async {
     final deviceId = await DeviceIdManager.getDeviceId();
     final guestId = _prefs?.getString(_guestIdKey);
+    final token = authToken ?? await _currentAuthToken();
     return {
       'Content-Type': 'application/json',
       'Accept': '*/*',
       'X-Device-Id': deviceId,
       if (guestId != null) 'X-Guest-Id': guestId,
+      if (token != null) 'Authorization': 'JWT $token',
       'User-Agent': ApiUtils.mobileUserAgent,
     };
+  }
+
+  Future<String?> _currentAuthToken() async {
+    try {
+      return await AuthHelper.refreshTokenIfNeeded();
+    } catch (_) {
+      return null;
+    }
   }
 
   // ---- Guest session management ------------------------------------------
@@ -203,6 +240,7 @@ class _LearnSyncServiceImpl extends BaseRepository
   @override
   Future<void> ensureGuestSession() async {
     await _ensurePrefs();
+    _ensureReconnectFlush();
     if (_prefs!.getString(_guestIdKey) != null) return;
 
     try {
@@ -273,18 +311,22 @@ class _LearnSyncServiceImpl extends BaseRepository
     String lessonId, {
     required int furthestActivityIndex,
     List<QuizAttemptData> quizAttempts = const [],
+    String? freeTextResponse,
   }) async {
     await _ensurePrefs();
 
+    final freeText = freeTextResponse?.trim();
     final body = <String, dynamic>{
       'furthest_activity_index': furthestActivityIndex,
       'completed': true,
       if (quizAttempts.isNotEmpty)
         'quiz_attempts': quizAttempts.map((q) => q.toJson()).toList(),
+      if (freeText != null && freeText.isNotEmpty)
+        'free_text_response': freeText,
     };
 
     try {
-      final headers = await _guestHeaders();
+      final headers = await _progressHeaders();
       final response = await http.put(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgress}/${Uri.encodeComponent(lessonId)}'),
         body: json.encode(body),
@@ -310,8 +352,7 @@ class _LearnSyncServiceImpl extends BaseRepository
   Future<LearnServerProgress?> fetchProgress({String? authToken}) async {
     await _ensurePrefs();
     try {
-      final headers = await _guestHeaders();
-      if (authToken != null) headers['Authorization'] = 'JWT $authToken';
+      final headers = await _progressHeaders(authToken: authToken);
       final response = await http.get(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressFetch}'),
         headers: headers,
@@ -355,6 +396,8 @@ class _LearnSyncServiceImpl extends BaseRepository
             : null,
         stars: lesson.stars,
         points: lesson.pointsEarned,
+        quizScoreRatio: lesson.quizScoreRatio,
+        freeTextResponse: lesson.freeTextResponse,
       );
       if (changed) merged++;
     }
@@ -385,7 +428,7 @@ class _LearnSyncServiceImpl extends BaseRepository
     if (pending == null || pending.isEmpty) return;
 
     try {
-      final headers = await _guestHeaders();
+      final headers = await _progressHeaders();
       final deviceId = await DeviceIdManager.getDeviceId();
       final response = await http.post(
         Uri.parse('${ApiUtils.baseUrl}${ApiUtils.learnProgressSync}'),

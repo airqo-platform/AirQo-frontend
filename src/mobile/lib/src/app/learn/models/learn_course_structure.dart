@@ -86,13 +86,44 @@ class LearnStageInfo {
 enum LearnUnitStatus { locked, inProgress, completed }
 
 class LearnCatalog {
-  static const stages = [
+  static const List<LearnStageInfo> _defaultStages = [
     LearnStageInfo(name: 'Curious', index: 0),
     LearnStageInfo(name: 'Aware', index: 1),
     LearnStageInfo(name: 'Observer', index: 2),
     LearnStageInfo(name: 'Champion', index: 3),
     LearnStageInfo(name: 'Defender', index: 4),
   ];
+
+  /// Stage ladder — the catalog response's `stages` when available, else the
+  /// built-in default.
+  static List<LearnStageInfo> stages = _defaultStages;
+
+  /// Catalog-wide `max_points` from the server, or null if not provided.
+  static int? _serverMaxPoints;
+
+  /// Adopts server-driven metadata (stage names/order, max points) from a
+  /// fetched catalog so the app tracks backend changes without a release.
+  static void applyCatalogMeta(LearnV2CatalogResponse catalog) {
+    if (catalog.stages.isNotEmpty) {
+      final sorted = [...catalog.stages]
+        ..sort((a, b) => a.index.compareTo(b.index));
+      stages = [
+        for (final s in sorted)
+          if (s.name.isNotEmpty) LearnStageInfo(name: s.name, index: s.index),
+      ];
+      if (stages.isEmpty) stages = _defaultStages;
+    }
+    _serverMaxPoints = catalog.maxPoints > 0 ? catalog.maxPoints : null;
+  }
+
+  /// Max attainable points — the server's catalog-wide value when known,
+  /// otherwise computed locally from the graded quiz count.
+  static int maxPoints(
+    List<LearnCourseViewModel> courses,
+    LearnProgressService progress,
+  ) {
+    return _serverMaxPoints ?? progress.maxPoints(courses);
+  }
 
   static List<LearnCourseViewModel> buildFromV2Catalog(
       List<LearnV2Course> v2Courses) {
@@ -209,7 +240,7 @@ class LearnCatalog {
     List<LearnCourseViewModel> courses,
     LearnProgressService progress,
   ) {
-    final maxPts = progress.maxPoints(courses);
+    final maxPts = maxPoints(courses, progress);
     final pts = progress.totalPoints(courses);
     if (maxPts > 0 && pts > 0) {
       final ratio = pts / maxPts;

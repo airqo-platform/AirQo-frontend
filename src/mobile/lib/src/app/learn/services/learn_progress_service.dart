@@ -111,6 +111,8 @@ class LearnProgressService {
     int? furthestStep,
     required int stars,
     required int points,
+    double? quizScoreRatio,
+    String? freeTextResponse,
   }) async {
     await ensureInitialized();
     var changed = false;
@@ -128,6 +130,19 @@ class LearnProgressService {
         (points == localPoints && stars > localStars)) {
       await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
       await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
+      if (quizScoreRatio != null) {
+        await _prefs!
+            .setDouble('$_quizScorePrefix$lessonKey', quizScoreRatio);
+      }
+      changed = true;
+    }
+    // Free text isn't scored — restore the server copy only when this device
+    // has none, so a newer local answer is never clobbered.
+    final serverFreeText = freeTextResponse?.trim();
+    if (serverFreeText != null &&
+        serverFreeText.isNotEmpty &&
+        (lessonFreeText(lessonKey)?.isEmpty ?? true)) {
+      await _prefs!.setString('$_freeTextPrefix$lessonKey', serverFreeText);
       changed = true;
     }
     return changed;

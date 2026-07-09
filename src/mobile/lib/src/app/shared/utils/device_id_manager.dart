@@ -16,7 +16,9 @@ class DeviceIdManager {
       }
       return deviceId;
     } catch (_) {
-      return 'temp-${DateTime.now().millisecondsSinceEpoch}';
+      // The Learn API requires a UUIDv4 device_id, so even the
+      // non-persistent fallback must be a valid UUID.
+      return _uuid.v4();
     }
   }
 

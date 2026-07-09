@@ -9,11 +9,15 @@ String learnV2CatalogResponseToJson(LearnV2CatalogResponse data) =>
 class LearnV2CatalogResponse {
   final bool success;
   final String catalogVersion;
+  final List<LearnV2Stage> stages;
+  final int maxPoints;
   final List<LearnV2Course> courses;
 
   const LearnV2CatalogResponse({
     required this.success,
     required this.catalogVersion,
+    this.stages = const [],
+    this.maxPoints = 0,
     required this.courses,
   });
 
@@ -21,6 +25,14 @@ class LearnV2CatalogResponse {
       LearnV2CatalogResponse(
         success: json['success'] ?? false,
         catalogVersion: json['catalog_version'] ?? '',
+        stages: json['stages'] is List
+            ? (json['stages'] as List)
+                .whereType<Map>()
+                .map((s) =>
+                    LearnV2Stage.fromJson(Map<String, dynamic>.from(s)))
+                .toList()
+            : [],
+        maxPoints: json['max_points'] as int? ?? 0,
         courses: json['courses'] != null
             ? (json['courses'] as List)
                 .map((c) => LearnV2Course.fromJson(c as Map<String, dynamic>))
@@ -31,8 +43,24 @@ class LearnV2CatalogResponse {
   Map<String, dynamic> toJson() => {
         'success': success,
         'catalog_version': catalogVersion,
+        'stages': stages.map((s) => s.toJson()).toList(),
+        'max_points': maxPoints,
         'courses': courses.map((c) => c.toJson()).toList(),
       };
+}
+
+class LearnV2Stage {
+  final int index;
+  final String name;
+
+  const LearnV2Stage({required this.index, required this.name});
+
+  factory LearnV2Stage.fromJson(Map<String, dynamic> json) => LearnV2Stage(
+        index: json['index'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {'index': index, 'name': name};
 }
 
 class LearnV2Course {

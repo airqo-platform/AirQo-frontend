@@ -28,12 +28,12 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
 
   Future<LearnV2CatalogResponse> _fetchAndCache(
       {Duration timeout = const Duration(seconds: 20)}) async {
+    // The catalog endpoint is public; pass the token when configured but
+    // don't fail without it.
     final token = _getToken();
-    if (token == null) throw StateError('AIRQO_API_TOKEN is not configured');
-
     final response = await createGetRequest(
       ApiUtils.learnCatalog,
-      {'token': token},
+      {if (token != null) 'token': token},
     ).timeout(timeout);
 
     if (response.statusCode != 200) {

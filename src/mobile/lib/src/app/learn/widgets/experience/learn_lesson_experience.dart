@@ -141,8 +141,11 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience>
         '${result.stars} star(s), ${result.pointsEarned} points');
     LearnSyncService.instance.reportCompletion(
       widget.slot.progressKey,
-      furthestActivityIndex: _script.length - 1,
+      // Report the catalog index of the last activity — the script can be
+      // shorter than the catalog list when invalid activities are skipped.
+      furthestActivityIndex: _script.isNotEmpty ? _script.last.index : 0,
       quizAttempts: List.unmodifiable(_quizAttempts),
+      freeTextResponse: result.freeTextResponse,
     ).catchError((_) {});
     _result = result;
     _presentCompletionSheet();
