@@ -10,3 +10,5 @@ export const cleanAirForum2026GuestSessionPath =
   '/api/v2/devices/learn/sessions/anonymous';
 export const cleanAirForum2026LessonPath = `/api/v2/devices/learn/lessons/${CLEAN_AIR_FORUM_2026_LESSON_ID}`;
 export const cleanAirForum2026LessonProgressPath = `/api/v2/devices/learn/progress/lessons/${CLEAN_AIR_FORUM_2026_LESSON_ID}`;
+export const cleanAirForum2026ProgressLinkPath =
+  '/api/v2/devices/learn/progress/link';

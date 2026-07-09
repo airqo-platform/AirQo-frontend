@@ -59,3 +59,18 @@ export type CleanAirForum2026GuestSessionResponse = {
   display_name?: string;
   created_at?: string;
 };
+
+export type CleanAirForum2026ProgressLinkRequest = {
+  device_id: string;
+  guest_id: string;
+};
+
+export type CleanAirForum2026ProgressLinkResponse = {
+  success: boolean;
+  user_id: string;
+  merged: {
+    lessons_transferred: number;
+    points_transferred: number;
+    courses_completed: number;
+  };
+};

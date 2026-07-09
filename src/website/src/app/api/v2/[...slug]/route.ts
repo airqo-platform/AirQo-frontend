@@ -144,6 +144,11 @@ async function handleRequest(
       headers.set('X-Guest-Id', forwardedGuestId);
     }
 
+    const authorizationHeader = request.headers.get('authorization');
+    if (authorizationHeader) {
+      headers.set('Authorization', authorizationHeader);
+    }
+
     // Handle authentication - use query parameter method for all endpoints
     // Add the API token as a query parameter for authentication
     final.searchParams.set('token', API_TOKEN);

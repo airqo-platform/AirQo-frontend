@@ -1,7 +1,7 @@
-import Screen from '@/components/clean-air-forum-2026/Screen';
+import ResultsScreen from '@/features/clean-air-forum-2026/screens/ResultsScreen';
 
 const page = () => {
-  return <Screen className="caf-2026-screen" />;
+  return <ResultsScreen />;
 };
 
 export default page;

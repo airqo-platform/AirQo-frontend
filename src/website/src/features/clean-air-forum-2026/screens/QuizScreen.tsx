@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
 
 import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
@@ -12,9 +13,11 @@ import {
 import {
   CLEAN_AIR_FORUM_2026_QUIZ_ANSWERS_STORAGE_KEY,
   CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY,
+  CLEAN_AIR_FORUM_2026_SUBMISSION_RESULT_STORAGE_KEY,
 } from '@/features/clean-air-forum-2026/constants/storage';
 import { useCleanAirForumQuizSetup } from '@/features/clean-air-forum-2026/hooks/useCleanAirForumQuizSetup';
 import { submitCleanAirForum2026LessonCompletion } from '@/features/clean-air-forum-2026/lib/learn-progress';
+import { buildCleanAirForumGoogleSignInUrl } from '@/features/clean-air-forum-2026/lib/oauth';
 import type {
   CleanAirForum2026LessonActivity,
   CleanAirForum2026LessonProgressResponse,
@@ -28,6 +31,9 @@ export default function QuizScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answersByActivityId, setAnswersByActivityId] =
     useState<CleanAirForum2026QuizAnswerMap>({});
+  const [screenStage, setScreenStage] = useState<'questions' | 'gate'>(
+    'questions',
+  );
   const [submissionStatus, setSubmissionStatus] = useState<
     'idle' | 'submitting' | 'submitted' | 'error'
   >('idle');
@@ -196,6 +202,11 @@ export default function QuizScreen() {
 
       setSubmissionResult(response);
       setSubmissionStatus('submitted');
+      setScreenStage('gate');
+      window.sessionStorage.setItem(
+        CLEAN_AIR_FORUM_2026_SUBMISSION_RESULT_STORAGE_KEY,
+        JSON.stringify(response),
+      );
 
       console.group('[CAF 2026] Quiz completion submitted');
       console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
@@ -218,12 +229,67 @@ export default function QuizScreen() {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    try {
+      window.location.replace(buildCleanAirForumGoogleSignInUrl());
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to start Google sign-in.';
+
+      console.error('[CAF 2026] Google sign-in failed to start', message);
+    }
+  };
+
   if (
     quizSetup.status !== 'ready' ||
     !quizSetup.lessonPayload ||
     !currentActivity
   ) {
     return <Screen className="caf-2026-screen" />;
+  }
+
+  if (screenStage === 'gate') {
+    return (
+      <Screen className="caf-2026-screen">
+        <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+          <div className="flex w-full flex-col items-center">
+            <div className="relative w-[min(84vw,34rem)] sm:w-[min(62vw,34rem)] md:w-[min(46vw,34rem)] lg:w-[30rem] xl:w-[34.125rem]">
+              <Image
+                src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-logo.svg"
+                alt="Africa CLEAN Air Forum Pretoria 2026"
+                width={546}
+                height={94}
+                priority
+                className="h-auto w-full"
+              />
+            </div>
+
+            <div className="mt-16 flex w-full max-w-4xl flex-col items-center gap-8 text-center sm:mt-20 sm:gap-10">
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72">
+                  Quiz Complete
+                </p>
+                <h1 className="text-balance text-[clamp(1.9rem,4vw,4rem)] font-bold leading-[0.98] tracking-[-0.04em] text-[#072b31]">
+                  Sign in to see your results
+                </h1>
+              </div>
+
+              <Button
+                className="rounded-[1.4rem] bg-white px-7 py-3 text-base font-semibold text-[#072b31] hover:bg-white/90"
+                onClick={handleGoogleSignIn}
+              >
+                <span className="inline-flex items-center gap-3">
+                  <FcGoogle className="h-5 w-5" />
+                  <span>Sign in with Google</span>
+                </span>
+              </Button>
+            </div>
+          </div>
+        </section>
+      </Screen>
+    );
   }
 
   return (
