@@ -2,7 +2,7 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.16
+## Version 2.0.17
 **Released:** July 7, 2026
 
 ### Terminal Installer for Vertex Desktop (Linux)
@@ -36,6 +36,47 @@ Added a one-line `curl | bash` installer for Vertex Desktop on Linux, matching t
 - `src/vertex/public/install.sh` [NEW]
 - `src/vertex/next.config.js` [MODIFIED] — `Cache-Control`/`Content-Type` headers for `/install.sh`
 - `src/vertex/next.config.mjs` [MODIFIED] — same headers, kept in sync with `next.config.js`
+
+</details>
+
+---
+
+## Version 2.0.16
+**Released:** July 6, 2026
+
+### Device Details — Localized Map Card
+
+Added an embedded map to the Site Details card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed. The map is extracted into a reusable standalone component so it can also be used on the Site Details page.
+
+<details>
+<summary><strong>New: <code>DeviceLocationMap</code> component (<code>device-location-map.tsx</code>)</strong></summary>
+
+- Standalone reusable component that renders a read-only map for a given latitude/longitude.
+- **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
+- **Empty state**: When coordinates are unavailable, a dashed-border placeholder with a `MapPin` icon is shown instead of blank space.
+- Accepts `height` and `zoom` props (defaults: `h-48`, zoom `13`) for reuse at different sizes.
+
+</details>
+
+<details>
+<summary><strong>Site Details Card (<code>device-location-card.tsx</code>)</strong></summary>
+
+- Embeds `<DeviceLocationMap>` below the site name and coordinate fields, centred on the device's stored coordinates.
+- Added `overflow-hidden` to the card so the map respects the card's rounded corners.
+
+</details>
+
+<details>
+<summary><strong>Device Details Card (<code>device-details-card.tsx</code>)</strong></summary>
+
+- No map here — map lives in the Site Details card only.
+
+</details>
+
+<details>
+<summary><strong>MiniMap — <code>readOnly</code> prop (<code>mini-map.tsx</code>)</strong></summary>
+
+- Added `readOnly?: boolean` (default `false`). When `true`, the marker is non-draggable and click-to-move is disabled — the existing add/edit device flows are unaffected.
 
 </details>
 
