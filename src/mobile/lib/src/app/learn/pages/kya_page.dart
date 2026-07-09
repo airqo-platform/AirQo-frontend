@@ -70,24 +70,16 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     final bloc = kyaBloc;
     if (bloc == null) return;
 
-    final completer = Completer<void>();
-
-    final subscription = bloc.stream.listen((state) {
-      if (state is LessonsLoaded) {
-        completer.complete();
-      } else if (state is LessonsLoadingError) {
-        completer.complete();
-      }
-    });
+    final done = bloc.stream.firstWhere(
+      (state) => state is LessonsLoaded || state is LessonsLoadingError,
+    );
 
     bloc.add(RefreshLessons(currentModel: currentModel));
 
     try {
-      await completer.future.timeout(const Duration(seconds: 30));
+      await done.timeout(const Duration(seconds: 30));
     } on TimeoutException {
       loggy.warning('Learn catalog refresh timed out');
-    } finally {
-      await subscription.cancel();
     }
   }
 
