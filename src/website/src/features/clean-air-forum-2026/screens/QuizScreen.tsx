@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
@@ -46,6 +46,10 @@ export default function QuizScreen() {
   const [leaderboardStatus, setLeaderboardStatus] = useState<
     'idle' | 'loading' | 'ready' | 'error'
   >('idle');
+  const revealTimeoutRef = useRef<number | null>(null);
+  const [revealedActivityId, setRevealedActivityId] = useState<string | null>(
+    null,
+  );
 
   const lessonActivities = quizSetup.lessonPayload?.lesson.activities;
   const activities = lessonActivities ?? EMPTY_ACTIVITIES;
@@ -56,10 +60,25 @@ export default function QuizScreen() {
     currentActivity && answersByActivityId[currentActivity.id]
       ? answersByActivityId[currentActivity.id].selectedIndex
       : null;
+  const selectedAnswer =
+    currentActivity && answersByActivityId[currentActivity.id]
+      ? answersByActivityId[currentActivity.id]
+      : null;
+  const hasSelectedCurrentQuestion = selectedOptionIndex !== null;
+  const correctOptionIndex = currentActivity?.payload.correct_index ?? null;
+  const isRevealingCurrentQuestion = revealedActivityId === currentActivity?.id;
   const quizAttempts = Object.values(answersByActivityId);
   const correctAnswersCount = quizAttempts.filter(
     (answer) => answer.isCorrect,
   ).length;
+
+  useEffect(() => {
+    return () => {
+      if (revealTimeoutRef.current) {
+        window.clearTimeout(revealTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (quizSetup.status !== 'ready' || !quizSetup.lessonPayload) {
@@ -218,7 +237,9 @@ export default function QuizScreen() {
     return () => controller.abort();
   }, [quizSetup.guestSession, screenStage, submissionStatus]);
 
-  const handleSubmitQuiz = async () => {
+  const handleSubmitQuiz = async (
+    submittedAnswersByActivityId: CleanAirForum2026QuizAnswerMap = answersByActivityId,
+  ) => {
     if (
       quizSetup.status !== 'ready' ||
       !quizSetup.guestSession ||
@@ -230,7 +251,7 @@ export default function QuizScreen() {
     }
 
     const quizAttempts = activities
-      .map((activity) => answersByActivityId[activity.id])
+      .map((activity) => submittedAnswersByActivityId[activity.id])
       .filter((answer) => Boolean(answer))
       .map((answer) => ({
         activity_id: answer.activityId,
@@ -275,6 +296,36 @@ export default function QuizScreen() {
       setSubmissionError(message);
       console.error('[CAF 2026] Quiz completion failed', message);
     }
+  };
+
+  const handleSubmitCurrentQuestion = () => {
+    if (!currentActivity || selectedOptionIndex === null || isRevealingCurrentQuestion) {
+      return;
+    }
+
+    const updatedAnswersByActivityId = {
+      ...answersByActivityId,
+      [currentActivity.id]: {
+        activityId: currentActivity.id,
+        format: currentActivity.payload.format,
+        selectedIndex: selectedOptionIndex,
+        isCorrect: selectedOptionIndex === currentActivity.payload.correct_index,
+      },
+    };
+
+    setAnswersByActivityId(updatedAnswersByActivityId);
+    setRevealedActivityId(currentActivity.id);
+
+    revealTimeoutRef.current = window.setTimeout(() => {
+      setRevealedActivityId(null);
+
+      if (isLastQuestion) {
+        void handleSubmitQuiz(updatedAnswersByActivityId);
+        return;
+      }
+
+      setCurrentQuestionIndex((questionIndex) => questionIndex + 1);
+    }, 1200);
   };
 
   if (
@@ -371,12 +422,35 @@ export default function QuizScreen() {
               <div className="flex w-full max-w-4xl flex-col gap-4">
                 {currentActivity.payload.options.map((option, optionIndex) => {
                   const isSelected = selectedOptionIndex === optionIndex;
+                  const isCorrectOption = correctOptionIndex === optionIndex;
+                  const isSelectedWrong =
+                    isRevealingCurrentQuestion &&
+                    isSelected &&
+                    selectedAnswer?.isCorrect === false;
+                  const isSelectedCorrect =
+                    isRevealingCurrentQuestion &&
+                    isSelected &&
+                    selectedAnswer?.isCorrect === true;
+
+                  const optionStateClass = isRevealingCurrentQuestion
+                    ? isSelectedCorrect || isCorrectOption
+                      ? 'bg-[#0d8f6f] text-white'
+                      : isSelectedWrong
+                        ? 'bg-[#b93815] text-white'
+                        : 'bg-white text-[#072b31] opacity-72'
+                    : isSelected
+                      ? 'bg-[var(--caf-2026-interactive)] text-white'
+                      : 'bg-white text-[#072b31]'
 
                   return (
                     <button
                       key={`${currentActivity.id}-${optionIndex}`}
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        if (isRevealingCurrentQuestion) {
+                          return;
+                        }
+
                         setAnswersByActivityId((currentAnswers) => ({
                           ...currentAnswers,
                           [currentActivity.id]: {
@@ -387,13 +461,11 @@ export default function QuizScreen() {
                               optionIndex ===
                               currentActivity.payload.correct_index,
                           },
-                        }))
-                      }
+                        }));
+                      }}
                       className={[
                         'rounded-[1.5rem] px-5 py-4 text-left transition-colors sm:px-6 sm:py-5',
-                        isSelected
-                          ? 'bg-[var(--caf-2026-interactive)] text-white'
-                          : 'bg-white/55 text-[#072b31]',
+                        optionStateClass,
                       ].join(' ')}
                     >
                       <p className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[1.45rem]">
@@ -405,28 +477,19 @@ export default function QuizScreen() {
               </div>
             </div>
 
-            {selectedOptionIndex !== null && !isLastQuestion ? (
-              <Button
-                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold"
-                onClick={() =>
-                  setCurrentQuestionIndex((questionIndex) => questionIndex + 1)
-                }
-              >
-                Next Question
-              </Button>
-            ) : null}
-
-            {selectedOptionIndex !== null && isLastQuestion ? (
+            {hasSelectedCurrentQuestion ? (
               <Button
                 className="rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
-                onClick={handleSubmitQuiz}
-                disabled={submissionStatus === 'submitting'}
+                onClick={handleSubmitCurrentQuestion}
+                disabled={isRevealingCurrentQuestion || submissionStatus === 'submitting'}
               >
-                {submissionStatus === 'submitting'
-                  ? 'Submitting Quiz...'
-                  : submissionStatus === 'submitted'
-                    ? 'Quiz Submitted'
-                    : 'Submit Quiz'}
+                {isRevealingCurrentQuestion
+                  ? selectedAnswer?.isCorrect
+                    ? 'Correct'
+                    : 'Showing Answer'
+                  : isLastQuestion
+                    ? 'Finish Quiz'
+                    : 'Submit Answer'}
               </Button>
             ) : null}
 
