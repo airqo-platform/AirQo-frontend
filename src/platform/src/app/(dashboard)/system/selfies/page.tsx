@@ -92,6 +92,8 @@ const SelfiesListContent: React.FC = () => {
 
   const selfies = useMemo(() => data?.selfies || [], [data?.selfies]);
 
+  const isProcessing = isHiding || isUnhiding || isDeleting;
+
   const availableAqiCategories = useMemo(() => {
     const cats = new Set<string>();
     for (const s of selfies) {
@@ -232,19 +234,19 @@ const SelfiesListContent: React.FC = () => {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredSelfies.map(selfie => {
-            const isProcessing = isHiding || isUnhiding || isDeleting;
-
-            return (
-              <Card
+          {filteredSelfies.map(selfie => (
+            <Card
                 key={selfie._id}
                 className={`group overflow-hidden p-0 transition-shadow hover:shadow-lg ${
                   selfie.hidden ? 'opacity-60' : ''
                 }`}
               >
-                <div
-                  className="relative aspect-square cursor-pointer overflow-hidden bg-muted"
+                <button
+                  type="button"
+                  className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
                   onClick={() => setSelectedSelfie(selfie)}
+                  disabled={isProcessing}
+                  aria-label={`View selfie by ${selfie.displayName}`}
                 >
                   <Image
                     src={selfie.imageUrl}
@@ -260,7 +262,7 @@ const SelfiesListContent: React.FC = () => {
                       </span>
                     </div>
                   )}
-                </div>
+                </button>
 
                 <div className="p-3 space-y-2">
                   <div className="flex items-center gap-2">
@@ -300,8 +302,7 @@ const SelfiesListContent: React.FC = () => {
                   </div>
                 </div>
               </Card>
-            );
-          })}
+          ))}
         </div>
       )}
 
@@ -354,6 +355,7 @@ const SelfiesListContent: React.FC = () => {
             <div className="flex items-center gap-2 pt-2 border-t border-border">
               <Button
                 variant={selectedSelfie.hidden ? 'filled' : 'outlined'}
+                disabled={isProcessing}
                 onClick={() => {
                   void handleToggleHide(selectedSelfie);
                   setSelectedSelfie(null);
@@ -363,6 +365,7 @@ const SelfiesListContent: React.FC = () => {
               </Button>
               <Button
                 variant="danger"
+                disabled={isProcessing}
                 onClick={() => {
                   setDeleteTarget(selectedSelfie);
                   setSelectedSelfie(null);

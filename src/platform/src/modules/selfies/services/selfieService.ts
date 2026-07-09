@@ -13,7 +13,7 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
   fallbackMessage: string
 ): T => {
   if ('success' in data && data.success === false) {
-    throw new Error(fallbackMessage);
+    throw new Error(data.message || fallbackMessage);
   }
 
   return data;
