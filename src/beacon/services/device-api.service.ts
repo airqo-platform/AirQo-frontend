@@ -903,37 +903,69 @@ class ApiService {
 
   // Sync Device Performance
   async syncDevicePerformance(): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync device performance')
+    }
+
     const endpoint = this.getEndpoint('/maintenance/sync-performance')
     const url = `${this.baseUrl}${endpoint}?force=false&platform=true`
     return this.fetchWithRetry<any>(url, {
       method: 'POST',
+      headers: {
+        Authorization: token,
+      },
     })
   }
 
   // Sync Cohorts (Performance Analysis page)
   async syncCohorts(): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync cohorts')
+    }
+
     const endpoint = this.getEndpoint('/cohorts/sync')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url, {
       method: 'POST',
+      headers: {
+        Authorization: token,
+      },
     })
   }
 
   // Sync ThingSpeak data (Performance Analysis page)
   async syncThingSpeak(days: number = 14): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync ThingSpeak data')
+    }
+
     const endpoint = this.getEndpoint(`/data-sync/sync-thingspeak?days=${days}`)
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url, {
       method: 'POST',
+      headers: {
+        Authorization: token,
+      },
     })
   }
 
   // Sync Sites (Site Collocation page)
   async syncSites(): Promise<any> {
+    const token = authService.getToken()
+    if (!token) {
+      throw new Error('Authentication required to sync sites')
+    }
+
     const endpoint = this.getEndpoint('/sites/sync')
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url, {
       method: 'POST',
+      headers: {
+        Authorization: token,
+      },
     })
   }
 

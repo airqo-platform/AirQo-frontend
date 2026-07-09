@@ -36,7 +36,7 @@ import {
   getMyDevicesForUI,
   getPersonalUserCohorts 
 } from "@/services/device-api.service"
-import authService from "@/services/api-service"
+import { useSession } from "next-auth/react"
 import type { ApiResponseMeta, DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
@@ -46,6 +46,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 
 export default function DevicesPage() {
+  const { data: session } = useSession()
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading, isActiveGroupAdmin } = useGroup()
 
@@ -170,20 +171,21 @@ export default function DevicesPage() {
       setMyDevicesLoading(true)
       setMyDevicesError(null)
 
-      let userData = authService.getUserData()
-      if (!userData) {
-        const token = authService.getToken()
-        if (!token) throw new Error("No authentication token")
-        const userResp = await fetch("/api/auth/user", {
-          headers: {
-            'Authorization': token,
-            'Content-Type': 'application/json'
-          }
-        })
-        if (!userResp.ok) throw new Error("Failed to fetch user details")
-        const data = await userResp.json()
-        userData = data.users?.[0]
+      const token = session?.accessToken
+      if (!token) {
+        throw new Error("No authentication token available")
       }
+
+      const rawToken = token.replace(/^(JWT|Bearer)\s+/i, '')
+      const userResp = await fetch("/api/auth/user", {
+        headers: {
+          'Authorization': `JWT ${rawToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!userResp.ok) throw new Error("Failed to fetch user details")
+      const data = await userResp.json()
+      const userData = data.users?.[0]
 
       if (!userData?._id) {
         throw new Error("Could not retrieve user ID")
@@ -235,10 +237,12 @@ export default function DevicesPage() {
       }, 500)
       return () => clearTimeout(searchDebounce)
     } else {
-      fetchMyDevices()
+      if (session) {
+        fetchMyDevices()
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading, deviceScope])
+  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading, deviceScope, session])
 
   // Refresh all data
   const refreshData = () => {

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
-import { AqAirQo } from '@airqo/icons-react'
+import { Bell, LogOut, Loader2, RefreshCw, Moon, Sun } from "lucide-react"
+import { AqAirQo, AqHelpCircle } from '@airqo/icons-react'
 import { Button } from "@/components/ui/button"
 import GroupSelector from "@/components/dashboard/group-selector"
 import { syncGroups } from "@/services/device-api.service"
@@ -19,6 +19,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { useTheme } from "next-themes"
+import AppDropdown from "./app-dropdown"
+import { openFeedbackDialog } from "@/components/features/feedback/feedback-dialog"
 
 type User = {
   id?: number
@@ -32,6 +43,8 @@ type User = {
   phone?: string
   role?: string
   created_at?: string
+  profilePicture?: string
+  image?: string
 }
 
 interface TopNavProps {
@@ -71,6 +84,16 @@ export default function TopNav({
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
   const [canSyncGroups, setCanSyncGroups] = useState(false)
   const router = useRouter()
+  const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleDarkMode = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+  }
 
   useEffect(() => {
     const email = decodeJwtEmail(authService.getToken())
@@ -145,7 +168,7 @@ export default function TopNav({
             <span className="text-xl font-bold text-gray-800">Beacon</span>
           </button>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-x-3 pr-2">
           <GroupSelector />
           {canSyncGroups && (
             <Button
@@ -162,42 +185,99 @@ export default function TopNav({
               <span className="hidden sm:inline">{isSyncingGroups ? "Syncing..." : "Sync Groups"}</span>
             </Button>
           )}
-          <Bell className="h-5 w-5 text-gray-500 cursor-pointer hover:text-primary transition-colors" />
-          <div className="flex items-center space-x-2">
-            {/* User Avatar with initials */}
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                userInitials
-              )}
-            </div>
-            
-            {/* User name and logout button */}
-            <div className="flex items-center space-x-2">
-              {!loading && user && (
-                <span className="text-sm text-gray-700 hidden sm:inline-block max-w-32 truncate">
-                  {displayName}
-                </span>
-              )}
+
+          {/* Help & Feedback */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={openFeedbackDialog}
+            className="text-muted-foreground hover:text-foreground rounded-full p-2 h-10 w-10 hover:bg-gray-100 dark:hover:bg-primary/10 transition-colors"
+            title="Help & Feedback"
+            aria-label="Help & Feedback"
+          >
+            <AqHelpCircle className="!h-7 !w-7" />
+          </Button>
+
+          {/* Apps Dropdown */}
+          <AppDropdown />
+
+          {/* Notifications */}
+          <button
+            type="button"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+            aria-label="Notifications"
+          >
+            <Bell className="h-6 w-6 text-gray-500 hover:text-primary" />
+          </button>
+
+          {/* User profile dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="flex items-center text-gray-600 hover:text-primary transition-colors"
-                onClick={() => setShowLogoutDialog(true)}
-                disabled={isLoggingOut}
+                className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0 focus-visible:ring-0 rounded-full"
+                title={`AirQo Account\n${displayName}`}
+                aria-label="AirQo Account"
               >
-                {isLoggingOut ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <LogOut className="h-4 w-4 mr-1" />
-                )}
-                <span className="hidden sm:inline">
-                  {isLoggingOut ? "Logging out..." : "Logout"}
-                </span>
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={user?.profilePicture || user?.image || ''}
+                    alt={displayName}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary hover:text-foreground font-semibold">
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : userInitials}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
-            </div>
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 px-2 bg-white dark:bg-card border border-gray-200 dark:border-border shadow-lg rounded-xl mt-1 z-[9999]">
+              <div className="flex items-center p-2">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={user?.profilePicture || user?.image || ''}
+                    alt={displayName}
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col space-y-0.5 pl-2 truncate">
+                  <p className="text-sm font-semibold leading-none text-foreground truncate">
+                    {displayName.length > 18
+                      ? displayName.slice(0, 18) + '...'
+                      : displayName}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground truncate">
+                    {user?.email || user?.userName}
+                  </p>
+                </div>
+              </div>
+
+              {/* <DropdownMenuSeparator className="bg-gray-100 dark:bg-border" />
+
+              <DropdownMenuItem
+                onClick={toggleDarkMode}
+                className="flex items-center gap-2 cursor-pointer p-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-primary/10"
+              >
+                {mounted && resolvedTheme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                {mounted && resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </DropdownMenuItem> */}
+              
+              <DropdownMenuSeparator className="bg-gray-100 dark:bg-border" />
+              
+              <DropdownMenuItem
+                className="flex items-center text-red-600 focus:text-red-600 cursor-pointer p-2 rounded-lg text-sm hover:bg-red-50 dark:hover:bg-red-950/20"
+                onClick={() => setShowLogoutDialog(true)}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

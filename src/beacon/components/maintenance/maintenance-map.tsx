@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState, useMemo } from "react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import "leaflet-draw/dist/leaflet.draw.css"
+import "leaflet-draw"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { calculateDistance, optimizeRoute, findDevicesAlongRoute, calculateCriticalityScore } from "@/utils/map-utils"
 import { Coordinates } from "@/utils/routing-utils"
@@ -10,7 +12,7 @@ import { getDevicePerformanceData } from "@/services/device-api.service"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Map as MapIcon, Navigation, Info, AlertTriangle, CheckCircle, CircleDot } from "lucide-react"
+import { Map as MapIcon, Navigation, Info, AlertTriangle, CheckCircle, CircleDot, Pentagon, Trash2 } from "lucide-react"
 import { useGroup } from "@/lib/group-context"
 
 // Fix for default marker icons in Next.js/Leaflet
@@ -26,6 +28,19 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Ray-casting algorithm for point-in-polygon test
+function isPointInPolygon(lat: number, lng: number, polygon: L.LatLng[]): boolean {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].lat, yi = polygon[i].lng;
+        const xj = polygon[j].lat, yj = polygon[j].lng;
+        const intersect = ((yi > lng) !== (yj > lng)) &&
+            (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
 interface MaintenanceMapProps {
     data: MaintenanceMapItem[]
     loading?: boolean
@@ -34,6 +49,7 @@ interface MaintenanceMapProps {
     selectedDeviceIds?: string[]
     routePath?: MaintenanceMapItem[] // Pre-calculated route path
     homeLocation?: Coordinates & { name?: string } // Start/End location
+    onPolygonSelect?: (devices: MaintenanceMapItem[]) => void
 }
 
 type DeviceHealth = 'good' | 'moderate' | 'critical' | 'offline';
@@ -45,7 +61,8 @@ export default function MaintenanceMap({
     onSelectionChange,
     selectedDeviceIds = [],
     routePath,
-    homeLocation
+    homeLocation,
+    onPolygonSelect
 }: MaintenanceMapProps) {
     const { activeGroup, loading: groupLoading } = useGroup()
     const mapContainer = useRef<HTMLDivElement>(null)
@@ -54,6 +71,11 @@ export default function MaintenanceMap({
     const routeLayerRef = useRef<any>(null)
     const homeMarkerRef = useRef<any>(null)
     const suggestionMarkersRef = useRef<any[]>([])
+    const drawControlRef = useRef<any>(null)
+    const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup())
+    const [hasPolygon, setHasPolygon] = useState(false)
+    const [isDrawing, setIsDrawing] = useState(false)
+    const onPolygonSelectRef = useRef(onPolygonSelect)
 
     // Local state for routing if not controlled fully by parent yet
     const [localSelectedIds, setLocalSelectedIds] = useState<string[]>(selectedDeviceIds)
@@ -67,6 +89,11 @@ export default function MaintenanceMap({
     useEffect(() => {
         setLocalSelectedIds(selectedDeviceIds)
     }, [selectedDeviceIds])
+
+    // Keep onPolygonSelect ref fresh so we don't need it in effect deps
+    useEffect(() => {
+        onPolygonSelectRef.current = onPolygonSelect
+    }, [onPolygonSelect])
 
     // Helper to determine health
 
@@ -155,6 +182,70 @@ export default function MaintenanceMap({
             map.current.on('zoomend', () => {
                 setZoom(Math.round(map.current!.getZoom()));
             })
+
+            // Add the drawn items layer
+            drawnItemsRef.current.addTo(map.current)
+
+            // Add draw control (polygon only)
+            const drawControl = new (L.Control as any).Draw({
+                position: 'topleft',
+                draw: {
+                    polygon: {
+                        allowIntersection: false,
+                        drawError: {
+                            color: '#e1e100',
+                            message: '<strong>Polygon edges cannot cross!</strong>'
+                        },
+                        shapeOptions: {
+                            color: '#3b82f6',
+                            weight: 2,
+                            opacity: 0.8,
+                            fillColor: '#3b82f6',
+                            fillOpacity: 0.15
+                        }
+                    },
+                    polyline: false,
+                    circle: false,
+                    rectangle: false,
+                    marker: false,
+                    circlemarker: false
+                },
+                edit: {
+                    featureGroup: drawnItemsRef.current,
+                    remove: true
+                }
+            });
+            drawControl.addTo(map.current);
+            drawControlRef.current = drawControl;
+
+            // Handle polygon created
+            map.current.on('draw:created' as any, (e: any) => {
+                // Clear any previous polygon
+                drawnItemsRef.current.clearLayers();
+
+                const layer = e.layer;
+                drawnItemsRef.current.addLayer(layer);
+                setHasPolygon(true);
+                setIsDrawing(false);
+
+                // Get polygon vertices
+                const polygonLatLngs: L.LatLng[] = layer.getLatLngs()[0];
+
+                // Find devices inside the polygon
+                // We'll read `data` from the DOM markers, but we need the data array.
+                // We use a custom event to communicate the polygon to the marker effect.
+                map.current?.fire('polygon:select', { polygonLatLngs });
+            });
+
+            // Handle polygon deleted
+            map.current.on('draw:deleted' as any, () => {
+                setHasPolygon(false);
+                onPolygonSelectRef.current?.([])
+            });
+
+            // Track draw start/stop for UI state
+            map.current.on('draw:drawstart' as any, () => setIsDrawing(true));
+            map.current.on('draw:drawstop' as any, () => setIsDrawing(false));
         }
         return () => {
             if (map.current) {
@@ -555,6 +646,28 @@ export default function MaintenanceMap({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, localSelectedIds, isRouteMode, zoom, routePath, homeLocation]);
 
+    // Listen for polygon:select events and find devices inside the polygon
+    useEffect(() => {
+        if (!map.current) return;
+
+        const handlePolygonSelect = (e: any) => {
+            const polygonLatLngs: L.LatLng[] = e.polygonLatLngs;
+            if (!polygonLatLngs || polygonLatLngs.length < 3) return;
+
+            const devicesInPolygon = data.filter(device => {
+                if (device.latitude == null || device.longitude == null) return false;
+                return isPointInPolygon(device.latitude, device.longitude, polygonLatLngs);
+            });
+
+            onPolygonSelectRef.current?.(devicesInPolygon);
+        };
+
+        map.current.on('polygon:select' as any, handlePolygonSelect);
+        return () => {
+            map.current?.off('polygon:select' as any, handlePolygonSelect);
+        };
+    }, [data]);
+
 
     const handleToggleSelect = (id: string) => {
         let newIds;
@@ -591,13 +704,20 @@ export default function MaintenanceMap({
 
 
     return (
-        <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-gray-100 group">
+        <div className="relative w-full h-[800px] rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-gray-100 group">
             <div ref={mapContainer} className="absolute inset-0 z-0" />
 
             {/* Loading Overlay */}
             {loading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-sm">
                     <span className="text-gray-900 font-medium animate-pulse">Loading Map Data...</span>
+                </div>
+            )}
+
+            {/* Polygon Drawing Indicator */}
+            {isDrawing && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium animate-pulse">
+                    Click on the map to draw polygon vertices. Click the first point to close.
                 </div>
             )}
 
@@ -718,6 +838,25 @@ export default function MaintenanceMap({
                         </div>
                     )}
                 </Card>
+
+                {/* Polygon Selection Controls */}
+                {hasPolygon && (
+                    <Card className="p-2 shadow-lg bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-slate-200 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            onClick={() => {
+                                drawnItemsRef.current.clearLayers();
+                                setHasPolygon(false);
+                                onPolygonSelectRef.current?.([]);
+                            }}
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Clear Polygon
+                        </Button>
+                    </Card>
+                )}
             </div>
         </div>
     )

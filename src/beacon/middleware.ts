@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 
+import { withAuth } from "next-auth/middleware"
+
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/login',
@@ -21,49 +23,65 @@ const SKIP_PATHS = [
   '/public/'
 ]
 
-/**
- * Middleware function to protect routes
- */
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  
-  // Skip middleware for API routes and static assets
-  if (SKIP_PATHS.some(path => pathname.startsWith(path))) {
-    return NextResponse.next()
-  }
-
-  // Check authentication token
-  const token = request.cookies.get('token')?.value
-  const isAuthenticated = !!token
-  
-  // Check if route is public
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
-  
-  // Redirect unauthenticated users to login
-  if (!isAuthenticated && !isPublicRoute) {
-    const loginUrl = new URL('/login', request.url)
-    // Preserve the original destination for redirect after login
-    loginUrl.searchParams.set('from', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-  
-  // Redirect authenticated users away from auth pages
-  if (isAuthenticated && isPublicRoute) {
-    const isAirqoAdmin = request.cookies.get('isAirqoAdmin')?.value === 'true'
-    const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/devices'
-    return NextResponse.redirect(new URL(defaultRoute, request.url))
-  }
-
-  // Restrict access to /dashboard to AirQo Admins only
-  if (pathname === '/dashboard' || pathname === '/dashboard/') {
-    const isAirqoAdmin = request.cookies.get('isAirqoAdmin')?.value === 'true'
-    if (!isAirqoAdmin) {
-      return NextResponse.redirect(new URL('/dashboard/devices', request.url))
+export default withAuth(
+  function middleware(request) {
+    const { pathname } = request.nextUrl
+    
+    // Skip middleware for API routes and static assets
+    if (SKIP_PATHS.some(path => pathname.startsWith(path))) {
+      return NextResponse.next()
     }
+
+    const token = request.nextauth.token as any;
+    const isAirqoTokenExpired =
+      typeof token?.airqoExp === 'number' && Date.now() / 1000 > token.airqoExp;
+    const isAuthenticated = !!token && !isAirqoTokenExpired;
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+    
+    // Redirect unauthenticated users to login
+    if (!isAuthenticated && !isPublicRoute) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('from', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    
+    // Redirect authenticated users away from auth pages
+    if (isAuthenticated && isPublicRoute) {
+      // Check privilege/organization or falls back to isAirqoAdmin cookie
+      const isAirqoAdmin = (token?.organization?.toLowerCase() === 'airqo' && 
+                            (token?.privilege?.toLowerCase()?.includes('admin') || 
+                             token?.privilege?.toLowerCase() === 'super' || 
+                             token?.privilege?.toLowerCase() === 'net admin')) ||
+                           request.cookies.get('isAirqoAdmin')?.value === 'true'
+                             
+      const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/devices'
+      return NextResponse.redirect(new URL(defaultRoute, request.url))
+    }
+
+    // Restrict access to /dashboard to AirQo Admins only
+    if (pathname === '/dashboard' || pathname === '/dashboard/') {
+      const isAirqoAdmin = (token?.organization?.toLowerCase() === 'airqo' && 
+                            (token?.privilege?.toLowerCase()?.includes('admin') || 
+                             token?.privilege?.toLowerCase() === 'super' || 
+                             token?.privilege?.toLowerCase() === 'net admin')) ||
+                           request.cookies.get('isAirqoAdmin')?.value === 'true'
+                             
+      if (!isAirqoAdmin) {
+        return NextResponse.redirect(new URL('/dashboard/devices', request.url))
+      }
+    }
+    
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: () => true, // Let the middleware function handle the routing logic
+    },
+    pages: {
+      signIn: "/login",
+    },
   }
-  
-  return NextResponse.next()
-}
+)
 
 /**
  * Middleware configuration

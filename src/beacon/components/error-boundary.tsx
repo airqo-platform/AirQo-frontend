@@ -4,6 +4,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { sendToSlack } from '@/lib/logger'
 
 interface Props {
   children: ReactNode
@@ -32,6 +33,11 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('Uncaught error:', error, errorInfo)
     this.setState({ errorInfo })
     
+    sendToSlack('Unhandled React error', error, {
+      componentStack: errorInfo.componentStack?.slice(0, 400),
+      errorType: 'ErrorBoundary',
+    });
+
     if (this.props.onError) {
       this.props.onError(error, errorInfo)
     }

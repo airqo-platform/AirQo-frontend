@@ -16,9 +16,11 @@ import {
   FileText,
   Edit,
   ArrowLeft,
+  TerminalIcon,
 } from "lucide-react"
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
+import { useSession } from "next-auth/react"
 import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
@@ -26,6 +28,16 @@ import MetadataTab from "./metadata-tab"
 import ConfigTab from "./config-tab"
 import PerformanceTab from "./performance-tab"
 import DeviceDetailsTab from "./device-details-tab"
+import dynamic from "next/dynamic"
+
+const RemoteTerminalTab = dynamic(() => import("./remote-terminal-tab"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[700px] w-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 rounded-md border border-gray-800">
+      Initializing workbench...
+    </div>
+  ),
+})
 
 // Define interfaces for the device data
 interface DeviceDetail {
@@ -113,6 +125,7 @@ interface DeviceDetail {
 }
 
 export default function DeviceDetailPage() {
+  const { data: session, status } = useSession()
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -233,9 +246,12 @@ export default function DeviceDetailPage() {
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/devices/${deviceId}`
 
+      const token = session?.accessToken || authService.getToken()
+      const authHeader = token ? `JWT ${token.replace(/^(JWT|Bearer)\s+/i, '')}` : ''
+
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {
-          'Authorization': authService.getToken() || '',
+          'Authorization': authHeader,
           'Content-Type': 'application/json'
         }
       })
@@ -266,11 +282,13 @@ export default function DeviceDetailPage() {
   }
 
   useEffect(() => {
+    if (status === "loading") return
+    
     if (params?.id) {
       fetchDeviceData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params?.id])
+  }, [params?.id, status])
 
   const handleRefresh = () => {
     fetchDeviceData()
@@ -326,7 +344,7 @@ export default function DeviceDetailPage() {
       {/* Tabs for Device Information */}
       <Tabs defaultValue="device-details" className="mt-2">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList className="grid w-full max-w-3xl grid-cols-5">
+          <TabsList className="grid w-full max-w-3xl grid-cols-6">
             <TabsTrigger value="device-details" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
               Device Details
@@ -346,6 +364,10 @@ export default function DeviceDetailPage() {
             <TabsTrigger value="performance" className="flex items-center">
               <Activity className="mr-2 h-4 w-4" />
               Performance
+            </TabsTrigger>
+            <TabsTrigger value="remote-shell" className="flex items-center">
+              <TerminalIcon className="mr-2 h-4 w-4" />
+              Remote Shell
             </TabsTrigger>
             <TabsTrigger value="files" className="flex items-center">
               <FileText className="mr-2 h-4 w-4" />
@@ -388,6 +410,14 @@ export default function DeviceDetailPage() {
 
         <TabsContent value="performance" className="mt-4">
           <PerformanceTab deviceId={device.name} deviceName={device.long_name || device.name} />
+        </TabsContent>
+
+        <TabsContent value="remote-shell" className="mt-4">
+          <RemoteTerminalTab
+            deviceId={device._id}
+            deviceName={device.long_name || device.name}
+            transmissionStatus={device.transmissionStatus}
+          />
         </TabsContent>
 
         <TabsContent value="files" className="mt-4">
