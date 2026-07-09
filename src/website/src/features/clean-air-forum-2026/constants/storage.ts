@@ -10,7 +10,3 @@ export const CLEAN_AIR_FORUM_2026_QUIZ_ANSWERS_STORAGE_KEY =
   'clean_air_forum_2026_quiz_answers';
 export const CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY =
   'clean_air_forum_2026_quiz_index';
-export const CLEAN_AIR_FORUM_2026_SUBMISSION_RESULT_STORAGE_KEY =
-  'clean_air_forum_2026_submission_result';
-export const CLEAN_AIR_FORUM_2026_AUTH_TOKEN_STORAGE_KEY =
-  'clean_air_forum_2026_auth_token';

@@ -1,11 +1,12 @@
 import {
+  cleanAirForum2026LeaderboardPath,
   cleanAirForum2026LessonProgressPath,
-  cleanAirForum2026ProgressLinkPath,
 } from '@/features/clean-air-forum-2026/constants/learn';
 import type {
+  CleanAirForum2026LeaderboardEntry,
+  CleanAirForum2026LeaderboardResponse,
   CleanAirForum2026LessonProgressRequest,
   CleanAirForum2026LessonProgressResponse,
-  CleanAirForum2026ProgressLinkResponse,
 } from '@/features/clean-air-forum-2026/types/learn';
 import type { CleanAirForum2026GuestSession } from '@/features/clean-air-forum-2026/types/quiz';
 
@@ -50,27 +51,37 @@ export async function submitCleanAirForum2026LessonCompletion(
   return (await response.json()) as CleanAirForum2026LessonProgressResponse;
 }
 
-export async function linkCleanAirForum2026ProgressToAccount(
-  guestSession: CleanAirForum2026GuestSession,
-  authToken: string,
-  signal?: AbortSignal,
+function extractLeaderboardEntries(
+  payload: CleanAirForum2026LeaderboardResponse,
 ) {
-  const response = await fetch(cleanAirForum2026ProgressLinkPath, {
-    method: 'POST',
+  return (
+    payload.leaderboard ||
+    payload.entries ||
+    payload.results ||
+    payload.data ||
+    []
+  );
+}
+
+function normalizeLeaderboardRank(entry: CleanAirForum2026LeaderboardEntry) {
+  return entry.rank ?? entry.position ?? null;
+}
+
+function normalizeLeaderboardPoints(entry: CleanAirForum2026LeaderboardEntry) {
+  return entry.points ?? entry.total_points ?? 0;
+}
+
+export async function fetchCleanAirForum2026Leaderboard(signal?: AbortSignal) {
+  const response = await fetch(cleanAirForum2026LeaderboardPath, {
+    method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
       Accept: 'application/json',
-      Authorization: `JWT ${authToken}`,
     },
-    body: JSON.stringify({
-      device_id: guestSession.deviceId,
-      guest_id: guestSession.guestId,
-    }),
     signal,
   });
 
   if (!response.ok) {
-    let errorMessage = `Progress link request failed with ${response.status}`;
+    let errorMessage = `Leaderboard request failed with ${response.status}`;
 
     try {
       const errorPayload = (await response.json()) as {
@@ -90,5 +101,93 @@ export async function linkCleanAirForum2026ProgressToAccount(
     throw new Error(errorMessage);
   }
 
-  return (await response.json()) as CleanAirForum2026ProgressLinkResponse;
+  const payload =
+    (await response.json()) as CleanAirForum2026LeaderboardResponse;
+  const entries = extractLeaderboardEntries(payload)
+    .map((entry, index) => ({
+      ...entry,
+      rank: normalizeLeaderboardRank(entry) ?? index + 1,
+      points: normalizeLeaderboardPoints(entry),
+    }))
+    .sort((left, right) => {
+      const leftRank =
+        normalizeLeaderboardRank(left) ?? Number.MAX_SAFE_INTEGER;
+      const rightRank =
+        normalizeLeaderboardRank(right) ?? Number.MAX_SAFE_INTEGER;
+
+      return leftRank - rightRank;
+    });
+
+  return {
+    payload,
+    entries,
+  };
+}
+
+export async function fetchCleanAirForum2026LeaderboardPosition(
+  guestSession: CleanAirForum2026GuestSession,
+  signal?: AbortSignal,
+) {
+  const response = await fetch(cleanAirForum2026LeaderboardPath, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'X-Device-Id': guestSession.deviceId,
+      ...(guestSession.guestId ? { 'X-Guest-Id': guestSession.guestId } : {}),
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Leaderboard request failed with ${response.status}`;
+
+    try {
+      const errorPayload = (await response.json()) as {
+        message?: string;
+        errors?: string[];
+      };
+
+      if (errorPayload.message) {
+        errorMessage = errorPayload.message;
+      } else if (errorPayload.errors?.length) {
+        errorMessage = errorPayload.errors.join(', ');
+      }
+    } catch {
+      // Keep the fallback error message when the body is not JSON.
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  const payload =
+    (await response.json()) as CleanAirForum2026LeaderboardResponse;
+  const entries = extractLeaderboardEntries(payload);
+
+  const matchedEntry =
+    entries.find((entry) => entry.is_me) ||
+    entries.find(
+      (entry) =>
+        guestSession.guestId && entry.guest_id === guestSession.guestId,
+    ) ||
+    entries.find(
+      (entry) =>
+        guestSession.displayName &&
+        (entry.display_name === guestSession.displayName ||
+          entry.name === guestSession.displayName),
+    ) ||
+    null;
+
+  const position =
+    payload.current_user_rank ??
+    payload.my_rank ??
+    payload.your_rank ??
+    payload.rank ??
+    (matchedEntry ? normalizeLeaderboardRank(matchedEntry) : null);
+
+  return {
+    payload,
+    entries,
+    matchedEntry,
+    position,
+  };
 }

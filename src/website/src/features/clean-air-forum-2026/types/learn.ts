@@ -60,17 +60,32 @@ export type CleanAirForum2026GuestSessionResponse = {
   created_at?: string;
 };
 
-export type CleanAirForum2026ProgressLinkRequest = {
-  device_id: string;
-  guest_id: string;
+export type CleanAirForum2026LeaderboardEntry = {
+  rank?: number;
+  position?: number;
+  points?: number;
+  total_points?: number;
+  display_name?: string;
+  name?: string;
+  guest_id?: string;
+  device_id?: string;
+  is_me?: boolean;
+  current_stage?: {
+    index?: number;
+    name?: string;
+  } | null;
+  avatar?: string;
+  emoji?: string;
 };
 
-export type CleanAirForum2026ProgressLinkResponse = {
-  success: boolean;
-  user_id: string;
-  merged: {
-    lessons_transferred: number;
-    points_transferred: number;
-    courses_completed: number;
-  };
+export type CleanAirForum2026LeaderboardResponse = {
+  success?: boolean;
+  leaderboard?: CleanAirForum2026LeaderboardEntry[];
+  entries?: CleanAirForum2026LeaderboardEntry[];
+  results?: CleanAirForum2026LeaderboardEntry[];
+  data?: CleanAirForum2026LeaderboardEntry[];
+  current_user_rank?: number | null;
+  my_rank?: number | null;
+  your_rank?: number | null;
+  rank?: number | null;
 };

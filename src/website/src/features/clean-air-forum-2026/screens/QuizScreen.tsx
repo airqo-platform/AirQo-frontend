@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
 
 import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
@@ -13,11 +12,12 @@ import {
 import {
   CLEAN_AIR_FORUM_2026_QUIZ_ANSWERS_STORAGE_KEY,
   CLEAN_AIR_FORUM_2026_QUIZ_INDEX_STORAGE_KEY,
-  CLEAN_AIR_FORUM_2026_SUBMISSION_RESULT_STORAGE_KEY,
 } from '@/features/clean-air-forum-2026/constants/storage';
 import { useCleanAirForumQuizSetup } from '@/features/clean-air-forum-2026/hooks/useCleanAirForumQuizSetup';
-import { submitCleanAirForum2026LessonCompletion } from '@/features/clean-air-forum-2026/lib/learn-progress';
-import { buildCleanAirForumGoogleSignInUrl } from '@/features/clean-air-forum-2026/lib/oauth';
+import {
+  fetchCleanAirForum2026LeaderboardPosition,
+  submitCleanAirForum2026LessonCompletion,
+} from '@/features/clean-air-forum-2026/lib/learn-progress';
 import type {
   CleanAirForum2026LessonActivity,
   CleanAirForum2026LessonProgressResponse,
@@ -31,7 +31,7 @@ export default function QuizScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answersByActivityId, setAnswersByActivityId] =
     useState<CleanAirForum2026QuizAnswerMap>({});
-  const [screenStage, setScreenStage] = useState<'questions' | 'gate'>(
+  const [screenStage, setScreenStage] = useState<'questions' | 'results'>(
     'questions',
   );
   const [submissionStatus, setSubmissionStatus] = useState<
@@ -40,6 +40,12 @@ export default function QuizScreen() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionResult, setSubmissionResult] =
     useState<CleanAirForum2026LessonProgressResponse | null>(null);
+  const [leaderboardPosition, setLeaderboardPosition] = useState<number | null>(
+    null,
+  );
+  const [leaderboardStatus, setLeaderboardStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle');
 
   const lessonActivities = quizSetup.lessonPayload?.lesson.activities;
   const activities = lessonActivities ?? EMPTY_ACTIVITIES;
@@ -166,6 +172,52 @@ export default function QuizScreen() {
     totalQuestions,
   ]);
 
+  useEffect(() => {
+    if (
+      screenStage !== 'results' ||
+      !quizSetup.guestSession ||
+      submissionStatus !== 'submitted'
+    ) {
+      return;
+    }
+
+    const guestSession = quizSetup.guestSession;
+    const controller = new AbortController();
+
+    async function loadLeaderboardPosition() {
+      setLeaderboardStatus('loading');
+
+      try {
+        const leaderboard = await fetchCleanAirForum2026LeaderboardPosition(
+          guestSession,
+          controller.signal,
+        );
+
+        setLeaderboardPosition(leaderboard.position);
+        setLeaderboardStatus('ready');
+
+        console.group('[CAF 2026] Leaderboard position resolved');
+        console.info('guest_session', guestSession);
+        console.info('leaderboard_position', leaderboard.position);
+        console.info('leaderboard_entry', leaderboard.matchedEntry);
+        console.info('leaderboard_payload', leaderboard.payload);
+        console.groupEnd();
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to load leaderboard position.';
+
+        setLeaderboardStatus('error');
+        console.error('[CAF 2026] Leaderboard fetch failed', message);
+      }
+    }
+
+    void loadLeaderboardPosition();
+
+    return () => controller.abort();
+  }, [quizSetup.guestSession, screenStage, submissionStatus]);
+
   const handleSubmitQuiz = async () => {
     if (
       quizSetup.status !== 'ready' ||
@@ -202,11 +254,7 @@ export default function QuizScreen() {
 
       setSubmissionResult(response);
       setSubmissionStatus('submitted');
-      setScreenStage('gate');
-      window.sessionStorage.setItem(
-        CLEAN_AIR_FORUM_2026_SUBMISSION_RESULT_STORAGE_KEY,
-        JSON.stringify(response),
-      );
+      setScreenStage('results');
 
       console.group('[CAF 2026] Quiz completion submitted');
       console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
@@ -229,19 +277,6 @@ export default function QuizScreen() {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    try {
-      window.location.replace(buildCleanAirForumGoogleSignInUrl());
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Unable to start Google sign-in.';
-
-      console.error('[CAF 2026] Google sign-in failed to start', message);
-    }
-  };
-
   if (
     quizSetup.status !== 'ready' ||
     !quizSetup.lessonPayload ||
@@ -250,7 +285,7 @@ export default function QuizScreen() {
     return <Screen className="caf-2026-screen" />;
   }
 
-  if (screenStage === 'gate') {
+  if (screenStage === 'results') {
     return (
       <Screen className="caf-2026-screen">
         <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
@@ -269,22 +304,36 @@ export default function QuizScreen() {
             <div className="mt-16 flex w-full max-w-4xl flex-col items-center gap-8 text-center sm:mt-20 sm:gap-10">
               <div className="space-y-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72">
-                  Quiz Complete
+                  Results Revealed
                 </p>
                 <h1 className="text-balance text-[clamp(1.9rem,4vw,4rem)] font-bold leading-[0.98] tracking-[-0.04em] text-[#072b31]">
-                  Sign in to see your results
+                  {quizSetup.guestSession?.displayName || 'Guest participant'}
                 </h1>
               </div>
 
-              <Button
-                className="rounded-[1.4rem] bg-white px-7 py-3 text-base font-semibold text-[#072b31] hover:bg-white/90"
-                onClick={handleGoogleSignIn}
-              >
-                <span className="inline-flex items-center gap-3">
-                  <FcGoogle className="h-5 w-5" />
-                  <span>Sign in with Google</span>
-                </span>
-              </Button>
+              <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+                <div className="rounded-[1.5rem] bg-white/30 px-5 py-5 text-left text-[#072b31] backdrop-blur-[10px]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0d4f57]/72">
+                    Points Earned
+                  </p>
+                  <p className="mt-3 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-none tracking-[-0.04em]">
+                    {submissionResult?.points_earned ?? 0}
+                  </p>
+                </div>
+
+                <div className="rounded-[1.5rem] bg-white/30 px-5 py-5 text-left text-[#072b31] backdrop-blur-[10px]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0d4f57]/72">
+                    Leaderboard Position
+                  </p>
+                  <p className="mt-3 text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-none tracking-[-0.04em]">
+                    {leaderboardStatus === 'loading'
+                      ? '...'
+                      : leaderboardPosition
+                        ? `#${leaderboardPosition}`
+                        : '--'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -308,47 +357,52 @@ export default function QuizScreen() {
           </div>
 
           <div className="mt-16 flex w-full max-w-5xl flex-col items-center gap-8 sm:mt-20 sm:gap-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72">
-              Question {currentQuestionIndex + 1} of {totalQuestions}
-            </p>
-            <h1 className="w-full max-w-none text-balance text-left text-[clamp(1.2rem,2vw,2.1rem)] font-bold leading-[1.12] tracking-[-0.025em] text-[#072b31] md:text-center">
-              {currentActivity.payload.question}
-            </h1>
+            <div
+              key={currentActivity.id}
+              className="animate-fade-in flex w-full flex-col items-center gap-8 sm:gap-10"
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72">
+                Question {currentQuestionIndex + 1} of {totalQuestions}
+              </p>
+              <h1 className="w-full max-w-none text-balance text-left text-[clamp(1.2rem,2vw,2.1rem)] font-bold leading-[1.12] tracking-[-0.025em] text-[#072b31] md:text-center">
+                {currentActivity.payload.question}
+              </h1>
 
-            <div className="flex w-full max-w-4xl flex-col gap-4">
-              {currentActivity.payload.options.map((option, optionIndex) => {
-                const isSelected = selectedOptionIndex === optionIndex;
+              <div className="flex w-full max-w-4xl flex-col gap-4">
+                {currentActivity.payload.options.map((option, optionIndex) => {
+                  const isSelected = selectedOptionIndex === optionIndex;
 
-                return (
-                  <button
-                    key={`${currentActivity.id}-${optionIndex}`}
-                    type="button"
-                    onClick={() =>
-                      setAnswersByActivityId((currentAnswers) => ({
-                        ...currentAnswers,
-                        [currentActivity.id]: {
-                          activityId: currentActivity.id,
-                          format: currentActivity.payload.format,
-                          selectedIndex: optionIndex,
-                          isCorrect:
-                            optionIndex ===
-                            currentActivity.payload.correct_index,
-                        },
-                      }))
-                    }
-                    className={[
-                      'rounded-[1.5rem] px-5 py-4 text-left transition-colors sm:px-6 sm:py-5',
-                      isSelected
-                        ? 'bg-[var(--caf-2026-interactive)] text-white'
-                        : 'bg-white/55 text-[#072b31]',
-                    ].join(' ')}
-                  >
-                    <p className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[1.45rem]">
-                      {option.trim()}
-                    </p>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={`${currentActivity.id}-${optionIndex}`}
+                      type="button"
+                      onClick={() =>
+                        setAnswersByActivityId((currentAnswers) => ({
+                          ...currentAnswers,
+                          [currentActivity.id]: {
+                            activityId: currentActivity.id,
+                            format: currentActivity.payload.format,
+                            selectedIndex: optionIndex,
+                            isCorrect:
+                              optionIndex ===
+                              currentActivity.payload.correct_index,
+                          },
+                        }))
+                      }
+                      className={[
+                        'rounded-[1.5rem] px-5 py-4 text-left transition-colors sm:px-6 sm:py-5',
+                        isSelected
+                          ? 'bg-[var(--caf-2026-interactive)] text-white'
+                          : 'bg-white/55 text-[#072b31]',
+                      ].join(' ')}
+                    >
+                      <p className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] sm:text-[1.45rem]">
+                        {option.trim()}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {selectedOptionIndex !== null && !isLastQuestion ? (

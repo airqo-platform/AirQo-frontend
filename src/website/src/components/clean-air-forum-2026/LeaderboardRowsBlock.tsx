@@ -1,24 +1,37 @@
 import LeaderboardRow from './LeaderboardRow';
 
-const leaderboardRows = [
-  { rank: 1, name: 'Hakim Luyima', points: '15,000pts', tone: 'light' },
-  { rank: 2, name: 'Hassan Kulubya', points: '15,000pts', tone: 'tint' },
-  { rank: 3, name: 'Hakim Luyima', points: '15,000pts', tone: 'light' },
-  { rank: 4, name: 'Martin Bbaale', points: '15,000pts', tone: 'tint' },
-  { rank: 5, name: 'Paul Ochieng', points: '15,000pts', tone: 'light' },
-] as const satisfies Array<{
-  rank: number;
-  name: string;
-  points: string;
-  tone: 'light' | 'tint';
-}>;
+type LeaderboardRowsBlockProps = {
+  rows: Array<{
+    avatar?: string;
+    rank: number;
+    name: string;
+    points: string;
+    tone: 'light' | 'tint';
+  }>;
+};
 
-export default function LeaderboardRowsBlock() {
+const placeholderRows: LeaderboardRowsBlockProps['rows'] = Array.from(
+  { length: 5 },
+  (_, index) => ({
+    avatar: '',
+    rank: index + 1,
+    name: 'Loading...',
+    points: '-- pts',
+    tone: index % 2 === 0 ? 'light' : 'tint',
+  }),
+);
+
+export default function LeaderboardRowsBlock({
+  rows,
+}: LeaderboardRowsBlockProps) {
+  const visibleRows = rows.length > 0 ? rows : placeholderRows;
+
   return (
     <div className="mx-auto flex w-full max-w-[75.125rem] flex-col gap-3 sm:gap-4 lg:gap-4">
-      {leaderboardRows.map((row) => (
+      {visibleRows.map((row) => (
         <LeaderboardRow
-          key={row.rank}
+          key={`${row.rank}-${row.name}`}
+          avatar={row.avatar}
           rank={row.rank}
           name={row.name}
           points={row.points}
