@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import type React from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { RefreshCw } from "lucide-react"
-import authService from "@/services/api-service"
+import { useSession, signOut } from "next-auth/react"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
 import { GroupProvider, useGroup } from "@/lib/group-context"
@@ -29,165 +29,45 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Start with collapsed sidebar
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
+  const { data: session, status } = useSession()
 
-  // Initialize user data
-  useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        // Only check authentication on client side
-        if (typeof window === 'undefined') {
-          return
-        }
-
-        // Check if user is authenticated
-        const authStatus = authService.isAuthenticated()
-        setIsAuthenticated(authStatus)
-        
-        if (!authStatus) {
-          // Clear any stale data and redirect to login
-          authService.logout()
-          router.push("/login")
-          return
-        }
-
-        // Get user data from auth service
-        const userData = authService.getUserData()
-        
-        if (userData) {
-          // Normalize user data structure (handle different API response formats)
-          const normalizedUser: User = {
-            id: userData.id || userData._id,
-            _id: userData._id || userData.id,
-            first_name: userData.first_name || userData.firstName,
-            last_name: userData.last_name || userData.lastName,
-            firstName: userData.firstName || userData.first_name,
-            lastName: userData.lastName || userData.last_name,
-            email: userData.email || userData.userName,
-            userName: userData.userName || userData.email,
-            phone: userData.phone,
-            role: userData.role || 'user',
-            created_at: userData.created_at || userData.createdAt
-          }
-          setUser(normalizedUser)
-        } else {
-          // If no user data but authenticated, try to fetch from API
-          await fetchUserFromAPI()
-        }
-      } catch (error) {
-        console.error("Error initializing user:", error)
-        // On error, redirect to login
-        if (typeof window !== 'undefined') {
-          authService.logout()
-          router.push("/login")
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    initializeUser()
-  }, [router])
-
-  // Fetch user data from API if needed
-  const fetchUserFromAPI = async () => {
-    try {
-      const token = authService.getToken()
-      if (!token) {
-        throw new Error("No authentication token")
-      }
-
-      // Try to fetch from the API
-      const response = await fetch('/api/users/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.status === 401 || response.status === 403) {
-        // Token is invalid
-        throw new Error("Invalid authentication")
-      }
-
-      if (response.ok) {
-        const userData = await response.json()
-        
-        // Store user data in auth service
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('userData', JSON.stringify(userData))
-        }
-        
-        setUser(userData)
-      }
-    } catch (error) {
-      console.error("Error fetching user from API:", error)
-      // If we can't fetch user data, use what we have or show default
-      const storedData = authService.getUserData()
-      if (storedData) {
-        setUser(storedData)
-      }
-    }
-  }
-
+  const loading = status === "loading"
+  const isAuthenticated = status === "authenticated"
+  const rawUser = session?.user
+  
+  const user: User | null = rawUser ? {
+    id: (rawUser as any).id,
+    _id: (rawUser as any)._id,
+    first_name: rawUser.firstName,
+    last_name: rawUser.lastName,
+    firstName: rawUser.firstName,
+    lastName: rawUser.lastName,
+    email: rawUser.email || undefined,
+    userName: (rawUser as any).userName,
+    phone: (rawUser as any).phoneNumber,
+    role: (rawUser as any).privilege || 'user',
+  } : null;
 
   // Handle logout
   const handleLogout = async () => {
     setIsLoggingOut(true)
     
     try {
-      // Clear all authentication data
-      authService.logout()
-      
-      // Small delay to ensure cleanup
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
-      // Redirect to login with logout flag
-      router.push("/login?action=logout")
-      
-      // Force page refresh to clear any cached data
-      router.refresh()
-      
+      await signOut({ callbackUrl: "/login?action=logout" })
     } catch (error) {
       console.error("Logout error:", error)
-      
-      // Force logout even if there's an error
-      authService.forceLogout()
-      
-    } finally {
       setIsLoggingOut(false)
     }
-
   }
 
-  // Check authentication status periodically
+  // Redirect to login if unauthenticated
   useEffect(() => {
-    const checkAuth = () => {
-      const authStatus = authService.isAuthenticated()
-      setIsAuthenticated(authStatus)
-      
-      if (!authStatus) {
-        authService.logout()
-        router.push("/login")
-      }
+    if (status === "unauthenticated") {
+      router.push("/login")
     }
-
-    // Check every 30 seconds
-    const interval = setInterval(checkAuth, 30000)
-    
-    // Also check on focus
-    const handleFocus = () => checkAuth()
-    window.addEventListener('focus', handleFocus)
-    
-    return () => {
-      clearInterval(interval)
-      window.removeEventListener('focus', handleFocus)
-    }
-  }, [router])
+  }, [status, router])
 
   return (
     <GroupProvider>

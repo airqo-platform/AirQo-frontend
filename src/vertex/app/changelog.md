@@ -2,6 +2,34 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.18
+**Released:** July 9, 2026
+
+### Logout Confirmation Modal & ReusableDialog Focus Fixes
+
+Added a confirmation step before signing out, and fixed two focus-management bugs in `ReusableDialog` that caused a spurious focus ring on re-open after a full page navigation.
+
+<details>
+<summary><strong>Topbar — Logout confirmation (`components/layout/topbar.tsx`)</strong></summary>
+
+- "Log out" dropdown item now opens a `ReusableDialog` confirmation instead of calling `logout()` immediately, preventing accidental sign-outs from a stray click.
+- Title: *"Sign out of your AirQo account?"* · Body: *"You'll be signed out of all AirQo apps on this device and will need to sign in again to continue."*
+- Confirm button styled destructive (red); Cancel closes the modal with no side effects.
+- Existing `useLogout` hook is called unchanged after confirmation — no change to Redux clear, persistor purge, cross-tab signal, or redirect behaviour.
+
+</details>
+
+<details>
+<summary><strong>ReusableDialog — Focus management (`components/shared/dialog/ReusableDialog.tsx`)</strong></summary>
+
+- **Stale timer fixed**: the `setTimeout` that moves focus into the dialog is now cleared in the effect cleanup, preventing it from firing against an already-closed dialog.
+- **First focusable element**: focus now lands on the first interactive element that is not the close (×) button — typically the Cancel button in a confirmation flow or the first input in a form dialog. Falls back to the × button, then the dialog root.
+- **Title casing**: removed the `capitalize` CSS class from the title `<h2>` so titles render exactly as passed (sentence-case titles like *"Sign out of your AirQo account?"* no longer have every word force-capitalised). Existing title-cased strings are unaffected.
+
+</details>
+
+---
+
 ## Version 2.0.17
 **Released:** July 7, 2026
 

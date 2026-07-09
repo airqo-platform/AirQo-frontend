@@ -48,6 +48,31 @@ export interface UptimeSummaryItem {
   alertsTriggered: number;
 }
 
+export interface NetworkBreakdownItem {
+  _id: string; // network name (e.g. airqo, airgradient)
+  totalChecks: number;
+  avg_total_monitors: number;
+  avg_not_transmitting_percentage: number;
+  max_not_transmitting_percentage: number;
+  min_not_transmitting_percentage: number;
+}
+
+export interface NetworkBreakdownResponse {
+  success: boolean;
+  data: NetworkBreakdownItem[];
+}
+
+export interface DeviceSummaryCountResponse {
+  success: boolean;
+  data: {
+    total_monitors: number;
+    operational: number;
+    transmitting: number;
+    data_available: number;
+    not_transmitting: number;
+  };
+}
+
 class NetworkStatusService {
   private readonly baseUrl = buildPlatformApiUrl('devices/network-status', 'v2');
 
@@ -92,6 +117,7 @@ class NetworkStatusService {
     end_date?: string;
     status?: 'OK' | 'WARNING' | 'CRITICAL';
     threshold_exceeded?: boolean;
+    network?: string;
   }): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
     return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/', params);
   }
@@ -99,6 +125,7 @@ class NetworkStatusService {
   async getStatistics(params?: {
     start_date?: string;
     end_date?: string;
+    network?: string;
   }): Promise<{ success: boolean; statistics: NetworkStatistics[] }> {
     return this.fetchFromApi<{ success: boolean; statistics: NetworkStatistics[] }>('/statistics', params);
   }
@@ -106,16 +133,39 @@ class NetworkStatusService {
   async getHourlyTrends(params?: {
     start_date?: string;
     end_date?: string;
+    network?: string;
   }): Promise<{ success: boolean; trends: HourlyTrend[] }> {
     return this.fetchFromApi<{ success: boolean; trends: HourlyTrend[] }>('/trends/hourly', params);
   }
 
-  async getRecentAlerts(hours = 24): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
-    return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/recent', { hours });
+  async getRecentAlerts(hours = 24, network?: string): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
+    return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/recent', { hours, network });
   }
 
-  async getUptimeSummary(days = 7): Promise<{ success: boolean; summary: UptimeSummaryItem[] }> {
-    return this.fetchFromApi<{ success: boolean; summary: UptimeSummaryItem[] }>('/uptime-summary', { days });
+  async getUptimeSummary(days = 7, network?: string): Promise<{ success: boolean; summary: UptimeSummaryItem[] }> {
+    return this.fetchFromApi<{ success: boolean; summary: UptimeSummaryItem[] }>('/uptime-summary', { days, network });
+  }
+
+  async getNetworkBreakdown(params?: {
+    start_date?: string;
+    end_date?: string;
+  }): Promise<NetworkBreakdownResponse> {
+    return this.fetchFromApi<NetworkBreakdownResponse>('/breakdown', params);
+  }
+
+  async getDeviceSummaryCount(network?: string): Promise<DeviceSummaryCountResponse> {
+    const baseUrl = buildPlatformApiUrl('devices/summary/count', 'v2');
+    const url = new URL(baseUrl);
+    if (network) {
+      url.searchParams.append('network', network);
+    }
+    const response = await fetch(url.toString(), {
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
   }
 }
 

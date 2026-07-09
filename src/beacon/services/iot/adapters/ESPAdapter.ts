@@ -29,22 +29,25 @@ export class ESPAdapter implements DeviceAdapter {
     if (!this.port || !this.port.readable) return;
     
     this.isReading = true;
-    const decoder = new TextDecoderStream();
-    const readableStreamClosed = this.port.readable.pipeTo(decoder.writable);
-    this.reader = decoder.readable.getReader();
+    const reader = this.port.readable.getReader();
+    this.reader = reader;
+    const decoder = new TextDecoder();
 
     try {
       while (this.isReading) {
-        const { value, done } = await this.reader.read();
+        const { value, done } = await reader.read();
         if (done) break;
         if (value && this.logCallback) {
-          this.logCallback(value);
+          this.logCallback(decoder.decode(value));
         }
       }
     } catch (error) {
       console.error('Error reading from serial port', error);
     } finally {
-      this.reader.releaseLock();
+      try {
+        reader.releaseLock();
+      } catch (e) {}
+      this.reader = null;
     }
   }
 
@@ -52,17 +55,16 @@ export class ESPAdapter implements DeviceAdapter {
     this.isReading = false;
     
     if (this.reader) {
-      await this.reader.cancel();
+      try {
+        await this.reader.cancel();
+      } catch (e) {}
       this.reader = null;
     }
 
-    if (this.writer) {
-      await this.writer.close();
-      this.writer = null;
-    }
-
     if (this.port) {
-      await this.port.close();
+      try {
+        await this.port.close();
+      } catch (e) {}
       this.port = null;
     }
   }
@@ -71,7 +73,9 @@ export class ESPAdapter implements DeviceAdapter {
     // 1. Pause reading
     this.isReading = false;
     if (this.reader) {
-      await this.reader.cancel();
+      try {
+        await this.reader.cancel();
+      } catch (e) {}
       this.reader = null;
     }
 

@@ -100,15 +100,26 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
   // Focus management
   useEffect(() => {
-    if (isOpen) {
-      previousActiveElement.current = document.activeElement
-      // Use timeout to ensure dialog is rendered before focusing
-      setTimeout(() => {
-        dialogRef.current?.focus()
-      }, 100)
-    } else {
+    if (!isOpen) {
       ;(previousActiveElement.current as HTMLElement)?.focus()
+      return
     }
+
+    previousActiveElement.current = document.activeElement
+    const timer = setTimeout(() => {
+      const focusSelector =
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      const all = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(focusSelector) ?? []
+      )
+      const target =
+        all.find((el) => el.getAttribute('aria-label') !== 'Close dialog') ??
+        all[0] ??
+        dialogRef.current
+      target?.focus()
+    }, 100)
+
+    return () => clearTimeout(timer)
   }, [isOpen])
 
   const wasOpenRef = useRef(isOpen)
@@ -183,7 +194,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           )}
           {(title || subtitle) && (
             <div>
-              {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">{title}</h2>}
+              {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>}
               {subtitle && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>}
             </div>
           )}
