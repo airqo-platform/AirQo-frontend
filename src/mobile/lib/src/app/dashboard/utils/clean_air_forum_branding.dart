@@ -28,11 +28,14 @@ class CleanAirForumBrand {
   /// the Figma template exactly (distinct from [scrimTeal]).
   static const Color sharedCaptionText = Color(0xFF1F3D3D);
 
-  /// Host city + year shown under the "Clean Air Forum" wordmark.
+  /// Wordmark shown top-left on the selfie filter card.
+  static const String title = 'Africa CLEAN - Air Forum';
+
+  /// Host city + year shown under the [title] wordmark.
   static const String edition = 'Pretoria 2026';
 
   /// Event date range shown in the corner of the filter card.
-  static const String dateRange = '13TH-16TH JULY';
+  static const String dateRange = '14TH-16TH JULY';
 }
 
 /// Reference canvas width the Figma "AQ/CAF" templates were designed at.
@@ -65,7 +68,7 @@ class AirQoIconMark extends StatelessWidget {
   }
 }
 
-/// AirQo icon + "Clean Air Forum" wordmark lockup shown top-left on the
+/// AirQo icon + [CleanAirForumBrand.title] wordmark lockup shown top-left on the
 /// selfie filter card: logo mark, a vertical divider, then the title/edition
 /// text — matches the Figma "AQ/CAF" header exactly (node 169:538).
 ///
@@ -98,7 +101,7 @@ class CleanAirForumBrandHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Clean Air Forum',
+                CleanAirForumBrand.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
