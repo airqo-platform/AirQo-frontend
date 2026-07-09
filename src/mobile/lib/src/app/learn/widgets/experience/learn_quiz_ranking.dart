@@ -39,9 +39,12 @@ class _LearnQuizRankingActivityState extends State<LearnQuizRankingActivity> {
     // Present the items shuffled so the correct order is never pre-filled.
     if (_order.length > 1) {
       final expected = widget.quiz.correctOrder ?? List.of(_order);
-      do {
-        _order.shuffle();
-      } while (listEquals(_order, expected));
+      _order.shuffle();
+      if (listEquals(_order, expected)) {
+        final tmp = _order[0];
+        _order[0] = _order[1];
+        _order[1] = tmp;
+      }
     }
   }
 
