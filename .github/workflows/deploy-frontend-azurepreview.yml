@@ -116,7 +116,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -135,8 +135,8 @@ jobs:
             --build-arg NEXT_PUBLIC_HCAPTCHA_SITE_KEY=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_HCAPTCHA_SITE_KEY }} \
             --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
             --build-arg NEXT_PUBLIC_SITE_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_SITE_URL }} \
-            --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
-          docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }}
+            --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
+          docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -147,7 +147,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 8080 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -199,7 +199,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Azure Login
         uses: azure/login@v2
@@ -217,8 +217,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} src/beacon
-          docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }} src/beacon
+          docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -231,7 +231,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -283,7 +283,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: azure/login@v2
         with:
@@ -300,8 +300,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} src/calibrate
-          docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }} src/calibrate
+          docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -314,7 +314,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 80 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -366,7 +366,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: azure/login@v2
         with:
@@ -400,8 +400,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} src/platform
-          docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.event.pull_request.head.sha }} src/platform
+          docker push ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -426,7 +426,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/analytics-platform-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -494,7 +494,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: azure/login@v2
         with:
@@ -528,8 +528,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} src/vertex
-          docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }} src/vertex
+          docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -554,7 +554,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
@@ -628,7 +628,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: azure/login@v2
         with:
@@ -645,8 +645,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} src/docs-website
-          docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }}
+          docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }} src/docs-website
+          docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }}
 
       - name: Deploy Container App
         run: |
@@ -659,7 +659,7 @@ jobs:
             --name $APP \
             --resource-group ${{ env.RG }} \
             --environment ${{ env.PR_PREVIEW_ENV }} \
-            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.sha }} \
+            --image ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }} \
             --target-port 3000 \
             --ingress external \
             --registry-server ${{ env.REGISTRY_URL }} \
