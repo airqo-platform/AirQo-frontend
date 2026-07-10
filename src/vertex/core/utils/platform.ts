@@ -1,3 +1,21 @@
+export type DetectedPlatform = 'win' | 'mac' | 'linux' | 'other'
+
+export function getDetectedPlatform(): DetectedPlatform {
+  if (typeof window === 'undefined') return 'other'
+  const ua = window.navigator.userAgent.toLowerCase()
+  const isIOS = /iphone|ipad|ipod/.test(ua)
+  const isAndroid = /android/.test(ua)
+  if (!isIOS && /windows nt|win32|win64/.test(ua)) return 'win'
+  if (!isIOS && /macintosh|mac os x/.test(ua)) return 'mac'
+  if (!isAndroid && /linux/.test(ua)) return 'linux'
+  return 'other'
+}
+
+export function getIsElectron(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.navigator.userAgent.toLowerCase().includes('electron')
+}
+
 /**
  * Detects if the current user agent is running on Apple Silicon (ARM64).
  * Returns 'arm64' for Apple Silicon, 'x64' for Intel, and 'unknown' otherwise.

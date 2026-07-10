@@ -2,6 +2,88 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.21
+**Released:** July 9, 2026
+
+### Chore: Increase Bundle Size Limit to 205 kB
+
+Raised the `size-limit` threshold in `package.json` from `200 kB` to `205 kB` to accommodate the new platform-aware download page, OS detection utilities, logout confirmation dialog, and sidebar CTA — features added across versions 2.0.18–2.0.20 that collectively pushed the brotlied app chunk total to ~202 kB.
+
+- `src/vertex/package.json` [MODIFIED] — `"limit": "200 kB"` → `"limit": "205 kB"`
+
+---
+
+## Version 2.0.20
+**Released:** July 9, 2026
+
+### Platform-Aware Download Page with Dynamic GitHub Release Fetching
+
+Redesigned the `/download` page with a dynamic primary download button that detects the visitor's OS, a multi-platform release card section (macOS, Windows, Linux), and a server-side Route Handler that fetches the latest desktop release from GitHub automatically — no more hardcoded version URLs.
+
+<details>
+<summary><strong>New: Route Handler — <code>app/api/latest-release/route.ts</code></strong></summary>
+
+- Fetches the GitHub Releases API (`/repos/airqo-platform/AirQo-frontend/releases`) server-side.
+- Identifies desktop releases (v0.x.y) by the presence of a `.exe` asset, distinguishing them from web releases (v2.x.x) which have zero assets.
+- Returns parsed download URLs per platform/format: Windows `.exe`, macOS Apple Silicon `.dmg`, macOS Intel `.dmg`, Linux `.AppImage`, Linux `.deb`.
+- `export const revalidate = 3600` — Next.js ISR caches the response for 1 hour so GitHub is not hit on every page load.
+- Optional `GITHUB_TOKEN` environment variable to avoid anonymous rate limits.
+
+</details>
+
+<details>
+<summary><strong>New: OS detection utilities</strong></summary>
+
+- `core/utils/platform.ts` — added `getDetectedPlatform()` (returns `'win' | 'mac' | 'linux' | 'other'`) and `getIsElectron()` as pure functions alongside the existing `getMacArchitecture()`.
+- `core/hooks/useDetectedPlatform.ts` [NEW] — React hook wrapping the above pure functions; uses `useEffect` to avoid SSR hydration mismatches. Returns `{ platform, isElectron }`.
+
+</details>
+
+<details>
+<summary><strong>DownloadHero — <code>components/features/download/DownloadHero.tsx</code></strong></summary>
+
+- **Primary button**: dynamically labelled ("Download for Windows / macOS / Linux" or "Get Desktop app") and linked based on the detected OS. Defaults to best format per platform: Apple Silicon `.dmg` for macOS, `.AppImage` for Linux.
+- **Fallback**: starts with hardcoded v0.1.11 URLs from `app-downloads.ts`; swaps to live data once the Route Handler responds.
+- **Platform cards**: three cards (macOS, Windows, Linux) each listing their available formats as download links. Linux card includes a terminal install snippet (`curl -fsSL https://vertex.airqo.net/install.sh | bash`) with an inline copy button.
+- Detected OS card gets a subtle primary-coloured ring highlight.
+- Dark mode: cards use `bg-card`; hero section uses `bg-primary-50 dark:bg-background`.
+
+</details>
+
+<details>
+<summary><strong>Sidebar & Login — non-Electron CTA</strong></summary>
+
+- `components/layout/secondary-sidebar.tsx` — replaced inline OS detection with `useDetectedPlatform`; CTA ("Get Desktop app") now shows for all non-Electron users, not just Windows.
+- `app/login/page.tsx` — same: removed manual state/effect OS detection, now uses `useDetectedPlatform`; CTA shows for all non-Electron users.
+- `components/features/auth/social-auth-section.tsx` — replaced inline `window.navigator.userAgent` check with `useDetectedPlatform`.
+
+</details>
+
+<details>
+<summary><strong>Download page scroll fix (<code>app/download/page.tsx</code>)</strong></summary>
+
+- `globals.css` sets `html { overflow: hidden }` globally; the download page (a public route with no authenticated shell) had no scroll container of its own. Fixed by making the page wrapper `h-screen overflow-y-auto`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (10)</strong></summary>
+
+- `src/vertex/app/api/latest-release/route.ts` [NEW]
+- `src/vertex/core/hooks/useDetectedPlatform.ts` [NEW]
+- `src/vertex/core/utils/platform.ts` [MODIFIED]
+- `src/vertex/core/constants/app-downloads.ts` [MODIFIED]
+- `src/vertex/components/features/download/DownloadHero.tsx` [MODIFIED]
+- `src/vertex/components/features/download/PlatformInfo.tsx` [MODIFIED]
+- `src/vertex/app/download/page.tsx` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/social-auth-section.tsx` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.19
 **Released:** July 9, 2026
 

@@ -25,7 +25,7 @@ const features = [
 
 export default function PlatformInfo() {
   return (
-    <section className="bg-white px-4 py-8 sm:px-6 sm:py-14 lg:px-8">
+    <section className="bg-background px-4 py-8 sm:px-6 sm:py-14 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
         {features.map(feature => {
           const Icon = feature.icon;
