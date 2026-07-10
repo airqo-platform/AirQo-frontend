@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from 'react'
+import { sendToSlack } from '@/lib/logger'
 
 // Shared constants with DynamicImportWrapper for consistent behavior
 const RETRY_COUNT_KEY = 'chunk_load_retry_count'
@@ -42,6 +43,14 @@ function attemptReloadWithBackoff(): boolean {
   
   if (currentRetryCount >= MAX_RETRIES) {
     console.error(`Max retries (${MAX_RETRIES}) reached. Stopping reload attempts.`)
+    sendToSlack(
+      "Chunk load failed after max retries",
+      new Error("ChunkLoadError"),
+      {
+        url: typeof window !== "undefined" ? window.location.href : "SSR",
+        retryCount: MAX_RETRIES,
+      },
+    );
     // Don't clear the counter here - let the error UI show
     return false
   }

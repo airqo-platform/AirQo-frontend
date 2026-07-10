@@ -15,12 +15,12 @@ import ScrollToTopButton from './ScrollToTopButton';
 const footerLinks = {
   products: [
     { label: 'Binos Monitor', href: '/products/monitor' },
-    { label: 'Analytics Dashboard', href: '/products/analytics' },
+    { label: 'AirQo Nexus', href: '/products/nexus' },
     { label: 'Air Quality API', href: '/products/api' },
     { label: 'Mobile App', href: '/products/mobile-app' },
     { label: 'AirQalibrate', href: '/products/calibrate' },
-    { label: 'Vertex', href: '/products/vertex' },
-    { label: 'Beacon', href: '/products/beacon' },
+    { label: 'AirQo Vertex', href: '/products/vertex' },
+    { label: 'AirQo Beacon', href: '/products/beacon' },
     { label: 'AirQo AI Platform', href: '/products/ai-platform' },
   ],
   solutions: [
@@ -39,6 +39,7 @@ const footerLinks = {
     { label: 'Events', href: '/events' },
     { label: 'FAQs', href: '/faqs' },
     { label: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
+    { label: 'Faces of Clean Air', href: '/faces-of-clean-air' },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact Us', href: '/contact' },

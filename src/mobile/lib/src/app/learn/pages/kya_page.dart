@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
@@ -64,6 +66,23 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     });
   }
 
+  Future<void> _refreshLessons(LearnV2CatalogResponse? currentModel) async {
+    final bloc = kyaBloc;
+    if (bloc == null) return;
+
+    final done = bloc.stream.firstWhere(
+      (state) => state is LessonsLoaded || state is LessonsLoadingError,
+    );
+
+    bloc.add(RefreshLessons(currentModel: currentModel));
+
+    try {
+      await done.timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      loggy.warning('Learn catalog refresh timed out');
+    }
+  }
+
   void _onLessonsReady(List<LearnCourseViewModel> courses) {
     final fingerprint = courses.map((c) => c.id).join('|');
     if (_lastSeedFingerprint == fingerprint) return;
@@ -80,6 +99,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
       body: ValueListenableBuilder<int>(
         valueListenable: _progress.revision,
         builder: (context, _, __) {
+          if (_selectedIndex == 0) {
+            return _buildCoursesContent();
+          }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -88,11 +110,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: _buildTabSelector(),
               ),
-              Expanded(
-                child: _selectedIndex == 0
-                    ? _buildCoursesContent()
-                    : const LearnSurveysPage(),
-              ),
+              const Expanded(child: LearnSurveysPage()),
             ],
           );
         },
@@ -103,9 +121,13 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   Widget _buildTabSelector() {
     return Row(
       children: [
-        _pill('Courses', selected: _selectedIndex == 0, onTap: () => setState(() => _selectedIndex = 0)),
+        _pill('Courses',
+            selected: _selectedIndex == 0,
+            onTap: () => setState(() => _selectedIndex = 0)),
         const SizedBox(width: 8),
-        _pill('Surveys', selected: _selectedIndex == 1, onTap: () => setState(() => _selectedIndex = 1)),
+        _pill('Surveys',
+            selected: _selectedIndex == 1,
+            onTap: () => setState(() => _selectedIndex = 1)),
       ],
     );
   }
@@ -121,7 +143,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           borderRadius: BorderRadius.circular(LearnDesignTokens.tabPillRadius),
           color: selected
               ? AppColors.primaryColor
-              : (isDark ? AppColors.darkHighlight : AppColors.dividerColorlight),
+              : (isDark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight),
         ),
         alignment: Alignment.center,
         child: TranslatedText(
@@ -138,16 +162,37 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
     );
   }
 
+  List<Widget> _headerSlivers() {
+    return [
+      const SliverToBoxAdapter(child: LearnDashboardHeader()),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: _buildTabSelector(),
+        ),
+      ),
+    ];
+  }
+
   Widget _buildCoursesContent() {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
         if (state is LessonsLoading || _isRetrying) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: const [
-              ShimmerContainer(height: 120, borderRadius: 12, width: double.infinity),
-              SizedBox(height: 16),
-              ShimmerContainer(height: 200, borderRadius: 12, width: double.infinity),
+          return CustomScrollView(
+            slivers: [
+              ..._headerSlivers(),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(const [
+                    ShimmerContainer(
+                        height: 120, borderRadius: 12, width: double.infinity),
+                    SizedBox(height: 16),
+                    ShimmerContainer(
+                        height: 200, borderRadius: 12, width: double.infinity),
+                  ]),
+                ),
+              ),
             ],
           );
         }
@@ -163,6 +208,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           return _buildErrorState(state);
         }
 
+        if (catalog != null) LearnCatalog.applyCatalogMeta(catalog);
         final courses = catalog != null
             ? LearnCatalog.buildFromV2Catalog(catalog.courses)
             : const <LearnCourseViewModel>[];
@@ -174,64 +220,72 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
         }
 
         final stage = LearnCatalog.currentStage(courses, _progress);
-        final completed = LearnCatalog.catalogCompletedLessons(courses, _progress);
+        final completed =
+            LearnCatalog.catalogCompletedLessons(courses, _progress);
         final total = LearnCatalog.catalogTotalLessons(courses);
         final points = _progress.totalPoints(courses);
-        final maxPoints = _progress.maxPoints(courses);
+        final maxPoints = LearnCatalog.maxPoints(courses, _progress);
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: LearnLevelSummaryCard(
-                stage: stage,
-                completedLessons: completed,
-                totalLessons: total,
-                earnedPoints: points,
-                maxPoints: maxPoints,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: TranslatedText(
-                  'COURSES FOR YOU',
-                  style: LearnDesignTokens.slbl(context),
+        return RefreshIndicator(
+          onRefresh: () => _refreshLessons(catalog),
+          color: AppColors.primaryColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              ..._headerSlivers(),
+              SliverToBoxAdapter(
+                child: LearnLevelSummaryCard(
+                  stage: stage,
+                  completedLessons: completed,
+                  totalLessons: total,
+                  earnedPoints: points,
+                  maxPoints: maxPoints,
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.72,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TranslatedText(
+                    'COURSES FOR YOU',
+                    style: LearnDesignTokens.slbl(context),
+                  ),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final course = courses[index];
-                    final locked = !LearnCatalog.isCourseUnlocked(
-                      courses,
-                      index,
-                      _progress,
-                    );
-                    return LearnCoursePortraitCard(
-                      course: course,
-                      locked: locked,
-                      coverImageUrl: course.coverImageUrl,
-                      onTap: () => LearnBottomSheets.showCourseDetail(
-                        context,
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.72,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final course = courses[index];
+                      final locked = !LearnCatalog.isCourseUnlocked(
+                        courses,
+                        index,
+                        _progress,
+                      );
+                      return LearnCoursePortraitCard(
                         course: course,
-                        allCourses: courses,
-                      ),
-                    );
-                  },
-                  childCount: courses.length,
+                        locked: locked,
+                        coverImageUrl: course.coverImageUrl,
+                        onTap: () => LearnBottomSheets.showCourseDetail(
+                          context,
+                          course: course,
+                          allCourses: courses,
+                        ),
+                      );
+                    },
+                    childCount: courses.length,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -239,10 +293,33 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
 
   Widget _buildErrorState(LessonsLoadingError state) {
     return RefreshIndicator(
-      onRefresh: () async => _retryLoading(),
+      onRefresh: () async {
+        final bloc = kyaBloc;
+        if (bloc == null) return;
+
+        final done = bloc.stream.firstWhere(
+          (s) => s is LessonsLoaded || s is LessonsLoadingError,
+        );
+
+        _retryLoading();
+
+        try {
+          await done.timeout(const Duration(seconds: 30));
+        } on TimeoutException {
+          loggy.warning('Learn catalog retry timed out');
+        }
+      },
+      color: AppColors.primaryColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          const SizedBox(height: 100),
+          const LearnDashboardHeader(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: _buildTabSelector(),
+          ),
+          const SizedBox(height: 60),
           Center(
             child: Column(
               children: [

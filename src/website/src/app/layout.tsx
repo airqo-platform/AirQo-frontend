@@ -100,7 +100,7 @@ export const metadata: Metadata = {
     'real-time pollution data',
     'low-cost air sensors',
     'clean air Africa',
-    'air quality analytics',
+    'AirQo Nexus',
     'pollution mitigation',
     'environmental monitoring Africa',
     'PM2.5 Africa',
@@ -168,7 +168,14 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: '/web-app-manifest-192x192.png',
+    icon: [
+      { url: '/assets/images/white-logo.png', sizes: 'any', type: 'image/png' },
+      {
+        url: '/web-app-manifest-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+    ],
     apple: '/web-app-manifest-192x192.png',
   },
   verification: {
@@ -302,6 +309,8 @@ export default async function RootLayout({
           href="//translate.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        <meta name="referrer" content="no-referrer" />
 
         {/* Structured data */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static JSON-LD data, not user input */}

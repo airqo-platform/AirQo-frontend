@@ -62,26 +62,11 @@ export async function PUT(
   return handleRequest(request, params.slug, 'PUT');
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { slug: string[] } },
-) {
-  return handleRequest(request, params.slug, 'DELETE');
-}
-
 async function handleRequest(
   request: NextRequest,
   slug: string[],
   method: string,
 ) {
-  if (!API_TOKEN) {
-    console.error('API_TOKEN environment variable is required but not found');
-    return NextResponse.json(
-      { error: 'Server configuration error' },
-      { status: 500 },
-    );
-  }
-
   try {
     // Build the external API URL
     const path = slug.join('/');
@@ -107,6 +92,14 @@ async function handleRequest(
       }
     } else {
       finalPath = `api/v2/${cleanPath}`;
+    }
+
+    if (!API_TOKEN) {
+      console.error('API_TOKEN environment variable is required but not found');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 },
+      );
     }
 
     // The client passes a proxy path that maps cleanly to the backend route.
@@ -152,7 +145,7 @@ async function handleRequest(
 
     // Get request body if it exists
     let body: string | undefined;
-    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+    if (method === 'POST' || method === 'PUT') {
       try {
         body = await request.text();
       } catch {

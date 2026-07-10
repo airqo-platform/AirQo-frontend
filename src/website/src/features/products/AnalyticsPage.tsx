@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import React from 'react';
-import { BiDownload } from 'react-icons/bi';
+import { BiLinkExternal } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
@@ -56,7 +56,7 @@ const AnalyticsPage = () => {
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Air quality analytics Dashboard
+              Our Products {'/'} AirQo Nexus
             </p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
               Access and visualise air quality data in African Cities.
@@ -98,8 +98,8 @@ const AnalyticsPage = () => {
           className="text-[40px] font-semibold mb-4"
           variants={itemVariants}
         >
-          <span className="text-blue-700">Real-time</span> air quality analytics
-          for African Cities
+          <span className="text-blue-700">Real-time</span> air quality insights
+          with AirQo Nexus for African Cities
         </motion.h2>
         <motion.p
           className="text-lg text-gray-700 mb-6"
@@ -130,10 +130,10 @@ const AnalyticsPage = () => {
           >
             <h3 className="font-bold text-2xl mb-4">Timely access to data</h3>
             <p className="text-lg text-gray-700 mb-4">
-              The air quality analytics dashboard is an intuitive software
-              dashboard that allows you to have timely access to historic,
-              real-time, and forecast actionable air quality information across
-              our monitored urban spaces in Africa.
+              AirQo Nexus is an intuitive software dashboard that allows you to
+              have timely access to historic, real-time, and forecast actionable
+              air quality information across our monitored urban spaces in
+              Africa.
             </p>
             <p className="text-lg text-gray-700 mb-6">
               We want to see citizens and decision-makers in African Cities have
@@ -144,13 +144,14 @@ const AnalyticsPage = () => {
             <CustomButton
               onClick={() =>
                 window.open(
-                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038899/website/docs/AirQoAnalyticsPlatformUserGuide_ssyebk.pdf?#view=FitH',
+                  'https://platform.airqo.net/docs/nexus/intro/',
+                  '_blank',
                 )
               }
               className="flex items-center justify-center bg-transparent text-gray-700 border-2 border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
             >
-              User Guide
-              <BiDownload className="ml-2 text-xl" />
+              Documentation
+              <BiLinkExternal className="ml-2 text-xl" />
             </CustomButton>
           </motion.div>
 
@@ -264,9 +265,7 @@ const AnalyticsPage = () => {
             {/* Button */}
 
             <CustomButton
-              onClick={() =>
-                window.open('https://analytics.airqo.net/', '_blank')
-              }
+              onClick={() => window.open('https://nexus.airqo.net/', '_blank')}
               className=" text-white"
             >
               Explore data

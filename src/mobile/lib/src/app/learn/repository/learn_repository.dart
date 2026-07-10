@@ -3,6 +3,7 @@ import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
 
@@ -16,24 +17,38 @@ abstract class LearnRepository extends BaseRepository {
 class LearnRepositoryImpl extends LearnRepository with UiLoggy {
   static final LearnRepositoryImpl _instance = LearnRepositoryImpl._internal();
   factory LearnRepositoryImpl() => _instance;
-  LearnRepositoryImpl._internal();
+  LearnRepositoryImpl._internal({
+    CacheManager? cacheManager,
+    String? Function()? tokenProvider,
+  })  : _cacheManager = cacheManager ?? CacheManager(),
+        _tokenProvider = tokenProvider ?? _envToken;
 
-  final CacheManager _cacheManager = CacheManager();
+  /// Non-singleton constructor for tests — injectable cache and token source.
+  @visibleForTesting
+  LearnRepositoryImpl.test({
+    CacheManager? cacheManager,
+    String? Function()? tokenProvider,
+  }) : this._internal(cacheManager: cacheManager, tokenProvider: tokenProvider);
+
+  final CacheManager _cacheManager;
+  final String? Function() _tokenProvider;
   static const String _catalogCacheKey = 'learn_v2_catalog';
+
+  static String? _envToken() => dotenv.env['AIRQO_API_TOKEN'];
 
   @override
   bool get isOffline => !_cacheManager.isConnected;
 
-  String? _getToken() => dotenv.env['AIRQO_API_TOKEN'];
+  String? _getToken() => _tokenProvider();
 
   Future<LearnV2CatalogResponse> _fetchAndCache(
       {Duration timeout = const Duration(seconds: 20)}) async {
+    // The catalog endpoint is public; pass the token when configured but
+    // don't fail without it.
     final token = _getToken();
-    if (token == null) throw StateError('AIRQO_API_TOKEN is not configured');
-
     final response = await createGetRequest(
       ApiUtils.learnCatalog,
-      {'token': token},
+      {if (token != null) 'token': token},
     ).timeout(timeout);
 
     if (response.statusCode != 200) {

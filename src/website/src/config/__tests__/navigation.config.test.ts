@@ -131,7 +131,7 @@ describe('navigationConfig', () => {
         (item) => item.label,
       );
       expect(labels).toContain('Monitor');
-      expect(labels).toContain('Analytics');
+      expect(labels).toContain('AirQo Nexus');
       expect(labels).toContain('Calibrate');
       expect(labels).toContain('Mobile');
       expect(labels).toContain('API');

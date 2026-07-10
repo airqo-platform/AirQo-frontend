@@ -11,6 +11,8 @@ import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import authService from "@/services/api-service"
 import dynamic from "next/dynamic"
+import { signIn, useSession } from "next-auth/react"
+import SocialAuthSection from "@/components/auth/social-auth-section"
 
 // Fallback component when 3D model fails to load - signals to hide the model section
 function DeviceModel3DFallback({ onModelLoaded, onModelFailed }: Readonly<{ onModelLoaded?: () => void; onModelFailed?: () => void }>) {
@@ -119,6 +121,8 @@ export default function LoginPage() {
     }
   }, [])
   
+  const { data: session, status } = useSession()
+
   /**
    * Check authentication status on mount
    */
@@ -132,21 +136,20 @@ export default function LoginPage() {
       authService.clearAllAuthData()
       // Clean up the URL
       router.replace('/login')
-    } else {
-      // Check if user is authenticated
-      if (authService.isAuthenticated()) {
-        const isAirqoAdminCookie = typeof document !== 'undefined'
-          ? document.cookie.split('; ').find(row => row.startsWith('isAirqoAdmin='))?.split('=')[1] === 'true'
-          : false;
-        if (isAirqoAdminCookie) {
-          router.push("/dashboard")
-        } else {
-          router.push("/dashboard/devices")
-        }
+    } else if (status === 'authenticated') {
+      // User is authenticated, let middleware or client redirect them
+      const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
+                           (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
+                            session?.user?.privilege?.toLowerCase() === 'super' || 
+                            session?.user?.privilege?.toLowerCase() === 'net admin');
+      
+      if (isAirqoAdmin) {
+        router.push("/dashboard")
+      } else {
+        router.push("/dashboard/devices")
       }
-
     }
-  }, [router])
+  }, [router, status, session])
   
   /**
    * Validates email format
@@ -197,27 +200,18 @@ export default function LoginPage() {
       // Clear any existing auth data (without redirect)
       authService.clearAllAuthData()
       
-      const response = await authService.login({
+      const response = await signIn('credentials', {
+        redirect: false,
         userName: email,
-        password: password
-      })
+        password: password,
+      });
       
-      // Check for HTML response (indicates API route issue)
-      if (typeof response === 'string' && (response as string).includes('<!DOCTYPE')) {
-        setError("Service temporarily unavailable. Please try again later.")
-        return
+      if (response?.error) {
+        setError(response.error === "CredentialsSignin" ? "Invalid email or password" : response.error);
+        return;
       }
       
-      // Handle successful authentication
-      if (response?.token || response?.success) {
-        const token = response.token || authService.getToken() || ""
-
-        // Set authentication cookie for middleware
-        if (token) {
-          const maxAge = 24 * 60 * 60 // 1 day
-          document.cookie = `token=${token}; path=/; max-age=${maxAge}; SameSite=Strict`
-        }
-        
+      if (response?.ok) {
         // Clear form
         setEmail("")
         setPassword("")
@@ -226,39 +220,22 @@ export default function LoginPage() {
         setIsLoading(false)
         setIsTransitioning(true)
         
-        // Fetch user groups to check if they are an AirQo admin
+        // Check if user is an AirQo admin from session
         let redirectTarget = "/dashboard/devices"
         try {
-          const userResponse = await fetch("/api/auth/user", {
-            method: "GET",
-            headers: {
-              Authorization: token,
-              "Content-Type": "application/json",
-            },
-          })
-          if (userResponse.ok) {
-            const userData = await userResponse.json()
-            const user = userData.users?.[0]
-            const groups = user?.groups || []
-            
-            // Check if user is an AirQo Admin
-            const isAirqoAdmin = groups.some((g: any) => {
-              if (g.grp_title?.toLowerCase() === 'airqo') {
-                const roleName = g.role?.role_name?.toLowerCase() || ''
-                return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
-              }
-              return false
-            })
-            
-            if (isAirqoAdmin) {
-              redirectTarget = "/dashboard"
-              document.cookie = `isAirqoAdmin=true; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`
-            } else {
-              document.cookie = `isAirqoAdmin=false; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`
-            }
+          const { getSession } = await import("next-auth/react")
+          const session = await getSession()
+          
+          const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
+                               (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
+                                session?.user?.privilege?.toLowerCase() === 'super' || 
+                                session?.user?.privilege?.toLowerCase() === 'net admin');
+                                
+          if (isAirqoAdmin) {
+            redirectTarget = "/dashboard"
           }
         } catch (err) {
-          console.error("Error checking user groups on login:", err)
+          console.error("Error checking user session on login:", err)
         }
         
         // Small delay to show transition, then redirect
@@ -267,8 +244,6 @@ export default function LoginPage() {
           router.refresh()
         }, 1500)
         
-      } else if (response?.success === false) {
-        setError(response.message || "Invalid credentials")
       } else {
         setError("Unexpected response. Please try again.")
       }
@@ -437,6 +412,10 @@ export default function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            <div className="mb-6">
+              <SocialAuthSection mode="login" onError={(msg) => setError(msg)} />
+            </div>
 
             {/* Login Form */}
             <form onSubmit={handleFormSubmit} className="space-y-6">

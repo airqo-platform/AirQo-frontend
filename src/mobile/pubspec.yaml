@@ -64,6 +64,7 @@ dependencies:
   permission_handler: ^11.4.0
   geolocator: ^13.0.2
   image_picker: ^1.1.2
+  camera: ^0.11.0+2
   http_parser: ^4.0.2
   shared_preferences: ^2.5.3
   google_mlkit_translation: ^0.13.0
@@ -92,6 +93,7 @@ dependencies:
   share_plus: ^10.1.4
   screenshot: ^3.0.0
   path_provider: ^2.1.5
+  pasteboard: ^0.5.0
 
 
 dev_dependencies:

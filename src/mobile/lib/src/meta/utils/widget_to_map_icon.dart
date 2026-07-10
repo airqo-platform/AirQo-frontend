@@ -50,5 +50,8 @@ Future<BitmapDescriptor> _rasterizeSvgAsset(
     return BitmapDescriptor.defaultMarker;
   }
 
-  return BitmapDescriptor.bytes(bytes.buffer.asUint8List());
+  return BitmapDescriptor.bytes(
+    bytes.buffer.asUint8List(),
+    imagePixelRatio: devicePixelRatio,
+  );
 }

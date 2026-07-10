@@ -51,7 +51,6 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       } else if (_isDirectVideo(url)) {
         _directController = VideoPlayerController.networkUrl(Uri.parse(url));
         await _directController!.initialize();
-        _directController!.setLooping(true);
       } else {
         _error = 'Unsupported video URL';
       }
@@ -59,6 +58,19 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       _error = 'Could not load video';
     }
     if (mounted) setState(() => _ready = true);
+  }
+
+  void _toggleDirectPlayback() {
+    final controller = _directController;
+    if (controller == null) return;
+    if (controller.value.isPlaying) {
+      controller.pause();
+    } else {
+      if (controller.value.position >= controller.value.duration) {
+        controller.seekTo(Duration.zero);
+      }
+      controller.play();
+    }
   }
 
   @override
@@ -148,20 +160,39 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
     }
 
     if (_directController != null && _directController!.value.isInitialized) {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          VideoPlayer(_directController!),
-          if (!_directController!.value.isPlaying)
-            IconButton(
-              iconSize: 56,
-              color: Colors.white,
-              onPressed: () => setState(() {
-                _directController!.play();
-              }),
-              icon: const Icon(Icons.play_circle_fill),
+      final controller = _directController!;
+      return GestureDetector(
+        onTap: _toggleDirectPlayback,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            VideoPlayer(controller),
+            // Only the small overlay rebuilds on controller ticks; a
+            // whole-activity setState listener would rebuild at frame rate.
+            ValueListenableBuilder<VideoPlayerValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                if (value.isPlaying) return const SizedBox.shrink();
+                return IconButton(
+                  iconSize: 56,
+                  color: Colors.white,
+                  onPressed: _toggleDirectPlayback,
+                  icon: const Icon(Icons.play_circle_fill),
+                );
+              },
             ),
-        ],
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: VideoProgressIndicator(
+                controller,
+                allowScrubbing: true,
+                padding: const EdgeInsets.only(top: 8),
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -175,7 +206,13 @@ class _LearnVideoActivityState extends State<LearnVideoActivity> {
       return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
     }
     if (uri.host.contains('youtube.com')) {
-      return uri.queryParameters['v'];
+      final v = uri.queryParameters['v'];
+      if (v != null && v.isNotEmpty) return v;
+      final segments = uri.pathSegments;
+      if (segments.length >= 2 &&
+          const {'shorts', 'embed', 'live', 'v'}.contains(segments.first)) {
+        return segments[1];
+      }
     }
     return null;
   }

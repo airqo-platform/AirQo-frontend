@@ -67,7 +67,7 @@ const MonitorPage = () => {
           {/* Text Content */}
           <motion.div className="space-y-6" variants={itemVariants}>
             <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'>'} Binos Monitor
+              Our Products {'/'} Binos Monitor
             </p>
             <h1 className="text-[48px] leading-[56px] font-bold mb-6">
               Built in Africa for African cities.
@@ -371,7 +371,7 @@ const MonitorPage = () => {
               <ol className="list-disc list-inside pl-5 mt-2">
                 <li>Where to place the monitor</li>
                 <li>How to install the monitor</li>
-                <li>How to access the data using our analytics dashboard</li>
+                <li>How to access the data using AirQo Nexus</li>
               </ol>
             </div>
 

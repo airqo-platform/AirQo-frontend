@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
-import authService from "@/services/api-service"
+import { useSession } from "next-auth/react"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,6 +54,7 @@ const GroupContext = createContext<GroupContextValue>({
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function GroupProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { data: session, status } = useSession()
   const [activeGroup, setCurrentActiveGroup] = useState<string | null>(null)
   const [availableGroups, setAvailableGroups] = useState<UserGroup[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,20 +68,28 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
   }, [])
 
-  // On mount: fetch user profile → extract groups → pick active group
+  // On mount/session change: fetch user profile → extract groups → pick active group
   useEffect(() => {
+    if (status === "loading") return
+    
+    if (status === "unauthenticated") {
+      setLoading(false)
+      return
+    }
+
     const fetchGroups = async () => {
       try {
-        const token = authService.getToken()
+        const token = session?.accessToken
         if (!token) {
           setLoading(false)
           return
         }
 
+        const rawToken = token.replace(/^(JWT|Bearer)\s+/i, '')
         const response = await fetch("/api/auth/user", {
           method: "GET",
           headers: {
-            Authorization: token,
+            Authorization: `JWT ${rawToken}`,
             "Content-Type": "application/json",
           },
         })
@@ -159,7 +168,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     fetchGroups()
-  }, [])
+  }, [session, status])
 
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null

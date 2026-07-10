@@ -26,7 +26,7 @@ const navigationConfig: NavigationConfig = {
   footerNav: {
     products: [
       { label: 'Monitor', href: '/products/monitor' },
-      { label: 'Analytics', href: '/products/analytics' },
+      { label: 'AirQo Nexus', href: '/products/nexus' },
       { label: 'Calibrate', href: '/products/calibrate' },
       { label: 'Mobile', href: '/products/mobile' },
       { label: 'API', href: '/products/api' },

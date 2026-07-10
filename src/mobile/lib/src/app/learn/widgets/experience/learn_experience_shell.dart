@@ -3,6 +3,7 @@ import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
 import 'package:airqo/src/app/learn/widgets/learn_lesson_thumbnail.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class LearnExperienceShell extends StatelessWidget {
@@ -45,6 +46,22 @@ class LearnExperienceShell extends StatelessWidget {
       children: [
         if (showDragHandle)
           LearnDesignTokens.dragHandle(context),
+        if (onClose != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4, right: 4),
+              child: IconButton(
+                onPressed: onClose,
+                icon: Icon(
+                  Icons.close,
+                  color: AppTextColors.modalCloseIcon(context),
+                ),
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Close lesson',
+              ),
+            ),
+          ),
         Padding(
           padding: EdgeInsets.fromLTRB(
             horizontalPadding,

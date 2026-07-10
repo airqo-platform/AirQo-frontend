@@ -33,10 +33,39 @@ const isBrowser = () => !config.isServer
 class AuthService {
   private readonly baseUrl: string
   private token: string | null = null
+  private userData: any = null
   private readonly TOKEN_KEY = 'authToken'
   private readonly USER_DATA_KEY = 'userData'
   private readonly TOKEN_COOKIE_NAME = 'token'
   private readonly TOKEN_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
+
+  public setToken(token: string | null): void {
+    this.token = token
+    if (isBrowser()) {
+      if (token) {
+        localStorage.setItem(this.TOKEN_KEY, token)
+        sessionStorage.setItem(this.TOKEN_KEY, token)
+        this.setAuthCookie(token)
+      } else {
+        localStorage.removeItem(this.TOKEN_KEY)
+        sessionStorage.removeItem(this.TOKEN_KEY)
+        this.removeAuthCookie()
+      }
+    }
+  }
+
+  public setUserData(userData: any): void {
+    this.userData = userData
+    if (isBrowser()) {
+      if (userData) {
+        localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
+        sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
+      } else {
+        localStorage.removeItem(this.USER_DATA_KEY)
+        sessionStorage.removeItem(this.USER_DATA_KEY)
+      }
+    }
+  }
   
   constructor() {
     // Use centralized config for API URL
@@ -325,6 +354,9 @@ class AuthService {
    * Retrieves stored user data
    */
   getUserData(): any {
+    if (this.userData) {
+      return this.userData
+    }
     if (isBrowser()) {
       const localData = localStorage.getItem(this.USER_DATA_KEY)
       if (localData) {
@@ -347,10 +379,10 @@ class AuthService {
     return null
   }
 
-  /**
-   * Gets the current authentication token
-   */
   getToken(): string | null {
+    if (this.token) {
+      return this.token
+    }
     this.token = this.getStoredToken()
     return this.token
   }

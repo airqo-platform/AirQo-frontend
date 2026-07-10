@@ -1,7 +1,10 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import { useRouter, usePathname } from "next/navigation";
 import { Device, DeviceSite } from "@/app/types/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { DeviceLocationMap } from "@/components/features/devices/device-location-map";
 
 interface DeviceLocationCardProps {
   device: Device;
@@ -33,7 +36,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   };
 
   return (
-    <Card className="w-full rounded-lg flex flex-col justify-between">
+    <Card className="w-full rounded-lg flex flex-col justify-between overflow-hidden">
       <div className="px-3 py-2 flex flex-col gap-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           Site Details
@@ -76,6 +79,10 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="px-3 pb-3">
+        <DeviceLocationMap latitude={lat} longitude={lon} />
       </div>
 
       {siteId && (

@@ -2,6 +2,229 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.21
+**Released:** July 9, 2026
+
+### Chore: Increase Bundle Size Limit to 205 kB
+
+Raised the `size-limit` threshold in `package.json` from `200 kB` to `205 kB` to accommodate the new platform-aware download page, OS detection utilities, logout confirmation dialog, and sidebar CTA — features added across versions 2.0.18–2.0.20 that collectively pushed the brotlied app chunk total to ~202 kB.
+
+- `src/vertex/package.json` [MODIFIED] — `"limit": "200 kB"` → `"limit": "205 kB"`
+
+---
+
+## Version 2.0.20
+**Released:** July 9, 2026
+
+### Platform-Aware Download Page with Dynamic GitHub Release Fetching
+
+Redesigned the `/download` page with a dynamic primary download button that detects the visitor's OS, a multi-platform release card section (macOS, Windows, Linux), and a server-side Route Handler that fetches the latest desktop release from GitHub automatically — no more hardcoded version URLs.
+
+<details>
+<summary><strong>New: Route Handler — <code>app/api/latest-release/route.ts</code></strong></summary>
+
+- Fetches the GitHub Releases API (`/repos/airqo-platform/AirQo-frontend/releases`) server-side.
+- Identifies desktop releases (v0.x.y) by the presence of a `.exe` asset, distinguishing them from web releases (v2.x.x) which have zero assets.
+- Returns parsed download URLs per platform/format: Windows `.exe`, macOS Apple Silicon `.dmg`, macOS Intel `.dmg`, Linux `.AppImage`, Linux `.deb`.
+- `export const revalidate = 3600` — Next.js ISR caches the response for 1 hour so GitHub is not hit on every page load.
+- Optional `GITHUB_TOKEN` environment variable to avoid anonymous rate limits.
+
+</details>
+
+<details>
+<summary><strong>New: OS detection utilities</strong></summary>
+
+- `core/utils/platform.ts` — added `getDetectedPlatform()` (returns `'win' | 'mac' | 'linux' | 'other'`) and `getIsElectron()` as pure functions alongside the existing `getMacArchitecture()`.
+- `core/hooks/useDetectedPlatform.ts` [NEW] — React hook wrapping the above pure functions; uses `useEffect` to avoid SSR hydration mismatches. Returns `{ platform, isElectron }`.
+
+</details>
+
+<details>
+<summary><strong>DownloadHero — <code>components/features/download/DownloadHero.tsx</code></strong></summary>
+
+- **Primary button**: dynamically labelled ("Download for Windows / macOS / Linux" or "Get Desktop app") and linked based on the detected OS. Defaults to best format per platform: Apple Silicon `.dmg` for macOS, `.AppImage` for Linux.
+- **Fallback**: starts with hardcoded v0.1.11 URLs from `app-downloads.ts`; swaps to live data once the Route Handler responds.
+- **Platform cards**: three cards (macOS, Windows, Linux) each listing their available formats as download links. Linux card includes a terminal install snippet (`curl -fsSL https://vertex.airqo.net/install.sh | bash`) with an inline copy button.
+- Detected OS card gets a subtle primary-coloured ring highlight.
+- Dark mode: cards use `bg-card`; hero section uses `bg-primary-50 dark:bg-background`.
+
+</details>
+
+<details>
+<summary><strong>Sidebar & Login — non-Electron CTA</strong></summary>
+
+- `components/layout/secondary-sidebar.tsx` — replaced inline OS detection with `useDetectedPlatform`; CTA ("Get Desktop app") now shows for all non-Electron users, not just Windows.
+- `app/login/page.tsx` — same: removed manual state/effect OS detection, now uses `useDetectedPlatform`; CTA shows for all non-Electron users.
+- `components/features/auth/social-auth-section.tsx` — replaced inline `window.navigator.userAgent` check with `useDetectedPlatform`.
+
+</details>
+
+<details>
+<summary><strong>Download page scroll fix (<code>app/download/page.tsx</code>)</strong></summary>
+
+- `globals.css` sets `html { overflow: hidden }` globally; the download page (a public route with no authenticated shell) had no scroll container of its own. Fixed by making the page wrapper `h-screen overflow-y-auto`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (10)</strong></summary>
+
+- `src/vertex/app/api/latest-release/route.ts` [NEW]
+- `src/vertex/core/hooks/useDetectedPlatform.ts` [NEW]
+- `src/vertex/core/utils/platform.ts` [MODIFIED]
+- `src/vertex/core/constants/app-downloads.ts` [MODIFIED]
+- `src/vertex/components/features/download/DownloadHero.tsx` [MODIFIED]
+- `src/vertex/components/features/download/PlatformInfo.tsx` [MODIFIED]
+- `src/vertex/app/download/page.tsx` [MODIFIED]
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED]
+- `src/vertex/app/login/page.tsx` [MODIFIED]
+- `src/vertex/components/features/auth/social-auth-section.tsx` [MODIFIED]
+
+</details>
+
+---
+
+## Version 2.0.19
+**Released:** July 9, 2026
+
+### Fix: Terminal Installer Failed to Resolve Download URL
+
+A live user report surfaced two bugs in the `install.sh` terminal installer (added in 2.0.17): every run failed with `error: Could not determine the download URL for <asset>`, and a separate crash could occur during cleanup after a failed step.
+
+<details>
+<summary><strong>Broken download URL lookup (<code>public/install.sh</code>)</strong></summary>
+
+- A follow-up commit after 2.0.17 shipped replaced direct URL construction with an `awk`-based lookup of `browser_download_url` from the GitHub API response, parsed as a two-line state machine (match `"name":`, then expect `"browser_download_url":` on a later line). That only works on pretty-printed JSON.
+- The actual response the script receives (`Accept: application/vnd.github+json`) is **compact JSON with no line breaks** — confirmed directly (`wc -l`, which counts newline characters, returns `0` with that header vs `583` without it, i.e. the whole payload is one line rather than an empty response) — so the lookup silently returned empty for every user since that commit merged.
+- Reverted to constructing the download URL directly from the release tag and asset name, GitHub's documented, stable release-asset URL pattern, which doesn't depend on API response formatting at all.
+
+</details>
+
+<details>
+<summary><strong>Unbound variable on cleanup</strong></summary>
+
+- The `workdir` cleanup trap used late variable expansion (`trap 'rm -rf "${workdir}"' EXIT`), referencing a `local` variable from `main()`. If a later step failed (e.g. `sudo` unavailable) and `set -e` unwound out of `main()`, that local was out of scope by the time the `EXIT` trap fired, so `set -u` threw `unbound variable` instead of cleaning up.
+- Fixed with early expansion, baking the literal path into the trap command at registration time.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `src/vertex/public/install.sh` [MODIFIED]
+
+</details>
+
+---
+
+## Version 2.0.18
+**Released:** July 9, 2026
+
+### Logout Confirmation Modal & ReusableDialog Focus Fixes
+
+Added a confirmation step before signing out, and fixed two focus-management bugs in `ReusableDialog` that caused a spurious focus ring on re-open after a full page navigation.
+
+<details>
+<summary><strong>Topbar — Logout confirmation (`components/layout/topbar.tsx`)</strong></summary>
+
+- "Log out" dropdown item now opens a `ReusableDialog` confirmation instead of calling `logout()` immediately, preventing accidental sign-outs from a stray click.
+- Title: *"Sign out of your AirQo account?"* · Body: *"You'll be signed out of all AirQo apps on this device and will need to sign in again to continue."*
+- Confirm button styled destructive (red); Cancel closes the modal with no side effects.
+- Existing `useLogout` hook is called unchanged after confirmation — no change to Redux clear, persistor purge, cross-tab signal, or redirect behaviour.
+
+</details>
+
+<details>
+<summary><strong>ReusableDialog — Focus management (`components/shared/dialog/ReusableDialog.tsx`)</strong></summary>
+
+- **Stale timer fixed**: the `setTimeout` that moves focus into the dialog is now cleared in the effect cleanup, preventing it from firing against an already-closed dialog.
+- **First focusable element**: focus now lands on the first interactive element that is not the close (×) button — typically the Cancel button in a confirmation flow or the first input in a form dialog. Falls back to the × button, then the dialog root.
+- **Title casing**: removed the `capitalize` CSS class from the title `<h2>` so titles render exactly as passed (sentence-case titles like *"Sign out of your AirQo account?"* no longer have every word force-capitalised). Existing title-cased strings are unaffected.
+
+</details>
+
+---
+
+## Version 2.0.17
+**Released:** July 7, 2026
+
+### Terminal Installer for Vertex Desktop (Linux)
+
+Added a one-line `curl | bash` installer for Vertex Desktop on Linux, matching the pattern used by tools like Cursor (`cursor.com/install`), so Linux users don't need to manually pick between `.deb`/`.AppImage` from the GitHub Releases page.
+
+<details>
+<summary><strong>New: <code>public/install.sh</code></strong></summary>
+
+- Served at `https://vertex.airqo.net/install.sh`; run via `curl -fsSL https://vertex.airqo.net/install.sh | bash`.
+- Resolves the exact "latest" `vertex-desktop-v*` release and asset via the GitHub API rather than a hardcoded/guessed URL, with explicit handling for API rate-limit (403/429) and network failures.
+- Parses the GitHub API's JSON response with portable POSIX `sed` rather than `grep -P`, so it doesn't abort mid-parse on minimal distros (e.g. Alpine/BusyBox) that lack PCRE support in `grep`.
+- Prefers the `.deb` (via `apt install`, which pulls in missing dependencies automatically) when `apt` is available, otherwise falls back to a portable `.AppImage` installed under `~/.local/bin` — no root required for that path at all.
+- Rejects unsupported architectures (e.g. `arm64`, not built yet) instead of silently downloading the wrong binary.
+
+</details>
+
+<details>
+<summary><strong>Security hardening</strong></summary>
+
+- Never re-execs itself as root; only the single `apt install` step escalates via `sudo`, and only when not already running as root.
+- Verifies the downloaded binary's `sha512` against the official `latest-linux.yml` manifest that `electron-builder` already publishes (the same manifest `electron-updater` trusts for auto-updates) — refuses to install on a mismatch instead of proceeding with a warning.
+- Uses `mktemp -d` plus an `EXIT` trap for safe, cleaned-up temp file handling; no predictable `/tmp` paths.
+- Verified end-to-end against the real `v0.1.11` release: real JSON/YAML parsing, a real checksum-verified download, and a deliberately corrupted file correctly failing verification.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (3)</strong></summary>
+
+- `src/vertex/public/install.sh` [NEW]
+- `src/vertex/next.config.js` [MODIFIED] — `Cache-Control`/`Content-Type` headers for `/install.sh`
+- `src/vertex/next.config.mjs` [MODIFIED] — same headers, kept in sync with `next.config.js`
+
+</details>
+
+---
+
+## Version 2.0.16
+**Released:** July 6, 2026
+
+### Device Details — Localized Map Card
+
+Added an embedded map to the Site Details card on the Device Details page, giving field teams an immediate visual reference for where a device is deployed. The map is extracted into a reusable standalone component so it can also be used on the Site Details page.
+
+<details>
+<summary><strong>New: <code>DeviceLocationMap</code> component (<code>device-location-map.tsx</code>)</strong></summary>
+
+- Standalone reusable component that renders a read-only map for a given latitude/longitude.
+- **Lazy loading**: `MiniMap` is loaded via `React.lazy` + `Suspense` to prevent SSR issues with Mapbox GL JS. An animated pulse skeleton shows while the map tiles load.
+- **Empty state**: When coordinates are unavailable, a dashed-border placeholder with a `MapPin` icon is shown instead of blank space.
+- Accepts `height` and `zoom` props (defaults: `h-48`, zoom `13`) for reuse at different sizes.
+
+</details>
+
+<details>
+<summary><strong>Site Details Card (<code>device-location-card.tsx</code>)</strong></summary>
+
+- Embeds `<DeviceLocationMap>` below the site name and coordinate fields, centred on the device's stored coordinates.
+- Added `overflow-hidden` to the card so the map respects the card's rounded corners.
+
+</details>
+
+<details>
+<summary><strong>Device Details Card (<code>device-details-card.tsx</code>)</strong></summary>
+
+- No map here — map lives in the Site Details card only.
+
+</details>
+
+<details>
+<summary><strong>MiniMap — <code>readOnly</code> prop (<code>mini-map.tsx</code>)</strong></summary>
+
+- Added `readOnly?: boolean` (default `false`). When `true`, the marker is non-draggable and click-to-move is disabled — the existing add/edit device flows are unaffected.
+
+</details>
+
+---
+
 ## Version 2.0.15
 **Released:** July 6, 2026
 

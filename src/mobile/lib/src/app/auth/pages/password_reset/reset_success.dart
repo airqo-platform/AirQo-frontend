@@ -66,6 +66,7 @@ class ResetSuccessPage extends StatelessWidget {
 
                 InkWell(
                   onTap: () => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                      settings: const RouteSettings(name: 'login'),
                       builder: (context) => LoginPage()), (route) => false,),
                   child: Container(
                     height: 56,

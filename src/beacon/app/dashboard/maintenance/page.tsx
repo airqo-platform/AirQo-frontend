@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
-import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight } from "lucide-react"
+import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight, Pentagon } from "lucide-react"
 import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
@@ -102,6 +102,10 @@ export default function MaintenancePage() {
     const [routePath, setRoutePath] = useState<MaintenanceMapItem[]>([])
     const [isRouting, setIsRouting] = useState(false)
     const [homeLocation] = useState<Coordinates & { name?: string }>(DEFAULT_HOME_LOCATION)
+
+    // --- POLYGON SELECTION STATE ---
+    const [polygonSelectedDevices, setPolygonSelectedDevices] = useState<MaintenanceMapItem[]>([])
+    const [polygonPanelOpen, setPolygonPanelOpen] = useState(true)
 
     // Tag toggle handler (mirrors analytics-filters pattern)
     const toggleTag = (tag: string) => {
@@ -287,16 +291,17 @@ export default function MaintenancePage() {
     }, [selectedDays, selectedTags, activeGroup, groupLoading])
 
     // --- ROUTING LOGIC ---
-    const calculateRoute = () => {
-        if (!filteredMapData || filteredMapData.length === 0) return;
+    const calculateRoute = (devices?: MaintenanceMapItem[]) => {
+        const source = devices || filteredMapData;
+        if (!source || source.length === 0) return;
 
         setIsRouting(true);
         toast({
             title: "Calculating Route...",
-            description: `Optimizing route for ${filteredMapData.length} devices.`,
+            description: `Optimizing route for ${source.length} devices.`,
         });
 
-        const validDevices: MaintenanceMapItem[] = filteredMapData.filter(item =>
+        const validDevices: MaintenanceMapItem[] = source.filter(item =>
             item.latitude !== undefined && item.longitude !== undefined &&
             item.latitude !== null && item.longitude !== null
         );
@@ -746,15 +751,92 @@ export default function MaintenancePage() {
                         </div>
                     </div>
 
-                    <div className="flex-1 relative rounded-lg border border-gray-200 overflow-hidden shadow-sm bg-gray-100">
-                        <MaintenanceMap
-                            data={filteredMapData || []}
-                            loading={loadingMap}
-                            selectedDeviceIds={selectedDeviceIds}
-                            onDeviceSelect={handleDeviceSelect}
-                            routePath={routePath}
-                            homeLocation={homeLocation}
-                        />
+                    {/* Map + Polygon Sidebar Layout */}
+                    <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+                        {/* Polygon Selection Sidebar (Left) */}
+                        {polygonSelectedDevices.length > 0 && polygonPanelOpen && (
+                            <div className="w-[320px] flex-shrink-0 bg-white rounded-lg shadow-sm border border-blue-200 p-4 flex flex-col animate-in slide-in-from-left-2 duration-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                        <Pentagon className="w-4 h-4 text-blue-600" />
+                                        Polygon Selection
+                                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
+                                            {polygonSelectedDevices.length}
+                                        </span>
+                                    </h3>
+                                    <button
+                                        onClick={() => setPolygonPanelOpen(false)}
+                                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                        title="Collapse panel"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="mb-3">
+                                    <button
+                                        onClick={() => calculateRoute(polygonSelectedDevices)}
+                                        className="w-full px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                    >
+                                        Generate Route
+                                    </button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto border border-gray-100 rounded-md min-h-0">
+                                    <table className="w-full text-xs">
+                                        <thead className="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th className="text-left px-3 py-2 font-semibold text-gray-600">Device</th>
+                                                <th className="text-center px-2 py-2 font-semibold text-gray-600">Up%</th>
+                                                <th className="text-center px-2 py-2 font-semibold text-gray-600">Err</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {polygonSelectedDevices.map((device) => {
+                                                const raw = Number(device.uptime);
+                                                const uptimePct = Number.isFinite(raw) ? (raw <= 1 ? raw * 100 : raw) : 0;
+                                                const uptimeColor = uptimePct === 0 ? 'text-gray-400' : uptimePct >= 85 ? 'text-green-600' : uptimePct >= 50 ? 'text-yellow-600' : 'text-red-600';
+                                                const em = Number(device.error_margin);
+                                                const errorColor = !Number.isFinite(em) ? 'text-gray-400' : em <= 10 ? 'text-green-600' : em <= 20 ? 'text-yellow-600' : 'text-red-600';
+                                                return (
+                                                    <tr key={device.device_id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+                                                        <td className="px-3 py-1.5 font-medium text-gray-800 truncate max-w-[140px]" title={device.device_name}>{device.device_name}</td>
+                                                        <td className={`px-2 py-1.5 text-center font-bold ${uptimeColor}`}>{uptimePct.toFixed(0)}%</td>
+                                                        <td className={`px-2 py-1.5 text-center font-bold ${errorColor}`}>{Number.isFinite(em) ? em.toFixed(1) : '–'}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Collapsed Polygon Panel Reopen Button */}
+                        {polygonSelectedDevices.length > 0 && !polygonPanelOpen && (
+                            <button
+                                onClick={() => setPolygonPanelOpen(true)}
+                                className="flex-shrink-0 self-start bg-blue-600 text-white rounded-lg px-2 py-3 shadow-md hover:bg-blue-700 transition-colors flex flex-col items-center gap-1 animate-in fade-in duration-200"
+                                title="Show polygon selection"
+                            >
+                                <Pentagon className="w-4 h-4" />
+                                <span className="text-[10px] font-bold">{polygonSelectedDevices.length}</span>
+                            </button>
+                        )}
+
+                        {/* Map Container */}
+                        <div className="flex-1 relative rounded-lg border border-gray-200 overflow-hidden shadow-sm bg-gray-100 min-w-0">
+                            <MaintenanceMap
+                                data={filteredMapData || []}
+                                loading={loadingMap}
+                                selectedDeviceIds={selectedDeviceIds}
+                                onDeviceSelect={handleDeviceSelect}
+                                routePath={routePath}
+                                homeLocation={homeLocation}
+                                onPolygonSelect={(devices) => {
+                                    setPolygonSelectedDevices(devices);
+                                    if (devices.length > 0) setPolygonPanelOpen(true);
+                                }}
+                            />
+                        </div>
                     </div>
 
                     {isRouting && routePath.length > 0 && (

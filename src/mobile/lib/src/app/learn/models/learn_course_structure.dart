@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
 import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 class LearnLessonSlot {
   final String catalogId;
@@ -85,14 +86,70 @@ class LearnStageInfo {
 
 enum LearnUnitStatus { locked, inProgress, completed }
 
+/// Immutable snapshot of server-driven catalog metadata: the stage ladder
+/// and the catalog-wide max points. Built from a fetched catalog response;
+/// [fallback] carries the built-in defaults for before the first fetch.
+class LearnCatalogMeta {
+  final List<LearnStageInfo> stages;
+
+  /// Catalog-wide `max_points` from the server, or null if not provided.
+  final int? maxPoints;
+
+  const LearnCatalogMeta._(this.stages, this.maxPoints);
+
+  static const LearnCatalogMeta fallback = LearnCatalogMeta._(
+    [
+      LearnStageInfo(name: 'Curious', index: 0),
+      LearnStageInfo(name: 'Aware', index: 1),
+      LearnStageInfo(name: 'Observer', index: 2),
+      LearnStageInfo(name: 'Champion', index: 3),
+      LearnStageInfo(name: 'Defender', index: 4),
+    ],
+    null,
+  );
+
+  factory LearnCatalogMeta.fromCatalog(LearnV2CatalogResponse catalog) {
+    final sorted = [...catalog.stages]
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final stages = [
+      for (final s in sorted)
+        if (s.name.isNotEmpty) LearnStageInfo(name: s.name, index: s.index),
+    ];
+    return LearnCatalogMeta._(
+      stages.isNotEmpty ? List.unmodifiable(stages) : fallback.stages,
+      catalog.maxPoints > 0 ? catalog.maxPoints : null,
+    );
+  }
+}
+
 class LearnCatalog {
-  static const stages = [
-    LearnStageInfo(name: 'Curious', index: 0),
-    LearnStageInfo(name: 'Aware', index: 1),
-    LearnStageInfo(name: 'Observer', index: 2),
-    LearnStageInfo(name: 'Champion', index: 3),
-    LearnStageInfo(name: 'Defender', index: 4),
-  ];
+  /// Current metadata snapshot — swapped wholesale by [applyCatalogMeta],
+  /// never mutated in place. A static because widgets deep in the tree
+  /// (bottom sheets, lesson experience) consult it without a catalog in
+  /// scope; the snapshot itself is immutable.
+  static LearnCatalogMeta meta = LearnCatalogMeta.fallback;
+
+  /// Stage ladder — the catalog response's `stages` when available, else the
+  /// built-in default.
+  static List<LearnStageInfo> get stages => meta.stages;
+
+  /// Adopts server-driven metadata (stage names/order, max points) from a
+  /// fetched catalog so the app tracks backend changes without a release.
+  static void applyCatalogMeta(LearnV2CatalogResponse catalog) {
+    meta = LearnCatalogMeta.fromCatalog(catalog);
+  }
+
+  @visibleForTesting
+  static void resetMeta() => meta = LearnCatalogMeta.fallback;
+
+  /// Max attainable points — the server's catalog-wide value when known,
+  /// otherwise computed locally from the graded quiz count.
+  static int maxPoints(
+    List<LearnCourseViewModel> courses,
+    LearnProgressService progress,
+  ) {
+    return meta.maxPoints ?? progress.maxPoints(courses);
+  }
 
   static List<LearnCourseViewModel> buildFromV2Catalog(
       List<LearnV2Course> v2Courses) {
@@ -209,7 +266,7 @@ class LearnCatalog {
     List<LearnCourseViewModel> courses,
     LearnProgressService progress,
   ) {
-    final maxPts = progress.maxPoints(courses);
+    final maxPts = maxPoints(courses, progress);
     final pts = progress.totalPoints(courses);
     if (maxPts > 0 && pts > 0) {
       final ratio = pts / maxPts;

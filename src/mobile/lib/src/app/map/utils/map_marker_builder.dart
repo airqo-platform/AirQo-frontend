@@ -7,10 +7,8 @@ import 'package:flutter/painting.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapMarkerBuilder {
-  /// Rasterized marker icon size, in logical pixels. The air quality badge
-  /// SVGs are 96x96 circular icons — 10x10 (the previous value) rendered
-  /// as little more than a dot on the map.
-  static const Size _markerIconSize = Size(44, 44);
+  /// Rasterized marker icon size, in logical pixels.
+  static const Size _markerIconSize = Size(28, 28);
 
   Future<List<Marker>> buildMarkers({
     required List<Measurement> measurements,

@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import ReusableButton from '../shared/button/ReusableButton';
 import { useLogout } from '@/core/hooks/useLogout';
+import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import AppDropdown from './AppDropdown';
 import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
@@ -36,6 +37,7 @@ const LogoRaw = vertexConfig.org.logo;
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
@@ -198,12 +200,33 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="flex items-center"
-                  onClick={logout}
+                  onClick={() => setShowLogoutConfirm(true)}
                 >
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <ReusableDialog
+              isOpen={showLogoutConfirm}
+              onClose={() => setShowLogoutConfirm(false)}
+              title="Sign out of your AirQo account?"
+              size="md"
+              primaryAction={{
+                label: "Log out",
+                onClick: () => { setShowLogoutConfirm(false); logout(); },
+                className: "bg-red-600 hover:bg-red-700 border-red-600",
+              }}
+              secondaryAction={{
+                label: "Cancel",
+                onClick: () => setShowLogoutConfirm(false),
+                variant: "outline",
+              }}
+            >
+              <p className="text-gray-600 dark:text-gray-300 py-2">
+                You&apos;ll be signed out of all AirQo apps on this device and will need to sign in again to continue.
+              </p>
+            </ReusableDialog>
           </div>
         </div>
       </Card>

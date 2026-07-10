@@ -26,6 +26,7 @@ class LearnLessonExperienceService {
         if (body.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.article,
           title: p['title'] as String? ?? 'Read',
           article: LearnArticlePayload(
@@ -38,6 +39,7 @@ class LearnLessonExperienceService {
         if (url.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.video,
           title: p['title'] as String? ?? 'Watch',
           video: LearnVideoPayload(
@@ -51,6 +53,7 @@ class LearnLessonExperienceService {
         if (url.isEmpty) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.image,
           title: p['title'] as String? ?? 'Look',
           image: LearnImagePayload(
@@ -64,6 +67,7 @@ class LearnLessonExperienceService {
         if (quiz == null) return null;
         return LearnLessonActivity(
           index: index,
+          activityId: v2.id,
           type: LearnActivityType.quiz,
           title: p['title'] as String? ?? 'Quiz',
           quiz: quiz,
@@ -89,6 +93,39 @@ class LearnLessonExperienceService {
     final rawOrder = p['correct_order'] as List?;
     final correctOrder = rawOrder?.map(_toInt).whereType<int>().toList();
 
+    // Reject quizzes whose answer key is missing or inconsistent with the
+    // options — they can never be graded correct and would always mark the
+    // user wrong.
+    switch (format) {
+      case LearnQuizFormat.singleChoice:
+        if (options.length < 2 ||
+            correctIndex == null ||
+            correctIndex < 0 ||
+            correctIndex >= options.length) {
+          return null;
+        }
+        break;
+      case LearnQuizFormat.multiChoice:
+        if (options.length < 2 ||
+            correctIndices == null ||
+            correctIndices.isEmpty ||
+            correctIndices.any((i) => i < 0 || i >= options.length)) {
+          return null;
+        }
+        break;
+      case LearnQuizFormat.ranking:
+        if (options.length < 2 ||
+            correctOrder == null ||
+            correctOrder.length != options.length ||
+            correctOrder.toSet().length != options.length ||
+            correctOrder.any((i) => i < 0 || i >= options.length)) {
+          return null;
+        }
+        break;
+      case LearnQuizFormat.freeText:
+        break;
+    }
+
     return LearnQuizPayload(
       format: format,
       question: question,
@@ -101,6 +138,20 @@ class LearnLessonExperienceService {
           'Not quite — try reviewing the lesson.',
       hint: p['hint'] as String?,
     );
+  }
+
+  /// Memoized per lesson instance — this runs inside widget builds, and a
+  /// catalog refresh produces new lesson objects, naturally invalidating it.
+  static final Expando<int> _gradedQuizCountCache = Expando<int>();
+
+  /// Number of gradeable (non-free-text) quizzes in a lesson, using the same
+  /// parsing rules as the lesson experience — the basis for max points.
+  static int gradedQuizCount(LearnV2Lesson lesson) {
+    return _gradedQuizCountCache[lesson] ??= buildFromV2Lesson(lesson: lesson)
+        .where((a) =>
+            a.type == LearnActivityType.quiz &&
+            a.quiz?.format != LearnQuizFormat.freeText)
+        .length;
   }
 
   static String activityTypeKey(LearnLessonActivity activity) {

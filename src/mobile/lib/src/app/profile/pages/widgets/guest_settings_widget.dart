@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
 import 'package:airqo/src/app/profile/pages/guest_about_page.dart';
+import 'package:airqo/src/app/profile/pages/languages/select_language_page.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -99,6 +100,20 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
           description:
               "AirQo to use your precise location to locate the Air Quality of your nearest location",
         ),
+        SettingsTile(
+          iconPath: "assets/images/shared/language_icon.svg",
+          title: "Languages",
+          description:
+              "Change the language of the app to your preferred language",
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                settings: const RouteSettings(name: 'select_language'),
+                builder: (context) => const SelectLanguagePage(),
+              ),
+            );
+          },
+        ),
         if (FeatureFlagService.instance.isEnabled(AppFeatureFlag.feedback))
           SettingsTile(
             iconPath: "assets/images/shared/feedback_icon.svg",
@@ -106,6 +121,7 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
+                  settings: const RouteSettings(name: 'feedback'),
                   builder: (context) => const FeedbackScreen(),
                 ),
               );
@@ -117,6 +133,7 @@ class _GuestSettingsWidgetState extends State<GuestSettingsWidget> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
+                settings: const RouteSettings(name: 'guest_about'),
                 builder: (context) => const GuestAboutPage(),
               ),
             );

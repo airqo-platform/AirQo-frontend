@@ -58,8 +58,8 @@ class _LearnArticleActivityState extends State<LearnArticleActivity> {
     await _tts.setSpeechRate(_speechRate);
     await _tts.setVolume(1);
     await _tts.setPitch(1);
-    _tts.setCompletionHandler(_onPlaybackEnded);
-    _tts.setCancelHandler(_onPlaybackEnded);
+    _tts.setCompletionHandler(() => _onPlaybackEnded(completed: true));
+    _tts.setCancelHandler(() => _onPlaybackEnded(completed: false));
     _tts.setProgressHandler((text, start, end, word) {
       if (!mounted) return;
       setState(() {
@@ -69,12 +69,14 @@ class _LearnArticleActivityState extends State<LearnArticleActivity> {
     });
   }
 
-  void _onPlaybackEnded() {
+  void _onPlaybackEnded({required bool completed}) {
     _progressTimer?.cancel();
     if (!mounted) return;
     setState(() {
       _isListening = false;
-      _elapsed = _totalDuration;
+      // A user stop restarts from the beginning next time, so the bar
+      // resets; only natural completion shows a full bar.
+      _elapsed = completed ? _totalDuration : Duration.zero;
       _highlightStart = -1;
       _highlightEnd = -1;
     });
@@ -103,8 +105,10 @@ class _LearnArticleActivityState extends State<LearnArticleActivity> {
     if (_isListening) {
       await _tts.stop();
       _progressTimer?.cancel();
+      if (!mounted) return;
       setState(() {
         _isListening = false;
+        _elapsed = Duration.zero;
         _highlightStart = -1;
         _highlightEnd = -1;
       });
@@ -128,9 +132,19 @@ class _LearnArticleActivityState extends State<LearnArticleActivity> {
     );
   }
 
+  /// Highlighting swaps the rendered text for [_spokenText], so it is only
+  /// safe when the spoken text is the article body itself — otherwise the
+  /// visible article would change while listening.
+  bool get _canHighlight =>
+      widget.payload.audioText == null ||
+      widget.payload.audioText == widget.payload.body;
+
   Widget _buildArticleBody(BuildContext context) {
     final baseStyle = _bodyStyle(context);
-    if (!_isListening || _highlightStart < 0 || _highlightEnd <= _highlightStart) {
+    if (!_canHighlight ||
+        !_isListening ||
+        _highlightStart < 0 ||
+        _highlightEnd <= _highlightStart) {
       return TranslatedText(
         widget.payload.body,
         style: baseStyle,
