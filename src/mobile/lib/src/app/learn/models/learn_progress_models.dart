@@ -1,3 +1,7 @@
+/// JSON numbers may arrive as int or double; never throw on either.
+int _asInt(dynamic value, [int fallback = 0]) =>
+    value is int ? value : (value is num ? value.toInt() : fallback);
+
 /// One quiz activity's attempt, as sent to PUT /learn/progress/lessons/:id.
 class QuizAttemptData {
   final String activityId;
@@ -62,11 +66,11 @@ class LearnServerLessonProgress {
   factory LearnServerLessonProgress.fromJson(Map<String, dynamic> json) =>
       LearnServerLessonProgress(
         completed: json['completed'] as bool? ?? false,
-        furthestActivityIndex: json['furthest_activity_index'] is int
-            ? json['furthest_activity_index'] as int
+        furthestActivityIndex: json['furthest_activity_index'] is num
+            ? _asInt(json['furthest_activity_index'])
             : null,
-        stars: json['stars'] as int? ?? 0,
-        pointsEarned: json['points_earned'] as int? ?? 0,
+        stars: _asInt(json['stars']),
+        pointsEarned: _asInt(json['points_earned']),
         quizScoreRatio: json['quiz_score_ratio'] is num
             ? (json['quiz_score_ratio'] as num).toDouble()
             : null,
@@ -98,7 +102,7 @@ class LearnServerProgress {
       }
     }
     return LearnServerProgress(
-      totalPoints: json['total_points'] as int? ?? 0,
+      totalPoints: _asInt(json['total_points']),
       lessons: lessons,
     );
   }
