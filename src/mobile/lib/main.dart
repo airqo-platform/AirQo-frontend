@@ -260,8 +260,9 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   }
 
   void _initLearnGuestSession() {
-    LearnSyncService.instance.ensureGuestSession().then((_) {
-      LearnSyncService.instance.syncPendingProgress();
+    LearnSyncService.instance.ensureGuestSession().then((_) async {
+      await LearnSyncService.instance.syncPendingProgress();
+      await LearnSyncService.instance.hydrateLocalProgress();
     }).catchError((_) {});
   }
 
@@ -327,6 +328,8 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                       if (token != null) {
                         LearnSyncService.instance
                             .linkProgressToAccount(token)
+                            .then((_) => LearnSyncService.instance
+                                .hydrateLocalProgress(authToken: token))
                             .catchError((_) {});
                       }
                     }).catchError((_) {});

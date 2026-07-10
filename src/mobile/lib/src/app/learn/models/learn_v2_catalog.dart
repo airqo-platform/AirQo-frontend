@@ -3,17 +3,25 @@ import 'dart:convert';
 LearnV2CatalogResponse learnV2CatalogResponseFromJson(String str) =>
     LearnV2CatalogResponse.fromJson(json.decode(str));
 
+/// JSON numbers may arrive as int or double; never throw on either.
+int _asInt(dynamic value, [int fallback = 0]) =>
+    value is int ? value : (value is num ? value.toInt() : fallback);
+
 String learnV2CatalogResponseToJson(LearnV2CatalogResponse data) =>
     json.encode(data.toJson());
 
 class LearnV2CatalogResponse {
   final bool success;
   final String catalogVersion;
+  final List<LearnV2Stage> stages;
+  final int maxPoints;
   final List<LearnV2Course> courses;
 
   const LearnV2CatalogResponse({
     required this.success,
     required this.catalogVersion,
+    this.stages = const [],
+    this.maxPoints = 0,
     required this.courses,
   });
 
@@ -21,6 +29,14 @@ class LearnV2CatalogResponse {
       LearnV2CatalogResponse(
         success: json['success'] ?? false,
         catalogVersion: json['catalog_version'] ?? '',
+        stages: json['stages'] is List
+            ? (json['stages'] as List)
+                .whereType<Map>()
+                .map((s) =>
+                    LearnV2Stage.fromJson(Map<String, dynamic>.from(s)))
+                .toList()
+            : [],
+        maxPoints: _asInt(json['max_points']),
         courses: json['courses'] != null
             ? (json['courses'] as List)
                 .map((c) => LearnV2Course.fromJson(c as Map<String, dynamic>))
@@ -31,8 +47,24 @@ class LearnV2CatalogResponse {
   Map<String, dynamic> toJson() => {
         'success': success,
         'catalog_version': catalogVersion,
+        'stages': stages.map((s) => s.toJson()).toList(),
+        'max_points': maxPoints,
         'courses': courses.map((c) => c.toJson()).toList(),
       };
+}
+
+class LearnV2Stage {
+  final int index;
+  final String name;
+
+  const LearnV2Stage({required this.index, required this.name});
+
+  factory LearnV2Stage.fromJson(Map<String, dynamic> json) => LearnV2Stage(
+        index: _asInt(json['index']),
+        name: json['name'] as String? ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {'index': index, 'name': name};
 }
 
 class LearnV2Course {
@@ -54,7 +86,7 @@ class LearnV2Course {
 
   factory LearnV2Course.fromJson(Map<String, dynamic> json) => LearnV2Course(
         id: json['_id'] as String? ?? json['id'] as String? ?? '',
-        courseNumber: json['course_number'] as int? ?? 0,
+        courseNumber: _asInt(json['course_number']),
         title: json['title'] as String? ?? '',
         plainTitleKey:
             json['plain_title_key'] as String? ?? json['title'] as String? ?? '',
@@ -160,7 +192,7 @@ class LearnV2Activity {
       LearnV2Activity(
         id: json['_id'] as String? ?? json['id'] as String? ?? '',
         type: json['type'] as String? ?? '',
-        order: json['order'] as int? ?? 0,
+        order: _asInt(json['order']),
         payload: Map<String, dynamic>.from(json['payload'] as Map? ?? {}),
       );
 

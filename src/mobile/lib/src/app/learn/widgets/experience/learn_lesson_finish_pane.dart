@@ -26,10 +26,7 @@ class LearnLessonFinishPane extends StatelessWidget {
     this.isNextUnit = false,
   });
 
-  String get _primaryLabel {
-    if (onNext == null) return 'Done';
-    return isNextUnit ? 'Next unit' : 'Next lesson';
-  }
+  String get _primaryLabel => isNextUnit ? 'Next unit' : 'Next lesson';
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +67,20 @@ class LearnLessonFinishPane extends StatelessWidget {
               textAlign: TextAlign.center,
               style: LearnDesignTokens.completionSubtitle(context),
             ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(3, (i) {
+              final earned = i < result.stars;
+              return Icon(
+                earned ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: 28,
+                color: earned
+                    ? const Color(0xFFFFB300)
+                    : LearnDesignTokens.muted(context),
+              );
+            }),
+          ),
           const SizedBox(height: 8),
           Text(
             '${result.pointsEarned} points earned',
@@ -88,18 +99,19 @@ class LearnLessonFinishPane extends StatelessWidget {
         ],
       ),
       actions: [
-        if (hasNext)
+        if (hasNext) ...[
           ElevatedButton(
             onPressed: onNext,
             style: learnExposurePrimaryButtonStyle(),
             child: TranslatedText(_primaryLabel),
-          )
-        else
-          OutlinedButton(
-            onPressed: onDone,
-            style: learnExposureSecondaryButtonStyle(context),
-            child: TranslatedText(_primaryLabel),
           ),
+          const SizedBox(height: 8),
+        ],
+        OutlinedButton(
+          onPressed: onDone,
+          style: learnExposureSecondaryButtonStyle(context),
+          child: const TranslatedText('Done'),
+        ),
       ],
     );
   }

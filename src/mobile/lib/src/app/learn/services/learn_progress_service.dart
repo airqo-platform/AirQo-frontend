@@ -1,12 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
+import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 
 /// Local persistence for Learn tab progress (SharedPreferences).
 class LearnProgressService {
   LearnProgressService._();
   static final LearnProgressService instance = LearnProgressService._();
+
+  /// Non-singleton constructor for tests — injects the prefs store directly.
+  @visibleForTesting
+  LearnProgressService.withPrefs(SharedPreferences prefs) : _prefs = prefs;
 
   static const _pilotSeedKey = 'learn_pilot_seeded_v3';
   static const _pilotCleanupDoneKey = 'learn_pilot_cleanup_v1';
@@ -17,6 +24,8 @@ class LearnProgressService {
   static const _pointsPrefix = 'learn_points_';
   static const _quizScorePrefix = 'learn_quiz_score_';
   static const _freeTextPrefix = 'learn_free_text_';
+  static const _sessionAttemptsPrefix = 'learn_session_attempts_';
+  static const _sessionFreeTextPrefix = 'learn_session_freetext_';
 
   final ValueNotifier<int> revision = ValueNotifier(0);
   SharedPreferences? _prefs;
@@ -72,6 +81,8 @@ class LearnProgressService {
     return _prefs?.getString('$_freeTextPrefix$lessonKey');
   }
 
+  /// Saves a lesson result, keeping the best score across replays so a
+  /// weaker replay never lowers previously earned stars/points.
   Future<void> saveLessonResult({
     required String lessonKey,
     required int stars,
@@ -80,13 +91,124 @@ class LearnProgressService {
     String? freeText,
   }) async {
     await ensureInitialized();
-    await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
-    await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
-    await _prefs!.setDouble('$_quizScorePrefix$lessonKey', quizScoreRatio);
+    final hasPrevious = _prefs!.containsKey('$_pointsPrefix$lessonKey');
+    final isBetter = points > lessonPoints(lessonKey) ||
+        (points == lessonPoints(lessonKey) && stars > lessonStars(lessonKey));
+    if (!hasPrevious || isBetter) {
+      await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
+      await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
+      await _prefs!.setDouble('$_quizScorePrefix$lessonKey', quizScoreRatio);
+    }
     if (freeText != null && freeText.trim().isNotEmpty) {
       await _prefs!.setString('$_freeTextPrefix$lessonKey', freeText.trim());
     }
     _notify();
+  }
+
+  /// Merges one lesson's server-side progress into local storage, keeping
+  /// whichever side is further along. Returns true if anything changed.
+  /// Callers batch-merging several lessons should call [notifyChanged] once
+  /// afterwards.
+  Future<bool> mergeServerLesson({
+    required String lessonKey,
+    required bool completed,
+    int? furthestStep,
+    required int stars,
+    required int points,
+    double? quizScoreRatio,
+    String? freeTextResponse,
+  }) async {
+    await ensureInitialized();
+    var changed = false;
+    if (completed && !isLessonComplete(lessonKey)) {
+      await _prefs!.setBool('$_completePrefix$lessonKey', true);
+      changed = true;
+    }
+    if (furthestStep != null && furthestStep > this.furthestStep(lessonKey)) {
+      await _prefs!.setInt('$_stepPrefix$lessonKey', furthestStep);
+      changed = true;
+    }
+    final localPoints = lessonPoints(lessonKey);
+    final localStars = lessonStars(lessonKey);
+    if (points > localPoints ||
+        (points == localPoints && stars > localStars)) {
+      await _prefs!.setInt('$_starsPrefix$lessonKey', stars);
+      await _prefs!.setInt('$_pointsPrefix$lessonKey', points);
+      if (quizScoreRatio != null) {
+        await _prefs!
+            .setDouble('$_quizScorePrefix$lessonKey', quizScoreRatio);
+      }
+      changed = true;
+    }
+    // Free text isn't scored — restore the server copy only when this device
+    // has none, so a newer local answer is never clobbered.
+    final serverFreeText = freeTextResponse?.trim();
+    if (serverFreeText != null &&
+        serverFreeText.isNotEmpty &&
+        (lessonFreeText(lessonKey)?.isEmpty ?? true)) {
+      await _prefs!.setString('$_freeTextPrefix$lessonKey', serverFreeText);
+      changed = true;
+    }
+    return changed;
+  }
+
+  void notifyChanged() => _notify();
+
+  // ---- In-lesson session state (quiz attempts, free-text drafts) ----------
+  // Persisted per lesson so quitting mid-lesson and resuming keeps earlier
+  // answers; cleared on completion or replay.
+
+  List<Map<String, dynamic>> sessionQuizAttempts(String lessonKey) {
+    final raw = _prefs?.getString('$_sessionAttemptsPrefix$lessonKey');
+    if (raw == null) return const [];
+    try {
+      return (json.decode(raw) as List)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> saveSessionQuizAttempts(
+    String lessonKey,
+    List<Map<String, dynamic>> attempts,
+  ) async {
+    await ensureInitialized();
+    await _prefs!
+        .setString('$_sessionAttemptsPrefix$lessonKey', json.encode(attempts));
+  }
+
+  Map<int, String> sessionFreeTextResponses(String lessonKey) {
+    final raw = _prefs?.getString('$_sessionFreeTextPrefix$lessonKey');
+    if (raw == null) return {};
+    try {
+      final decoded = json.decode(raw) as Map<String, dynamic>;
+      return {
+        for (final entry in decoded.entries)
+          if (int.tryParse(entry.key) != null)
+            int.parse(entry.key): entry.value.toString(),
+      };
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveSessionFreeTextResponses(
+    String lessonKey,
+    Map<int, String> responses,
+  ) async {
+    await ensureInitialized();
+    await _prefs!.setString(
+      '$_sessionFreeTextPrefix$lessonKey',
+      json.encode(responses.map((k, v) => MapEntry(k.toString(), v))),
+    );
+  }
+
+  Future<void> clearLessonSession(String lessonKey) async {
+    await ensureInitialized();
+    await _prefs!.remove('$_sessionAttemptsPrefix$lessonKey');
+    await _prefs!.remove('$_sessionFreeTextPrefix$lessonKey');
   }
 
   int totalPoints(List<LearnCourseViewModel> courses) {
@@ -101,9 +223,21 @@ class LearnProgressService {
     return total;
   }
 
-  /// Max points if every lesson earned 3 stars (30 pts each).
+  /// Max points if every gradeable quiz were answered correctly (10 pts
+  /// each) — mirrors how points are actually awarded in
+  /// LearnQuizScoringService.computeLessonResult.
   int maxPoints(List<LearnCourseViewModel> courses) {
-    return catalogTotalLessons(courses) * 30;
+    var total = 0;
+    for (final course in courses) {
+      for (final unit in course.units) {
+        for (final lesson in unit.lessons) {
+          final v2 = lesson.v2Lesson;
+          if (v2 == null) continue;
+          total += LearnLessonExperienceService.gradedQuizCount(v2) * 10;
+        }
+      }
+    }
+    return total;
   }
 
   static int catalogTotalLessons(List<LearnCourseViewModel> courses) {
@@ -141,6 +275,8 @@ class LearnProgressService {
           key.startsWith(_pointsPrefix) ||
           key.startsWith(_quizScorePrefix) ||
           key.startsWith(_freeTextPrefix) ||
+          key.startsWith(_sessionAttemptsPrefix) ||
+          key.startsWith(_sessionFreeTextPrefix) ||
           key == _pilotSeedKey ||
           key == 'learn_pilot_seeded_v2',
     );

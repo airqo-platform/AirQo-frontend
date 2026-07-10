@@ -18,6 +18,7 @@ void main() {
 
     setUp(() {
       mockRepository = MockLearnRepository();
+      when(mockRepository.isOffline).thenReturn(false);
       kyaBloc = KyaBloc(mockRepository);
     });
 
