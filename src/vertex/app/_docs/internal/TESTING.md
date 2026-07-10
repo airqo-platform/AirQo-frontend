@@ -4,11 +4,12 @@ This guide defines the testing conventions for Vertex. Follow it when adding or 
 
 ## Test stack
 
-- Vitest is the test runner.
+- Vitest is the test runner for unit, hook, and component tests.
 - React Testing Library is used for React components and hooks.
 - `@testing-library/jest-dom` matchers are loaded globally from `vitest.setup.ts`.
 - The default test environment is `jsdom`.
 - Do not add Jest.
+- Playwright is the runner for end-to-end tests (see [End-to-end tests](#end-to-end-tests)). Do not add Cypress or another e2e runner.
 
 ## Commands
 
@@ -36,11 +37,23 @@ Run TypeScript validation:
 npx tsc --noEmit
 ```
 
-Before opening a PR that adds or changes tests, run:
+Run the e2e suite (requires `.env.e2e`, see [End-to-end tests](#end-to-end-tests)):
+
+```bash
+npm run test:e2e
+```
+
+Before opening a PR that adds or changes unit/component tests, run:
 
 ```bash
 npm run test
 npx tsc --noEmit
+```
+
+Before opening a PR that adds or changes e2e tests, additionally run:
+
+```bash
+npm run test:e2e
 ```
 
 ## File organization
@@ -74,7 +87,7 @@ test/
   utils/
 ```
 
-End-to-end tests should live separately under an `e2e/` folder when Playwright is introduced.
+End-to-end tests live separately under `e2e/`, not co-located with source — see [End-to-end tests](#end-to-end-tests) for layout, conventions, and when a behavior belongs there instead of in the Vitest/RTL suite above.
 
 ## Writing good tests
 
@@ -167,6 +180,63 @@ test/factories/
 test/mocks/
 ```
 
+## End-to-end tests
+
+Playwright drives e2e tests. They live under `e2e/`, separate from the co-located Vitest/RTL suite, because they exercise the whole system together (real routing, real auth, a real backend) rather than a single unit in isolation.
+
+### What qualifies for e2e vs. unit/component tests
+
+E2E tests are the most expensive tests in this repo to write, run, and debug — slowest to execute, most prone to flakiness, and the hardest to pin down on failure. Spend them deliberately. Everything that *can* be proven with a fast, deterministic Vitest/RTL test should be — e2e is for the remainder, where the risk lives in integration, not in a single component or function.
+
+Write an e2e test when a behavior meets at least one of these:
+
+- **It's a critical business journey.** If it breaks, a user cannot accomplish the core thing the product exists for — deploying a device, onboarding an AirQo device, importing an external device, recalling a device, switching the active organization.
+- **The risk lives in the integration, not the component.** Auth wiring, cross-page navigation, a multi-step wizard that carries state across dialogs/pages, query-cache invalidation firing correctly across the whole app on a context switch — these can pass every unit test individually and still be broken once wired together in a real browser.
+- **It proves access control against the real session.** A component test can assert that `RouteGuard` renders `children` or the forbidden state given a mocked permission; only an e2e test proves that check is actually wired to a real user's real session, route, and resource context.
+
+Do not write an e2e test for:
+
+- Component rendering, prop variations, or conditional UI states — cover with RTL.
+- Form or schema validation logic — cover with RTL, or a plain unit test on the schema itself.
+- Every CRUD screen or admin table — cover data-fetching/rendering with RTL and mocked API responses; reserve e2e for the one or two flows on that screen that carry real cross-system risk (see above), not the screen as a whole.
+- Edge cases, boundary values, and error branches — these belong in unit tests, where they're cheap to enumerate. An e2e suite that tries to cover them too becomes slow and duplicates the unit suite it's supposed to complement.
+
+When unsure, ask: *if this were broken, would a fast, mocked component test have caught it?* If yes, it's not an e2e test.
+
+### File organization
+
+```txt
+e2e/
+  setup/
+    auth.setup.ts       # logs in once via the real login form, saves storageState
+  tests/
+    public/              # signed-out flows — "public" Playwright project, no auth required
+      login.spec.ts
+    <domain>/             # authenticated flows — "chromium" project, e.g. organization/, devices/
+      workspace.spec.ts
+  .auth/                 # gitignored; storageState written here by auth.setup.ts
+```
+
+Group specs by domain/journey (`e2e/tests/devices/`, `e2e/tests/organization/`), not by page or component.
+
+### Auth pattern
+
+Playwright's `setup` project runs `e2e/setup/auth.setup.ts` once, logs in through the real two-step login form, and persists cookies + `localStorage` to `e2e/.auth/user.json`. The `chromium` project depends on `setup` and reuses that `storageState`, so individual specs never log in themselves. Tests that must run signed out belong in `e2e/tests/public/` (the `public` project — no `storageState`, no dependency on `setup`).
+
+Local setup:
+
+```bash
+cp .env.e2e.example .env.e2e   # fill in E2E_USER_EMAIL / E2E_USER_PASSWORD
+npx playwright install chromium
+npm run test:e2e
+```
+
+`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` must be unset for the target environment while running e2e — the auth setup script cannot solve a captcha, and the login form only renders one when a site key is present (`isHCaptchaEnabled()` in `lib/envConstants.ts`).
+
+### CI status
+
+E2e tests are not yet wired into `.github/workflows/vertex-ci.yml`. Run `npm run test:e2e` locally before opening a PR that adds or changes e2e tests. Wiring this into CI (and deciding whether it gates merges or runs informationally, consistent with how coverage is treated today) is tracked as follow-up work, not part of this initial setup.
+
 ## Mocking guidance
 
 Mock at boundaries, not everywhere.
@@ -215,7 +285,7 @@ Examples:
 
 ## PR checklist
 
-When adding or changing tests, confirm:
+When adding or changing unit/component tests, confirm:
 
 - Tests are co-located with the source file.
 - Test names describe behavior.
@@ -223,3 +293,11 @@ When adding or changing tests, confirm:
 - No snapshots were added for utilities.
 - `npm run test` passes.
 - `npx tsc --noEmit` passes.
+
+When adding or changing e2e tests, additionally confirm:
+
+- The behavior actually qualifies for e2e per [What qualifies for e2e vs. unit/component tests](#what-qualifies-for-e2e-vs-unitcomponent-tests) — it wasn't something a component test could have caught.
+- The spec lives under the right project (`e2e/tests/public/` for signed-out flows, elsewhere for authenticated ones) rather than working around the auth setup.
+- Assertions target user-visible state (URL, accessible role/text, rendered data), not implementation details.
+- Any test data created against a real/staging backend is either idempotent, cleaned up by the test, or scoped to a disposable test account — a test should not leave orphaned devices, invites, or org state behind on every run.
+- `npm run test:e2e` passes.
