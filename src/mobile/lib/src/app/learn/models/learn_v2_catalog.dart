@@ -3,6 +3,10 @@ import 'dart:convert';
 LearnV2CatalogResponse learnV2CatalogResponseFromJson(String str) =>
     LearnV2CatalogResponse.fromJson(json.decode(str));
 
+/// JSON numbers may arrive as int or double; never throw on either.
+int _asInt(dynamic value, [int fallback = 0]) =>
+    value is int ? value : (value is num ? value.toInt() : fallback);
+
 String learnV2CatalogResponseToJson(LearnV2CatalogResponse data) =>
     json.encode(data.toJson());
 
@@ -32,7 +36,7 @@ class LearnV2CatalogResponse {
                     LearnV2Stage.fromJson(Map<String, dynamic>.from(s)))
                 .toList()
             : [],
-        maxPoints: json['max_points'] as int? ?? 0,
+        maxPoints: _asInt(json['max_points']),
         courses: json['courses'] != null
             ? (json['courses'] as List)
                 .map((c) => LearnV2Course.fromJson(c as Map<String, dynamic>))
@@ -56,7 +60,7 @@ class LearnV2Stage {
   const LearnV2Stage({required this.index, required this.name});
 
   factory LearnV2Stage.fromJson(Map<String, dynamic> json) => LearnV2Stage(
-        index: json['index'] as int? ?? 0,
+        index: _asInt(json['index']),
         name: json['name'] as String? ?? '',
       );
 
@@ -82,7 +86,7 @@ class LearnV2Course {
 
   factory LearnV2Course.fromJson(Map<String, dynamic> json) => LearnV2Course(
         id: json['_id'] as String? ?? json['id'] as String? ?? '',
-        courseNumber: json['course_number'] as int? ?? 0,
+        courseNumber: _asInt(json['course_number']),
         title: json['title'] as String? ?? '',
         plainTitleKey:
             json['plain_title_key'] as String? ?? json['title'] as String? ?? '',
@@ -188,7 +192,7 @@ class LearnV2Activity {
       LearnV2Activity(
         id: json['_id'] as String? ?? json['id'] as String? ?? '',
         type: json['type'] as String? ?? '',
-        order: json['order'] as int? ?? 0,
+        order: _asInt(json['order']),
         payload: Map<String, dynamic>.from(json['payload'] as Map? ?? {}),
       );
 
