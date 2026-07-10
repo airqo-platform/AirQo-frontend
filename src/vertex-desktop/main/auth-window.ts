@@ -21,10 +21,7 @@ const isOAuthUrl = (url: string): boolean => {
     const trustedOrigin = apiOrigin
       ? parsed.origin === apiOrigin
       : parsed.hostname === "airqo.net" || parsed.hostname.endsWith(".airqo.net");
-    return trustedOrigin && (
-      parsed.pathname.startsWith("/users/auth/") ||
-      parsed.pathname.includes("/users/auth/")
-    );
+    return trustedOrigin && /^\/(?:api\/v\d+\/)?users\/auth\//i.test(parsed.pathname);
   } catch {
     return false;
   }
