@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
@@ -35,6 +35,12 @@ export default function LeaderboardScreen() {
     [],
   );
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const activeSlideIndexRef = useRef(0);
+  const refreshControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    activeSlideIndexRef.current = activeSlideIndex;
+  }, [activeSlideIndex]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -47,11 +53,17 @@ export default function LeaderboardScreen() {
 
         setEntries(leaderboard.entries);
 
-        console.group('[CAF 2026] Live leaderboard fetched');
-        console.info('entries_count', leaderboard.entries.length);
-        console.info('leaderboard_payload', leaderboard.payload);
-        console.groupEnd();
+        if (process.env.NODE_ENV !== 'production') {
+          console.info(
+            '[CAF 2026] Leaderboard entries:',
+            leaderboard.entries.length,
+          );
+        }
       } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
         const message =
           error instanceof Error
             ? error.message
@@ -67,39 +79,53 @@ export default function LeaderboardScreen() {
   }, []);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setActiveSlideIndex((currentIndex) => {
-        if (currentIndex >= SLIDE_COUNT - 1) {
-          void (async () => {
-            try {
-              const leaderboard = await fetchCleanAirForum2026Leaderboard();
-              setEntries(leaderboard.entries);
+    async function refreshLeaderboard() {
+      refreshControllerRef.current?.abort();
+      const controller = new AbortController();
+      refreshControllerRef.current = controller;
 
-              console.group('[CAF 2026] Live leaderboard refreshed');
-              console.info('entries_count', leaderboard.entries.length);
-              console.info('leaderboard_payload', leaderboard.payload);
-              console.groupEnd();
-            } catch (error) {
-              const message =
-                error instanceof Error
-                  ? error.message
-                  : 'Unable to refresh leaderboard.';
+      try {
+        const leaderboard = await fetchCleanAirForum2026Leaderboard(
+          controller.signal,
+        );
+        setEntries(leaderboard.entries);
 
-              console.error(
-                '[CAF 2026] Live leaderboard refresh failed',
-                message,
-              );
-            }
-          })();
-
-          return 0;
+        if (process.env.NODE_ENV !== 'production') {
+          console.info(
+            '[CAF 2026] Refreshed leaderboard entries:',
+            leaderboard.entries.length,
+          );
+        }
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
         }
 
-        return currentIndex + 1;
-      });
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to refresh leaderboard.';
+
+        console.error('[CAF 2026] Live leaderboard refresh failed', message);
+      }
+    }
+
+    const intervalId = window.setInterval(() => {
+      const currentIndex = activeSlideIndexRef.current;
+      const nextIndex = currentIndex >= SLIDE_COUNT - 1 ? 0 : currentIndex + 1;
+
+      activeSlideIndexRef.current = nextIndex;
+      setActiveSlideIndex(nextIndex);
+
+      if (currentIndex >= SLIDE_COUNT - 1) {
+        void refreshLeaderboard();
+      }
     }, SLIDE_INTERVAL_MS);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      refreshControllerRef.current?.abort();
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const slideRows = useMemo(() => {
@@ -145,10 +171,10 @@ export default function LeaderboardScreen() {
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 <div className="relative w-fit shrink-0">
                   <Image
-                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
                     alt="AirQo"
-                    width={90.95}
-                    height={61.53}
+                    width={91}
+                    height={62}
                     priority
                     className="h-auto w-auto"
                   />

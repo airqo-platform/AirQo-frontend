@@ -11,7 +11,7 @@ export default function LeaderboardToggles({
     <div
       className="mx-auto flex w-fit items-center gap-[10px]"
       aria-label="Leaderboard pagination indicators"
-      role="presentation"
+      role="group"
     >
       {Array.from({ length: 4 }, (_, index) => (
         <LeaderboardToggle

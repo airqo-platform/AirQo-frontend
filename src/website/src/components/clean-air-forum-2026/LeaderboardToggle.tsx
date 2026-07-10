@@ -6,8 +6,8 @@ type LeaderboardToggleProps = {
 };
 
 const widthClassMap = {
-  long: 'w-[55px]',
-  medium: 'w-[57px]',
+  long: 'w-[57px]',
+  medium: 'w-[55px]',
   short: 'w-[23px]',
 } as const;
 

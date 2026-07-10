@@ -22,7 +22,12 @@ export default function GlobalRouteChrome() {
   const pathname = usePathname();
 
   if (shouldHideRouteChrome(pathname)) {
-    return <ExternalLinkDecorator />;
+    return (
+      <>
+        <ExternalLinkDecorator />
+        <CookieConsent />
+      </>
+    );
   }
 
   return (

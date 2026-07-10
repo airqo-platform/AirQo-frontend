@@ -27,12 +27,6 @@ function removeLocalStorage(key: string) {
   window.localStorage.removeItem(key);
 }
 
-function isUuidV4(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
-}
-
 function createDeviceId() {
   if (
     typeof crypto !== 'undefined' &&
@@ -49,7 +43,7 @@ export function getOrCreateCleanAirForum2026DeviceId() {
     CLEAN_AIR_FORUM_2026_DEVICE_ID_STORAGE_KEY,
   );
 
-  if (storedDeviceId && isUuidV4(storedDeviceId)) {
+  if (storedDeviceId) {
     return storedDeviceId;
   }
 
@@ -130,6 +124,8 @@ export async function initializeCleanAirForum2026GuestSession(
   });
 
   if (!response.ok) {
+    let errorMessage = `Guest session request failed with ${response.status}`;
+
     try {
       const errorPayload = (await response.json()) as {
         errors?: {
@@ -138,18 +134,13 @@ export async function initializeCleanAirForum2026GuestSession(
         message?: string;
       };
 
-      throw new Error(
-        errorPayload.errors?.username ||
-          errorPayload.message ||
-          `Guest session request failed with ${response.status}`,
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-
-      throw new Error(`Guest session request failed with ${response.status}`);
+      errorMessage =
+        errorPayload.errors?.username || errorPayload.message || errorMessage;
+    } catch {
+      // Keep the fallback error message when the body is not JSON.
     }
+
+    throw new Error(errorMessage);
   }
 
   const payload =

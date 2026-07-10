@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
+import { Button } from '@/components/ui/button';
 import {
   CLEAN_AIR_FORUM_2026_COURSE_ID,
   CLEAN_AIR_FORUM_2026_LESSON_ID,
@@ -262,9 +262,9 @@ export default function QuizScreen() {
 
         console.group('[CAF 2026] Leaderboard position resolved');
         console.info('guest_session', guestSession);
-        console.info('leaderboard_position', leaderboard.position);
-        console.info('leaderboard_entry', leaderboard.matchedEntry);
-        console.info('leaderboard_payload', leaderboard.payload);
+        if (process.env.NODE_ENV !== 'production') {
+          console.info('leaderboard_position', leaderboard.position);
+        }
         console.groupEnd();
       } catch (error) {
         const message =
@@ -397,10 +397,10 @@ export default function QuizScreen() {
                 <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                   <div className="relative w-fit shrink-0">
                     <Image
-                      src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                      src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
                       alt="AirQo"
-                      width={90.95}
-                      height={61.53}
+                      width={91}
+                      height={62}
                       priority
                       className="h-auto w-auto"
                     />
@@ -478,10 +478,10 @@ export default function QuizScreen() {
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 <div className="relative w-fit shrink-0">
                   <Image
-                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
                     alt="AirQo"
-                    width={90.95}
-                    height={61.53}
+                    width={91}
+                    height={62}
                     priority
                     className="h-auto w-auto"
                   />
@@ -533,7 +533,7 @@ export default function QuizScreen() {
                       ? 'bg-[#0d8f6f] text-white'
                       : isSelectedWrong
                         ? 'bg-[#b93815] text-white'
-                        : 'bg-white text-[#072b31] opacity-72'
+                        : 'bg-white text-[#072b31] opacity-[0.72]'
                     : isSelected
                       ? 'bg-[var(--caf-2026-interactive)] text-white'
                       : 'bg-white text-[#072b31]';

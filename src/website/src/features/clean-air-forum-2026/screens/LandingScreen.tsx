@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 
-import Button from '@/components/clean-air-forum-2026/Button';
 import Screen from '@/components/clean-air-forum-2026/Screen';
+import { Button } from '@/components/ui/button';
 import {
   CLEAN_AIR_FORUM_2026_EVENT_ID,
   CLEAN_AIR_FORUM_2026_QUIZ_ROUTE,
@@ -71,10 +71,10 @@ export default function LandingScreen() {
               <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                 <div className="relative w-fit shrink-0">
                   <Image
-                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-2026-leaderboard-logo.svg?v=20260709"
+                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
                     alt="AirQo"
-                    width={90.95}
-                    height={61.53}
+                    width={91}
+                    height={62}
                     priority
                     className="h-auto w-auto"
                   />
@@ -118,11 +118,19 @@ export default function LandingScreen() {
                 autoComplete="off"
                 spellCheck={false}
                 maxLength={30}
+                aria-invalid={errorMessage ? true : undefined}
+                aria-describedby={
+                  errorMessage ? 'caf-2026-username-error' : undefined
+                }
                 className="caf-2026-input w-full rounded-[1.6rem] border border-white/35 px-6 py-5 text-center text-[clamp(1.1rem,2vw,1.6rem)] font-semibold tracking-[-0.02em] shadow-[0_18px_42px_rgba(7,43,49,0.12)] outline-none"
               />
 
               {errorMessage ? (
-                <p className="text-sm font-medium text-[#8a1f1f]">
+                <p
+                  id="caf-2026-username-error"
+                  role="alert"
+                  className="text-sm font-medium text-[#8a1f1f]"
+                >
                   {errorMessage}
                 </p>
               ) : null}
