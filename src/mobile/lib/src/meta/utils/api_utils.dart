@@ -18,6 +18,8 @@ class ApiUtils {
 
   static String learnProgress = "/api/v2/devices/learn/progress/lessons";
 
+  static String learnProgressFetch = "/api/v2/devices/learn/progress";
+
   static String learnProgressSync = "/api/v2/devices/learn/progress/sync";
 
   static String learnProgressLink = "/api/v2/devices/learn/progress/link";

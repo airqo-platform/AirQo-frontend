@@ -208,6 +208,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           return _buildErrorState(state);
         }
 
+        if (catalog != null) LearnCatalog.applyCatalogMeta(catalog);
         final courses = catalog != null
             ? LearnCatalog.buildFromV2Catalog(catalog.courses)
             : const <LearnCourseViewModel>[];
@@ -223,7 +224,7 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
             LearnCatalog.catalogCompletedLessons(courses, _progress);
         final total = LearnCatalog.catalogTotalLessons(courses);
         final points = _progress.totalPoints(courses);
-        final maxPoints = _progress.maxPoints(courses);
+        final maxPoints = LearnCatalog.maxPoints(courses, _progress);
 
         return RefreshIndicator(
           onRefresh: () => _refreshLessons(catalog),

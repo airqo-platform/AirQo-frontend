@@ -2,9 +2,9 @@ import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_activity.dart';
 import 'package:airqo/src/app/learn/models/learn_lesson_continuation.dart';
+import 'package:airqo/src/app/learn/services/learn_lesson_completion_service.dart';
 import 'package:airqo/src/app/learn/services/learn_lesson_experience_service.dart';
 import 'package:airqo/src/app/learn/services/learn_progress_service.dart';
-import 'package:airqo/src/app/learn/services/learn_quiz_scoring_service.dart';
 import 'package:airqo/src/app/learn/services/learn_sync_service.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_article_activity.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_experience_shell.dart';
@@ -12,7 +12,9 @@ import 'package:airqo/src/app/learn/widgets/experience/learn_image_activity.dart
 import 'package:airqo/src/app/learn/widgets/experience/learn_quiz_activity.dart';
 import 'package:airqo/src/app/learn/widgets/experience/learn_video_activity.dart';
 import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
+import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
+import 'package:loggy/loggy.dart';
 
 class LearnLessonExperience extends StatefulWidget {
   final LearnLessonSlot slot;
@@ -27,6 +29,10 @@ class LearnLessonExperience extends StatefulWidget {
   final VoidCallback onClose;
   final BuildContext completionContext;
 
+  /// Injectable for tests; default to the app-wide instances.
+  final LearnProgressService? progressService;
+  final LearnLessonCompletionService? completionService;
+
   const LearnLessonExperience({
     super.key,
     required this.slot,
@@ -40,19 +46,25 @@ class LearnLessonExperience extends StatefulWidget {
     required this.completionContext,
     this.allCourses,
     this.continuation,
+    this.progressService,
+    this.completionService,
   });
 
   @override
   State<LearnLessonExperience> createState() => _LearnLessonExperienceState();
 }
 
-class _LearnLessonExperienceState extends State<LearnLessonExperience> {
+class _LearnLessonExperienceState extends State<LearnLessonExperience>
+    with UiLoggy {
   late final List<LearnLessonActivity> _script;
   late int _activityIndex;
-  final _progress = LearnProgressService.instance;
-  final List<bool> _gradedResults = [];
+  late final LearnProgressService _progress =
+      widget.progressService ?? LearnProgressService.instance;
+  late final LearnLessonCompletionService _completion =
+      widget.completionService ??
+          LearnLessonCompletionService(progress: _progress);
   final List<QuizAttemptData> _quizAttempts = [];
-  String? _freeTextResponse;
+  final Map<int, String> _freeTextResponses = {};
   LearnLessonResult? _result;
 
   @override
@@ -63,14 +75,32 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
             lesson: widget.slot.v2Lesson!,
           )
         : const [];
-    // Already-complete lessons replay from step 0.
-    // In-progress lessons resume from their furthest step.
-    if (_progress.isLessonComplete(widget.slot.progressKey)) {
+    // Already-complete lessons replay from step 0 with a fresh session.
+    // In-progress lessons resume from their furthest step with earlier
+    // answers restored, so the final score reflects the whole lesson.
+    final key = widget.slot.progressKey;
+    if (_progress.isLessonComplete(key)) {
       _activityIndex = 0;
+      _progress.clearLessonSession(key);
+      loggy.info(
+          'Lesson $key: replaying from start (${_script.length} activities)');
     } else {
-      final saved = _progress.furthestStep(widget.slot.progressKey);
+      final saved = _progress.furthestStep(key);
       _activityIndex = _script.isEmpty ? 0 : saved.clamp(0, _script.length - 1);
+      _quizAttempts.addAll(
+        _progress.sessionQuizAttempts(key).map(QuizAttemptData.fromJson),
+      );
+      _freeTextResponses.addAll(_progress.sessionFreeTextResponses(key));
+      loggy.info('Lesson $key: opening at activity ${_activityIndex + 1}'
+          '/${_script.length}, restored ${_quizAttempts.length} quiz '
+          'attempt(s), ${_freeTextResponses.length} free-text response(s)');
     }
+  }
+
+  String? get _combinedFreeText {
+    if (_freeTextResponses.isEmpty) return null;
+    final keys = _freeTextResponses.keys.toList()..sort();
+    return keys.map((k) => _freeTextResponses[k]).join('\n\n');
   }
 
   bool get _isCourseFinal => LearnLessonExperienceService.isCourseFinalLesson(
@@ -90,29 +120,21 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
       await _completeLesson();
     } else {
       setState(() => _activityIndex++);
+      loggy.info('Lesson ${widget.slot.progressKey}: advanced to activity '
+          '${_activityIndex + 1}/${_script.length} '
+          '(${_current.type.name})');
     }
   }
 
   Future<void> _completeLesson() async {
-    final result = LearnQuizScoringService.computeLessonResult(
-      gradedQuizResults: _gradedResults,
-      freeTextResponse: _freeTextResponse,
-    );
-    await _progress.markLessonComplete(widget.slot.progressKey);
-    await _progress.saveLessonResult(
+    _result = await _completion.completeLesson(
       lessonKey: widget.slot.progressKey,
-      stars: result.stars,
-      points: result.pointsEarned,
-      quizScoreRatio: result.quizScoreRatio,
-      freeText: result.freeTextResponse,
-    );
-    LearnSyncService.instance.reportCompletion(
-      widget.slot.progressKey,
-      totalActivities: _script.length,
       quizAttempts: List.unmodifiable(_quizAttempts),
-      freeTextResponse: _freeTextResponse,
-    ).catchError((_) {});
-    _result = result;
+      // Report the catalog index of the last activity — the script can be
+      // shorter than the catalog list when invalid activities are skipped.
+      furthestActivityIndex: _script.isNotEmpty ? _script.last.index : 0,
+      combinedFreeText: _combinedFreeText,
+    );
     _presentCompletionSheet();
   }
 
@@ -153,13 +175,43 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   void _recordQuizGrade(LearnQuizGrade grade) {
     if (_current.type != LearnActivityType.quiz) return;
-    if (_current.quiz?.format == LearnQuizFormat.freeText) return;
-    _gradedResults.add(grade.isCorrect);
-    _quizAttempts.add(QuizAttemptData(
-      activityId: _current.index.toString(),
+    final attempt = QuizAttemptData(
+      // The API needs the catalog `_id` for server-side verification; fall
+      // back to the positional index for legacy content without ids.
+      activityId: _current.activityId.isNotEmpty
+          ? _current.activityId
+          : _current.index.toString(),
       format: _current.quiz!.format.apiKey,
+      selectedIndex: grade.selectedIndex,
+      selectedIndices: grade.selectedIndices,
+      selectedOrder: grade.selectedOrder,
       isCorrect: grade.isCorrect,
-    ));
+    );
+    final existing =
+        _quizAttempts.indexWhere((a) => a.activityId == attempt.activityId);
+    if (existing >= 0) {
+      _quizAttempts[existing] = attempt;
+    } else {
+      _quizAttempts.add(attempt);
+    }
+    loggy.info('Lesson ${widget.slot.progressKey}: quiz activity '
+        '${_current.index} (${attempt.format}) graded '
+        '${attempt.isCorrect ? 'correct' : 'incorrect'}'
+        '${attempt.selectedIndex != null ? ', selected index ${attempt.selectedIndex}' : ''}');
+    _progress.saveSessionQuizAttempts(
+      widget.slot.progressKey,
+      _quizAttempts.map((a) => a.toJson()).toList(),
+    );
+  }
+
+  void _recordFreeText(String text) {
+    _freeTextResponses[_current.index] = text;
+    loggy.info('Lesson ${widget.slot.progressKey}: free-text response '
+        'recorded for activity ${_current.index} (${text.length} chars)');
+    _progress.saveSessionFreeTextResponses(
+      widget.slot.progressKey,
+      Map.of(_freeTextResponses),
+    );
   }
 
   Widget _buildActivityBody() {
@@ -192,7 +244,7 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
           quiz: activity.quiz!,
           activityTypeLabel: typeLabel,
           onGraded: _recordQuizGrade,
-          onFreeText: (text) => _freeTextResponse = text,
+          onFreeText: _recordFreeText,
           onContinue: _advanceActivity,
         );
     }
@@ -200,7 +252,7 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
 
   @override
   Widget build(BuildContext context) {
-    if (_script.isEmpty) return const SizedBox.shrink();
+    if (_script.isEmpty) return _buildEmptyState(context);
 
     final lessonTitle = learnDisplayTitle(
       widget.slot.v2Lesson?.title ?? widget.slot.plainTitleKey,
@@ -220,8 +272,47 @@ class _LearnLessonExperienceState extends State<LearnLessonExperience> {
           _script.length,
         ),
         onClose: widget.onClose,
-        body: _buildActivityBody(),
+        showDragHandle: false,
+        body: KeyedSubtree(
+          key: ValueKey(_activityIndex),
+          child: _buildActivityBody(),
+        ),
         bottomBar: const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return SizedBox.expand(
+      child: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.menu_book_outlined,
+                      size: 48,
+                      color: Theme.of(context).disabledColor,
+                    ),
+                    const SizedBox(height: 12),
+                    const TranslatedText(
+                      'This lesson is not available yet. Please check back later.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          LearnExperienceBottomBar(
+            primaryLabel: 'Close',
+            onPrimary: widget.onClose,
+          ),
+        ],
       ),
     );
   }

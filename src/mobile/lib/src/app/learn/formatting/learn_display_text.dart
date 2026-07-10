@@ -25,7 +25,10 @@ String learnActivityOrdinal(int activityIndex) {
     'SEVEN',
     'EIGHT',
   ];
-  return ordinals[activityIndex.clamp(0, ordinals.length - 1)];
+  if (activityIndex >= 0 && activityIndex < ordinals.length) {
+    return ordinals[activityIndex];
+  }
+  return '${activityIndex + 1}';
 }
 
 String learnActivityTypeHeader(int activityIndex, String typeKey) {
@@ -50,10 +53,6 @@ String learnCourseCompletionTime(DateTime completedAt) {
   final month = _monthName(completedAt.month);
   final year = completedAt.year;
   return 'Completed $day $month $year';
-}
-
-String learnCourseCompletionRarityLabel({int completionPercent = 17}) {
-  return 'Only $completionPercent% of AirQo users have completed this course';
 }
 
 String _monthName(int month) {

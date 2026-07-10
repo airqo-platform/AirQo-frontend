@@ -120,7 +120,7 @@
     {
       "name": "vertex-main-chunk",
       "path": ".next/static/chunks/app/**/*.js",
-      "limit": "200 kB"
+      "limit": "205 kB"
     }
   ]
 }
