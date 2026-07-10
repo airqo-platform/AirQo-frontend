@@ -239,6 +239,10 @@ class LearnBottomSheets {
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       useSafeArea: false,
+      // Lessons close via the explicit X button only — a stray swipe or
+      // scrim tap would silently discard the activity in progress.
+      isDismissible: false,
+      enableDrag: false,
       builder: (sheetContext) {
         final sheetHeight = MediaQuery.sizeOf(sheetContext).height * 0.92;
         return SizedBox(

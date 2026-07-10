@@ -19,6 +19,7 @@ import {
   AqClipboardCheck,
   AqFileShield02,
   AqBookOpen01,
+  AqImage01,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -326,6 +327,12 @@ const systemSidebarConfig: NavGroup[] = [
           },
         ],
       },
+      {
+        id: 'system-selfies',
+        label: 'Selfies',
+        href: '/system/selfies',
+        icon: AqImage01,
+      },
     ],
   },
 ];
@@ -414,6 +421,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'User Statistics',
             href: '/system/user-statistics',
             description: 'View analytics and charts for platform users',
+          },
+          {
+            id: 'system-selfies',
+            label: 'Selfies',
+            href: '/system/selfies',
+            description: 'Manage event selfie submissions',
           },
         ],
       },

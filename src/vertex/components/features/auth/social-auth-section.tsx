@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useBanner } from '@/context/banner-context';
 import { getLastActiveModule } from '@/core/utils/userPreferences';
+import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
 
 interface SocialAuthSectionProps {
   mode: 'login' | 'register';
@@ -83,9 +84,7 @@ export default function SocialAuthSection({
       ]
     : SOCIAL_PROVIDERS;
 
-  const isElectron =
-    typeof window !== 'undefined' &&
-    window.navigator.userAgent.toLowerCase().includes('electron');
+  const { isElectron } = useDetectedPlatform();
 
   const handleSocialAuth = useCallback(
     (provider: SupportedSocialAuthProvider) => {
