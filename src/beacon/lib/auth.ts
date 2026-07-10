@@ -7,6 +7,16 @@ import {
 } from './oauth-session';
 import { buildPlatformApiUrl } from './config';
 
+// Fallback defaults for authentication environment variables
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = 'https://beacon.airqo.net';
+}
+
+if (!process.env.NEXTAUTH_SECRET) {
+  // Use a fallback secret (minimum 32 characters required by NextAuth)
+  process.env.NEXTAUTH_SECRET = 'dev-secret-airqo-beacon-frontend-2024';
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 const isTokenExpired = (exp?: number): boolean => {
