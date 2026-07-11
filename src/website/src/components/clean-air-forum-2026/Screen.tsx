@@ -1,8 +1,7 @@
 import { HTMLAttributes } from 'react';
 
-import { cn } from '@/lib/utils/cn';
-
 import { cleanAirForum2026Theme } from '@/features/clean-air-forum-2026/constants/theme';
+import { cn } from '@/lib/utils/cn';
 
 type CleanAirForum2026ScreenProps = HTMLAttributes<HTMLElement>;
 

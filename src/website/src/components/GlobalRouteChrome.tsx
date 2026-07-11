@@ -6,6 +6,7 @@ import { lazy, Suspense } from 'react';
 import CookieConsent from '@/components/CookieConsent';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import GoogleTranslate from '@/components/GoogleTranslate';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 const EngagementDialog = lazy(
   () => import('@/components/dialogs/EngagementDialog'),
 );
@@ -35,14 +36,20 @@ export default function GlobalRouteChrome() {
 
   return (
     <>
-      <GoogleTranslate />
+      <ErrorBoundary fallback={null}>
+        <GoogleTranslate />
+      </ErrorBoundary>
       <ExternalLinkDecorator />
       <Suspense fallback={null}>
-        <EngagementDialog />
+        <ErrorBoundary fallback={null}>
+          <EngagementDialog />
+        </ErrorBoundary>
       </Suspense>
       <CookieConsent />
       <Suspense fallback={null}>
-        <FloatingMiniBillboardWrapper />
+        <ErrorBoundary fallback={null}>
+          <FloatingMiniBillboardWrapper />
+        </ErrorBoundary>
       </Suspense>
     </>
   );

@@ -328,9 +328,9 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ReduxDataProvider>
             <QueryProvider>{children}</QueryProvider>
+            <GlobalRouteChrome />
           </ReduxDataProvider>
         </ErrorBoundary>
-        <GlobalRouteChrome />
       </body>
     </html>
   );

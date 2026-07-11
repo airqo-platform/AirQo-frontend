@@ -2,10 +2,12 @@ import LeaderboardToggle from './LeaderboardToggle';
 
 type LeaderboardTogglesProps = {
   activeIndex: number;
+  count?: number;
 };
 
 export default function LeaderboardToggles({
   activeIndex,
+  count = 4,
 }: LeaderboardTogglesProps) {
   return (
     <div
@@ -13,7 +15,7 @@ export default function LeaderboardToggles({
       aria-label="Leaderboard pagination indicators"
       role="group"
     >
-      {Array.from({ length: 4 }, (_, index) => (
+      {Array.from({ length: count }, (_, index) => (
         <LeaderboardToggle
           key={`toggle-${index}`}
           active={activeIndex === index}

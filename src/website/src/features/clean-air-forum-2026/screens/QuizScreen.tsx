@@ -125,13 +125,15 @@ export default function QuizScreen() {
       return;
     }
 
-    console.group('[CAF 2026] Quiz setup ready');
-    console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
-    console.info('lesson_id', CLEAN_AIR_FORUM_2026_LESSON_ID);
-    console.info('guest_session', quizSetup.guestSession);
-    console.info('hydrated_from_cache', quizSetup.hydratedFromCache);
-    console.log(quizSetup.lessonPayload);
-    console.groupEnd();
+    if (process.env.NODE_ENV !== 'production') {
+      console.group('[CAF 2026] Quiz setup ready');
+      console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
+      console.info('lesson_id', CLEAN_AIR_FORUM_2026_LESSON_ID);
+      console.info('guest_session', quizSetup.guestSession);
+      console.info('hydrated_from_cache', quizSetup.hydratedFromCache);
+      console.log(quizSetup.lessonPayload);
+      console.groupEnd();
+    }
   }, [
     quizSetup.guestSession,
     quizSetup.hydratedFromCache,
@@ -221,13 +223,15 @@ export default function QuizScreen() {
       return;
     }
 
-    console.info('[CAF 2026] Quiz progress snapshot', {
-      currentQuestionIndex,
-      totalQuestions,
-      answersCount: quizAttempts.length,
-      correctAnswersCount,
-      quizAttempts,
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[CAF 2026] Quiz progress snapshot', {
+        currentQuestionIndex,
+        totalQuestions,
+        answersCount: quizAttempts.length,
+        correctAnswersCount,
+        quizAttempts,
+      });
+    }
   }, [
     correctAnswersCount,
     currentQuestionIndex,

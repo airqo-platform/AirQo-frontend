@@ -1038,8 +1038,8 @@ export default function FacesOfCleanAirPage() {
           avatar: '',
           avatarImageUrl: '',
           rank: index + 1,
-          name: ' ',
-          points: ' ',
+          name: '—',
+          points: '—',
           tone: index % 2 === 0 ? 'light' : 'tint',
         } as const;
       },
@@ -1383,7 +1383,10 @@ export default function FacesOfCleanAirPage() {
                   </div>
 
                   <div className="mt-8 w-full sm:mt-10">
-                    <LeaderboardToggles activeIndex={leaderboardSlideIndex} />
+                    <LeaderboardToggles
+                      activeIndex={leaderboardSlideIndex}
+                      count={LEADERBOARD_SLIDE_COUNT}
+                    />
                   </div>
                 </motion.div>
               ) : null}
