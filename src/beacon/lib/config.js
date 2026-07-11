@@ -139,14 +139,14 @@ const getAirQoPlatformApiUrl = () => {
   if (env === 'development' || env === 'staging') {
     const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
                        process.env.AIRQO_STAGING_API_BASE_URL;
-    if (stagingUrl) return stripTrailingSlash(stagingUrl);
+    if (stagingUrl) return enforceHttpsForRemote(stagingUrl);
     return 'https://staging-platform.airqo.net';
   }
   
   // Production
   const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 
                   process.env.AIRQO_API_BASE_URL;
-  if (prodUrl) return stripTrailingSlash(prodUrl);
+  if (prodUrl) return enforceHttpsForRemote(prodUrl);
   
   return 'https://platform.airqo.net';
 };
