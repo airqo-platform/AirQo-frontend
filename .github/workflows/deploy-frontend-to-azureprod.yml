@@ -15,6 +15,10 @@ on:
         description: "Deploy Analytics Platform"
         required: false
         type: boolean
+      nexus:
+        description: "Deploy Nexus"
+        required: false
+        type: boolean  
       vertex:
         description: "Deploy vertex"
         required: false
@@ -194,6 +198,52 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update analytics production image tag"
+
+  nexus:
+    name: build-push-nexus
+    needs: [image-tag]
+    if: inputs.nexus == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name prod-env-nexus \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/nexus/
+          docker build -t ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-nexus:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-nexus:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-nexus:latest
+
+      - name: Update Helm values
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/nexus/k8s-aks/airqo-nexus/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update nexus production image tag"            
 
   vertex:
     name: build-push-vertex
