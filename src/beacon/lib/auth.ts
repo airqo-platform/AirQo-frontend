@@ -33,9 +33,6 @@ const normalizeNextAuthUrl = () => {
 
 normalizeNextAuthUrl();
 
-if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET must be set in production.');
-}
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -83,7 +80,7 @@ const cookieOptions = {
 };
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
