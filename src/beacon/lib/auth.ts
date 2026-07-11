@@ -12,15 +12,16 @@ const normalizeNextAuthUrl = () => {
   const currentEnv = config.environment;
   const rawUrl = process.env.NEXTAUTH_URL;
 
-  // Check if NEXTAUTH_URL is missing or incorrectly set to localhost in staging/production
+  // Check if NEXTAUTH_URL is missing, localhost, or incorrectly set to production on staging
   const isLocalhostUrl = !rawUrl || rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
+  const isProdUrlOnStaging = rawUrl === 'https://beacon.airqo.net' && currentEnv === 'staging';
 
   if (currentEnv === 'staging') {
-    if (isLocalhostUrl) {
+    if (isLocalhostUrl || isProdUrlOnStaging) {
       process.env.NEXTAUTH_URL = 'https://staging-beacon.airqo.net';
     }
   } else if (currentEnv === 'production') {
-    if (isLocalhostUrl) {
+    if (isLocalhostUrl || rawUrl === 'https://staging-beacon.airqo.net') {
       process.env.NEXTAUTH_URL = 'https://beacon.airqo.net';
     }
   } else {
