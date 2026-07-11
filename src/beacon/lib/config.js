@@ -15,6 +15,48 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
 /**
+ * Get the current environment context dynamically
+ */
+const getEnvironment = () => {
+  if (!isServer) {
+    const hostname = globalThis.location.hostname.toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
+      return 'development';
+    }
+    if (hostname.includes('stage') || hostname.includes('staging') || hostname.includes('beacon-stage')) {
+      return 'staging';
+    }
+    return 'production';
+  }
+
+  // Server-side detection
+  const nextAuthUrl = process.env.NEXTAUTH_URL || '';
+  if (nextAuthUrl.includes('stage') || nextAuthUrl.includes('staging') || nextAuthUrl.includes('beacon-stage')) {
+    return 'staging';
+  }
+  if (nextAuthUrl.includes('localhost') || nextAuthUrl.includes('127.0.0.1')) {
+    const serviceName = (process.env.SERVICE_NAME || '').toLowerCase();
+    const podHostName = (process.env.HOSTNAME || '').toLowerCase();
+    if (serviceName.includes('stage') || podHostName.includes('stage')) {
+      return 'staging';
+    }
+    return 'development';
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    return 'development';
+  }
+
+  return 'production';
+};
+
+/**
  * Strip trailing slashes from URLs
  */
 const stripTrailingSlash = (url) => url?.replace(/\/$/, '') || '';
@@ -63,52 +105,42 @@ export const enforceHttpsForRemote = (url) => {
 
 /**
  * Get the appropriate API URL based on environment
- * Priority: 
- * 1. NEXT_PUBLIC_LOCAL_API_URL (for local development with local backend)
- * 2. NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL (for staging)
- * 3. NEXT_PUBLIC_AIRQO_API_BASE_URL (for production)
- * 4. AIRQO_STAGING_API_BASE_URL (server-side staging)
- * 5. AIRQO_API_BASE_URL (server-side production)
  */
 const getBeaconApiUrl = () => {
-  // For local development, use local API
-  if (isLocalhost || isDevelopment) {
+  const env = getEnvironment();
+
+  if (env === 'development') {
     const localUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || process.env.BEACON_API_URL;
     if (localUrl) return enforceHttpsForRemote(localUrl);
+    return 'http://localhost:8000';
   }
-  
-  // For client-side, prefer NEXT_PUBLIC_ variables
-  if (!isServer) {
-    const publicBeaconUrl = process.env.NEXT_PUBLIC_BEACON_API_URL;
-    const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL;
-    const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL;
-    if (publicBeaconUrl) return enforceHttpsForRemote(publicBeaconUrl);
+
+  if (env === 'staging') {
+    const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
+                       process.env.AIRQO_STAGING_API_BASE_URL;
     if (stagingUrl) return enforceHttpsForRemote(stagingUrl);
-    if (prodUrl) return enforceHttpsForRemote(prodUrl);
+    return 'https://staging-platform.airqo.net';
   }
-  
-  // For server-side, can use non-public variables
-  const beaconUrl = process.env.BEACON_API_URL;
-  const serverStagingUrl = process.env.AIRQO_STAGING_API_BASE_URL;
-  const serverProdUrl = process.env.AIRQO_API_BASE_URL;
-  if (beaconUrl) return enforceHttpsForRemote(beaconUrl);
-  if (serverStagingUrl) return enforceHttpsForRemote(serverStagingUrl);
-  if (serverProdUrl) return enforceHttpsForRemote(serverProdUrl);
-  
-  // Default fallback (should be avoided in production)
-  console.warn('No API URL configured, using default localhost:8000');
-  return 'http://localhost:8000';
+
+  // Production
+  const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 
+                  process.env.AIRQO_API_BASE_URL;
+  if (prodUrl) return enforceHttpsForRemote(prodUrl);
+
+  return 'https://platform.airqo.net';
 };
 
 /**
  * Get the AirQo Platform API URL (for auth, users, etc.)
  */
 const getAirQoPlatformApiUrl = () => {
-  // Prefer staging for development
-  if (isDevelopment) {
+  const env = getEnvironment();
+  
+  if (env === 'development' || env === 'staging') {
     const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
                        process.env.AIRQO_STAGING_API_BASE_URL;
     if (stagingUrl) return stripTrailingSlash(stagingUrl);
+    return 'https://staging-platform.airqo.net';
   }
   
   // Production
@@ -116,38 +148,39 @@ const getAirQoPlatformApiUrl = () => {
                   process.env.AIRQO_API_BASE_URL;
   if (prodUrl) return stripTrailingSlash(prodUrl);
   
-  // Fallback to staging
-  const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
-                     process.env.AIRQO_STAGING_API_BASE_URL;
-  if (stagingUrl) return stripTrailingSlash(stagingUrl);
-  
-  return 'https://staging-platform.airqo.net';
+  return 'https://platform.airqo.net';
 };
 
 /**
- * API Configuration
+ * API Configuration with dynamic properties
  */
 export const config = {
   // Environment flags
-  isServer,
-  isLocalhost,
-  isDevelopment,
-  isProduction,
+  get isServer() { return typeof window === 'undefined'; },
+  get isLocalhost() {
+    return typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1' || 
+       window.location.hostname.startsWith('192.168.'));
+  },
+  get isDevelopment() { return process.env.NODE_ENV === 'development'; },
+  get isProduction() { return process.env.NODE_ENV === 'production'; },
+  get environment() { return getEnvironment(); },
   
   // API URLs
-  apiUrl: getBeaconApiUrl(),
-  beaconApiUrl: getBeaconApiUrl(),
-  airqoPlatformUrl: getAirQoPlatformApiUrl(),
+  get apiUrl() { return getBeaconApiUrl(); },
+  get beaconApiUrl() { return getBeaconApiUrl(); },
+  get airqoPlatformUrl() { return getAirQoPlatformApiUrl(); },
   
   // API version
   apiVersion: process.env.AIRQO_API_VERSION || 'v2',
   
   // API prefixes
   apiPrefix: '/api/v1',
-  beaconApiPrefix: isLocalhost ? '/api/v1' : '/api/v1/beacon',
+  get beaconApiPrefix() { return this.isLocalhost ? '/api/v1' : '/api/v1/beacon'; },
   
   // Auth settings
-  requiresAuth: !isLocalhost && isProduction,
+  get requiresAuth() { return !this.isLocalhost && this.isProduction; },
   
   // Timeouts
   defaultTimeout: 30000,
