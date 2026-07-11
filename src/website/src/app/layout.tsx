@@ -4,25 +4,15 @@ import './globals.css';
 import { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Script from 'next/script';
-import { ReactNode, Suspense, lazy } from 'react';
+import { ReactNode, Suspense } from 'react';
 
-import CookieConsent from '@/components/CookieConsent';
-import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
-import GoogleTranslate from '@/components/GoogleTranslate';
+import GlobalRouteChrome from '@/components/GlobalRouteChrome';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/components/providers/ReduxProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 import { getPrimarySiteUrl } from '@/lib/siteUrl';
-
-// Lazy load non-critical components
-const EngagementDialog = lazy(
-  () => import('@/components/dialogs/EngagementDialog'),
-);
-const FloatingMiniBillboardWrapper = lazy(
-  () => import('@/components/FloatingMiniBillboardWrapper'),
-);
 
 const GOOGLE_ANALYTICS_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -332,29 +322,15 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <ErrorBoundary fallback={null}>
-          <GoogleTranslate />
-        </ErrorBoundary>
-        <ErrorBoundary fallback={null}>
-          <ExternalLinkDecorator />
-        </ErrorBoundary>
         <Suspense fallback={null}>
           <GoogleAnalytics measurementId={GOOGLE_ANALYTICS_MEASUREMENT_ID} />
         </Suspense>
         <ErrorBoundary>
           <ReduxDataProvider>
-            <QueryProvider>
-              {children}
-              <Suspense fallback={null}>
-                <EngagementDialog />
-              </Suspense>
-            </QueryProvider>
+            <QueryProvider>{children}</QueryProvider>
+            <GlobalRouteChrome />
           </ReduxDataProvider>
         </ErrorBoundary>
-        <CookieConsent />
-        <Suspense fallback={null}>
-          <FloatingMiniBillboardWrapper />
-        </Suspense>
       </body>
     </html>
   );
