@@ -2,6 +2,7 @@
 
 import { motion, type Variants } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -432,15 +433,17 @@ export default function QuizScreen() {
             variants={headerItemVariants}
             className="flex justify-start"
           >
-            <Image
-              src={AIRQO_LOGO_URL}
-              alt="AirQo"
-              width={78}
-              height={51}
-              priority
-              unoptimized
-              className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
-            />
+            <Link href="/home" aria-label="Go to the AirQo homepage">
+              <Image
+                src={AIRQO_LOGO_URL}
+                alt="AirQo"
+                width={78}
+                height={51}
+                priority
+                unoptimized
+                className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+              />
+            </Link>
           </motion.div>
 
           <div className="min-w-0">
@@ -493,15 +496,17 @@ export default function QuizScreen() {
                 variants={headerItemVariants}
                 className="flex justify-start"
               >
-                <Image
-                  src={AIRQO_LOGO_URL}
-                  alt="AirQo"
-                  width={78}
-                  height={51}
-                  priority
-                  unoptimized
-                  className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
-                />
+                <Link href="/home" aria-label="Go to the AirQo homepage">
+                  <Image
+                    src={AIRQO_LOGO_URL}
+                    alt="AirQo"
+                    width={78}
+                    height={51}
+                    priority
+                    unoptimized
+                    className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+                  />
+                </Link>
               </motion.div>
 
               <div className="min-w-0">
@@ -599,15 +604,17 @@ export default function QuizScreen() {
               variants={headerItemVariants}
               className="flex justify-start"
             >
-              <Image
-                src={AIRQO_LOGO_URL}
-                alt="AirQo"
-                width={78}
-                height={51}
-                priority
-                unoptimized
-                className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
-              />
+              <Link href="/home" aria-label="Go to the AirQo homepage">
+                <Image
+                  src={AIRQO_LOGO_URL}
+                  alt="AirQo"
+                  width={78}
+                  height={51}
+                  priority
+                  unoptimized
+                  className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+                />
+              </Link>
             </motion.div>
 
             <div className="min-w-0">

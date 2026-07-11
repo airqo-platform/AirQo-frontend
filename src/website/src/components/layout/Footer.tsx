@@ -44,6 +44,10 @@ const footerLinks = {
       href: '/africa-clean-air-forum-2026/faces-of-clean-air',
     },
     { label: 'Air Quality Quiz', href: '/africa-clean-air-forum-2026/quiz' },
+    {
+      label: 'Quiz Leaderboard',
+      href: '/africa-clean-air-forum-2026/leaderboard',
+    },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact Us', href: '/contact' },
