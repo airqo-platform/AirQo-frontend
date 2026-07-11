@@ -6,7 +6,7 @@ test, and for conventions, see [`../app/_docs/internal/TESTING.md`](../app/_docs
 ## Setup
 
 ```bash
-cp ../vertex/.env.e2e.example .env.e2e   # from src/vertex/, fill in E2E_USER_EMAIL/PASSWORD
+cp .env.e2e.example .env.e2e             # from src/vertex/, fill in E2E_USER_EMAIL/PASSWORD
 npx playwright install chromium          # one-time browser download
 ```
 
