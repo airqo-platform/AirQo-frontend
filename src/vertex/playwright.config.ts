@@ -14,7 +14,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  // HTML report always generated (consumed by `npm run test:e2e:report`);
+  // "github" annotations added on top in CI, plain "list" console output locally.
+  reporter: [
+    ["html", { open: "never" }],
+    process.env.CI ? ["github"] : ["list"],
+  ],
 
   use: {
     baseURL,
