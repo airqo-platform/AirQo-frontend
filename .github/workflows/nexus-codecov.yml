@@ -1,0 +1,35 @@
+name: nexus-codecov
+
+on:
+  workflow_call:
+    inputs:
+      coverage-directory:
+        description: "Path to coverage directory"
+        required: false
+        type: string
+        default: "src/nexus/coverage/"
+      flag:
+        description: "Codecov flag name"
+        required: false
+        type: string
+        default: "nexus"
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  upload-coverage:
+    name: Upload Nexus Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ${{ inputs.coverage-directory }}
+          flags: ${{ inputs.flag }}
+          fail_ci_if_error: false

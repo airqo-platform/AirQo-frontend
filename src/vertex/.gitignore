@@ -97,6 +97,13 @@ dist
 # vuepress build output
 .vuepress/dist
 
+# Playwright
+/e2e/.auth/
+/playwright-report/
+/test-results/
+/blob-report/
+.env.e2e
+
 # Serverless directories
 .serverless/
 

@@ -1,0 +1,349 @@
+'use client';
+
+import React, { useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
+import { Button, Input, Dialog, Checkbox } from '@/shared/components/ui';
+import { toast } from '@/shared/components/ui';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { isValidIpAddress, isValidOriginUrl } from '@/shared/lib/validators';
+import { clientService } from '@/shared/services/clientService';
+import { trackEvent } from '@/shared/utils/analytics';
+import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
+
+interface CreateClientDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  userId?: string;
+}
+
+const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  userId,
+}) => {
+  const posthog = usePostHog();
+  const [clientName, setClientName] = useState('');
+  const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
+  const [ipErrors, setIpErrors] = useState<string[]>(['']);
+  const [enforceOrigin, setEnforceOrigin] = useState(false);
+  const [originAddresses, setOriginAddresses] = useState<string[]>(['']);
+  const [originErrors, setOriginErrors] = useState<string[]>(['']);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddIpAddress = () => {
+    setIpAddresses([...ipAddresses, '']);
+    setIpErrors([...ipErrors, '']);
+  };
+
+  const handleRemoveIpAddress = (index: number) => {
+    if (ipAddresses.length > 1) {
+      setIpAddresses(ipAddresses.filter((_, i) => i !== index));
+      setIpErrors(ipErrors.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleIpAddressChange = (index: number, value: string) => {
+    const newIpAddresses = [...ipAddresses];
+    newIpAddresses[index] = value;
+    setIpAddresses(newIpAddresses);
+
+    // Clear error when user starts typing
+    const newIpErrors = [...ipErrors];
+    newIpErrors[index] = '';
+    setIpErrors(newIpErrors);
+  };
+
+  const handleAddOriginAddress = () => {
+    setOriginAddresses([...originAddresses, '']);
+    setOriginErrors([...originErrors, '']);
+  };
+
+  const handleRemoveOriginAddress = (index: number) => {
+    if (originAddresses.length > 1) {
+      setOriginAddresses(originAddresses.filter((_, i) => i !== index));
+      setOriginErrors(originErrors.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleOriginAddressChange = (index: number, value: string) => {
+    const newOriginAddresses = [...originAddresses];
+    newOriginAddresses[index] = value;
+    setOriginAddresses(newOriginAddresses);
+
+    const newOriginErrors = [...originErrors];
+    newOriginErrors[index] = '';
+    setOriginErrors(newOriginErrors);
+  };
+
+  const handleSubmit = async () => {
+    if (!clientName.trim()) {
+      toast.error('Client name is required');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const filteredIpAddresses = ipAddresses.filter(ip => ip.trim() !== '');
+      const filteredOrigins = originAddresses.filter(
+        origin => origin.trim() !== ''
+      );
+
+      // Validate IP addresses
+      const newIpErrors = [...ipErrors];
+      let hasErrors = false;
+      for (let i = 0; i < ipAddresses.length; i++) {
+        const ip = ipAddresses[i].trim();
+        if (ip && !isValidIpAddress(ip)) {
+          newIpErrors[i] = 'Invalid IP address format';
+          hasErrors = true;
+        } else {
+          newIpErrors[i] = '';
+        }
+      }
+      setIpErrors(newIpErrors);
+
+      const newOriginErrors = [...originErrors];
+      if (enforceOrigin) {
+        if (!filteredOrigins.length) {
+          toast.error('At least one allowed origin is required');
+          setIsSubmitting(false);
+          return;
+        }
+
+        for (let i = 0; i < originAddresses.length; i++) {
+          const origin = originAddresses[i].trim();
+          if (origin && !isValidOriginUrl(origin)) {
+            newOriginErrors[i] = 'Enter a valid origin URL with http or https';
+            hasErrors = true;
+          } else {
+            newOriginErrors[i] = '';
+          }
+        }
+      }
+      setOriginErrors(newOriginErrors);
+
+      if (hasErrors) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      const clientData = {
+        name: clientName.trim(),
+        ...(userId && { user_id: userId }),
+        enforce_origin: enforceOrigin,
+        allowed_origins: enforceOrigin ? filteredOrigins : [],
+        ...(filteredIpAddresses.length > 0 && {
+          ip_addresses: filteredIpAddresses,
+        }),
+      };
+
+      await clientService.createClient(clientData);
+
+      trackApiClientAction(posthog, 'create', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+        client_name_length: clientName.trim().length,
+      });
+
+      posthog?.capture('client_created', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+      });
+
+      trackEvent('client_created', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+      });
+
+      toast.success('Client created successfully');
+      setClientName('');
+      setIpAddresses(['']);
+      setIpErrors(['']);
+      setEnforceOrigin(false);
+      setOriginAddresses(['']);
+      setOriginErrors(['']);
+      onSuccess?.();
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Client creation error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setClientName('');
+      setIpAddresses(['']);
+      setIpErrors(['']);
+      setEnforceOrigin(false);
+      setOriginAddresses(['']);
+      setOriginErrors(['']);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Create New API Client"
+      maxHeight="max-h-[75vh]"
+      contentClassName="pr-2"
+      primaryAction={{
+        label: 'Create',
+        onClick: handleSubmit,
+        disabled: isSubmitting || !clientName.trim(),
+        loading: isSubmitting,
+      }}
+      secondaryAction={{
+        label: 'Cancel',
+        onClick: handleClose,
+        disabled: isSubmitting,
+        variant: 'outlined',
+        loading: isSubmitting,
+      }}
+    >
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Client Name *
+          </label>
+          <Input
+            value={clientName}
+            onChange={e => setClientName(e.target.value)}
+            placeholder="Enter a descriptive name for your client"
+            className="w-full"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Choose a name that helps you identify this client later
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            IP Addresses (Optional)
+          </label>
+          <div className="space-y-2">
+            {ipAddresses.map((ip, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <Input
+                    value={ip}
+                    onChange={e => handleIpAddressChange(index, e.target.value)}
+                    placeholder="192.168.1.1"
+                    className="w-full"
+                  />
+                  {ipErrors[index] && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {ipErrors[index]}
+                    </p>
+                  )}
+                </div>
+                {ipAddresses.length > 1 && (
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => handleRemoveIpAddress(index)}
+                    className="px-3"
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAddIpAddress}
+              className="w-full"
+            >
+              + Add IP Address
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Restrict access to specific IP addresses (leave empty for no
+            restrictions)
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-4">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              checked={enforceOrigin}
+              onCheckedChange={setEnforceOrigin}
+              className="mt-0.5"
+            />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                Enforce origin restriction
+              </p>
+              <p className="text-xs text-muted-foreground">
+                When enabled, browser requests must include an Origin header
+                that matches one of the allowed origins below.
+              </p>
+            </div>
+          </div>
+
+          {enforceOrigin && (
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Allowed origins
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Use the full origin with protocol, for example
+                  https://app.airqo.net.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {originAddresses.map((origin, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="flex-1">
+                      <Input
+                        value={origin}
+                        onChange={e =>
+                          handleOriginAddressChange(index, e.target.value)
+                        }
+                        placeholder="https://app.airqo.net"
+                        className="w-full"
+                      />
+                      {originErrors[index] && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {originErrors[index]}
+                        </p>
+                      )}
+                    </div>
+                    {originAddresses.length > 1 && (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        onClick={() => handleRemoveOriginAddress(index)}
+                        className="px-3"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAddOriginAddress}
+                  className="w-full"
+                >
+                  + Add Origin
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Dialog>
+  );
+};
+
+export default CreateClientDialog;
