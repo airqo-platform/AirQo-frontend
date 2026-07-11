@@ -18,7 +18,7 @@ setup("authenticate", async ({ page }) => {
 
   if (!email || !password) {
     throw new Error(
-      "E2E_USER_EMAIL and E2E_USER_PASSWORD must be set (see e2e/.env.e2e.example) to run authenticated e2e tests."
+      "E2E_USER_EMAIL and E2E_USER_PASSWORD must be set (see .env.e2e.example) to run authenticated e2e tests."
     );
   }
 
