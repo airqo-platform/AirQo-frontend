@@ -12,6 +12,7 @@ import LeaderboardRow from './LeaderboardRow';
 
 type LeaderboardRowData = {
   id: string;
+  isEmpty?: boolean;
   avatar?: string;
   avatarImageUrl?: string;
   rank: number;
@@ -127,6 +128,7 @@ export default function LeaderboardRowsBlock({
                   name={row.name}
                   points={row.points}
                   tone={row.tone}
+                  isEmpty={row.isEmpty}
                 />
               </motion.div>
             ))}

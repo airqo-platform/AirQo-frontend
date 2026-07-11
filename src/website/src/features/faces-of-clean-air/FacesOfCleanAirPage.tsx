@@ -39,7 +39,7 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
-const LEADERBOARD_ROWS_PER_SLIDE = 5;
+const LEADERBOARD_ROWS_PER_SLIDE = 10;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
@@ -1022,11 +1022,14 @@ export default function FacesOfCleanAirPage() {
 
   const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
   const leaderboardRows = useMemo(() => {
-    const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
-    return leaderboardEntries
-      .slice(startIndex, startIndex + LEADERBOARD_ROWS_PER_SLIDE)
-      .map((entry, i) => {
-        const absoluteIndex = startIndex + i;
+    const totalSlots = LEADERBOARD_ROWS_PER_SLIDE;
+    const startIndex = leaderboardSlideIndex * totalSlots;
+
+    return Array.from({ length: totalSlots }, (_, i) => {
+      const absoluteIndex = startIndex + i;
+      const entry = leaderboardEntries[absoluteIndex];
+
+      if (entry) {
         const stableId =
           entry.guest_id ||
           entry.device_id ||
@@ -1036,6 +1039,7 @@ export default function FacesOfCleanAirPage() {
 
         return {
           id: stableId,
+          isEmpty: false,
           avatar: formatLeaderboardAvatar(entry),
           avatarImageUrl: entry.avatar_image_url || '',
           rank: entry.rank ?? absoluteIndex + 1,
@@ -1043,7 +1047,21 @@ export default function FacesOfCleanAirPage() {
           points: formatLeaderboardPoints(entry.points),
           tone,
         };
-      });
+      }
+
+      const tone: 'light' | 'tint' = absoluteIndex % 2 === 0 ? 'light' : 'tint';
+
+      return {
+        id: `empty-${absoluteIndex + 1}`,
+        isEmpty: true,
+        avatar: '',
+        avatarImageUrl: '',
+        rank: absoluteIndex + 1,
+        name: 'Open',
+        points: '—',
+        tone,
+      };
+    });
   }, [leaderboardEntries, leaderboardSlideIndex]);
 
   const isLeaderboardStage = displayStage === 'leaderboard';

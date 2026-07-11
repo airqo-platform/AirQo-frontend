@@ -1,9 +1,11 @@
 'use client';
 
+import { motion, type Variants } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 
+import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
 import Screen from '@/components/clean-air-forum-2026/Screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +17,35 @@ import {
   resetCleanAirForum2026ParticipantSession,
 } from '@/features/clean-air-forum-2026/lib/guest-session';
 
+const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
+const EVENT_LABEL = 'Africa Clean Air Forum';
+const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const USERNAME_PATTERN = /^[A-Za-z0-9._ -]{3,30}$/;
+
+const headerContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.16,
+    },
+  },
+};
+
+const headerItemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.78,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -63,47 +93,86 @@ export default function LandingScreen() {
   };
 
   return (
-    <Screen>
-      <section className="caf-2026-screen mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
-        <div className="flex w-full flex-col items-center">
-          <div className="flex w-full justify-center">
-            <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
-              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
-                <div className="relative w-fit shrink-0">
-                  <Image
-                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
-                    alt="AirQo"
-                    width={91}
-                    height={62}
-                    priority
-                    className="h-auto w-auto"
-                  />
-                </div>
+    <Screen className="relative overflow-hidden">
+      <div
+        className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
+        style={{
+          background:
+            'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
+        }}
+      >
+        <AmbientBackground />
 
-                <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+        <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:min-h-[100svh] sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
+          <motion.header
+            variants={headerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="mx-auto grid w-full max-w-[1200px] flex-none grid-cols-[52px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6"
+          >
+            <motion.div
+              variants={headerItemVariants}
+              className="flex justify-start"
+            >
+              <Image
+                src={AIRQO_LOGO_URL}
+                alt="AirQo"
+                width={78}
+                height={51}
+                priority
+                unoptimized
+                className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+              />
+            </motion.div>
+
+            <div className="min-w-0">
+              <motion.h1
+                variants={headerItemVariants}
+                className="whitespace-nowrap text-left leading-none text-white"
+              >
+                <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
                   Air Quality Quiz
-                </h1>
-              </div>
+                </span>
+              </motion.h1>
 
-              <div className="hidden shrink-0 text-left text-white md:block">
-                <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                  Africa clean air forum
-                </p>
-                <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
-                  Pretoria 2026
-                </p>
-              </div>
+              <motion.div
+                variants={headerItemVariants}
+                className="mt-1 text-[9px] leading-tight text-white/85 sm:hidden"
+              >
+                <span className="font-bold">{EVENT_LABEL}</span>
+                <span aria-hidden="true">•</span>
+                <span className="italic">{EVENT_LOCATION_AND_YEAR}</span>
+              </motion.div>
             </div>
-          </div>
 
-          <div className="flex w-full flex-1 items-start justify-center pt-14 sm:pt-16 md:pt-20 lg:pt-24">
-            <form
+            <motion.div
+              variants={headerItemVariants}
+              className="hidden text-left text-white sm:block"
+            >
+              <p className="text-[13px] font-bold leading-tight">
+                {EVENT_LABEL}
+              </p>
+              <p className="mt-0.5 text-[13px] italic text-white/85">
+                {EVENT_LOCATION_AND_YEAR}
+              </p>
+            </motion.div>
+          </motion.header>
+
+          <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
+            <motion.form
               onSubmit={handleSubmit}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.68,
+                ease: [0.22, 1, 0.36, 1],
+                delay: 0.3,
+              }}
               className="flex w-full max-w-[38rem] flex-col items-center gap-5 text-center"
             >
               <label
                 htmlFor="caf-2026-username"
-                className="text-sm font-semibold uppercase tracking-[0.24em] text-[#0d4f57]/72"
+                className="text-sm font-semibold uppercase tracking-[0.24em] text-white/80"
               >
                 Enter username
               </label>
@@ -122,14 +191,14 @@ export default function LandingScreen() {
                 aria-describedby={
                   errorMessage ? 'caf-2026-username-error' : undefined
                 }
-                className="caf-2026-input w-full rounded-[1.6rem] border border-white/35 px-6 py-5 text-center text-[clamp(1.1rem,2vw,1.6rem)] font-semibold tracking-[-0.02em] shadow-[0_18px_42px_rgba(7,43,49,0.12)] outline-none"
+                className="w-full rounded-[1.6rem] border border-white/35 bg-white/90 px-6 py-5 text-center text-[clamp(1.1rem,2vw,1.6rem)] font-semibold tracking-[-0.02em] text-[#072b31] shadow-[0_18px_42px_rgba(7,43,49,0.12)] outline-none backdrop-blur-sm placeholder:text-[#0d4f57]/40"
               />
 
               {errorMessage ? (
                 <p
                   id="caf-2026-username-error"
                   role="alert"
-                  className="text-sm font-medium text-[#8a1f1f]"
+                  className="text-sm font-medium text-white/90"
                 >
                   {errorMessage}
                 </p>
@@ -137,17 +206,17 @@ export default function LandingScreen() {
 
               <Button
                 type="submit"
-                className="rounded-[1.4rem] px-7 py-3 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-[1.4rem] bg-[#072b31] px-7 py-3 text-base font-semibold text-white hover:bg-[#0a3d44] disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={submitState === 'submitting'}
               >
                 {submitState === 'submitting'
                   ? 'Starting Quiz...'
                   : 'Start Quiz'}
               </Button>
-            </form>
-          </div>
+            </motion.form>
+          </main>
         </div>
-      </section>
+      </div>
     </Screen>
   );
 }
