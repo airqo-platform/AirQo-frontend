@@ -93,7 +93,7 @@ export default function LeaderboardEmptyState({
         No leaderboard data yet
       </h2>
 
-      <p className="mt-2 max-w-sm text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-[#072b31]/70 sm:text-sm sm:leading-6">
         Complete the quiz to earn points and appear on the leaderboard.
       </p>
     </motion.div>

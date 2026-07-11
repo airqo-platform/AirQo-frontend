@@ -12,7 +12,7 @@ type LeaderboardTogglesProps = {
 
 export default function LeaderboardToggles({
   activeIndex,
-  count = 4,
+  count = 2,
   intervalMs = 7600,
   isPaused = false,
   reduceMotion,

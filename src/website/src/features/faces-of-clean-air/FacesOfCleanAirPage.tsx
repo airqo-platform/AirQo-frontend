@@ -39,7 +39,8 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
-const LEADERBOARD_ROWS_PER_SLIDE = 10;
+const LEADERBOARD_ROWS_PER_SLIDE = 5;
+const LEADERBOARD_TOTAL_SLOTS = 10;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
@@ -480,7 +481,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       <h2 className="text-lg font-bold text-white sm:text-xl">No faces yet</h2>
 
-      <p className="mt-2 max-w-sm text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-[#072b31]/70 sm:text-sm sm:leading-6">
         Be the first to share an air quality selfie from the Africa Clean Air
         Forum.
       </p>
@@ -527,7 +528,7 @@ function ErrorState({
         We could not load the selfie wall
       </h2>
 
-      <p className="mt-2 text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 text-xs leading-5 text-[#072b31]/70 sm:text-sm sm:leading-6">
         Please check the connection and try again.
       </p>
 
@@ -856,9 +857,8 @@ export default function FacesOfCleanAirPage() {
     [page, totalSlides],
   );
 
-  const leaderboardSlideCount = useMemo(
-    () => Math.ceil(leaderboardEntries.length / LEADERBOARD_ROWS_PER_SLIDE),
-    [leaderboardEntries.length],
+  const leaderboardSlideCount = Math.ceil(
+    LEADERBOARD_TOTAL_SLOTS / LEADERBOARD_ROWS_PER_SLIDE,
   );
 
   useEffect(() => {
@@ -1022,12 +1022,12 @@ export default function FacesOfCleanAirPage() {
 
   const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
   const leaderboardRows = useMemo(() => {
-    const totalSlots = LEADERBOARD_ROWS_PER_SLIDE;
-    const startIndex = leaderboardSlideIndex * totalSlots;
+    const topEntries = leaderboardEntries.slice(0, LEADERBOARD_TOTAL_SLOTS);
+    const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
 
-    return Array.from({ length: totalSlots }, (_, i) => {
+    return Array.from({ length: LEADERBOARD_ROWS_PER_SLIDE }, (_, i) => {
       const absoluteIndex = startIndex + i;
-      const entry = leaderboardEntries[absoluteIndex];
+      const entry = topEntries[absoluteIndex];
 
       if (entry) {
         const stableId =
