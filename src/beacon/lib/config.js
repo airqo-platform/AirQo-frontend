@@ -40,12 +40,14 @@ const getEnvironment = () => {
   if (nextAuthUrl.includes('stage') || nextAuthUrl.includes('staging') || nextAuthUrl.includes('beacon-stage')) {
     return 'staging';
   }
+
+  const serviceName = (process.env.SERVICE_NAME || '').toLowerCase();
+  const podHostName = (process.env.HOSTNAME || '').toLowerCase();
+  if (serviceName.includes('stage') || podHostName.includes('stage')) {
+    return 'staging';
+  }
+
   if (nextAuthUrl.includes('localhost') || nextAuthUrl.includes('127.0.0.1')) {
-    const serviceName = (process.env.SERVICE_NAME || '').toLowerCase();
-    const podHostName = (process.env.HOSTNAME || '').toLowerCase();
-    if (serviceName.includes('stage') || podHostName.includes('stage')) {
-      return 'staging';
-    }
     return 'development';
   }
 

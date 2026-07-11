@@ -136,7 +136,7 @@ export default function LoginPage() {
       authService.clearAllAuthData()
       // Clean up the URL
       router.replace('/login')
-    } else if (status === 'authenticated') {
+    } else if (status === 'authenticated' && !isTransitioning) {
       // User is authenticated, let middleware or client redirect them
       const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
                            (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
@@ -149,7 +149,7 @@ export default function LoginPage() {
         router.push("/dashboard/devices")
       }
     }
-  }, [router, status, session])
+  }, [router, status, session, isTransitioning])
   
   /**
    * Validates email format
