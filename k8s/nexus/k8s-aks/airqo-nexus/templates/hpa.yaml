@@ -11,6 +11,10 @@ spec:
     name: {{ .Values.app.name }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  {{- with .Values.autoscaling.behavior }}
+  behavior:
+     {{- toYaml . | nindent 4 }}
+  {{- end }}
   metrics:
     {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
