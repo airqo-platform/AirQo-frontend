@@ -5,7 +5,34 @@ import {
   normalizeOAuthAccessToken,
   fetchEnhancedUserProfile,
 } from './oauth-session';
-import { buildPlatformApiUrl } from './config';
+import config, { buildPlatformApiUrl } from './config';
+
+// Fallback defaults and environment-specific self-correction for NEXTAUTH_URL
+const normalizeNextAuthUrl = () => {
+  const currentEnv = config.environment;
+  const rawUrl = process.env.NEXTAUTH_URL;
+
+  // Check if NEXTAUTH_URL is missing or incorrectly set to localhost in staging/production
+  const isLocalhostUrl = !rawUrl || rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
+
+  if (currentEnv === 'staging') {
+    if (isLocalhostUrl) {
+      process.env.NEXTAUTH_URL = 'https://staging-beacon.airqo.net';
+    }
+  } else if (currentEnv === 'production') {
+    if (isLocalhostUrl) {
+      process.env.NEXTAUTH_URL = 'https://beacon.airqo.net';
+    }
+  } else {
+    // Development / Localhost
+    if (!rawUrl) {
+      process.env.NEXTAUTH_URL = 'http://localhost:3000';
+    }
+  }
+};
+
+normalizeNextAuthUrl();
+
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -53,7 +80,7 @@ const cookieOptions = {
 };
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({

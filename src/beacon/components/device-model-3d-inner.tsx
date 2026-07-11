@@ -149,7 +149,7 @@ export default function DeviceModel3DInner({ onModelLoaded, onModelFailed }: Rea
         <ErrorBoundary fallback={null} onError={handleError}>
           <Suspense fallback={null}>
             <DeviceModel onLoad={handleLoad} onError={handleError} />
-            <Environment preset="city" />
+            <Environment files="/hdri/potsdamer_platz_1k.hdr" />
           </Suspense>
         </ErrorBoundary>
 

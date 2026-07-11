@@ -168,7 +168,7 @@ export default function DeviceModel3D({ onModelLoaded, onModelFailed }: Readonly
         {/* 3D Model */}
         <Suspense fallback={null}>
           <DeviceModel onLoad={handleLoad} onError={handleError} />
-          <Environment preset="city" />
+          <Environment files="/hdri/potsdamer_platz_1k.hdr" />
         </Suspense>
         
         {/* Interactive controls */}
