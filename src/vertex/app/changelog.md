@@ -2,6 +2,59 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.23
+**Released:** July 11, 2026
+
+### E2E: Import External Device (Single) & Login Session-Confirmation Fix
+
+First feature e2e spec on top of the 2.0.22 Playwright foundation, covering the Import External Device wizard — plus a real login bug the e2e cold-start runs flushed out.
+
+<details>
+<summary><strong>Fix: login could fail with "Could not confirm session" despite successful sign-in</strong></summary>
+
+- Both the login page and the OAuth token-handoff handler polled `getSession()` for only **8 × 150ms = 1.2s** after a successful `signIn`, then reported *"Could not confirm session. Please try again."* On slow connections/devices (or a cold dev server, where e2e caught it) the session cookie simply hadn't propagated yet — the user was authenticated but shown an error.
+- Extracted the duplicated inline pollers into `core/auth/waitForSession.ts`: deadline-based (default 15s budget, 250ms interval), resolves on the first successful poll so the happy path is exactly as fast as before — the budget only bounds how long we keep trying before declaring failure.
+- Co-located unit tests (`waitForSession.test.ts`, 6 cases) including a regression guard: a session materializing after the old 1.2s cutoff must still be picked up.
+
+</details>
+
+<details>
+<summary><strong>New: e2e spec — Import External Device, single-device flow</strong></summary>
+
+- `e2e/tests/devices/import-external-device.spec.ts` (authenticated `chromium` project), using **hybrid interception**: real auth, navigation, and data GETs against staging; the two write endpoints (`POST /devices/soft`, cohort assignment) intercepted via `page.route()` so runs are deterministic and create no backend records.
+- **Happy path**: fills Device Details, verifies cohort options are scoped to the user's own cohort IDs (the client-side cross-org-leakage defense from 2.0.6), checks the Confirmation summary echoes wizard state, then asserts the captured mutation payload (name/serial/URL/network/category/auth/cohort/user), the cohort-assignment target, the success banner, and the `myDevices` refetch after query invalidation.
+- **Gate**: completing without a cohort is blocked on non-admin pages and the mutation is never called.
+- `e2e/support/device-mocks.ts` — reusable write-endpoint interceptions (bulk-import spec can build on these).
+- `e2e/support/env-guard.ts` — refuses to run mutation specs unless `NEXT_PUBLIC_API_URL` looks like staging/localhost, so the suite can never write to production.
+
+</details>
+
+<details>
+<summary><strong>Harness fixes surfaced by real runs (2)</strong></summary>
+
+- **`playwright.config.ts`**: a developer `.env.local` pointing `NEXTAUTH_URL`/`NEXTAUTH_COOKIE_DOMAIN` at the deployed staging host makes NextAuth issue session cookies for `.airqo.net`, which browsers reject on `localhost` — login silently breaks. The e2e `webServer` now pins both to the local server for the test run only (real env vars beat `.env.local` in Next.js).
+- **`auth.setup.ts`**: retries the login click if the session-confirmation banner appears, as belt-and-braces on cold dev servers (the app-side fix above makes this rare).
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (10)</strong></summary>
+
+- `src/vertex/core/auth/waitForSession.ts` [NEW]
+- `src/vertex/core/auth/waitForSession.test.ts` [NEW]
+- `src/vertex/app/login/page.tsx` [MODIFIED] — inline poller replaced with shared util
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED] — same, in `TokenHandoffHandler`
+- `src/vertex/e2e/tests/devices/import-external-device.spec.ts` [NEW]
+- `src/vertex/e2e/support/device-mocks.ts` [NEW]
+- `src/vertex/e2e/support/env-guard.ts` [NEW]
+- `src/vertex/e2e/setup/auth.setup.ts` [MODIFIED]
+- `src/vertex/playwright.config.ts` [MODIFIED]
+- `src/vertex/.env.e2e.example` [MODIFIED] — documents the account seeding the spec needs
+
+</details>
+
+---
+
 ## Version 2.0.22
 **Released:** July 10, 2026
 

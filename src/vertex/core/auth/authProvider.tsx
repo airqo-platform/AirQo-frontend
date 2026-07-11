@@ -41,6 +41,7 @@ import {
   shouldSkipBackendOAuthBootstrap,
   clearBackendOAuthSignedOutFlag,
 } from './oauth-session';
+import { waitForSession } from './waitForSession';
 
 // --- Helper Functions ---
 
@@ -774,26 +775,6 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     }
   }, [status]);
 
-  const waitForSession = useCallback(async () => {
-    const attempts = 8;
-    const delayMs = 150;
-
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      const session = await getSession();
-      if (session?.user) {
-        return session;
-      }
-
-      if (attempt < attempts - 1) {
-        await new Promise<void>((resolve) => {
-          window.setTimeout(resolve, delayMs);
-        });
-      }
-    }
-
-    return null;
-  }, []);
-
   useEffect(() => {
     if (hasInitiatedBootstrapRef.current) return;
     hasInitiatedBootstrapRef.current = true;
@@ -880,7 +861,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     };
 
     bootstrap();
-  }, [router, pathname, waitForSession, update]);
+  }, [router, pathname, update]);
 
   // Keep blocking if we successfully handed off the token but NextAuth hasn't flushed its authenticated state yet
   if ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current)) {

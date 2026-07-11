@@ -25,6 +25,7 @@ import { getLastActiveModule } from "@/core/utils/userPreferences";
 import { CROSS_TAB_LOGIN_KEY } from "@/core/hooks/useLogout";
 import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
+import { waitForSession } from "@/core/auth/waitForSession";
 import { motion, AnimatePresence } from "framer-motion";
 import { vertexConfig } from "@/vertex.config";
 import { useDetectedPlatform } from "@/core/hooks/useDetectedPlatform";
@@ -54,26 +55,6 @@ export default function LoginPage() {
       return "";
     }
   }, [searchParams]);
-  const waitForSession = useCallback(async () => {
-    const attempts = 8;
-    const delayMs = 150;
-
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      const session = await getSession();
-      if (session?.user) {
-        return session;
-      }
-
-      if (attempt < attempts - 1) {
-        await new Promise<void>((resolve) => {
-          window.setTimeout(resolve, delayMs);
-        });
-      }
-    }
-
-    return null;
-  }, []);
-
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -225,7 +206,7 @@ export default function LoginPage() {
       captchaRef.current?.reset();
       setIsLoading(false);
     }
-  }, [callbackUrl, waitForSession, step, form, showBanner, captchaToken, hcaptchaEnabled]);
+  }, [callbackUrl, step, form, showBanner, captchaToken, hcaptchaEnabled]);
 
   return (
     <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
