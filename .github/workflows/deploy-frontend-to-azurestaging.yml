@@ -44,6 +44,7 @@ jobs:
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
       run_docs: ${{ steps.check_files.outputs.run_docs }}
+      run_nexus: ${{ steps.check_files.outputs.run_nexus }}
 
     runs-on: ubuntu-latest
     permissions:
@@ -65,7 +66,7 @@ jobs:
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
-
+          echo "run_nexus=false" >>$GITHUB_OUTPUT
           while IFS= read -r file
           do
             echo $file
@@ -87,6 +88,9 @@ jobs:
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi
+            if [[ $file == src/nexus/* ]]; then
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
+            fi
             if [[ $file == src/docs-website/* ]]; then
               echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
@@ -98,6 +102,7 @@ jobs:
               echo "run_vertex=true" >>$GITHUB_OUTPUT
               echo "run_beacon=true" >>$GITHUB_OUTPUT
               echo "run_docs=true" >>$GITHUB_OUTPUT
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
             fi
           done < files.txt
 
@@ -248,6 +253,52 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+  nexus:
+    name: build-push-nexus-image
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_nexus == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR Login
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Pull secrets from Key Vault
+        run: |
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-nexus \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/nexus/
+          docker build --tag ${{ env.REGISTRY_URL }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/airqo-stage-nexus:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-stage-nexus:latest
+          docker push ${{ env.REGISTRY_URL }}/airqo-stage-nexus:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0
+        with:
+          action: fjogeleit/yaml-update-action@main
+          with: |
+            valueFile: "k8s/nexus/k8s-aks/airqo-nexus/values-stage.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update nexus staging image tag to ${{ needs.image-tag.outputs.build_id }}"            
 
   vertex:
     name: build-push-vertex-image

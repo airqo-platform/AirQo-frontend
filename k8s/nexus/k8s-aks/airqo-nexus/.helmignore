@@ -1,0 +1,10 @@
+# Helm ignore patterns
+# This file is used to tell Helm which files or directories to exclude from the chart.
+*.swp
+*.swo
+*~
+.DS_Store
+.git
+.gitignore
+.helmignore
+
