@@ -235,7 +235,7 @@ npm run test:e2e
 
 ### CI status
 
-E2e tests are not yet wired into `.github/workflows/vertex-ci.yml`. Run `npm run test:e2e` locally before opening a PR that adds or changes e2e tests. Wiring this into CI (and deciding whether it gates merges or runs informationally, consistent with how coverage is treated today) is tracked as follow-up work, not part of this initial setup.
+E2E tests are not yet wired into `.github/workflows/vertex-ci.yml`. Run `npm run test:e2e` locally before opening a PR that adds or changes e2e tests. Wiring this into CI (and deciding whether it gates merges or runs informationally, consistent with how coverage is treated today) is tracked as follow-up work, not part of this initial setup.
 
 ## Mocking guidance
 
