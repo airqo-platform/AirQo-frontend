@@ -54,7 +54,7 @@ export default function FloatingMiniBillboardWrapper() {
     if (
       pathname?.startsWith('/packages') ||
       pathname?.startsWith('/solutions/network-coverage') ||
-      pathname?.startsWith('/faces-of-clean-air')
+      pathname?.startsWith('/africa-clean-air-forum-2026')
     ) {
       // Suppressed routes: skip fetching to avoid unnecessary load
       setLoading(false);
@@ -200,7 +200,7 @@ export default function FloatingMiniBillboardWrapper() {
     billboardData.length === 0 ||
     pathname?.startsWith('/packages') ||
     pathname?.startsWith('/solutions/network-coverage') ||
-    pathname?.startsWith('/faces-of-clean-air')
+    pathname?.startsWith('/africa-clean-air-forum-2026')
   ) {
     return null;
   }

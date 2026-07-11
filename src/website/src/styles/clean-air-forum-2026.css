@@ -1,0 +1,146 @@
+:root {
+  --caf-2026-background: #f8fbff;
+  --caf-2026-surface: rgba(255, 255, 255, 0.88);
+  --caf-2026-border: rgba(148, 163, 184, 0.24);
+  --caf-2026-text: #0f172a;
+  --caf-2026-muted: #475569;
+  --caf-2026-accent: #0f6cbd;
+  --caf-2026-accent-strong: #0a4f8a;
+  --caf-2026-interactive: #02adb7;
+  --caf-2026-interactive-strong: #0299a2;
+  --caf-2026-radius: 1.5rem;
+  --caf-2026-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.caf-2026-page {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(
+      ellipse 96% 78% at 88% 8%,
+      rgba(0, 82, 87, 0.98) 0%,
+      rgba(0, 82, 87, 0.88) 18%,
+      rgba(12, 123, 131, 0.72) 38%,
+      rgba(57, 191, 199, 0.36) 68%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    radial-gradient(
+      ellipse 92% 74% at 12% 24%,
+      rgba(57, 191, 199, 0.92) 0%,
+      rgba(57, 191, 199, 0.64) 28%,
+      rgba(57, 191, 199, 0.26) 56%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    radial-gradient(
+      ellipse 92% 78% at 50% 100%,
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(255, 255, 255, 0.84) 28%,
+      rgba(255, 255, 255, 0.28) 60%,
+      rgba(255, 255, 255, 0) 84%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(4, 106, 114, 0.28) 0%,
+      rgba(57, 191, 199, 0.12) 38%,
+      rgba(255, 255, 255, 0) 82%
+    );
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-surface {
+  background: var(--caf-2026-surface);
+  border-color: var(--caf-2026-border);
+  box-shadow: var(--caf-2026-shadow);
+}
+
+.caf-2026-text {
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-card {
+  background: var(--caf-2026-surface);
+  border-color: var(--caf-2026-border);
+  box-shadow: var(--caf-2026-shadow);
+}
+
+.caf-2026-badge {
+  background: rgba(14, 116, 204, 0.1);
+  color: var(--caf-2026-accent);
+}
+
+.caf-2026-button {
+  background: var(--caf-2026-interactive);
+  color: #ffffff;
+}
+
+.caf-2026-button:hover {
+  background: var(--caf-2026-interactive-strong);
+}
+
+.caf-2026-input {
+  background: #ffffff;
+  border-color: var(--caf-2026-border);
+  color: var(--caf-2026-text);
+}
+
+.caf-2026-input::placeholder {
+  color: var(--caf-2026-muted);
+}
+
+.caf-2026-input:focus {
+  border-color: rgba(15, 108, 189, 0.45);
+  box-shadow: 0 0 0 4px rgba(14, 116, 204, 0.12);
+}
+
+.caf-2026-screen {
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+  .caf-2026-quiz-stage {
+    min-height: 100dvh;
+    overflow: hidden;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .caf-2026-quiz-shell {
+    min-height: calc(100dvh - 3rem);
+  }
+
+  .caf-2026-quiz-content {
+    flex: 1;
+    justify-content: space-between;
+    margin-top: 2rem;
+    gap: 1.5rem;
+    overflow: hidden;
+  }
+
+  .caf-2026-quiz-question-block {
+    gap: 1.5rem;
+  }
+
+  .caf-2026-quiz-question {
+    max-width: 68rem;
+    font-size: clamp(1.05rem, 1.85vw, 1.8rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .caf-2026-quiz-options {
+    gap: 0.75rem;
+  }
+
+  .caf-2026-quiz-option {
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+  }
+
+  .caf-2026-quiz-option-label {
+    font-size: 1.2rem;
+    line-height: 1.14;
+  }
+
+  .caf-2026-quiz-action {
+    margin-bottom: 0.25rem;
+  }
+}

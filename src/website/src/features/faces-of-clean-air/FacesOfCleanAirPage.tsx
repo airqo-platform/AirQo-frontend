@@ -23,10 +23,14 @@ import {
 } from 'react';
 import { FiCamera } from 'react-icons/fi';
 
+import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
+import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
 import {
   CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
   CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
 } from '@/config/cleanAirForumConfig';
+import { fetchCleanAirForum2026Leaderboard } from '@/features/clean-air-forum-2026/lib/learn-progress';
+import type { CleanAirForum2026LeaderboardEntry } from '@/features/clean-air-forum-2026/types/learn';
 import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
 import { facesOfCleanAirService } from '@/services/external';
 import type { CleanAirSubmissionWithId } from '@/services/external/faces-of-clean-air.service';
@@ -35,6 +39,8 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
+const LEADERBOARD_ROWS_PER_SLIDE = 5;
+const LEADERBOARD_TOTAL_SLOTS = 10;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
@@ -42,6 +48,9 @@ const MOBILE_MEDIA_QUERY = '(max-width: 639px)';
 
 const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
+const FACES_TITLE_PREFIX = 'Faces of';
+const FACES_TITLE_MAIN = 'Air Quality';
+const LEADERBOARD_TITLE = 'Air Quality Quiz Leaderboard';
 
 const SMOOTH_SPRING = {
   stiffness: 150,
@@ -50,6 +59,7 @@ const SMOOTH_SPRING = {
 };
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
+type DisplayStage = 'faces' | 'leaderboard';
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -471,7 +481,7 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
 
       <h2 className="text-lg font-bold text-white sm:text-xl">No faces yet</h2>
 
-      <p className="mt-2 max-w-sm text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 max-w-sm text-xs leading-5 text-[#072b31]/70 sm:text-sm sm:leading-6">
         Be the first to share an air quality selfie from the Africa Clean Air
         Forum.
       </p>
@@ -518,7 +528,7 @@ function ErrorState({
         We could not load the selfie wall
       </h2>
 
-      <p className="mt-2 text-xs leading-5 text-[#39BFC7]/80 sm:text-sm sm:leading-6">
+      <p className="mt-2 text-xs leading-5 text-[#072b31]/70 sm:text-sm sm:leading-6">
         Please check the connection and try again.
       </p>
 
@@ -707,6 +717,26 @@ const headerItemVariants: Variants = {
   },
 };
 
+function formatLeaderboardPoints(points: number | undefined) {
+  const safePoints = points ?? 0;
+  return `${safePoints.toLocaleString()}pts`;
+}
+
+function formatLeaderboardName(
+  entry: CleanAirForum2026LeaderboardEntry,
+  index: number,
+) {
+  return (
+    entry.display_name ||
+    entry.name ||
+    `Guest ${String(index + 1).padStart(3, '0')}`
+  );
+}
+
+function formatLeaderboardAvatar(entry: CleanAirForum2026LeaderboardEntry) {
+  return entry.avatar_icon || entry.avatar || entry.emoji || '';
+}
+
 export default function FacesOfCleanAirPage() {
   const shouldReduceMotion = useReducedMotion();
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
@@ -718,6 +748,11 @@ export default function FacesOfCleanAirPage() {
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
+  const [displayStage, setDisplayStage] = useState<DisplayStage>('faces');
+  const [leaderboardEntries, setLeaderboardEntries] = useState<
+    CleanAirForum2026LeaderboardEntry[]
+  >([]);
+  const [leaderboardSlideIndex, setLeaderboardSlideIndex] = useState(0);
 
   const hasLoadedRef = useRef(false);
 
@@ -743,8 +778,21 @@ export default function FacesOfCleanAirPage() {
     }
   }, []);
 
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const leaderboard = await fetchCleanAirForum2026Leaderboard();
+      setLeaderboardEntries(leaderboard.entries);
+    } catch (error) {
+      console.error('Failed to load CAF leaderboard:', error);
+    }
+  }, []);
+
   usePollingWithVisibility(
     fetchSubmissions,
+    CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
+  );
+  usePollingWithVisibility(
+    fetchLeaderboard,
     CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
   );
 
@@ -775,6 +823,8 @@ export default function FacesOfCleanAirPage() {
     setPage(0);
     setDirection(1);
     setIsPaused(false);
+    setDisplayStage('faces');
+    setLeaderboardSlideIndex(0);
   }, [isMobile]);
 
   useEffect(() => {
@@ -807,27 +857,50 @@ export default function FacesOfCleanAirPage() {
     [page, totalSlides],
   );
 
+  const leaderboardSlideCount = Math.ceil(
+    LEADERBOARD_TOTAL_SLOTS / LEADERBOARD_ROWS_PER_SLIDE,
+  );
+
   useEffect(() => {
-    if (
-      fetchState !== 'success' ||
-      totalSlides <= 1 ||
-      isPaused ||
-      shouldReduceMotion
-    ) {
+    if (fetchState !== 'success' || isPaused || shouldReduceMotion) {
       return;
     }
 
     const carouselTimer = window.setTimeout(() => {
-      goToRelativePage(1);
+      if (displayStage === 'faces') {
+        if (totalSlides > 1 && page < totalSlides - 1) {
+          goToRelativePage(1);
+          return;
+        }
+
+        setDisplayStage('leaderboard');
+        setLeaderboardSlideIndex(0);
+        void fetchLeaderboard();
+        return;
+      }
+
+      if (leaderboardSlideIndex < leaderboardSlideCount - 1) {
+        setLeaderboardSlideIndex((currentIndex) => currentIndex + 1);
+        return;
+      }
+
+      setDisplayStage('faces');
+      setLeaderboardSlideIndex(0);
+      setDirection(1);
+      setPage(0);
     }, CAROUSEL_INTERVAL_MS);
 
     return () => {
       window.clearTimeout(carouselTimer);
     };
   }, [
+    displayStage,
     fetchState,
+    fetchLeaderboard,
     goToRelativePage,
     isPaused,
+    leaderboardSlideCount,
+    leaderboardSlideIndex,
     page,
     shouldReduceMotion,
     totalSlides,
@@ -948,6 +1021,50 @@ export default function FacesOfCleanAirPage() {
   const showEmpty = fetchState === 'success' && submissions.length === 0;
 
   const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
+  const leaderboardRows = useMemo(() => {
+    const topEntries = leaderboardEntries.slice(0, LEADERBOARD_TOTAL_SLOTS);
+    const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
+
+    return Array.from({ length: LEADERBOARD_ROWS_PER_SLIDE }, (_, i) => {
+      const absoluteIndex = startIndex + i;
+      const entry = topEntries[absoluteIndex];
+
+      if (entry) {
+        const stableId =
+          entry.guest_id ||
+          entry.device_id ||
+          `rank-${entry.rank ?? absoluteIndex + 1}`;
+        const tone: 'light' | 'tint' =
+          absoluteIndex % 2 === 0 ? 'light' : 'tint';
+
+        return {
+          id: stableId,
+          isEmpty: false,
+          avatar: formatLeaderboardAvatar(entry),
+          avatarImageUrl: entry.avatar_image_url || '',
+          rank: entry.rank ?? absoluteIndex + 1,
+          name: formatLeaderboardName(entry, absoluteIndex),
+          points: formatLeaderboardPoints(entry.points),
+          tone,
+        };
+      }
+
+      const tone: 'light' | 'tint' = absoluteIndex % 2 === 0 ? 'light' : 'tint';
+
+      return {
+        id: `empty-${absoluteIndex + 1}`,
+        isEmpty: true,
+        avatar: '',
+        avatarImageUrl: '',
+        rank: absoluteIndex + 1,
+        name: 'Open',
+        points: '—',
+        tone,
+      };
+    });
+  }, [leaderboardEntries, leaderboardSlideIndex]);
+
+  const isLeaderboardStage = displayStage === 'leaderboard';
 
   return (
     <div
@@ -988,18 +1105,26 @@ export default function FacesOfCleanAirPage() {
               variants={headerItemVariants}
               className="whitespace-nowrap text-left leading-none text-white"
             >
-              <span
-                className="text-[25px] font-normal tracking-[-0.05em] sm:text-[42px]"
-                style={{
-                  fontFamily:
-                    '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
-                }}
-              >
-                Faces of
-              </span>{' '}
-              <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
-                Air Quality
-              </span>
+              {isLeaderboardStage ? (
+                <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                  {LEADERBOARD_TITLE}
+                </span>
+              ) : (
+                <>
+                  <span
+                    className="text-[25px] font-normal tracking-[-0.05em] sm:text-[42px]"
+                    style={{
+                      fontFamily:
+                        '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
+                    }}
+                  >
+                    {FACES_TITLE_PREFIX}
+                  </span>{' '}
+                  <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                    {FACES_TITLE_MAIN}
+                  </span>
+                </>
+              )}
             </motion.h1>
 
             <motion.div
@@ -1027,7 +1152,11 @@ export default function FacesOfCleanAirPage() {
         <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
           <section
             tabIndex={0}
-            aria-label="Faces of Air Quality selfie carousel"
+            aria-label={
+              displayStage === 'faces'
+                ? 'Faces of Air Quality selfie carousel'
+                : 'Air quality quiz leaderboard carousel'
+            }
             aria-roledescription="carousel"
             className="flex h-full w-full min-h-0 flex-col justify-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
             onKeyDown={handleCarouselKeyDown}
@@ -1053,7 +1182,7 @@ export default function FacesOfCleanAirPage() {
             }}
           >
             <AnimatePresence mode="wait" initial={false}>
-              {isInitialLoading && (
+              {displayStage === 'faces' && isInitialLoading && (
                 <motion.div
                   key="loading"
                   initial={{
@@ -1102,7 +1231,7 @@ export default function FacesOfCleanAirPage() {
                 </motion.div>
               )}
 
-              {showError && (
+              {displayStage === 'faces' && showError && (
                 <ErrorState
                   key="error"
                   reduceMotion={shouldReduceMotion}
@@ -1110,13 +1239,16 @@ export default function FacesOfCleanAirPage() {
                 />
               )}
 
-              {showEmpty && (
+              {displayStage === 'faces' && showEmpty && (
                 <EmptyState key="empty" reduceMotion={shouldReduceMotion} />
               )}
 
-              {!isInitialLoading && !showError && !showEmpty && (
+              {displayStage === 'faces' &&
+              !isInitialLoading &&
+              !showError &&
+              !showEmpty ? (
                 <motion.div
-                  key="content"
+                  key="faces-content"
                   initial={
                     shouldReduceMotion
                       ? false
@@ -1230,7 +1362,53 @@ export default function FacesOfCleanAirPage() {
                     </>
                   )}
                 </motion.div>
-              )}
+              ) : null}
+
+              {displayStage === 'leaderboard' ? (
+                <motion.div
+                  key={`leaderboard-${leaderboardSlideIndex}`}
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : {
+                          opacity: 0,
+                          y: 18,
+                        }
+                  }
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: -12,
+                  }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.68,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="flex w-full flex-col items-center"
+                >
+                  <div className="w-full">
+                    <LeaderboardRowsBlock
+                      rows={leaderboardRows}
+                      slideKey={leaderboardSlideIndex}
+                      reduceMotion={shouldReduceMotion}
+                      isEmpty={leaderboardEntries.length === 0}
+                    />
+                  </div>
+
+                  <div className="mt-8 w-full sm:mt-10">
+                    <LeaderboardToggles
+                      activeIndex={leaderboardSlideIndex}
+                      count={leaderboardSlideCount}
+                      intervalMs={CAROUSEL_INTERVAL_MS}
+                      isPaused={isPaused}
+                      reduceMotion={shouldReduceMotion}
+                    />
+                  </div>
+                </motion.div>
+              ) : null}
             </AnimatePresence>
           </section>
         </main>
