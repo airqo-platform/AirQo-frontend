@@ -2508,11 +2508,11 @@ export interface Selfie {
   hidden: boolean;
   eventId: string;
   imageUrl: string;
-  locationName: string;
-  pm25Value: number;
-  aqiCategory: string;
-  displayName: string;
-  avatarIcon: string;
+  locationName?: string | null;
+  pm25Value?: number | null;
+  aqiCategory?: string | null;
+  displayName?: string | null;
+  avatarIcon?: string | null;
   createdAt: string;
   updatedAt: string;
   __v: number;

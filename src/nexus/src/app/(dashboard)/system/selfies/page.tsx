@@ -109,8 +109,8 @@ const SelfiesListContent: React.FC = () => {
         aqiFilter === 'all' || selfie.aqiCategory === aqiFilter;
       const matchesSearch =
         !q ||
-        selfie.displayName.toLowerCase().includes(q) ||
-        selfie.locationName.toLowerCase().includes(q);
+        selfie.displayName?.toLowerCase().includes(q) ||
+        selfie.locationName?.toLowerCase().includes(q);
       return matchesAqi && matchesSearch;
     });
   }, [selfies, aqiFilter, searchQuery]);
@@ -336,14 +336,18 @@ const SelfiesListContent: React.FC = () => {
                 )}
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span>PM2.5: {selectedSelfie.pm25Value.toFixed(1)}</span>
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    getAqiStyle(selectedSelfie.aqiCategory).bg
-                  } ${getAqiStyle(selectedSelfie.aqiCategory).text}`}
-                >
-                  {selectedSelfie.aqiCategory}
-                </span>
+                {selectedSelfie.pm25Value != null && (
+                  <span>PM2.5: {selectedSelfie.pm25Value.toFixed(1)}</span>
+                )}
+                {selectedSelfie.aqiCategory && (
+                  <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      getAqiStyle(selectedSelfie.aqiCategory).bg
+                    } ${getAqiStyle(selectedSelfie.aqiCategory).text}`}
+                  >
+                    {selectedSelfie.aqiCategory}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">
                 {selectedSelfie.locationName}

@@ -6,7 +6,7 @@ import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   GetSelfiesResponse,
   SelfieActionResponse,
-} from '@/shared/types/api';
+} from '../types/api';
 
 const extractResponseData = <T extends { success?: boolean; message?: string }>(
   data: T,
