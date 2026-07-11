@@ -33,9 +33,8 @@ const normalizeNextAuthUrl = () => {
 
 normalizeNextAuthUrl();
 
-if (!process.env.NEXTAUTH_SECRET) {
-  // Use a fallback secret (minimum 32 characters required by NextAuth)
-  process.env.NEXTAUTH_SECRET = 'dev-secret-airqo-beacon-frontend-2024';
+if (process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET must be set in production.');
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
