@@ -2,6 +2,67 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.22
+**Released:** July 10, 2026
+
+### Chore: Initial Playwright E2E Setup & Testing Guidelines
+
+Introduced Playwright as the e2e test runner, giving contributors a working, verified setup to build on rather than starting from scratch. Also extended `TESTING.md` with a decision framework for what belongs in an e2e test versus the existing Vitest/RTL suite, based on standard testing-pyramid guidance (e2e reserved for critical, cross-system journeys; everything else stays in fast, deterministic unit/component tests).
+
+<details>
+<summary><strong>New: Playwright configuration (`playwright.config.ts`)</strong></summary>
+
+- Three projects: `setup` (logs in once via the real login form, persists `storageState`), `public` (signed-out tests, no auth dependency — e.g. the login page itself), and `chromium` (authenticated tests, depends on `setup`).
+- `webServer` boots `npm run dev` locally; the Next.js frontend still talks to whatever backend `NEXT_PUBLIC_API_URL` points at (staging by default), so only the frontend runs locally.
+- `.env.e2e` (gitignored, see `.env.e2e.example`) supplies `PLAYWRIGHT_BASE_URL`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD` for local runs; CI would supply these as real secrets instead.
+
+</details>
+
+<details>
+<summary><strong>New: `e2e/` scaffolding</strong></summary>
+
+- `e2e/setup/auth.setup.ts` — logs in through the real two-step email/password form and saves the session to `e2e/.auth/user.json` so individual specs never log in themselves.
+- `e2e/tests/public/login.spec.ts` — two real, passing tests (email step renders; password-length validation fires) that serve as the template for signed-out specs.
+- `e2e/README.md` — quickstart pointing to `TESTING.md` for conventions.
+
+</details>
+
+<details>
+<summary><strong>TESTING.md — "What qualifies for e2e vs. unit/component tests"</strong></summary>
+
+- New `## End-to-end tests` section: criteria for when a behavior belongs in Playwright (critical business journeys, integration-only risk, real access-control checks) versus when it should stay in Vitest/RTL (rendering, validation, CRUD screens, edge cases).
+- Documents the `e2e/` file layout, the `storageState` auth pattern, and required local setup.
+- States plainly that e2e is **not yet wired into `vertex-ci.yml`** — CI integration is deferred, tracked as follow-up work rather than silently implied as done.
+- PR checklist extended with e2e-specific items, including not leaving orphaned test data (devices, orgs) behind on a shared backend.
+
+</details>
+
+<details>
+<summary><strong>Fixes found while verifying the setup (2)</strong></summary>
+
+- **`vitest.config.ts`**: Vitest's default test discovery picked up the new Playwright specs under `e2e/`, colliding with Playwright's own `test.describe` API and failing the unit suite. Added `exclude: [...configDefaults.exclude, "e2e/**"]`.
+- **Login form** (`app/login/page.tsx`, not modified): confirmed via a real Playwright run that the email `<input>`'s native browser validation intercepts submission before React Hook Form's Zod check ever runs, since the `<form>` has no `noValidate`. The Zod "Please enter a valid email address" message is effectively unreachable through a normal click for most malformed values. Flagged for a follow-up fix, not addressed here.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (10)</strong></summary>
+
+- `src/vertex/playwright.config.ts` [NEW]
+- `src/vertex/e2e/setup/auth.setup.ts` [NEW]
+- `src/vertex/e2e/tests/public/login.spec.ts` [NEW]
+- `src/vertex/e2e/README.md` [NEW]
+- `src/vertex/.env.e2e.example` [NEW]
+- `src/vertex/vitest.config.ts` [MODIFIED]
+- `src/vertex/package.json` [MODIFIED] — added `@playwright/test`, `dotenv`; added `test:e2e*` scripts
+- `src/vertex/package-lock.json` [MODIFIED]
+- `src/vertex/.gitignore` [MODIFIED] — ignores `e2e/.auth/`, `playwright-report/`, `test-results/`, `.env.e2e`
+- `src/vertex/app/_docs/internal/TESTING.md` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 2.0.21
 **Released:** July 9, 2026
 
