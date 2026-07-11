@@ -28,9 +28,37 @@ setup("authenticate", async ({ page }) => {
   await page.getByRole("button", { name: "Continue with email" }).click();
 
   await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Login" }).click();
 
-  await expect(page).toHaveURL(/\/home|\/admin/, { timeout: 15_000 });
+  // On a cold dev server the app's short post-login session poll can time out
+  // and show "Could not confirm session. Please try again." even though the
+  // sign-in succeeded. The form keeps its values, so do what a user would:
+  // click Login again (up to 3 attempts).
+  const loginButton = page.getByRole("button", { name: "Login" });
+  const sessionError = page.getByText("Could not confirm session. Please try again.");
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await loginButton.click();
+
+    const urlWait = page
+      .waitForURL(/\/home|\/admin/, { timeout: 30_000 })
+      .then(() => "ok" as const)
+      .catch(() => "timeout" as const);
+    const errorWait = sessionError
+      .waitFor({ state: "visible", timeout: 30_000 })
+      .then(() => "retry" as const)
+      .catch(() => "gone" as const);
+
+    let outcome = await Promise.race([urlWait, errorWait]);
+    if (outcome === "gone") outcome = await urlWait;
+
+    if (outcome === "ok") break;
+    if (outcome === "retry" && attempt < 3) continue;
+    throw new Error(
+      `Login did not complete after ${attempt} attempt(s) (last outcome: ${outcome}).`
+    );
+  }
+
+  await expect(page).toHaveURL(/\/home|\/admin/);
 
   await page.context().storageState({ path: authFile });
 });

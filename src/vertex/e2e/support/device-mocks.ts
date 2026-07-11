@@ -1,0 +1,96 @@
+import type { Page } from "@playwright/test";
+
+/**
+ * Route interceptions for device mutation endpoints. The import wizard's GETs
+ * (networks, cohorts) stay real; only the writes are fulfilled with mock
+ * responses so runs are deterministic and leave no device records behind.
+ * The captured payloads are the main assertion surface — they prove the
+ * wizard assembled the request correctly across its steps.
+ */
+
+export interface CapturedCall<T = Record<string, unknown>> {
+  wasCalled: () => boolean;
+  /** Throws if the endpoint was never hit — call after awaiting the UI outcome. */
+  payload: () => T;
+  url: () => string;
+}
+
+export const MOCK_IMPORTED_DEVICE_ID = "e2e-mock-imported-device-id";
+
+/** Intercepts POST /api/devices/soft (single-device import). */
+export async function interceptImportDevice(page: Page): Promise<CapturedCall> {
+  const captured: { payload?: Record<string, unknown>; url?: string } = {};
+
+  await page.route("**/api/devices/soft", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    captured.payload = route.request().postDataJSON() as Record<string, unknown>;
+    captured.url = route.request().url();
+    const longName = String(captured.payload?.long_name ?? "e2e-device");
+    await route.fulfill({
+      status: 200,
+      json: {
+        success: true,
+        message: "device created successfully",
+        created_device: {
+          _id: MOCK_IMPORTED_DEVICE_ID,
+          name: longName.toLowerCase().replace(/\s+/g, "_"),
+          long_name: longName,
+        },
+      },
+    });
+  });
+
+  return toCapturedCall(captured, "POST /api/devices/soft");
+}
+
+/** Intercepts POST /api/devices/cohorts/:id/assign-devices (post-import cohort assignment). */
+export async function interceptCohortAssignment(page: Page): Promise<CapturedCall> {
+  const captured: { payload?: Record<string, unknown>; url?: string } = {};
+
+  await page.route(/\/api\/devices\/cohorts\/[^/]+\/assign-devices/, async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    captured.payload = route.request().postDataJSON() as Record<string, unknown>;
+    captured.url = route.request().url();
+    const deviceIds = (captured.payload?.device_ids as string[] | undefined) ?? [];
+    await route.fulfill({
+      status: 200,
+      json: {
+        success: true,
+        message: "devices assigned to cohort",
+        updated_cohort: {
+          assigned: deviceIds,
+          already_assigned: [],
+        },
+      },
+    });
+  });
+
+  return toCapturedCall(captured, "POST /api/devices/cohorts/:id/assign-devices");
+}
+
+function toCapturedCall(
+  captured: { payload?: Record<string, unknown>; url?: string },
+  label: string
+): CapturedCall {
+  return {
+    wasCalled: () => captured.payload !== undefined,
+    payload: () => {
+      if (captured.payload === undefined) {
+        throw new Error(`${label} was never called — the flow did not reach the mutation.`);
+      }
+      return captured.payload;
+    },
+    url: () => {
+      if (captured.url === undefined) {
+        throw new Error(`${label} was never called — the flow did not reach the mutation.`);
+      }
+      return captured.url;
+    },
+  };
+}

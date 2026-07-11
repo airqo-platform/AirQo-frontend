@@ -63,5 +63,13 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    // A developer's .env.local often points NEXTAUTH_URL/cookie domain at the
+    // deployed staging host; a session cookie scoped to .airqo.net is rejected
+    // by the browser on localhost, breaking login. Real env vars beat .env.local
+    // in Next.js, so pin auth to the local server for the e2e run only.
+    env: {
+      NEXTAUTH_URL: baseURL,
+      NEXTAUTH_COOKIE_DOMAIN: "",
+    },
   },
 });
