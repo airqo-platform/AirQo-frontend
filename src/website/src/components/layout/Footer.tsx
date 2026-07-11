@@ -39,7 +39,11 @@ const footerLinks = {
     { label: 'Events', href: '/events' },
     { label: 'FAQs', href: '/faqs' },
     { label: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
-    { label: 'Faces of Clean Air', href: '/faces-of-clean-air' },
+    {
+      label: 'Faces of Clean Air',
+      href: '/africa-clean-air-forum-2026/faces-of-clean-air',
+    },
+    { label: 'Air Quality Quiz', href: '/africa-clean-air-forum-2026/quiz' },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact Us', href: '/contact' },

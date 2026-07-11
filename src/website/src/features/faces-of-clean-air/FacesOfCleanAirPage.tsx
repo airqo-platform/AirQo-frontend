@@ -39,7 +39,6 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 
 const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
-const LEADERBOARD_SLIDE_COUNT = 4;
 const LEADERBOARD_ROWS_PER_SLIDE = 5;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
@@ -857,6 +856,11 @@ export default function FacesOfCleanAirPage() {
     [page, totalSlides],
   );
 
+  const leaderboardSlideCount = useMemo(
+    () => Math.ceil(leaderboardEntries.length / LEADERBOARD_ROWS_PER_SLIDE),
+    [leaderboardEntries.length],
+  );
+
   useEffect(() => {
     if (fetchState !== 'success' || isPaused || shouldReduceMotion) {
       return;
@@ -875,7 +879,7 @@ export default function FacesOfCleanAirPage() {
         return;
       }
 
-      if (leaderboardSlideIndex < LEADERBOARD_SLIDE_COUNT - 1) {
+      if (leaderboardSlideIndex < leaderboardSlideCount - 1) {
         setLeaderboardSlideIndex((currentIndex) => currentIndex + 1);
         return;
       }
@@ -895,6 +899,7 @@ export default function FacesOfCleanAirPage() {
     fetchLeaderboard,
     goToRelativePage,
     isPaused,
+    leaderboardSlideCount,
     leaderboardSlideIndex,
     page,
     shouldReduceMotion,
@@ -1017,40 +1022,28 @@ export default function FacesOfCleanAirPage() {
 
   const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
   const leaderboardRows = useMemo(() => {
-    const requiredRows = LEADERBOARD_SLIDE_COUNT * LEADERBOARD_ROWS_PER_SLIDE;
-    const normalizedEntries = Array.from(
-      { length: requiredRows },
-      (_, index) => {
-        const entry = leaderboardEntries[index];
-
-        if (entry) {
-          return {
-            avatar: formatLeaderboardAvatar(entry),
-            avatarImageUrl: entry.avatar_image_url || '',
-            rank: entry.rank ?? index + 1,
-            name: formatLeaderboardName(entry, index),
-            points: formatLeaderboardPoints(entry.points),
-            tone: index % 2 === 0 ? 'light' : 'tint',
-          } as const;
-        }
+    const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
+    return leaderboardEntries
+      .slice(startIndex, startIndex + LEADERBOARD_ROWS_PER_SLIDE)
+      .map((entry, i) => {
+        const absoluteIndex = startIndex + i;
+        const stableId =
+          entry.guest_id ||
+          entry.device_id ||
+          `rank-${entry.rank ?? absoluteIndex + 1}`;
+        const tone: 'light' | 'tint' =
+          absoluteIndex % 2 === 0 ? 'light' : 'tint';
 
         return {
-          avatar: '',
-          avatarImageUrl: '',
-          rank: index + 1,
-          name: '—',
-          points: '—',
-          tone: index % 2 === 0 ? 'light' : 'tint',
-        } as const;
-      },
-    );
-
-    const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
-
-    return normalizedEntries.slice(
-      startIndex,
-      startIndex + LEADERBOARD_ROWS_PER_SLIDE,
-    );
+          id: stableId,
+          avatar: formatLeaderboardAvatar(entry),
+          avatarImageUrl: entry.avatar_image_url || '',
+          rank: entry.rank ?? absoluteIndex + 1,
+          name: formatLeaderboardName(entry, absoluteIndex),
+          points: formatLeaderboardPoints(entry.points),
+          tone,
+        };
+      });
   }, [leaderboardEntries, leaderboardSlideIndex]);
 
   const isLeaderboardStage = displayStage === 'leaderboard';
@@ -1379,13 +1372,21 @@ export default function FacesOfCleanAirPage() {
                   className="flex w-full flex-col items-center"
                 >
                   <div className="w-full">
-                    <LeaderboardRowsBlock rows={leaderboardRows} />
+                    <LeaderboardRowsBlock
+                      rows={leaderboardRows}
+                      slideKey={leaderboardSlideIndex}
+                      reduceMotion={shouldReduceMotion}
+                      isEmpty={leaderboardEntries.length === 0}
+                    />
                   </div>
 
                   <div className="mt-8 w-full sm:mt-10">
                     <LeaderboardToggles
                       activeIndex={leaderboardSlideIndex}
-                      count={LEADERBOARD_SLIDE_COUNT}
+                      count={leaderboardSlideCount}
+                      intervalMs={CAROUSEL_INTERVAL_MS}
+                      isPaused={isPaused}
+                      reduceMotion={shouldReduceMotion}
                     />
                   </div>
                 </motion.div>

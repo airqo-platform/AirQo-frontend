@@ -14,10 +14,7 @@ const FloatingMiniBillboardWrapper = lazy(
   () => import('@/components/FloatingMiniBillboardWrapper'),
 );
 
-const CHROMELESS_PREFIXES = [
-  '/africa-clean-air-forum-2026',
-  '/faces-of-clean-air',
-];
+const CHROMELESS_PREFIXES = ['/africa-clean-air-forum-2026'];
 
 const shouldHideRouteChrome = (pathname: string | null) =>
   CHROMELESS_PREFIXES.some((prefix) => pathname?.startsWith(prefix));

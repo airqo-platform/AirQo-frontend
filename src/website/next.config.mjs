@@ -95,6 +95,11 @@ const nextConfig = {
         destination: '/africa-clean-air-forum/:path*',
         permanent: true,
       },
+      {
+        source: '/faces-of-clean-air',
+        destination: '/africa-clean-air-forum-2026/faces-of-clean-air',
+        permanent: true,
+      },
     ];
   },
 };

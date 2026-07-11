@@ -1,9 +1,11 @@
 'use client';
 
+import { motion, type Variants } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
 import Screen from '@/components/clean-air-forum-2026/Screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +34,35 @@ import type {
 import type { CleanAirForum2026QuizAnswerMap } from '@/features/clean-air-forum-2026/types/quiz';
 
 const EMPTY_ACTIVITIES: CleanAirForum2026LessonActivity[] = [];
+
+const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
+const EVENT_LABEL = 'Africa Clean Air Forum';
+const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
+
+const headerContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.16,
+    },
+  },
+};
+
+const headerItemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.78,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
 
 export default function QuizScreen() {
   const router = useRouter();
@@ -388,43 +419,123 @@ export default function QuizScreen() {
     !quizSetup.lessonPayload ||
     !currentActivity
   ) {
-    return <Screen className="caf-2026-screen" />;
+    return (
+      <Screen className="caf-2026-screen relative overflow-hidden">
+        <AmbientBackground variant="quiz" />
+        <motion.header
+          variants={headerContainerVariants}
+          initial="hidden"
+          animate="visible"
+          className="relative z-10 mx-auto grid w-full max-w-[1200px] flex-none grid-cols-[52px_minmax(0,1fr)] items-center gap-3 px-4 pt-4 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:px-8 sm:pt-8 lg:px-12"
+        >
+          <motion.div
+            variants={headerItemVariants}
+            className="flex justify-start"
+          >
+            <Image
+              src={AIRQO_LOGO_URL}
+              alt="AirQo"
+              width={78}
+              height={51}
+              priority
+              unoptimized
+              className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+            />
+          </motion.div>
+
+          <div className="min-w-0">
+            <motion.h1
+              variants={headerItemVariants}
+              className="whitespace-nowrap text-left leading-none text-white"
+            >
+              <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                Air Quality Quiz
+              </span>
+            </motion.h1>
+
+            <motion.div
+              variants={headerItemVariants}
+              className="mt-1 text-[9px] leading-tight text-white/85 sm:hidden"
+            >
+              <span className="font-bold">{EVENT_LABEL}</span>
+              <span aria-hidden="true">•</span>
+              <span className="italic">{EVENT_LOCATION_AND_YEAR}</span>
+            </motion.div>
+          </div>
+
+          <motion.div
+            variants={headerItemVariants}
+            className="hidden text-left text-white sm:block"
+          >
+            <p className="text-[13px] font-bold leading-tight">{EVENT_LABEL}</p>
+            <p className="mt-0.5 text-[13px] italic text-white/85">
+              {EVENT_LOCATION_AND_YEAR}
+            </p>
+          </motion.div>
+        </motion.header>
+      </Screen>
+    );
   }
 
   if (screenStage === 'results') {
     return (
-      <Screen className="caf-2026-screen">
-        <section className="mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+      <Screen className="caf-2026-screen relative overflow-hidden">
+        <AmbientBackground variant="quiz" />
+        <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
           <div className="flex w-full flex-col items-center">
-            <div className="flex w-full justify-center">
-              <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
-                <div className="flex min-w-0 items-center gap-3 sm:gap-5">
-                  <div className="relative w-fit shrink-0">
-                    <Image
-                      src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
-                      alt="AirQo"
-                      width={91}
-                      height={62}
-                      priority
-                      className="h-auto w-auto"
-                    />
-                  </div>
+            <motion.header
+              variants={headerContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="mx-auto grid w-full max-w-[1200px] flex-none grid-cols-[52px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6"
+            >
+              <motion.div
+                variants={headerItemVariants}
+                className="flex justify-start"
+              >
+                <Image
+                  src={AIRQO_LOGO_URL}
+                  alt="AirQo"
+                  width={78}
+                  height={51}
+                  priority
+                  unoptimized
+                  className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+                />
+              </motion.div>
 
-                  <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+              <div className="min-w-0">
+                <motion.h1
+                  variants={headerItemVariants}
+                  className="whitespace-nowrap text-left leading-none text-white"
+                >
+                  <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
                     Air Quality Quiz
-                  </h1>
-                </div>
+                  </span>
+                </motion.h1>
 
-                <div className="hidden shrink-0 text-left text-white md:block">
-                  <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                    Africa clean air forum
-                  </p>
-                  <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
-                    Pretoria 2026
-                  </p>
-                </div>
+                <motion.div
+                  variants={headerItemVariants}
+                  className="mt-1 text-[9px] leading-tight text-white/85 sm:hidden"
+                >
+                  <span className="font-bold">{EVENT_LABEL}</span>
+                  <span aria-hidden="true">•</span>
+                  <span className="italic">{EVENT_LOCATION_AND_YEAR}</span>
+                </motion.div>
               </div>
-            </div>
+
+              <motion.div
+                variants={headerItemVariants}
+                className="hidden text-left text-white sm:block"
+              >
+                <p className="text-[13px] font-bold leading-tight">
+                  {EVENT_LABEL}
+                </p>
+                <p className="mt-0.5 text-[13px] italic text-white/85">
+                  {EVENT_LOCATION_AND_YEAR}
+                </p>
+              </motion.div>
+            </motion.header>
 
             <div className="mt-16 flex w-full max-w-4xl flex-col items-center gap-8 text-center sm:mt-20 sm:gap-10">
               <div className="space-y-3">
@@ -474,38 +585,63 @@ export default function QuizScreen() {
   }
 
   return (
-    <Screen className="caf-2026-screen">
-      <section className="caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+    <Screen className="caf-2026-screen relative overflow-hidden">
+      <AmbientBackground variant="quiz" />
+      <section className="relative z-10 caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
         <div className="caf-2026-quiz-shell flex w-full flex-col items-center">
-          <div className="flex w-full justify-center">
-            <div className="flex w-full max-w-[75.125rem] items-center justify-between gap-4 px-1 sm:px-0">
-              <div className="flex min-w-0 items-center gap-3 sm:gap-5">
-                <div className="relative w-fit shrink-0">
-                  <Image
-                    src="/clean-air-forum-2026/logos/airqo-clean-air-forum-pretoria-leaderboard-logo.svg?v=20260710"
-                    alt="AirQo"
-                    width={91}
-                    height={62}
-                    priority
-                    className="h-auto w-auto"
-                  />
-                </div>
+          <motion.header
+            variants={headerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="mx-auto grid w-full max-w-[1200px] flex-none grid-cols-[52px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[76px_minmax(0,1fr)_190px] sm:gap-6"
+          >
+            <motion.div
+              variants={headerItemVariants}
+              className="flex justify-start"
+            >
+              <Image
+                src={AIRQO_LOGO_URL}
+                alt="AirQo"
+                width={78}
+                height={51}
+                priority
+                unoptimized
+                className="h-auto w-[50px] drop-shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:w-[72px]"
+              />
+            </motion.div>
 
-                <h1 className="min-w-0 flex-1 text-balance text-[clamp(1.1rem,4vw,2.95rem)] font-bold leading-[0.96] tracking-[-0.02em] text-white">
+            <div className="min-w-0">
+              <motion.h1
+                variants={headerItemVariants}
+                className="whitespace-nowrap text-left leading-none text-white"
+              >
+                <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
                   Air Quality Quiz
-                </h1>
-              </div>
+                </span>
+              </motion.h1>
 
-              <div className="hidden shrink-0 text-left text-white md:block">
-                <p className="text-[18.49px] font-bold leading-none tracking-[-0.02em]">
-                  Africa clean air forum
-                </p>
-                <p className="mt-1 text-[18.49px] font-normal italic leading-none tracking-[-0.02em]">
-                  Pretoria 2026
-                </p>
-              </div>
+              <motion.div
+                variants={headerItemVariants}
+                className="mt-1 text-[9px] leading-tight text-white/85 sm:hidden"
+              >
+                <span className="font-bold">{EVENT_LABEL}</span>
+                <span aria-hidden="true">•</span>
+                <span className="italic">{EVENT_LOCATION_AND_YEAR}</span>
+              </motion.div>
             </div>
-          </div>
+
+            <motion.div
+              variants={headerItemVariants}
+              className="hidden text-left text-white sm:block"
+            >
+              <p className="text-[13px] font-bold leading-tight">
+                {EVENT_LABEL}
+              </p>
+              <p className="mt-0.5 text-[13px] italic text-white/85">
+                {EVENT_LOCATION_AND_YEAR}
+              </p>
+            </motion.div>
+          </motion.header>
 
           <div className="caf-2026-quiz-content mt-16 flex w-full max-w-5xl flex-col items-center gap-8 sm:mt-20 sm:gap-10">
             <div
