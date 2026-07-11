@@ -296,12 +296,12 @@ export default function QuizScreen() {
         setLeaderboardPosition(leaderboard.position);
         setLeaderboardStatus('ready');
 
-        console.group('[CAF 2026] Leaderboard position resolved');
-        console.info('guest_session', guestSession);
         if (process.env.NODE_ENV !== 'production') {
+          console.group('[CAF 2026] Leaderboard position resolved');
+          console.info('guest_session', guestSession);
           console.info('leaderboard_position', leaderboard.position);
+          console.groupEnd();
         }
-        console.groupEnd();
       } catch (error) {
         const message =
           error instanceof Error
@@ -359,17 +359,19 @@ export default function QuizScreen() {
       setSubmissionStatus('submitted');
       setScreenStage('results');
 
-      console.group('[CAF 2026] Quiz completion submitted');
-      console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
-      console.info('lesson_id', CLEAN_AIR_FORUM_2026_LESSON_ID);
-      console.info('guest_session', quizSetup.guestSession);
-      console.info('submission_payload', {
-        furthest_activity_index: totalQuestions - 1,
-        completed: true,
-        quiz_attempts: quizAttempts,
-      });
-      console.info('submission_response', response);
-      console.groupEnd();
+      if (process.env.NODE_ENV !== 'production') {
+        console.group('[CAF 2026] Quiz completion submitted');
+        console.info('course_id', CLEAN_AIR_FORUM_2026_COURSE_ID);
+        console.info('lesson_id', CLEAN_AIR_FORUM_2026_LESSON_ID);
+        console.info('guest_session', quizSetup.guestSession);
+        console.info('submission_payload', {
+          furthest_activity_index: totalQuestions - 1,
+          completed: true,
+          quiz_attempts: quizAttempts,
+        });
+        console.info('submission_response', response);
+        console.groupEnd();
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unable to submit quiz';

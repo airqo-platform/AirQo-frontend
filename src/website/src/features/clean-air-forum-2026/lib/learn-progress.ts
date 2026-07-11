@@ -72,12 +72,15 @@ function normalizeLeaderboardPoints(entry: CleanAirForum2026LeaderboardEntry) {
   return entry.points ?? entry.total_points ?? 0;
 }
 
-export async function fetchCleanAirForum2026Leaderboard(signal?: AbortSignal) {
+export async function fetchCleanAirForum2026Leaderboard(
+  signal?: AbortSignal,
+  limit = 10,
+) {
   const leaderboardUrl = new URL(
     cleanAirForum2026LeaderboardPath,
     window.location.origin,
   );
-  leaderboardUrl.searchParams.set('limit', '10');
+  leaderboardUrl.searchParams.set('limit', String(limit));
   leaderboardUrl.searchParams.set('event_id', CLEAN_AIR_FORUM_2026_EVENT_ID);
 
   const response = await fetch(leaderboardUrl.toString(), {

@@ -1,12 +1,19 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  type PanInfo,
+  type Variants,
+} from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
 import LeaderboardRow from '@/components/clean-air-forum-2026/LeaderboardRow';
+import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
 import { fetchCleanAirForum2026Leaderboard } from '@/features/clean-air-forum-2026/lib/learn-progress';
 import type { CleanAirForum2026LeaderboardEntry } from '@/features/clean-air-forum-2026/types/learn';
 import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
@@ -15,8 +22,12 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const LEADERBOARD_TITLE = 'Air Quality Quiz Leaderboard';
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_SLIDE = 10;
+const API_LIMIT = 100;
+const CAROUSEL_INTERVAL_MS = 7600;
 const POLL_INTERVAL_MS = 30_000;
+const SWIPE_DISTANCE_THRESHOLD = 70;
+const SWIPE_VELOCITY_THRESHOLD = 500;
 
 const headerContainerVariants: Variants = {
   hidden: {},
@@ -37,11 +48,34 @@ const headerItemVariants: Variants = {
   },
 };
 
-const containerVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+const slideVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 120 : -120,
+    opacity: 0,
+    scale: 0.96,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.74,
+      ease: [0.22, 1, 0.36, 1],
+      staggerChildren: 0.06,
+      delayChildren: 0.08,
+    },
   },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -100 : 100,
+    opacity: 0,
+    scale: 0.972,
+    transition: {
+      duration: 0.46,
+      ease: [0.4, 0, 1, 1],
+      staggerChildren: 0.035,
+      staggerDirection: -1,
+    },
+  }),
 };
 
 const rowVariants: Variants = {
@@ -51,6 +85,12 @@ const rowVariants: Variants = {
     y: 0,
     scale: 1,
     transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    scale: 0.98,
+    transition: { duration: 0.28, ease: [0.4, 0, 1, 1] },
   },
 };
 
@@ -71,12 +111,17 @@ function formatAvatar(entry: CleanAirForum2026LeaderboardEntry) {
 }
 
 export default function LeaderboardScreen() {
+  const shouldReduceMotion = useReducedMotion();
+
   const [entries, setEntries] = useState<CleanAirForum2026LeaderboardEntry[]>(
     [],
   );
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
     'idle',
   );
+  const [page, setPage] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
 
   const mountedRef = useRef(false);
 
@@ -84,7 +129,10 @@ export default function LeaderboardScreen() {
     if (!mountedRef.current) setStatus('loading');
 
     try {
-      const leaderboard = await fetchCleanAirForum2026Leaderboard();
+      const leaderboard = await fetchCleanAirForum2026Leaderboard(
+        undefined,
+        API_LIMIT,
+      );
       setEntries(leaderboard.entries);
       setStatus('ready');
     } catch (error) {
@@ -95,45 +143,141 @@ export default function LeaderboardScreen() {
     mountedRef.current = true;
   }, []);
 
+  const retryFetchLeaderboard = useCallback(async () => {
+    setStatus('loading');
+
+    try {
+      const leaderboard = await fetchCleanAirForum2026Leaderboard(
+        undefined,
+        API_LIMIT,
+      );
+      setEntries(leaderboard.entries);
+      setStatus('ready');
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error);
+      setStatus('error');
+    }
+  }, []);
+
   useEffect(() => {
     void fetchLeaderboard();
   }, [fetchLeaderboard]);
 
   usePollingWithVisibility(fetchLeaderboard, POLL_INTERVAL_MS);
 
-  const rows = Array.from({ length: ROWS_PER_PAGE }, (_, index) => {
-    const entry = entries[index];
+  const totalSlides = useMemo(
+    () => Math.max(1, Math.ceil(entries.length / ROWS_PER_SLIDE)),
+    [entries.length],
+  );
 
-    if (entry) {
-      const stableId =
-        entry.guest_id || entry.device_id || `rank-${entry.rank ?? index + 1}`;
-      const tone: 'light' | 'tint' = index % 2 === 0 ? 'light' : 'tint';
+  const visibleRows = useMemo(() => {
+    const startIndex = page * ROWS_PER_SLIDE;
+    const slice = entries.slice(startIndex, startIndex + ROWS_PER_SLIDE);
+
+    return Array.from({ length: ROWS_PER_SLIDE }, (_, i) => {
+      const absoluteIndex = startIndex + i;
+      const entry = slice[i];
+
+      if (entry) {
+        const stableId =
+          entry.guest_id ||
+          entry.device_id ||
+          `rank-${entry.rank ?? absoluteIndex + 1}`;
+        const tone: 'light' | 'tint' =
+          absoluteIndex % 2 === 0 ? 'light' : 'tint';
+
+        return {
+          id: stableId,
+          isEmpty: false,
+          avatar: formatAvatar(entry),
+          avatarImageUrl: entry.avatar_image_url || '',
+          rank: entry.rank ?? absoluteIndex + 1,
+          name: formatName(entry, absoluteIndex),
+          points: formatPoints(entry.points),
+          tone,
+        };
+      }
+
+      const tone: 'light' | 'tint' = absoluteIndex % 2 === 0 ? 'light' : 'tint';
 
       return {
-        id: stableId,
-        isEmpty: false,
-        avatar: formatAvatar(entry),
-        avatarImageUrl: entry.avatar_image_url || '',
-        rank: entry.rank ?? index + 1,
-        name: formatName(entry, index),
-        points: formatPoints(entry.points),
+        id: `empty-${absoluteIndex + 1}`,
+        isEmpty: true,
+        avatar: '',
+        avatarImageUrl: '',
+        rank: absoluteIndex + 1,
+        name: 'Open',
+        points: '—',
         tone,
       };
-    }
+    });
+  }, [entries, page]);
 
-    const tone: 'light' | 'tint' = index % 2 === 0 ? 'light' : 'tint';
+  useEffect(() => {
+    setPage((currentPage) => Math.min(currentPage, totalSlides - 1));
+  }, [totalSlides]);
 
-    return {
-      id: `empty-${index + 1}`,
-      isEmpty: true,
-      avatar: '',
-      avatarImageUrl: '',
-      rank: index + 1,
-      name: 'Open',
-      points: '—',
-      tone,
-    };
-  });
+  const goToRelativePage = useCallback(
+    (offset: number) => {
+      if (totalSlides <= 1) return;
+      const nextPage = (page + offset + totalSlides) % totalSlides;
+      setDirection(offset > 0 ? 1 : -1);
+      setPage(nextPage);
+    },
+    [page, totalSlides],
+  );
+
+  useEffect(() => {
+    if (status !== 'ready' || isPaused || shouldReduceMotion) return;
+
+    const timer = window.setTimeout(() => {
+      goToRelativePage(1);
+    }, CAROUSEL_INTERVAL_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    goToRelativePage,
+    isPaused,
+    page,
+    shouldReduceMotion,
+    status,
+    totalSlides,
+  ]);
+
+  const handleCarouselKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLElement>) => {
+      if (totalSlides <= 1) return;
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToRelativePage(1);
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToRelativePage(-1);
+      }
+    },
+    [goToRelativePage, totalSlides],
+  );
+
+  const handleDragEnd = useCallback(
+    (
+      _event: MouseEvent | TouchEvent | globalThis.PointerEvent,
+      info: PanInfo,
+    ) => {
+      if (totalSlides <= 1) return;
+
+      const movedLeft =
+        info.offset.x < -SWIPE_DISTANCE_THRESHOLD ||
+        info.velocity.x < -SWIPE_VELOCITY_THRESHOLD;
+      const movedRight =
+        info.offset.x > SWIPE_DISTANCE_THRESHOLD ||
+        info.velocity.x > SWIPE_VELOCITY_THRESHOLD;
+
+      if (movedLeft) goToRelativePage(1);
+      else if (movedRight) goToRelativePage(-1);
+    },
+    [goToRelativePage, totalSlides],
+  );
 
   return (
     <div
@@ -215,33 +359,73 @@ export default function LeaderboardScreen() {
               </p>
               <button
                 type="button"
-                onClick={() => void fetchLeaderboard()}
+                onClick={() => void retryFetchLeaderboard()}
                 className="mt-5 rounded-lg bg-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/30"
               >
                 Try again
               </button>
             </motion.div>
           ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex w-full flex-col gap-3 sm:gap-4"
+            <section
+              tabIndex={0}
+              aria-label="Air quality quiz leaderboard carousel"
+              aria-roledescription="carousel"
+              className="flex w-full flex-col items-center"
+              onKeyDown={handleCarouselKeyDown}
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onFocusCapture={() => setIsPaused(true)}
+              onBlurCapture={() => setIsPaused(false)}
             >
-              {rows.map((row) => (
-                <motion.div key={row.id} variants={rowVariants}>
-                  <LeaderboardRow
-                    avatar={row.avatar}
-                    avatarImageUrl={row.avatarImageUrl}
-                    rank={row.rank}
-                    name={row.name}
-                    points={row.points}
-                    tone={row.tone}
-                    isEmpty={row.isEmpty}
+              <div className="w-full">
+                <AnimatePresence initial={false} mode="wait" custom={direction}>
+                  <motion.div
+                    key={`slide-${page}`}
+                    custom={direction}
+                    variants={shouldReduceMotion ? undefined : slideVariants}
+                    initial={shouldReduceMotion ? false : 'enter'}
+                    animate="center"
+                    exit={shouldReduceMotion ? undefined : 'exit'}
+                    aria-live="polite"
+                    drag={totalSlides > 1 && !shouldReduceMotion ? 'x' : false}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.14}
+                    dragMomentum={false}
+                    onDragEnd={handleDragEnd}
+                    className="flex w-full flex-col gap-3 sm:gap-4"
+                  >
+                    {visibleRows.map((row) => (
+                      <motion.div
+                        key={row.id}
+                        variants={shouldReduceMotion ? undefined : rowVariants}
+                      >
+                        <LeaderboardRow
+                          avatar={row.avatar}
+                          avatarImageUrl={row.avatarImageUrl}
+                          rank={row.rank}
+                          name={row.name}
+                          points={row.points}
+                          tone={row.tone}
+                          isEmpty={row.isEmpty}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {totalSlides > 1 && (
+                <div className="mt-8 w-full sm:mt-10">
+                  <LeaderboardToggles
+                    activeIndex={page}
+                    count={totalSlides}
+                    intervalMs={CAROUSEL_INTERVAL_MS}
+                    isPaused={isPaused}
+                    reduceMotion={shouldReduceMotion}
                   />
-                </motion.div>
-              ))}
-            </motion.div>
+                </div>
+              )}
+            </section>
           )}
         </main>
       </div>
