@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
-import LeaderboardRow from '@/components/clean-air-forum-2026/LeaderboardRow';
+import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
 import { fetchCleanAirForum2026Leaderboard } from '@/features/clean-air-forum-2026/lib/learn-progress';
 import type { CleanAirForum2026LeaderboardEntry } from '@/features/clean-air-forum-2026/types/learn';
@@ -22,7 +22,7 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 const EVENT_LABEL = 'Africa Clean Air Forum';
 const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const LEADERBOARD_TITLE = 'Air Quality Quiz Leaderboard';
-const ROWS_PER_SLIDE = 10;
+const LEADERBOARD_ROWS_PER_SLIDE = 5;
 const API_LIMIT = 100;
 const CAROUSEL_INTERVAL_MS = 7600;
 const POLL_INTERVAL_MS = 30_000;
@@ -61,8 +61,6 @@ const slideVariants: Variants = {
     transition: {
       duration: 0.74,
       ease: [0.22, 1, 0.36, 1],
-      staggerChildren: 0.06,
-      delayChildren: 0.08,
     },
   },
   exit: (direction: number) => ({
@@ -72,26 +70,8 @@ const slideVariants: Variants = {
     transition: {
       duration: 0.46,
       ease: [0.4, 0, 1, 1],
-      staggerChildren: 0.035,
-      staggerDirection: -1,
     },
   }),
-};
-
-const rowVariants: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.97 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    scale: 0.98,
-    transition: { duration: 0.28, ease: [0.4, 0, 1, 1] },
-  },
 };
 
 function formatPoints(points: number | undefined) {
@@ -166,17 +146,16 @@ export default function LeaderboardScreen() {
   usePollingWithVisibility(fetchLeaderboard, POLL_INTERVAL_MS);
 
   const totalSlides = useMemo(
-    () => Math.max(1, Math.ceil(entries.length / ROWS_PER_SLIDE)),
+    () => Math.max(1, Math.ceil(entries.length / LEADERBOARD_ROWS_PER_SLIDE)),
     [entries.length],
   );
 
-  const visibleRows = useMemo(() => {
-    const startIndex = page * ROWS_PER_SLIDE;
-    const slice = entries.slice(startIndex, startIndex + ROWS_PER_SLIDE);
+  const leaderboardRows = useMemo(() => {
+    const startIndex = page * LEADERBOARD_ROWS_PER_SLIDE;
 
-    return Array.from({ length: ROWS_PER_SLIDE }, (_, i) => {
+    return Array.from({ length: LEADERBOARD_ROWS_PER_SLIDE }, (_, i) => {
       const absoluteIndex = startIndex + i;
-      const entry = slice[i];
+      const entry = entries[absoluteIndex];
 
       if (entry) {
         const stableId =
@@ -380,7 +359,7 @@ export default function LeaderboardScreen() {
               <div className="w-full">
                 <AnimatePresence initial={false} mode="wait" custom={direction}>
                   <motion.div
-                    key={`slide-${page}`}
+                    key={`leaderboard-slide-${page}`}
                     custom={direction}
                     variants={shouldReduceMotion ? undefined : slideVariants}
                     initial={shouldReduceMotion ? false : 'enter'}
@@ -392,24 +371,14 @@ export default function LeaderboardScreen() {
                     dragElastic={0.14}
                     dragMomentum={false}
                     onDragEnd={handleDragEnd}
-                    className="flex w-full flex-col gap-3 sm:gap-4"
+                    className="w-full"
                   >
-                    {visibleRows.map((row) => (
-                      <motion.div
-                        key={row.id}
-                        variants={shouldReduceMotion ? undefined : rowVariants}
-                      >
-                        <LeaderboardRow
-                          avatar={row.avatar}
-                          avatarImageUrl={row.avatarImageUrl}
-                          rank={row.rank}
-                          name={row.name}
-                          points={row.points}
-                          tone={row.tone}
-                          isEmpty={row.isEmpty}
-                        />
-                      </motion.div>
-                    ))}
+                    <LeaderboardRowsBlock
+                      rows={leaderboardRows}
+                      slideKey={page}
+                      reduceMotion={shouldReduceMotion}
+                      isEmpty={entries.length === 0}
+                    />
                   </motion.div>
                 </AnimatePresence>
               </div>
