@@ -31,6 +31,9 @@ function unwrap<T>(value: T | symbol): T {
 
 function directoryIsUsable(dir: string): true | string {
   if (!fs.existsSync(dir)) return true;
+  if (!fs.statSync(dir).isDirectory()) {
+    return `"${dir}" already exists and is not a directory.`;
+  }
   const entries = fs.readdirSync(dir);
   if (entries.length === 0) return true;
   return `Directory "${dir}" already exists and is not empty.`;
@@ -81,19 +84,24 @@ export async function collectAnswers(
     validate?: (value: string) => string | undefined,
   ): Promise<string> => {
     if (provided !== undefined) {
-      const error = validate?.(provided);
+      const value = provided.trim();
+      const error = value ? validate?.(value) : `Value for "${message}" cannot be empty.`;
       if (error) bail(error);
-      return provided;
+      return value;
     }
     if (flags.yes) return fallback;
-    return unwrap(
+    const answer = unwrap(
       await p.text({
         message,
         defaultValue: fallback,
         placeholder: fallback,
-        validate: (value) => (value ? validate?.(value) : undefined),
+        validate: (value) => {
+          const trimmed = value.trim();
+          return trimmed ? validate?.(trimmed) : undefined;
+        },
       }),
     );
+    return answer.trim() || fallback;
   };
 
   const orgName = await askText(

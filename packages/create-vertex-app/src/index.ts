@@ -70,7 +70,12 @@ async function main(): Promise<void> {
 
   const spinner = p.spinner();
   spinner.start("Scaffolding project");
-  scaffold(answers);
+  try {
+    scaffold(answers);
+  } catch (error) {
+    spinner.stop(pc.red("Scaffolding failed"), 1);
+    throw error;
+  }
   spinner.stop(
     `Project created in ${pc.cyan(path.relative(process.cwd(), answers.directory) || ".")}`,
   );

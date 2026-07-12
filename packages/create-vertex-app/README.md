@@ -1,6 +1,6 @@
 # create-vertex-app
 
-Scaffold a [Vertex](../../src/vertex-template/README.md) IoT dashboard app — a configurable, mock-first device management UI built with Next.js. The generated app runs on **mock data out of the box**: no backend, credentials, or `.env` file required.
+Scaffold a [Vertex](https://github.com/airqo-platform/AirQo-frontend/blob/staging/src/vertex-template/README.md) IoT dashboard app — a configurable, mock-first device management UI built with Next.js. The generated app runs on **mock data out of the box**: no backend, credentials, or `.env` file required.
 
 ## Usage
 
@@ -41,7 +41,7 @@ All further customization — feature flags, links, auth, adapters — lives in 
 
 ## How it works
 
-The CLI ships a snapshot of [`src/vertex-template`](../../src/vertex-template) inside the npm package, copied in at publish time by the `prepack` hook ([scripts/sync-template.mjs](scripts/sync-template.mjs)). Scaffolding is therefore offline-capable and deterministic: a given CLI version always produces the same project.
+The CLI ships a snapshot of [`src/vertex-template`](https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/vertex-template) inside the npm package, copied in at publish time by the `prepack` hook ([scripts/sync-template.mjs](https://github.com/airqo-platform/AirQo-frontend/blob/staging/packages/create-vertex-app/scripts/sync-template.mjs)). Scaffolding is therefore offline-capable and deterministic: a given CLI version always produces the same project.
 
 Because npm strips `.gitignore` files from published tarballs, the sync script stores it as `_gitignore` and the CLI renames it back when scaffolding.
 
