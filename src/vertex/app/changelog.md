@@ -47,6 +47,16 @@ Four e2e specs proving the RBAC system against a real session — each device ac
 
 </details>
 
+<details>
+<summary><strong>New: e2e suite wired into CI (informational) with Codecov Test Analytics</strong></summary>
+
+- New `e2e-vertex` job in `vertex-ci.yml` runs the Playwright suite on every PR/push touching Vertex — **informational** (`continue-on-error`), same philosophy as coverage, since runs depend on the staging backend; promotion to a required check is deliberate follow-up once the flake rate is known. Runs in parallel with `check-vertex` so unit/lint feedback isn't delayed.
+- CI serves a **production build** (`next build && next start`) instead of the dev server — faster, more stable page loads and closer to what ships; local runs keep using `npm run dev`.
+- Playwright's JUnit output uploads to **Codecov Test Analytics** (flag `vertex-e2e`), closing the flaky-test-rate tracking gap TESTING.md listed as deferred — test-results ingestion, not coverage; the `vertex` coverage flag stays unit-only.
+- Requires `VERTEX_E2E_USER_EMAIL`/`VERTEX_E2E_USER_PASSWORD` repository secrets; fork PRs (no secrets) skip with a notice instead of failing. The HTML report is uploaded as an artifact on failure. TESTING.md's CI-status section updated accordingly.
+
+</details>
+
 ## Version 2.0.23
 **Released:** July 11, 2026
 

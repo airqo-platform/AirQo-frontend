@@ -235,7 +235,16 @@ npm run test:e2e
 
 ### CI status
 
-E2E tests are not yet wired into `.github/workflows/vertex-ci.yml`. Run `npm run test:e2e` locally before opening a PR that adds or changes e2e tests. Wiring this into CI (and deciding whether it gates merges or runs informationally, consistent with how coverage is treated today) is tracked as follow-up work, not part of this initial setup.
+The `e2e-vertex` job in `.github/workflows/vertex-ci.yml` runs the suite on every PR/push that touches Vertex. It is **informational** (`continue-on-error`), consistent with how coverage is treated — runs depend on the staging backend being up, so a failure flags a problem without blocking merges. Promoting it to a required check is deliberate follow-up once its flake rate has been observed.
+
+CI specifics:
+
+- Requires the `VERTEX_E2E_USER_EMAIL` / `VERTEX_E2E_USER_PASSWORD` repository secrets; when absent (fork PRs), the job skips itself with a notice instead of failing.
+- Serves a **production build** (`next build && next start`) rather than the dev server — faster, more stable page loads and closer to what ships. Locally, `npm run test:e2e` still uses the dev server.
+- Playwright's JUnit output is uploaded to **Codecov Test Analytics** (flag `vertex-e2e`) for flaky-test-rate tracking — this is test-results ingestion, not coverage; the `vertex` coverage flag remains unit-only.
+- The HTML report is uploaded as a workflow artifact when the run fails.
+
+Still run `npm run test:e2e` locally before opening a PR that adds or changes e2e tests — the CI job being informational means a broken spec won't block you, but it will show up red for everyone after you.
 
 ## Mocking guidance
 

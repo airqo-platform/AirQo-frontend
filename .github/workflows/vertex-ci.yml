@@ -57,3 +57,88 @@ jobs:
           directory: src/vertex/coverage/
           flags: vertex
           fail_ci_if_error: false
+
+  # Playwright e2e against the staging backend. Informational for now
+  # (continue-on-error) — same philosophy as coverage: a visible signal, not a
+  # merge gate — because runs depend on staging being up. Promote to required
+  # once the flake rate has been observed. Runs in parallel with check-vertex
+  # so unit/lint feedback isn't delayed.
+  e2e-vertex:
+    name: e2e-vertex (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: src/vertex
+    env:
+      E2E_USER_EMAIL: ${{ secrets.VERTEX_E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.VERTEX_E2E_USER_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      # Fork PRs don't receive secrets — skip the run rather than fail it.
+      - name: Detect e2e credentials
+        id: creds
+        run: |
+          if [ -n "$E2E_USER_EMAIL" ] && [ -n "$E2E_USER_PASSWORD" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::VERTEX_E2E_USER_EMAIL/PASSWORD secrets unavailable (fork PR?) — skipping e2e."
+          fi
+
+      - name: Setup Node
+        if: steps.creds.outputs.available == 'true'
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/vertex/package-lock.json
+
+      - name: Install dependencies
+        if: steps.creds.outputs.available == 'true'
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.creds.outputs.available == 'true'
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts builds and serves a production bundle in CI and
+      # pins NEXTAUTH_URL to localhost. NEXT_PUBLIC_* are baked at build time,
+      # so they must be present here (defaults mirror .env.example's staging
+      # values; override via repository variables if staging moves).
+      # NEXT_PUBLIC_HCAPTCHA_SITE_KEY stays unset — the login setup script
+      # can't solve a captcha. NEXTAUTH_SECRET only encrypts the session cookie
+      # inside this ephemeral runner, so a run-scoped value is sufficient.
+      - name: Run e2e tests
+        if: steps.creds.outputs.available == 'true'
+        env:
+          NEXTAUTH_SECRET: ${{ secrets.VERTEX_E2E_NEXTAUTH_SECRET || github.run_id }}
+          NEXT_PUBLIC_API_URL: ${{ vars.VERTEX_E2E_API_URL || 'https://staging-vertex.airqo.net/api/v2/' }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.VERTEX_E2E_API_BASE_URL || 'https://api.airqo.net' }}
+          NEXT_PUBLIC_ANALYTICS_URL: ${{ vars.VERTEX_E2E_ANALYTICS_URL || 'https://staging-analytics.airqo.net' }}
+          NEXT_PUBLIC_ENV: development
+        run: npx playwright test
+
+      # Test Analytics (flaky-test tracking), not coverage — Playwright doesn't
+      # produce code coverage; the vertex coverage flag remains unit-only.
+      - name: Upload e2e results to Codecov Test Analytics
+        if: steps.creds.outputs.available == 'true' && !cancelled()
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: src/vertex/test-results/
+          flags: vertex-e2e
+
+      - name: Upload Playwright report on failure
+        if: steps.creds.outputs.available == 'true' && failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        continue-on-error: true
+        with:
+          name: vertex-playwright-report
+          path: src/vertex/playwright-report/
+          retention-days: 7
