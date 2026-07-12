@@ -60,6 +60,8 @@ jobs:
       run_vertex: ${{ steps.check_files.outputs.run_vertex }}
       run_beacon: ${{ steps.check_files.outputs.run_beacon }}
       run_docs: ${{ steps.check_files.outputs.run_docs }}
+      run_nexus: ${{ steps.check_files.outputs.run_nexus }}
+
 
     steps:
       - name: check modified frontends
@@ -77,6 +79,7 @@ jobs:
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
           echo "run_docs=false" >>$GITHUB_OUTPUT
+          echo "run_nexus=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
@@ -86,6 +89,9 @@ jobs:
             fi
             if [[ $file == src/platform/* ]]; then
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
+            fi
+            if [[ $file == src/nexus/* ]]; then
+              echo "run_nexus=true" >>$GITHUB_OUTPUT
             fi
             if [[ $file == src/website/* ]]; then
               echo "run_website=true" >>$GITHUB_OUTPUT
@@ -475,6 +481,134 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New azure analytics_platform changes available for preview [here](${{ needs.analytics_platform.outputs.url }})'
+            })
+
+  #########################################
+  # NEXUS PREVIEW
+  #########################################
+
+  nexus:
+    name: build-push-deploy-nexus-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_nexus == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: az acr login --name airqoacr
+
+      - name: Pull secrets from Key Vault
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-nexus-preview"
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
+          az keyvault secret show \
+            --vault-name ${{ env.KEYVAULT }} \
+            --name sta-env-nexus \
+            --query value -o tsv > secrets.json
+
+          jq -r 'to_entries | .[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
+          {
+            echo "NEXTAUTH_URL=$NEXTAUTH_URL"
+            echo "NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL"
+            echo "AUTH_TRUST_HOST=true"
+          } >> src/nexus/.env
+
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }} src/nexus
+          docker push ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }}
+
+      - name: Deploy Container App
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-nexus-preview"
+
+          DEFAULT_DOMAIN=$(az containerapp env show \
+            --name ${{ env.PR_PREVIEW_ENV }} \
+            --resource-group ${{ env.RG }} \
+            --query properties.defaultDomain -o tsv)
+
+          NEXTAUTH_URL="https://$APP.$DEFAULT_DOMAIN"
+
+          mapfile -t ENV_VARS < <(jq -r 'to_entries[] | select(.key != "NEXTAUTH_URL" and .key != "NEXTAUTH_URL_INTERNAL" and .key != "NEXTAUTH_COOKIE_DOMAIN" and .key != "AUTH_URL" and .key != "AUTH_TRUST_HOST") | "\(.key)=\(.value|tostring)"' secrets.json)
+          ENV_VARS+=("NEXTAUTH_URL=$NEXTAUTH_URL")
+          ENV_VARS+=("NEXTAUTH_URL_INTERNAL=$NEXTAUTH_URL")
+          ENV_VARS+=("AUTH_TRUST_HOST=true")
+
+          jq -e '((.NEXTAUTH_SECRET // .AUTH_SECRET) | length > 0)' secrets.json >/dev/null
+
+          az containerapp up \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --environment ${{ env.PR_PREVIEW_ENV }} \
+            --image ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }} \
+            --target-port 3000 \
+            --ingress external \
+            --registry-server ${{ env.REGISTRY_URL }} \
+            --registry-username airqoacr \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --env-vars "${ENV_VARS[@]}"
+
+          az containerapp update \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --replace-env-vars "${ENV_VARS[@]}"
+
+          AUTH_STATUS=$(curl -sS -o /tmp/nextauth-providers.json -w "%{http_code}" "$NEXTAUTH_URL/api/auth/providers")
+          if [ "$AUTH_STATUS" != "200" ]; then
+            echo "NextAuth providers endpoint returned HTTP $AUTH_STATUS"
+            cat /tmp/nextauth-providers.json || true
+            az containerapp logs show \
+              --name $APP \
+              --resource-group ${{ env.RG }} \
+              --tail 80 || true
+            exit 1
+          fi
+
+      - id: preview
+        run: |
+          BRANCH="${{ needs.branch-name.outputs.sanitized }}"
+          APP="${BRANCH}-nexus-preview"
+
+          URL=$(az containerapp show \
+            --name $APP \
+            --resource-group ${{ env.RG }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+
+  nexus-pr-comment:
+    needs: [check, nexus]
+    if: needs.check.outputs.run_nexus == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New azure nexus changes available for preview [here](${{ needs.nexus.outputs.url }})'
             })
 
   #########################################
