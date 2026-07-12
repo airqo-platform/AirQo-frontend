@@ -1443,11 +1443,11 @@ export default function FacesOfCleanAirPage() {
         <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
           <DialogContent
             hideClose
-            className="w-[90vw] max-w-[400px] border-white/20 bg-[#005257]/95 p-6 backdrop-blur-xl sm:max-w-[450px]"
+            className="w-[90vw] max-w-[400px] border-0 bg-transparent p-0 sm:max-w-[450px]"
           >
             <DialogTitle className="sr-only">QR Code</DialogTitle>
             <div className="flex flex-col items-center gap-4">
-              <div className="rounded-xl border-2 border-white/20 bg-white p-3 shadow-2xl sm:p-4">
+              <div className="rounded-xl bg-white p-3 shadow-2xl sm:p-4">
                 <Image
                   src="/clean-air-forum-2026/cleanair.jpeg"
                   alt="Clean Air Forum QR Code - Scan to participate"
@@ -1456,10 +1456,10 @@ export default function FacesOfCleanAirPage() {
                   className="h-auto w-full max-w-[280px] object-contain sm:max-w-[320px]"
                 />
               </div>
-              <p className="text-center text-sm font-medium text-white sm:text-base">
+              <p className="text-center text-sm font-medium text-white drop-shadow-lg sm:text-base">
                 Scan to participate
               </p>
-              <p className="text-center text-xs text-white/70">
+              <p className="text-center text-xs text-white/80 drop-shadow-md">
                 Africa Clean Air Forum • Pretoria 2026
               </p>
             </div>
