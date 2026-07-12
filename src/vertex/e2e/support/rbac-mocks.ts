@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import {
   PERMISSIONS,
   mapLegacyPermission,
@@ -226,6 +226,39 @@ export async function resetAppBootState(page: Page): Promise<void> {
       // Storage unavailable — nothing to clear.
     }
   });
+}
+
+export const FORBIDDEN_TEXT = "Error code: 403 forbidden access";
+
+/**
+ * Asserts a guarded route denied access, accepting either denial surface.
+ *
+ * Two independent layers deny these routes and race each other: RouteGuard
+ * renders the in-place forbidden UI, while useContextAwareRouting (in the
+ * authenticated layout) replaces the URL with /home for routes whose sidebar
+ * entry is permission-hidden. The dev server is slow enough that the
+ * forbidden UI usually wins; a production build redirects first. Either
+ * outcome IS a denial, so tests must accept both or they pass in one build
+ * mode and fail in the other.
+ */
+export async function expectRouteDenied(
+  page: Page,
+  { timeout = 120_000 }: { timeout?: number } = {}
+): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        if (/\/home(\?|$)/.test(page.url())) return "redirected-home";
+        if (await page.getByText(FORBIDDEN_TEXT).isVisible()) return "forbidden-ui";
+        return null;
+      },
+      {
+        timeout,
+        message:
+          "expected the route to deny access (forbidden UI or redirect to /home)",
+      }
+    )
+    .not.toBeNull();
 }
 
 /**

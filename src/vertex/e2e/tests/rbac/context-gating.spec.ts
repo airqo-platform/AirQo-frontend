@@ -5,6 +5,8 @@ import {
   seedActiveGroup,
   rbacUser,
   E2E_EXTERNAL_ORG_ID,
+  expectRouteDenied,
+  FORBIDDEN_TEXT,
 } from "../../support/rbac-mocks";
 import { PERMISSIONS } from "../../../core/permissions/constants";
 import { ADMIN_PANEL_PERMISSIONS } from "../../../core/permissions/adminAccess";
@@ -23,8 +25,6 @@ import { ADMIN_PANEL_PERMISSIONS } from "../../../core/permissions/adminAccess";
  * load boots with that org active (external-org context). See
  * support/rbac-mocks.ts.
  */
-
-const FORBIDDEN_TEXT = "Error code: 403 forbidden access";
 
 /**
  * Boots once in the default (personal) context to capture the user id, then
@@ -91,8 +91,9 @@ test("blocks /admin/networks from an external-org context even with admin permis
 
   await page.goto("/admin/networks");
 
-  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 120_000 });
-  expect(page.url()).toContain("/admin/networks");
+  // Denial may surface as AdminRouteGuard's forbidden UI or as the layout's
+  // context-aware redirect to /home — see expectRouteDenied.
+  await expectRouteDenied(page);
 });
 
 test("allows /admin/networks from the personal context with admin permissions (control)", async ({ page }) => {

@@ -5,6 +5,7 @@ import {
   seedActiveGroup,
   rbacUser,
   E2E_EXTERNAL_ORG_ID,
+  expectRouteDenied,
 } from "../../support/rbac-mocks";
 import { PERMISSIONS } from "../../../core/permissions/constants";
 
@@ -25,7 +26,6 @@ import { PERMISSIONS } from "../../../core/permissions/constants";
  */
 
 const DEVICE = PERMISSIONS.DEVICE;
-const FORBIDDEN_TEXT = "Error code: 403 forbidden access";
 
 async function bootInExternalOrg(
   page: Page,
@@ -100,6 +100,7 @@ test("denies a route in an org whose role lacks DEVICE_VIEW, despite holding it 
 
   await page.goto("/devices/overview");
 
-  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 120_000 });
-  expect(page.url()).toContain("/devices/overview");
+  // Denial may surface as RouteGuard's forbidden UI or as the layout's
+  // context-aware redirect to /home — see expectRouteDenied.
+  await expectRouteDenied(page);
 });
