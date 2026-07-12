@@ -5,9 +5,9 @@
 ## Version 2.0.23
 **Released:** July 11, 2026
 
-### E2E: Import External Device (Single & Bulk), CSV Template Download, Org Management Links & Login Fixes
+### E2E: Import External Device (Single & Bulk), CSV Template Download, Org Management Links, In-Dialog Feedback & Login Fixes
 
-First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, sidebar links to organization member/role management on the analytics platform, and two real login bugs the e2e runs flushed out.
+First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, sidebar links to organization member/role management on the analytics platform, a feedback shortcut in every dialog header, and two real login bugs the e2e runs flushed out.
 
 <details>
 <summary><strong>Fix: login could fail with "Could not confirm session" despite successful sign-in</strong></summary>
@@ -49,6 +49,18 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 </details>
 
 <details>
+<summary><strong>New: feedback shortcut in every dialog header</strong></summary>
+
+- `ReusableDialog`'s default header now shows a **"?" button** (same `AqHelpCircle` icon as the topbar) next to the close button, opening the existing feedback dialog — so users who hit an issue inside a dialog can report it without hunting for the topbar. On by default via a new `showFeedbackButton` prop; the feedback dialog itself opts out to avoid recursion.
+- The underlying dialog **stays open beneath the feedback dialog**, so the existing screenshot capture (which hides only the feedback UI) photographs exactly the dialog being reported — annotations included.
+- `openFeedbackDialog(source?)` now carries the originating dialog's title via `CustomEvent` detail (type-guarded so existing direct `onClick` callers are unaffected), and the launcher submits it as `sourceDialog` in the feedback metadata for easier triage.
+- **Fix: Escape closed all stacked dialogs** — each open dialog registered its own window-level Escape listener, so Escape in a stacked dialog also closed the one beneath it. A module-level open-dialog stack now makes only the topmost dialog respond, and the body scroll lock is released only when the last dialog closes.
+- The "?" button is excluded from the dialog's initial-focus selection so it doesn't steal focus on open.
+- Co-located unit tests (`ReusableDialog.test.tsx`, 3 cases): event fires with the dialog title as source, opt-out hides the button, Escape closes only the topmost stacked dialog.
+
+</details>
+
+<details>
 <summary><strong>New: e2e specs — Import External Device, single &amp; bulk flows</strong></summary>
 
 - `e2e/tests/devices/import-external-device.spec.ts` (authenticated `chromium` project), using **hybrid interception**: real auth, navigation, and data GETs against staging; the two write endpoints (`POST /devices/soft`, cohort assignment) intercepted via `page.route()` so runs are deterministic and create no backend records.
@@ -70,7 +82,7 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 </details>
 
 <details>
-<summary><strong>Files Modified &amp; Added (22)</strong></summary>
+<summary><strong>Files Modified &amp; Added (26)</strong></summary>
 
 - `src/vertex/core/auth/waitForSession.ts` [NEW]
 - `src/vertex/core/auth/waitForSession.test.ts` [NEW]
@@ -85,6 +97,10 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 - `src/vertex/components/layout/secondary-sidebar.test.tsx` [NEW]
 - `src/vertex/components/layout/NavItem.tsx` [MODIFIED] — `external` link support
 - `src/vertex/core/urls.tsx` [MODIFIED] — exports `ANALYTICS_BASE_URL`
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED] — feedback "?" button, topmost-dialog Escape/scroll-lock fix
+- `src/vertex/components/shared/dialog/ReusableDialog.test.tsx` [NEW]
+- `src/vertex/components/features/feedback/feedback-dialog.ts` [MODIFIED] — `openFeedbackDialog(source?)` CustomEvent detail
+- `src/vertex/components/features/feedback/feedback-launcher.tsx` [MODIFIED] — `sourceDialog` metadata, opts out of the "?" button
 - `src/vertex/e2e/tests/devices/import-external-device.spec.ts` [NEW]
 - `src/vertex/e2e/tests/devices/import-external-device-bulk.spec.ts` [NEW]
 - `src/vertex/e2e/support/device-mocks.ts` [NEW]

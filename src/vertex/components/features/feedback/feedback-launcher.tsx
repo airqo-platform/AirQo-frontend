@@ -16,7 +16,7 @@ import { useBanner } from '@/context/banner-context';
 
 import { feedbackService } from '@/core/apis/feedback';
 import { uploadToCloudinary } from '@/core/apis/cloudinary';
-import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
+import { FEEDBACK_DIALOG_OPEN_EVENT, FeedbackDialogOpenDetail } from './feedback-dialog';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 // ---------------------------------------------------------------------------
@@ -360,6 +360,8 @@ export const FeedbackLauncher: React.FC = () => {
   const { showBanner } = useBanner();
 
   const [isOpen, setIsOpen] = useState(false);
+  // Which dialog (if any) the feedback flow was launched from — included in metadata.
+  const [sourceDialog, setSourceDialog] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -388,7 +390,11 @@ export const FeedbackLauncher: React.FC = () => {
   // Event: open feedback dialog
   // -------------------------------------------------------------------------
   useEffect(() => {
-    const handler = () => setIsOpen(true);
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<FeedbackDialogOpenDetail>).detail;
+      setSourceDialog(detail?.source || null);
+      setIsOpen(true);
+    };
     window.addEventListener(FEEDBACK_DIALOG_OPEN_EVENT, handler);
     return () => window.removeEventListener(FEEDBACK_DIALOG_OPEN_EVENT, handler);
   }, []);
@@ -398,6 +404,7 @@ export const FeedbackLauncher: React.FC = () => {
   // -------------------------------------------------------------------------
   useEffect(() => {
     if (!isOpen) {
+      setSourceDialog(null);
       setMainCategory(null);
       setIssueAction('');
       setMessage('');
@@ -667,7 +674,9 @@ export const FeedbackLauncher: React.FC = () => {
         platform: 'web',
         app: 'vertex',
         screenshot_url,
-        metadata: defaultMetadata,
+        metadata: sourceDialog
+          ? { ...defaultMetadata, sourceDialog }
+          : defaultMetadata,
       });
 
       setIsOpen(false);
@@ -848,6 +857,7 @@ export const FeedbackLauncher: React.FC = () => {
         onClose={() => setIsOpen(false)}
         title={dialogTitle}
         size="xl"
+        showFeedbackButton={false}
         customHeader={
           mainCategory ? (
             <div className="flex items-center justify-between w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700">
