@@ -1414,7 +1414,7 @@ export default function FacesOfCleanAirPage() {
           </section>
         </main>
 
-        <QrCodeButton />
+        <QrCodeButton src="/clean-air-forum-2026/cleanair.jpeg" />
 
         {/* Keeps mobile spacing balanced without making the page scroll. */}
         <div className="h-2 flex-none sm:hidden" />

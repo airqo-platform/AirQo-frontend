@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 const QR_IMAGE_SRC = '/clean-air-forum-2026/cleanair2.jpeg';
 
-export default function QrCodeButton() {
+export default function QrCodeButton({ src = QR_IMAGE_SRC }: { src?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -21,7 +21,7 @@ export default function QrCodeButton() {
         <div className="flex flex-col items-center gap-1">
           <div className="overflow-hidden rounded-lg border-2 border-white/30 bg-white/10 p-1 shadow-lg backdrop-blur-sm transition-transform hover:scale-105 sm:border-white/40 sm:p-1.5 lg:p-2">
             <Image
-              src={QR_IMAGE_SRC}
+              src={src}
               alt="Clean Air Forum QR Code"
               width={60}
               height={60}
@@ -40,7 +40,7 @@ export default function QrCodeButton() {
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-xl bg-white p-3 shadow-2xl sm:p-4">
               <Image
-                src={QR_IMAGE_SRC}
+                src={src}
                 alt="Clean Air Forum QR Code - Scan to participate"
                 width={300}
                 height={300}
