@@ -44,7 +44,9 @@ async function bootInExternalOrg(
 }
 
 test("blocks /sites/my-sites from an external-org context even with SITE_VIEW", async ({ page }) => {
-  test.setTimeout(150_000);
+  // Two full page boots against the real backend — generous budget so
+  // parallel-worker dev-server load can't starve the redirect wait.
+  test.setTimeout(240_000);
   // The org role explicitly holds SITE_VIEW — the only thing missing is the
   // personal context, so a denial proves allowedContexts enforcement.
   await bootInExternalOrg(page, {
@@ -56,7 +58,7 @@ test("blocks /sites/my-sites from an external-org context even with SITE_VIEW", 
 
   await page.goto("/sites/my-sites");
 
-  await page.waitForURL(/\/home(\?|$)/, { timeout: 60_000 });
+  await page.waitForURL(/\/home(\?|$)/, { timeout: 120_000 });
 });
 
 test("allows /sites/my-sites from the personal context with SITE_VIEW (control)", async ({ page }) => {
@@ -78,7 +80,7 @@ test("allows /sites/my-sites from the personal context with SITE_VIEW (control)"
 });
 
 test("blocks /admin/networks from an external-org context even with admin permissions", async ({ page }) => {
-  test.setTimeout(150_000);
+  test.setTimeout(240_000);
   // AdminRouteGuard = ADMIN_PANEL_PERMISSIONS + allowedContexts ['personal'].
   // Grant the full admin permission set on the org role so the context check
   // is the only thing that can deny.
@@ -89,7 +91,7 @@ test("blocks /admin/networks from an external-org context even with admin permis
 
   await page.goto("/admin/networks");
 
-  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 120_000 });
   expect(page.url()).toContain("/admin/networks");
 });
 

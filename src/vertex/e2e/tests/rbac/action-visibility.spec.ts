@@ -45,13 +45,17 @@ test.describe("claim — Add AirQo Device", () => {
 
     await page.goto("/devices/my-devices");
 
-    const claimButton = page.getByRole("button", { name: "Add AirQo Device" });
-    await expect(claimButton).toBeDisabled({ timeout: 60_000 });
-
-    // Control: the import entry point on the same page stays usable.
+    // Control first: the import button is disabled while the devices query
+    // is loading, so waiting for it to become enabled proves the page has
+    // settled — only then is the claim button's disabled state attributable
+    // to the missing permission rather than the loading state.
     await expect(
       page.getByRole("button", { name: "Import External Device" })
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 60_000 });
+
+    await expect(
+      page.getByRole("button", { name: "Add AirQo Device" })
+    ).toBeDisabled();
   });
 
   test("is enabled and opens the claim modal for a user with DEVICE_CLAIM", async ({ page }) => {
@@ -115,14 +119,18 @@ test.describe("deploy / recall / maintain — device details", () => {
 
     await page.goto(`/devices/overview/${MOCK_DEVICE_DETAILS_ID}`);
 
-    await expect(
-      page.getByRole("button", { name: "Deploy Device" })
-    ).toBeDisabled({ timeout: 60_000 });
-
-    // Control: an action they do hold stays enabled on the same page.
+    // This page has no RouteGuard, so buttons render (disabled) while user
+    // details are still loading. Wait for the control — an action they DO
+    // hold — to become enabled first: that proves permissions have loaded,
+    // making the disabled assertion below meaningful rather than a snapshot
+    // of the loading state.
     await expect(
       page.getByRole("button", { name: "Add Maintenance Log" })
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 60_000 });
+
+    await expect(
+      page.getByRole("button", { name: "Deploy Device" })
+    ).toBeDisabled();
   });
 
   test("recall is disabled for a user without DEVICE_RECALL", async ({ page }) => {
@@ -135,12 +143,13 @@ test.describe("deploy / recall / maintain — device details", () => {
 
     await page.goto(`/devices/overview/${MOCK_DEVICE_DETAILS_ID}`);
 
-    await expect(
-      page.getByRole("button", { name: "Recall Device" })
-    ).toBeDisabled({ timeout: 60_000 });
+    // Control first — see the deploy test for why.
     await expect(
       page.getByRole("button", { name: "Add Maintenance Log" })
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 60_000 });
+    await expect(
+      page.getByRole("button", { name: "Recall Device" })
+    ).toBeDisabled();
   });
 
   test("maintenance log is disabled for a user without DEVICE_MAINTAIN", async ({ page }) => {
@@ -153,11 +162,12 @@ test.describe("deploy / recall / maintain — device details", () => {
 
     await page.goto(`/devices/overview/${MOCK_DEVICE_DETAILS_ID}`);
 
-    await expect(
-      page.getByRole("button", { name: "Add Maintenance Log" })
-    ).toBeDisabled({ timeout: 60_000 });
+    // Control first — see the deploy test for why.
     await expect(
       page.getByRole("button", { name: "Deploy Device" })
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 60_000 });
+    await expect(
+      page.getByRole("button", { name: "Add Maintenance Log" })
+    ).toBeDisabled();
   });
 });

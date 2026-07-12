@@ -48,7 +48,9 @@ const updateOnAirqoOnly = {
 };
 
 test("denies device actions in an org where the role lacks DEVICE_UPDATE, despite holding it on AirQo", async ({ page }) => {
-  test.setTimeout(150_000);
+  // Two full page boots against the real backend — generous budget so
+  // parallel-worker dev-server load can't starve the waits.
+  test.setTimeout(240_000);
   await bootInExternalOrg(page, updateOnAirqoOnly);
 
   await page.goto("/devices/overview");
@@ -56,7 +58,7 @@ test("denies device actions in an org where the role lacks DEVICE_UPDATE, despit
   // The page itself renders — the org role holds DEVICE_VIEW…
   await expect(
     page.getByRole("heading", { name: "Devices", exact: true, level: 1 })
-  ).toBeVisible({ timeout: 60_000 });
+  ).toBeVisible({ timeout: 120_000 });
 
   // …but the mutating actions are denied: DEVICE_UPDATE exists on the user's
   // AirQo membership, not on this organization's role.
@@ -86,7 +88,7 @@ test("allows the same device actions in the personal scope that holds DEVICE_UPD
 });
 
 test("denies a route in an org whose role lacks DEVICE_VIEW, despite holding it on AirQo", async ({ page }) => {
-  test.setTimeout(150_000);
+  test.setTimeout(240_000);
   // Route-guard flavour of the same scoping rule: DEVICE_VIEW held on AirQo
   // must not open /devices/overview while an org without it is active.
   await bootInExternalOrg(page, {
@@ -97,6 +99,6 @@ test("denies a route in an org whose role lacks DEVICE_VIEW, despite holding it 
 
   await page.goto("/devices/overview");
 
-  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout: 120_000 });
   expect(page.url()).toContain("/devices/overview");
 });

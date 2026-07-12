@@ -191,13 +191,21 @@ export async function interceptUserDetails(
       await route.fallback();
       return;
     }
-    const response = await route.fetch();
-    const json = (await response.json()) as { users?: MockableUserDetails[] };
-    if (Array.isArray(json.users) && json.users[0]) {
-      resolveUserId(json.users[0]._id);
-      json.users[0] = transform(json.users[0]);
+    try {
+      const response = await route.fetch();
+      const json = (await response.json()) as { users?: MockableUserDetails[] };
+      if (Array.isArray(json.users) && json.users[0]) {
+        resolveUserId(json.users[0]._id);
+        json.users[0] = transform(json.users[0]);
+      }
+      await route.fulfill({ response, json });
+    } catch (error) {
+      // React Query refetches user details in the background, so a request
+      // can still be in flight when the test ends — fulfilling is impossible
+      // and irrelevant then. Rethrow anything else.
+      if (page.isClosed() || /Test ended/i.test(String(error))) return;
+      throw error;
     }
-    await route.fulfill({ response, json });
   });
 
   return { userId: () => userIdPromise };
