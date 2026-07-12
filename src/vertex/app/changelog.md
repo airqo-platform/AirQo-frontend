@@ -2,6 +2,43 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.24
+**Released:** July 12, 2026
+
+### E2E: RBAC Coverage (Action Visibility, Route Guards, Context Gating, Resource Scoping) & Missing Device-Action Permission Gating
+
+Four e2e specs proving the RBAC system against a real session — each device action gated per-permission, both route-guard denial modes, `allowedContexts` enforcement, and org-scoped (resource-context) denial — plus the app fix the coverage immediately surfaced: several device action buttons carried a permission tooltip but were never actually disabled without the permission.
+
+<details>
+<summary><strong>Fix: device action buttons weren't disabled for users lacking the permission</strong></summary>
+
+- The **My Devices "Add AirQo Device"** button and the device-details **Deploy / Recall / Add Maintenance Log** buttons passed a `permission` prop (used only for the disabled-state tooltip) but were never disabled by an actual permission check — any user who could see the page could open those dialogs.
+- Each now disables via `usePermission` on its own permission (`DEVICE_CLAIM`, `DEVICE_DEPLOY`, `DEVICE_RECALL`, `DEVICE_MAINTAIN`), matching the gating pattern already used on `/devices/overview`, with the existing tooltip explaining the required permission.
+- Known follow-up (behavior pinned by tests, not changed): on `/devices/overview` both "Add AirQo Device" and "Import External Device" gate on `DEVICE_UPDATE` while their tooltips cite `DEVICE_CLAIM` — the intended policy needs a product decision.
+
+</details>
+
+<details>
+<summary><strong>New: RBAC e2e infrastructure — permission scenarios without a second test account</strong></summary>
+
+- `e2e/support/rbac-mocks.ts`: real login, session, and routing, but the single user-details GET that feeds every permission check is intercepted and its **real response transformed in flight** — strip/grant `role_permissions` (legacy permission names resolved through the app's own `mapLegacyPermission`), always neutralize `SUPER_ADMIN` so outcomes depend only on explicit grants, and optionally inject a synthetic external organization.
+- Persisted Redux user state and the React Query cache are cleared before each document load, so every test boots deterministically as exactly the user it declares — no second account, no backend seeding, nothing written to the backend.
+- External-org context is entered by seeding the last-active-group preference with the injected org id after a first boot captures the real user id.
+- A device-details fixture (`device-mocks.ts`) pins deployment status so Deploy vs Recall button visibility is deterministic.
+
+</details>
+
+<details>
+<summary><strong>New: RBAC e2e coverage — 19 tests across four specs</strong></summary>
+
+- **Action visibility** (`rbac/action-visibility.spec.ts`): claim, import, deploy, recall, and maintain each tested individually — a user whose role lacks exactly that permission gets a disabled button, while a sibling action they do hold stays enabled (the control proving per-permission gating rather than a broken page).
+- **Route guards** (`rbac/route-guard.spec.ts`): direct navigation without the required permission hits the right denial mode — in-place forbidden UI on `/devices/overview` and `/admin/networks` (via `AdminRouteGuard`), redirect to `/home` for `/sites/my-sites` (`showError={false}`), plus a positive control.
+- **Context gating** (`rbac/context-gating.spec.ts`): personal-only pages deny an external-org session **even when the org role grants every permission the guard asks for**; identical grants render fine from the personal context — isolating `allowedContexts` as the only denial cause.
+- **Resource scoping** (`rbac/resource-scoped.spec.ts`): the subtlest check — a user who genuinely holds `DEVICE_UPDATE`, but on AirQo rather than the active org, gets denied there and allowed in the scope that holds it; a route-guard variant proves the same for `DEVICE_VIEW`.
+- Full-suite runs surfaced three flake sources, fixed in-suite: assert the enabled control before the disabled target on pages whose buttons render during loading; tolerate test-end races in the route handler (React Query background refetches); generous budgets for the double-boot external-org scenarios.
+
+</details>
+
 ## Version 2.0.23
 **Released:** July 11, 2026
 
