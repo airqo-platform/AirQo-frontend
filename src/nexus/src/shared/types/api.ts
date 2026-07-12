@@ -2501,3 +2501,32 @@ export interface RejectInvitationResponse {
   message: string;
   data: RejectInvitationData;
 }
+
+// Selfie Types
+export interface Selfie {
+  _id: string;
+  hidden: boolean;
+  eventId: string;
+  imageUrl: string;
+  locationName?: string | null;
+  pm25Value?: number | null;
+  aqiCategory?: string | null;
+  displayName?: string | null;
+  avatarIcon?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface GetSelfiesResponse {
+  success: boolean;
+  message: string;
+  selfies: Selfie[];
+  total: number;
+}
+
+export interface SelfieActionResponse {
+  success: boolean;
+  message: string;
+  selfie?: Selfie;
+}
