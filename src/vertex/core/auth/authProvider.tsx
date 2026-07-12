@@ -41,6 +41,7 @@ import {
   shouldSkipBackendOAuthBootstrap,
   clearBackendOAuthSignedOutFlag,
 } from './oauth-session';
+import { waitForSession } from './waitForSession';
 
 // --- Helper Functions ---
 
@@ -774,26 +775,6 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     }
   }, [status]);
 
-  const waitForSession = useCallback(async () => {
-    const attempts = 8;
-    const delayMs = 150;
-
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      const session = await getSession();
-      if (session?.user) {
-        return session;
-      }
-
-      if (attempt < attempts - 1) {
-        await new Promise<void>((resolve) => {
-          window.setTimeout(resolve, delayMs);
-        });
-      }
-    }
-
-    return null;
-  }, []);
-
   useEffect(() => {
     if (hasInitiatedBootstrapRef.current) return;
     hasInitiatedBootstrapRef.current = true;
@@ -821,11 +802,23 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           if (result?.ok) {
             // Force NextAuth SessionProvider to immediately sync its React context
             await update();
-            
+
             // Wait for session to be fully available before redirecting
             const session = await waitForSession();
-            const email = session?.user?.email || '';
-            
+
+            if (!session?.user) {
+              // signIn reported ok but the session cookie never materialized
+              // (e.g. it was issued for a domain the browser rejects). Without
+              // this guard we'd redirect to a protected page unauthenticated
+              // and get bounced straight back — an endless login loop.
+              logger.error('[TokenHandoffHandler] OAuth sign-in succeeded but no session was established');
+              isHandlingOAuthRef.current = false;
+              router.push('/auth-error?error=SessionNotEstablished');
+              return;
+            }
+
+            const email = session.user.email || '';
+
             // Signal other tabs/apps that login occurred
             try {
               localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));
@@ -880,7 +873,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
     };
 
     bootstrap();
-  }, [router, pathname, waitForSession, update]);
+  }, [router, pathname, update]);
 
   // Keep blocking if we successfully handed off the token but NextAuth hasn't flushed its authenticated state yet
   if ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current)) {

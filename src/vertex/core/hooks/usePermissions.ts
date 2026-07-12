@@ -235,6 +235,10 @@ export const useHasAnyPermission = (permissions: Permission[], context?: Partial
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMemo(() => {
+    if (MOCK_PERMISSIONS_ENABLED) {
+      return permissions.some((permission) => MOCK_PERMISSIONS[permission] ?? false);
+    }
+
     if (!user) return false;
 
     return permissions.some((permission) =>
@@ -256,6 +260,10 @@ export const useHasAllPermissions = (permissions: Permission[], context?: Partia
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMemo(() => {
+    if (MOCK_PERMISSIONS_ENABLED) {
+      return permissions.every((permission) => MOCK_PERMISSIONS[permission] ?? false);
+    }
+
     if (!user) return false;
 
     return permissions.every((permission) =>

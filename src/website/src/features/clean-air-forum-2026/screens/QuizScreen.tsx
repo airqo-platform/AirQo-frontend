@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
+import QrCodeButton from '@/components/clean-air-forum-2026/QrCodeButton';
 import Screen from '@/components/clean-air-forum-2026/Screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -478,6 +479,7 @@ export default function QuizScreen() {
             </p>
           </motion.div>
         </motion.header>
+        <QrCodeButton />
       </Screen>
     );
   }
@@ -587,6 +589,7 @@ export default function QuizScreen() {
             </div>
           </div>
         </section>
+        <QrCodeButton />
       </Screen>
     );
   }
@@ -756,6 +759,7 @@ export default function QuizScreen() {
           </div>
         </div>
       </section>
+      <QrCodeButton />
     </Screen>
   );
 }

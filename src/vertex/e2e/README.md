@@ -24,8 +24,16 @@ npm run test:e2e:report     # open the last HTML report
 ```txt
 e2e/
   setup/auth.setup.ts     # logs in once, saves storageState for the chromium project
+  support/                # shared helpers: env guard, route-interception mocks
   tests/
     public/               # signed-out tests (no .env.e2e required) — "public" project
+    devices/              # device flows (import wizard, ...) — "chromium" project
     ...                   # everything else — authenticated, "chromium" project
   .auth/                  # gitignored storageState output
 ```
+
+Mutation-heavy specs use **hybrid interception**: real auth, navigation, and
+data GETs, with write endpoints intercepted via `page.route()` (see
+`support/device-mocks.ts`) so runs are deterministic and never write to the
+backend. `support/env-guard.ts` additionally refuses to run mutation specs
+when `NEXT_PUBLIC_API_URL` does not look like staging/localhost.
