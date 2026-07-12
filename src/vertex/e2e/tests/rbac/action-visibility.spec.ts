@@ -40,7 +40,7 @@ test.describe("claim — Add AirQo Device", () => {
     test.setTimeout(120_000);
     await bootWith(page, {
       strip: [DEVICE.CLAIM],
-      grantPersonal: [DEVICE.VIEW],
+      grantPersonal: [DEVICE.VIEW, DEVICE.UPDATE],
     });
 
     await page.goto("/devices/my-devices");
@@ -74,7 +74,7 @@ test.describe("claim — Add AirQo Device", () => {
 });
 
 test.describe("import & claim — Devices overview", () => {
-  test("are disabled for a user without DEVICE_UPDATE", async ({ page }) => {
+  test("import is disabled for a user without DEVICE_UPDATE", async ({ page }) => {
     test.setTimeout(120_000);
     await bootWith(page, {
       strip: [DEVICE.UPDATE],
@@ -83,9 +83,28 @@ test.describe("import & claim — Devices overview", () => {
 
     await page.goto("/devices/overview");
 
+    // Control first: claim gates on DEVICE_CLAIM, which this user holds.
+    await expect(
+      page.getByRole("button", { name: "Add AirQo Device" })
+    ).toBeEnabled({ timeout: 60_000 });
     await expect(
       page.getByRole("button", { name: "Import External Device" })
-    ).toBeDisabled({ timeout: 60_000 });
+    ).toBeDisabled();
+  });
+
+  test("claim is disabled for a user without DEVICE_CLAIM", async ({ page }) => {
+    test.setTimeout(120_000);
+    await bootWith(page, {
+      strip: [DEVICE.CLAIM],
+      grantPersonal: [DEVICE.VIEW, DEVICE.UPDATE],
+    });
+
+    await page.goto("/devices/overview");
+
+    // Control first: import gates on DEVICE_UPDATE, which this user holds.
+    await expect(
+      page.getByRole("button", { name: "Import External Device" })
+    ).toBeEnabled({ timeout: 60_000 });
     await expect(
       page.getByRole("button", { name: "Add AirQo Device" })
     ).toBeDisabled();

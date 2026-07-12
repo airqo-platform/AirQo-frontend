@@ -32,6 +32,7 @@ const MyDevicesPage = () => {
 
   const { userScope } = useUserContext();
   const canClaimDevice = usePermission(PERMISSIONS.DEVICE.CLAIM);
+  const canImportDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
   const {
     data: myDevicesData,
@@ -116,7 +117,9 @@ const MyDevicesPage = () => {
               <ReusableButton
                 variant="outlined"
                 onClick={() => setImportDeviceOpen(true)}
+                disabled={!canImportDevice}
                 Icon={Upload}
+                permission={PERMISSIONS.DEVICE.UPDATE}
               >
                 Import External Device
               </ReusableButton>
@@ -178,8 +181,9 @@ const MyDevicesPage = () => {
             <ReusableButton
               variant="outlined"
               onClick={() => setImportDeviceOpen(true)}
-              disabled={isLoading}
+              disabled={isLoading || !canImportDevice}
               Icon={Upload}
+              permission={PERMISSIONS.DEVICE.UPDATE}
             >
               Import External Device
             </ReusableButton>

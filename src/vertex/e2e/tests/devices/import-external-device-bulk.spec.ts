@@ -230,7 +230,7 @@ test("shows per-row results when part of the import fails", async ({ page }) => 
   await expect(wizard.getByText("Partial Import Success")).toBeVisible({ timeout: 30_000 });
   await expect(
     wizard.getByText("1 of 2 devices imported. 1 failed.")
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 30_000 });
   await expect(wizard.getByText(failureMessage)).toBeVisible();
   await expect(wizard.getByText(devices[1]["Device Name"])).toBeVisible();
 

@@ -19,8 +19,9 @@ export default function DevicesPage() {
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
-  // Permission checks
+  // Permission checks: claim gates on DEVICE_CLAIM, import on DEVICE_UPDATE.
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
+  const canClaimDevice = usePermission(PERMISSIONS.DEVICE.CLAIM);
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
@@ -35,7 +36,7 @@ export default function DevicesPage() {
           <div className="flex-1" />
           <div className="flex gap-2">
             <ReusableButton
-              disabled={!canUpdateDevice}
+              disabled={!canClaimDevice}
               onClick={() => setIsClaimModalOpen(true)}
               Icon={Plus}
               permission={PERMISSIONS.DEVICE.CLAIM}
@@ -48,7 +49,7 @@ export default function DevicesPage() {
               disabled={!canUpdateDevice}
               onClick={() => setImportDeviceOpen(true)}
               Icon={Upload}
-              permission={PERMISSIONS.DEVICE.CLAIM}
+              permission={PERMISSIONS.DEVICE.UPDATE}
             >
               Import External Device
             </ReusableButton>

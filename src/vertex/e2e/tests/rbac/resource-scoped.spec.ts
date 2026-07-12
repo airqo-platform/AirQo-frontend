@@ -39,10 +39,11 @@ async function bootInExternalOrg(
   await seedActiveGroup(page, userId, E2E_EXTERNAL_ORG_ID);
 }
 
-// DEVICE_UPDATE held on AirQo only; the org role has view access but no
-// update. Whether the actions are usable must follow the ACTIVE org's role.
+// DEVICE_UPDATE (import) and DEVICE_CLAIM (claim) held on AirQo only; the
+// org role has view access but neither action permission. Whether the
+// actions are usable must follow the ACTIVE org's role.
 const updateOnAirqoOnly = {
-  strip: [DEVICE.UPDATE],
+  strip: [DEVICE.UPDATE, DEVICE.CLAIM],
   grantPersonal: [DEVICE.VIEW, DEVICE.UPDATE, DEVICE.CLAIM],
   externalOrg: { permissions: [DEVICE.VIEW] },
 };
@@ -60,8 +61,8 @@ test("denies device actions in an org where the role lacks DEVICE_UPDATE, despit
     page.getByRole("heading", { name: "Devices", exact: true, level: 1 })
   ).toBeVisible({ timeout: 120_000 });
 
-  // …but the mutating actions are denied: DEVICE_UPDATE exists on the user's
-  // AirQo membership, not on this organization's role.
+  // …but the mutating actions are denied: DEVICE_UPDATE and DEVICE_CLAIM
+  // exist on the user's AirQo membership, not on this organization's role.
   await expect(
     page.getByRole("button", { name: "Import External Device" })
   ).toBeDisabled();

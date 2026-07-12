@@ -14,7 +14,15 @@ Four e2e specs proving the RBAC system against a real session — each device ac
 
 - The **My Devices "Add AirQo Device"** button and the device-details **Deploy / Recall / Add Maintenance Log** buttons passed a `permission` prop (used only for the disabled-state tooltip) but were never disabled by an actual permission check — any user who could see the page could open those dialogs.
 - Each now disables via `usePermission` on its own permission (`DEVICE_CLAIM`, `DEVICE_DEPLOY`, `DEVICE_RECALL`, `DEVICE_MAINTAIN`), matching the gating pattern already used on `/devices/overview`, with the existing tooltip explaining the required permission.
-- Known follow-up (behavior pinned by tests, not changed): on `/devices/overview` both "Add AirQo Device" and "Import External Device" gate on `DEVICE_UPDATE` while their tooltips cite `DEVICE_CLAIM` — the intended policy needs a product decision.
+- **Gating policy made consistent everywhere: claim → `DEVICE_CLAIM`, import → `DEVICE_UPDATE`.** On `/devices/overview`, "Add AirQo Device" previously gated on `DEVICE_UPDATE` while its tooltip cited `DEVICE_CLAIM` (it now gates on `DEVICE_CLAIM`), and "Import External Device" showed a `DEVICE_CLAIM` tooltip for a `DEVICE_UPDATE` check (tooltip corrected). The My Devices import button, previously ungated, now gates on `DEVICE_UPDATE` too.
+
+</details>
+
+<details>
+<summary><strong>Fix: mock-permissions dev flag now applies to all permission hooks</strong></summary>
+
+- `useHasAnyPermission` and `useHasAllPermissions` ignored `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED` while `usePermission`/`usePermissions` honored it — and since `RouteGuard` resolves permissions exclusively through `useHasAnyPermission`, enabling mock permissions in development changed action buttons but not page access.
+- Both hooks now short-circuit through `MOCK_PERMISSIONS` exactly like `usePermission` (never in production), with unit coverage proving the hooks agree.
 
 </details>
 
