@@ -1,0 +1,51 @@
+{
+  "name": "@airqo/create-vertex-app",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Scaffold a Vertex IoT dashboard app — a configurable, mock-first device management UI",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-vertex-app": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "sync-template": "node scripts/sync-template.mjs",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepack": "npm run sync-template && npm run build",
+    "test:smoke": "node scripts/smoke-test.mjs"
+  },
+  "keywords": [
+    "create-vertex-app",
+    "vertex",
+    "iot",
+    "dashboard",
+    "airqo",
+    "scaffold",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/airqo-platform/AirQo-frontend.git",
+    "directory": "packages/create-vertex-app"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}
