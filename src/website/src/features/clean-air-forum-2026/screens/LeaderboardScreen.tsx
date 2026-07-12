@@ -140,10 +140,6 @@ export default function LeaderboardScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    void fetchLeaderboard();
-  }, [fetchLeaderboard]);
-
   usePollingWithVisibility(fetchLeaderboard, POLL_INTERVAL_MS);
 
   const totalSlides = useMemo(
