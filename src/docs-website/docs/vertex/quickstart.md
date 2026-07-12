@@ -30,7 +30,7 @@ Vertex is designed to be accessible from multiple environments to suit your work
     Use the dedicated Vertex Desktop client, optimized for field engineers and offline management.
     
     ### 1. Download Vertex Desktop
-    Download the Windows application from [vertex.airqo.net/download](https://vertex.airqo.net/download).
+    Download the application for Linux, macOS, or Windows from [vertex.airqo.net/download](https://vertex.airqo.net/download)
     
     ### 2. Install and open the application
     Run the installer and open Vertex Desktop. It is built for local-network use and times when you don't have reliable internet access.
