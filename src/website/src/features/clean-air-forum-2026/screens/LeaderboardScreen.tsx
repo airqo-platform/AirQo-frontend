@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
+import LeaderboardEmptyState from '@/components/clean-air-forum-2026/LeaderboardEmptyState';
 import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
 import { fetchCleanAirForum2026Leaderboard } from '@/features/clean-air-forum-2026/lib/learn-progress';
@@ -138,10 +139,6 @@ export default function LeaderboardScreen() {
       setStatus('error');
     }
   }, []);
-
-  useEffect(() => {
-    void fetchLeaderboard();
-  }, [fetchLeaderboard]);
 
   usePollingWithVisibility(fetchLeaderboard, POLL_INTERVAL_MS);
 
@@ -344,6 +341,8 @@ export default function LeaderboardScreen() {
                 Try again
               </button>
             </motion.div>
+          ) : status === 'ready' && entries.length === 0 ? (
+            <LeaderboardEmptyState reduceMotion={shouldReduceMotion} />
           ) : (
             <section
               tabIndex={0}
