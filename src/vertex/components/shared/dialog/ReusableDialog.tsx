@@ -5,8 +5,16 @@ import { useEffect, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import ReusableButton from "@/components/shared/button/ReusableButton"
 import { X } from "lucide-react"
+import { AqHelpCircle } from "@airqo/icons-react"
 import { cn } from "@/lib/utils"
 import { BannerSlot, useBanner } from "@/context/banner-context"
+import { openFeedbackDialog } from "@/components/features/feedback/feedback-dialog"
+
+// Stack of currently open dialogs so stacked dialogs (e.g. feedback opened on
+// top of another dialog) don't fight over the Escape key and body scroll lock:
+// only the topmost dialog closes on Escape, and scroll is restored only when
+// the last dialog closes.
+const openDialogStack: symbol[] = []
 
 interface ReusableDialogProps {
   // Core props
@@ -21,6 +29,8 @@ interface ReusableDialogProps {
   iconColor?: string
   iconBgColor?: string
   showCloseButton?: boolean
+  /** Question-mark button in the default header that opens the feedback dialog. */
+  showFeedbackButton?: boolean
   customHeader?: React.ReactNode
 
   // Content props
@@ -69,6 +79,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
   iconColor = "text-blue-600",
   iconBgColor = "bg-blue-100",
   showCloseButton = true,
+  showFeedbackButton = true,
   customHeader,
 
   // Content props
@@ -94,6 +105,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<Element | null>(null)
+  const dialogId = useRef<symbol>(Symbol("reusable-dialog"))
   const { hideBanner } = useBanner()
 
 
@@ -113,7 +125,11 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
         dialogRef.current?.querySelectorAll<HTMLElement>(focusSelector) ?? []
       )
       const target =
-        all.find((el) => el.getAttribute('aria-label') !== 'Close dialog') ??
+        all.find(
+          (el) =>
+            el.getAttribute('aria-label') !== 'Close dialog' &&
+            !el.hasAttribute('data-dialog-chrome')
+        ) ??
         all[0] ??
         dialogRef.current
       target?.focus()
@@ -132,24 +148,44 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
     wasOpenRef.current = isOpen
   }, [isOpen, hideBanner])
 
-  // Escape key handler and body scroll lock
+  // Latest callbacks/flags for the Escape handler, so the stack-registration
+  // effect below can depend on isOpen only. If it also depended on onClose /
+  // preventBackdropClose, a rerender of a lower dialog (new callback
+  // identity) would remove and re-push its id, moving it to the top of
+  // openDialogStack — and Escape would close the wrong dialog.
+  const onCloseRef = useRef(onClose)
+  const preventBackdropCloseRef = useRef(preventBackdropClose)
   useEffect(() => {
+    onCloseRef.current = onClose
+    preventBackdropCloseRef.current = preventBackdropClose
+  }, [onClose, preventBackdropClose])
+
+  // Escape key handler and body scroll lock — topmost dialog wins
+  useEffect(() => {
+    if (!isOpen) return
+
+    const id = dialogId.current
+    openDialogStack.push(id)
+    document.body.style.overflow = "hidden"
+
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen && !preventBackdropClose) {
-        onClose()
+      const isTopmost = openDialogStack[openDialogStack.length - 1] === id
+      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current) {
+        onCloseRef.current()
       }
     }
 
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      document.body.style.overflow = "hidden"
-    }
+    document.addEventListener("keydown", handleEscape)
 
     return () => {
       document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = ""
+      const index = openDialogStack.indexOf(id)
+      if (index !== -1) openDialogStack.splice(index, 1)
+      if (openDialogStack.length === 0) {
+        document.body.style.overflow = ""
+      }
     }
-  }, [isOpen, onClose, preventBackdropClose])
+  }, [isOpen])
 
   // Size mapping for dialog widths
   const sizeMap = {
@@ -180,7 +216,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
       return customHeader
     }
 
-    if (!title && !Icon && !showCloseButton) {
+    if (!title && !Icon && !showCloseButton && !showFeedbackButton) {
       return null
     }
 
@@ -199,11 +235,26 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
             </div>
           )}
         </div>
-        {showCloseButton && (
-          <ReusableButton variant="text" onClick={onClose} padding="p-0" className="h-8 w-8" aria-label="Close dialog">
-            <X className="w-4 h-4" />
-          </ReusableButton>
-        )}
+        <div className="flex items-center gap-1">
+          {showFeedbackButton && (
+            <ReusableButton
+              variant="text"
+              onClick={() => openFeedbackDialog(title || ariaLabel)}
+              padding="p-0"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              title="Report an issue or share feedback"
+              aria-label="Report an issue or share feedback"
+              data-dialog-chrome="true"
+            >
+              <AqHelpCircle className="w-4 h-4" />
+            </ReusableButton>
+          )}
+          {showCloseButton && (
+            <ReusableButton variant="text" onClick={onClose} padding="p-0" className="h-8 w-8" aria-label="Close dialog">
+              <X className="w-4 h-4" />
+            </ReusableButton>
+          )}
+        </div>
       </div>
     )
   }

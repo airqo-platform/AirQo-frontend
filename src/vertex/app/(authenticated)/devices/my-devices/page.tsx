@@ -12,6 +12,7 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { usePermission } from "@/core/hooks/usePermissions";
 import dynamic from "next/dynamic";
 
 const ClaimDeviceModal = dynamic(
@@ -30,6 +31,8 @@ const MyDevicesPage = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const { userScope } = useUserContext();
+  const canClaimDevice = usePermission(PERMISSIONS.DEVICE.CLAIM);
+  const canImportDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
   const {
     data: myDevicesData,
@@ -103,8 +106,9 @@ const MyDevicesPage = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <ReusableButton 
+              <ReusableButton
                 onClick={() => setIsClaimModalOpen(true)}
+                disabled={!canClaimDevice}
                 Icon={AqPlus}
                 permission={PERMISSIONS.DEVICE.CLAIM}
               >
@@ -113,7 +117,9 @@ const MyDevicesPage = () => {
               <ReusableButton
                 variant="outlined"
                 onClick={() => setImportDeviceOpen(true)}
+                disabled={!canImportDevice}
                 Icon={Upload}
+                permission={PERMISSIONS.DEVICE.UPDATE}
               >
                 Import External Device
               </ReusableButton>
@@ -166,7 +172,7 @@ const MyDevicesPage = () => {
           <div className="flex gap-2 items-center">
             <ReusableButton
               onClick={() => setIsClaimModalOpen(true)}
-              disabled={isLoading}
+              disabled={isLoading || !canClaimDevice}
               Icon={AqPlus}
               permission={PERMISSIONS.DEVICE.CLAIM}
             >
@@ -175,8 +181,9 @@ const MyDevicesPage = () => {
             <ReusableButton
               variant="outlined"
               onClick={() => setImportDeviceOpen(true)}
-              disabled={isLoading}
+              disabled={isLoading || !canImportDevice}
               Icon={Upload}
+              permission={PERMISSIONS.DEVICE.UPDATE}
             >
               Import External Device
             </ReusableButton>
