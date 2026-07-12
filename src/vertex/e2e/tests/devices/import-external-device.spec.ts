@@ -1,5 +1,6 @@
 import { test, expect, type Page, type Locator } from "@playwright/test";
 import { assertNonProductionApiTarget } from "../../support/env-guard";
+import { clearPersistedQueryCache } from "../../support/app-state";
 import {
   interceptImportDevice,
   interceptCohortAssignment,
@@ -71,6 +72,10 @@ test("imports a single external device and refreshes device data", async ({ page
 
   const importCall = await interceptImportDevice(page);
   const assignCall = await interceptCohortAssignment(page);
+
+  // The app hydrates React Query state from persisted localStorage (carried
+  // in storageState); clear it so the cohort requests we wait on must fire.
+  await clearPersistedQueryCache(page);
 
   // The personal-cohorts GET can fire as early as page load (useMyDevices
   // shares the query), so start listening before navigating.

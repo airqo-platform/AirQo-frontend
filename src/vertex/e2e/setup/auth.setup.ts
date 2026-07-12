@@ -13,6 +13,10 @@ const authFile = path.resolve(__dirname, "../.auth/user.json");
  * otherwise the password step renders an hCaptcha widget this script can't solve.
  */
 setup("authenticate", async ({ page }) => {
+  // Cold dev servers compile /login and the auth routes on first hit, which
+  // can exceed the default 30s test timeout.
+  setup.setTimeout(180_000);
+
   const email = process.env.E2E_USER_EMAIL;
   const password = process.env.E2E_USER_PASSWORD;
 
@@ -35,12 +39,21 @@ setup("authenticate", async ({ page }) => {
   // click Login again (up to 3 attempts).
   const loginButton = page.getByRole("button", { name: "Login" });
   const sessionError = page.getByText("Could not confirm session. Please try again.");
+  const signedInUrl = /\/home|\/admin/;
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-    await loginButton.click();
+    try {
+      await loginButton.click({ timeout: 20_000 });
+    } catch (error) {
+      // The login page redirects on its own when a session already exists
+      // (checkExistingSession) — if that raced us and the button is gone
+      // because we're already in the app, that's a success, not a failure.
+      if (signedInUrl.test(page.url())) break;
+      throw error;
+    }
 
     const urlWait = page
-      .waitForURL(/\/home|\/admin/, { timeout: 30_000 })
+      .waitForURL(signedInUrl, { timeout: 30_000 })
       .then(() => "ok" as const)
       .catch(() => "timeout" as const);
     const errorWait = sessionError

@@ -46,6 +46,72 @@ export async function interceptImportDevice(page: Page): Promise<CapturedCall> {
   return toCapturedCall(captured, "POST /api/devices/soft");
 }
 
+export interface BulkImportMockDevice {
+  long_name?: string;
+  serial_number?: string;
+  [key: string]: unknown;
+}
+
+export interface BulkImportMockResult {
+  success: boolean;
+  long_name?: string;
+  serial_number?: string;
+  error?: string;
+  created_device?: { _id: string; name: string };
+}
+
+/**
+ * Intercepts POST /api/devices/soft/bulk. `buildResults` receives the devices
+ * from the captured payload and returns per-device results, letting tests
+ * drive full-success or partial-failure responses.
+ */
+export async function interceptBulkImport(
+  page: Page,
+  buildResults: (devices: BulkImportMockDevice[]) => BulkImportMockResult[]
+): Promise<CapturedCall> {
+  const captured: { payload?: Record<string, unknown>; url?: string } = {};
+
+  await page.route("**/api/devices/soft/bulk", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    captured.payload = route.request().postDataJSON() as Record<string, unknown>;
+    captured.url = route.request().url();
+    const devices = (captured.payload?.devices as BulkImportMockDevice[] | undefined) ?? [];
+    const results = buildResults(devices);
+    const imported = results.filter((r) => r.success).length;
+    await route.fulfill({
+      status: 200,
+      json: {
+        success: true,
+        message: "bulk import processed",
+        total: results.length,
+        imported,
+        failed: results.length - imported,
+        results,
+      },
+    });
+  });
+
+  return toCapturedCall(captured, "POST /api/devices/soft/bulk");
+}
+
+/** Builds an all-success results array with deterministic created-device ids. */
+export function allSucceed(devices: BulkImportMockDevice[]): BulkImportMockResult[] {
+  return devices.map((device, index) => ({
+    success: true,
+    long_name: String(device.long_name ?? ""),
+    serial_number: String(device.serial_number ?? ""),
+    created_device: {
+      _id: `e2e-mock-bulk-device-${index + 1}`,
+      name: String(device.long_name ?? `device-${index + 1}`)
+        .toLowerCase()
+        .replace(/\s+/g, "_"),
+    },
+  }));
+}
+
 /** Intercepts POST /api/devices/cohorts/:id/assign-devices (post-import cohort assignment). */
 export async function interceptCohortAssignment(page: Page): Promise<CapturedCall> {
   const captured: { payload?: Record<string, unknown>; url?: string } = {};

@@ -202,6 +202,11 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       } else if (key === 'authrequired') {
         const aliases = ['authrequired', 'authenticationrequired', 'requiresauth', 'requiredauth', 'auth required'];
         matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
+      } else if (key === 'apicode') {
+        // "Device Connection URL" is the label shown in the Map Fields step
+        // and used as the header in the downloadable CSV template.
+        const aliases = ['apicode', 'deviceconnectionurl', 'connectionurl'];
+        matchIdx = normalizedHeaders.findIndex(h => aliases.includes(h));
       } else {
         matchIdx = normalizedHeaders.findIndex(h => h === key);
       }

@@ -802,11 +802,23 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           if (result?.ok) {
             // Force NextAuth SessionProvider to immediately sync its React context
             await update();
-            
+
             // Wait for session to be fully available before redirecting
             const session = await waitForSession();
-            const email = session?.user?.email || '';
-            
+
+            if (!session?.user) {
+              // signIn reported ok but the session cookie never materialized
+              // (e.g. it was issued for a domain the browser rejects). Without
+              // this guard we'd redirect to a protected page unauthenticated
+              // and get bounced straight back — an endless login loop.
+              logger.error('[TokenHandoffHandler] OAuth sign-in succeeded but no session was established');
+              isHandlingOAuthRef.current = false;
+              router.push('/auth-error?error=SessionNotEstablished');
+              return;
+            }
+
+            const email = session.user.email || '';
+
             // Signal other tabs/apps that login occurred
             try {
               localStorage.setItem(CROSS_TAB_LOGIN_KEY, String(Date.now()));

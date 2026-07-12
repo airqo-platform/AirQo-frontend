@@ -5,9 +5,9 @@
 ## Version 2.0.23
 **Released:** July 11, 2026
 
-### E2E: Import External Device (Single) & Login Session-Confirmation Fix
+### E2E: Import External Device (Single & Bulk), CSV Template Download & Login Fixes
 
-First feature e2e spec on top of the 2.0.22 Playwright foundation, covering the Import External Device wizard — plus a real login bug the e2e cold-start runs flushed out.
+First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, and two real login bugs the e2e runs flushed out.
 
 <details>
 <summary><strong>Fix: login could fail with "Could not confirm session" despite successful sign-in</strong></summary>
@@ -19,13 +19,34 @@ First feature e2e spec on top of the 2.0.22 Playwright foundation, covering the 
 </details>
 
 <details>
-<summary><strong>New: e2e spec — Import External Device, single-device flow</strong></summary>
+<summary><strong>Fix: OAuth token-handoff redirect loop when the session cookie never lands</strong></summary>
+
+- `TokenHandoffHandler` redirected to `/home` after a successful `signIn` **even when `waitForSession` returned null** — e.g. when the session cookie is issued for a domain the browser rejects (`NEXTAUTH_COOKIE_DOMAIN=.airqo.net` on `localhost`). The user landed on a protected page unauthenticated, got signed out, bounced back to `/login`, and looped indefinitely.
+- Now guards the redirect: no confirmed session → `/auth-error?error=SessionNotEstablished` with a clear log, instead of the loop.
+- `.env.example` now documents that `NEXTAUTH_COOKIE_DOMAIN` must only be set on deployed `*.airqo.net` hosts — on localhost the browser rejects the cookie and login silently breaks.
+
+</details>
+
+<details>
+<summary><strong>New: downloadable CSV template for bulk device import</strong></summary>
+
+- The bulk import step now offers **"Download CSV template"** (`import-steps/csvTemplate.ts` + button in `BulkImportForm`): a header row of the expected-field labels plus one example row users overwrite. Previously users had to guess the file format and fix mis-mapped columns by hand.
+- Closed an auto-mapping gap the template exposed: the mapper had no alias for **"Device Connection URL"** (`api_code`), so even a correctly-labelled column required manual mapping. With the alias added, a filled-in template auto-maps every column with zero manual work — proven end-to-end by the template round-trip e2e test.
+- The Map Fields selects now carry `aria-label="Map <field>"` (previously unlabelled — an a11y gap).
+- Co-located unit tests for the template builder (`csvTemplate.test.ts`, 6 cases).
+
+</details>
+
+<details>
+<summary><strong>New: e2e specs — Import External Device, single &amp; bulk flows</strong></summary>
 
 - `e2e/tests/devices/import-external-device.spec.ts` (authenticated `chromium` project), using **hybrid interception**: real auth, navigation, and data GETs against staging; the two write endpoints (`POST /devices/soft`, cohort assignment) intercepted via `page.route()` so runs are deterministic and create no backend records.
 - **Happy path**: fills Device Details, verifies cohort options are scoped to the user's own cohort IDs (the client-side cross-org-leakage defense from 2.0.6), checks the Confirmation summary echoes wizard state, then asserts the captured mutation payload (name/serial/URL/network/category/auth/cohort/user), the cohort-assignment target, the success banner, and the `myDevices` refetch after query invalidation.
 - **Gate**: completing without a cohort is blocked on non-admin pages and the mutation is never called.
-- `e2e/support/device-mocks.ts` — reusable write-endpoint interceptions (bulk-import spec can build on these).
+- **Bulk spec** (`import-external-device-bulk.spec.ts`): template round-trip (downloaded template uploads and auto-maps every column), a 2-device CSV import asserting the captured `POST /devices/soft/bulk` payload (`network_override`, `cohort_id`, per-device fields) and cohort assignment of both created devices, and a **partial-failure** path asserting the per-row results view ("1 of 2 devices imported. 1 failed.", row-level error message) with only the successful device assigned.
+- `e2e/support/device-mocks.ts` — reusable write-endpoint interceptions shared by both specs.
 - `e2e/support/env-guard.ts` — refuses to run mutation specs unless `NEXT_PUBLIC_API_URL` looks like staging/localhost, so the suite can never write to production.
+- `e2e/support/app-state.ts` — clears the app's persisted React Query cache (`airqo:vertex:react-query:v1*` in localStorage) before page load; the cache rides along inside the auth `storageState` and can otherwise satisfy cohort queries without any network request, breaking response-based assertions.
 
 </details>
 
@@ -33,23 +54,31 @@ First feature e2e spec on top of the 2.0.22 Playwright foundation, covering the 
 <summary><strong>Harness fixes surfaced by real runs (2)</strong></summary>
 
 - **`playwright.config.ts`**: a developer `.env.local` pointing `NEXTAUTH_URL`/`NEXTAUTH_COOKIE_DOMAIN` at the deployed staging host makes NextAuth issue session cookies for `.airqo.net`, which browsers reject on `localhost` — login silently breaks. The e2e `webServer` now pins both to the local server for the test run only (real env vars beat `.env.local` in Next.js).
-- **`auth.setup.ts`**: retries the login click if the session-confirmation banner appears, as belt-and-braces on cold dev servers (the app-side fix above makes this rare).
+- **`auth.setup.ts`**: retries the login click if the session-confirmation banner appears; treats an unexpected auto-redirect into the app (already-authenticated context) as success instead of timing out; 180s test budget for cold dev-server compiles.
 
 </details>
 
 <details>
-<summary><strong>Files Modified &amp; Added (10)</strong></summary>
+<summary><strong>Files Modified &amp; Added (18)</strong></summary>
 
 - `src/vertex/core/auth/waitForSession.ts` [NEW]
 - `src/vertex/core/auth/waitForSession.test.ts` [NEW]
 - `src/vertex/app/login/page.tsx` [MODIFIED] — inline poller replaced with shared util
-- `src/vertex/core/auth/authProvider.tsx` [MODIFIED] — same, in `TokenHandoffHandler`
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED] — shared poller + no-session redirect guard in `TokenHandoffHandler`
+- `src/vertex/components/features/devices/import-steps/csvTemplate.ts` [NEW]
+- `src/vertex/components/features/devices/import-steps/csvTemplate.test.ts` [NEW]
+- `src/vertex/components/features/devices/import-steps/BulkImportForm.tsx` [MODIFIED] — template download button
+- `src/vertex/components/features/devices/import-steps/FieldMappingStep.tsx` [MODIFIED] — aria-labels on mapping selects
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED] — `api_code` auto-map aliases
 - `src/vertex/e2e/tests/devices/import-external-device.spec.ts` [NEW]
+- `src/vertex/e2e/tests/devices/import-external-device-bulk.spec.ts` [NEW]
 - `src/vertex/e2e/support/device-mocks.ts` [NEW]
 - `src/vertex/e2e/support/env-guard.ts` [NEW]
+- `src/vertex/e2e/support/app-state.ts` [NEW]
 - `src/vertex/e2e/setup/auth.setup.ts` [MODIFIED]
 - `src/vertex/playwright.config.ts` [MODIFIED]
-- `src/vertex/.env.e2e.example` [MODIFIED] — documents the account seeding the spec needs
+- `src/vertex/.env.e2e.example` [MODIFIED] — documents the account seeding the specs need
+- `src/vertex/.env.example` [MODIFIED] — `NEXTAUTH_COOKIE_DOMAIN` localhost warning
 
 </details>
 
