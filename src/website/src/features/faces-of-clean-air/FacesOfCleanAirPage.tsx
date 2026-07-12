@@ -25,6 +25,7 @@ import { FiCamera } from 'react-icons/fi';
 
 import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
   CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
@@ -753,6 +754,7 @@ export default function FacesOfCleanAirPage() {
     CleanAirForum2026LeaderboardEntry[]
   >([]);
   const [leaderboardSlideIndex, setLeaderboardSlideIndex] = useState(0);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   const hasLoadedRef = useRef(false);
 
@@ -1412,6 +1414,57 @@ export default function FacesOfCleanAirPage() {
             </AnimatePresence>
           </section>
         </main>
+
+        {/* QR Code - Bottom Right Corner */}
+        <button
+          type="button"
+          onClick={() => setIsQrModalOpen(true)}
+          className="absolute bottom-4 right-3 z-20 cursor-pointer sm:bottom-8 sm:right-6 lg:bottom-10 lg:right-8"
+          aria-label="Open QR code in full view"
+        >
+          <div className="flex flex-col items-center gap-1">
+            <div className="overflow-hidden rounded-lg border-2 border-white/30 bg-white/10 p-1 shadow-lg backdrop-blur-sm transition-transform hover:scale-105 sm:border-white/40 sm:p-1.5 lg:p-2">
+              <Image
+                src="/clean-air-forum-2026/cleanair.jpeg"
+                alt="Clean Air Forum QR Code"
+                width={60}
+                height={60}
+                className="h-[50px] w-[50px] object-contain sm:h-[65px] sm:w-[65px] lg:h-[80px] lg:w-[80px]"
+                priority
+              />
+            </div>
+            <span className="text-[8px] font-medium text-white/80 sm:text-[10px] lg:text-xs">
+              Scan to participate
+            </span>
+          </div>
+        </button>
+
+        {/* QR Code Modal */}
+        <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+          <DialogContent
+            hideClose
+            className="w-[90vw] max-w-[400px] border-white/20 bg-[#005257]/95 p-6 backdrop-blur-xl sm:max-w-[450px]"
+          >
+            <DialogTitle className="sr-only">QR Code</DialogTitle>
+            <div className="flex flex-col items-center gap-4">
+              <div className="rounded-xl border-2 border-white/20 bg-white p-3 shadow-2xl sm:p-4">
+                <Image
+                  src="/clean-air-forum-2026/cleanair.jpeg"
+                  alt="Clean Air Forum QR Code - Scan to participate"
+                  width={300}
+                  height={300}
+                  className="h-auto w-full max-w-[280px] object-contain sm:max-w-[320px]"
+                />
+              </div>
+              <p className="text-center text-sm font-medium text-white sm:text-base">
+                Scan to participate
+              </p>
+              <p className="text-center text-xs text-white/70">
+                Africa Clean Air Forum • Pretoria 2026
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Keeps mobile spacing balanced without making the page scroll. */}
         <div className="h-2 flex-none sm:hidden" />
