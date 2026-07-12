@@ -148,6 +148,18 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
     wasOpenRef.current = isOpen
   }, [isOpen, hideBanner])
 
+  // Latest callbacks/flags for the Escape handler, so the stack-registration
+  // effect below can depend on isOpen only. If it also depended on onClose /
+  // preventBackdropClose, a rerender of a lower dialog (new callback
+  // identity) would remove and re-push its id, moving it to the top of
+  // openDialogStack — and Escape would close the wrong dialog.
+  const onCloseRef = useRef(onClose)
+  const preventBackdropCloseRef = useRef(preventBackdropClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+    preventBackdropCloseRef.current = preventBackdropClose
+  }, [onClose, preventBackdropClose])
+
   // Escape key handler and body scroll lock — topmost dialog wins
   useEffect(() => {
     if (!isOpen) return
@@ -158,8 +170,8 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     const handleEscape = (e: KeyboardEvent) => {
       const isTopmost = openDialogStack[openDialogStack.length - 1] === id
-      if (e.key === "Escape" && isTopmost && !preventBackdropClose) {
-        onClose()
+      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current) {
+        onCloseRef.current()
       }
     }
 
@@ -173,7 +185,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
         document.body.style.overflow = ""
       }
     }
-  }, [isOpen, onClose, preventBackdropClose])
+  }, [isOpen])
 
   // Size mapping for dialog widths
   const sizeMap = {

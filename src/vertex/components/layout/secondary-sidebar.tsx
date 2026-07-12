@@ -18,6 +18,8 @@ import {
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { usePermission } from '@/core/hooks/usePermissions';
+import { PERMISSIONS } from '@/core/permissions/constants';
 import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
 import { ANALYTICS_BASE_URL } from '@/core/urls';
@@ -58,6 +60,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const { getContextPermissions, isExternalOrg, activeGroup } =
     useUserContext();
   const contextPermissions = getContextPermissions();
+  const canViewMembers = usePermission(PERMISSIONS.MEMBER.VIEW);
+  const canViewRoles = usePermission(PERMISSIONS.ROLE.VIEW);
   const pathname = usePathname();
 
   // Organization slug used by the analytics platform: lowercase, spaces/underscores as dashes
@@ -201,33 +205,37 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     onClick={onNavigate}
                   />
 
-                  {orgSlug && (
+                  {orgSlug && (canViewMembers || canViewRoles) && (
                     <>
                       <SidebarSectionHeading isCollapsed={isCollapsed}>
                         Organization
                       </SidebarSectionHeading>
-                      <NavItem
-                        item={{
-                          href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/members`,
-                          icon: AqUsers01,
-                          label: 'Members',
-                          endIcon: AqLinkExternal01,
-                          external: true,
-                        }}
-                        isCollapsed={isCollapsed}
-                        onClick={onNavigate}
-                      />
-                      <NavItem
-                        item={{
-                          href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/roles`,
-                          icon: AqShield01,
-                          label: 'Roles & Permissions',
-                          endIcon: AqLinkExternal01,
-                          external: true,
-                        }}
-                        isCollapsed={isCollapsed}
-                        onClick={onNavigate}
-                      />
+                      {canViewMembers && (
+                        <NavItem
+                          item={{
+                            href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/members`,
+                            icon: AqUsers01,
+                            label: 'Members',
+                            endIcon: AqLinkExternal01,
+                            external: true,
+                          }}
+                          isCollapsed={isCollapsed}
+                          onClick={onNavigate}
+                        />
+                      )}
+                      {canViewRoles && (
+                        <NavItem
+                          item={{
+                            href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/roles`,
+                            icon: AqShield01,
+                            label: 'Roles & Permissions',
+                            endIcon: AqLinkExternal01,
+                            external: true,
+                          }}
+                          isCollapsed={isCollapsed}
+                          onClick={onNavigate}
+                        />
+                      )}
                     </>
                   )}
                 </>

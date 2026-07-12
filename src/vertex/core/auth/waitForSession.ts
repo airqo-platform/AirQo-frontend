@@ -26,7 +26,13 @@ export async function waitForSession({
 
   // Always poll at least once, even with a zero/negative budget.
   for (;;) {
-    const session = await getSession();
+    let session: Session | null = null;
+    try {
+      session = await getSession();
+    } catch {
+      // Network error — treat as "no session yet" and keep polling, so the
+      // documented never-throws contract holds.
+    }
     if (session?.user) {
       return session;
     }
