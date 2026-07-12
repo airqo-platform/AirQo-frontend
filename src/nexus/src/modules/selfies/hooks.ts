@@ -14,6 +14,7 @@ export const useSelfies = (eventId: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };

@@ -246,11 +246,11 @@ const SelfiesListContent: React.FC = () => {
                   className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
                   onClick={() => setSelectedSelfie(selfie)}
                   disabled={isProcessing}
-                  aria-label={`View selfie by ${selfie.displayName}`}
+                  aria-label={`View selfie by ${selfie.displayName ?? 'Unknown user'}`}
                 >
                   <Image
                     src={selfie.imageUrl}
-                    alt={`Selfie by ${selfie.displayName}`}
+                    alt={`Selfie by ${selfie.displayName ?? 'Unknown user'}`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -268,7 +268,7 @@ const SelfiesListContent: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{selfie.avatarIcon}</span>
                     <span className="text-sm font-medium text-foreground truncate">
-                      {selfie.displayName}
+                      {selfie.displayName ?? 'Unknown user'}
                     </span>
                   </div>
 
@@ -317,7 +317,7 @@ const SelfiesListContent: React.FC = () => {
             <div className="relative overflow-hidden rounded-lg">
               <Image
                 src={selectedSelfie.imageUrl}
-                alt={`Selfie by ${selectedSelfie.displayName}`}
+                alt={`Selfie by ${selectedSelfie.displayName ?? 'Unknown user'}`}
                 width={800}
                 height={600}
                 className="w-full object-contain max-h-[60vh]"
@@ -327,7 +327,7 @@ const SelfiesListContent: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="text-xl">{selectedSelfie.avatarIcon}</span>
                 <span className="text-sm font-medium text-foreground">
-                  {selectedSelfie.displayName}
+                  {selectedSelfie.displayName ?? 'Unknown user'}
                 </span>
                 {selectedSelfie.hidden && (
                   <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
@@ -416,7 +416,7 @@ const SelfiesListContent: React.FC = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                {deleteTarget.displayName}
+                {deleteTarget.displayName ?? 'Unknown user'}
               </p>
               <p className="text-xs text-muted-foreground">
                 {deleteTarget.locationName}
