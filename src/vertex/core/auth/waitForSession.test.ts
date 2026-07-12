@@ -55,6 +55,26 @@ describe('waitForSession', () => {
     await expect(promise).resolves.toBe(sessionWithUser);
   });
 
+  it('treats a getSession rejection as "no session yet" and keeps polling', async () => {
+    mockedGetSession
+      .mockRejectedValueOnce(new Error('network down'))
+      .mockResolvedValue(sessionWithUser);
+
+    const promise = waitForSession({ timeoutMs: 5_000, intervalMs: 250 });
+    await vi.advanceTimersByTimeAsync(300);
+
+    await expect(promise).resolves.toBe(sessionWithUser);
+  });
+
+  it('resolves null (never throws) when every poll rejects until the budget runs out', async () => {
+    mockedGetSession.mockRejectedValue(new Error('network down'));
+
+    const promise = waitForSession({ timeoutMs: 500, intervalMs: 250 });
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    await expect(promise).resolves.toBeNull();
+  });
+
   it('resolves null once the time budget is exhausted', async () => {
     mockedGetSession.mockResolvedValue(null);
 

@@ -15,6 +15,14 @@ vi.mock('@/core/hooks/useUserContext', () => ({
   useUserContext: () => mockUseUserContext(),
 }));
 
+// Per-permission visibility of the org links (MEMBER_VIEW → Members,
+// ROLE_VIEW → Roles & Permissions). Defaults to granted; individual tests
+// revoke to cover the denied states.
+const grantedPermissions = new Set<string>(['MEMBER_VIEW', 'ROLE_VIEW']);
+vi.mock('@/core/hooks/usePermissions', () => ({
+  usePermission: (permission: string) => grantedPermissions.has(permission),
+}));
+
 const userContextValue = (overrides: Record<string, unknown> = {}) => ({
   isExternalOrg: true,
   activeGroup: { _id: 'grp-1', grp_title: 'KAMPALA_MARCH BABIES' },
@@ -71,5 +79,52 @@ describe('SecondarySidebar organization links', () => {
 
     expect(screen.queryByRole('link', { name: /members/i })).toBeNull();
     expect(screen.queryByText('Organization')).toBeNull();
+  });
+
+  it('hides only the Members link without MEMBER_VIEW', () => {
+    grantedPermissions.delete('MEMBER_VIEW');
+    try {
+      mockUseUserContext.mockReturnValue(userContextValue());
+      renderSidebar();
+
+      expect(screen.queryByRole('link', { name: /members/i })).toBeNull();
+      expect(
+        screen.getByRole('link', { name: /roles & permissions/i })
+      ).toBeInTheDocument();
+    } finally {
+      grantedPermissions.add('MEMBER_VIEW');
+    }
+  });
+
+  it('hides only the Roles & Permissions link without ROLE_VIEW', () => {
+    grantedPermissions.delete('ROLE_VIEW');
+    try {
+      mockUseUserContext.mockReturnValue(userContextValue());
+      renderSidebar();
+
+      expect(
+        screen.queryByRole('link', { name: /roles & permissions/i })
+      ).toBeNull();
+      expect(screen.getByRole('link', { name: /members/i })).toBeInTheDocument();
+    } finally {
+      grantedPermissions.add('ROLE_VIEW');
+    }
+  });
+
+  it('hides the whole organization section without both view permissions', () => {
+    grantedPermissions.clear();
+    try {
+      mockUseUserContext.mockReturnValue(userContextValue());
+      renderSidebar();
+
+      expect(screen.queryByText('Organization')).toBeNull();
+      expect(screen.queryByRole('link', { name: /members/i })).toBeNull();
+      expect(
+        screen.queryByRole('link', { name: /roles & permissions/i })
+      ).toBeNull();
+    } finally {
+      grantedPermissions.add('MEMBER_VIEW');
+      grantedPermissions.add('ROLE_VIEW');
+    }
   });
 });
