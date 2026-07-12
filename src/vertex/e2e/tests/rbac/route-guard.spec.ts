@@ -13,12 +13,14 @@ import { ADMIN_PANEL_PERMISSIONS } from "../../../core/permissions/adminAccess";
  * RBAC — page-level route guards.
  *
  * Direct navigation to a RouteGuard-wrapped page without the required
- * permission must be denied. Two app layers enforce this and race each
- * other: RouteGuard (in-place forbidden UI when showError, redirect when
- * showError={false}) and useContextAwareRouting in the authenticated layout
- * (replaces the URL with /home for routes whose sidebar entry is
- * permission-hidden). Denial assertions therefore accept either surface —
- * see expectRouteDenied in support/rbac-mocks.ts.
+ * permission must end in the guard's configured denial, which differs per
+ * page:
+ *  - showError (default): the forbidden UI renders in place, URL unchanged
+ *    (/devices/overview, and /admin/* via AdminRouteGuard) — asserted via
+ *    expectRouteDenied. RouteGuard is the single denial surface for direct
+ *    navigation: useContextAwareRouting only redirects on context switches.
+ *  - showError={false} + redirectTo: the user is redirected away
+ *    (/sites/my-sites → /home).
  *
  * Only the user-details GET is transformed (support/rbac-mocks.ts); session,
  * routing, and rendering are real.

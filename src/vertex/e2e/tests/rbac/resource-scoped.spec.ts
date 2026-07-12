@@ -100,7 +100,6 @@ test("denies a route in an org whose role lacks DEVICE_VIEW, despite holding it 
 
   await page.goto("/devices/overview");
 
-  // Denial may surface as RouteGuard's forbidden UI or as the layout's
-  // context-aware redirect to /home — see expectRouteDenied.
+  // RouteGuard denies in place with the forbidden UI — see expectRouteDenied.
   await expectRouteDenied(page);
 });

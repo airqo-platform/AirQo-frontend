@@ -231,34 +231,23 @@ export async function resetAppBootState(page: Page): Promise<void> {
 export const FORBIDDEN_TEXT = "Error code: 403 forbidden access";
 
 /**
- * Asserts a guarded route denied access, accepting either denial surface.
+ * Asserts a guarded route denied direct navigation with the canonical
+ * surface: RouteGuard's in-place forbidden UI, URL unchanged.
  *
- * Two independent layers deny these routes and race each other: RouteGuard
- * renders the in-place forbidden UI, while useContextAwareRouting (in the
- * authenticated layout) replaces the URL with /home for routes whose sidebar
- * entry is permission-hidden. The dev server is slow enough that the
- * forbidden UI usually wins; a production build redirects first. Either
- * outcome IS a denial, so tests must accept both or they pass in one build
- * mode and fail in the other.
+ * This is strict on purpose. useContextAwareRouting used to also enforce
+ * access on every pathname change (racing RouteGuard, with the winner
+ * depending on build mode); it now only redirects on a context *switch*, so
+ * for direct navigation RouteGuard is the single denial surface in both dev
+ * and production builds.
  */
 export async function expectRouteDenied(
   page: Page,
   { timeout = 120_000 }: { timeout?: number } = {}
 ): Promise<void> {
-  await expect
-    .poll(
-      async () => {
-        if (/\/home(\?|$)/.test(page.url())) return "redirected-home";
-        if (await page.getByText(FORBIDDEN_TEXT).isVisible()) return "forbidden-ui";
-        return null;
-      },
-      {
-        timeout,
-        message:
-          "expected the route to deny access (forbidden UI or redirect to /home)",
-      }
-    )
-    .not.toBeNull();
+  const deniedAt = new URL(page.url()).pathname;
+  await expect(page.getByText(FORBIDDEN_TEXT)).toBeVisible({ timeout });
+  // Denial is in place — no silent redirect away from the route.
+  expect(new URL(page.url()).pathname).toBe(deniedAt);
 }
 
 /**

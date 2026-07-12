@@ -19,6 +19,15 @@ Four e2e specs proving the RBAC system against a real session — each device ac
 </details>
 
 <details>
+<summary><strong>Fix: access-denial race — forbidden page in dev, silent redirect in production</strong></summary>
+
+- Two independent layers denied guarded routes and raced each other: `RouteGuard` (in-place forbidden UI) and `useContextAwareRouting` in the authenticated layout, which replaced the URL with `/home` for any route whose sidebar entry is permission-hidden. The winner depended on build mode — the slow dev server usually rendered the forbidden page, while a **production build silently redirected**, so users never saw the forbidden page for mapped routes. Surfaced by running the e2e suite against a production build (the CI path).
+- Canonical behavior now: **RouteGuard owns direct-navigation denial** (forbidden UI, or its configured `redirectTo`); `useContextAwareRouting` only redirects when the active **context switches** underneath a route the new context doesn't offer. Every route in its map is independently guarded (page-level `RouteGuard` or `AdminRouteGuard`), so narrowing it opens no gap.
+- Hook-level unit tests pin the new contract (no redirect on initial load; redirect only on a context switch that makes the route inaccessible), and the e2e denial assertions are strict again: forbidden UI, URL unchanged, in both build modes.
+
+</details>
+
+<details>
 <summary><strong>Fix: mock-permissions dev flag now applies to all permission hooks</strong></summary>
 
 - `useHasAnyPermission` and `useHasAllPermissions` ignored `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED` while `usePermission`/`usePermissions` honored it — and since `RouteGuard` resolves permissions exclusively through `useHasAnyPermission`, enabling mock permissions in development changed action buttons but not page access.

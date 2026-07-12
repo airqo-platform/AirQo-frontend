@@ -91,8 +91,7 @@ test("blocks /admin/networks from an external-org context even with admin permis
 
   await page.goto("/admin/networks");
 
-  // Denial may surface as AdminRouteGuard's forbidden UI or as the layout's
-  // context-aware redirect to /home — see expectRouteDenied.
+  // AdminRouteGuard denies in place with the forbidden UI — see expectRouteDenied.
   await expectRouteDenied(page);
 });
 
