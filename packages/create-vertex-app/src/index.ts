@@ -11,7 +11,8 @@ const HELP = `
 ${pc.bold("create-vertex-app")} — scaffold a Vertex IoT dashboard app
 
 ${pc.bold("Usage:")}
-  npm create vertex-app@latest [directory] [options]
+  npm create @airqo/vertex-app@latest [directory] -- [options]
+  npx @airqo/create-vertex-app [directory] [options]
 
 ${pc.bold("Options:")}
   -y, --yes            Skip prompts and accept defaults

@@ -67,9 +67,11 @@ export async function collectAnswers(
     }
   }
 
+  directory = directory.trim() || "my-vertex-app";
+
   const resolvedDir = path.resolve(directory);
   const packageName = path.basename(resolvedDir);
-  const usable = directoryIsUsable(directory);
+  const usable = directoryIsUsable(resolvedDir);
   if (usable !== true) bail(usable);
   if (!isValidPackageName(packageName)) {
     bail(
