@@ -12,11 +12,15 @@ import {
   AqCollocation,
   AqBezierCurve02,
   AqFileQuestion02,
+  AqUsers01,
+  AqShield01,
+  AqLinkExternal01,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
+import { ANALYTICS_BASE_URL } from '@/core/urls';
 import Card from '../shared/card/CardWrapper';
 import { NavItem } from './NavItem';
 import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
@@ -51,10 +55,16 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   activeModule,
   onNavigate,
 }) => {
-  const { getContextPermissions, isExternalOrg } =
+  const { getContextPermissions, isExternalOrg, activeGroup } =
     useUserContext();
   const contextPermissions = getContextPermissions();
   const pathname = usePathname();
+
+  // Organization slug used by the analytics platform: lowercase, spaces/underscores as dashes
+  const orgSlug = activeGroup?.grp_title
+    ?.toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, '-');
 
   const { isElectron } = useDetectedPlatform();
 
@@ -190,6 +200,36 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     onClick={onNavigate}
                   />
+
+                  {orgSlug && (
+                    <>
+                      <SidebarSectionHeading isCollapsed={isCollapsed}>
+                        Organization
+                      </SidebarSectionHeading>
+                      <NavItem
+                        item={{
+                          href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/members`,
+                          icon: AqUsers01,
+                          label: 'Members',
+                          endIcon: AqLinkExternal01,
+                          external: true,
+                        }}
+                        isCollapsed={isCollapsed}
+                        onClick={onNavigate}
+                      />
+                      <NavItem
+                        item={{
+                          href: `${ANALYTICS_BASE_URL}/org/${orgSlug}/roles`,
+                          icon: AqShield01,
+                          label: 'Roles & Permissions',
+                          endIcon: AqLinkExternal01,
+                          external: true,
+                        }}
+                        isCollapsed={isCollapsed}
+                        onClick={onNavigate}
+                      />
+                    </>
+                  )}
                 </>
               )}
             </>

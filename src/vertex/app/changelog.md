@@ -5,9 +5,9 @@
 ## Version 2.0.23
 **Released:** July 11, 2026
 
-### E2E: Import External Device (Single & Bulk), CSV Template Download & Login Fixes
+### E2E: Import External Device (Single & Bulk), CSV Template Download, Org Management Links & Login Fixes
 
-First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, and two real login bugs the e2e runs flushed out.
+First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, sidebar links to organization member/role management on the analytics platform, and two real login bugs the e2e runs flushed out.
 
 <details>
 <summary><strong>Fix: login could fail with "Could not confirm session" despite successful sign-in</strong></summary>
@@ -38,6 +38,17 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 </details>
 
 <details>
+<summary><strong>New: sidebar links to organization Members &amp; Roles management</strong></summary>
+
+- The organization-scope sidebar (devices module) now has an **"Organization"** section with **Members** and **Roles & Permissions** links that open the corresponding pages on the analytics platform (`<analytics-url>/org/<slug>/members` and `/org/<slug>/roles`) in a new tab, with an external-link icon signalling the hand-off.
+- The org slug is derived from `activeGroup.grp_title` — lowercased, spaces/underscores → dashes (`KAMPALA_MARCH_BABIES` → `kampala-march-babies`); the section hides when no active group is set.
+- The analytics base URL reuses the existing env-aware resolution (`NEXT_PUBLIC_ANALYTICS_URL`, falling back to staging/production by environment) — `ANALYTICS_BASE_URL` is now exported from `core/urls.tsx`.
+- `NavItem` gained an `external` flag (`target="_blank" rel="noopener noreferrer"`, no active-state highlighting for external hrefs).
+- Co-located unit tests (`secondary-sidebar.test.tsx`, 3 cases): slug conversion, new-tab attributes, section hidden without an active group.
+
+</details>
+
+<details>
 <summary><strong>New: e2e specs — Import External Device, single &amp; bulk flows</strong></summary>
 
 - `e2e/tests/devices/import-external-device.spec.ts` (authenticated `chromium` project), using **hybrid interception**: real auth, navigation, and data GETs against staging; the two write endpoints (`POST /devices/soft`, cohort assignment) intercepted via `page.route()` so runs are deterministic and create no backend records.
@@ -59,7 +70,7 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 </details>
 
 <details>
-<summary><strong>Files Modified &amp; Added (18)</strong></summary>
+<summary><strong>Files Modified &amp; Added (22)</strong></summary>
 
 - `src/vertex/core/auth/waitForSession.ts` [NEW]
 - `src/vertex/core/auth/waitForSession.test.ts` [NEW]
@@ -70,6 +81,10 @@ First feature e2e specs on top of the 2.0.22 Playwright foundation, covering bot
 - `src/vertex/components/features/devices/import-steps/BulkImportForm.tsx` [MODIFIED] — template download button
 - `src/vertex/components/features/devices/import-steps/FieldMappingStep.tsx` [MODIFIED] — aria-labels on mapping selects
 - `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED] — `api_code` auto-map aliases
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED] — Organization section with Members / Roles & Permissions links
+- `src/vertex/components/layout/secondary-sidebar.test.tsx` [NEW]
+- `src/vertex/components/layout/NavItem.tsx` [MODIFIED] — `external` link support
+- `src/vertex/core/urls.tsx` [MODIFIED] — exports `ANALYTICS_BASE_URL`
 - `src/vertex/e2e/tests/devices/import-external-device.spec.ts` [NEW]
 - `src/vertex/e2e/tests/devices/import-external-device-bulk.spec.ts` [NEW]
 - `src/vertex/e2e/support/device-mocks.ts` [NEW]
