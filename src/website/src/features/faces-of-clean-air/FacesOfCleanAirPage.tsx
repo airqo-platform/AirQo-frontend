@@ -25,6 +25,7 @@ import { FiCamera } from 'react-icons/fi';
 
 import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
+import QrCodeButton from '@/components/clean-air-forum-2026/QrCodeButton';
 import {
   CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
   CLEAN_AIR_FORUM_WALL_ACTIVE_POLL_INTERVAL_MS,
@@ -1412,6 +1413,8 @@ export default function FacesOfCleanAirPage() {
             </AnimatePresence>
           </section>
         </main>
+
+        <QrCodeButton src="/clean-air-forum-2026/cleanair.jpeg" />
 
         {/* Keeps mobile spacing balanced without making the page scroll. */}
         <div className="h-2 flex-none sm:hidden" />
