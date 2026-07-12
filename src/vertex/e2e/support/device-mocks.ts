@@ -140,6 +140,52 @@ export async function interceptCohortAssignment(page: Page): Promise<CapturedCal
   return toCapturedCall(captured, "POST /api/devices/cohorts/:id/assign-devices");
 }
 
+export const MOCK_DEVICE_DETAILS_ID = "d0d0d0d0d0d0d0d0d0d0d0d0";
+
+/**
+ * Fulfills GET /api/devices/:id for MOCK_DEVICE_DETAILS_ID with a fixture
+ * device, so specs can open the device-details page in a deterministic
+ * deployment state (deployed → Recall visible, otherwise → Deploy visible)
+ * without depending on real seeded devices.
+ */
+export async function interceptDeviceDetails(
+  page: Page,
+  overrides: Record<string, unknown> = {}
+): Promise<void> {
+  await page.route(
+    new RegExp(`/api/devices/${MOCK_DEVICE_DETAILS_ID}(\\?.*)?$`),
+    async (route) => {
+      if (route.request().method() !== "GET") {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        json: {
+          message: "device fetched successfully",
+          data: {
+            _id: MOCK_DEVICE_DETAILS_ID,
+            name: "e2e_rbac_device",
+            long_name: "E2E RBAC Device",
+            serial_number: "E2E-RBAC-SN-001",
+            network: "airqo",
+            category: "lowcost",
+            status: "not deployed",
+            isActive: false,
+            isOnline: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            device_codes: [],
+            cohorts: [],
+            groups: [],
+            pictures: [],
+            ...overrides,
+          },
+        },
+      });
+    }
+  );
+}
+
 function toCapturedCall(
   captured: { payload?: Record<string, unknown>; url?: string },
   label: string

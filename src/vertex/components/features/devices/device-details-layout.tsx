@@ -5,6 +5,7 @@ import { useDeviceDetails } from "@/core/hooks/useDevices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { XCircle } from "lucide-react";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { usePermission } from "@/core/hooks/usePermissions";
 import { getElapsedDurationMapper } from "@/lib/utils";
 import { useState } from "react";
 import DeviceDetailsModal from "@/components/features/devices/device-details-modal";
@@ -54,6 +55,10 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
 
     const deploymentStatus = device?.status || "unknown";
 
+    const canRecallDevice = usePermission(PERMISSIONS.DEVICE.RECALL);
+    const canDeployDevice = usePermission(PERMISSIONS.DEVICE.DEPLOY);
+    const canMaintainDevice = usePermission(PERMISSIONS.DEVICE.MAINTAIN);
+
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
 
@@ -91,6 +96,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                                 padding="px-3 py-1.5"
                                 className="bg-yellow-800 hover:bg-yellow-700 text-sm font-medium"
                                 onClick={() => setShowRecallDialog(true)}
+                                disabled={!canRecallDevice}
                                 permission={PERMISSIONS.DEVICE.RECALL}
                             >
                                 Recall Device
@@ -103,6 +109,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                                 padding="px-3 py-1.5"
                                 className="bg-green-900 hover:bg-green-700 text-sm font-medium"
                                 onClick={() => setShowDeployModal(true)}
+                                disabled={!canDeployDevice}
                                 Icon={AqSignal02}
                                 permission={PERMISSIONS.DEVICE.DEPLOY}
                             >
@@ -114,6 +121,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                             padding="px-3 py-1.5"
                             className="text-sm font-medium"
                             onClick={() => setShowMaintenanceLogModal(true)}
+                            disabled={!canMaintainDevice}
                             Icon={AqTool01}
                             permission={PERMISSIONS.DEVICE.MAINTAIN}
                         >
