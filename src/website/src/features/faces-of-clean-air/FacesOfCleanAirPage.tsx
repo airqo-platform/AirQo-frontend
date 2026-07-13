@@ -1101,19 +1101,19 @@ export default function FacesOfCleanAirPage() {
             </Link>
           </motion.div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <motion.h1
               variants={headerItemVariants}
               className="whitespace-nowrap text-left leading-none text-white"
             >
               {isLeaderboardStage ? (
-                <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                   {LEADERBOARD_TITLE}
                 </span>
               ) : (
                 <>
                   <span
-                    className="text-[25px] font-normal tracking-[-0.05em] sm:text-[42px]"
+                    className="text-[clamp(1.2rem,2.6vw,2.6rem)] font-normal tracking-[-0.05em]"
                     style={{
                       fontFamily:
                         '"Brush Script MT", "Segoe Script", "URW Chancery L", cursive',
@@ -1121,7 +1121,7 @@ export default function FacesOfCleanAirPage() {
                   >
                     {FACES_TITLE_PREFIX}
                   </span>{' '}
-                  <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                  <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                     {FACES_TITLE_MAIN}
                   </span>
                 </>
@@ -1150,7 +1150,7 @@ export default function FacesOfCleanAirPage() {
           </motion.div>
         </motion.header>
 
-        <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
+        <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center overflow-hidden pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
           <section
             tabIndex={0}
             aria-label={
