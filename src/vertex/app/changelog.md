@@ -2,6 +2,22 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.26
+**Released:** July 13, 2026
+
+### E2E: Device Lifecycle — Deploy Coverage
+
+An e2e spec for the device-details Deploy flow: open a device, submit the multi-step Deploy Device wizard, and prove the page reacts to a real refetch rather than a static fixture.
+
+<details>
+<summary><strong>New: e2e coverage for the Deploy wizard's happy path and validation gate</strong></summary>
+
+- `e2e/tests/devices/deploy-device.spec.ts`: the fixture device has no previous sites, so the wizard always takes the 3-step "new site" branch (device details -> deployment type -> location). Location is filled via coordinates mode rather than the Mapbox autocomplete/interactive map, since those aren't reliably drivable headless. Asserts the deploy mutation payload, that the dialog closes and the success banner appears, and — the actual regression this exists to catch — that `GET /api/devices/:id` refetches and the action button swaps from "Deploy Device" to "Recall Device" once the fixture reports `status: "deployed"`.
+- A second test confirms the wizard's own client-side validation (`Incomplete Details: Please fill in all required device details.`) blocks advancing past step 1 when device name/date/height/mount/power aren't all filled, and that the deploy mutation never fires in that case.
+- `e2e/support/deploy-mocks.ts`: `GET /api/devices/:id` is a **stateful** fixture — starts `"not deployed"`, flips to `"deployed"` only once the intercepted `POST /devices/activities/deploy/batch` mutation succeeds — so the status/button swap assertion is proven against the app's own invalidate-and-refetch wiring (`deploy-device-component.tsx`'s per-call `onSuccess` invalidates `["device-details", deviceId]`), not asserted from a hardcoded response.
+
+</details>
+
 ## Version 2.0.25
 **Released:** July 13, 2026
 
