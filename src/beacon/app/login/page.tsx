@@ -137,16 +137,22 @@ export default function LoginPage() {
       // Clean up the URL
       router.replace('/login')
     } else if (status === 'authenticated' && !isTransitioning) {
-      // User is authenticated, let middleware or client redirect them
-      const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
-                           (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
-                            session?.user?.privilege?.toLowerCase() === 'super' || 
-                            session?.user?.privilege?.toLowerCase() === 'net admin');
-      
-      if (isAirqoAdmin) {
-        router.push("/dashboard")
+      if (!session?.user) {
+        // Token is expired or invalid, clear auth data and force sign out
+        authService.clearAllAuthData()
+void import("next-auth/react").then(({ signOut }) => signOut({ redirect: false }))
       } else {
-        router.push("/dashboard/devices")
+        // User is authenticated, let middleware or client redirect them
+        const isAirqoAdmin = session.user.organization === 'AirQo' && 
+                             (session.user.privilege?.toLowerCase()?.includes('admin') || 
+                              session.user.privilege?.toLowerCase() === 'super' || 
+                              session.user.privilege?.toLowerCase() === 'net admin');
+        
+        if (isAirqoAdmin) {
+          router.push("/dashboard")
+        } else {
+          router.push("/dashboard/devices")
+        }
       }
     }
   }, [router, status, session, isTransitioning])
