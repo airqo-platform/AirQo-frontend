@@ -15,6 +15,7 @@ import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackgrou
 import LeaderboardEmptyState from '@/components/clean-air-forum-2026/LeaderboardEmptyState';
 import LeaderboardRowsBlock from '@/components/clean-air-forum-2026/LeaderboardRowsBlock';
 import LeaderboardToggles from '@/components/clean-air-forum-2026/LeaderboardToggles';
+import QrCodeButton from '@/components/clean-air-forum-2026/QrCodeButton';
 import { fetchCleanAirForum2026Leaderboard } from '@/features/clean-air-forum-2026/lib/learn-progress';
 import type { CleanAirForum2026LeaderboardEntry } from '@/features/clean-air-forum-2026/types/learn';
 import { usePollingWithVisibility } from '@/hooks/usePollingWithVisibility';
@@ -289,12 +290,12 @@ export default function LeaderboardScreen() {
             </Link>
           </motion.div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <motion.h1
               variants={headerItemVariants}
               className="whitespace-nowrap text-left leading-none text-white"
             >
-              <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+              <span className="block truncate text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                 {LEADERBOARD_TITLE}
               </span>
             </motion.h1>
@@ -320,12 +321,12 @@ export default function LeaderboardScreen() {
           </motion.div>
         </motion.header>
 
-        <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center pt-6 sm:pt-10">
+        <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center overflow-hidden pt-6 sm:pt-10">
           {status === 'error' && entries.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-white/20 bg-white/15 px-8 py-10 text-center backdrop-blur-xl"
+              className="w-full max-w-[520px] rounded-2xl border border-white/20 bg-white/15 px-5 py-8 text-center backdrop-blur-xl sm:px-8 sm:py-10"
             >
               <p className="text-lg font-bold text-white">
                 Unable to load leaderboard
@@ -396,6 +397,8 @@ export default function LeaderboardScreen() {
             </section>
           )}
         </main>
+
+        <QrCodeButton />
       </div>
     </div>
   );

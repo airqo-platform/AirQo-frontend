@@ -8,6 +8,12 @@ import authService from '@/services/api-service';
 function AuthEffect({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [handoffProcessed, setHandoffProcessed] = useState(false);
+  const [isHandlingHandoff, setIsHandlingHandoff] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.hash.includes('token=');
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
@@ -29,11 +35,15 @@ function AuthEffect({ children }: { children: ReactNode }) {
           role: (rawUser as any).privilege || 'user',
         });
       }
+      
+      if (isHandlingHandoff) {
+        setIsHandlingHandoff(false);
+      }
     } else if (status === 'unauthenticated') {
       authService.setToken(null);
       authService.setUserData(null);
     }
-  }, [session, status]);
+  }, [session, status, isHandlingHandoff]);
 
   useEffect(() => {
     if (handoffProcessed) return;
@@ -50,8 +60,21 @@ function AuthEffect({ children }: { children: ReactNode }) {
         redirect: true,
         callbackUrl: callbackUrl,
       });
+    } else {
+      setIsHandlingHandoff(false);
     }
   }, [handoffProcessed]);
+
+  if (isHandlingHandoff || (status === 'unauthenticated' && typeof window !== 'undefined' && window.location.hash.includes('token='))) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="w-16 h-16 border-4 border-blue-200 rounded-full mb-4 relative">
+          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <div className="text-gray-900 text-xl font-semibold mb-2">Completing sign in...</div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

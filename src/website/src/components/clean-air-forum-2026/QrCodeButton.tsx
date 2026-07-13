@@ -19,16 +19,16 @@ export default function QrCodeButton({ src = QR_IMAGE_SRC }: { src?: string }) {
         aria-label="Open QR code in full view"
       >
         <div className="flex flex-col items-center gap-1">
-          <div className="overflow-hidden rounded-lg border-2 border-white/30 bg-white/10 p-1 shadow-lg backdrop-blur-sm transition-transform hover:scale-105 sm:border-white/40 sm:p-1.5 lg:p-2">
+          <div className="overflow-hidden rounded-lg border border-white/25 bg-white/10 p-1 shadow-lg backdrop-blur-sm transition-transform hover:scale-105 sm:border-white/30 sm:p-1.5">
             <Image
               src={src}
               alt="Clean Air Forum QR Code"
               width={60}
               height={60}
-              className="h-[50px] w-[50px] object-contain sm:h-[65px] sm:w-[65px] lg:h-[80px] lg:w-[80px]"
+              className="h-[44px] w-[44px] object-contain sm:h-[52px] sm:w-[52px] lg:h-[60px] lg:w-[60px]"
             />
           </div>
-          <span className="text-[8px] font-medium text-white/80 sm:text-[10px] lg:text-xs">
+          <span className="text-[7px] font-medium text-white/70 sm:text-[9px]">
             Scan to participate
           </span>
         </div>
