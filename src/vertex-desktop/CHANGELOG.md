@@ -4,6 +4,30 @@
 
 ---
 
+## Version 0.1.12
+**Released:** July 10, 2026
+
+### Hotfix: Social OAuth Opens in System Browser
+
+Fixed social sign-in (Google, GitHub, LinkedIn, X) opening in the system browser instead of the in-app Electron child window.
+
+<details>
+<summary><strong>Root Cause & Fix (<code>main/auth-window.ts</code>)</strong></summary>
+
+- `isOAuthUrl()` checked `pathname.startsWith("/users/auth/")` but the OAuth initiation URL includes the versioned API prefix — `/api/v2/users/auth/<provider>` — so every URL was rejected and fell through to `shell.openExternal()` (system browser).
+- Fixed by replacing the path check with an anchored regex `/^\/(?:api\/v\d+\/)?users\/auth\//i` that matches both unversioned and versioned paths without being overly broad.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `main/auth-window.ts` [MODIFIED]
+
+</details>
+
+---
+
 ## Version 0.1.11
 **Released:** July 06, 2026
 
