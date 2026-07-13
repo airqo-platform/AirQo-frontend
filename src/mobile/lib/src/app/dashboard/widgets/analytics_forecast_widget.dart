@@ -152,7 +152,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                           
                           return ForeCastChip(
                             active: isCurrentDay,
-                            day: DateFormat.E().format(e.time)[0],
+                            day: DateFormat.E().format(e.time).substring(0, 2),
                             imagePath:
                                 getForecastAirQualityIcon(e.aqiCategory),
                             height: _getResponsiveHeight(context),
