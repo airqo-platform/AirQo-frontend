@@ -63,6 +63,11 @@ class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
       final sharePositionOrigin =
           box != null ? box.localToGlobal(Offset.zero) & box.size : null;
 
+      // Only the capture phase should hold the button in "Preparing...";
+      // once the OS share sheet takes over, its future may not resolve
+      // promptly (or at all on some platforms) after sharing completes.
+      setState(() => _sharing = false);
+
       await Share.shareXFiles(
         [
           XFile.fromData(
