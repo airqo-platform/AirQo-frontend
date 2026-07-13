@@ -280,12 +280,12 @@ export default function SelfiesScreen() {
           </motion.div>
         </motion.header>
 
-        <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center overflow-hidden pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
+        <main className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center pt-2 sm:min-h-[60svh] sm:flex-none sm:pt-10">
           <section
             tabIndex={0}
             aria-label="Faces of Air Quality selfie carousel"
             aria-roledescription="carousel"
-            className="flex h-full w-full min-h-0 flex-col justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
+            className="flex h-full w-full min-h-0 flex-col justify-center overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
             onKeyDown={handleCarouselKeyDown}
             onMouseEnter={() => !isMobile && setIsPaused(true)}
             onMouseLeave={() => !isMobile && setIsPaused(false)}

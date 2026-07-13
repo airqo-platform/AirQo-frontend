@@ -82,10 +82,7 @@ export function FaceCard({
   const rotateX = useSpring(transformedRotateX, SMOOTH_SPRING);
   const rotateY = useSpring(transformedRotateY, SMOOTH_SPRING);
 
-  const displayName =
-    submission.displayName?.trim() ||
-    submission.locationName?.trim() ||
-    'Clean Air Champion';
+  const displayName = submission.displayName?.trim() || 'Clean Air Champion';
 
   const location =
     submission.locationName?.trim() || 'the Africa Clean Air Forum';
