@@ -11,7 +11,7 @@ import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import authService from "@/services/api-service"
 import dynamic from "next/dynamic"
-import { signIn, signOut, useSession } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import SocialAuthSection from "@/components/auth/social-auth-section"
 
 // Fallback component when 3D model fails to load - signals to hide the model section
@@ -138,26 +138,21 @@ export default function LoginPage() {
       router.replace('/login')
     } else if (status === 'authenticated' && !isTransitioning) {
       if (!session?.user) {
-        // Token is expired or missing. Clean up NextAuth cookies to break redirect loops.
-        signOut({ redirect: false }).then(() => {
-          authService.clearAllAuthData()
-          router.replace('/login')
-        })
-        return
-      }
-
-      const isAirqoAdmin = session.user.organization === 'AirQo' && 
-                           (session.user.privilege?.toLowerCase()?.includes('admin') || 
-                            session.user.privilege?.toLowerCase() === 'super' || 
-                            session.user.privilege?.toLowerCase() === 'net admin');
-      
-      const from = urlParams.get('from')
-      if (from && from.startsWith('/')) {
-        router.push(from)
-      } else if (isAirqoAdmin) {
-        router.push("/dashboard")
+        // Token is expired or invalid, clear auth data and force sign out
+        authService.clearAllAuthData()
+        signOut({ redirect: false })
       } else {
-        router.push("/dashboard/devices")
+        // User is authenticated, let middleware or client redirect them
+        const isAirqoAdmin = session.user.organization === 'AirQo' && 
+                             (session.user.privilege?.toLowerCase()?.includes('admin') || 
+                              session.user.privilege?.toLowerCase() === 'super' || 
+                              session.user.privilege?.toLowerCase() === 'net admin');
+        
+        if (isAirqoAdmin) {
+          router.push("/dashboard")
+        } else {
+          router.push("/dashboard/devices")
+        }
       }
     }
   }, [router, status, session, isTransitioning])
@@ -233,27 +228,20 @@ export default function LoginPage() {
         
         // Check if user is an AirQo admin from session
         let redirectTarget = "/dashboard/devices"
-        const urlParams = new URLSearchParams(window.location.search)
-        const from = urlParams.get('from')
-
-        if (from && from.startsWith('/')) {
-          redirectTarget = from
-        } else {
-          try {
-            const { getSession } = await import("next-auth/react")
-            const session = await getSession()
-            
-            const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
-                                 (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
-                                  session?.user?.privilege?.toLowerCase() === 'super' || 
-                                  session?.user?.privilege?.toLowerCase() === 'net admin');
-                                  
-            if (isAirqoAdmin) {
-              redirectTarget = "/dashboard"
-            }
-          } catch (err) {
-            console.error("Error checking user session on login:", err)
+        try {
+          const { getSession } = await import("next-auth/react")
+          const session = await getSession()
+          
+          const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
+                               (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
+                                session?.user?.privilege?.toLowerCase() === 'super' || 
+                                session?.user?.privilege?.toLowerCase() === 'net admin');
+                                
+          if (isAirqoAdmin) {
+            redirectTarget = "/dashboard"
           }
+        } catch (err) {
+          console.error("Error checking user session on login:", err)
         }
         
         // Small delay to show transition, then redirect
