@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-beacon
-  tag: prod-ecb74e7e-1783928394
+  tag: prod-cf60d868-1783951003
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
