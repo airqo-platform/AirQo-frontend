@@ -2,6 +2,29 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.25
+**Released:** July 13, 2026
+
+### E2E: Add AirQo Device (Claim) — Cohort-Import Coverage
+
+An e2e spec for the claim wizard's device-lifecycle happy path, plus a finding the coverage work surfaced: two of the wizard's four claim methods aren't reachable from the live UI.
+
+<details>
+<summary><strong>Found: manual-entry and QR-scan claim methods are unreachable from method-select</strong></summary>
+
+- `MethodSelectStep.tsx`'s `ALL_METHODS` array only renders **"Import from Cohort"** — the manual-input and QR-scan entries (and their icons) are commented out, and bulk-input was never wired into method-select at all. A user clicking **Add AirQo Device** today can only reach the cohort-import path; the token-based single-device claim (`useClaimDevice` → `POST /devices/claim`), while still fully implemented (`manual-input` → `confirmation` → `success`), has no way in from the button.
+- Not fixed in this change — logged for a follow-up decision on whether to restore the entry points now that the underlying steps are stable.
+
+</details>
+
+<details>
+<summary><strong>New: e2e coverage for the claim wizard's cohort-import flow</strong></summary>
+
+- `e2e/tests/devices/claim-device.spec.ts`: method-select → Import from Cohort → verify → confirm → assign → success, asserting the assignment mutation carries the cohort ID the user actually typed (not the display name echoed back in the confirmation step); plus invalid-cohort-ID and empty-input validation, both asserting the assignment mutation never fires.
+- `e2e/support/claim-mocks.ts`: hybrid interception matching the existing device-import mocks — `GET /devices/cohorts/verify/:id` intercepted so runs don't depend on a real seeded cohort ID, `POST /users/:userId/cohorts/assign` intercepted so runs never mutate real user/cohort state.
+
+</details>
+
 ## Version 2.0.24
 **Released:** July 12, 2026
 
