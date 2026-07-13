@@ -1,6 +1,4 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-
+import 'package:airqo/src/app/dashboard/widgets/share_sheet_widgets.dart';
 import 'package:airqo/src/app/learn/formatting/learn_display_text.dart';
 import 'package:airqo/src/app/learn/models/learn_course_structure.dart';
 import 'package:airqo/src/app/learn/theme/learn_design_tokens.dart';
@@ -8,8 +6,7 @@ import 'package:airqo/src/app/learn/widgets/learn_completion_sheet.dart';
 import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:loggy/loggy.dart';
 import 'package:share_plus/share_plus.dart';
 
 class LearnCourseCertificatePane extends StatefulWidget {
@@ -31,37 +28,59 @@ class LearnCourseCertificatePane extends StatefulWidget {
       _LearnCourseCertificatePaneState();
 }
 
-class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane> {
+class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
+    with UiLoggy {
   static const _appDownloadUrl = 'https://airqo.net/explore-data';
 
   final _certificateKey = GlobalKey();
   bool _sharing = false;
+  String? _shareError;
 
   String get _shareMessage =>
       'I completed ${learnDisplayTitle(widget.course.plainTitleKey)} course on AirQo Learn! '
       'Download the AirQo app and complete the course yourself: $_appDownloadUrl';
 
   Future<void> _shareCertificate() async {
-    setState(() => _sharing = true);
+    if (_sharing) return;
+    setState(() {
+      _sharing = true;
+      _shareError = null;
+    });
     try {
-      final boundary = _certificateKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
-      if (boundary == null) return;
-      final image = await boundary.toImage(pixelRatio: 3);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
-      final pngBytes = byteData.buffer.asUint8List();
+      final pngBytes = await captureShareBoundary(context, _certificateKey);
+      if (pngBytes == null || !mounted) {
+        if (mounted) {
+          setState(
+            () => _shareError = "Couldn't prepare the certificate. Try again.",
+          );
+        }
+        return;
+      }
 
-      final dir = await getTemporaryDirectory();
-      final file = File(
-        '${dir.path}/airqo_course_${widget.course.id}_certificate.png',
-      );
-      await file.writeAsBytes(pngBytes);
+      // iPadOS requires an anchor rect for its share popover; share_plus
+      // throws without one.
+      final box = context.findRenderObject() as RenderBox?;
+      final sharePositionOrigin =
+          box != null ? box.localToGlobal(Offset.zero) & box.size : null;
 
       await Share.shareXFiles(
-        [XFile(file.path)],
+        [
+          XFile.fromData(
+            pngBytes,
+            mimeType: 'image/png',
+            name: 'airqo_course_${widget.course.id}_certificate.png',
+          ),
+        ],
         text: _shareMessage,
+        sharePositionOrigin: sharePositionOrigin,
       );
+    } catch (error) {
+      loggy.error('Failed to share course certificate: $error');
+      if (mounted) {
+        setState(
+          () => _shareError = "Couldn't share the certificate. Try again.",
+        );
+      }
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -112,6 +131,17 @@ class _LearnCourseCertificatePaneState extends State<LearnCourseCertificatePane>
             textAlign: TextAlign.center,
             style: LearnDesignTokens.completionCaption(context),
           ),
+          if (_shareError != null) ...[
+            const SizedBox(height: 8),
+            TranslatedText(
+              _shareError!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
         ],
       ),
       actions: [

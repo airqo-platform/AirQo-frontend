@@ -69,7 +69,7 @@ class ForecastDaySelector extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    isToday ? 'T' : DateFormat.E().format(f.time)[0],
+                    DateFormat.E().format(f.time).substring(0, 2),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
