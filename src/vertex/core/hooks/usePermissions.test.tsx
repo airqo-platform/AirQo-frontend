@@ -60,6 +60,54 @@ describe("usePermissions", () => {
     });
   });
 
+  describe("mock permissions consistency", () => {
+    // usePermission has always honored the NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED
+    // dev flag; useHasAnyPermission (RouteGuard's resolution path) and
+    // useHasAllPermissions must honor it identically, otherwise mocking
+    // permissions in development changes action buttons but not route guards.
+    // The flag is read at module load, so re-import everything fresh with the
+    // env stubbed.
+    it("useHasAnyPermission and useHasAllPermissions honor MOCK_PERMISSIONS when enabled", async () => {
+      vi.resetModules();
+      vi.stubEnv("NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED", "true");
+      try {
+        const hooks = await import("./usePermissions");
+        const { renderHookWithProviders: renderFresh } = await import(
+          "../../test/utils/renderHookWithProviders"
+        );
+        const { PERMISSIONS: P } = await import("@/core/permissions/constants");
+        const noUser = { preloadedState: { user: { userDetails: null } } };
+
+        // MOCK_PERMISSIONS: DEVICE.DEPLOY=true, DEVICE.UPDATE=true, SITE.CREATE=false.
+        expect(
+          renderFresh(
+            () => hooks.useHasAnyPermission([P.DEVICE.DEPLOY, P.SITE.CREATE]),
+            noUser
+          ).result.current
+        ).toBe(true);
+        expect(
+          renderFresh(() => hooks.useHasAnyPermission([P.SITE.CREATE]), noUser)
+            .result.current
+        ).toBe(false);
+        expect(
+          renderFresh(
+            () => hooks.useHasAllPermissions([P.DEVICE.DEPLOY, P.SITE.CREATE]),
+            noUser
+          ).result.current
+        ).toBe(false);
+        expect(
+          renderFresh(
+            () => hooks.useHasAllPermissions([P.DEVICE.DEPLOY, P.DEVICE.UPDATE]),
+            noUser
+          ).result.current
+        ).toBe(true);
+      } finally {
+        vi.unstubAllEnvs();
+        vi.resetModules();
+      }
+    });
+  });
+
   describe("useHasAnyPermission", () => {
     it("returns true if at least one permission matches", () => {
       (permissionService.hasPermission as any).mockImplementation((user: any, perm: string) => {

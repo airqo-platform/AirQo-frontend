@@ -13,6 +13,7 @@ export interface NavItemType {
   badge?: string | number;
   activeOverride?: boolean;
   endIcon?: React.ElementType;
+  external?: boolean;
 }
 
 export interface NavItemProps {
@@ -28,8 +29,12 @@ export const NavItem = React.memo<NavItemProps>(
     const isActive =
       typeof item.activeOverride === 'boolean'
         ? item.activeOverride
-        : pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`));
+        : !item.external &&
+          (pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`)));
     const Icon = item.icon;
+    const externalLinkProps = item.external
+      ? { target: '_blank', rel: 'noopener noreferrer' }
+      : {};
 
     const baseStyles = cn(
       'relative flex items-center transition-all duration-300 ease-in-out',
@@ -53,6 +58,7 @@ export const NavItem = React.memo<NavItemProps>(
         <div className="relative flex items-center justify-center">
           <Link
             href={item.href}
+            {...externalLinkProps}
             onClick={(e) => onClick && onClick(e)}
             className={cn(
               baseStyles,
@@ -83,6 +89,7 @@ export const NavItem = React.memo<NavItemProps>(
 
         <Link
           href={item.href}
+          {...externalLinkProps}
           onClick={(e) => onClick && onClick(e)}
           className={cn(
             baseStyles,

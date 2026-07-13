@@ -2,6 +2,183 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.24
+**Released:** July 12, 2026
+
+### E2E: RBAC Coverage (Action Visibility, Route Guards, Context Gating, Resource Scoping) & Missing Device-Action Permission Gating
+
+Four e2e specs proving the RBAC system against a real session — each device action gated per-permission, both route-guard denial modes, `allowedContexts` enforcement, and org-scoped (resource-context) denial — plus the app fix the coverage immediately surfaced: several device action buttons carried a permission tooltip but were never actually disabled without the permission.
+
+<details>
+<summary><strong>Fix: device action buttons weren't disabled for users lacking the permission</strong></summary>
+
+- The **My Devices "Add AirQo Device"** button and the device-details **Deploy / Recall / Add Maintenance Log** buttons passed a `permission` prop (used only for the disabled-state tooltip) but were never disabled by an actual permission check — any user who could see the page could open those dialogs.
+- Each now disables via `usePermission` on its own permission (`DEVICE_CLAIM`, `DEVICE_DEPLOY`, `DEVICE_RECALL`, `DEVICE_MAINTAIN`), matching the gating pattern already used on `/devices/overview`, with the existing tooltip explaining the required permission.
+- **Gating policy made consistent everywhere: claim → `DEVICE_CLAIM`, import → `DEVICE_UPDATE`.** On `/devices/overview`, "Add AirQo Device" previously gated on `DEVICE_UPDATE` while its tooltip cited `DEVICE_CLAIM` (it now gates on `DEVICE_CLAIM`), and "Import External Device" showed a `DEVICE_CLAIM` tooltip for a `DEVICE_UPDATE` check (tooltip corrected). The My Devices import button, previously ungated, now gates on `DEVICE_UPDATE` too.
+
+</details>
+
+<details>
+<summary><strong>Fix: access-denial race — forbidden page in dev, silent redirect in production</strong></summary>
+
+- Two independent layers denied guarded routes and raced each other: `RouteGuard` (in-place forbidden UI) and `useContextAwareRouting` in the authenticated layout, which replaced the URL with `/home` for any route whose sidebar entry is permission-hidden. The winner depended on build mode — the slow dev server usually rendered the forbidden page, while a **production build silently redirected**, so users never saw the forbidden page for mapped routes. Surfaced by running the e2e suite against a production build (the CI path).
+- Canonical behavior now: **RouteGuard owns direct-navigation denial** (forbidden UI, or its configured `redirectTo`); `useContextAwareRouting` only redirects when the active **context switches** underneath a route the new context doesn't offer. Every route in its map is independently guarded (page-level `RouteGuard` or `AdminRouteGuard`), so narrowing it opens no gap.
+- Hook-level unit tests pin the new contract (no redirect on initial load; redirect only on a context switch that makes the route inaccessible), and the e2e denial assertions are strict again: forbidden UI, URL unchanged, in both build modes.
+
+</details>
+
+<details>
+<summary><strong>Fix: mock-permissions dev flag now applies to all permission hooks</strong></summary>
+
+- `useHasAnyPermission` and `useHasAllPermissions` ignored `NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED` while `usePermission`/`usePermissions` honored it — and since `RouteGuard` resolves permissions exclusively through `useHasAnyPermission`, enabling mock permissions in development changed action buttons but not page access.
+- Both hooks now short-circuit through `MOCK_PERMISSIONS` exactly like `usePermission` (never in production), with unit coverage proving the hooks agree.
+
+</details>
+
+<details>
+<summary><strong>New: RBAC e2e infrastructure — permission scenarios without a second test account</strong></summary>
+
+- `e2e/support/rbac-mocks.ts`: real login, session, and routing, but the single user-details GET that feeds every permission check is intercepted and its **real response transformed in flight** — strip/grant `role_permissions` (legacy permission names resolved through the app's own `mapLegacyPermission`), always neutralize `SUPER_ADMIN` so outcomes depend only on explicit grants, and optionally inject a synthetic external organization.
+- Persisted Redux user state and the React Query cache are cleared before each document load, so every test boots deterministically as exactly the user it declares — no second account, no backend seeding, nothing written to the backend.
+- External-org context is entered by seeding the last-active-group preference with the injected org id after a first boot captures the real user id.
+- A device-details fixture (`device-mocks.ts`) pins deployment status so Deploy vs Recall button visibility is deterministic.
+
+</details>
+
+<details>
+<summary><strong>New: RBAC e2e coverage — 19 tests across four specs</strong></summary>
+
+- **Action visibility** (`rbac/action-visibility.spec.ts`): claim, import, deploy, recall, and maintain each tested individually — a user whose role lacks exactly that permission gets a disabled button, while a sibling action they do hold stays enabled (the control proving per-permission gating rather than a broken page).
+- **Route guards** (`rbac/route-guard.spec.ts`): direct navigation without the required permission hits the right denial mode — in-place forbidden UI on `/devices/overview` and `/admin/networks` (via `AdminRouteGuard`), redirect to `/home` for `/sites/my-sites` (`showError={false}`), plus a positive control.
+- **Context gating** (`rbac/context-gating.spec.ts`): personal-only pages deny an external-org session **even when the org role grants every permission the guard asks for**; identical grants render fine from the personal context — isolating `allowedContexts` as the only denial cause.
+- **Resource scoping** (`rbac/resource-scoped.spec.ts`): the subtlest check — a user who genuinely holds `DEVICE_UPDATE`, but on AirQo rather than the active org, gets denied there and allowed in the scope that holds it; a route-guard variant proves the same for `DEVICE_VIEW`.
+- Full-suite runs surfaced three flake sources, fixed in-suite: assert the enabled control before the disabled target on pages whose buttons render during loading; tolerate test-end races in the route handler (React Query background refetches); generous budgets for the double-boot external-org scenarios.
+
+</details>
+
+<details>
+<summary><strong>New: e2e suite wired into CI (informational) with Codecov Test Analytics</strong></summary>
+
+- New `e2e-vertex` job in `vertex-ci.yml` runs the Playwright suite on every PR/push touching Vertex — **informational** (`continue-on-error`), same philosophy as coverage, since runs depend on the staging backend; promotion to a required check is deliberate follow-up once the flake rate is known. Runs in parallel with `check-vertex` so unit/lint feedback isn't delayed.
+- CI serves a **production build** (`next build && next start`) instead of the dev server — faster, more stable page loads and closer to what ships; local runs keep using `npm run dev`.
+- Playwright's JUnit output uploads to **Codecov Test Analytics** (flag `vertex-e2e`), closing the flaky-test-rate tracking gap TESTING.md listed as deferred — test-results ingestion, not coverage; the `vertex` coverage flag stays unit-only.
+- Requires `VERTEX_E2E_USER_EMAIL`/`VERTEX_E2E_USER_PASSWORD` repository secrets; fork PRs (no secrets) skip with a notice instead of failing. The HTML report is uploaded as an artifact on failure. TESTING.md's CI-status section updated accordingly.
+
+</details>
+
+## Version 2.0.23
+**Released:** July 11, 2026
+
+### E2E: Import External Device (Single & Bulk), CSV Template Download, Org Management Links, In-Dialog Feedback & Login Fixes
+
+First feature e2e specs on top of the 2.0.22 Playwright foundation, covering both paths of the Import External Device wizard — plus a downloadable CSV template for bulk imports, sidebar links to organization member/role management on the analytics platform, a feedback shortcut in every dialog header, and two real login bugs the e2e runs flushed out.
+
+<details>
+<summary><strong>Fix: login could fail with "Could not confirm session" despite successful sign-in</strong></summary>
+
+- Both the login page and the OAuth token-handoff handler polled `getSession()` for only **8 × 150ms = 1.2s** after a successful `signIn`, then reported *"Could not confirm session. Please try again."* On slow connections/devices (or a cold dev server, where e2e caught it) the session cookie simply hadn't propagated yet — the user was authenticated but shown an error.
+- Extracted the duplicated inline pollers into `core/auth/waitForSession.ts`: deadline-based (default 15s budget, 250ms interval), resolves on the first successful poll so the happy path is exactly as fast as before — the budget only bounds how long we keep trying before declaring failure.
+- Co-located unit tests (`waitForSession.test.ts`, 6 cases) including a regression guard: a session materializing after the old 1.2s cutoff must still be picked up.
+
+</details>
+
+<details>
+<summary><strong>Fix: OAuth token-handoff redirect loop when the session cookie never lands</strong></summary>
+
+- `TokenHandoffHandler` redirected to `/home` after a successful `signIn` **even when `waitForSession` returned null** — e.g. when the session cookie is issued for a domain the browser rejects (`NEXTAUTH_COOKIE_DOMAIN=.airqo.net` on `localhost`). The user landed on a protected page unauthenticated, got signed out, bounced back to `/login`, and looped indefinitely.
+- Now guards the redirect: no confirmed session → `/auth-error?error=SessionNotEstablished` with a clear log, instead of the loop.
+- `.env.example` now documents that `NEXTAUTH_COOKIE_DOMAIN` must only be set on deployed `*.airqo.net` hosts — on localhost the browser rejects the cookie and login silently breaks.
+
+</details>
+
+<details>
+<summary><strong>New: downloadable CSV template for bulk device import</strong></summary>
+
+- The bulk import step now offers **"Download CSV template"** (`import-steps/csvTemplate.ts` + button in `BulkImportForm`): a header row of the expected-field labels plus one example row users overwrite. Previously users had to guess the file format and fix mis-mapped columns by hand.
+- Closed an auto-mapping gap the template exposed: the mapper had no alias for **"Device Connection URL"** (`api_code`), so even a correctly-labelled column required manual mapping. With the alias added, a filled-in template auto-maps every column with zero manual work — proven end-to-end by the template round-trip e2e test.
+- The Map Fields selects now carry `aria-label="Map <field>"` (previously unlabelled — an a11y gap).
+- Co-located unit tests for the template builder (`csvTemplate.test.ts`, 6 cases).
+
+</details>
+
+<details>
+<summary><strong>New: sidebar links to organization Members &amp; Roles management</strong></summary>
+
+- The organization-scope sidebar (devices module) now has an **"Organization"** section with **Members** and **Roles & Permissions** links that open the corresponding pages on the analytics platform (`<analytics-url>/org/<slug>/members` and `/org/<slug>/roles`) in a new tab, with an external-link icon signalling the hand-off.
+- The org slug is derived from `activeGroup.grp_title` — lowercased, spaces/underscores → dashes (`KAMPALA_MARCH_BABIES` → `kampala-march-babies`); the section hides when no active group is set.
+- The analytics base URL reuses the existing env-aware resolution (`NEXT_PUBLIC_ANALYTICS_URL`, falling back to staging/production by environment) — `ANALYTICS_BASE_URL` is now exported from `core/urls.tsx`.
+- `NavItem` gained an `external` flag (`target="_blank" rel="noopener noreferrer"`, no active-state highlighting for external hrefs).
+- Co-located unit tests (`secondary-sidebar.test.tsx`, 3 cases): slug conversion, new-tab attributes, section hidden without an active group.
+
+</details>
+
+<details>
+<summary><strong>New: feedback shortcut in every dialog header</strong></summary>
+
+- `ReusableDialog`'s default header now shows a **"?" button** (same `AqHelpCircle` icon as the topbar) next to the close button, opening the existing feedback dialog — so users who hit an issue inside a dialog can report it without hunting for the topbar. On by default via a new `showFeedbackButton` prop; the feedback dialog itself opts out to avoid recursion.
+- The underlying dialog **stays open beneath the feedback dialog**, so the existing screenshot capture (which hides only the feedback UI) photographs exactly the dialog being reported — annotations included.
+- `openFeedbackDialog(source?)` now carries the originating dialog's title via `CustomEvent` detail (type-guarded so existing direct `onClick` callers are unaffected), and the launcher submits it as `sourceDialog` in the feedback metadata for easier triage.
+- **Fix: Escape closed all stacked dialogs** — each open dialog registered its own window-level Escape listener, so Escape in a stacked dialog also closed the one beneath it. A module-level open-dialog stack now makes only the topmost dialog respond, and the body scroll lock is released only when the last dialog closes.
+- The "?" button is excluded from the dialog's initial-focus selection so it doesn't steal focus on open.
+- Co-located unit tests (`ReusableDialog.test.tsx`, 3 cases): event fires with the dialog title as source, opt-out hides the button, Escape closes only the topmost stacked dialog.
+
+</details>
+
+<details>
+<summary><strong>New: e2e specs — Import External Device, single &amp; bulk flows</strong></summary>
+
+- `e2e/tests/devices/import-external-device.spec.ts` (authenticated `chromium` project), using **hybrid interception**: real auth, navigation, and data GETs against staging; the two write endpoints (`POST /devices/soft`, cohort assignment) intercepted via `page.route()` so runs are deterministic and create no backend records.
+- **Happy path**: fills Device Details, verifies cohort options are scoped to the user's own cohort IDs (the client-side cross-org-leakage defense from 2.0.6), checks the Confirmation summary echoes wizard state, then asserts the captured mutation payload (name/serial/URL/network/category/auth/cohort/user), the cohort-assignment target, the success banner, and the `myDevices` refetch after query invalidation.
+- **Gate**: completing without a cohort is blocked on non-admin pages and the mutation is never called.
+- **Bulk spec** (`import-external-device-bulk.spec.ts`): template round-trip (downloaded template uploads and auto-maps every column), a 2-device CSV import asserting the captured `POST /devices/soft/bulk` payload (`network_override`, `cohort_id`, per-device fields) and cohort assignment of both created devices, and a **partial-failure** path asserting the per-row results view ("1 of 2 devices imported. 1 failed.", row-level error message) with only the successful device assigned.
+- `e2e/support/device-mocks.ts` — reusable write-endpoint interceptions shared by both specs.
+- `e2e/support/env-guard.ts` — refuses to run mutation specs unless `NEXT_PUBLIC_API_URL` looks like staging/localhost, so the suite can never write to production.
+- `e2e/support/app-state.ts` — clears the app's persisted React Query cache (`airqo:vertex:react-query:v1*` in localStorage) before page load; the cache rides along inside the auth `storageState` and can otherwise satisfy cohort queries without any network request, breaking response-based assertions.
+
+</details>
+
+<details>
+<summary><strong>Harness fixes surfaced by real runs (2)</strong></summary>
+
+- **`playwright.config.ts`**: a developer `.env.local` pointing `NEXTAUTH_URL`/`NEXTAUTH_COOKIE_DOMAIN` at the deployed staging host makes NextAuth issue session cookies for `.airqo.net`, which browsers reject on `localhost` — login silently breaks. The e2e `webServer` now pins both to the local server for the test run only (real env vars beat `.env.local` in Next.js).
+- **`auth.setup.ts`**: retries the login click if the session-confirmation banner appears; treats an unexpected auto-redirect into the app (already-authenticated context) as success instead of timing out; 180s test budget for cold dev-server compiles.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (26)</strong></summary>
+
+- `src/vertex/core/auth/waitForSession.ts` [NEW]
+- `src/vertex/core/auth/waitForSession.test.ts` [NEW]
+- `src/vertex/app/login/page.tsx` [MODIFIED] — inline poller replaced with shared util
+- `src/vertex/core/auth/authProvider.tsx` [MODIFIED] — shared poller + no-session redirect guard in `TokenHandoffHandler`
+- `src/vertex/components/features/devices/import-steps/csvTemplate.ts` [NEW]
+- `src/vertex/components/features/devices/import-steps/csvTemplate.test.ts` [NEW]
+- `src/vertex/components/features/devices/import-steps/BulkImportForm.tsx` [MODIFIED] — template download button
+- `src/vertex/components/features/devices/import-steps/FieldMappingStep.tsx` [MODIFIED] — aria-labels on mapping selects
+- `src/vertex/components/features/devices/import-device-modal.tsx` [MODIFIED] — `api_code` auto-map aliases
+- `src/vertex/components/layout/secondary-sidebar.tsx` [MODIFIED] — Organization section with Members / Roles & Permissions links
+- `src/vertex/components/layout/secondary-sidebar.test.tsx` [NEW]
+- `src/vertex/components/layout/NavItem.tsx` [MODIFIED] — `external` link support
+- `src/vertex/core/urls.tsx` [MODIFIED] — exports `ANALYTICS_BASE_URL`
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED] — feedback "?" button, topmost-dialog Escape/scroll-lock fix
+- `src/vertex/components/shared/dialog/ReusableDialog.test.tsx` [NEW]
+- `src/vertex/components/features/feedback/feedback-dialog.ts` [MODIFIED] — `openFeedbackDialog(source?)` CustomEvent detail
+- `src/vertex/components/features/feedback/feedback-launcher.tsx` [MODIFIED] — `sourceDialog` metadata, opts out of the "?" button
+- `src/vertex/e2e/tests/devices/import-external-device.spec.ts` [NEW]
+- `src/vertex/e2e/tests/devices/import-external-device-bulk.spec.ts` [NEW]
+- `src/vertex/e2e/support/device-mocks.ts` [NEW]
+- `src/vertex/e2e/support/env-guard.ts` [NEW]
+- `src/vertex/e2e/support/app-state.ts` [NEW]
+- `src/vertex/e2e/setup/auth.setup.ts` [MODIFIED]
+- `src/vertex/playwright.config.ts` [MODIFIED]
+- `src/vertex/.env.e2e.example` [MODIFIED] — documents the account seeding the specs need
+- `src/vertex/.env.example` [MODIFIED] — `NEXTAUTH_COOKIE_DOMAIN` localhost warning
+
+</details>
+
+---
+
 ## Version 2.0.22
 **Released:** July 10, 2026
 

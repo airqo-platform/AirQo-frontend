@@ -15,11 +15,18 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // HTML report always generated (consumed by `npm run test:e2e:report`);
-  // "github" annotations added on top in CI, plain "list" console output locally.
-  reporter: [
-    ["html", { open: "never" }],
-    process.env.CI ? ["github"] : ["list"],
-  ],
+  // in CI, "github" annotations plus a JUnit file for Codecov Test Analytics
+  // (flaky-test tracking); plain "list" console output locally.
+  reporter: process.env.CI
+    ? [
+        ["html", { open: "never" }],
+        ["github"],
+        ["junit", { outputFile: "test-results/junit.xml" }],
+      ]
+    : [
+        ["html", { open: "never" }],
+        ["list"],
+      ],
 
   use: {
     baseURL,
@@ -56,12 +63,22 @@ export default defineConfig({
     },
   ],
 
-  // Starts the Next.js dev server against whatever backend NEXT_PUBLIC_API_URL
-  // points to (staging by default, see .env.example) — only the frontend runs locally.
+  // Starts the Next.js app against whatever backend NEXT_PUBLIC_API_URL points
+  // to (staging by default, see .env.example) — only the frontend runs locally.
+  // CI serves a production build instead of the dev server: faster page loads
+  // (no on-demand compilation) and closer to what ships.
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "npm run build && npm run start" : "npm run dev",
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    // A developer's .env.local often points NEXTAUTH_URL/cookie domain at the
+    // deployed staging host; a session cookie scoped to .airqo.net is rejected
+    // by the browser on localhost, breaking login. Real env vars beat .env.local
+    // in Next.js, so pin auth to the local server for the e2e run only.
+    env: {
+      NEXTAUTH_URL: baseURL,
+      NEXTAUTH_COOKIE_DOMAIN: "",
+    },
   },
 });

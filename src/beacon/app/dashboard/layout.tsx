@@ -62,12 +62,16 @@ export default function DashboardLayout({
     }
   }
 
-  // Redirect to login if unauthenticated
+  // Redirect to login if unauthenticated or token expired
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" || (status === "authenticated" && !session?.user)) {
+      if (status === "authenticated" && !session?.user) {
+        // Token expired but NextAuth session still exists, force sign out
+        signOut({ redirect: false })
+      }
       router.push("/login")
     }
-  }, [status, router])
+  }, [status, session, router])
 
   return (
     <GroupProvider>

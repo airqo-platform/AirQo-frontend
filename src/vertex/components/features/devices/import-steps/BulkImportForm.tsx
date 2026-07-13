@@ -1,10 +1,12 @@
 import React from "react";
+import { Download } from "lucide-react";
 import ReusableFileUpload from "@/components/shared/fileupload/ReusableFileUpload";
 import { Label } from "@/components/ui/label";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { DEVICE_CATEGORIES, DEFAULT_DEVICE_TAGS } from "@/core/constants/devices";
+import { downloadDeviceImportCsvTemplate } from "./csvTemplate";
 import type { ImportDeviceFormData } from "./types";
 import type { Network } from "@/core/apis/networks";
 
@@ -39,16 +41,30 @@ export const BulkImportForm: React.FC<BulkImportFormProps> = ({
         </div>
       )}
 
-      <ReusableFileUpload
-        label="Import multiple devices at once."
-        id="bulk_file"
-        accept=".csv,.json"
-        file={bulkFile}
-        onChange={handleFileUpload}
-        placeholder="Upload bulk import file"
-        description="Supported file types are CSV and JSON."
-        containerClassName="pb-4 border-b"
-      />
+      <div className="pb-4 border-b">
+        <ReusableFileUpload
+          label="Import multiple devices at once."
+          id="bulk_file"
+          accept=".csv,.json"
+          file={bulkFile}
+          onChange={handleFileUpload}
+          placeholder="Upload bulk import file"
+          description="Supported file types are CSV and JSON."
+        />
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs text-muted-foreground">
+            Not sure about the format?
+          </span>
+          <ReusableButton
+            onClick={downloadDeviceImportCsvTemplate}
+            variant="text"
+            Icon={Download}
+            className="text-xs p-0 px-1 h-auto"
+          >
+            Download CSV template
+          </ReusableButton>
+        </div>
+      </div>
 
       <div className="space-y-4 pt-2">
         <h4 className="font-medium text-sm text-gray-700 dark:text-gray-200">Apply to all imported devices:</h4>

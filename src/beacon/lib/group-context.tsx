@@ -78,6 +78,28 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     const fetchGroups = async () => {
+      // 1. Try to load from cache first (Stale-While-Revalidate pattern)
+      if (typeof globalThis.window !== "undefined") {
+        try {
+          const cachedGroupsStr = globalThis.localStorage.getItem("beacon_available_groups")
+          if (cachedGroupsStr) {
+            const cachedGroups = JSON.parse(cachedGroupsStr)
+            if (Array.isArray(cachedGroups) && cachedGroups.length > 0) {
+              setAvailableGroups(cachedGroups)
+              
+              const persisted = globalThis.localStorage.getItem(STORAGE_KEY)
+              if (persisted && cachedGroups.some((g: any) => g.grp_title === persisted)) {
+                setCurrentActiveGroup(persisted)
+              }
+              // Immediately show UI since we have cached data
+              setLoading(false)
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors for cache
+        }
+      }
+
       try {
         const token = session?.accessToken
         if (!token) {
@@ -105,6 +127,10 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
         const groups: UserGroup[] = user?.groups ?? []
 
         setAvailableGroups(groups)
+        
+        if (typeof globalThis.window !== "undefined") {
+          globalThis.localStorage.setItem("beacon_available_groups", JSON.stringify(groups))
+        }
 
         // Check if user is an AirQo Admin
         const isAirqoAdmin = groups.some(g => {

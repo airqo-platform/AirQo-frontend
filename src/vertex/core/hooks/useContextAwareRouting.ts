@@ -38,22 +38,29 @@ export const useContextAwareRouting = () => {
   const { getSidebarConfig, userContext } = useUserContext();
 
   const previousContextRef = useRef<string | null>(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
     if (!userContext) {
       return;
     }
 
-    const sidebarConfig = getSidebarConfig();
-
-    initializedRef.current = true;
+    const previousContext = previousContextRef.current;
     previousContextRef.current = userContext;
 
-    // Enforce access on every pathname or context change
-    if (!isRouteAccessible(pathname, sidebarConfig)) {
-      router.replace(ROUTE_LINKS.HOME);
+    // Only enforce on a context *switch*. Direct navigation into an
+    // inaccessible route is RouteGuard's responsibility (forbidden UI, or its
+    // configured redirect) — when this hook also enforced on every pathname
+    // change, the two denial layers raced and the winner depended on build
+    // mode: the dev server usually rendered the forbidden page, a production
+    // build silently redirected to /home. This hook now only cleans up when
+    // the active context changes underneath a route the new context doesn't
+    // offer.
+    if (previousContext === null || previousContext === userContext) {
       return;
+    }
+
+    if (!isRouteAccessible(pathname, getSidebarConfig())) {
+      router.replace(ROUTE_LINKS.HOME);
     }
   }, [userContext, pathname, getSidebarConfig, router]);
 }; 

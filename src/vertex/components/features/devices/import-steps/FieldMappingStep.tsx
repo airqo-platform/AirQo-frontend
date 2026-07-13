@@ -50,6 +50,7 @@ export const FieldMappingStep: React.FC<FieldMappingStepProps> = ({
                     className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 p-2"
                     value={fieldMapping[field.key] || ""}
                     onChange={(e) => setFieldMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
+                    aria-label={`Map ${field.label}`}
                   >
                     <option value="">-- Ignore this field --</option>
                     {fileHeaders.map(header => (
