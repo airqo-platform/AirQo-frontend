@@ -88,7 +88,7 @@ export function FaceCard({
     'Clean Air Champion';
 
   const location =
-    submission.locationName?.trim() || 'Pretoria, Gauteng, South Africa';
+    submission.locationName?.trim() || 'the Africa Clean Air Forum';
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
