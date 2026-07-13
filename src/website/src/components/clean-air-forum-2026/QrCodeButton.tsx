@@ -15,7 +15,7 @@ export default function QrCodeButton({ src = QR_IMAGE_SRC }: { src?: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="absolute right-3 top-4 z-20 hidden cursor-pointer sm:right-6 sm:top-6 sm:block lg:right-8 lg:top-8"
+        className="absolute bottom-4 right-3 z-20 hidden cursor-pointer sm:bottom-8 sm:right-6 sm:block lg:bottom-10 lg:right-8"
         aria-label="Open QR code in full view"
       >
         <div className="flex flex-col items-center gap-1">

@@ -295,7 +295,7 @@ export default function LeaderboardScreen() {
               variants={headerItemVariants}
               className="whitespace-nowrap text-left leading-none text-white"
             >
-              <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
+              <span className="block truncate text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                 {LEADERBOARD_TITLE}
               </span>
             </motion.h1>
