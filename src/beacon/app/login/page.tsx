@@ -140,7 +140,7 @@ export default function LoginPage() {
       if (!session?.user) {
         // Token is expired or invalid, clear auth data and force sign out
         authService.clearAllAuthData()
-        signOut({ redirect: false })
+void import("next-auth/react").then(({ signOut }) => signOut({ redirect: false }))
       } else {
         // User is authenticated, let middleware or client redirect them
         const isAirqoAdmin = session.user.organization === 'AirQo' && 
