@@ -191,18 +191,29 @@ export function CreateGridForm() {
                 control={form.control}
                 name="shapefile"
                 render={({ field, fieldState }) => (
-                  <ReusableInputField
-                    as="textarea"
-                    label="Shapefile"
-                    className="font-mono"
-                    readOnly
-                    {...field}
-                    value={polygon ? JSON.stringify(polygon, null, 2) : ""}
-                    description="Select polygon icon on map to generate a polygon"
-                    error={fieldState.error?.message}
-                    rows={5}
-                    showCopyButton
-                  />
+                  <div>
+                    <ReusableInputField
+                      as="textarea"
+                      label="Shapefile"
+                      className="font-mono"
+                      readOnly
+                      {...field}
+                      value={polygon ? JSON.stringify(polygon, null, 2) : ""}
+                      description="Select polygon icon on map to generate a polygon"
+                      error={fieldState.error?.message}
+                      rows={5}
+                      showCopyButton
+                    />
+                    {/* ReusableInputField suppresses its own error text for
+                        readOnly fields, but this one still requires a value
+                        (drawn on the map) — render the message ourselves so
+                        the user isn't left with a silently-blocked Submit. */}
+                    {fieldState.error?.message && (
+                      <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </div>
                 )}
               />
             </form>
