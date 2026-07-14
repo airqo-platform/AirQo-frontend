@@ -886,6 +886,12 @@ export default function FacesOfCleanAirPage() {
   );
 
   useEffect(() => {
+    setLeaderboardSlideIndex((currentIndex) =>
+      Math.min(currentIndex, leaderboardSlideCount - 1),
+    );
+  }, [leaderboardSlideCount]);
+
+  useEffect(() => {
     if (!hasLoadedRef.current || isPaused || shouldReduceMotion) {
       return;
     }
@@ -1400,6 +1406,7 @@ export default function FacesOfCleanAirPage() {
                       intervalMs={CAROUSEL_INTERVAL_MS}
                       isPaused={isPaused}
                       reduceMotion={shouldReduceMotion}
+                      onIndexChange={setLeaderboardSlideIndex}
                     />
                   </div>
                 </>
