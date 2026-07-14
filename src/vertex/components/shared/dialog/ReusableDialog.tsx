@@ -170,7 +170,12 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     const handleEscape = (e: KeyboardEvent) => {
       const isTopmost = openDialogStack[openDialogStack.length - 1] === id
-      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current) {
+      // A Radix Popover (combobox/multi-select dropdown, etc.) rendered on
+      // top of this dialog has its own Escape handling and isn't tracked in
+      // openDialogStack. Without this check, dismissing just the dropdown
+      // would also bubble up and close (and reset) this whole dialog.
+      const hasOpenPopover = document.querySelector('[data-radix-popper-content-wrapper]')
+      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current && !hasOpenPopover) {
         onCloseRef.current()
       }
     }
