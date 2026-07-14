@@ -41,7 +41,6 @@ const AIRQO_LOGO_URL = '/assets/images/white-logo.png';
 const DESKTOP_CARDS_PER_PAGE = 8;
 const CAROUSEL_INTERVAL_MS = 7600;
 const LEADERBOARD_ROWS_PER_SLIDE = 5;
-const LEADERBOARD_TOTAL_SLOTS = 10;
 
 const SWIPE_DISTANCE_THRESHOLD = 70;
 const SWIPE_VELOCITY_THRESHOLD = 500;
@@ -233,7 +232,7 @@ function SkeletonCard({
         delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
+      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] backdrop-blur-md"
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-[#39BFC7]/15 to-[#39BFC7]/20" />
@@ -385,7 +384,7 @@ function FaceCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -753,11 +752,22 @@ export default function FacesOfCleanAirPage() {
   const [leaderboardEntries, setLeaderboardEntries] = useState<
     CleanAirForum2026LeaderboardEntry[]
   >([]);
+  const [leaderboardFetchState, setLeaderboardFetchState] =
+    useState<FetchState>('idle');
   const [leaderboardSlideIndex, setLeaderboardSlideIndex] = useState(0);
 
   const hasLoadedRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchSubmissions = useCallback(async () => {
+    if (!mountedRef.current) return;
+
     if (!hasLoadedRef.current) {
       setFetchState('loading');
     }
@@ -767,12 +777,14 @@ export default function FacesOfCleanAirPage() {
         CLEAN_AIR_FORUM_CURRENT_EVENT_ID,
       );
 
+      if (!mountedRef.current) return;
       setSubmissions(Array.isArray(data) ? data : []);
       setFetchState('success');
       hasLoadedRef.current = true;
     } catch (error) {
       console.error('Failed to load clean air faces:', error);
 
+      if (!mountedRef.current) return;
       if (!hasLoadedRef.current) {
         setFetchState('error');
       }
@@ -780,11 +792,21 @@ export default function FacesOfCleanAirPage() {
   }, []);
 
   const fetchLeaderboard = useCallback(async () => {
+    if (!mountedRef.current) return;
+
+    setLeaderboardFetchState((prev) => (prev === 'idle' ? 'loading' : prev));
+
     try {
       const leaderboard = await fetchCleanAirForum2026Leaderboard();
+
+      if (!mountedRef.current) return;
       setLeaderboardEntries(leaderboard.entries);
+      setLeaderboardFetchState('success');
     } catch (error) {
       console.error('Failed to load CAF leaderboard:', error);
+
+      if (!mountedRef.current) return;
+      setLeaderboardFetchState((prev) => (prev === 'success' ? prev : 'error'));
     }
   }, []);
 
@@ -858,12 +880,13 @@ export default function FacesOfCleanAirPage() {
     [page, totalSlides],
   );
 
-  const leaderboardSlideCount = Math.ceil(
-    LEADERBOARD_TOTAL_SLOTS / LEADERBOARD_ROWS_PER_SLIDE,
+  const leaderboardSlideCount = Math.max(
+    1,
+    Math.ceil(leaderboardEntries.length / LEADERBOARD_ROWS_PER_SLIDE),
   );
 
   useEffect(() => {
-    if (fetchState !== 'success' || isPaused || shouldReduceMotion) {
+    if (!hasLoadedRef.current || isPaused || shouldReduceMotion) {
       return;
     }
 
@@ -896,9 +919,9 @@ export default function FacesOfCleanAirPage() {
     };
   }, [
     displayStage,
-    fetchState,
     fetchLeaderboard,
     goToRelativePage,
+    hasLoadedRef,
     isPaused,
     leaderboardSlideCount,
     leaderboardSlideIndex,
@@ -1015,7 +1038,9 @@ export default function FacesOfCleanAirPage() {
     }),
   };
 
-  const isInitialLoading = fetchState === 'idle' || fetchState === 'loading';
+  const isInitialLoading =
+    !hasLoadedRef.current &&
+    (fetchState === 'idle' || fetchState === 'loading');
 
   const showError = fetchState === 'error' && submissions.length === 0;
 
@@ -1023,43 +1048,32 @@ export default function FacesOfCleanAirPage() {
 
   const skeletonCount = isMobile ? 1 : DESKTOP_CARDS_PER_PAGE;
   const leaderboardRows = useMemo(() => {
-    const topEntries = leaderboardEntries.slice(0, LEADERBOARD_TOTAL_SLOTS);
     const startIndex = leaderboardSlideIndex * LEADERBOARD_ROWS_PER_SLIDE;
+    const endIndex = Math.min(
+      startIndex + LEADERBOARD_ROWS_PER_SLIDE,
+      leaderboardEntries.length,
+    );
 
-    return Array.from({ length: LEADERBOARD_ROWS_PER_SLIDE }, (_, i) => {
+    if (startIndex >= leaderboardEntries.length) {
+      return [];
+    }
+
+    return leaderboardEntries.slice(startIndex, endIndex).map((entry, i) => {
       const absoluteIndex = startIndex + i;
-      const entry = topEntries[absoluteIndex];
-
-      if (entry) {
-        const stableId =
-          entry.guest_id ||
-          entry.device_id ||
-          `rank-${entry.rank ?? absoluteIndex + 1}`;
-        const tone: 'light' | 'tint' =
-          absoluteIndex % 2 === 0 ? 'light' : 'tint';
-
-        return {
-          id: stableId,
-          isEmpty: false,
-          avatar: formatLeaderboardAvatar(entry),
-          avatarImageUrl: entry.avatar_image_url || '',
-          rank: entry.rank ?? absoluteIndex + 1,
-          name: formatLeaderboardName(entry, absoluteIndex),
-          points: formatLeaderboardPoints(entry.points),
-          tone,
-        };
-      }
-
+      const stableId =
+        entry.guest_id ||
+        entry.device_id ||
+        `rank-${entry.rank ?? absoluteIndex + 1}`;
       const tone: 'light' | 'tint' = absoluteIndex % 2 === 0 ? 'light' : 'tint';
 
       return {
-        id: `empty-${absoluteIndex + 1}`,
-        isEmpty: true,
-        avatar: '',
-        avatarImageUrl: '',
-        rank: absoluteIndex + 1,
-        name: 'Open',
-        points: '—',
+        id: stableId,
+        isEmpty: false,
+        avatar: formatLeaderboardAvatar(entry),
+        avatarImageUrl: entry.avatar_image_url || '',
+        rank: entry.rank ?? absoluteIndex + 1,
+        name: formatLeaderboardName(entry, absoluteIndex),
+        points: formatLeaderboardPoints(entry.points),
         tone,
       };
     });
@@ -1182,7 +1196,30 @@ export default function FacesOfCleanAirPage() {
               }
             }}
           >
-            <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={displayStage}
+              initial={
+                shouldReduceMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                    }
+              }
+              animate={{
+                opacity: 1,
+              }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.45,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className={
+                displayStage === 'faces' && isMobile
+                  ? 'flex h-full min-h-0 flex-col items-center justify-center'
+                  : displayStage === 'faces'
+                    ? undefined
+                    : 'flex w-full flex-col items-center'
+              }
+            >
               {displayStage === 'faces' && isInitialLoading && (
                 <motion.div
                   key="loading"
@@ -1191,10 +1228,6 @@ export default function FacesOfCleanAirPage() {
                   }}
                   animate={{
                     opacity: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.985,
                   }}
                   transition={{
                     duration: shouldReduceMotion ? 0 : 0.64,
@@ -1245,157 +1278,118 @@ export default function FacesOfCleanAirPage() {
               )}
 
               {displayStage === 'faces' &&
-              !isInitialLoading &&
-              !showError &&
-              !showEmpty ? (
-                <motion.div
-                  key="faces-content"
-                  initial={
-                    shouldReduceMotion
-                      ? false
-                      : {
-                          opacity: 0,
-                          y: 18,
-                        }
-                  }
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -12,
-                  }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0 : 0.68,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className={
-                    isMobile
-                      ? 'flex h-full min-h-0 flex-col items-center justify-center'
-                      : undefined
-                  }
-                >
+                !isInitialLoading &&
+                !showError &&
+                !showEmpty && (
                   <div
                     className={
                       isMobile
-                        ? 'flex min-h-0 w-full flex-1 items-center justify-center'
+                        ? 'flex h-full min-h-0 flex-col items-center justify-center'
                         : undefined
                     }
                   >
-                    <AnimatePresence
-                      initial={false}
-                      mode="wait"
-                      custom={direction}
+                    <div
+                      className={
+                        isMobile
+                          ? 'flex min-h-0 w-full flex-1 items-center justify-center'
+                          : undefined
+                      }
                     >
-                      <motion.div
-                        key={`${isMobile ? 'mobile' : 'desktop'}-${page}`}
+                      <AnimatePresence
+                        initial={false}
+                        mode="wait"
                         custom={direction}
-                        variants={pageVariants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        aria-live="polite"
-                        drag={
-                          totalSlides > 1 && !shouldReduceMotion ? 'x' : false
-                        }
-                        dragConstraints={{
-                          left: 0,
-                          right: 0,
-                        }}
-                        dragElastic={isMobile ? 0.2 : 0.14}
-                        dragMomentum={false}
-                        onDragEnd={handleDragEnd}
-                        style={{
-                          transformPerspective: 1200,
-                        }}
-                        className={
-                          isMobile
-                            ? 'flex touch-pan-y cursor-grab items-center justify-center active:cursor-grabbing'
-                            : 'grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-4 active:cursor-grabbing sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'
-                        }
                       >
-                        {visibleItems.map((submission, index) => (
-                          <div
-                            key={submission.id}
-                            className={
-                              isMobile
-                                ? 'w-full'
-                                : 'w-full max-w-[320px] lg:max-w-[360px] xl:max-w-[400px]'
-                            }
-                            style={
-                              isMobile
-                                ? {
-                                    width:
-                                      'min(86vw, calc(100svh - 205px), 360px)',
-                                  }
-                                : undefined
-                            }
-                          >
-                            <FaceCard
-                              submission={submission}
-                              priority={
-                                isMobile ? page === 0 : page === 0 && index < 3
+                        <motion.div
+                          key={`${isMobile ? 'mobile' : 'desktop'}-${page}`}
+                          custom={direction}
+                          variants={pageVariants}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          aria-live="polite"
+                          drag={
+                            totalSlides > 1 && !shouldReduceMotion ? 'x' : false
+                          }
+                          dragConstraints={{
+                            left: 0,
+                            right: 0,
+                          }}
+                          dragElastic={isMobile ? 0.2 : 0.14}
+                          dragMomentum={false}
+                          onDragEnd={handleDragEnd}
+                          style={{
+                            transformPerspective: 1200,
+                          }}
+                          className={
+                            isMobile
+                              ? 'flex touch-pan-y cursor-grab items-center justify-center active:cursor-grabbing'
+                              : 'grid touch-pan-y cursor-grab grid-cols-1 justify-items-center gap-4 active:cursor-grabbing sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'
+                          }
+                        >
+                          {visibleItems.map((submission, index) => (
+                            <div
+                              key={submission.id}
+                              className={
+                                isMobile
+                                  ? 'w-full'
+                                  : 'w-full max-w-[320px] lg:max-w-[360px] xl:max-w-[400px]'
                               }
-                              reduceMotion={shouldReduceMotion}
-                            />
-                          </div>
-                        ))}
-                      </motion.div>
-                    </AnimatePresence>
+                              style={
+                                isMobile
+                                  ? {
+                                      width:
+                                        'min(86vw, calc(100svh - 205px), 360px)',
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <FaceCard
+                                submission={submission}
+                                priority={
+                                  isMobile
+                                    ? page === 0
+                                    : page === 0 && index < 3
+                                }
+                                reduceMotion={shouldReduceMotion}
+                              />
+                            </div>
+                          ))}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    {totalSlides > 1 && (
+                      <>
+                        <MobilePagination
+                          page={page}
+                          totalPages={totalSlides}
+                          reduceMotion={shouldReduceMotion}
+                        />
+
+                        <DesktopPagination
+                          page={page}
+                          totalPages={totalSlides}
+                          isPaused={isPaused}
+                          reduceMotion={shouldReduceMotion}
+                          onPageChange={goToPage}
+                        />
+                      </>
+                    )}
                   </div>
+                )}
 
-                  {totalSlides > 1 && (
-                    <>
-                      <MobilePagination
-                        page={page}
-                        totalPages={totalSlides}
-                        reduceMotion={shouldReduceMotion}
-                      />
-
-                      <DesktopPagination
-                        page={page}
-                        totalPages={totalSlides}
-                        isPaused={isPaused}
-                        reduceMotion={shouldReduceMotion}
-                        onPageChange={goToPage}
-                      />
-                    </>
-                  )}
-                </motion.div>
-              ) : null}
-
-              {displayStage === 'leaderboard' ? (
-                <motion.div
-                  key={`leaderboard-${leaderboardSlideIndex}`}
-                  initial={
-                    shouldReduceMotion
-                      ? false
-                      : {
-                          opacity: 0,
-                          y: 18,
-                        }
-                  }
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -12,
-                  }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0 : 0.68,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="flex w-full flex-col items-center"
-                >
+              {displayStage === 'leaderboard' && (
+                <>
                   <div className="w-full">
                     <LeaderboardRowsBlock
                       rows={leaderboardRows}
                       slideKey={leaderboardSlideIndex}
                       reduceMotion={shouldReduceMotion}
-                      isEmpty={leaderboardEntries.length === 0}
+                      isEmpty={
+                        leaderboardFetchState === 'success' &&
+                        leaderboardEntries.length === 0
+                      }
                     />
                   </div>
 
@@ -1408,9 +1402,9 @@ export default function FacesOfCleanAirPage() {
                       reduceMotion={shouldReduceMotion}
                     />
                   </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+                </>
+              )}
+            </motion.div>
           </section>
         </main>
 
