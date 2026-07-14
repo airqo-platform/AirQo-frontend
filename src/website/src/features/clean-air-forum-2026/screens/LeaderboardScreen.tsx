@@ -391,6 +391,7 @@ export default function LeaderboardScreen() {
                     intervalMs={CAROUSEL_INTERVAL_MS}
                     isPaused={isPaused}
                     reduceMotion={shouldReduceMotion}
+                    onIndexChange={setPage}
                   />
                 </div>
               )}
