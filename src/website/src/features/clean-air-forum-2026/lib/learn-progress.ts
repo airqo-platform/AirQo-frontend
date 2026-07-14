@@ -74,65 +74,83 @@ function normalizeLeaderboardPoints(entry: CleanAirForum2026LeaderboardEntry) {
 
 export async function fetchCleanAirForum2026Leaderboard(
   signal?: AbortSignal,
-  limit = 10,
+  limit?: number,
 ) {
   const leaderboardUrl = new URL(
     cleanAirForum2026LeaderboardPath,
     window.location.origin,
   );
-  leaderboardUrl.searchParams.set('limit', String(limit));
+  if (limit != null) {
+    leaderboardUrl.searchParams.set('limit', String(limit));
+  }
   leaderboardUrl.searchParams.set('event_id', CLEAN_AIR_FORUM_2026_EVENT_ID);
 
-  const response = await fetch(leaderboardUrl.toString(), {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-    },
-    signal,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-  if (!response.ok) {
-    let errorMessage = `Leaderboard request failed with ${response.status}`;
-
-    try {
-      const errorPayload = (await response.json()) as {
-        message?: string;
-        errors?: string[];
-      };
-
-      if (errorPayload.message) {
-        errorMessage = errorPayload.message;
-      } else if (errorPayload.errors?.length) {
-        errorMessage = errorPayload.errors.join(', ');
-      }
-    } catch {
-      // Keep the fallback error message when the body is not JSON.
-    }
-
-    throw new Error(errorMessage);
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort(signal.reason), {
+      once: true,
+    });
   }
 
-  const payload =
-    (await response.json()) as CleanAirForum2026LeaderboardResponse;
-  const entries = extractLeaderboardEntries(payload)
-    .map((entry, index) => ({
-      ...entry,
-      rank: normalizeLeaderboardRank(entry) ?? index + 1,
-      points: normalizeLeaderboardPoints(entry),
-    }))
-    .sort((left, right) => {
-      const leftRank =
-        normalizeLeaderboardRank(left) ?? Number.MAX_SAFE_INTEGER;
-      const rightRank =
-        normalizeLeaderboardRank(right) ?? Number.MAX_SAFE_INTEGER;
-
-      return leftRank - rightRank;
+  try {
+    const response = await fetch(leaderboardUrl.toString(), {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
     });
 
-  return {
-    payload,
-    entries,
-  };
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorMessage = `Leaderboard request failed with ${response.status}`;
+
+      try {
+        const errorPayload = (await response.json()) as {
+          message?: string;
+          errors?: string[];
+        };
+
+        if (errorPayload.message) {
+          errorMessage = errorPayload.message;
+        } else if (errorPayload.errors?.length) {
+          errorMessage = errorPayload.errors.join(', ');
+        }
+      } catch {
+        // Keep the fallback error message when the body is not JSON.
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const payload =
+      (await response.json()) as CleanAirForum2026LeaderboardResponse;
+    const entries = extractLeaderboardEntries(payload)
+      .map((entry, index) => ({
+        ...entry,
+        rank: normalizeLeaderboardRank(entry) ?? index + 1,
+        points: normalizeLeaderboardPoints(entry),
+      }))
+      .sort((left, right) => {
+        const leftRank =
+          normalizeLeaderboardRank(left) ?? Number.MAX_SAFE_INTEGER;
+        const rightRank =
+          normalizeLeaderboardRank(right) ?? Number.MAX_SAFE_INTEGER;
+
+        return leftRank - rightRank;
+      });
+
+    return {
+      payload,
+      entries,
+    };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 export async function fetchCleanAirForum2026LeaderboardPosition(
