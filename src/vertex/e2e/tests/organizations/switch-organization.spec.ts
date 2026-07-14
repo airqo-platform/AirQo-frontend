@@ -3,7 +3,6 @@ import {
   interceptUserDetails,
   resetAppBootState,
   rbacUser,
-  expectRouteDenied,
   E2E_EXTERNAL_ORG_TITLE,
 } from "../../support/rbac-mocks";
 import { PERMISSIONS } from "../../../core/permissions/constants";
@@ -82,8 +81,15 @@ test("switching organizations via the picker re-scopes access, and switching bac
     // Same page, but the context flipped under it — the personal-only guard
     // must deny now, even though the external org's role also grants
     // SITE_VIEW (proving the denial is the context check, not a permission).
+    //
+    // Navigating right after a live context switch goes through
+    // useContextAwareRouting's redirect-on-switch path, not RouteGuard's
+    // in-place 403 (that strict surface is for direct navigation with no
+    // recent switch — see rbac-mocks.ts's expectRouteDenied doc comment,
+    // and context-gating.spec.ts's own switch-triggered test, which
+    // expects this same redirect rather than the 403 text).
     await page.goto("/sites/my-sites");
-    await expectRouteDenied(page);
+    await page.waitForURL(/\/home(\?|$)/, { timeout: 120_000 });
   });
 
   await test.step("switching back to AirQo restores access", async () => {
