@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
@@ -37,6 +37,15 @@ const DIALOG_TITLE = "Create a new Sensor Manufacturer";
 // ReusableInputField appends the required-marker "*" directly to the label
 // text with no separator (e.g. "Name*"), so exact-string label queries fail.
 const requiredLabel = (text: string) => new RegExp(`^${text}\\*?$`);
+
+// ReusableDialog auto-focuses the first focusable element 100ms after
+// opening. Typing that straddles that window gets its focus yanked back
+// mid-field, interleaving keystrokes across inputs — wait it out first.
+async function settleDialogFocus() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  });
+}
 
 /** Fills every required field with valid values; category is left at its "business" default. */
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) {
@@ -135,6 +144,7 @@ describe("CreateNetworkForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Create Sensor Manufacturer" }));
     const dialog = screen.getByRole("dialog");
+    await settleDialogFocus();
     await fillValidForm(user, dialog);
 
     // Exercise the category select explicitly rather than relying on its default.
@@ -183,6 +193,7 @@ describe("CreateNetworkForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Create Sensor Manufacturer" }));
     const dialog = screen.getByRole("dialog");
+    await settleDialogFocus();
     await fillValidForm(user, dialog);
 
     await user.click(within(dialog).getByRole("button", { name: "Create Sensor Manufacturer" }));
