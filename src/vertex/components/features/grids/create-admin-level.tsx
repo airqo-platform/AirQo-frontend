@@ -74,7 +74,10 @@ export function CreateAdminLevel() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border">
+            <button
+              aria-label="Grid actions"
+              className="p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
+            >
               <MoreVertical size={18} />
             </button>
           </DropdownMenuTrigger>

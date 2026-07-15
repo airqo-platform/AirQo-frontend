@@ -2,6 +2,215 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.27
+**Released:** July 15, 2026
+
+### E2E Login Fix, Six Component/Dialog Bugs, and Broad RTL/E2E Coverage Expansion
+
+A coverage pass across Cohorts, Sites, Grids, Shipping, Networks, and device-management dialogs, plus the sandbox proxy fix that unblocked live e2e verification. Six real defects were found and fixed along the way, five of them surfaced directly by the new tests.
+
+<details>
+<summary><strong>Fix: e2e dev server couldn't reach the staging backend through the sandbox proxy</strong></summary>
+
+- The sandbox only allows outbound internet through an explicit HTTP(S) proxy — Node's `axios`/`fetch` don't honour `HTTP_PROXY`/`HTTPS_PROXY` the way `curl` does, so every server-side call to the staging backend (NextAuth's `authorize()`, the OAuth profile fetch) hung or errored, surfacing as `auth.setup.ts` failing "Authentication error during login" on every run.
+- New `e2e/setup/proxy-bootstrap.cjs`, loaded only via `playwright.config.ts`'s `webServer.env.NODE_OPTIONS` (no effect on `npm run dev`/`npm run build`, and a no-op wherever `HTTP_PROXY`/`HTTPS_PROXY` aren't set). Gives axios explicit `HttpProxyAgent`/`HttpsProxyAgent` instances and sets undici's `EnvHttpProxyAgent` as the global fetch dispatcher.
+- axios's own built-in proxy-env-var handling (via `follow-redirects`) actively 502s against this sandbox's proxy on HTTPS POSTs, reproduced consistently, while `curl` and an explicitly-constructed `HttpsProxyAgent` against the same URL both succeed.
+- Added `http-proxy-agent`/`https-proxy-agent` as direct devDependencies (previously only transitive).
+
+</details>
+
+<details>
+<summary><strong>Fix: switching organizations right after boot denied via redirect, not the expected 403</strong></summary>
+
+- `switch-organization.spec.ts`'s live-verified assertion was wrong, not the app: navigating immediately after a real context switch goes through `useContextAwareRouting`'s redirect-on-switch path (→ `/home`), not `RouteGuard`'s in-place 403 — which is the surface for direct navigation with no recent switch. Assertion corrected to match, consistent with `context-gating.spec.ts`'s own switch-triggered test.
+
+</details>
+
+<details>
+<summary><strong>Fix: selecting table rows could destabilize the whole page's rendering</strong></summary>
+
+- `ReusableTable`'s `handleSelectAll`/`handleSelectItem` called the `onSelectedItemsChange`/`onSelectedIdsChange` parent callbacks **from inside** the `setSelectedItems` updater function — those callbacks often trigger a parent's own `setState` (e.g. `DeviceListTable`'s `setSelectedDeviceObjects`), which React flags with "Cannot update a component while rendering a different component" and can cause real render instability. Found via an e2e run whose click on an unrelated dropdown kept missing its target while a table with row-selection was active on the same page.
+- Now computes the next selection, calls `setSelectedItems` with the plain value, and only then invokes the notification callbacks.
+
+</details>
+
+<details>
+<summary><strong>Fix: multi-select chip "remove" buttons were invalid HTML (button nested in button)</strong></summary>
+
+- `MultiSelectCombobox` rendered each selected item's "Remove" control as a literal `<button>` inside the combobox trigger's own `<button>` — interactive content can't contain interactive content, which React flags as a DOM-nesting warning and can destabilize rendering around it. Replaced with a `<span role="button" tabIndex={0}>` with the same click/keyboard behavior, no nesting violation.
+
+</details>
+
+<details>
+<summary><strong>Fix: ComboBox's "Create New..." custom action was invisible to screen readers</strong></summary>
+
+- The custom-action item (e.g. "Create New Cohort") rendered with `role="option"` but as a sibling of `CommandList`'s `role="listbox"`, not a descendant — ARIA requires `role="option"` to have a listbox ancestor to compute as a valid option role at all, so Chromium's accessibility tree silently dropped it. Clickable by mouse, but unreachable by screen readers or any role-based query. Wrapped in its own `role="listbox"` to fix, confirmed via a CDP accessibility-tree snapshot.
+
+</details>
+
+<details>
+<summary><strong>Fix: creating a cohort from Assign Devices lost the device preselection, and skipped its own Success step</strong></summary>
+
+- `CreateCohortDialog` resets its device field whenever its network changes (devices are network-scoped) — but `AssignCohortDevicesDialog` handed off preselected devices without a starting network, so the required Sensor Manufacturer field forced a selection that silently wiped the very preselection just carried over. Now carries the first preselected device's own network through too.
+- Separately, `AssignCohortDevicesDialog`'s `onSuccess` callback force-closed the nested `CreateCohortDialog` the instant the create mutation resolved — even though it's opened with `andNavigate={true}` specifically so it shows its own "Success!" step with a "Go to Cohort Details" button. Users never saw that step. Fixed by no longer closing it from the parent; `CreateCohortDialog` manages its own lifecycle from there.
+
+</details>
+
+<details>
+<summary><strong>Fix: Escape key inside a combobox dropdown closed (and reset) the parent dialog</strong></summary>
+
+- `ReusableDialog`'s Escape handler only tracked other `ReusableDialog` instances in its stack, not Radix Popovers (ComboBox/MultiSelectCombobox dropdowns) rendered on top of it — dismissing just a dropdown with Escape bubbled up and closed the whole parent dialog, silently discarding whatever the user had already selected.
+- Now skips closing while a Radix popper is open on top. Regression coverage in `assign-cohort-devices.test.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Fix: "polygon required" validation error never reached the user</strong></summary>
+
+- `ReusableInputField` suppresses its own error text for `readOnly` fields — but the Shapefile field (populated by drawing on the map) is `readOnly` by design, so the message "A polygon must be drawn on the map." never rendered and Submit just silently did nothing.
+- Fixed locally in `create-grid.tsx` by rendering the error alongside the field, rather than changing `ReusableInputField`'s shared behavior (other `readOnly` + error usages, e.g. device-details view-mode fields, rely on that suppression intentionally).
+
+</details>
+
+<details>
+<summary><strong>New: e2e coverage — organization picker, create-cohort-with-devices, and Shipping prepare-batch, verified live</strong></summary>
+
+- `e2e/tests/organizations/switch-organization.spec.ts`: drives the real picker UI (open, list orgs including an injected external org, search, switch, switch back) rather than the `seedActiveGroup` localStorage shortcut the RBAC suite uses — proving the UI a user actually clicks produces the same access-control outcome.
+- `e2e/tests/cohorts/create-cohort-with-devices.spec.ts` + `e2e/support/cohort-create-mocks.ts`: the cross-dialog hand-off from `AssignCohortDevicesDialog`'s "Create New Cohort" action to `CreateCohortDialog` with the selected devices preselected — the spec that surfaced the two cohort-dialog bugs above.
+- `e2e/tests/shipping/prepare-batch.spec.ts` + `e2e/support/shipping-mocks.ts`: admin Shipping's Prepare New Batch flow, with permissions transformed in flight (the RBAC suite's technique) so the spec doesn't depend on the seeded e2e account's real grants; only the prepare-bulk mutation is mocked, the status summary and batches table GETs stay real.
+
+</details>
+
+<details>
+<summary><strong>New: RTL coverage — Cohorts, Sites, Grids, Shipping, device-management dialogs, claim wizard, and network requests</strong></summary>
+
+- **Cohorts** (full feature): `create-cohort.test.tsx` (12 cases: form/confirmation/success steps, organizational vs. plain name branching, device CSV import merging, groupId/userId payload routing, embedded-mode behavior), plus `assign-cohort-devices.test.tsx`, `create-cohort-from-cohorts.test.tsx`, `edit-cohort-details-modal.test.tsx`, `assign-cohorts-to-group.test.tsx`, `cohort-detail-card.test.tsx`, `cohort-organizations-card.test.tsx`, `cohort-measurements-api-card.test.tsx`, `cohorts-empty-state.test.tsx`, `unassign-cohort-devices.test.tsx`, `unassign-cohort-from-group.test.tsx`.
+- **Sites** (full feature): `create-site-form.test.tsx`, `edit-site-details-dialog.test.tsx`, `site-information-card.test.tsx`, `site-mobile-app-card.test.tsx`, `site-stats-cards.test.tsx`, `sites-list-table.test.tsx`, `site-activity-card.test.tsx`, `site-measurements-api-card.test.tsx`, `client-paginated-sites-table.test.tsx`.
+- **Grids** (full feature): `create-grid.test.tsx`, `admin-levels-modal.test.tsx`, `create-admin-level.test.tsx`, `edit-grid-details-dialog.test.tsx`, `grid-details-card.test.tsx`, `grid-measurements-api-card.test.tsx`, `grids-list-table.test.tsx`.
+- **Shipping**: `app/(authenticated)/admin/shipping/page.test.tsx`, `[batchId]/page.test.tsx`, `ShippingBatchesTable.test.tsx`, `ShippingLabelPrintModal.test.tsx` — includes an XSS-escaping regression test for `device_id`/`claim_token` written into a popup window's HTML during label printing.
+- **Device-management dialogs**: `deploy-device-component.test.tsx` (6 cases — validation gating, full new-site deploy path, the previous-site path not reachable from the existing e2e spec, network auto-fill from device selection, claim-device hand-off from the device combobox), `recall-device-dialog.test.tsx` (6), `bulk-edit-device-details-modal.test.tsx` (7), `add-maintenance-log-modal.test.tsx` (6, including reset-on-close behavior).
+- **Claim wizard**: `claim-device-modal.test.tsx` (12 cases) — cohort-import is the only claim method reachable from the UI (manual/QR/bulk entry points are commented out of `MethodSelectStep`'s `ALL_METHODS` array); covers step back/cancel navigation, both `isExternalOrg` confirm-step wordings, the two distinct failure shapes (verification vs. assignment failure), personal-vs-group assignment routing, and the close/reset state contract.
+- **Network join requests**: `NetworkRequestsClient.test.tsx` (11 cases) — tab filtering and counts, per-status action-menu availability, the approve/deny/review confirmation dialog including the deny-specific email notice, and the direct `axios.put` mutation's success/error handling (this flow predates the react-query hook pattern used elsewhere in the app).
+- **Sensor Manufacturer form**: `create-network-form.test.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Chore: consolidated device lifecycle e2e specs into one connected journey</strong></summary>
+
+- Merged the separate claim and deploy specs into `e2e/tests/devices/device-lifecycle.spec.ts` — claim (cohort-import) → deploy → recall on the same fixture device, proving the status/button swap flips correctly at each transition rather than testing each step in isolation against a static fixture.
+
+</details>
+
+<details>
+<summary><strong>Files Modified &amp; Added (57)</strong></summary>
+
+**Source fixes [MODIFIED]:**
+- `src/vertex/components/shared/table/ReusableTable.tsx` — setState-in-updater fix
+- `src/vertex/components/ui/multi-select.tsx` — button-in-button fix
+- `src/vertex/components/ui/combobox.tsx` — custom-action `role="listbox"` fix
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` — Escape-vs-Radix-popper fix
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` — preselected network + premature-close fixes
+- `src/vertex/components/features/grids/create-grid.tsx` — surfaced polygon-required validation error
+
+**E2E infrastructure:**
+- `src/vertex/e2e/setup/proxy-bootstrap.cjs` [NEW]
+- `src/vertex/playwright.config.ts` [MODIFIED] — `webServer.env.NODE_OPTIONS` loads the proxy bootstrap
+- `src/vertex/package.json` / `package-lock.json` [MODIFIED] — `http-proxy-agent`, `https-proxy-agent`
+
+**E2E specs and support mocks [NEW]:**
+- `src/vertex/e2e/tests/organizations/switch-organization.spec.ts`
+- `src/vertex/e2e/tests/cohorts/create-cohort-with-devices.spec.ts`
+- `src/vertex/e2e/tests/shipping/prepare-batch.spec.ts`
+- `src/vertex/e2e/tests/devices/device-lifecycle.spec.ts`
+- `src/vertex/e2e/support/claim-mocks.ts`
+- `src/vertex/e2e/support/cohort-create-mocks.ts`
+- `src/vertex/e2e/support/deploy-mocks.ts`
+- `src/vertex/e2e/support/shipping-mocks.ts`
+
+**RTL tests [NEW]:**
+- `src/vertex/app/(authenticated)/admin/networks/requests/NetworkRequestsClient.test.tsx`
+- `src/vertex/app/(authenticated)/admin/shipping/page.test.tsx`
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.test.tsx`
+- `src/vertex/components/features/claim/claim-device-modal.test.tsx`
+- `src/vertex/components/features/cohorts/assign-cohort-devices.test.tsx`
+- `src/vertex/components/features/cohorts/assign-cohorts-to-group.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-detail-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-organizations-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohorts-empty-state.test.tsx`
+- `src/vertex/components/features/cohorts/create-cohort-from-cohorts.test.tsx`
+- `src/vertex/components/features/cohorts/create-cohort.test.tsx`
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.test.tsx`
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.test.tsx`
+- `src/vertex/components/features/cohorts/unassign-cohort-from-group.test.tsx`
+- `src/vertex/components/features/devices/add-maintenance-log-modal.test.tsx`
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.test.tsx`
+- `src/vertex/components/features/devices/deploy-device-component.test.tsx`
+- `src/vertex/components/features/devices/recall-device-dialog.test.tsx`
+- `src/vertex/components/features/grids/admin-levels-modal.test.tsx`
+- `src/vertex/components/features/grids/create-admin-level.test.tsx`
+- `src/vertex/components/features/grids/create-grid.test.tsx`
+- `src/vertex/components/features/grids/edit-grid-details-dialog.test.tsx`
+- `src/vertex/components/features/grids/grid-details-card.test.tsx`
+- `src/vertex/components/features/grids/grid-measurements-api-card.test.tsx`
+- `src/vertex/components/features/grids/grids-list-table.test.tsx`
+- `src/vertex/components/features/networks/create-network-form.test.tsx`
+- `src/vertex/components/features/shipping/ShippingBatchesTable.test.tsx`
+- `src/vertex/components/features/shipping/ShippingLabelPrintModal.test.tsx`
+- `src/vertex/components/features/sites/client-paginated-sites-table.test.tsx`
+- `src/vertex/components/features/sites/create-site-form.test.tsx`
+- `src/vertex/components/features/sites/edit-site-details-dialog.test.tsx`
+- `src/vertex/components/features/sites/site-activity-card.test.tsx`
+- `src/vertex/components/features/sites/site-information-card.test.tsx`
+- `src/vertex/components/features/sites/site-measurements-api-card.test.tsx`
+- `src/vertex/components/features/sites/site-mobile-app-card.test.tsx`
+- `src/vertex/components/features/sites/site-stats-cards.test.tsx`
+- `src/vertex/components/features/sites/sites-list-table.test.tsx`
+
+</details>
+
+---
+
+## Version 2.0.26
+**Released:** July 13, 2026
+
+### E2E: Device Lifecycle — Deploy Coverage
+
+An e2e spec for the device-details Deploy flow: open a device, submit the multi-step Deploy Device wizard, and prove the page reacts to a real refetch rather than a static fixture.
+
+<details>
+<summary><strong>New: e2e coverage for the Deploy wizard's happy path and validation gate</strong></summary>
+
+- `e2e/tests/devices/deploy-device.spec.ts`: the fixture device has no previous sites, so the wizard always takes the 3-step "new site" branch (device details -> deployment type -> location). Location is filled via coordinates mode rather than the Mapbox autocomplete/interactive map, since those aren't reliably drivable headless. Asserts the deploy mutation payload, that the dialog closes and the success banner appears, and — the actual regression this exists to catch — that `GET /api/devices/:id` refetches and the action button swaps from "Deploy Device" to "Recall Device" once the fixture reports `status: "deployed"`.
+- A second test confirms the wizard's own client-side validation (`Incomplete Details: Please fill in all required device details.`) blocks advancing past step 1 when device name/date/height/mount/power aren't all filled, and that the deploy mutation never fires in that case.
+- `e2e/support/deploy-mocks.ts`: `GET /api/devices/:id` is a **stateful** fixture — starts `"not deployed"`, flips to `"deployed"` only once the intercepted `POST /devices/activities/deploy/batch` mutation succeeds — so the status/button swap assertion is proven against the app's own invalidate-and-refetch wiring (`deploy-device-component.tsx`'s per-call `onSuccess` invalidates `["device-details", deviceId]`), not asserted from a hardcoded response.
+
+</details>
+
+## Version 2.0.25
+**Released:** July 13, 2026
+
+### E2E: Add AirQo Device (Claim) — Cohort-Import Coverage
+
+An e2e spec for the claim wizard's device-lifecycle happy path, plus a finding the coverage work surfaced: two of the wizard's four claim methods aren't reachable from the live UI.
+
+<details>
+<summary><strong>Found: manual-entry and QR-scan claim methods are unreachable from method-select</strong></summary>
+
+- `MethodSelectStep.tsx`'s `ALL_METHODS` array only renders **"Import from Cohort"** — the manual-input and QR-scan entries (and their icons) are commented out, and bulk-input was never wired into method-select at all. A user clicking **Add AirQo Device** today can only reach the cohort-import path; the token-based single-device claim (`useClaimDevice` → `POST /devices/claim`), while still fully implemented (`manual-input` → `confirmation` → `success`), has no way in from the button.
+- Not fixed in this change — logged for a follow-up decision on whether to restore the entry points now that the underlying steps are stable.
+
+</details>
+
+<details>
+<summary><strong>New: e2e coverage for the claim wizard's cohort-import flow</strong></summary>
+
+- `e2e/tests/devices/claim-device.spec.ts`: method-select → Import from Cohort → verify → confirm → assign → success, asserting the assignment mutation carries the cohort ID the user actually typed (not the display name echoed back in the confirmation step); plus invalid-cohort-ID and empty-input validation, both asserting the assignment mutation never fires.
+- `e2e/support/claim-mocks.ts`: hybrid interception matching the existing device-import mocks — `GET /devices/cohorts/verify/:id` intercepted so runs don't depend on a real seeded cohort ID, `POST /users/:userId/cohorts/assign` intercepted so runs never mutate real user/cohort state.
+
+</details>
+
 ## Version 2.0.24
 **Released:** July 12, 2026
 

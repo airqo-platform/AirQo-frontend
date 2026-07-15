@@ -127,6 +127,7 @@ export function AssignCohortDevicesDialog({
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
   const [preselectedForCreate, setPreselectedForCreate] = useState<PreselectedDevice[]>([]);
+  const [preselectedNetworkForCreate, setPreselectedNetworkForCreate] = useState<string | undefined>();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -136,20 +137,26 @@ export function AssignCohortDevicesDialog({
     },
   });
 
-  const deviceOptions: Option[] = useMemo(() => {
+  const deviceById = useMemo(() => {
     const combined = [...(selectedDevices ?? []), ...(allDevices ?? [])];
-    const unique = new Map<string, Option>();
+    const unique = new Map<string, Device>();
 
     combined.forEach((device) => {
       if (!device?._id) return;
-      unique.set(device._id, {
-        value: device._id,
-        label: device.long_name || device.name || `Device ${device._id}`,
-      });
+      unique.set(device._id, device);
     });
 
-    return Array.from(unique.values());
+    return unique;
   }, [allDevices, selectedDevices]);
+
+  const deviceOptions: Option[] = useMemo(
+    () =>
+      Array.from(deviceById.values()).map((device) => ({
+        value: device._id as string,
+        label: device.long_name || device.name || `Device ${device._id}`,
+      })),
+    [deviceById]
+  );
 
   useEffect(() => {
     if (open) {
@@ -164,8 +171,9 @@ export function AssignCohortDevicesDialog({
     }
   }, [open, form, cohortId, selectedDevices]);
 
+  // andNavigate={true} means CreateCohortDialog shows its own "Success!"
+  // step instead of closing immediately — don't close it here too.
   const handleCreateCohortSuccess = () => {
-    setCreateCohortModalOpen(false);
     onOpenChange(false);
   };
 
@@ -181,7 +189,15 @@ export function AssignCohortDevicesDialog({
       .filter((opt) => selectedIds.includes(opt.value))
       .map((opt) => ({ value: opt.value, label: opt.label }));
 
+    // CreateCohortDialog resets its device field when its network changes,
+    // so without a starting network the user picking one wipes this
+    // preselection — carry over the first device's network too.
+    const preselectedNetwork = selectedIds
+      .map((id) => deviceById.get(id)?.network)
+      .find((network): network is string => !!network);
+
     setPreselectedForCreate(preselected); // store in state
+    setPreselectedNetworkForCreate(preselectedNetwork);
     onOpenChange(false);
     setCreateCohortModalOpen(true);
   };
@@ -304,6 +320,7 @@ export function AssignCohortDevicesDialog({
         onOpenChange={handleCreateCohortClose}
         onSuccess={handleCreateCohortSuccess}
         preselectedDevices={preselectedForCreate}
+        preselectedNetwork={preselectedNetworkForCreate}
         andNavigate={true}
       />
 

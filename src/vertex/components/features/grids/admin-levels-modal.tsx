@@ -135,6 +135,7 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
                           onClick={() => saveEdit(level._id)}
                           disabled={isUpdating}
                           Icon={Check}
+                          aria-label="Save admin level"
                         />
                         <ReusableButton
                           variant="outlined"
@@ -142,6 +143,7 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
                           onClick={cancelEditing}
                           disabled={isUpdating}
                           Icon={X}
+                          aria-label="Cancel editing"
                         />
                       </div>
                     ) : (
@@ -150,6 +152,7 @@ export function AdminLevelsModal({ isOpen, onClose }: AdminLevelsModalProps) {
                         padding="p-1"
                         onClick={() => startEditing(level._id, level.name)}
                         Icon={Edit2}
+                        aria-label="Edit admin level"
                       />
                     )}
                   </td>
