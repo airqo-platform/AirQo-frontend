@@ -77,19 +77,16 @@ describe("AdminLevelsModal", () => {
     expect(screen.getByText("lvl-2")).toBeInTheDocument();
   });
 
-  // Icon-only buttons with no accessible name — the edit trigger is last in DOM order.
   function startEditing(row: HTMLElement) {
-    const buttons = within(row).getAllByRole("button");
-    return buttons[buttons.length - 1];
+    return within(row).getByRole("button", { name: "Edit admin level" });
   }
 
   function saveButton(row: HTMLElement) {
-    return within(row).getAllByRole("button")[1];
+    return within(row).getByRole("button", { name: "Save admin level" });
   }
 
   function cancelButton(row: HTMLElement) {
-    const buttons = within(row).getAllByRole("button");
-    return buttons[buttons.length - 1];
+    return within(row).getByRole("button", { name: "Cancel editing" });
   }
 
   it("edits a level's name and saves it", async () => {

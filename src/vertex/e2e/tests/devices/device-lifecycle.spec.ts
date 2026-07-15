@@ -259,8 +259,7 @@ test("recall: requires a recall type before recalling can proceed", async ({ pag
   test.setTimeout(90_000);
 
   const transition = await interceptDeviceDetailsTransition(page, {
-    status: "deployed",
-    isActive: true,
+    initialStatus: "deployed",
   });
   const recallCall = await interceptRecallDevice(page, transition.markRecalled);
 

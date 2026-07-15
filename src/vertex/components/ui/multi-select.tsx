@@ -138,10 +138,14 @@ export function MultiSelectCombobox({
                       role="button"
                       tabIndex={0}
                       onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => handleRemove(val)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(val);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
+                          e.stopPropagation();
                           handleRemove(val);
                         }
                       }}

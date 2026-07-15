@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EditSiteDetailsDialog } from "./edit-site-details-dialog";
@@ -37,6 +37,15 @@ const SITE: Site = {
 
 function dialog() {
   return within(screen.getByRole("dialog"));
+}
+
+// ReusableDialog auto-focuses the first focusable element 100ms after
+// opening; typing that straddles that window gets its focus yanked back
+// mid-field. Wait it out before typing.
+async function settleDialogFocus() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  });
 }
 
 function mockUpdateSite(
@@ -115,6 +124,7 @@ describe("EditSiteDetailsDialog", () => {
     render(
       <EditSiteDetailsDialog open onOpenChange={vi.fn()} site={SITE} section="general" />
     );
+    await settleDialogFocus();
 
     const nameInput = dialog().getByLabelText(/Site Name/);
     await user.clear(nameInput);
@@ -137,6 +147,7 @@ describe("EditSiteDetailsDialog", () => {
     render(
       <EditSiteDetailsDialog open onOpenChange={vi.fn()} site={SITE} section="general" />
     );
+    await settleDialogFocus();
 
     const latInput = dialog().getByLabelText(/Latitude/);
     await user.clear(latInput);
@@ -168,6 +179,7 @@ describe("EditSiteDetailsDialog", () => {
         section="general"
       />
     );
+    await settleDialogFocus();
 
     const nameInput = dialog().getByLabelText(/Site Name/);
     await user.clear(nameInput);
@@ -199,6 +211,7 @@ describe("EditSiteDetailsDialog", () => {
         section="general"
       />
     );
+    await settleDialogFocus();
 
     const nameInput = dialog().getByLabelText(/Site Name/);
     await user.clear(nameInput);

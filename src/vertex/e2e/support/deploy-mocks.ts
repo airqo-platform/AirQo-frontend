@@ -17,11 +17,19 @@ export interface DeviceDetailsTransition {
   markRecalled: () => void;
 }
 
+type DeviceStatus = "not deployed" | "deployed" | "recalled";
+
 export async function interceptDeviceDetailsTransition(
   page: Page,
-  overrides: Record<string, unknown> = {}
+  {
+    initialStatus = "not deployed",
+    overrides = {},
+  }: {
+    initialStatus?: DeviceStatus;
+    overrides?: Record<string, unknown>;
+  } = {}
 ): Promise<DeviceDetailsTransition> {
-  let status: "not deployed" | "deployed" | "recalled" = "not deployed";
+  let status: DeviceStatus = initialStatus;
 
   await page.route(
     new RegExp(`/api/devices/${MOCK_DEVICE_DETAILS_ID}(\\?.*)?$`),
@@ -41,8 +49,6 @@ export async function interceptDeviceDetailsTransition(
             serial_number: "E2E-DEPLOY-SN-001",
             network: "airqo",
             category: "lowcost",
-            status,
-            isActive: status === "deployed",
             isOnline: false,
             createdAt: "2026-01-01T00:00:00.000Z",
             device_codes: [],
@@ -51,6 +57,10 @@ export async function interceptDeviceDetailsTransition(
             pictures: [],
             previous_sites: [],
             ...overrides,
+            // Transition-owned fields always win, so overrides can't mask
+            // markDeployed()/markRecalled() flipping the served status.
+            status,
+            isActive: status === "deployed",
           },
         },
       });

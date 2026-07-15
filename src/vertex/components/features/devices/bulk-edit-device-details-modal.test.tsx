@@ -197,6 +197,7 @@ describe("BulkEditDevicesModal", () => {
     const { rerender } = render(
       <BulkEditDevicesModal open onClose={onClose} deviceIds={DEVICE_IDS} />
     );
+    await settleDialogFocus();
 
     await selectField(user, "Network");
     await user.type(await dialog().findByLabelText("Network"), "airqo");

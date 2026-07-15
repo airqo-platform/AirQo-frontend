@@ -51,7 +51,7 @@ describe("CreateAdminLevel", () => {
 
     expect(screen.queryByTestId("admin-levels-modal")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "" }));
+    await user.click(screen.getByRole("button", { name: "Grid actions" }));
     await user.click(screen.getByText("View Admin Levels"));
 
     expect(screen.getByTestId("admin-levels-modal")).toBeInTheDocument();

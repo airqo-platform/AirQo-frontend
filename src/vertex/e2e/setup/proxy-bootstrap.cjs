@@ -27,5 +27,8 @@ if (proxyUrl) {
     // axios (the login-critical path) is already covered above.
   }
 
-  console.log(`[proxy-bootstrap] Routing outbound axios/fetch calls through ${proxyUrl}`);
+  // Corporate/sandbox proxy URLs commonly embed basic-auth credentials
+  // (http://user:pass@host:port) — redact before it lands in CI logs.
+  const redactedProxyUrl = proxyUrl.replace(/\/\/[^@/]+@/, "//***:***@");
+  console.log(`[proxy-bootstrap] Routing outbound axios/fetch calls through ${redactedProxyUrl}`);
 }
