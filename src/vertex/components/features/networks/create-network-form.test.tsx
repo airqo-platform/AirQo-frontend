@@ -7,7 +7,7 @@ import { renderWithProviders } from "@/test/utils/renderWithProviders";
 import { mockAxiosSuccess, mockAxiosError } from "@/test/factories/apiResponseFactory";
 
 vi.mock("axios", async () => {
-  const actual = await vi.importActual("axios") as any;
+  const actual = await vi.importActual<typeof import("axios")>("axios");
   return {
     ...actual,
     default: {
