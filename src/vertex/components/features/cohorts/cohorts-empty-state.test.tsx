@@ -3,10 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import CohortsEmptyState from "./cohorts-empty-state";
 
-// ClaimDeviceModal pulls in device claim wizard internals (redux, react-query
-// mutations, permission hooks) unrelated to this empty state's own job of
-// rendering copy and opening the modal — stub it, matching the boundary-mock
-// pattern used elsewhere for dynamically-imported modals.
+// Stub the claim wizard — unrelated to this empty state's own job.
 vi.mock("../claim/claim-device-modal", () => ({
   default: ({ isOpen }: { isOpen: boolean }) =>
     isOpen ? <div data-testid="claim-device-modal" /> : null,

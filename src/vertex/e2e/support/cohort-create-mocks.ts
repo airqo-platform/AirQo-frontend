@@ -2,10 +2,8 @@ import type { Page } from "@playwright/test";
 import type { CapturedCall } from "./device-mocks";
 
 /**
- * Route interceptions for the "create cohort" mutation chain
- * (useCreateCohortWithDevices: POST /devices/cohorts, then optionally
- * POST /devices/cohorts/:id/assign-devices and an owner-assignment call).
- * GETs (devices, cohorts, networks lists) stay real; only writes are mocked.
+ * Route interceptions for the create-cohort mutation chain. GETs stay
+ * real; only writes (create, assign-devices, owner-assignment) are mocked.
  */
 
 export const MOCK_CREATED_COHORT_ID = "e2e-mock-created-cohort-id";
@@ -43,13 +41,7 @@ export async function interceptCreateCohort(
   return toCapturedCall(captured, "POST /api/devices/cohorts");
 }
 
-/**
- * Intercepts the owner-assignment calls that follow cohort creation
- * (group or personal-user routing, depending on isExternalOrg/isAdminPage).
- * Neither branch is under test here, so both are fulfilled permissively
- * without capturing — this only exists to keep real writes from firing if
- * the signed-in e2e user happens to be external-org.
- */
+/** Fulfills the owner-assignment calls that follow cohort creation, so neither fires for real. */
 export async function interceptCohortOwnerAssignment(page: Page): Promise<void> {
   await page.route(/\/api\/users\/groups\/[^/]+\/cohorts\/assign/, async (route) => {
     if (route.request().method() !== "POST") {
@@ -68,11 +60,7 @@ export async function interceptCohortOwnerAssignment(page: Page): Promise<void> 
   });
 }
 
-/**
- * Fulfills GET /api/devices/cohorts/:cohortId so the cohort-details page
- * (navigated to from the create-cohort success step) loads deterministically
- * for a cohort id that only exists as a mock, not in the real backend.
- */
+/** Fulfills GET /api/devices/cohorts/:cohortId for a mock id the real backend doesn't have. */
 export async function interceptCohortDetails(
   page: Page,
   cohortId: string,

@@ -1,12 +1,7 @@
 import type { Page } from "@playwright/test";
 import type { CapturedCall } from "./device-mocks";
 
-/**
- * Route interceptions for the admin Shipping "Prepare New Batch" flow.
- * Only the prepare-bulk mutation is intercepted so runs never create a real
- * shipping batch or claim tokens on the backend; the status summary and
- * batches table GETs stay real (hybrid interception).
- */
+/** Route interceptions for Shipping "Prepare New Batch" — only the mutation is mocked. */
 
 /** Intercepts POST /api/devices/prepare-bulk-for-shipping. */
 export async function interceptPrepareBulkForShipping(

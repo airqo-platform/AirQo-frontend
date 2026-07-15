@@ -13,16 +13,9 @@ import {
 import { useUserContext } from "@/core/hooks/useUserContext";
 
 /**
- * Only the cohort-import path is reachable from the UI right now — manual/
- * QR/bulk claim entry points are commented out of MethodSelectStep's
- * ALL_METHODS array (see MethodSelectStep.tsx, git commit 1f19d80ac) — so
- * that's the only path tested here. The e2e suite
- * (device-lifecycle.spec.ts) already covers the full happy path, an
- * invalid-cohort verification error, and the empty-input validation error
- * end to end; this file covers what that spec doesn't reach: step
- * back/cancel navigation, both isExternalOrg confirm-step variants, the two
- * different failure shapes (verification vs. assignment), and the
- * onSuccess/reset contract.
+ * Only cohort-import is reachable from the UI (manual/QR/bulk are commented
+ * out of MethodSelectStep). Covers what device-lifecycle.spec.ts doesn't:
+ * back/cancel nav, both confirm-step variants, and both failure shapes.
  */
 
 vi.mock("@/core/hooks/useDevices", () => ({
@@ -322,12 +315,8 @@ describe("ClaimDeviceModal — cohort import", () => {
   });
 
   it("clears the cohort input and step state on close, so reopening starts fresh", async () => {
-    // The isOpen prop toggling alone doesn't clear this local state — only
-    // resetState (run inside handleClose, wired to the dialog's own close
-    // affordances) does. Simulating close by flipping the isOpen prop via
-    // rerender, without going through handleClose, would misrepresent real
-    // usage: in production isOpen only ever goes false as a result of
-    // onClose firing, so resetState has always already run by then.
+    // Uses the dialog's own close button (not toggling isOpen via rerender)
+    // since resetState only runs inside handleClose.
     mockVerifyCohort(vi.fn());
     const onClose = vi.fn();
     const user = userEvent.setup();

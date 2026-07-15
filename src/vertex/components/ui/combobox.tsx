@@ -167,19 +167,24 @@ export function ComboBox({
               </CommandGroup>
             )}
           </CommandList>
+          {/* role="listbox": ARIA requires role="option" to have a listbox
+              ancestor, or browsers drop the role — unreachable by screen
+              readers even though it's still clickable. */}
           {customActionLabel && onCustomAction && (
-            <CommandGroup className="border-t">
-              <CommandItem
-                value="__custom_action__"
-                onSelect={handleSelect}
-                className="text-primary font-semibold"
-              >
-                <div className="flex items-center gap-2">
-                  {CustomActionIcon && <CustomActionIcon className="h-4 w-4" />}
-                  <span>{customActionLabel}</span>
-                </div>
-              </CommandItem>
-            </CommandGroup>
+            <div role="listbox">
+              <CommandGroup className="border-t">
+                <CommandItem
+                  value="__custom_action__"
+                  onSelect={handleSelect}
+                  className="text-primary font-semibold"
+                >
+                  <div className="flex items-center gap-2">
+                    {CustomActionIcon && <CustomActionIcon className="h-4 w-4" />}
+                    <span>{customActionLabel}</span>
+                  </div>
+                </CommandItem>
+              </CommandGroup>
+            </div>
           )}
         </Command>
       </PopoverContent>

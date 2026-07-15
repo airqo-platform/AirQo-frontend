@@ -77,10 +77,7 @@ describe("AdminLevelsModal", () => {
     expect(screen.getByText("lvl-2")).toBeInTheDocument();
   });
 
-  // Each row also has a "Copy ID" button, so the edit-mode action buttons
-  // must be picked out from the rest — they're icon-only with no accessible
-  // name, but render after Copy ID in DOM order: [copy, edit] while viewing,
-  // [copy, save, cancel] while editing.
+  // Icon-only buttons with no accessible name — the edit trigger is last in DOM order.
   function startEditing(row: HTMLElement) {
     const buttons = within(row).getAllByRole("button");
     return buttons[buttons.length - 1];

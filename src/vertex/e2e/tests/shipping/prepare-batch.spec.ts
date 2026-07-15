@@ -9,20 +9,9 @@ import { interceptPrepareBulkForShipping } from "../../support/shipping-mocks";
 import { PERMISSIONS } from "../../../core/permissions/constants";
 
 /**
- * Admin Shipping — Prepare New Batch.
- *
- * /admin/shipping is gated on SHIPPING.VIEW or NETWORK.VIEW (RouteGuard uses
- * useHasAnyPermission), which the seeded e2e account isn't guaranteed to
- * hold. Rather than requiring extra backend seeding, permissions are
- * transformed in flight via the same technique the RBAC suite uses
- * (support/rbac-mocks.ts) so this spec is self-contained.
- *
- * The device-name + CSV-import combo is the actual integration risk here —
- * the same shape as the already-covered bulk external-device import — and
- * its output (a claim_token per device) is what the device-claim system
- * consumes downstream. The prepare-bulk mutation is intercepted so no real
- * batch or claim tokens are created; the status summary and batches table
- * GETs stay real.
+ * Admin Shipping — Prepare New Batch. Permissions are transformed in flight
+ * (see rbac-mocks.ts) so this doesn't depend on the seeded account's real
+ * grants; the prepare-bulk mutation is mocked, other GETs stay real.
  */
 
 test.beforeAll(() => {

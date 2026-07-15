@@ -57,10 +57,7 @@ function mockCreateGrid(createGridSpy: (data: CreateGrid, options: unknown) => v
   );
 }
 
-// Re-queries the live dialog element on every call rather than reusing a
-// captured reference — the trigger button's own label is also "Create Grid",
-// so unscoped queries are ambiguous, and a stored element reference risks
-// going stale if the dialog's subtree is ever swapped mid-test.
+// Re-queried each call: the trigger button shares the "Create Grid" label.
 function dialog() {
   return within(screen.getByRole("dialog"));
 }
@@ -68,11 +65,8 @@ function dialog() {
 async function openDialog(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Create Grid" }));
   await screen.findByTestId("mini-map");
-  // ReusableDialog auto-focuses the first focusable element 100ms after
-  // opening. Typing that straddles that window gets its focus yanked back
-  // mid-field, interleaving keystrokes across inputs (observed directly:
-  // "Kampala Grid" + "City" landed as name="Kampala Gridity", admin="C").
-  // Waiting out the timer first avoids racing it.
+  // ReusableDialog auto-focuses 100ms after opening; typing before that
+  // gets interrupted mid-field. Wait it out first.
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
   });
@@ -129,10 +123,7 @@ describe("CreateGridForm", () => {
 
     await user.click(dialog().getByRole("button", { name: "Submit" }));
 
-    // Schema validation blocks the submit, and the message is rendered
-    // manually alongside the (readOnly) Shapefile field — ReusableInputField
-    // itself suppresses error text for readOnly fields, which would
-    // otherwise leave the user with no feedback for why Submit did nothing.
+    // Error is rendered manually alongside the readOnly Shapefile field.
     await waitFor(() => {
       expect(createGridSpy).not.toHaveBeenCalled();
     });

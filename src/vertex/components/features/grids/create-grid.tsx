@@ -204,10 +204,7 @@ export function CreateGridForm() {
                       rows={5}
                       showCopyButton
                     />
-                    {/* ReusableInputField suppresses its own error text for
-                        readOnly fields, but this one still requires a value
-                        (drawn on the map) — render the message ourselves so
-                        the user isn't left with a silently-blocked Submit. */}
+                    {/* ReusableInputField suppresses error text for readOnly fields. */}
                     {fieldState.error?.message && (
                       <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
                         {fieldState.error.message}

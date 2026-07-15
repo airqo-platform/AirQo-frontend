@@ -9,37 +9,22 @@ import {
 } from "../../support/cohort-create-mocks";
 
 /**
- * Create Cohort with Devices — a state-carrying cross-dialog journey.
- *
- * From the devices list, selecting devices and choosing "Add to Cohort"
- * opens AssignCohortDevicesDialog. From inside that dialog's cohort
- * ComboBox, "Create New Cohort" is a custom action (not a plain button) that
- * captures the currently-selected device ids, closes the assign dialog, and
- * opens CreateCohortDialog with those devices preselected. Completing that
- * wizard (create -> assign devices -> owner routing) closes both dialogs.
- * This carrying of selection state across two independently-mounted dialogs
- * is exactly TESTING.md's e2e trigger ("multi-step wizard that carries
- * state across dialogs/pages") — a component test could stub the nested
- * dialog away (as the RTL suite for these components does) but couldn't
- * prove the real hand-off preserves the selection end to end.
- *
- * Hybrid interception: navigation, auth, and the devices/cohorts/networks
- * list GETs are real; only the create-cohort and assign-devices mutations
- * (and cohort-details, since the created cohort id is a mock and won't
- * resolve against the real backend) are intercepted.
+ * "Create New Cohort" in AssignCohortDevicesDialog's cohort ComboBox closes
+ * it and opens CreateCohortDialog with the selected devices preselected.
+ * Proves that hand-off survives end to end.
  */
 
 test.beforeAll(() => {
   assertNonProductionApiTarget();
 });
 
-/** Selects every visible device row and opens the Add-to-Cohort dialog. */
+/** Selects one device row (not "select all") and opens the Add-to-Cohort dialog. */
 async function openAssignDialogWithSelectedDevices(page: Page) {
   await page.goto("/devices/overview");
 
-  const selectAll = page.getByRole("checkbox", { name: "Select all visible rows" });
-  await expect(selectAll).toBeVisible({ timeout: 60_000 });
-  await selectAll.check();
+  const firstRowCheckbox = page.getByRole("row").nth(1).getByRole("checkbox");
+  await expect(firstRowCheckbox).toBeVisible({ timeout: 60_000 });
+  await firstRowCheckbox.check();
 
   const addToCohort = page.getByRole("button", { name: "Add to Cohort" });
   await expect(addToCohort).toBeVisible();
@@ -69,11 +54,11 @@ test("creating a cohort from within Assign Devices carries the device selection 
   expect(selectedDeviceCount).toBeGreaterThan(0);
 
   await test.step("Create New Cohort from the cohort ComboBox hands off to the wizard", async () => {
-    // The cohort field is the first of the two comboboxes in this dialog
-    // (cohort, then devices); "Create New Cohort" is a custom action item
-    // inside its popover, not a standalone button.
+    // "Create New Cohort" is a custom action inside the cohort combobox's
+    // popover, queried unscoped since its portal renders to document.body,
+    // outside the dialog's own DOM subtree.
     await assignDialog.getByRole("combobox").first().click();
-    await assignDialog.getByRole("option", { name: "Create New Cohort" }).click();
+    await page.getByRole("option", { name: "Create New Cohort" }).click();
 
     await expect(assignDialog).toBeHidden();
     await expect(page.getByRole("dialog", { name: "Create Cohort" })).toBeVisible();
@@ -86,10 +71,11 @@ test("creating a cohort from within Assign Devices carries the device selection 
   await test.step("complete the Create Cohort wizard", async () => {
     await wizard.getByLabel(/Cohort name/).fill("E2E Devices Cohort");
 
-    await wizard.getByRole("button", { name: /Sensor Manufacturer/ }).click();
-    const firstNetworkOption = wizard.getByRole("option").first();
-    const networkName = (await firstNetworkOption.textContent())?.trim();
-    await firstNetworkOption.click();
+    // Network is already pre-filled from the preselected device — not
+    // touched here, since picking one clears the devices field.
+    const networkName = (
+      await wizard.getByRole("button", { name: /Sensor Manufacturer/ }).textContent()
+    )?.trim();
 
     await wizard.getByRole("button", { name: "Review & Create" }).click();
 
@@ -98,10 +84,8 @@ test("creating a cohort from within Assign Devices carries the device selection 
     if (networkName) {
       await expect(wizard.getByText(networkName)).toBeVisible();
     }
-    // The device count carried across from the Assign dialog shows up here —
-    // direct proof the selection survived the dialog hand-off. Scoped to the
-    // dedicated count element (not a bare getByText(number), which would be
-    // ambiguous against other digits on the page).
+    // Scoped to the count element — a bare getByText(number) would be
+    // ambiguous against other digits on the page.
     await expect(wizard.getByText("Devices to be added:")).toBeVisible();
     await expect(wizard.locator(".text-2xl")).toHaveText(String(selectedDeviceCount));
 
@@ -120,8 +104,15 @@ test("creating a cohort from within Assign Devices carries the device selection 
   await test.step("Go to Cohort Details closes the wizard and navigates", async () => {
     await wizard.getByRole("button", { name: "Go to Cohort Details" }).click();
 
-    await expect(wizard).toBeHidden();
+    // Closes via client-side navigation unmounting the page, which can
+    // outlast the default 5s assertion timeout.
+    await expect(wizard).toBeHidden({ timeout: 30_000 });
     await expect(page).toHaveURL(`/admin/cohorts/${MOCK_CREATED_COHORT_ID}`);
-    await expect(page.getByText("E2E Devices Cohort")).toBeVisible({ timeout: 30_000 });
+    // Scoped exact match: a bare substring match also catches the page's
+    // satisfaction-survey banner ("Overall, how satisfied are you with E2E
+    // Devices Cohort"), which is unrelated to this assertion.
+    await expect(page.getByText("E2E Devices Cohort", { exact: true })).toBeVisible({
+      timeout: 30_000,
+    });
   });
 });

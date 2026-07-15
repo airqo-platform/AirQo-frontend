@@ -31,11 +31,9 @@ vi.mock("@/components/features/shipping/ShippingLabelPrintModal", () => ({
     isOpen ? <div data-testid="print-modal">{labels.length} labels ready</div> : null,
 }));
 
-// The real hook takes onSuccess/onError as mutate-time options; this fake
-// mirrors that contract with real React state so the component's actual
-// data flow (mutate -> onSuccess -> hook `data` -> print modal mount) is
-// exercised, not just a canned return value.
-let generateLabelsSpy = vi.fn();
+// Mirrors the real hook's mutate-time onSuccess/onError contract with real
+// state, so the actual mutate -> data -> print-modal flow is exercised.
+const generateLabelsSpy = vi.fn();
 let generateOutcome: "success" | "error" = "success";
 let generateResponse: GenerateLabelsResponse | null = null;
 

@@ -142,10 +142,7 @@ describe("AssignCohortDevicesDialog", () => {
     await user.click(combos[1]);
     await user.click(screen.getByText("AirQo G1"));
 
-    // Escape here should only close the MultiSelectCombobox's own dropdown
-    // (a Radix Popover stacked on top), not the parent dialog — previously a
-    // ReusableDialog bug meant this Escape press also closed (and reset) the
-    // whole dialog, silently discarding the selections made above.
+    // Regression: Escape should only close the dropdown, not the dialog.
     await user.keyboard("{Escape}");
 
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
@@ -203,7 +200,8 @@ describe("AssignCohortDevicesDialog", () => {
     expect(screen.getByTestId("create-cohort-dialog")).toHaveTextContent("AirQo G1");
   });
 
-  it("closes the nested Create Cohort dialog and this one when cohort creation succeeds", async () => {
+  it("leaves the nested Create Cohort dialog open on success, so its own Success step is reachable", async () => {
+    // Regression: force-closing it here would skip past its Success step.
     mockAssignDevices(vi.fn());
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
@@ -214,6 +212,6 @@ describe("AssignCohortDevicesDialog", () => {
     await user.click(screen.getByRole("option", { name: "Create New Cohort" }));
     await user.click(screen.getByText("Simulate cohort created"));
 
-    expect(screen.queryByTestId("create-cohort-dialog")).not.toBeInTheDocument();
+    expect(screen.getByTestId("create-cohort-dialog")).toBeInTheDocument();
   });
 });

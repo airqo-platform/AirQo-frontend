@@ -140,10 +140,7 @@ describe("CohortDetailsCard", () => {
     const tagsDialog = () => screen.getByRole("dialog", { name: "Edit Cohort Tags" });
     await user.click(within(tagsDialog()).getByRole("combobox"));
     await user.click(screen.getByRole("option", { name: "hardware" }));
-    // MultiSelectCombobox's popover is `modal`, so while it's open Radix
-    // marks the rest of the document aria-hidden (trapping focus/a11y) —
-    // selecting an item doesn't auto-close a multi-select, so the parent
-    // dialog is invisible to role queries until this popover closes too.
+    // The modal popover marks the rest of the document aria-hidden until closed.
     await user.keyboard("{Escape}");
     await user.click(within(tagsDialog()).getByRole("button", { name: "Save Changes" }));
 

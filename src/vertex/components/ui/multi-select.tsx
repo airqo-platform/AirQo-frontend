@@ -132,15 +132,24 @@ export function MultiSelectCombobox({
                     className="flex items-center gap-1"
                   >
                     {label}
-                    <button
-                      type="button"
+                    {/* Not a real <button>: would nest inside the trigger's
+                        own <button>, which is invalid HTML. */}
+                    <span
+                      role="button"
+                      tabIndex={0}
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={() => handleRemove(val)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleRemove(val);
+                        }
+                      }}
                       className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                     >
                       <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
                       <span className="sr-only">Remove {label}</span>
-                    </button>
+                    </span>
                   </Badge>
                 );
               })

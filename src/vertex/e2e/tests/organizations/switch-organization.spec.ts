@@ -8,25 +8,9 @@ import {
 import { PERMISSIONS } from "../../../core/permissions/constants";
 
 /**
- * Organization picker — real click-driven org switching.
- *
- * The RBAC suite (e2e/tests/rbac/context-gating.spec.ts) already proves that
- * booting in an external-org context denies personal-only routes, but it
- * gets there via `seedActiveGroup`, a localStorage shortcut that bypasses
- * the picker UI entirely. That leaves the picker itself — the thing a real
- * user actually clicks to change what data they can see — with zero
- * coverage. This spec drives the actual click path (open picker, pick an
- * org, confirm) and proves it produces the same access-control outcome,
- * closing the gap between "the context check works" and "the UI that sets
- * the context works." This is exactly TESTING.md's e2e trigger: proving
- * access control against a real session, not a component in isolation.
- *
- * Hybrid interception: auth, navigation, and the org list itself are real —
- * only the user-details GET is transformed in flight to inject a synthetic
- * external org (see rbac-mocks.ts), so the scenario needs no second test
- * account or backend seeding. Switching organizations is client-side only
- * (Redux + React Query cache invalidation, no backend "activate org" call),
- * so there is no mutation to intercept.
+ * Organization picker — real click-driven org switching. The RBAC suite
+ * proves the context check itself via a localStorage shortcut
+ * (seedActiveGroup); this drives the actual picker UI a user clicks.
  */
 
 test("switching organizations via the picker re-scopes access, and switching back restores it", async ({
@@ -78,16 +62,9 @@ test("switching organizations via the picker re-scopes access, and switching bac
       timeout: 30_000,
     });
 
-    // Same page, but the context flipped under it — the personal-only guard
-    // must deny now, even though the external org's role also grants
-    // SITE_VIEW (proving the denial is the context check, not a permission).
-    //
-    // Navigating right after a live context switch goes through
-    // useContextAwareRouting's redirect-on-switch path, not RouteGuard's
-    // in-place 403 (that strict surface is for direct navigation with no
-    // recent switch — see rbac-mocks.ts's expectRouteDenied doc comment,
-    // and context-gating.spec.ts's own switch-triggered test, which
-    // expects this same redirect rather than the 403 text).
+    // A navigation right after a live switch goes through
+    // useContextAwareRouting's redirect-on-switch path (-> /home), not
+    // RouteGuard's in-place 403.
     await page.goto("/sites/my-sites");
     await page.waitForURL(/\/home(\?|$)/, { timeout: 120_000 });
   });
