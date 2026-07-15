@@ -103,18 +103,70 @@ A coverage pass across Cohorts, Sites, Grids, Shipping, Networks, and device-man
 </details>
 
 <details>
-<summary><strong>Files Modified &amp; Added</strong></summary>
+<summary><strong>Files Modified &amp; Added (57)</strong></summary>
 
+**Source fixes [MODIFIED]:**
+- `src/vertex/components/shared/table/ReusableTable.tsx` — setState-in-updater fix
+- `src/vertex/components/ui/multi-select.tsx` — button-in-button fix
+- `src/vertex/components/ui/combobox.tsx` — custom-action `role="listbox"` fix
+- `src/vertex/components/shared/dialog/ReusableDialog.tsx` — Escape-vs-Radix-popper fix
+- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` — preselected network + premature-close fixes
+- `src/vertex/components/features/grids/create-grid.tsx` — surfaced polygon-required validation error
+
+**E2E infrastructure:**
 - `src/vertex/e2e/setup/proxy-bootstrap.cjs` [NEW]
 - `src/vertex/playwright.config.ts` [MODIFIED] — `webServer.env.NODE_OPTIONS` loads the proxy bootstrap
 - `src/vertex/package.json` / `package-lock.json` [MODIFIED] — `http-proxy-agent`, `https-proxy-agent`
-- `src/vertex/e2e/tests/organizations/switch-organization.spec.ts` [MODIFIED] — redirect assertion fix
-- `src/vertex/components/shared/table/ReusableTable.tsx` [MODIFIED] — setState-in-updater fix
-- `src/vertex/components/ui/multi-select.tsx` [MODIFIED] — button-in-button fix
-- `src/vertex/components/ui/combobox.tsx` [MODIFIED] — custom-action `role="listbox"` fix
-- `src/vertex/components/shared/dialog/ReusableDialog.tsx` [MODIFIED] — Escape-vs-Radix-popper fix
-- `src/vertex/components/features/cohorts/assign-cohort-devices.tsx` [MODIFIED] — preselected network + premature-close fixes
-- `src/vertex/components/features/grids/create-grid.tsx` [MODIFIED] — surfaced polygon-required validation error
+
+**E2E specs and support mocks [NEW]:**
+- `src/vertex/e2e/tests/organizations/switch-organization.spec.ts`
+- `src/vertex/e2e/tests/cohorts/create-cohort-with-devices.spec.ts`
+- `src/vertex/e2e/tests/shipping/prepare-batch.spec.ts`
+- `src/vertex/e2e/tests/devices/device-lifecycle.spec.ts`
+- `src/vertex/e2e/support/claim-mocks.ts`
+- `src/vertex/e2e/support/cohort-create-mocks.ts`
+- `src/vertex/e2e/support/deploy-mocks.ts`
+- `src/vertex/e2e/support/shipping-mocks.ts`
+
+**RTL tests [NEW]:**
+- `src/vertex/app/(authenticated)/admin/networks/requests/NetworkRequestsClient.test.tsx`
+- `src/vertex/app/(authenticated)/admin/shipping/page.test.tsx`
+- `src/vertex/app/(authenticated)/admin/shipping/[batchId]/page.test.tsx`
+- `src/vertex/components/features/claim/claim-device-modal.test.tsx`
+- `src/vertex/components/features/cohorts/assign-cohort-devices.test.tsx`
+- `src/vertex/components/features/cohorts/assign-cohorts-to-group.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-detail-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-measurements-api-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohort-organizations-card.test.tsx`
+- `src/vertex/components/features/cohorts/cohorts-empty-state.test.tsx`
+- `src/vertex/components/features/cohorts/create-cohort-from-cohorts.test.tsx`
+- `src/vertex/components/features/cohorts/create-cohort.test.tsx`
+- `src/vertex/components/features/cohorts/edit-cohort-details-modal.test.tsx`
+- `src/vertex/components/features/cohorts/unassign-cohort-devices.test.tsx`
+- `src/vertex/components/features/cohorts/unassign-cohort-from-group.test.tsx`
+- `src/vertex/components/features/devices/add-maintenance-log-modal.test.tsx`
+- `src/vertex/components/features/devices/bulk-edit-device-details-modal.test.tsx`
+- `src/vertex/components/features/devices/deploy-device-component.test.tsx`
+- `src/vertex/components/features/devices/recall-device-dialog.test.tsx`
+- `src/vertex/components/features/grids/admin-levels-modal.test.tsx`
+- `src/vertex/components/features/grids/create-admin-level.test.tsx`
+- `src/vertex/components/features/grids/create-grid.test.tsx`
+- `src/vertex/components/features/grids/edit-grid-details-dialog.test.tsx`
+- `src/vertex/components/features/grids/grid-details-card.test.tsx`
+- `src/vertex/components/features/grids/grid-measurements-api-card.test.tsx`
+- `src/vertex/components/features/grids/grids-list-table.test.tsx`
+- `src/vertex/components/features/networks/create-network-form.test.tsx`
+- `src/vertex/components/features/shipping/ShippingBatchesTable.test.tsx`
+- `src/vertex/components/features/shipping/ShippingLabelPrintModal.test.tsx`
+- `src/vertex/components/features/sites/client-paginated-sites-table.test.tsx`
+- `src/vertex/components/features/sites/create-site-form.test.tsx`
+- `src/vertex/components/features/sites/edit-site-details-dialog.test.tsx`
+- `src/vertex/components/features/sites/site-activity-card.test.tsx`
+- `src/vertex/components/features/sites/site-information-card.test.tsx`
+- `src/vertex/components/features/sites/site-measurements-api-card.test.tsx`
+- `src/vertex/components/features/sites/site-mobile-app-card.test.tsx`
+- `src/vertex/components/features/sites/site-stats-cards.test.tsx`
+- `src/vertex/components/features/sites/sites-list-table.test.tsx`
 
 </details>
 
