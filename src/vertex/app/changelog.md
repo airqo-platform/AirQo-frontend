@@ -2,6 +2,13 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.26
+**Released:** July 16, 2026
+
+### Chore: hide redundant Organization column on My Devices table
+
+The **Organization** column is no longer shown on the My Devices table (`/devices/my-devices`). The active organization is already visible in the top-bar org picker, making the column redundant — for personal devices it rendered a dash, and it added unnecessary horizontal width to an already wide table. The existing `hiddenColumns` prop on `ClientPaginatedDevicesTable` is used; no changes to the table component or column definitions were needed. Tables on other pages are unaffected.
+
 ## Version 2.0.24
 **Released:** July 12, 2026
 
