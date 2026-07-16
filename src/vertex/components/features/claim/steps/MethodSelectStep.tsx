@@ -1,7 +1,4 @@
-import { 
-  // Smartphone, 
-  // FileSpreadsheet, 
-  Database } from 'lucide-react';
+import { Smartphone, FileSpreadsheet, Database } from 'lucide-react';
 import { ClaimFlowMode, FlowStep } from '../claim-device-modal';
 
 interface MethodSelectStepProps {
@@ -23,7 +20,6 @@ const ALL_METHODS = [
     desc: 'Enter a Cohort ID to prefill devices.',
     modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
-  /*
   {
     step: 'qr-scan' as FlowStep,
     icon: <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
@@ -48,7 +44,6 @@ const ALL_METHODS = [
     desc: 'Upload a CSV file or enter a list of IDs for bulk setup.',
     modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
-  */
 ];
 
 const MethodSelectStep = ({ onSelect, mode = 'fast' }: MethodSelectStepProps) => {

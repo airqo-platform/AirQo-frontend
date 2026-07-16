@@ -14,20 +14,20 @@ const QRScanner: React.FC<QRScannerProps> = ({
     instructions = 'Point your camera at the QR code on your device label',
 }) => {
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
     const isMountedRef = useRef(true);
     const scannerId = useRef(`qr-reader-${Date.now()}`);
+    // Stable ref so useCallback deps don't change when parent re-renders
+    const onScanRef = useRef(onScan);
+    useEffect(() => { onScanRef.current = onScan; }, [onScan]);
+
     const [isInitializing, setIsInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
-    // Stop all camera video tracks in the document
     const stopAllVideoTracks = useCallback(() => {
-        const videos = document.querySelectorAll('video');
-        videos.forEach(video => {
+        document.querySelectorAll('video').forEach(video => {
             if (video.srcObject) {
-                const stream = video.srcObject as MediaStream;
-                stream.getTracks().forEach(track => track.kind === 'video' && track.stop());
+                (video.srcObject as MediaStream).getTracks().forEach(t => t.kind === 'video' && t.stop());
                 video.srcObject = null;
             }
         });
@@ -39,7 +39,7 @@ const QRScanner: React.FC<QRScannerProps> = ({
             try {
                 await scannerRef.current.clear();
             } catch {
-                // Ignore cleanup errors
+                // ignore cleanup errors
             } finally {
                 scannerRef.current = null;
             }
@@ -49,15 +49,16 @@ const QRScanner: React.FC<QRScannerProps> = ({
     const handleScanSuccess = useCallback(
         (decodedText: string) => {
             if (!isMountedRef.current) return;
-            onScan(decodedText);
+            onScanRef.current(decodedText);
             cleanupScanner();
         },
-        [onScan, cleanupScanner]
+        [cleanupScanner]
     );
 
     const handleScanError = useCallback((errorMessage: string) => {
         if (!isMountedRef.current) return;
 
+        // "No QR code found" fires on every frame — ignore
         if (
             errorMessage.includes('No QR code found') ||
             errorMessage.includes('NotFound') ||
@@ -81,7 +82,12 @@ const QRScanner: React.FC<QRScannerProps> = ({
     }, []);
 
     const initializeScanner = useCallback(() => {
-        if (!containerRef.current || scannerRef.current) return;
+        // Guard: don't double-init
+        if (scannerRef.current) return;
+
+        // Guard: target element must exist and be visible in the DOM
+        const el = document.getElementById(scannerId.current);
+        if (!el) return;
 
         setIsInitializing(true);
         setError(null);
@@ -101,13 +107,27 @@ const QRScanner: React.FC<QRScannerProps> = ({
                 false
             );
 
-            scanner.render(handleScanSuccess, handleScanError);
+            // render() is async — camera permission prompt fires after this call.
+            // We clear isInitializing once the first successful scan frame arrives
+            // (handled in handleScanSuccess) or after a short grace period so the
+            // library's own UI becomes visible.
+            scanner.render(
+                handleScanSuccess,
+                handleScanError,
+            );
+
             scannerRef.current = scanner;
+
+            // Give the library ~600 ms to inject its UI before hiding the spinner.
+            // This is safer than setting false immediately (which hides the div
+            // before the library has measured it).
+            setTimeout(() => {
+                if (isMountedRef.current) setIsInitializing(false);
+            }, 600);
 
         } catch (err) {
             console.error('Failed to initialize scanner:', err);
             setError('Failed to initialize camera. Please refresh and try again.');
-        } finally {
             setIsInitializing(false);
         }
     }, [handleScanSuccess, handleScanError]);
@@ -115,7 +135,8 @@ const QRScanner: React.FC<QRScannerProps> = ({
     useEffect(() => {
         isMountedRef.current = true;
 
-        const timer = setTimeout(() => initializeScanner(), 100);
+        // Small delay so the scanner div is painted and measurable before init
+        const timer = setTimeout(() => initializeScanner(), 150);
 
         return () => {
             isMountedRef.current = false;
@@ -127,11 +148,11 @@ const QRScanner: React.FC<QRScannerProps> = ({
     const handleRetry = () => {
         setError(null);
         setHasPermission(null);
-        cleanupScanner().then(() => setTimeout(() => initializeScanner(), 100));
+        cleanupScanner().then(() => setTimeout(() => initializeScanner(), 150));
     };
 
     return (
-        <div className="w-full" ref={containerRef}>
+        <div className="w-full">
             {error && (
                 <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -155,18 +176,21 @@ const QRScanner: React.FC<QRScannerProps> = ({
                 </div>
             )}
 
-            {isInitializing && !error && (
-                <div className="flex flex-col items-center justify-center py-12">
-                    <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Initializing camera...</p>
-                </div>
-            )}
-
-            <div
-                id={scannerId.current}
-                className={`w-full rounded-lg overflow-hidden ${isInitializing || error ? 'hidden' : ''}`}
-                style={{ minHeight: '300px' }}
-            />
+            {/* Scanner div is always in the DOM so the library can measure it.
+                The loading spinner overlays it until the library is ready. */}
+            <div className="relative w-full" style={{ minHeight: '300px' }}>
+                {isInitializing && !error && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-background z-10">
+                        <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Initializing camera...</p>
+                    </div>
+                )}
+                <div
+                    id={scannerId.current}
+                    className="w-full rounded-lg overflow-hidden"
+                    style={{ minHeight: '300px' }}
+                />
+            </div>
 
             {!error && !isInitializing && (
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">{instructions}</p>
