@@ -2,7 +2,7 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.25
+## Version 2.0.27
 **Released:** July 17, 2026
 
 ### Feature: Mobile device deployment
@@ -13,11 +13,10 @@ The deploy flow now supports both **Static** and **Mobile** deployment modes. A 
 <summary><strong>Mobile deployment path</strong></summary>
 
 - Grid selector (required) populated via `useGrids` — replaces the site source / location / map steps entirely.
-- Mount type and power type are shown as read-only preset values (Vehicle / Alternator) and are enforced in the API payload; the user cannot select invalid combinations.
-- `isPrimaryInLocation` is always sent as `false` for mobile (the API requires the field but must not receive `true`).
-- `site_id`, `site_name`, `latitude`, `longitude`, and `isPrimarySite` checkbox are never included in mobile submissions.
+- Mount type and power type are shown as read-only preset values (Vehicle / Alternator) and enforced in the API payload; the user cannot select invalid combinations.
+- `site_id`, `site_name`, `latitude`, `longitude`, `isPrimaryInLocation`, and the Primary Site checkbox are never included in mobile submissions.
 - Optional **mobility metadata** fields (Route ID, Coverage Area, Operational Hours, Movement Pattern) are available in a collapsible section.
-- Submits to `/devices/activities/deploy/batch` with `deployment_type: 'mobile'` and `grid_id`.
+- Submits to the dedicated `POST /devices/activities/deploy/mobile?deviceName={deviceName}` endpoint with a single-object body.
 
 </details>
 
@@ -36,6 +35,13 @@ The deploy flow now supports both **Static** and **Mobile** deployment modes. A 
 - Deployment date calendar now blocks dates more than one month in the past (previously allowed any date back to 1900).
 
 </details>
+
+## Version 2.0.25
+**Released:** July 16, 2026
+
+### Chore: hide redundant Organization column on My Devices table
+
+The **Organization** column is no longer shown on the My Devices table (`/devices/my-devices`). The active organization is already visible in the top-bar org picker, making the column redundant — for personal devices it rendered a dash, and it added unnecessary horizontal width to an already wide table. The existing `hiddenColumns` prop on `ClientPaginatedDevicesTable` is used; no changes to the table component or column definitions were needed. Tables on other pages are unaffected.
 
 ## Version 2.0.24
 **Released:** July 12, 2026

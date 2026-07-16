@@ -367,58 +367,61 @@ export const devices = {
 
       const isMobile = deviceData.deployment_type === 'mobile';
 
-      const deploymentPayload = isMobile
-        ? [{
-            date: toIso(deviceData.deployment_date),
-            mountType: 'vehicle',
-            powerType: 'alternator',
-            isPrimaryInLocation: false,
-            grid_id: deviceData.grid_id,
-            height,
-            network: deviceData.network,
-            deviceName: deviceData.deviceName,
-            deployment_type: 'mobile',
-            user_id: deviceData.user_id,
-            firstName: deviceData.firstName,
-            lastName: deviceData.lastName,
-            email: deviceData.email,
-            userName: deviceData.userName,
-            ...(deviceData.mobility_metadata &&
-              Object.values(deviceData.mobility_metadata).some(Boolean)
-                ? { mobility_metadata: deviceData.mobility_metadata }
-                : {}),
-          }]
-        : [{
-            date: toIso(deviceData.deployment_date),
-            mountType: deviceData.mountType,
-            powerType: deviceData.powerType,
-            isPrimaryInLocation: deviceData.isPrimaryInLocation,
-            latitude: Number(deviceData.latitude),
-            longitude: Number(deviceData.longitude),
-            ...(deviceData.site_id
-              ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
-              : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
-            network: deviceData.network,
-            deviceName: deviceData.deviceName,
-            height,
-            user_id: deviceData.user_id,
-            firstName: deviceData.firstName,
-            lastName: deviceData.lastName,
-            email: deviceData.email,
-            userName: deviceData.userName,
-          }];
+      if (isMobile) {
+        const mobilePayload = {
+          date: toIso(deviceData.deployment_date),
+          mountType: 'vehicle',
+          powerType: 'alternator',
+          grid_id: deviceData.grid_id,
+          height,
+          network: deviceData.network,
+          user_id: deviceData.user_id,
+          firstName: deviceData.firstName,
+          lastName: deviceData.lastName,
+          email: deviceData.email,
+          userName: deviceData.userName,
+          ...(deviceData.mobility_metadata &&
+            Object.values(deviceData.mobility_metadata).some(Boolean)
+              ? { mobility_metadata: deviceData.mobility_metadata }
+              : {}),
+        };
+        const response = await jwtApiClient.post(
+          `/devices/activities/deploy/mobile?deviceName=${encodeURIComponent(deviceData.deviceName)}`,
+          mobilePayload,
+          { headers: { 'X-Auth-Type': 'JWT' } }
+        );
+        return response.data;
+      }
 
-      if (!isMobile) {
-        const lat = (deploymentPayload[0] as { latitude: number }).latitude;
-        const lng = (deploymentPayload[0] as { longitude: number }).longitude;
-        if (Number.isNaN(lat) || Number.isNaN(lng)) {
-          throw new Error("Invalid numeric values for latitude or longitude.");
-        }
+      const staticPayload = [{
+        date: toIso(deviceData.deployment_date),
+        mountType: deviceData.mountType,
+        powerType: deviceData.powerType,
+        isPrimaryInLocation: deviceData.isPrimaryInLocation,
+        latitude: Number(deviceData.latitude),
+        longitude: Number(deviceData.longitude),
+        ...(deviceData.site_id
+          ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
+          : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
+        network: deviceData.network,
+        deviceName: deviceData.deviceName,
+        height,
+        user_id: deviceData.user_id,
+        firstName: deviceData.firstName,
+        lastName: deviceData.lastName,
+        email: deviceData.email,
+        userName: deviceData.userName,
+      }];
+
+      const lat = staticPayload[0].latitude;
+      const lng = staticPayload[0].longitude;
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        throw new Error("Invalid numeric values for latitude or longitude.");
       }
 
       const response = await jwtApiClient.post(
         `/devices/activities/deploy/batch`,
-        deploymentPayload,
+        staticPayload,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

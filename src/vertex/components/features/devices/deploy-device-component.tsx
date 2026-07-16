@@ -823,7 +823,6 @@ const DeployDeviceComponent = ({
             height: deviceData.height,
             mountType: 'vehicle',
             powerType: 'alternator',
-            isPrimaryInLocation: false,
             latitude: '',
             longitude: '',
             network: deviceData.network || 'airqo',
