@@ -131,7 +131,7 @@ export function FaceCard({
         rotateY: reduceMotion ? 0 : rotateY,
         transformPerspective: 1000,
       }}
-      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_28px_70px_-35px_rgba(2,6,23,0.95)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] [transform-style:preserve-3d] will-change-transform"
     >
       <Image
         src={submission.imageUrl}
@@ -162,7 +162,7 @@ export function SkeletonCard({
         delay: reduceMotion ? 0 : index * 0.075,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_24px_60px_-32px_rgba(2,6,23,0.8)] backdrop-blur-md"
+      className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-white/20 shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] backdrop-blur-md"
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-[#39BFC7]/15 to-[#39BFC7]/20" />

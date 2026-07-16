@@ -8,6 +8,7 @@ type LeaderboardTogglesProps = {
   intervalMs?: number;
   isPaused?: boolean;
   reduceMotion?: boolean | null;
+  onIndexChange?: (index: number) => void;
 };
 
 export default function LeaderboardToggles({
@@ -16,6 +17,7 @@ export default function LeaderboardToggles({
   intervalMs = 7600,
   isPaused = false,
   reduceMotion,
+  onIndexChange,
 }: LeaderboardTogglesProps) {
   return (
     <nav
@@ -32,6 +34,7 @@ export default function LeaderboardToggles({
             type="button"
             aria-label={`Show leaderboard page ${index + 1} of ${count}`}
             aria-current={isActive ? 'page' : undefined}
+            onClick={() => onIndexChange?.(index)}
             whileHover={
               reduceMotion
                 ? undefined
