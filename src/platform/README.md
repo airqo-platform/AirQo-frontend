@@ -1,6 +1,6 @@
 # Platform (AirQo Analytics)
 
-![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz) ![passing](https://img.shields.io/badge/passing-926%20%E2%80%94%20100%25-brightgreen?style=flat-square) ![failing](https://img.shields.io/badge/failing-0-brightgreen?style=flat-square)
+![codecov](https://img.shields.io/codecov/c/github/airqo-platform/AirQo-frontend?label=codecov&style=flat-square) ![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square) ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-brightgreen?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square)
 
 **Platform** is the AirQo analytics application for air quality monitoring, data visualization, device management, and analytics. Built with Next.js 14 (App Router), React 18, and TypeScript.
 
