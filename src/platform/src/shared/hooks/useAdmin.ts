@@ -286,3 +286,78 @@ export const useUpdateUserRole = () => {
     }
   );
 };
+
+// Get tokens with active security bypasses
+export const useBypassedTokens = () => {
+  return useSWR(
+    'system/bypassed-tokens',
+    () => adminService.getBypassedTokens(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+};
+
+// Update a token's bypass flags
+export const useUpdateTokenBypass = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/update-token-bypass',
+    async (
+      key,
+      {
+        arg,
+      }: {
+        arg: {
+          token: string;
+          bypass_anomaly_detection?: boolean;
+          bypass_anomaly_detection_expires_at?: string | null;
+          bypass_compromise_detection?: boolean;
+          bypass_compromise_detection_expires_at?: string | null;
+          bypass_ip_blacklist?: boolean;
+          bypass_ip_blacklist_expires_at?: string | null;
+          reinstate?: boolean;
+        };
+      }
+    ) => {
+      const payload: import('../types/api').UpdateTokenBypassRequest = {};
+
+      if (typeof arg.bypass_anomaly_detection === 'boolean') {
+        payload.bypass_anomaly_detection = arg.bypass_anomaly_detection;
+        if (arg.bypass_anomaly_detection) {
+          payload.bypass_anomaly_detection_expires_at =
+            arg.bypass_anomaly_detection_expires_at ?? null;
+        }
+      }
+      if (typeof arg.bypass_compromise_detection === 'boolean') {
+        payload.bypass_compromise_detection = arg.bypass_compromise_detection;
+        if (arg.bypass_compromise_detection) {
+          payload.bypass_compromise_detection_expires_at =
+            arg.bypass_compromise_detection_expires_at ?? null;
+        }
+      }
+      if (typeof arg.bypass_ip_blacklist === 'boolean') {
+        payload.bypass_ip_blacklist = arg.bypass_ip_blacklist;
+        if (arg.bypass_ip_blacklist) {
+          payload.bypass_ip_blacklist_expires_at =
+            arg.bypass_ip_blacklist_expires_at ?? null;
+        }
+      }
+      if (arg.reinstate) {
+        payload.request_pattern = { auto_suspended: false };
+      }
+
+      return await adminService.updateTokenBypass(arg.token, payload);
+    },
+    {
+      onSuccess: () => {
+        mutate(
+          key =>
+            typeof key === 'string' && key.startsWith('system/bypassed-tokens')
+        );
+      },
+    }
+  );
+};

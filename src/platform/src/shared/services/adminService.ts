@@ -26,6 +26,9 @@ import type {
   GetFlaggedTokensResponse,
   ResolveFlaggedTokenRequest,
   ResolveFlaggedTokenResponse,
+  GetBypassedTokensResponse,
+  UpdateTokenBypassRequest,
+  UpdateTokenBypassResponse,
 } from '../types/api';
 
 const extractSuccessData = <T extends { success?: boolean; message?: string }>(
@@ -286,6 +289,34 @@ export class AdminService {
         payload
       );
     return extractSuccessData(response.data, 'Failed to resolve flagged token');
+  }
+
+  async getBypassedTokens(): Promise<GetBypassedTokensResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.get<GetBypassedTokensResponse>(
+        '/users/tokens/bypasses'
+      );
+    return extractSuccessData(
+      response.data,
+      'Failed to get bypassed tokens'
+    );
+  }
+
+  async updateTokenBypass(
+    token: string,
+    payload: UpdateTokenBypassRequest
+  ): Promise<UpdateTokenBypassResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.patch<UpdateTokenBypassResponse>(
+        `/users/tokens/${encodeURIComponent(token)}`,
+        payload
+      );
+    return extractSuccessData(
+      response.data,
+      'Failed to update token bypass'
+    );
   }
 }
 
