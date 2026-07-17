@@ -1,3 +1,4 @@
+import { useRef, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
@@ -289,14 +290,32 @@ export const useUpdateUserRole = () => {
 
 // Get tokens with active security bypasses
 export const useBypassedTokens = () => {
-  return useSWR(
-    'system/bypassed-tokens',
-    () => adminService.getBypassedTokens(),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  const fetcher = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      return await adminService.getBypassedTokens(controller.signal);
+    } finally {
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+      }
     }
-  );
+  }, []);
+
+  return useSWR('system/bypassed-tokens', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 };
 
 // Update a token's bypass flags

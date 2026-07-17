@@ -109,11 +109,6 @@ const BypassGrantDialog: React.FC<BypassGrantDialogProps> = ({
   const handleSubmit = async () => {
     if (!token) return;
 
-    if (!anomalyEnabled && !compromiseEnabled && !ipBlacklistEnabled && !reinstate) {
-      toast.error('Enable at least one bypass type or reinstate the token');
-      return;
-    }
-
     if (anomalyEnabled && !anomalyPermanent && !anomalyExpiry) {
       toast.error('Set an expiry date for anomaly detection bypass or enable Permanent');
       return;
@@ -380,7 +375,7 @@ const SecurityExemptionsContent: React.FC = () => {
   const rows = useMemo<BypassRow[]>(() => {
     return bypassedTokens.map(token => ({
       ...token,
-      id: token.token_suffix,
+      id: token.client_id,
     }));
   }, [bypassedTokens]);
 

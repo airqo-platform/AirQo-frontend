@@ -291,11 +291,14 @@ export class AdminService {
     return extractSuccessData(response.data, 'Failed to resolve flagged token');
   }
 
-  async getBypassedTokens(): Promise<GetBypassedTokensResponse> {
+  async getBypassedTokens(
+    signal?: AbortSignal
+  ): Promise<GetBypassedTokensResponse> {
     await this.ensureAuthenticated();
     const response =
       await this.authenticatedClient.get<GetBypassedTokensResponse>(
-        '/users/tokens/bypasses'
+        '/users/tokens/bypasses',
+        { signal }
       );
     return extractSuccessData(
       response.data,
