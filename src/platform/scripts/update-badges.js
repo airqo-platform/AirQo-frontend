@@ -21,39 +21,28 @@ const updateBadges = async () => {
 
   const totalTests = testMatch ? parseInt(testMatch[1], 10) : 0;
   const failedTests = failTestMatch ? parseInt(failTestMatch[1], 10) : 0;
-  const passingTests = totalTests;
   const passRate =
     totalTests > 0
-      ? ((passingTests / (passingTests + failedTests)) * 100).toFixed(0)
+      ? ((totalTests / (totalTests + failedTests)) * 100).toFixed(0)
       : '0';
 
-  const passingColor = failedTests === 0 ? 'brightgreen' : 'yellow';
-  const failingColor = failedTests === 0 ? 'brightgreen' : 'red';
+  const isPassing = failedTests === 0;
+  const label = isPassing ? 'passing' : 'failing';
+  const color = isPassing ? 'brightgreen' : 'red';
 
   let readme = fs.readFileSync(README_PATH, 'utf-8');
 
-  const codecovBadge =
-    '![codecov](https://img.shields.io/codecov/c/github/airqo-platform/AirQo-frontend?label=codecov&style=flat-square)';
-  const passingBadge = `![passing](https://img.shields.io/badge/passing-${passingTests}%20%E2%80%94%20${passRate}%25-${passingColor}?style=flat-square)`;
-  const failingBadge = `![failing](https://img.shields.io/badge/failing-${failedTests}-${failingColor}?style=flat-square)`;
+  const testsBadge = `![tests](https://img.shields.io/badge/tests-${label}-${color}?style=flat-square)`;
 
   readme = readme.replace(
-    /!\[codecov\]\(https:\/\/img\.shields\.io\/codecov\/.*?\)/,
-    codecovBadge
-  );
-  readme = readme.replace(
-    /!\[passing\]\(https:\/\/img\.shields\.io\/badge\/passing-.*?\)/,
-    passingBadge
-  );
-  readme = readme.replace(
-    /!\[failing\]\(https:\/\/img\.shields\.io\/badge\/failing-.*?\)/,
-    failingBadge
+    /!\[tests\]\(https:\/\/img\.shields\.io\/badge\/tests-.*?\)/,
+    testsBadge
   );
 
   fs.writeFileSync(README_PATH, readme, 'utf-8');
 
   console.log(
-    `Badges updated: ${passingTests} passing (${passRate}%), ${failedTests} failing`
+    `Badges updated: ${totalTests} passing (${passRate}%), ${failedTests} failing`
   );
 };
 

@@ -1671,6 +1671,52 @@ export interface ResolveFlaggedTokenResponse {
   };
 }
 
+// Token security bypass types
+export interface BypassEntry {
+  type:
+    | 'bypass_anomaly_detection'
+    | 'bypass_compromise_detection'
+    | 'bypass_ip_blacklist';
+  expires_at: string | null;
+}
+
+export interface BypassedToken {
+  token_suffix: string;
+  token_name: string;
+  client_id: string;
+  owner_email: string;
+  owner_name: string;
+  bypasses: BypassEntry[];
+}
+
+export interface GetBypassedTokensResponse {
+  success?: boolean;
+  message: string;
+  bypassed_tokens: BypassedToken[];
+}
+
+export interface UpdateTokenBypassRequest {
+  bypass_anomaly_detection?: boolean;
+  bypass_anomaly_detection_expires_at?: string | null;
+  bypass_compromise_detection?: boolean;
+  bypass_compromise_detection_expires_at?: string | null;
+  bypass_ip_blacklist?: boolean;
+  bypass_ip_blacklist_expires_at?: string | null;
+  request_pattern?: {
+    auto_suspended?: boolean;
+  };
+}
+
+export interface UpdateTokenBypassResponse {
+  success?: boolean;
+  message: string;
+  data: ClientAccessToken & {
+    bypass_anomaly_detection?: boolean;
+    bypass_compromise_detection?: boolean;
+    bypass_ip_blacklist?: boolean;
+  };
+}
+
 // Application email configuration types
 export interface ApplicationEmailConfiguration {
   _id: string;
