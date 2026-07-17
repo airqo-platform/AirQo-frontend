@@ -673,6 +673,14 @@ export const useDeployDevice = () => {
       lastName?: string;
       email?: string;
       userName?: string;
+      deployment_type?: 'static' | 'mobile';
+      grid_id?: string;
+      mobility_metadata?: {
+        route_id?: string;
+        coverage_area?: string;
+        operational_hours?: string;
+        movement_pattern?: string;
+      };
     }) => adapter.deployDevice(deviceData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });

@@ -348,35 +348,72 @@ export const devices = {
     lastName?: string;
     email?: string;
     userName?: string;
+    deployment_type?: 'static' | 'mobile';
+    grid_id?: string;
+    mobility_metadata?: {
+      route_id?: string;
+      coverage_area?: string;
+      operational_hours?: string;
+      movement_pattern?: string;
+    };
   }) => {
     try {
       const toIso = (d?: string) =>
         d ? new Date(d).toISOString() : new Date().toISOString();
-      const latitude = Number(deviceData.latitude);
-      const longitude = Number(deviceData.longitude);
       const height = Number(deviceData.height);
-      if (Number.isNaN(latitude) || Number.isNaN(longitude) || Number.isNaN(height)) {
-        throw new Error("Invalid numeric values for latitude, longitude or height.");
+      if (Number.isNaN(height)) {
+        throw new Error("Invalid numeric value for height.");
       }
-      const deploymentPayload = [{
-        date: toIso(deviceData.deployment_date),
-        mountType: deviceData.mountType,
-        powerType: deviceData.powerType,
-        isPrimaryInLocation: deviceData.isPrimaryInLocation,
-        latitude,
-        longitude,
-        ...(deviceData.site_id
-          ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
-          : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
-        network: deviceData.network,
-        deviceName: deviceData.deviceName,
-        height,
-        user_id: deviceData.user_id,
-        firstName: deviceData.firstName,
-        lastName: deviceData.lastName,
-        email: deviceData.email,
-        userName: deviceData.userName
-      }];
+
+      const isMobile = deviceData.deployment_type === 'mobile';
+
+      const deploymentPayload = isMobile
+        ? [{
+            date: toIso(deviceData.deployment_date),
+            mountType: 'vehicle',
+            powerType: 'alternator',
+            grid_id: deviceData.grid_id,
+            height,
+            network: deviceData.network,
+            deviceName: deviceData.deviceName,
+            deployment_type: 'mobile',
+            user_id: deviceData.user_id,
+            firstName: deviceData.firstName,
+            lastName: deviceData.lastName,
+            email: deviceData.email,
+            userName: deviceData.userName,
+            ...(deviceData.mobility_metadata &&
+              Object.values(deviceData.mobility_metadata).some(Boolean)
+                ? { mobility_metadata: deviceData.mobility_metadata }
+                : {}),
+          }]
+        : [{
+            date: toIso(deviceData.deployment_date),
+            mountType: deviceData.mountType,
+            powerType: deviceData.powerType,
+            isPrimaryInLocation: deviceData.isPrimaryInLocation,
+            latitude: Number(deviceData.latitude),
+            longitude: Number(deviceData.longitude),
+            ...(deviceData.site_id
+              ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
+              : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
+            network: deviceData.network,
+            deviceName: deviceData.deviceName,
+            height,
+            user_id: deviceData.user_id,
+            firstName: deviceData.firstName,
+            lastName: deviceData.lastName,
+            email: deviceData.email,
+            userName: deviceData.userName,
+          }];
+
+      if (!isMobile) {
+        const lat = (deploymentPayload[0] as { latitude: number }).latitude;
+        const lng = (deploymentPayload[0] as { longitude: number }).longitude;
+        if (Number.isNaN(lat) || Number.isNaN(lng)) {
+          throw new Error("Invalid numeric values for latitude or longitude.");
+        }
+      }
 
       const response = await jwtApiClient.post(
         `/devices/activities/deploy/batch`,
