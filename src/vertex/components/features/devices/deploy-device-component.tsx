@@ -77,6 +77,7 @@ interface DeviceDetailsStepProps {
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
   isDevicePrefilled: boolean;
+  deploymentType: 'static' | 'mobile';
 }
 
 interface DeploymentTypeStepProps {
@@ -150,8 +151,14 @@ const DeviceDetailsStep = ({
   onClaimDevice,
   isLoadingDevices,
   isDevicePrefilled,
+  deploymentType,
 }: DeviceDetailsStepProps) => {
   const { networks, isLoading: isLoadingNetworks, error: networksError } = useNetworks();
+  const oneMonthAgo = React.useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d;
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -215,7 +222,7 @@ const DeviceDetailsStep = ({
               mode="single"
               selected={deviceData.deployment_date}
               onSelect={onDateChange}
-              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+              disabled={(date) => date > new Date() || date < oneMonthAgo}
             />
           </PopoverContent>
         </Popover>
@@ -225,44 +232,51 @@ const DeviceDetailsStep = ({
         id="height"
         name="height"
         type="number"
-        placeholder="Enter height"
+        placeholder="Enter height (0–100)"
         value={deviceData.height}
         onChange={onInputChange}
+        description="Must be greater than 0 and less than 100"
       />
-      <ReusableSelectInput
-        label="Mount Type"
-        id="mountType"
-        value={deviceData.mountType}
-        onChange={(e) => onSelectChange("mountType")(e.target.value)}
-        placeholder="Select mount type"
-      >
-        {mountTypeOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </ReusableSelectInput>
-      <ReusableSelectInput
-        label="Power Type"
-        id="powerType"
-        value={deviceData.powerType}
-        onChange={(e) => onSelectChange("powerType")(e.target.value)}
-        placeholder="Select power type"
-      >
-        {powerTypeOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </ReusableSelectInput>
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox
-          id="primarySite"
-          checked={deviceData.isPrimarySite}
-          onCheckedChange={(checked) => onCheckboxChange(checked === true)}
-        />
-        <Label htmlFor="primarySite">Primary Site</Label>
-      </div>
+      {deploymentType === 'static' && (
+        <>
+          <ReusableSelectInput
+            label="Mount Type"
+            id="mountType"
+            value={deviceData.mountType}
+            onChange={(e) => onSelectChange("mountType")(e.target.value)}
+            placeholder="Select mount type"
+          >
+            {mountTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </ReusableSelectInput>
+          <ReusableSelectInput
+            label="Power Type"
+            id="powerType"
+            value={deviceData.powerType}
+            onChange={(e) => onSelectChange("powerType")(e.target.value)}
+            placeholder="Select power type"
+          >
+            {powerTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </ReusableSelectInput>
+        </>
+      )}
+      {deploymentType === 'static' && (
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="primarySite"
+            checked={deviceData.isPrimarySite}
+            onCheckedChange={(checked) => onCheckboxChange(checked === true)}
+          />
+          <Label htmlFor="primarySite">Primary Site</Label>
+        </div>
+      )}
     </div>
   );
 };
@@ -359,13 +373,13 @@ const DeploymentTypeStep = ({
             <div className="grid gap-2">
               <Label className="text-sm font-medium">Mount Type</Label>
               <div className="flex items-center h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-500 dark:text-gray-400">
-                Vehicle (locked)
+                Vehicle
               </div>
             </div>
             <div className="grid gap-2">
               <Label className="text-sm font-medium">Power Type</Label>
               <div className="flex items-center h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-500 dark:text-gray-400">
-                Alternator (locked)
+                Alternator
               </div>
             </div>
           </div>
@@ -761,13 +775,11 @@ const DeployDeviceComponent = ({
   };
 
   const validateDeviceDetails = (): boolean => {
-    return Boolean(
-      deviceData.deviceName &&
-      deviceData.deployment_date &&
-      deviceData.height &&
-      deviceData.mountType &&
-      deviceData.powerType
-    );
+    const height = Number(deviceData.height);
+    const heightValid = !Number.isNaN(height) && height > 0 && height < 100;
+    const sharedValid = Boolean(deviceData.deviceName && deviceData.deployment_date) && heightValid;
+    if (deviceData.deploymentType === 'mobile') return sharedValid;
+    return sharedValid && Boolean(deviceData.mountType && deviceData.powerType);
   };
 
   const validateLocation = (): boolean => {
@@ -929,6 +941,7 @@ const DeployDeviceComponent = ({
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
           isDevicePrefilled={!!prefilledDevice}
+          deploymentType={deviceData.deploymentType}
         />
       ),
       footer: (

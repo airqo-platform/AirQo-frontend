@@ -372,6 +372,7 @@ export const devices = {
             date: toIso(deviceData.deployment_date),
             mountType: 'vehicle',
             powerType: 'alternator',
+            isPrimaryInLocation: false,
             grid_id: deviceData.grid_id,
             height,
             network: deviceData.network,
