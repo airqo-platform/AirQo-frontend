@@ -248,6 +248,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqShield02,
       },
       {
+        id: 'system-security-exemptions',
+        label: 'Security Exemptions',
+        href: '/system/security-exemptions',
+        icon: AqFileShield02,
+      },
+      {
         id: 'system-roles-permissions',
         label: 'Roles & Permissions',
         href: '/system/roles-permissions',
@@ -365,6 +371,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Security',
             href: '/system/security',
             description: 'Review blocked ranges and flagged tokens',
+          },
+          {
+            id: 'system-security-exemptions',
+            label: 'Security Exemptions',
+            href: '/system/security-exemptions',
+            description: 'Manage per-token security bypass exemptions',
           },
           {
             id: 'system-roles-permissions',
