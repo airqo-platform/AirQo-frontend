@@ -69,7 +69,6 @@ const SubscriptionManagement: React.FC = () => {
     if (!subscription) return;
 
     if (subscription.autoRenewal) {
-      toast.warning('Disabling auto-renewal is not available yet.');
       return;
     }
 
@@ -132,31 +131,7 @@ const SubscriptionManagement: React.FC = () => {
   };
 
   const handleReactivateSubscription = async () => {
-    try {
-      setUpdating(true);
-      const data = await subscriptionService.reactivateSubscription();
-
-      if (data.success) {
-        setSubscription(prev =>
-          prev
-            ? {
-                ...prev,
-                status: 'active',
-                autoRenewal: true,
-                automaticRenewal: true,
-              }
-            : null
-        );
-        toast.success('Subscription reactivated successfully');
-      } else {
-        toast.error(data.message || 'Failed to reactivate subscription');
-      }
-    } catch (error) {
-      console.error('Error reactivating subscription:', error);
-      toast.error(getUserFriendlyErrorMessage(error));
-    } finally {
-      setUpdating(false);
-    }
+    window.location.href = '/billing';
   };
 
   if (loading) {
@@ -286,12 +261,12 @@ const SubscriptionManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleToggleAutoRenewal}
-                  disabled={updating}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  disabled={updating || subscription.autoRenewal}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     subscription.autoRenewal
-                      ? 'bg-primary'
-                      : 'bg-gray-200 dark:bg-gray-700'
-                  } ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      ? 'bg-primary cursor-default'
+                      : 'bg-gray-200 dark:bg-gray-700 cursor-pointer'
+                  } ${updating ? 'opacity-50' : ''}`}
                   role="switch"
                   aria-checked={subscription.autoRenewal}
                 >

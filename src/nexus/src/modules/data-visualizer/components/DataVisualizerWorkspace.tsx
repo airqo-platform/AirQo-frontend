@@ -12,6 +12,7 @@ import {
   AqTable,
   AqTrash01,
   AqUploadCloud01,
+  AqBookOpen01,
 } from '@airqo/icons-react';
 import {
   Button,
@@ -86,6 +87,7 @@ import {
 import { VisualizerChartCard } from './VisualizerChartCard';
 import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface DataVisualizerWorkspaceProps {
   title?: string;
@@ -1033,7 +1035,7 @@ export const DataVisualizerWorkspace: React.FC<
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [applyNewDatasets, trackVisualizerEvent]
+    [applyNewDatasets]
   );
 
   const handleRetryFile = React.useCallback(
@@ -1469,15 +1471,34 @@ export const DataVisualizerWorkspace: React.FC<
           <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <Button
-          size="sm"
-          variant="outlined"
-          Icon={AqPlayCircle}
-          onClick={() => setIsTutorialDialogOpen(true)}
-          showTextOnMobile
-        >
-          Watch tutorial
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outlined"
+            Icon={AqBookOpen01}
+            onClick={() =>
+              window.open(
+                getEnvironmentAwareUrl(
+                  'https://platform.airqo.net/docs/nexus/visualizing-data/dataset-visualizer/'
+                ),
+                '_blank',
+                'noopener,noreferrer'
+              )
+            }
+            showTextOnMobile
+          >
+            Read Docs
+          </Button>
+          <Button
+            size="sm"
+            variant="outlined"
+            Icon={AqPlayCircle}
+            onClick={() => setIsTutorialDialogOpen(true)}
+            showTextOnMobile
+          >
+            Watch tutorial
+          </Button>
+        </div>
       </div>
 
       <WarningBanner

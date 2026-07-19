@@ -129,23 +129,28 @@ export const useLogout = (callbackUrl?: string) => {
         }
 
         // Sign out from NextAuth (clear cookie server-side) then force full page reload
-        await signOut({ redirect: false });
-        window.location.href = callbackUrl || '/user/login';
-      } catch (error) {
-        logger.error('Logout error in useLogout', error);
-        // signOut failed — cookie may still be set. Attempt fallback form-based
-        // signOut which is more reliable for cookie clearing, then navigate.
         try {
           await signOut({ redirect: false });
-        } catch {
-          // Both attempts failed — clear state and let the user know
-          dispatch(setLoggingOut(false));
-          return;
+        } catch (error) {
+          logger.error('Logout error in useLogout', error);
+          // First signOut failed — retry once before giving up on cookie clearing
+          try {
+            await signOut({ redirect: false });
+          } catch {
+            logger.error('Both signOut attempts failed during logout');
+          }
         }
+        // Always navigate to login even if signOut failed — the login page
+        // will either present the sign-in form (cookie cleared) or redirect
+        // to the dashboard (cookie still valid). Leaving the user stuck on a
+        // page with cleared Redux/caches is worse than an extra redirect.
         window.location.href = callbackUrl || '/user/login';
       } finally {
         sharedIsLoggingOut = false;
         sharedLogoutPromise = null;
+        // Reset Redux logging-out state so subsequent logout attempts are
+        // not permanently blocked if navigation was interrupted.
+        dispatch(setLoggingOut(false));
       }
     };
 

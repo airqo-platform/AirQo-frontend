@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   check-nexus:
@@ -48,7 +49,20 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Unit Tests & Coverage
-        run: yarn test:coverage
+        run: yarn test:coverage 2>&1 | tee test-output.log
+
+      - name: Extract test stats
+        id: test-stats
+        if: github.event_name == 'push'
+        working-directory: src/nexus
+        shell: bash
+        run: |
+          TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+          TESTS=$(echo "$TESTS" | tr -d ',')
+          echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
+
+          COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -60,13 +74,177 @@ jobs:
           fail_ci_if_error: false
 
       - name: Comment on PR if failed
-        if: failure()
-        uses: actions/github-script@v6
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            const stepMeta = [
+              { name: 'Checkout', id: 'checkout', emoji: '📦', fix: null },
+              { name: 'Setup Node', id: 'setup-node', emoji: '⚙️', fix: null },
+              { name: 'Install dependencies', id: 'install', emoji: '📥', fix: '`rm -rf node_modules && yarn install --frozen-lockfile`' },
+              { name: 'Lint', id: 'lint', emoji: '🔍', fix: '`yarn lint` locally' },
+              { name: 'Type Check', id: 'typecheck', emoji: '🔎', fix: 'Fix TypeScript errors listed below' },
+              { name: 'Unit Tests & Coverage', id: 'tests', emoji: '🧪', fix: '`yarn test:coverage` locally' }
+            ];
+
+            const { data: jobsData } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '❌ **Nexus CI Failed**\n\nThe nexus-ci workflow failed for this PR. Please check the logs for details.\n\nWorkflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-            })
+              run_id: context.runId,
+              per_page: 100
+            });
+
+            const failedSteps = [];
+            for (const job of jobsData.jobs || []) {
+              for (const step of job.steps || []) {
+                if (step.conclusion === 'failure') {
+                  const meta = stepMeta.find(s => s.name === step.name);
+                  if (meta) {
+                    failedSteps.push({ ...meta, apiName: step.name });
+                  } else {
+                    failedSteps.push({ name: step.name, id: 'unknown', emoji: '❌', fix: null, apiName: step.name });
+                  }
+                }
+              }
+            }
+
+            if (failedSteps.length === 0) {
+              failedSteps.push({ name: 'Build', id: 'build', emoji: '❌', fix: 'Check the workflow logs for details' });
+            }
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const body = [];
+            body.push('## ❌ Nexus CI Failed');
+            body.push('');
+            body.push('**Failed step(s):**');
+            body.push('');
+            for (const s of failedSteps) {
+              body.push(`- ${s.emoji} **${s.name}**`);
+            }
+            body.push('');
+            body.push('### How to Fix');
+            body.push('');
+            for (const s of failedSteps) {
+              if (s.fix) {
+                body.push(`- **${s.name}:** ${s.fix}`);
+              }
+            }
+            body.push('');
+            body.push('### Resources');
+            body.push('');
+            body.push(`- [View full workflow run](${runUrl})`);
+            body.push('');
+            body.push('---');
+            body.push('*Please fix the issues and push again to re-trigger CI.*');
+
+            const marker = '## ❌ Nexus CI Failed';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body.join('\n')
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body.join('\n')
+              });
+            }
+
+  update-badges:
+    name: update-badges
+    if: github.event_name == 'push'
+    needs: check-nexus
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: src/nexus
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: src/nexus/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Unit Tests & Coverage
+        run: yarn test:coverage 2>&1 | tee test-output.log
+
+      - name: Extract test stats
+        id: test-stats
+        working-directory: src/nexus
+        shell: bash
+        run: |
+          TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+          TESTS=$(echo "$TESTS" | tr -d ',')
+          echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
+
+          COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Update README badges
+        working-directory: src/nexus
+        shell: bash
+        env:
+          TESTS_INPUT: ${{ steps.test-stats.outputs.tests }}
+          COVERAGE_INPUT: ${{ steps.test-stats.outputs.coverage }}
+        run: |
+          TESTS="$TESTS_INPUT"
+          COVERAGE="$COVERAGE_INPUT"
+
+          if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
+            TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+            TESTS=$(echo "$TESTS" | tr -d ',')
+          fi
+          if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
+            COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
+          fi
+
+          COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
+
+          if [ "$COVERAGE_INT" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_INT" -ge 60 ]; then
+            COLOR="yellow"
+          else
+            COLOR="red"
+          fi
+
+          if [ -f README.md ]; then
+            sed -i -E "s|!\[tests\]\(https://img\.shields\.io/badge/tests-[^)]*\)|![tests](https://img.shields.io/badge/tests-${TESTS}%20passing-brightgreen?style=flat-square)|g" README.md
+
+            echo "Updated README badges: tests=$TESTS, coverage=${COVERAGE_INT}%"
+          fi
+
+      - name: Commit README updates
+        working-directory: src/nexus
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git diff --staged --quiet || git commit -m "chore: update README test/coverage badges [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

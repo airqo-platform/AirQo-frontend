@@ -118,11 +118,12 @@ const MemberRequestsPage: React.FC = () => {
       await approveMutation.trigger({ requestId: confirmDialog.requestId });
       toast.success('Request approved successfully');
       setConfirmDialog(null);
+      mutate();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
       console.error('Approve error:', error);
     }
-  }, [approveMutation, confirmDialog]);
+  }, [approveMutation, confirmDialog, mutate]);
 
   const handleConfirmReject = useCallback(async () => {
     if (!confirmDialog) return;
@@ -131,11 +132,12 @@ const MemberRequestsPage: React.FC = () => {
       await rejectMutation.trigger({ requestId: confirmDialog.requestId });
       toast.success('Request rejected successfully');
       setConfirmDialog(null);
+      mutate();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
       console.error('Reject error:', error);
     }
-  }, [rejectMutation, confirmDialog]);
+  }, [rejectMutation, confirmDialog, mutate]);
 
   // Toggle expanded email
   const toggleExpandEmail = useCallback((id: string) => {
@@ -332,7 +334,10 @@ const MemberRequestsPage: React.FC = () => {
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
               searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+              onSearchChange={value => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
             />
           </div>
 

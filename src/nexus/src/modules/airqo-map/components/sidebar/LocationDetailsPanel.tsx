@@ -195,10 +195,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div className="p-4 space-y-4 pb-8">
           <WeeklyForecastCard
-            siteId={
-              (mapReading as MapReading)?.site_id ||
-              (mapReading as AirQualityReading)?.siteId
-            }
+            siteId={currentLocationData._id}
           />
 
           <CurrentAirQualityCard
@@ -264,6 +261,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
               <SiteInsightsChart
                 siteId={currentLocationData._id}
                 height={150}
+                selectedPollutant={selectedPollutant}
               />
             </CollapsibleCard>
           )}

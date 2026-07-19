@@ -255,7 +255,7 @@ const ClientsAdminPage: React.FC = () => {
         <div className="font-medium text-sm">
           {item.user.firstName} {item.user.lastName}
         </div>
-        <div className="text-xs text-gray-500">{item.user.email}</div>
+        <div className="text-xs text-muted-foreground">{item.user.email}</div>
       </div>
     );
   }, []);
@@ -488,7 +488,7 @@ const ClientsAdminPage: React.FC = () => {
             size="md"
           >
             <div className="space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-foreground">
                 Are you sure you want to delete the client{' '}
                 <span className="font-semibold">
                   {deleteDialogState.clientName}
@@ -514,7 +514,7 @@ const ClientsAdminPage: React.FC = () => {
                   variant="filled"
                   onClick={handleDeleteClient}
                   disabled={isDeleting}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
                 >
                   {isDeleting ? 'Deleting...' : 'Delete Client'}
                 </Button>
@@ -536,7 +536,7 @@ const ClientsAdminPage: React.FC = () => {
             size="md"
           >
             <div className="space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-foreground">
                 Are you sure you want to regenerate the client secret for{' '}
                 <span className="font-semibold">
                   {refreshSecretDialogState.clientName}
@@ -584,7 +584,7 @@ const ClientsAdminPage: React.FC = () => {
             size="md"
           >
             <div className="space-y-4">
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-foreground">
                 Are you sure you want to{' '}
                 {activateDialogState.activate ? 'activate' : 'deactivate'} the
                 client{' '}
@@ -618,8 +618,8 @@ const ClientsAdminPage: React.FC = () => {
                   loading={isActivating}
                   className={
                     activateDialogState.activate
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-yellow-600 hover:bg-yellow-700'
+                      ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800'
+                      : 'bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-800'
                   }
                 >
                   {isActivating

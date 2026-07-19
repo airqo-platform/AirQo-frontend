@@ -37,9 +37,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       maxLength,
       value,
       defaultValue,
+      id: externalId,
       ...inputProps
     } = props;
 
+    const generatedId = React.useId();
+    const inputId = externalId || `input-${generatedId}`;
     const [showPassword, setShowPassword] = React.useState(false);
 
     const maxLengthNum = typeof maxLength === 'number' ? maxLength : undefined;
@@ -85,11 +88,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       : undefined;
 
     const displayError = error || maxLengthError;
+    const errorId = `${inputId}-error`;
+    const descriptionId = `${inputId}-description`;
 
     return (
       <div className={`flex flex-col mb-4 ${containerClassName}`}>
         {label && (
-          <label className="flex items-center mb-2 text-sm text-foreground">
+          <label
+            htmlFor={inputId}
+            className="flex items-center mb-2 text-sm text-foreground"
+          >
             {label}
             {required && <span className="ml-1 text-destructive">*</span>}
           </label>
@@ -98,12 +106,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           <input
             ref={ref}
+            id={inputId}
             type={
               showPasswordToggle && type === 'password'
                 ? showPassword
                   ? 'text'
                   : 'password'
                 : type
+            }
+            aria-invalid={!!displayError}
+            aria-describedby={
+              displayError
+                ? errorId
+                : description
+                  ? descriptionId
+                  : undefined
             }
             className={`
             w-full rounded-md border bg-background px-4 py-2.5 text-sm
@@ -157,14 +174,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {displayError && (
-          <div className="mt-1.5 flex items-center text-xs text-destructive dark:text-destructive">
+          <div
+            id={errorId}
+            className="mt-1.5 flex items-center text-xs text-destructive dark:text-destructive"
+            role="alert"
+          >
             <AqAlertCircle className="flex-shrink-0 w-4 h-4 mr-1" />
             {displayError}
           </div>
         )}
 
         {!displayError && description && (
-          <div className="mt-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
+          <div
+            id={descriptionId}
+            className="mt-1.5 text-xs text-muted-foreground dark:text-muted-foreground"
+          >
             {description}
           </div>
         )}

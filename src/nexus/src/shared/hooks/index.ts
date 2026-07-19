@@ -97,6 +97,8 @@ export {
   useAssignUsersToRole,
   useUnassignUsersFromRole,
   useUpdateUserRole,
+  useBypassedTokens,
+  useUpdateTokenBypass,
 } from './useAdmin';
 
 // Groups hooks
