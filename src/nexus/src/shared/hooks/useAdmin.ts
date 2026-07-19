@@ -1,6 +1,7 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
+import { useRef, useEffect, useCallback } from 'react';
 import { adminService } from '../services/adminService';
 import { userService } from '../services/userService';
 
@@ -12,6 +13,7 @@ export const useOrganizationRequests = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -69,6 +71,7 @@ export const useRolesByGroup = (groupId?: string) => {
   return useSWR(key, () => adminService.getRolesByGroup(groupId), {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    shouldRetryOnError: false,
   });
 };
 
@@ -80,6 +83,7 @@ export const useRoleById = (roleId: string | null) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -89,6 +93,7 @@ export const usePermissions = () => {
   return useSWR('admin/permissions', () => adminService.getPermissions(), {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    shouldRetryOnError: false,
   });
 };
 
@@ -185,6 +190,7 @@ export const useUsersByRole = (roleId: string | null) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -235,6 +241,7 @@ export const useUserStatistics = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -247,6 +254,7 @@ export const useUsers = (email?: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -259,6 +267,7 @@ export const useRolesSummary = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -281,6 +290,100 @@ export const useUpdateUserRole = () => {
               key.startsWith('admin/users') ||
               key === 'admin/roles/summary/all' ||
               key === 'admin/user-statistics')
+        );
+      },
+    }
+  );
+};
+
+// Get tokens with active security bypasses
+export const useBypassedTokens = () => {
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  const fetcher = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      return await adminService.getBypassedTokens(controller.signal);
+    } finally {
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+      }
+    }
+  }, []);
+
+  return useSWR('system/bypassed-tokens', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    shouldRetryOnError: false,
+  });
+};
+
+// Update a token's bypass flags
+export const useUpdateTokenBypass = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/update-token-bypass',
+    async (
+      _key,
+      {
+        arg,
+      }: {
+        arg: {
+          token: string;
+          bypass_anomaly_detection?: boolean;
+          bypass_anomaly_detection_expires_at?: string | null;
+          bypass_compromise_detection?: boolean;
+          bypass_compromise_detection_expires_at?: string | null;
+          bypass_ip_blacklist?: boolean;
+          bypass_ip_blacklist_expires_at?: string | null;
+          reinstate?: boolean;
+        };
+      }
+    ) => {
+      const payload: import('../types/api').UpdateTokenBypassRequest = {};
+
+      if (typeof arg.bypass_anomaly_detection === 'boolean') {
+        payload.bypass_anomaly_detection = arg.bypass_anomaly_detection;
+        if (arg.bypass_anomaly_detection) {
+          payload.bypass_anomaly_detection_expires_at =
+            arg.bypass_anomaly_detection_expires_at ?? null;
+        }
+      }
+      if (typeof arg.bypass_compromise_detection === 'boolean') {
+        payload.bypass_compromise_detection = arg.bypass_compromise_detection;
+        if (arg.bypass_compromise_detection) {
+          payload.bypass_compromise_detection_expires_at =
+            arg.bypass_compromise_detection_expires_at ?? null;
+        }
+      }
+      if (typeof arg.bypass_ip_blacklist === 'boolean') {
+        payload.bypass_ip_blacklist = arg.bypass_ip_blacklist;
+        if (arg.bypass_ip_blacklist) {
+          payload.bypass_ip_blacklist_expires_at =
+            arg.bypass_ip_blacklist_expires_at ?? null;
+        }
+      }
+      if (arg.reinstate) {
+        payload.request_pattern = { auto_suspended: false };
+      }
+
+      return await adminService.updateTokenBypass(arg.token, payload);
+    },
+    {
+      onSuccess: () => {
+        mutate(
+          key =>
+            typeof key === 'string' && key.startsWith('system/bypassed-tokens')
         );
       },
     }

@@ -28,6 +28,12 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Abort/cancel errors are intentional — recover silently
+    if (this.isAbortError(error)) {
+      this.setState({ hasError: false, error: undefined });
+      return;
+    }
+
     // Log error with component stack
     logger.error('Error caught by boundary:', error, errorInfo);
 
@@ -48,8 +54,20 @@ class ErrorBoundary extends React.Component<
     }
   }
 
+  private isAbortError(error: Error): boolean {
+    const candidate = error as unknown as Record<string, unknown>;
+    return (
+      error.name === 'AbortError' ||
+      error.name === 'CanceledError' ||
+      candidate.code === 'ERR_CANCELED'
+    );
+  }
+
   private isCriticalError(error: Error): boolean {
-    // Define critical error patterns
+    if (this.isAbortError(error)) {
+      return false;
+    }
+
     const criticalPatterns = [
       'TypeError',
       'ReferenceError',

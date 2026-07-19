@@ -73,9 +73,20 @@ export const useUserChecklist = (userId: string | null) => {
       shouldRetryOnError: error => {
         const status = (error as { response?: { status?: number } })?.response
           ?.status;
+        const code = (error as { code?: string })?.code;
 
         // Avoid noisy retries on auth/permission errors.
         if (status === 401 || status === 403 || status === 404) {
+          return false;
+        }
+
+        // Avoid retries on server errors.
+        if (status && status >= 500) {
+          return false;
+        }
+
+        // Avoid retries on network errors or cancellation.
+        if (code === 'ERR_NETWORK' || code === 'ERR_CANCELED') {
           return false;
         }
 

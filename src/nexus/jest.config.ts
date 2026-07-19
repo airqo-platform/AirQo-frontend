@@ -23,6 +23,7 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/src/__mocks__/setup.ts'],
   coverageProvider: 'v8',
   coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'json-summary'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',

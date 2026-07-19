@@ -22,6 +22,7 @@ import { useLogout } from '@/shared/hooks/useLogout';
 import type { User } from '@/shared/types/api';
 import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import logger from '@/shared/lib/logger';
 
 /**
  * Component that automatically fetches and stores user data when authenticated
@@ -159,7 +160,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
       !isLoading &&
       !hasLoggedOutForNoGroupRef.current
     ) {
-      console.log('User has no active group, logging out to prevent issues');
+      logger.warn('User has no active group, logging out to prevent issues');
       hasLoggedOutForNoGroupRef.current = true;
       logout();
     }

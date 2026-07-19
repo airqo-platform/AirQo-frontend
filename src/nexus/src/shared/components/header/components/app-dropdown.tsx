@@ -71,7 +71,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     {
       name: 'API Docs',
       icon: AqBookOpen01,
-      href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
+      href: getEnvironmentAwareUrl('https://platform.airqo.net/docs/api/intro/'),
       color: 'bg-orange-500',
     },
     {

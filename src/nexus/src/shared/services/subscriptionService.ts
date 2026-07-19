@@ -1208,33 +1208,52 @@ export class SubscriptionService {
   ): Promise<TransactionHistoryResponse> {
     await this.ensureAuthenticated();
 
-    const response = await this.authenticatedClient.get<unknown>(
-      '/users/transactions/transaction-history',
-      {
-        params: this.withTenant({
-          start_date: query.start_date,
-          end_date: query.end_date,
-          status: query.status,
-          page: query.page ?? 1,
-          limit: query.limit ?? 20,
-        }),
-      }
-    );
+    try {
+      const response = await this.authenticatedClient.get<unknown>(
+        '/users/transactions/transaction-history',
+        {
+          params: this.withTenant({
+            start_date: query.start_date,
+            end_date: query.end_date,
+            status: query.status,
+            page: query.page ?? 1,
+            limit: query.limit ?? 20,
+          }),
+        }
+      );
 
-    const rawTransactions = extractArrayData<BackendTransaction>(response.data);
-    const transactions = normalizeTransactions(rawTransactions);
-    const meta = extractTransactionHistoryMeta(response.data);
+      const rawTransactions = extractArrayData<BackendTransaction>(
+        response.data
+      );
+      const transactions = normalizeTransactions(rawTransactions);
+      const meta = extractTransactionHistoryMeta(response.data);
 
-    return {
-      success: true,
-      message: extractMessage(
-        response.data,
-        'Transaction history retrieved successfully'
-      ),
-      data: transactions,
-      transactions,
-      ...(meta ? { meta } : {}),
-    };
+      return {
+        success: true,
+        message: extractMessage(
+          response.data,
+          'Transaction history retrieved successfully'
+        ),
+        data: transactions,
+        transactions,
+        ...(meta ? { meta } : {}),
+      };
+    } catch (error) {
+      const response = (
+        error as { response?: { status?: number; data?: unknown } }
+      ).response;
+      const errorPayload = response?.data;
+
+      return {
+        success: false,
+        message: extractMessage(
+          errorPayload,
+          'Failed to load transaction history'
+        ),
+        data: [],
+        transactions: [],
+      };
+    }
   }
 }
 

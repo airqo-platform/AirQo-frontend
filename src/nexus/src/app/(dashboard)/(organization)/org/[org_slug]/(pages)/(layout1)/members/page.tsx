@@ -353,6 +353,7 @@ const MembersPage: React.FC = () => {
       setSelectedMembers([]);
       setSelectedRoleId('');
       setShowBulkRoleDialog(false);
+      mutate();
     } catch {
       toast.error('Failed to assign role');
     }
@@ -424,7 +425,10 @@ const MembersPage: React.FC = () => {
             onPageChange={setMembersPage}
             onPageSizeChange={setMembersPageSize}
             searchTerm={membersSearch}
-            onSearchChange={setMembersSearch}
+            onSearchChange={value => {
+              setMembersSearch(value);
+              setMembersPage(1);
+            }}
             multiSelect={true}
             selectedItems={selectedMembers}
             onSelectedItemsChange={setSelectedMembers}

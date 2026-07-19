@@ -74,6 +74,7 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
         {label && (
           <label
             htmlFor={id}
+            id={id ? `${id}-label` : undefined}
             className="mb-2 text-sm text-foreground flex items-center"
           >
             {label}{' '}
@@ -98,6 +99,8 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
             value={value}
             defaultValue={defaultValue}
             onChange={handleChange}
+            aria-invalid={!!displayError}
+            aria-describedby={displayError && id ? `${id}-error` : undefined}
             className={`
             w-full px-4 py-2.5 rounded-md border bg-background outline-none text-sm
             text-foreground placeholder-muted-foreground
@@ -122,7 +125,11 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
         </div>
 
         {displayError && (
-          <div className="mt-1.5 flex items-center text-xs text-destructive">
+          <div
+            id={id ? `${id}-error` : undefined}
+            className="mt-1.5 flex items-center text-xs text-destructive"
+            role="alert"
+          >
             <svg
               className="w-4 h-4 mr-1 flex-shrink-0"
               fill="currentColor"

@@ -136,6 +136,7 @@ export function ServerSideTable<T extends TableItem>({
               <select
                 value={pageSize}
                 onChange={e => handlePageSizeChange(Number(e.target.value))}
+                aria-label="Rows per page"
                 className="px-2 py-1 border border-input rounded text-xs sm:text-sm focus:ring-2 focus:ring-ring focus:border-primary bg-background text-foreground"
               >
                 {[6, 10, 20, 40, 80].map(size => (
@@ -151,6 +152,7 @@ export function ServerSideTable<T extends TableItem>({
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage <= 1}
+                aria-label="Previous page"
                 className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
               >
                 Prev
@@ -163,6 +165,7 @@ export function ServerSideTable<T extends TableItem>({
               <button
                 onClick={handleNextPage}
                 disabled={currentPage >= totalPages}
+                aria-label="Next page"
                 className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
               >
                 Next
