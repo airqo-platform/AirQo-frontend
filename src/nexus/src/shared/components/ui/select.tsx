@@ -270,7 +270,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
     >
       {label && (
         <label
-          htmlFor={buttonId}
+          id={`${buttonId}-label`}
           className="flex items-center mb-2 text-sm text-foreground"
         >
           {label}

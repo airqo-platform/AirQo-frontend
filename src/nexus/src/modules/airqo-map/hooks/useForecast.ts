@@ -39,8 +39,15 @@ const RETRY_CONFIG = {
     if (
       error.name === 'CanceledError' ||
       error.name === 'AbortError' ||
-      error.message === 'canceled'
+      error.message === 'canceled' ||
+      (error as { code?: string }).code === 'ERR_NETWORK'
     ) {
+      return false;
+    }
+    const status =
+      (error as { response?: { status?: number } }).response?.status ??
+      (error as { status?: number }).status;
+    if (typeof status === 'number' && status >= 500 && status < 600) {
       return false;
     }
     return failureCount < 1;

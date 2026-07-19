@@ -49,7 +49,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Unit Tests & Coverage
-        run: yarn test:coverage
+        run: yarn test:coverage 2>&1 | tee test-output.log
 
       - name: Extract test stats
         id: test-stats
@@ -57,7 +57,7 @@ jobs:
         working-directory: src/nexus
         shell: bash
         run: |
-          TESTS=$(yarn test:coverage 2>&1 | grep -oP 'Tests:\s+\K[\d,]+' || echo "0")
+          TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
           TESTS=$(echo "$TESTS" | tr -d ',')
           echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
 
@@ -68,19 +68,23 @@ jobs:
         if: github.event_name == 'push'
         working-directory: src/nexus
         shell: bash
+        env:
+          TESTS_INPUT: ${{ steps.test-stats.outputs.tests }}
+          COVERAGE_INPUT: ${{ steps.test-stats.outputs.coverage }}
         run: |
-          TESTS=${{ steps.test-stats.outputs.tests }}
-          COVERAGE=${{ steps.test-stats.outputs.coverage }}
-          
+          TESTS="$TESTS_INPUT"
+          COVERAGE="$COVERAGE_INPUT"
+
           if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
-            TESTS=$(grep -oP 'Tests:\s+\K[\d,]+' <(yarn test:coverage 2>&1) | tail -1 | tr -d ',')
+            TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+            TESTS=$(echo "$TESTS" | tr -d ',')
           fi
           if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
             COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
           fi
 
           COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
-          
+
           if [ "$COVERAGE_INT" -ge 80 ]; then
             COLOR="brightgreen"
           elif [ "$COVERAGE_INT" -ge 60 ]; then
@@ -90,11 +94,7 @@ jobs:
           fi
 
           if [ -f README.md ]; then
-            sed -i "s|![tests](https://img.shields.io/badge/tests-[a-z]*-brightgreen)|![tests](https://img.shields.io/badge/tests-${TESTS}%20passing-brightgreen?style=flat-square)|g" README.md
-            
-            if grep -q "!\[codecov\]" README.md; then
-              sed -i "s|![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?token=LsBcFL42rz&flag=nexus)|![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?token=LsBcFL42rz&flag=nexus)|g" README.md
-            fi
+            sed -i -E "s|!\[tests\]\(https://img\.shields\.io/badge/tests-[^)]*\)|![tests](https://img.shields.io/badge/tests-${TESTS}%20passing-brightgreen?style=flat-square)|g" README.md
 
             echo "Updated README badges: tests=$TESTS, coverage=${COVERAGE_INT}%"
           fi
@@ -122,7 +122,7 @@ jobs:
 
       - name: Comment on PR if failed
         if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@6
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           script: |
             const stepMeta = [

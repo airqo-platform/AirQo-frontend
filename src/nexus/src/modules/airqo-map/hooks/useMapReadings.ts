@@ -45,13 +45,26 @@ const getErrorStatus = (error: unknown): number | null => {
   return typeof candidate.status === 'number' ? candidate.status : null;
 };
 
+const isNetworkError = (error: unknown): boolean => {
+  const candidate = error as { code?: string } | null;
+  return candidate?.code === 'ERR_NETWORK';
+};
+
 const shouldAutoRetryMapReadings = (error: unknown): boolean => {
   if (isAbortLikeError(error)) {
-    return true;
+    return false;
+  }
+
+  if (isNetworkError(error)) {
+    return false;
   }
 
   const status = getErrorStatus(error);
-  return status !== null && status >= 500 && status < 600;
+  if (status !== null && status >= 500 && status < 600) {
+    return false;
+  }
+
+  return true;
 };
 
 export interface UseMapReadingsResult {

@@ -43,6 +43,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {!isLoggingOut && (
         <>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-[100000] focus:top-2 focus:left-2 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            Skip to main content
+          </a>
+
           <div
             className={cn(
               'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
@@ -78,6 +85,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               {/* Scrollable Main Content Area */}
               <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                 <main
+                  id="main-content"
                   className={cn(
                     'flex-1 overflow-y-auto overflow-x-hidden flex flex-col',
                     className

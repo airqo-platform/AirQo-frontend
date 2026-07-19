@@ -126,7 +126,7 @@ const StringListEditor: React.FC<StringListEditorProps> = ({
                 maxLength={CIDR_RANGE_MAX}
               />
               {errors[index] && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm text-destructive">
                   {errors[index]}
                 </p>
               )}
@@ -733,7 +733,7 @@ const SecurityPageContent: React.FC = () => {
               size="sm"
               variant="ghost"
               onClick={() => handleDeleteBlockedAsn(item)}
-              className="p-1 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              className="p-1 h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50 dark:hover:bg-red-950"
               title="Delete blocked range"
               aria-label={`Delete blocked range ${item.provider}`}
             >
@@ -1064,7 +1064,7 @@ const SecurityPageContent: React.FC = () => {
         size="md"
       >
         <div className="space-y-4">
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-foreground">
             Are you sure you want to delete the block for{' '}
             <span className="font-semibold">{deleteDialogEntry?.provider}</span>
             ? This will immediately remove the rule after the backend cache
@@ -1080,7 +1080,7 @@ const SecurityPageContent: React.FC = () => {
             <Button
               variant="filled"
               onClick={handleDeleteBlockedAsnConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
             >
               Delete
             </Button>

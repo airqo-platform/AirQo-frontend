@@ -199,7 +199,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                   >
                     <div
                       ref={dialogRef}
-                      className="bg-white dark:bg-[#141516] rounded-lg shadow-lg overflow-hidden flex flex-col h-full"
+                      className="bg-card rounded-lg shadow-lg overflow-hidden flex flex-col h-full"
                       role="dialog"
                       aria-modal="true"
                     >

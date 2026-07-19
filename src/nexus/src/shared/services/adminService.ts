@@ -60,7 +60,7 @@ export class AdminService {
       await this.authenticatedClient.get<GetOrganizationRequestsResponse>(
         '/users/org-requests'
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to get organization requests');
   }
 
   // Approve organization request - authenticated admin endpoint
@@ -72,7 +72,7 @@ export class AdminService {
       await this.authenticatedClient.patch<ApproveOrganizationRequestResponse>(
         `/users/org-requests/${requestId}/approve`
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to approve organization request');
   }
 
   // Reject organization request - authenticated admin endpoint
@@ -86,7 +86,7 @@ export class AdminService {
         `/users/org-requests/${requestId}/reject`,
         { rejection_reason }
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to reject organization request');
   }
 
   // Get roles by group_id - authenticated admin endpoint
@@ -94,7 +94,7 @@ export class AdminService {
     await this.ensureAuthenticated();
     const url = groupId ? `/users/roles?group_id=${groupId}` : '/users/roles';
     const response = await this.authenticatedClient.get<GetRolesResponse>(url);
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to get roles');
   }
 
   // Get role by ID - authenticated admin endpoint
@@ -104,11 +104,7 @@ export class AdminService {
       `/users/roles/${roleId}`
     );
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to fetch role');
-    }
-
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to get role');
   }
 
   // Get all permissions - authenticated admin endpoint
@@ -118,7 +114,7 @@ export class AdminService {
       await this.authenticatedClient.get<GetPermissionsResponse>(
         '/users/permissions'
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to get permissions');
   }
 
   // Create a new role - authenticated admin endpoint
@@ -128,7 +124,7 @@ export class AdminService {
       '/users/roles',
       roleData
     );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to create role');
   }
 
   // Update role permissions - authenticated admin endpoint
@@ -142,7 +138,7 @@ export class AdminService {
         `/users/roles/${roleId}/permissions`,
         permissionData
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to update role permissions');
   }
 
   // Update role data (name and status) - authenticated admin endpoint
@@ -155,7 +151,7 @@ export class AdminService {
       `/users/roles/${roleId}`,
       roleData
     );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to update role data');
   }
 
   // Get users by role - authenticated admin endpoint
@@ -164,7 +160,7 @@ export class AdminService {
     const response = await this.authenticatedClient.get<GetUsersByRoleResponse>(
       `/users/roles/${roleId}/users`
     );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to get users by role');
   }
 
   // Assign users to role - authenticated admin endpoint
@@ -178,7 +174,7 @@ export class AdminService {
         `/users/roles/${roleId}/users`,
         userData
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to assign users to role');
   }
 
   // Unassign users from role - authenticated admin endpoint
@@ -192,7 +188,7 @@ export class AdminService {
         `/users/roles/${roleId}/users`,
         { data: userData }
       );
-    return response.data;
+    return extractSuccessData(response.data, 'Failed to unassign users from role');
   }
 
   // Get blocked ASN/CIDR entries

@@ -4,8 +4,14 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/shared/store';
 import { useTheme } from '@/modules/themes/hooks/useTheme';
-import { initializeTheme } from '@/modules/themes/utils/themeUtils';
+import {
+  initializeTheme,
+  applyThemeImmediately,
+} from '@/modules/themes/utils/themeUtils';
 import { useSWRConfig } from 'swr';
+import type { ThemeData } from '@/modules/themes/utils/themeUtils';
+
+const GROUP_THEME_STORAGE_PREFIX = 'theme_group_';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const activeGroup = useSelector((state: RootState) => state.user.activeGroup);
@@ -28,6 +34,41 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       );
     }
   }, [activeGroup?.id, mutate]);
+
+  // Cross-tab theme sync: listen for localStorage changes from other tabs
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (!event.key || !event.newValue) return;
+
+      // Check if the changed key is a theme-related key
+      const isGroupTheme = event.key.startsWith(GROUP_THEME_STORAGE_PREFIX);
+      const isGeneralTheme = event.key === 'theme';
+
+      if (!isGroupTheme && !isGeneralTheme) return;
+
+      // Only react to the current group's theme changes
+      const currentGroupKey = activeGroup?.id
+        ? `${GROUP_THEME_STORAGE_PREFIX}${activeGroup.id}`
+        : null;
+      const isCurrentGroupTheme =
+        isGroupTheme && event.key === currentGroupKey;
+      const isFallbackTheme = isGeneralTheme && !currentGroupKey;
+
+      if (!isCurrentGroupTheme && !isFallbackTheme) return;
+
+      try {
+        const themeData: ThemeData = JSON.parse(event.newValue);
+        applyThemeImmediately(themeData);
+      } catch {
+        // Ignore parse errors from malformed storage events
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [activeGroup?.id]);
 
   return <>{children}</>;
 }

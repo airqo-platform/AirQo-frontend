@@ -318,16 +318,15 @@ const SubscriptionSection: React.FC = () => {
         return {
           tone: 'warning' as const,
           title: 'Automatic renewal is turned off',
-          message:
-            'This plan will remain available until the current access period ends and will not renew automatically.',
+          message: `This plan will remain available until ${accessDateText} and will not renew automatically.`,
         };
       }
 
       return {
         tone: 'info' as const,
-        title: 'This paid plan is no longer active',
+        title: 'This subscription has been cancelled',
         message:
-          'Your account is currently on the Free tier. Choose a paid plan below whenever you need higher API capacity again.',
+          'Your subscription is no longer active. Choose a paid plan below to start a new subscription.',
       };
     }
 
@@ -345,8 +344,8 @@ const SubscriptionSection: React.FC = () => {
         tone: 'warning' as const,
         title: 'Automatic renewal is turned off',
         message: accessDateText
-          ? 'This plan will remain available until the current access period ends and will not renew automatically.'
-          : 'This plan will remain available until the current access period ends and will not renew automatically.',
+          ? `This plan will remain available until ${accessDateText} and will not renew automatically.`
+          : 'This plan will not renew automatically. Renew before it expires to keep your current rate limits.',
       };
     }
 

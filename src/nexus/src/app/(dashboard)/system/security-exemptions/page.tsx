@@ -189,6 +189,7 @@ const BypassGrantDialog: React.FC<BypassGrantDialogProps> = ({
           checked={enabled}
           onCheckedChange={setEnabled}
           className="mt-0.5"
+          aria-label={label}
         />
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">{label}</p>
@@ -203,6 +204,7 @@ const BypassGrantDialog: React.FC<BypassGrantDialogProps> = ({
               checked={permanent}
               onCheckedChange={setPermanent}
               className="mt-0.5"
+              aria-label="Permanent"
             />
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">Permanent</p>
@@ -315,6 +317,7 @@ const BypassGrantDialog: React.FC<BypassGrantDialogProps> = ({
               checked={reinstate}
               onCheckedChange={setReinstate}
               className="mt-0.5"
+              aria-label="Reinstate token"
             />
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">

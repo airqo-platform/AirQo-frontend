@@ -13,6 +13,7 @@ export const useOrganizationRequests = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -70,6 +71,7 @@ export const useRolesByGroup = (groupId?: string) => {
   return useSWR(key, () => adminService.getRolesByGroup(groupId), {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    shouldRetryOnError: false,
   });
 };
 
@@ -81,6 +83,7 @@ export const useRoleById = (roleId: string | null) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -90,6 +93,7 @@ export const usePermissions = () => {
   return useSWR('admin/permissions', () => adminService.getPermissions(), {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    shouldRetryOnError: false,
   });
 };
 
@@ -186,6 +190,7 @@ export const useUsersByRole = (roleId: string | null) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -236,6 +241,7 @@ export const useUserStatistics = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -248,6 +254,7 @@ export const useUsers = (email?: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -260,6 +267,7 @@ export const useRolesSummary = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      shouldRetryOnError: false,
     }
   );
 };
@@ -315,6 +323,7 @@ export const useBypassedTokens = () => {
   return useSWR('system/bypassed-tokens', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    shouldRetryOnError: false,
   });
 };
 

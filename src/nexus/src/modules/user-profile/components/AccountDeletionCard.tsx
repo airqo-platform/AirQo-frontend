@@ -46,15 +46,15 @@ const AccountDeletionCard: React.FC = () => {
   return (
     <>
       {/* Account Deletion Card */}
-      <div className="bg-white border border-red-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="px-6 py-5 bg-red-50 border-b border-red-200">
+      <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-lg shadow-sm overflow-hidden">
+        <div className="px-6 py-5 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Delete Account
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Permanently delete your account and all associated data
                 </p>
               </div>
@@ -95,17 +95,17 @@ const AccountDeletionCard: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
-              <AqAlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="mx-auto flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+              <AqAlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               You will receive an email with a confirmation link to complete the
               deletion.
             </p>
           </div>
 
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-xs text-red-700 font-medium">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <p className="text-xs text-red-700 dark:text-red-400 font-medium">
               This will permanently delete your account, all data, and remove
               access to all organizations.
             </p>

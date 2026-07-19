@@ -1033,7 +1033,7 @@ export const DataVisualizerWorkspace: React.FC<
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [applyNewDatasets, trackVisualizerEvent]
+    [applyNewDatasets]
   );
 
   const handleRetryFile = React.useCallback(

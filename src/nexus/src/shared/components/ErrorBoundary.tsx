@@ -48,8 +48,20 @@ class ErrorBoundary extends React.Component<
     }
   }
 
+  private isAbortError(error: Error): boolean {
+    const candidate = error as unknown as Record<string, unknown>;
+    return (
+      error.name === 'AbortError' ||
+      error.name === 'CanceledError' ||
+      candidate.code === 'ERR_CANCELED'
+    );
+  }
+
   private isCriticalError(error: Error): boolean {
-    // Define critical error patterns
+    if (this.isAbortError(error)) {
+      return false;
+    }
+
     const criticalPatterns = [
       'TypeError',
       'ReferenceError',
@@ -66,6 +78,10 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
+      if (this.state.error && this.isAbortError(this.state.error)) {
+        return null;
+      }
+
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center p-8 bg-background rounded-lg">
