@@ -18,6 +18,7 @@ import TokenDisplay from './components/TokenDisplay';
 import TokenSecurityDialog from './components/TokenSecurityDialog';
 import type { Client } from '@/shared/types/api';
 import { clientService } from '@/shared/services/clientService';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { trackApiClientAction } from '@/shared/utils/enhancedAnalytics';
 
 type TableClient = Client & { id: string };
@@ -448,7 +449,7 @@ const ApiClientPage: React.FC = () => {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.airqo.net/airqo-rest-api-documentation"
+                  href={getEnvironmentAwareUrl('https://platform.airqo.net/docs/api/intro/')}
                   className="text-blue-600"
                   aria-label="Read AirQo REST API Documentation"
                 >
