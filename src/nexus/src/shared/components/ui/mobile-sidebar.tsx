@@ -57,7 +57,7 @@ export const MobileSidebar: React.FC = () => {
       const last = focusable[focusable.length - 1];
 
       if (e.shiftKey) {
-        if (document.activeElement === first) {
+        if (document.activeElement === first || document.activeElement === aside) {
           e.preventDefault();
           last.focus();
         }

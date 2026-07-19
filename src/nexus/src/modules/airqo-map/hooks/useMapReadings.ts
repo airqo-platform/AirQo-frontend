@@ -59,8 +59,10 @@ const shouldAutoRetryMapReadings = (error: unknown): boolean => {
     return false;
   }
 
+  // Only retry when there is no HTTP status — truly unknown/transient errors.
+  // Don't retry 4xx/5xx since those are unlikely to succeed on retry.
   const status = getErrorStatus(error);
-  if (status !== null && status >= 500 && status < 600) {
+  if (status !== null) {
     return false;
   }
 

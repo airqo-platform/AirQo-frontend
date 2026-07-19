@@ -16,10 +16,6 @@ interface LoadingOverlayProps {
    */
   className?: string;
   /**
-   * Background opacity (0-1)
-   */
-  opacity?: number;
-  /**
    * Delay (ms) before showing to reduce flicker on fast transitions
    */
   delayMs?: number;
@@ -36,7 +32,6 @@ interface LoadingOverlayProps {
 const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   isVisible = true,
   className = '',
-  opacity = 0.2,
   delayMs = 120,
   title,
   description,
@@ -66,8 +61,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-background transition-opacity ${className}`}
-      style={{ opacity }}
+      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-background/80 transition-opacity ${className}`}
       role="status"
       aria-live="polite"
     >

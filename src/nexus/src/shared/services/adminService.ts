@@ -92,7 +92,9 @@ export class AdminService {
   // Get roles by group_id - authenticated admin endpoint
   async getRolesByGroup(groupId?: string): Promise<GetRolesResponse> {
     await this.ensureAuthenticated();
-    const url = groupId ? `/users/roles?group_id=${groupId}` : '/users/roles';
+    const url = groupId
+      ? `/users/roles?group_id=${encodeURIComponent(groupId)}`
+      : '/users/roles';
     const response = await this.authenticatedClient.get<GetRolesResponse>(url);
     return extractSuccessData(response.data, 'Failed to get roles');
   }

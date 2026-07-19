@@ -16,7 +16,7 @@ on:
       - ".github/workflows/nexus-ci.yml"
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -63,53 +63,6 @@ jobs:
 
           COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
           echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
-
-      - name: Update README badges
-        if: github.event_name == 'push'
-        working-directory: src/nexus
-        shell: bash
-        env:
-          TESTS_INPUT: ${{ steps.test-stats.outputs.tests }}
-          COVERAGE_INPUT: ${{ steps.test-stats.outputs.coverage }}
-        run: |
-          TESTS="$TESTS_INPUT"
-          COVERAGE="$COVERAGE_INPUT"
-
-          if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
-            TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
-            TESTS=$(echo "$TESTS" | tr -d ',')
-          fi
-          if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
-            COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
-          fi
-
-          COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
-
-          if [ "$COVERAGE_INT" -ge 80 ]; then
-            COLOR="brightgreen"
-          elif [ "$COVERAGE_INT" -ge 60 ]; then
-            COLOR="yellow"
-          else
-            COLOR="red"
-          fi
-
-          if [ -f README.md ]; then
-            sed -i -E "s|!\[tests\]\(https://img\.shields\.io/badge/tests-[^)]*\)|![tests](https://img.shields.io/badge/tests-${TESTS}%20passing-brightgreen?style=flat-square)|g" README.md
-
-            echo "Updated README badges: tests=$TESTS, coverage=${COVERAGE_INT}%"
-          fi
-
-      - name: Commit README updates
-        if: github.event_name == 'push'
-        working-directory: src/nexus
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add README.md
-          git diff --staged --quiet || git commit -m "chore: update README test/coverage badges [skip ci]"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -209,3 +162,89 @@ jobs:
                 body: body.join('\n')
               });
             }
+
+  update-badges:
+    name: update-badges
+    if: github.event_name == 'push'
+    needs: check-nexus
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: src/nexus
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: src/nexus/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Unit Tests & Coverage
+        run: yarn test:coverage 2>&1 | tee test-output.log
+
+      - name: Extract test stats
+        id: test-stats
+        working-directory: src/nexus
+        shell: bash
+        run: |
+          TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+          TESTS=$(echo "$TESTS" | tr -d ',')
+          echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
+
+          COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | grep -oP '"total":\{"lines":\{"total":\d+,"covered":\d+,"skipped":0,"pct":\K[\d.]+' || echo "0")
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Update README badges
+        working-directory: src/nexus
+        shell: bash
+        env:
+          TESTS_INPUT: ${{ steps.test-stats.outputs.tests }}
+          COVERAGE_INPUT: ${{ steps.test-stats.outputs.coverage }}
+        run: |
+          TESTS="$TESTS_INPUT"
+          COVERAGE="$COVERAGE_INPUT"
+
+          if [ -z "$TESTS" ] || [ "$TESTS" = "0" ]; then
+            TESTS=$(grep -oP 'Tests:.*?\K[\d,]+(?=\s+total)' test-output.log || echo "0")
+            TESTS=$(echo "$TESTS" | tr -d ',')
+          fi
+          if [ -z "$COVERAGE" ] || [ "$COVERAGE" = "0" ]; then
+            COVERAGE=$(python3 -c "import json; d=json.load(open('coverage/coverage-summary.json')); print(d['total']['lines']['pct'])" 2>/dev/null || echo "0")
+          fi
+
+          COVERAGE_INT=$(python3 -c "print(int(float('${COVERAGE:-0}')))" 2>/dev/null || echo "0")
+
+          if [ "$COVERAGE_INT" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_INT" -ge 60 ]; then
+            COLOR="yellow"
+          else
+            COLOR="red"
+          fi
+
+          if [ -f README.md ]; then
+            sed -i -E "s|!\[tests\]\(https://img\.shields\.io/badge/tests-[^)]*\)|![tests](https://img.shields.io/badge/tests-${TESTS}%20passing-brightgreen?style=flat-square)|g" README.md
+
+            echo "Updated README badges: tests=$TESTS, coverage=${COVERAGE_INT}%"
+          fi
+
+      - name: Commit README updates
+        working-directory: src/nexus
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git diff --staged --quiet || git commit -m "chore: update README test/coverage badges [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

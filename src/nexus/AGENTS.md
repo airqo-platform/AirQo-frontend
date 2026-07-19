@@ -1,6 +1,6 @@
 # AGENTS.md — AirQo Nexus
 
-Scope: **this file governs the Nexus app only** (codebase path `src/vertex/`
+Scope: **this file governs the Nexus app only** (codebase path `src/nexus/`
 in the AirQo-frontend monorepo, public product name "AirQo Nexus"). It does
 not apply to `vertex-desktop`, `platform`, `website`, `mobile`, `netmanager`,
 `beacon`, `calibrate`, or `docs-website`. If an agent is touching any of
@@ -22,7 +22,7 @@ those, this file does not govern that work.
 
 ## Commands
 
-Run all of these from `src/vertex/`, not the monorepo root.
+Run all of these from `src/nexus/`, not the monorepo root.
 
 - `yarn dev` — local dev server
 - `yarn lint` — ESLint

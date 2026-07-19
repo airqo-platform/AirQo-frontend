@@ -1,13 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/shared/store';
 import { useTheme } from '@/modules/themes/hooks/useTheme';
 import {
   initializeTheme,
   applyThemeImmediately,
 } from '@/modules/themes/utils/themeUtils';
+import {
+  setPrimaryColor,
+  setThemeMode,
+  setInterfaceStyle,
+  setContentLayout,
+} from '@/modules/themes/store/themeSlice';
 import { useSWRConfig } from 'swr';
 import type { ThemeData } from '@/modules/themes/utils/themeUtils';
 
@@ -15,6 +21,7 @@ const GROUP_THEME_STORAGE_PREFIX = 'theme_group_';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const activeGroup = useSelector((state: RootState) => state.user.activeGroup);
+  const dispatch = useDispatch();
   const { mutate } = useSWRConfig();
 
   // Initialize theme hooks to sync state and preferences
@@ -60,6 +67,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const themeData: ThemeData = JSON.parse(event.newValue);
+
+        // Sync Redux store alongside DOM update
+        dispatch(setPrimaryColor(themeData.primaryColor));
+        dispatch(setThemeMode(themeData.mode));
+        dispatch(setInterfaceStyle(themeData.interfaceStyle));
+        dispatch(setContentLayout(themeData.contentLayout));
+
         applyThemeImmediately(themeData);
       } catch {
         // Ignore parse errors from malformed storage events

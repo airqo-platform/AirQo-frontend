@@ -210,9 +210,14 @@ export const useThemePreferences = () => {
         console.error('Failed to update theme preference:', error);
 
         // Revert to the previous theme captured before the optimistic update
-        if (previousTheme) {
-          applyThemeToApp(previousTheme);
-        }
+        applyThemeToApp(
+          previousTheme || {
+            primaryColor: theme.primaryColor,
+            mode: theme.mode as ThemeData['mode'],
+            interfaceStyle: theme.interfaceStyle,
+            contentLayout: theme.contentLayout,
+          }
+        );
 
         throw error;
       }

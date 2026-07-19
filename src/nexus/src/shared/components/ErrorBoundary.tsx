@@ -28,6 +28,12 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Abort/cancel errors are intentional — recover silently
+    if (this.isAbortError(error)) {
+      this.setState({ hasError: false, error: undefined });
+      return;
+    }
+
     // Log error with component stack
     logger.error('Error caught by boundary:', error, errorInfo);
 
@@ -78,10 +84,6 @@ class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      if (this.state.error && this.isAbortError(this.state.error)) {
-        return null;
-      }
-
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center p-8 bg-background rounded-lg">

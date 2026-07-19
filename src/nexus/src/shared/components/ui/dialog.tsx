@@ -195,7 +195,17 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
     }
   }, [isOpen]);
 
-  // Focus trap, Escape key handler, and body scroll lock
+  // Body scroll lock — separate effect to avoid re-running on onClose changes
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen]);
+
+  // Focus trap and Escape key handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -231,12 +241,10 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
     };
   }, [isOpen, onClose, preventBackdropClose]);
 
