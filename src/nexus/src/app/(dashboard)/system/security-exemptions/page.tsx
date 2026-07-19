@@ -477,6 +477,7 @@ const SecurityExemptionsContent: React.FC = () => {
         key: 'actions',
         label: 'Actions',
         minWidth: '100px',
+        cellClassName: 'whitespace-nowrap',
         render: (_value: unknown, item: BypassRow) => (
           <Button
             size="sm"
