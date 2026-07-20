@@ -11,10 +11,6 @@ on:
         description: "Deploy Calibrate app"
         required: false
         type: boolean
-      analytics_platform:
-        description: "Deploy Analytics Platform"
-        required: false
-        type: boolean
       nexus:
         description: "Deploy Nexus"
         required: false
@@ -152,52 +148,6 @@ jobs:
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
             message: "Update calibrate production image tag"
-
-  analytics-platform:
-    name: build-push-analytics-platform
-    needs: [image-tag]
-    if: inputs.analytics_platform == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: ACR Login
-        run: az acr login --name ${{ env.ACR_NAME }}
-
-      - name: Pull secrets from Key Vault
-        run: |
-          az keyvault secret show \
-            --vault-name ${{ env.KEYVAULT }} \
-            --name prod-env-next-platform \
-            --query value -o tsv > secrets.json
-
-          jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/platform/.env
-
-      - name: Build and Push Docker Image
-        run: |
-          cd src/platform/
-          docker build -t ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
-          docker push ${{ env.REGISTRY_URL }}/airqo-next-platform:latest
-
-      - name: Update Helm values
-        uses: Wandalen/wretry.action@v1.2.0
-        with:
-          action: fjogeleit/yaml-update-action@main
-          with: |
-            valueFile: "k8s/platform/k8s-aks/airqo-platform/values-prod.yaml"
-            propertyPath: "image.tag"
-            value: ${{ needs.image-tag.outputs.build_id }}
-            branch: ${{ env.DEPLOY_BRANCH }}
-            token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update analytics production image tag"
 
   nexus:
     name: build-push-nexus
