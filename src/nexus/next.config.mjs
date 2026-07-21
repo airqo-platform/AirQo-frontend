@@ -28,13 +28,15 @@ const isProduction = process.env.NODE_ENV === 'production';
 const buildContentSecurityPolicy = () => {
   const apiOrigin = resolveApiOrigin();
 
-  // Build connect-src: self + analytics + cloudinary + firebase + the backend API
+  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + backend API
   const connectSrcDomains = [
     "'self'",
     'https://us.posthog.com',
     'https://www.google-analytics.com',
     'https://api.cloudinary.com',
     'https://firebasestorage.googleapis.com',
+    'https://api.mapbox.com',
+    'https://events.mapbox.com',
   ];
   if (apiOrigin) {
     connectSrcDomains.push(apiOrigin);
@@ -42,11 +44,13 @@ const buildContentSecurityPolicy = () => {
 
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://us.posthog.com https://www.googletagmanager.com https://www.google-analytics.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://us.posthog.com https://www.googletagmanager.com https://www.google-analytics.com",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://res.cloudinary.com https://asset.cloudinary.com https://flagcdn.com https://firebasestorage.googleapis.com",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://asset.cloudinary.com https://flagcdn.com https://firebasestorage.googleapis.com https://purecatamphetamine.github.io",
     "font-src 'self'",
+    "media-src 'self' https://res.cloudinary.com",
     `connect-src ${connectSrcDomains.join(' ')}`,
+    "worker-src 'self' blob:",
     "frame-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",

@@ -1,4 +1,5 @@
 import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sessionCookieName = isProduction
@@ -6,8 +7,18 @@ const sessionCookieName = isProduction
   : 'next-auth.session-token';
 
 export default withAuth(
-  function middleware() {
-    // Custom middleware logic can be added here if needed
+  function middleware(req) {
+    // RSC flight requests (prefetches during navigation) should pass through
+    // without auth redirect. The client-side AuthProvider handles unauthenticated
+    // users by showing a loading overlay and redirecting gracefully. Redirecting
+    // an RSC flight request causes a 500 because the client router expects an
+    // RSC payload, not a redirect response.
+    const rscHeader = req.headers.get('rsc');
+    const isRscFlight = rscHeader === '1' || req.nextUrl.searchParams.has('_rsc');
+
+    if (isRscFlight) {
+      return NextResponse.next();
+    }
   },
   {
     callbacks: {
