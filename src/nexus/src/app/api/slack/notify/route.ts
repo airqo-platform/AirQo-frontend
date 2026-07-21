@@ -1,10 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/shared/lib/auth';
+import logger from '@/shared/lib/logger';
+import { checkRateLimit, getClientIp } from '@/shared/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication — only the app should send Slack notifications
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit
+    const rateLimitResult = checkRateLimit(getClientIp(request), {
+      windowMs: 60_000,
+      maxRequests: 10,
+    });
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const webhookUrl = process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL;
 
     if (!webhookUrl) {
@@ -138,7 +165,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Slack API error: ${response.status} - ${errorText}`);
+      logger.error(`Slack API error: ${response.status} - ${errorText}`);
       throw new Error(`Slack API error: ${response.status}`);
     }
 
@@ -153,7 +180,7 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Failed to send Slack notification:', error);
+    logger.error('Failed to send Slack notification', error as Error);
 
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(

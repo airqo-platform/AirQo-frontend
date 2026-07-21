@@ -20,7 +20,7 @@ interface InfoDropdownProps {
 }
 
 const DOCS_URL = getEnvironmentAwareUrl(
-  'https://platform.airqo.net/docs/api/intro/'
+  'https://platform.airqo.net/docs/nexus/intro'
 );
 
 const InfoDropdown: React.FC<InfoDropdownProps> = ({ className = '' }) => {

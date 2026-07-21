@@ -11,7 +11,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: () => true,
+      authorized: ({ token }) => !!token,
     },
     pages: {
       signIn: '/user/login',
@@ -25,6 +25,11 @@ export default withAuth(
   }
 );
 
+// Protect all routes except public/auth, static assets, and API routes.
+// Public routes match the list in src/shared/lib/public-routes.ts — keep
+// both in sync when adding new public routes.
 export const config = {
-  matcher: ['/user/:path*', '/org/:path*'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|user/login|user/creation|user/forgotPwd|user/delete/confirm|org-invite|request-organization|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)',
+  ],
 };

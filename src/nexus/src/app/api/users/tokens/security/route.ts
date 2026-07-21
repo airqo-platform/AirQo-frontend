@@ -6,6 +6,7 @@ import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { sanitizeErrorForLogging } from '@/shared/utils/sanitizeErrorForLogging';
 import type { Session } from 'next-auth';
 import type { UpdateTokenSecurityRequest } from '@/shared/types/api';
+import { checkRateLimit, getClientIp } from '@/shared/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -38,6 +39,23 @@ export async function PATCH(request: NextRequest) {
 
     if (!authorizationHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit
+    const rateLimitResult = checkRateLimit(getClientIp(request), {
+      windowMs: 60_000,
+      maxRequests: 30,
+    });
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+          },
+        }
+      );
     }
 
     let body: TokenSecurityProxyRequest;

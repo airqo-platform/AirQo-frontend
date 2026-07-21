@@ -459,6 +459,7 @@ const MembersPage: React.FC = () => {
                     Email Addresses *
                   </label>
                   <div className="space-y-2">
+                    {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
                     {inviteEmails.map((email, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="flex-1">
