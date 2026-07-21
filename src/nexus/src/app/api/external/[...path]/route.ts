@@ -10,7 +10,7 @@ export const revalidate = 0;
 
 const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 
-// Allowlist of upstream path prefixes this proxy is permitted to serve.
+// Allowlist of upstream paths this proxy is permitted to serve.
 // Derived from an audit of every createServerClient() call site:
 //   analyticsService: /devices/readings/recent, /analytics/data-download
 //   deviceService: /devices/sites/summary, /devices/grids/summary,
@@ -18,10 +18,15 @@ const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 //                  /predict/daily-forecasting, /predict/hourly-forecasting
 //   userService: /users/preferences/replace
 const ALLOWED_PATH_PREFIXES = [
-  'devices/',
-  'analytics/',
-  'predict/',
-  'users/',
+  'devices/readings/recent',
+  'devices/sites/summary',
+  'devices/grids/summary',
+  'devices/grids/countries',
+  'devices/readings/map',
+  'analytics/data-download',
+  'predict/daily-forecasting',
+  'predict/hourly-forecasting',
+  'users/preferences/replace',
 ];
 
 // HTTP methods this proxy supports. POST is needed for /analytics/data-download;

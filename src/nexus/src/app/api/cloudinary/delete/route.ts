@@ -20,7 +20,8 @@ const isValidPublicId = (publicId: string): boolean => {
   );
 };
 
-// Verify that the publicId belongs to an app-managed folder.
+// Verify that the publicId belongs to an app-managed folder and is owned by
+// the authenticated user where applicable.
 // Cloudinary assets uploaded by this app follow conventions like:
 //   users/{userId}/...   (profile photos)
 //   groups/{groupId}/... (group logos)
@@ -28,7 +29,7 @@ const isValidPublicId = (publicId: string): boolean => {
 //   profiles/...         (profile images)
 // This prevents deletion of arbitrary external assets while allowing
 // all legitimate app use cases. Path traversal is blocked separately.
-function isOwnedByUser(publicId: string): boolean {
+function isOwnedByUser(publicId: string, userId: string): boolean {
   // Normalize the path to resolve any .. traversal segments before prefix check
   const normalizedSegments: string[] = [];
   for (const segment of publicId.split('/')) {
@@ -40,8 +41,12 @@ function isOwnedByUser(publicId: string): boolean {
   }
   const normalized = normalizedSegments.join('/');
 
+  // For user-scoped assets, verify the userId segment matches the authenticated user
+  if (normalized.startsWith('users/')) {
+    return normalized.startsWith(`users/${userId}/`);
+  }
+
   const ALLOWED_PREFIXES = [
-    'users/',
     'groups/',
     'organizations/',
     'organization_profiles/',
@@ -146,8 +151,8 @@ export async function DELETE(request: NextRequest) {
 
     // Ownership check: verify the publicId belongs to the authenticated user.
     // This enforces a naming convention scoped to the user's own folder.
-    const userId = session.user._id;
-    if (!isOwnedByUser(publicId)) {
+    const userId = session.user._id as string;
+    if (!isOwnedByUser(publicId, userId)) {
       logger.warn('Cloudinary delete rejected: publicId not owned by user', {
         publicId,
         userId,

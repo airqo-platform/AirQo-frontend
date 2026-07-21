@@ -137,6 +137,18 @@ describe('/api/cloudinary/delete - Security', () => {
       expect(res.status).toBe(403);
       expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    it('rejects deletion of another user\'s assets (IDOR)', async () => {
+      const req = makeDeleteRequest({
+        publicId: 'users/otherUser456/photo.jpg',
+      });
+      const res = await DELETE(req);
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.error).toContain('Forbidden');
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
   });
 
   describe('Input validation', () => {
