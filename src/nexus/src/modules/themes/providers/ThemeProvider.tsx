@@ -82,7 +82,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [activeGroup?.id]);
+  }, [activeGroup?.id, dispatch]);
 
   return <>{children}</>;
 }

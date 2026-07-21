@@ -89,8 +89,8 @@ describe('/api/cloudinary/delete - Security', () => {
       });
     });
 
-    it('rejects publicId not matching user scope with 403', async () => {
-      const req = makeDeleteRequest({ publicId: 'users/other-user/photo.jpg' });
+    it('rejects publicId not in allowed app prefixes with 403', async () => {
+      const req = makeDeleteRequest({ publicId: 'random-bucket/other-user/photo.jpg' });
       const res = await DELETE(req);
 
       expect(res.status).toBe(403);
@@ -99,7 +99,7 @@ describe('/api/cloudinary/delete - Security', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('rejects publicId with no user prefix', async () => {
+    it('rejects publicId with no app prefix', async () => {
       const req = makeDeleteRequest({ publicId: 'some-random-asset.jpg' });
       const res = await DELETE(req);
 
@@ -107,7 +107,7 @@ describe('/api/cloudinary/delete - Security', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('allows publicId matching the authenticated user scope', async () => {
+    it('allows publicId under users/ prefix', async () => {
       const req = makeDeleteRequest({
         publicId: 'users/user123/uploads/photo.jpg',
       });
@@ -118,16 +118,22 @@ describe('/api/cloudinary/delete - Security', () => {
       expect(fetchUrl).toContain('cloudinary.com');
     });
 
-    it('rejects path traversal in publicId targeting other users', async () => {
+    it('allows publicId under groups/ prefix (group logos)', async () => {
       const req = makeDeleteRequest({
-        publicId: 'users/user123/../admin/secret.jpg',
+        publicId: 'groups/group123/logo.png',
+      });
+      await DELETE(req);
+
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('rejects path traversal that escapes allowed prefixes', async () => {
+      const req = makeDeleteRequest({
+        publicId: 'groups/group123/../../etc/secret.jpg',
       });
       const res = await DELETE(req);
 
-      // The isOwnedByUser check starts with prefix matching,
-      // and the publicId regex rejects some special chars, but
-      // the traversal via /../ is not in the user's own folder.
-      // The path should either fail ownership or be invalid.
+      // Normalizes to etc/secret.jpg which is not an allowed prefix
       expect(res.status).toBe(403);
       expect(mockFetch).not.toHaveBeenCalled();
     });

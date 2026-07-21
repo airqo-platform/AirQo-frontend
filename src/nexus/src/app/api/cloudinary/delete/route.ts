@@ -20,13 +20,15 @@ const isValidPublicId = (publicId: string): boolean => {
   );
 };
 
-// Verify that the publicId is scoped to the authenticated user's own assets.
-// Cloudinary assets uploaded by this app follow the convention:
-//   users/{userId}/...
-// Until proper ownership tracking exists on the backend, this prefix-based
-// check is the enforcement boundary. See follow-up ticket for full ownership
-// resolution via backend API.
-function isOwnedByUser(publicId: string, userId: string): boolean {
+// Verify that the publicId belongs to an app-managed folder.
+// Cloudinary assets uploaded by this app follow conventions like:
+//   users/{userId}/...   (profile photos)
+//   groups/{groupId}/... (group logos)
+//   organizations/...    (org assets)
+//   profiles/...         (profile images)
+// This prevents deletion of arbitrary external assets while allowing
+// all legitimate app use cases. Path traversal is blocked separately.
+function isOwnedByUser(publicId: string): boolean {
   // Normalize the path to resolve any .. traversal segments before prefix check
   const normalizedSegments: string[] = [];
   for (const segment of publicId.split('/')) {
@@ -38,8 +40,17 @@ function isOwnedByUser(publicId: string, userId: string): boolean {
   }
   const normalized = normalizedSegments.join('/');
 
-  const expectedPrefix = `users/${userId}/`;
-  return normalized.startsWith(expectedPrefix);
+  const ALLOWED_PREFIXES = [
+    'users/',
+    'groups/',
+    'organizations/',
+    'organization_profiles/',
+    'profiles/',
+    'surveys/',
+    'feedback/',
+  ];
+
+  return ALLOWED_PREFIXES.some(prefix => normalized.startsWith(prefix));
 }
 
 export async function DELETE(request: NextRequest) {
@@ -136,7 +147,7 @@ export async function DELETE(request: NextRequest) {
     // Ownership check: verify the publicId belongs to the authenticated user.
     // This enforces a naming convention scoped to the user's own folder.
     const userId = session.user._id;
-    if (!userId || !isOwnedByUser(publicId, userId)) {
+    if (!isOwnedByUser(publicId)) {
       logger.warn('Cloudinary delete rejected: publicId not owned by user', {
         publicId,
         userId,

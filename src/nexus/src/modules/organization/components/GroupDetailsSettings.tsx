@@ -237,7 +237,7 @@ const GroupDetailsSettings: React.FC = () => {
           if (oldPublicId) {
             try {
               await deleteFromCloudinary(oldPublicId);
-              console.debug(
+              console.warn(
                 'Successfully deleted old group logo:',
                 oldPublicId
               );
