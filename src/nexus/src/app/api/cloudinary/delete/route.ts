@@ -30,20 +30,17 @@ const isValidPublicId = (publicId: string): boolean => {
 // This prevents deletion of arbitrary external assets while allowing
 // all legitimate app use cases. Path traversal is blocked separately.
 function isOwnedByUser(publicId: string, userId: string): boolean {
-  // Normalize the path to resolve any .. traversal segments before prefix check
-  const normalizedSegments: string[] = [];
-  for (const segment of publicId.split('/')) {
-    if (segment === '..') {
-      normalizedSegments.pop();
-    } else if (segment !== '.') {
-      normalizedSegments.push(segment);
-    }
+  // Reject any publicId that contains traversal segments — these are never
+  // valid Cloudinary IDs and could be used to bypass prefix checks if we
+  // normalised them away.
+  const segments = publicId.split('/');
+  if (segments.some(segment => segment === '..' || segment === '.')) {
+    return false;
   }
-  const normalized = normalizedSegments.join('/');
 
   // For user-scoped assets, verify the userId segment matches the authenticated user
-  if (normalized.startsWith('users/')) {
-    return normalized.startsWith(`users/${userId}/`);
+  if (publicId.startsWith('users/')) {
+    return publicId.startsWith(`users/${userId}/`);
   }
 
   const ALLOWED_PREFIXES = [
@@ -55,7 +52,7 @@ function isOwnedByUser(publicId: string, userId: string): boolean {
     'feedback/',
   ];
 
-  return ALLOWED_PREFIXES.some(prefix => normalized.startsWith(prefix));
+  return ALLOWED_PREFIXES.some(prefix => publicId.startsWith(prefix));
 }
 
 export async function DELETE(request: NextRequest) {

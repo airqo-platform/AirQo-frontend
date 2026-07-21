@@ -60,7 +60,10 @@ const buildTargetUrl = (baseUrl: string, normalizedPath: string): string => {
 };
 
 function hasPathTraversal(segments: string[]): boolean {
-  return segments.some(segment => segment === '..' || segment === '%2e%2e');
+  return segments.some(
+    segment =>
+      segment === '..' || segment.toLowerCase() === '%2e%2e'
+  );
 }
 
 function isPathAllowed(normalizedPath: string): boolean {

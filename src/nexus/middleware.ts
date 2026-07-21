@@ -7,25 +7,23 @@ const sessionCookieName = isProduction
   : 'next-auth.session-token';
 
 export default async function middleware(req: NextRequest) {
-  // RSC flight requests (prefetches during navigation) should pass through
-  // without auth redirect. The client-side AuthProvider handles unauthenticated
-  // users by showing a loading overlay and redirecting gracefully. Redirecting
-  // an RSC flight request causes a 500 because the client router expects an
-  // RSC payload, not a redirect response.
-  const rscHeader = req.headers.get('rsc');
-  const isRscFlight = rscHeader === '1' || req.nextUrl.searchParams.has('_rsc');
-
-  if (isRscFlight) {
-    return NextResponse.next();
-  }
-
   const token = await getToken({
     req,
     cookieName: sessionCookieName,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  // RSC flight requests (prefetches during navigation) must not be redirected —
+  // the client-side AuthProvider expects an RSC payload and a redirect causes a
+  // 500. Instead, return 401 so the client can handle the unauthenticated state
+  // gracefully without spoofing this header to bypass the auth gate.
+  const rscHeader = req.headers.get('rsc');
+  const isRscFlight = rscHeader === '1' || req.nextUrl.searchParams.has('_rsc');
+
   if (!token) {
+    if (isRscFlight) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const signInUrl = new URL('/user/login', req.url);
     signInUrl.searchParams.set('callbackUrl', req.url);
     return NextResponse.redirect(signInUrl);

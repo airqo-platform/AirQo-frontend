@@ -45,6 +45,10 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
       setIsFadingOut(false);
       if (delayMs === 0) {
         setShouldRender(true);
