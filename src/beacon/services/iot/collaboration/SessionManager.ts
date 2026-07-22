@@ -347,7 +347,6 @@ export class SessionManager {
   // --- WEBRTC NEGOTIATION INITIATION ---
 
   private initiateHostWebRTC(participantId: string, participantName: string) {
-    const store = useCollaborationStore.getState();
     // 1. Add peer configuration
     const pc = peerManager.addPeer(
       participantId,
