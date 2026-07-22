@@ -131,7 +131,7 @@ class AuthService {
     if (!response.ok) {
       if (response.status === 401) {
         this.clearAllAuthData()
-        handleUnauthorized()
+        await handleUnauthorized()
       }
       const error: ApiError = {
         status: response.status,

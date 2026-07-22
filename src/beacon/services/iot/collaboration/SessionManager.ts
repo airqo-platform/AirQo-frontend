@@ -496,6 +496,30 @@ export class SessionManager {
         }
         break;
 
+      case 'releaseControl':
+        if (store.role === 'host') {
+          const username = msg.payload?.username || senderId;
+          store.addLog(`\x1b[33m[Permission] Control released by participant: ${username}\x1b[0m\r\n`);
+          store.setCurrentControllerId(null);
+          store.updatePeerControlStatus(senderId, 'none');
+
+          if (store.sessionId) {
+            fetch(`${config.apiUrl}/api/v1/webrtc/sessions/${store.sessionId}/control/revoke`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: authService.getToken() || '',
+              },
+              body: JSON.stringify({
+                controller_id: senderId,
+              }),
+            }).catch((err) => {
+              console.error('Failed to revoke control on backend after releaseControl:', err);
+            });
+          }
+        }
+        break;
+
       default:
         break;
     }

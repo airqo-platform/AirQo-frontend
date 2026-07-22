@@ -4,31 +4,48 @@ import { sendToSlack } from '@/lib/logger';
 import authService from '@/services/api-service';
 
 let isLoggingOut = false;
+let logoutPromise: Promise<void> | null = null;
 
 /**
  * Handles 401 Unauthorized errors centrally.
  * Clears authentication data and signs out the user.
+ * Stores in-flight operation in a shared promise to handle concurrent calls.
  */
-export async function handleUnauthorized() {
-  if (typeof window === 'undefined' || isLoggingOut) return;
-  isLoggingOut = true;
+export function handleUnauthorized(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
 
-  try {
-    authService.clearAllAuthData();
-  } catch (e) {
-    console.error('Error clearing auth data on 401:', e);
+  if (logoutPromise) {
+    return logoutPromise;
   }
 
-  try {
-    await signOut({ callbackUrl: '/login?action=logout' });
-  } catch (e) {
-    console.error('Error signing out on 401:', e);
-    window.location.href = '/login?action=logout';
-  } finally {
-    setTimeout(() => {
-      isLoggingOut = false;
-    }, 5000);
-  }
+  if (isLoggingOut) return Promise.resolve();
+
+  logoutPromise = (async () => {
+    isLoggingOut = true;
+    try {
+      try {
+        if (typeof authService?.clearAllAuthData === 'function') {
+          authService.clearAllAuthData();
+        }
+      } catch (e) {
+        console.error('Error clearing auth data on 401:', e);
+      }
+
+      try {
+        await signOut({ callbackUrl: '/login?action=logout' });
+      } catch (e) {
+        console.error('Error signing out on 401:', e);
+        window.location.href = '/login?action=logout';
+      }
+    } finally {
+      setTimeout(() => {
+        isLoggingOut = false;
+      }, 5000);
+      logoutPromise = null;
+    }
+  })();
+
+  return logoutPromise;
 }
 
 const apiClient = axios.create();
