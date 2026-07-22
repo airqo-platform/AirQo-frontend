@@ -4,7 +4,6 @@ import { useCollaborationStore, JoinRequest } from '../../../store/useCollaborat
 import { peerManager } from './PeerManager';
 import { webRTCService } from './WebRTCService';
 import { deviceGateway } from './DeviceGateway';
-import { permissionManager } from './PermissionManager';
 import { useIotStore } from '../../../store/useIotStore';
 
 export class SessionManager {
@@ -21,18 +20,17 @@ export class SessionManager {
     store.setRole('host');
     store.setUsername(username);
     store.clearLogs();
-    store.addLog(`\x1b[90mCreating collaboration session for device: ${deviceId}...\x1b[0m\r\n`);
+    store.addLog(`\x1b[90mCreating collaboration session via WebRTC backend...\x1b[0m\r\n`);
 
     try {
-      const res = await fetch(`${config.apiUrl}/api/v1/sessions`, {
+      const res = await fetch(`${config.apiUrl}/api/v1/webrtc/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: authService.getToken() || '',
         },
         body: JSON.stringify({
-          device_id: deviceId,
-          session_type: 'DEBUGGING',
+          invitees: [] // Optional list of user IDs to invite initially
         }),
       });
 
@@ -41,12 +39,15 @@ export class SessionManager {
       }
 
       const sessionData = await res.json();
-      const sid = sessionData.id || sessionData.session_id;
+      const sid = sessionData.id;
       if (!sid) throw new Error('Invalid session data returned');
 
       this.sid = sid;
       store.setSessionId(sid);
-      store.addLog(`\x1b[32m[Session Created] Collaboration Session ID: ${sid}\x1b[0m\r\n`);
+      store.setUserId(sessionData.host_id);
+      store.setPermissionLevel('owner');
+      
+      store.addLog(`\x1b[32m[Session Created] WebRTC Session ID: ${sid}\x1b[0m\r\n`);
       store.addLog(`\x1b[90mConnecting to signaling channel...\x1b[0m\r\n`);
 
       // Connect to WebSocket signaling server
@@ -78,14 +79,33 @@ export class SessionManager {
     store.setRole('participant');
     store.setUsername(username);
     store.clearLogs();
-    store.addLog(`\x1b[90mJoining collaboration session: ${sid}...\x1b[0m\r\n`);
+    store.addLog(`\x1b[90mRegistering join request on backend for: ${sid}...\x1b[0m\r\n`);
 
     try {
+      const res = await fetch(`${config.apiUrl}/api/v1/webrtc/sessions/${sid}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: authService.getToken() || '',
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to join session registry: ${res.statusText}`);
+      }
+
+      const joinData = await res.json();
       this.sid = sid;
       store.setSessionId(sid);
+      store.setUserId(joinData.user_id);
+      store.setPermissionLevel('observer');
+
+      store.addLog(`\x1b[32m[Registry Approved] Registered as Participant (ID: ${joinData.user_id})\x1b[0m\r\n`);
+      store.addLog(`\x1b[90mConnecting to WebRTC signaling channel...\x1b[0m\r\n`);
 
       // Connect to WebSocket signaling server
       await this.connectSignaling(sid);
+      store.setIsConnecting(false);
     } catch (e: any) {
       console.error(e);
       store.setIsConnecting(false);
@@ -116,14 +136,14 @@ export class SessionManager {
     // Terminate session via API if host
     if (activeSid && store.role === 'host') {
       try {
-        await fetch(`${config.apiUrl}/api/v1/sessions/${activeSid}`, {
+        await fetch(`${config.apiUrl}/api/v1/webrtc/sessions/${activeSid}`, {
           method: 'DELETE',
           headers: {
             Authorization: authService.getToken() || '',
           },
         });
       } catch (err) {
-        console.error('Failed to terminate session on backend:', err);
+        console.error('Failed to close session on backend:', err);
       }
     }
 
@@ -142,14 +162,14 @@ export class SessionManager {
     if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
       wsBase = wsBase.replace(/^ws:/, 'wss:');
     }
-    const wsUrl = `${wsBase}/api/v1/ws/sessions/${sid}?token=${encodeURIComponent(cleanToken)}`;
+    const wsUrl = `${wsBase}/api/v1/webrtc/ws/signaling/${sid}?token=${encodeURIComponent(cleanToken)}`;
 
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-          store.addLog(`\x1b[32m[Signaling] Connected to signaling channel.\x1b[0m\r\n`);
+          store.addLog(`\x1b[32m[Signaling] WebSocket signaling channel established.\x1b[0m\r\n`);
           resolve();
         };
 
@@ -158,7 +178,7 @@ export class SessionManager {
         };
 
         this.ws.onclose = () => {
-          store.addLog(`\x1b[33m[Signaling] Connection closed.\x1b[0m\r\n`);
+          store.addLog(`\x1b[33m[Signaling] WebSocket signaling disconnected.\x1b[0m\r\n`);
           this.ws = null;
           if (store.role === 'participant' && store.sessionId) {
             // Auto reconnect participant WebRTC
@@ -190,61 +210,97 @@ export class SessionManager {
     try {
       const msg = JSON.parse(dataStr);
       const store = useCollaborationStore.getState();
+      const payload = msg.payload;
 
-      switch (msg.type || msg.event) {
-        case 'joined':
-          store.setUserId(msg.user_id);
-          
-          if (store.role === 'host') {
-            this.sendSignalingMessage({
-              type: 'register',
-              user_id: msg.user_id,
-              username: this.currentUsername
-            });
-            store.addLog(`\x1b[32m[Session] Registered as Host (ID: ${msg.user_id})\x1b[0m\r\n`);
+      switch (msg.type) {
+        case 'peerJoined':
+          // Broadcast when any user connects to signaling WebSocket
+          if (msg.user_id !== store.userId) {
+            store.addLog(`\x1b[36m[Session] Peer connected: ${msg.user_id} (${msg.role})\x1b[0m\r\n`);
+            
+            if (store.role === 'host' && msg.role === 'Participant') {
+              // Add to pending approval join requests list
+              store.addJoinRequest({
+                userId: msg.user_id,
+                username: `Peer-${msg.user_id.slice(0, 5)}`
+              });
+            }
+          }
+          break;
+
+        case 'peerLeft':
+          // Broadcast when any user disconnects
+          if (msg.user_id !== store.userId) {
+            store.addLog(`\x1b[33m[Session] Peer disconnected: ${msg.user_id}\x1b[0m\r\n`);
+            peerManager.removePeer(msg.user_id);
+            store.removeConnectedPeer(msg.user_id);
+            store.removeJoinRequest(msg.user_id);
+          }
+          break;
+
+        case 'offer':
+          // Route offer to create WebRTC Answer
+          if (msg.sender_id !== store.userId) {
+            this.routeWebRTCOffer(msg.sender_id, payload.sdp);
+          }
+          break;
+
+        case 'answer':
+          // Route answer to set remote description on Host
+          if (msg.sender_id !== store.userId) {
+            const pc = peerManager.getPeerPC(msg.sender_id);
+            if (pc) {
+              webRTCService.setRemoteDescription(pc, { type: 'answer', sdp: payload.sdp }).catch((err) => {
+                console.error('Failed to set remote description answer:', err);
+              });
+            }
+          }
+          break;
+
+        case 'iceCandidate':
+          // Route incoming ICE Candidate
+          if (msg.sender_id !== store.userId) {
+            const pc = peerManager.getPeerPC(msg.sender_id);
+            if (pc) {
+              const candidateInit: RTCIceCandidateInit = {
+                candidate: payload.candidate,
+                sdpMid: payload.sdpMid,
+                sdpMLineIndex: payload.sdpMLineIndex
+              };
+              webRTCService.addIceCandidate(pc, candidateInit).catch((err) => {
+                console.warn('Error adding remote ICE candidate:', err);
+              });
+            }
+          }
+          break;
+
+        case 'grantControl':
+          store.addLog(`\x1b[32m[Permission] Control granted to controller: ${msg.controller_id}\x1b[0m\r\n`);
+          store.setCurrentControllerId(msg.controller_id);
+          if (msg.controller_id === store.userId) {
+            store.setPermissionLevel('controller');
           } else {
-            this.sendSignalingMessage({
-              type: 'join_request',
-              user_id: msg.user_id,
-              username: this.currentUsername
-            });
-            store.addLog(`\x1b[90m[Session] Sent join request (ID: ${msg.user_id})...\x1b[0m\r\n`);
+            store.setPermissionLevel(store.role === 'host' ? 'owner' : 'observer');
           }
           break;
 
-        case 'join_request':
-          if (store.role === 'host') {
-            store.addJoinRequest({
-              userId: msg.user_id,
-              username: msg.username || 'Anonymous Participant'
-            });
-            store.addLog(`\x1b[36m[Session] Join request from: ${msg.username || msg.user_id}\x1b[0m\r\n`);
-          }
+        case 'revokeControl':
+          store.addLog(`\x1b[33m[Permission] Control revoked from controller: ${msg.controller_id}\x1b[0m\r\n`);
+          store.setCurrentControllerId(null);
+          store.setPermissionLevel(store.role === 'host' ? 'owner' : 'observer');
           break;
 
-        case 'join_accepted':
-          if (store.role === 'participant' && msg.user_id === store.userId) {
-            store.addLog(`\x1b[32m[Session] Join request APPROVED! Establishing WebRTC...\x1b[0m\r\n`);
-            this.initiateParticipantWebRTC(msg.host_id, msg.host_username);
-          }
+        case 'sessionClosed':
+          store.addLog(`\x1b[31m[Session] Terminated by host: ${msg.closed_by}\x1b[0m\r\n`);
+          store.setIsConnecting(false);
+          this.disconnectSession();
           break;
 
-        case 'join_rejected':
-          if (store.role === 'participant' && msg.user_id === store.userId) {
-            store.addLog(`\x1b[31m[Session] Join request REJECTED by Host.\x1b[0m\r\n`);
-            store.setIsConnecting(false);
+        case 'removeParticipant':
+          if (msg.user_id === store.userId) {
+            store.addLog(`\x1b[31m[Session] You have been removed from the session by ${msg.removed_by}\x1b[0m\r\n`);
             this.disconnectSession();
           }
-          break;
-
-        case 'signal':
-          // Route signaling offer/answer/candidate
-          this.routeWebRTCSignal(msg);
-          break;
-
-        case 'observer_joined':
-          // Keep list of session observers
-          store.setObservers(msg.observers || []);
           break;
 
         default:
@@ -262,32 +318,30 @@ export class SessionManager {
     if (store.role !== 'host' || !store.userId) return;
 
     store.removeJoinRequest(req.userId);
-    store.addLog(`\x1b[32m[Session] Accepted join request from: ${req.username}\x1b[0m\r\n`);
+    store.addLog(`\x1b[32m[Session] Approved join request for: ${req.username}. Initiating WebRTC P2P...\x1b[0m\r\n`);
 
-    // Notify participant that request was accepted
-    this.sendSignalingMessage({
-      type: 'join_accepted',
-      user_id: req.userId,
-      host_id: store.userId,
-      host_username: this.currentUsername
-    });
-
-    // Host starts WebRTC negotiation with participant
+    // Host starts WebRTC negotiation with participant by setting up connection and sending offer
     this.initiateHostWebRTC(req.userId, req.username);
   }
 
-  rejectJoinRequest(req: JoinRequest): void {
+  async rejectJoinRequest(req: JoinRequest): Promise<void> {
     const store = useCollaborationStore.getState();
-    if (store.role !== 'host') return;
+    if (store.role !== 'host' || !this.sid) return;
 
     store.removeJoinRequest(req.userId);
-    store.addLog(`\x1b[33m[Session] Rejected join request from: ${req.username}\x1b[0m\r\n`);
+    store.addLog(`\x1b[33m[Session] Rejecting participant: ${req.username}\x1b[0m\r\n`);
 
-    // Notify participant
-    this.sendSignalingMessage({
-      type: 'join_rejected',
-      user_id: req.userId
-    });
+    try {
+      // DELETE participant endpoint removes the peer from backend session participants
+      await fetch(`${config.apiUrl}/api/v1/webrtc/sessions/${this.sid}/participants/${req.userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: authService.getToken() || '',
+        }
+      });
+    } catch (err) {
+      console.error('Failed to reject/remove participant on backend:', err);
+    }
   }
 
   // --- WEBRTC NEGOTIATION INITIATION ---
@@ -300,12 +354,12 @@ export class SessionManager {
       (candidate) => {
         // Send ICE candidate to participant
         this.sendSignalingMessage({
-          type: 'signal',
-          targetId: participantId,
-          senderId: useCollaborationStore.getState().userId,
+          type: 'iceCandidate',
+          target_user_id: participantId,
           payload: {
-            type: 'ice-candidate',
-            candidate
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex
           }
         });
       },
@@ -315,12 +369,10 @@ export class SessionManager {
     // 2. Host creates & sends offer
     webRTCService.createOffer(pc).then((offer) => {
       this.sendSignalingMessage({
-        type: 'signal',
-        targetId: participantId,
-        senderId: useCollaborationStore.getState().userId,
+        type: 'offer',
+        target_user_id: participantId,
         payload: {
-          type: 'offer',
-          sdp: offer
+          sdp: offer.sdp
         }
       });
     }).catch((err) => {
@@ -328,82 +380,47 @@ export class SessionManager {
     });
   }
 
-  private initiateParticipantWebRTC(hostId: string, hostName: string) {
+  private routeWebRTCOffer(senderId: string, sdp: string) {
     const store = useCollaborationStore.getState();
-    store.setIsConnecting(false);
+    store.addLog(`\x1b[90m[WebRTC] Incoming remote offer from Host. Configuring connection...\x1b[0m\r\n`);
 
-    // 1. Add peer connection to Host
-    peerManager.setupHostConnection(
-      hostId,
-      hostName,
-      (candidate) => {
-        // Send ICE candidate to Host
-        this.sendSignalingMessage({
-          type: 'signal',
-          targetId: hostId,
-          senderId: store.userId,
-          payload: {
-            type: 'ice-candidate',
-            candidate
-          }
-        });
-      },
-      (senderId, data) => this.handleWebRTCDataMessage(senderId, data),
-      () => {
-        // Auto-reconnect trigger: re-request join
-        this.sendSignalingMessage({
-          type: 'join_request',
-          user_id: store.userId,
-          username: this.currentUsername
-        });
-      }
-    );
-  }
-
-  // --- ROUTE SIGNALING MESSAGES ---
-
-  private routeWebRTCSignal(msg: any) {
-    const store = useCollaborationStore.getState();
-    
-    // Ensure we are the target of this signal
-    if (msg.targetId !== store.userId) return;
-
-    const senderId = msg.senderId;
-    const payload = msg.payload;
-
-    const pc = peerManager.getPeerPC(senderId);
+    let pc = peerManager.getPeerPC(senderId);
     if (!pc) {
-      console.warn(`No peer connection found for sender: ${senderId}`);
-      return;
+      // Set up host connection on participant side
+      pc = peerManager.setupHostConnection(
+        senderId,
+        'Host',
+        (candidate) => {
+          this.sendSignalingMessage({
+            type: 'iceCandidate',
+            target_user_id: senderId,
+            payload: {
+              candidate: candidate.candidate,
+              sdpMid: candidate.sdpMid,
+              sdpMLineIndex: candidate.sdpMLineIndex
+            }
+          });
+        },
+        (sid, data) => this.handleWebRTCDataMessage(sid, data),
+        () => {
+          // Reconnect trigger
+          this.joinParticipantSession(this.sid!, this.currentUsername).catch(() => {});
+        }
+      );
     }
 
-    if (payload.type === 'ice-candidate') {
-      webRTCService.addIceCandidate(pc, payload.candidate).catch((err) => {
-        console.error('Error adding ICE candidate:', err);
+    // Set remote description and send answer
+    webRTCService.createAnswer(pc, { type: 'offer', sdp }).then((answer) => {
+      this.sendSignalingMessage({
+        type: 'answer',
+        target_user_id: senderId,
+        payload: {
+          sdp: answer.sdp
+        }
       });
-    } 
-    else if (payload.type === 'offer') {
-      // Participant receives offer, sets it, creates and sends answer
-      webRTCService.createAnswer(pc, payload.sdp).then((answer) => {
-        this.sendSignalingMessage({
-          type: 'signal',
-          targetId: senderId,
-          senderId: store.userId,
-          payload: {
-            type: 'answer',
-            sdp: answer
-          }
-        });
-      }).catch((err) => {
-        console.error('Failed to create WebRTC answer:', err);
-      });
-    } 
-    else if (payload.type === 'answer') {
-      // Host receives answer, sets description
-      webRTCService.setRemoteDescription(pc, payload.sdp).catch((err) => {
-        console.error('Failed to set remote description answer:', err);
-      });
-    }
+    }).catch((err) => {
+      console.error('Failed to answer offer:', err);
+    });
   }
 
   // --- ROUTE WEBRTC DATA CHANNEL MESSAGES ---
@@ -471,35 +488,34 @@ export class SessionManager {
         break;
 
       case 'requestControl':
+        // Keep logs, control grant is triggered via Host interface utilizing REST
         if (store.role === 'host') {
-          permissionManager.handleControlRequest(senderId, msg.payload.username);
-        }
-        break;
-
-      case 'grantControl':
-        if (store.role === 'participant') {
-          store.setCurrentControllerId(store.userId);
-          store.setPermissionLevel('controller');
-          store.addLog(`\x1b[32m[Permission] Host granted control. You can now execute commands!\x1b[0m\r\n`);
-        }
-        break;
-
-      case 'revokeControl':
-        if (store.role === 'participant') {
-          store.setCurrentControllerId(null);
-          store.setPermissionLevel('observer');
-          store.addLog(`\x1b[33m[Permission] Host revoked your control access.\x1b[0m\r\n`);
+          store.addLog(`\x1b[36m[Permission] Control requested by participant: ${msg.payload.username}\x1b[0m\r\n`);
+          store.updatePeerControlStatus(senderId, 'requested');
         }
         break;
 
       case 'releaseControl':
         if (store.role === 'host') {
-          permissionManager.releaseControl(senderId, msg.payload.username);
-          // Broadcast update
-          peerManager.broadcast({
-            type: 'stateUpdate',
-            payload: { currentControllerId: null }
-          });
+          const username = msg.payload?.username || senderId;
+          store.addLog(`\x1b[33m[Permission] Control released by participant: ${username}\x1b[0m\r\n`);
+          store.setCurrentControllerId(null);
+          store.updatePeerControlStatus(senderId, 'none');
+
+          if (store.sessionId) {
+            fetch(`${config.apiUrl}/api/v1/webrtc/sessions/${store.sessionId}/control/revoke`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: authService.getToken() || '',
+              },
+              body: JSON.stringify({
+                controller_id: senderId,
+              }),
+            }).catch((err) => {
+              console.error('Failed to revoke control on backend after releaseControl:', err);
+            });
+          }
         }
         break;
 

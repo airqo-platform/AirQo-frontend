@@ -1,12 +1,13 @@
 // API utility functions for device management
 import { config } from './config';
 import authService from '@/services/api-service';
+import { fetchWithAuth } from './api-client';
 
 /**
  * Fetch device statistics from API
  */
 export async function fetchDeviceStats() {
-  const response = await fetch('/api/devices/stats');
+  const response = await fetchWithAuth('/api/devices/stats');
   if (!response.ok) {
     throw new Error('Failed to fetch device statistics');
   }
@@ -17,7 +18,7 @@ export async function fetchDeviceStats() {
  * Fetch device list from API
  */
 export async function fetchDeviceList() {
-  const response = await fetch('/api/devices/list');
+  const response = await fetchWithAuth('/api/devices/list');
   if (!response.ok) {
     throw new Error('Failed to fetch device list');
   }
@@ -28,7 +29,7 @@ export async function fetchDeviceList() {
  * Fetch device failures from API
  */
 export async function fetchDeviceFailures() {
-  const response = await fetch('/api/devices/failures');
+  const response = await fetchWithAuth('/api/devices/failures');
   if (!response.ok) {
     throw new Error('Failed to fetch device failures');
   }
@@ -55,7 +56,7 @@ export async function fetchCollocationSites(params = {}) {
   const token = authService.getToken();
   if (token) headers['Authorization'] = token;
 
-  const response = await fetch(url, { headers });
+  const response = await fetchWithAuth(url, { headers });
 
   if (!response.ok) {
     throw new Error('Failed to fetch collocation sites');
@@ -75,7 +76,7 @@ export async function fetchCollocationSiteDetails(id, params = {}) {
   const token = authService.getToken();
   if (token) headers['Authorization'] = token;
 
-  const response = await fetch(url, { headers });
+  const response = await fetchWithAuth(url, { headers });
 
   if (!response.ok) {
     throw new Error('Failed to fetch collocation site details');

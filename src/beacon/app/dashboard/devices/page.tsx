@@ -76,8 +76,6 @@ export default function DevicesPage() {
   useEffect(() => {
     if (hideOrgDevices) {
       setDeviceScope("my")
-    } else if (deviceScope === "my" && !hideOrgDevices) {
-      // Optional: don't automatically flip back to org if they were on my
     }
   }, [hideOrgDevices])
   const [myDevices, setMyDevices] = useState<UIDevice[]>([])
@@ -109,6 +107,15 @@ export default function DevicesPage() {
   const isDataLoading = deviceScope === "org" ? loading : myDevicesLoading
   const activeError = deviceScope === "org" ? error : myDevicesError
 
+  // Debounce search term specifically
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   // Fetch device counts
   const fetchDeviceCounts = async () => {
     try {
@@ -120,7 +127,7 @@ export default function DevicesPage() {
   }
 
   // Fetch devices list with pagination (Org Devices)
-  const fetchDevices = async () => {
+  const fetchDevices = async (isBackground = false) => {
     if (!activeGroup) {
       setDevices([])
       setDevicesMeta(null)
@@ -134,7 +141,11 @@ export default function DevicesPage() {
     }
 
     try {
-      setLoading(true)
+      if (!isBackground && devices.length === 0) {
+        setLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
       setError(null)
 
       const skip = (currentPage - 1) * itemsPerPage
@@ -144,8 +155,8 @@ export default function DevicesPage() {
         group: activeGroup,
       }
 
-      if (searchTerm && searchTerm.trim()) {
-        params.search = searchTerm.trim()
+      if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+        params.search = debouncedSearchTerm.trim()
       }
 
       const data = await getDevicesForUIPaginated(params)
@@ -166,9 +177,13 @@ export default function DevicesPage() {
   }
 
   // Fetch personal devices (My Devices)
-  const fetchMyDevices = async () => {
+  const fetchMyDevices = async (isBackground = false) => {
     try {
-      setMyDevicesLoading(true)
+      if (!isBackground && myDevices.length === 0) {
+        setMyDevicesLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
       setMyDevicesError(null)
 
       const token = session?.accessToken
@@ -232,17 +247,14 @@ export default function DevicesPage() {
     if (groupLoading || !activeGroup) return
 
     if (deviceScope === "org") {
-      const searchDebounce = setTimeout(() => {
-        fetchDevices()
-      }, 500)
-      return () => clearTimeout(searchDebounce)
+      fetchDevices()
     } else {
-      if (session) {
+      if (session?.accessToken) {
         fetchMyDevices()
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, searchTerm, showTracked, activeGroup, groupLoading, deviceScope, session])
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, showTracked, activeGroup, groupLoading, deviceScope, session?.accessToken])
 
   // Refresh all data
   const refreshData = () => {
@@ -495,6 +507,8 @@ export default function DevicesPage() {
   }, [])
 
 
+  const hasInitialData = deviceScope === "org" ? devices.length > 0 : myDevices.length > 0
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -545,13 +559,13 @@ export default function DevicesPage() {
             <div className="flex justify-between items-end">
               <div>
                 <div className="text-3xl font-bold">
-                  {isDataLoading ? '...' : totalDevicesCount}
+                  {isDataLoading && !hasInitialData ? '...' : totalDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Registered devices</p>
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-primary">
-                  {isDataLoading ? '...' : trackedDevicesCount}
+                  {isDataLoading && !hasInitialData ? '...' : trackedDevicesCount}
                 </div>
                 <p className="text-xs text-muted-foreground">Tracked ({trackedPercentage}%)</p>
               </div>
@@ -574,7 +588,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {isDataLoading ? '...' : deployedDevicesCount}
+              {isDataLoading && !hasInitialData ? '...' : deployedDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${deployedPercentage}%` }}></div>
@@ -593,7 +607,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {isDataLoading ? '...' : onlineDevicesCount}
+              {isDataLoading && !hasInitialData ? '...' : onlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
@@ -612,7 +626,7 @@ export default function DevicesPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="text-3xl font-bold">
-              {isDataLoading ? '...' : offlineDevicesCount}
+              {isDataLoading && !hasInitialData ? '...' : offlineDevicesCount}
             </div>
             <div className="flex items-center mt-1">
               <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
@@ -691,7 +705,7 @@ export default function DevicesPage() {
               </div>
             </div>
 
-            {isDataLoading ? (
+            {isDataLoading && !hasInitialData ? (
               <div className="py-8 flex justify-center items-center">
                 <RefreshCw className="h-10 w-10 text-primary animate-spin" />
                 <span className="ml-4 text-lg">Loading devices...</span>
