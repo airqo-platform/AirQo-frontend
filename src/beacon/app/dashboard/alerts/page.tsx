@@ -28,6 +28,7 @@ import {
   X
 } from "lucide-react"
 import { config } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
 import { isMockMode, getMockAlertDevices } from "@/lib/mock-data"
 
@@ -125,7 +126,7 @@ export default function AlertsPage() {
       } else {
         // Using the devices-detail endpoint to get maintenance history
         const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
-        const response = await fetch(`${config.apiUrl}${prefix}/devices`, {
+        const response = await fetchWithAuth(`${config.apiUrl}${prefix}/devices`, {
           headers: {
             'Authorization': authService.getToken() || '',
             'Content-Type': 'application/json'
