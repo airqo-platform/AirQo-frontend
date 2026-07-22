@@ -24,6 +24,7 @@ export function handleUnauthorized(): Promise<void> {
     isLoggingOut = true;
     try {
       try {
+        const { default: authService } = await import('@/services/api-service');
         if (typeof authService?.clearAllAuthData === 'function') {
           authService.clearAllAuthData();
         }
