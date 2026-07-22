@@ -19,6 +19,7 @@ import {
   TerminalIcon,
 } from "lucide-react"
 import { config } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
 import { useSession } from "next-auth/react"
 import { isMockMode } from "@/lib/mock-data"
@@ -249,7 +250,7 @@ export default function DeviceDetailPage() {
       const token = session?.accessToken || authService.getToken()
       const authHeader = token ? `JWT ${token.replace(/^(JWT|Bearer)\s+/i, '')}` : ''
 
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': authHeader,
           'Content-Type': 'application/json'

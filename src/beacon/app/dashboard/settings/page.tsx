@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { RefreshCw, Save, User } from "lucide-react"
 import { config } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api-client"
 import { isMockMode, getMockProfile } from "@/lib/mock-data"
 
 interface UserProfile {
@@ -86,7 +87,7 @@ export default function SettingsPage() {
       
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/users/me/`
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -200,7 +201,7 @@ export default function SettingsPage() {
       
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/users/me/`
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
