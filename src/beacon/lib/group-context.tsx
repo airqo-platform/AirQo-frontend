@@ -126,7 +126,13 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
         const user = data.users?.[0]
         const groups: UserGroup[] = user?.groups ?? []
 
-        setAvailableGroups(groups)
+        // Only update availableGroups if the data actually changed
+        setAvailableGroups((prevGroups) => {
+          if (JSON.stringify(prevGroups) === JSON.stringify(groups)) {
+            return prevGroups
+          }
+          return groups
+        })
         
         if (typeof globalThis.window !== "undefined") {
           globalThis.localStorage.setItem("beacon_available_groups", JSON.stringify(groups))
@@ -168,14 +174,17 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
            defaultGroup = nonAirqoOrAdminAirqo.grp_title
         }
 
-        if (persisted && groups.some((g) => g.grp_title === persisted)) {
-          setCurrentActiveGroup(persisted)
-        } else if (defaultGroup) {
-          setCurrentActiveGroup(defaultGroup)
-          if (typeof globalThis.window !== "undefined") {
-            globalThis.localStorage.setItem(STORAGE_KEY, defaultGroup)
+        setCurrentActiveGroup((prevActive) => {
+          if (persisted && groups.some((g) => g.grp_title === persisted)) {
+            return prevActive === persisted ? prevActive : persisted
+          } else if (defaultGroup) {
+            if (typeof globalThis.window !== "undefined") {
+              globalThis.localStorage.setItem(STORAGE_KEY, defaultGroup)
+            }
+            return prevActive === defaultGroup ? prevActive : defaultGroup
           }
-        }
+          return prevActive
+        })
       } catch (err: any) {
         console.error("Error fetching user groups:", err)
         setError(err.message || "Failed to load groups")
@@ -186,7 +195,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             ? globalThis.localStorage.getItem(STORAGE_KEY)
             : null
         if (persisted) {
-          setCurrentActiveGroup(persisted)
+          setCurrentActiveGroup((prevActive) => (prevActive === persisted ? prevActive : persisted))
         }
       } finally {
         setLoading(false)
@@ -194,7 +203,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     fetchGroups()
-  }, [session, status])
+  }, [session?.accessToken, status])
 
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null
