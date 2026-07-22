@@ -48,6 +48,7 @@ import {
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
 import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
+import { isPublicAuthRoute, isAuthenticatedAccessiblePublicRoute } from '@/shared/lib/public-routes';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -143,27 +144,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-// Define public routes that don't require authentication
-const publicRoutes = [
-  '/user/login',
-  '/user/creation/individual/register',
-  '/user/creation/individual/verify-email',
-  '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
-  '/user/forgotPwd',
-  '/user/forgotPwd/reset',
-  '/user/delete/confirm', // covers /user/delete/confirm/[token]
-  '/org-invite', // Public invitation acceptance page
-  '/request-organization',
-];
-
-const isPublicAuthRoute = (pathname: string): boolean =>
-  publicRoutes.some(route => pathname.startsWith(route)) ||
-  /^\/org\/[^/]+\/(login|register)$/.test(pathname);
-
-const isAuthenticatedAccessiblePublicRoute = (pathname: string): boolean =>
-  pathname.startsWith('/org-invite') ||
-  pathname.startsWith('/request-organization');
 
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;

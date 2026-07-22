@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/shared/lib/auth';
 import logger from '@/shared/lib/logger';
+import { checkRateLimit, getClientIp } from '@/shared/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -15,6 +18,29 @@ const ALLOWED_PROFILE_IMAGE_MIME_TYPES = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit
+    const rateLimitResult = checkRateLimit(getClientIp(request), {
+      windowMs: 60_000,
+      maxRequests: 20,
+    });
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
     // Enhanced validation with detailed logging for production debugging
     const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
     const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;

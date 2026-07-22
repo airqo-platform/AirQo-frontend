@@ -661,6 +661,7 @@ const ThemeSettings: React.FC = () => {
                         : 'grid-cols-1'
                     }`}
                   >
+                    {/* Static list — index key is safe */}
                     {Array.from({
                       length: displayTheme.contentLayout === 'wide' ? 2 : 1,
                     }).map((_, index) => (

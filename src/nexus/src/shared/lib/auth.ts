@@ -256,8 +256,11 @@ export const authOptions: AuthOptions = {
             success: false,
           };
 
-          // Throw a structured error that includes all the details
-          throw new Error(JSON.stringify(errorData));
+          // Log the full error server-side for debugging
+          console.error('[NextAuth] Login failed:', JSON.stringify(errorData));
+
+          // Throw a generic error — do not leak backend details to the client
+          throw new Error('CredentialsSignin');
         }
       },
     }),

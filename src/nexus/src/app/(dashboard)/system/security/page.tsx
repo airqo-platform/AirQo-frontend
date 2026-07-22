@@ -73,14 +73,25 @@ const fetchAllFlaggedTokens = async () => {
   let skip = 0;
   let results: FlaggedToken[] = [];
 
-  while (true) {
-    const response = await adminService.getFlaggedTokens({ skip, limit });
-    const batch = response.flagged_tokens || [];
-    results = results.concat(batch);
-    if (batch.length < limit) {
-      break;
+  try {
+    while (true) {
+      const response = await adminService.getFlaggedTokens({ skip, limit });
+      const batch = response.flagged_tokens || [];
+      results = results.concat(batch);
+      if (batch.length < limit) {
+        break;
+      }
+      skip += limit;
     }
-    skip += limit;
+  } catch (error: unknown) {
+    // If the endpoint returns 404, the backend hasn't implemented this
+    // feature yet. Return empty results instead of showing an error.
+    const status = (error as { response?: { status?: number } })?.response
+      ?.status;
+    if (status === 404) {
+      return [];
+    }
+    throw error;
   }
 
   return results;
@@ -115,6 +126,7 @@ const StringListEditor: React.FC<StringListEditorProps> = ({
       </div>
 
       <div className="space-y-2">
+        {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
         {values.map((value, index) => (
           <div key={index} className="flex items-center gap-2">
             <div className="flex-1">

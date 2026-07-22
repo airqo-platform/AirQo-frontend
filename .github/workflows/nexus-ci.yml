@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "yarn"
           cache-dependency-path: src/nexus/yarn.lock
 
@@ -182,7 +182,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "yarn"
           cache-dependency-path: src/nexus/yarn.lock
 

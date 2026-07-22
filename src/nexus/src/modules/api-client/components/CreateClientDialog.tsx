@@ -227,6 +227,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
             IP Addresses (Optional)
           </label>
           <div className="space-y-2">
+            {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
             {ipAddresses.map((ip, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <div className="flex-1">
@@ -300,6 +301,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
               </div>
 
               <div className="space-y-2">
+                {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
                 {originAddresses.map((origin, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <div className="flex-1">
