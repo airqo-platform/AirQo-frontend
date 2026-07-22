@@ -247,6 +247,7 @@ const TokenSecurityDialog: React.FC<TokenSecurityDialogProps> = ({
       </div>
 
       <div className="space-y-2">
+        {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
         {values.map((value, index) => (
           <div
             key={index}

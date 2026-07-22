@@ -50,6 +50,20 @@ const isAlreadyVersionedPath = (value: string): boolean => {
   return /^\/?api\/v\d+\//i.test(value) || /^\/?api\/v\d+$/i.test(value);
 };
 
+export const normalizeApiBaseUrl = (baseUrl: string): string => {
+  const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
+
+  if (/\/api\/v\d+$/i.test(trimmedBaseUrl)) {
+    return trimmedBaseUrl;
+  }
+
+  if (/\/api$/i.test(trimmedBaseUrl)) {
+    return `${trimmedBaseUrl}/v2`;
+  }
+
+  return `${trimmedBaseUrl}/api/v2`;
+};
+
 export const resolveApiOrigin = (): string => {
   const configuredBaseUrl =
     process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';

@@ -48,7 +48,7 @@ const GeolocateControl = jest.fn();
 const ScaleControl = jest.fn();
 const FullscreenControl = jest.fn();
 
-export default {
+const mapboxGl = {
   Map: jest.fn().mockImplementation(() => createMapInstance()),
   Popup,
   Marker,
@@ -61,6 +61,8 @@ export default {
   setRTLTextPlugin: jest.fn(),
   getRTLTextPluginStatus: jest.fn(),
 };
+
+export default mapboxGl;
 
 export {
   mapInstance,

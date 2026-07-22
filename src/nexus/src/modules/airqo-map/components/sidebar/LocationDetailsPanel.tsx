@@ -207,6 +207,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
           <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
             {healthTips && healthTips.length > 0 ? (
               <div className="space-y-3">
+                {/* Display-only list — no stable ID available */}
                 {healthTips.map((tip, index) => (
                   <div
                     key={index}

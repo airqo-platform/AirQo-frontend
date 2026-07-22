@@ -36,6 +36,7 @@ export const CustomLegend: React.FC<CustomLegendProps> = ({
 
   return (
     <div className={containerClasses}>
+      {/* Display-only list — no stable ID available */}
       {payload.map((entry, index) => {
         const rawValue = entry.value;
         const value = String(rawValue || '')
@@ -102,6 +103,7 @@ export const CompactLegend: React.FC<CompactLegendProps> = ({
 }) => {
   return (
     <div className={cn('flex flex-wrap gap-1 py-1', className)}>
+      {/* Display-only list — no stable ID available */}
       {items.map((item, index) => (
         <div
           key={index}

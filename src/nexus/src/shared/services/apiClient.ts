@@ -7,7 +7,7 @@ import axios, {
 } from 'axios';
 import { getSession } from 'next-auth/react';
 import logger from '@/shared/lib/logger';
-import { buildServerApiUrl } from '@/shared/lib/api-routing';
+import { buildServerApiUrl, normalizeApiBaseUrl } from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { trackApiPerformance } from '@/shared/utils/enhancedAnalytics';
 
@@ -268,17 +268,7 @@ export class ApiClient {
       );
     }
 
-    const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
-
-    if (/\/api\/v\d+$/i.test(cleanBaseUrl)) {
-      return cleanBaseUrl;
-    }
-
-    if (/\/api$/i.test(cleanBaseUrl)) {
-      return `${cleanBaseUrl}/v2`;
-    }
-
-    return `${cleanBaseUrl}/api/v2`;
+    return normalizeApiBaseUrl(baseUrl);
   }
 
   private isRefreshRequest(config?: InternalAxiosRequestConfig): boolean {
