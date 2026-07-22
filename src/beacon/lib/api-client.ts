@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { signOut } from 'next-auth/react';
 import { sendToSlack } from '@/lib/logger';
-import authService from '@/services/api-service';
+// Import authService lazily inside handleUnauthorized to avoid a circular dependency with services/api-service.
 
 let isLoggingOut = false;
 let logoutPromise: Promise<void> | null = null;
