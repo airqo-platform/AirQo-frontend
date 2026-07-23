@@ -15,7 +15,7 @@ sidebar_label: 2. Data Frequency & Aggregation
 
 ### Pre-Aggregated Data on Platform
 
-The AirQo Analytics platform provides pre-computed temporal averages: hourly, daily, weekly, and monthly. These aggregations are calculated from the raw 10-minute measurements to facilitate analysis.
+The AirQo Nexus platform provides pre-computed temporal averages: hourly, daily, weekly, and monthly. These aggregations are calculated from the raw 10-minute measurements to facilitate analysis.
 
 ### Handling Missing Data
 
