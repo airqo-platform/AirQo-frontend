@@ -13,9 +13,18 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<SidebarProps>) {
-  const { activeGroup, isActiveGroupAdmin } = useGroup()
+  const { activeGroup, isActiveGroupAdmin, hasPermission } = useGroup()
   const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
-  const hideOtherItems = isAirqoGroup && !isActiveGroupAdmin
+
+  // DEVICE_MAINTAIN permission (or group admin role) is required to see org devices, performance analysis, collocation, maintenance, reports
+  const canMaintainDevices = hasPermission('DEVICE_MAINTAIN') || isActiveGroupAdmin
+
+  const canViewOverview = isAirqoGroup && canMaintainDevices
+  const canViewDevices = true // Devices tab is accessible
+  const canViewAnalytics = canMaintainDevices
+  const canViewAirqoAdminTools = isAirqoGroup && canMaintainDevices
+  const canViewMaintenance = canMaintainDevices
+  const canViewReports = canMaintainDevices
 
   return (
     <div
@@ -25,7 +34,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
 
       <nav className="px-2 py-3 flex-1">
         <ul className="space-y-1">
-          {isAirqoGroup && isActiveGroupAdmin && (
+          {canViewOverview && (
             <li>
               <Link
                 href="/dashboard"
@@ -44,23 +53,25 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               </Link>
             </li>
           )}
-          <li>
-            <Link
-              href="/dashboard/devices"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Devices" : ""}
-            >
-              <AqMonitor size={25} color="#374151" />
-              {sidebarOpen && <span className="ml-3 text-sm">Devices</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Devices
-                </span>
-              )}
-            </Link>
-          </li>
-          {!hideOtherItems && (
+          {canViewDevices && (
+            <li>
+              <Link
+                href="/dashboard/devices"
+                className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                  }`}
+                title={!sidebarOpen ? "Devices" : ""}
+              >
+                <AqMonitor size={25} color="#374151" />
+                {sidebarOpen && <span className="ml-3 text-sm">Devices</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Devices
+                  </span>
+                )}
+              </Link>
+            </li>
+          )}
+          {canViewAnalytics && (
             <li className="relative group/analytics">
             <div
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors cursor-pointer ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
@@ -97,7 +108,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
           </li>
           )}
 
-          {isAirqoGroup && isActiveGroupAdmin && (
+          {canViewAirqoAdminTools && (
             <>
               {/* Collocation - hover flyout menu */}
               <li className="relative group/collocation">
@@ -129,28 +140,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
                   </Link>
                 </div>
               </li>
-            </>
-          )}
 
-          {/* <li>
-            <Link
-              href="/dashboard/alerts"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
-                sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-              }`}
-              title={!sidebarOpen ? "Alerts" : ""}
-            >
-              <Bell className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Alerts</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Alerts
-                </span>
-              )}
-            </Link>
-          </li> */}
-          {isAirqoGroup && isActiveGroupAdmin && (
-            <>
               <li>
                 <Link
                   href="/dashboard/firmware"
@@ -201,60 +191,44 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
               </li>
             </>
           )}
-          {!hideOtherItems && (
-            <>
-              <li>
-                <Link
-                  href="/dashboard/maintenance"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Maintenance" : ""}
-            >
-              <Wrench className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Maintenance</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Maintenance
-                </span>
-              )}
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard/reports"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-                }`}
-              title={!sidebarOpen ? "Reports" : ""}
-            >
-              <FileText className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Reports</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Reports
-                </span>
-              )}
-            </Link>
-          </li>
-          </>
+
+          {canViewMaintenance && (
+            <li>
+              <Link
+                href="/dashboard/maintenance"
+                className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                  }`}
+                title={!sidebarOpen ? "Maintenance" : ""}
+              >
+                <Wrench className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Maintenance</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Maintenance
+                  </span>
+                )}
+              </Link>
+            </li>
           )}
 
-          {/* <li>
-            <Link
-              href="/dashboard/settings"
-              className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
-                sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
-              }`}
-              title={!sidebarOpen ? "Settings" : ""}
-            >
-              <Settings className="h-5 w-5 flex-shrink-0" />
-              {sidebarOpen && <span className="ml-3 text-sm">Settings</span>}
-              {!sidebarOpen && (
-                <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Settings
-                </span>
-              )}
-            </Link>
-          </li> */}
+          {canViewReports && (
+            <li>
+              <Link
+                href="/dashboard/reports"
+                className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                  }`}
+                title={!sidebarOpen ? "Reports" : ""}
+              >
+                <FileText className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Reports</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Reports
+                  </span>
+                )}
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 

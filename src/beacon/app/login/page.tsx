@@ -143,10 +143,11 @@ export default function LoginPage() {
 void import("next-auth/react").then(({ signOut }) => signOut({ redirect: false }))
       } else {
         // User is authenticated, let middleware or client redirect them
-        const isAirqoAdmin = session.user.organization === 'AirQo' && 
-                             (session.user.privilege?.toLowerCase()?.includes('admin') || 
-                              session.user.privilege?.toLowerCase() === 'super' || 
-                              session.user.privilege?.toLowerCase() === 'net admin');
+        const isAirqoAdmin = (typeof window !== 'undefined' && window.localStorage.getItem('isAirqoAdmin') === 'true') ||
+                             (session?.user?.organization === 'AirQo' && 
+                              (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
+                               session?.user?.privilege?.toLowerCase() === 'super' || 
+                               session?.user?.privilege?.toLowerCase() === 'net admin'));
         
         if (isAirqoAdmin) {
           router.push("/dashboard")
@@ -232,10 +233,11 @@ void import("next-auth/react").then(({ signOut }) => signOut({ redirect: false }
           const { getSession } = await import("next-auth/react")
           const session = await getSession()
           
-          const isAirqoAdmin = session?.user?.organization === 'AirQo' && 
-                               (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
-                                session?.user?.privilege?.toLowerCase() === 'super' || 
-                                session?.user?.privilege?.toLowerCase() === 'net admin');
+          const isAirqoAdmin = (typeof window !== 'undefined' && window.localStorage.getItem('isAirqoAdmin') === 'true') ||
+                               (session?.user?.organization === 'AirQo' && 
+                                (session?.user?.privilege?.toLowerCase()?.includes('admin') || 
+                                 session?.user?.privilege?.toLowerCase() === 'super' || 
+                                 session?.user?.privilege?.toLowerCase() === 'net admin'));
                                 
           if (isAirqoAdmin) {
             redirectTarget = "/dashboard"
