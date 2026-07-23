@@ -21,7 +21,7 @@ Note: Kampala alone has over 50 active monitors. A single query for six years of
 
 ### 2.2 The Batch Download Limit
 
-To protect system stability and ensure equitable access for all users, the AirQo Analytics Platform intentionally limits single downloads to approximately **three months of data per query**.
+To protect system stability and ensure equitable access for all users, the AirQo Nexus platform intentionally limits single downloads to approximately **three months of data per query**.
 
 :::warning This limit is intentional and permanent
 This limit is displayed clearly via tooltips in the platform interface. It applies universally to all users regardless of institutional affiliation, seniority, or research scope.
