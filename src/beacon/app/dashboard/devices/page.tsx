@@ -48,10 +48,11 @@ import { Label } from "@/components/ui/label"
 export default function DevicesPage() {
   const { data: session } = useSession()
   const { toast } = useToast()
-  const { activeGroup, loading: groupLoading, isActiveGroupAdmin } = useGroup()
+  const { activeGroup, loading: groupLoading, isActiveGroupAdmin, hasPermission } = useGroup()
 
   const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
-  const hideOrgDevices = isAirqoGroup && !isActiveGroupAdmin
+  const canMaintainDevices = hasPermission('DEVICE_MAINTAIN') || isActiveGroupAdmin
+  const hideOrgDevices = isAirqoGroup && !canMaintainDevices
 
   // State for device data (Org Devices)
   const [devices, setDevices] = useState<UIDevice[]>([])

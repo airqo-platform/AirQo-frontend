@@ -104,7 +104,7 @@ export default function DashboardLayout({
 }
 
 function GroupRouteGuard({ children }: { children: React.ReactNode }) {
-  const { activeGroup, isActiveGroupAdmin, loading } = useGroup()
+  const { activeGroup, isActiveGroupAdmin, hasPermission, loading } = useGroup()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -112,31 +112,27 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
     if (loading || !pathname) return
 
     const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
-    const hideOtherItems = isAirqoGroup && !isActiveGroupAdmin
+    const canMaintainDevices = hasPermission('DEVICE_MAINTAIN') || isActiveGroupAdmin
 
-    // Path definitions
+    // Path definitions & permission checks
     const isOverview = pathname === '/dashboard' || pathname === '/dashboard/'
     const isRestrictedAirqoOnly = 
       pathname.startsWith('/dashboard/collocation') ||
       pathname.startsWith('/dashboard/firmware') ||
       pathname.startsWith('/dashboard/category') ||
       pathname.startsWith('/dashboard/stock')
-      
-    const isRestrictedNonAdmin =
+
+    const isRestrictedFeature =
       pathname.startsWith('/dashboard/analytics') ||
       pathname.startsWith('/dashboard/maintenance') ||
       pathname.startsWith('/dashboard/reports')
 
-    if (isOverview || isRestrictedAirqoOnly) {
-      if (!(isAirqoGroup && isActiveGroupAdmin)) {
-        router.replace('/dashboard/devices')
-      }
-    } else if (isRestrictedNonAdmin) {
-      if (hideOtherItems) {
+    if (isOverview || isRestrictedAirqoOnly || isRestrictedFeature) {
+      if (!canMaintainDevices) {
         router.replace('/dashboard/devices')
       }
     }
-  }, [activeGroup, isActiveGroupAdmin, loading, pathname, router])
+  }, [activeGroup, isActiveGroupAdmin, hasPermission, loading, pathname, router])
 
   if (loading && !activeGroup) {
     return (
