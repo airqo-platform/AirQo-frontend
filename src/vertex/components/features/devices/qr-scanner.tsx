@@ -85,9 +85,7 @@ const QRScanner: React.FC<QRScannerProps> = ({
         // Guard: don't double-init
         if (scannerRef.current) return;
 
-        // Guard: target element must exist and be visible in the DOM
-        const el = document.getElementById(scannerId.current);
-        if (!el) return;
+        if (!document.getElementById(scannerId.current)) return;
 
         setIsInitializing(true);
         setError(null);
@@ -108,9 +106,9 @@ const QRScanner: React.FC<QRScannerProps> = ({
             );
 
             // render() is async — camera permission prompt fires after this call.
-            // We clear isInitializing once the first successful scan frame arrives
-            // (handled in handleScanSuccess) or after a short grace period so the
-            // library's own UI becomes visible.
+            // We clear isInitializing after a short grace period so the library's
+            // own UI can become visible (and to avoid hiding the target div before
+            // it has been measured).
             scanner.render(
                 handleScanSuccess,
                 handleScanError,
@@ -122,7 +120,9 @@ const QRScanner: React.FC<QRScannerProps> = ({
             // This is safer than setting false immediately (which hides the div
             // before the library has measured it).
             setTimeout(() => {
-                if (isMountedRef.current) setIsInitializing(false);
+                if (!isMountedRef.current) return;
+                if (scannerRef.current !== scanner) return;
+                setIsInitializing(false);
             }, 600);
 
         } catch (err) {

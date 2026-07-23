@@ -2,8 +2,8 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.26
-**Released:** July 16, 2026
+## Version 2.0.27
+**Released:** July 17, 2026
 
 ### Fix: Claim flow — QR scanner, bulk-input, and 409 error message
 
@@ -20,7 +20,7 @@ Restored the two claim-flow method cards that were silently disabled, rewrote th
 <details>
 <summary><strong>Fix: QR scanner failed to initialize — camera never appeared</strong></summary>
 
-- `Html5QrcodeScanner` requires its target `<div>` to be visible and measurable in the DOM before `render()` is called. The previous implementation conditionally mounted the div (or hid it with `display:none`) while showing a loading spinner, so the library could not measure the element and silently failed to start the camera.
+- `Html5QrcodeScanner` requires its target `<div>` to be visible and measurable in the DOM before `render()` is called. The previous implementation hid the scanner div while showing a loading spinner, so the library could not measure the element and silently failed to start the camera.
 - The scanner div is now always present in the DOM with a fixed `minHeight: 300px`. The loading spinner overlays it with `position: absolute` and `z-index: 10`, disappearing after the library has had 600 ms to inject its camera UI.
 - `onScan` is stored in a stable ref to prevent the `useCallback` identity from changing on every parent render, which previously caused the scanner to tear down and re-initialize in a loop.
 - Camera permission denial and non-fatal frame errors are handled gracefully; a retry button lets users re-attempt without refreshing the page.
@@ -30,12 +30,12 @@ Restored the two claim-flow method cards that were silently disabled, rewrote th
 <details>
 <summary><strong>Fix: 409 "Device already claimed" showed a generic Axios error instead of the API message</strong></summary>
 
-- The single-device claim error handler read `claimError.message`, which returns the Axios network-level string (e.g. "Request failed with status code 409") rather than the human-readable message from the API response body.
+- The single-device claim error handler read `claimError.message`, which returns the Axios network-level string rather than the human-readable message from the API response body.
 - Now uses `getApiErrorMessage(claimError)`, which extracts `errors.message` from the API response, so the user sees "Device already claimed" (or equivalent) directly in the modal.
 
 </details>
 
-## Version 2.0.25
+## Version 2.0.26
 **Released:** July 16, 2026
 
 ### Chore: hide redundant Organization column on My Devices table
