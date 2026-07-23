@@ -30,7 +30,6 @@ export const ADMIN_PERMISSIONS = [
   'ADMIN_FULL_ACCESS',
   'GROUP_MANAGEMENT',
   'USER_MANAGEMENT',
-  'ROLE_VIEW',
   'ROLE_CREATE',
   'ROLE_EDIT',
   'ROLE_DELETE',
@@ -48,14 +47,9 @@ export function isGroupAdmin(group: UserGroup | null | undefined): boolean {
   if (!group) return false;
 
   const permissions = group.role?.role_permissions?.map((p) => p.permission) || [];
-  const hasAdminPermission = permissions.some((p) =>
+  return permissions.some((p) =>
     (ADMIN_PERMISSIONS as readonly string[]).includes(p)
   );
-
-  if (hasAdminPermission) return true;
-
-  const roleName = group.role?.role_name?.toLowerCase() || '';
-  return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin';
 }
 
 interface GroupContextValue {
