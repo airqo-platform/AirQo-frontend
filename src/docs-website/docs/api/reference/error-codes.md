@@ -71,7 +71,7 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 
 **Most likely cause:** Your server's public IP is not whitelisted.
 
-**Solution:** Log in to [nexus.airqo.net](https://nexus.airqo.net) → Account Settings → IP Whitelist. Add the public IP your server uses to make API requests.
+**Solution:** Log in to [nexus.airqo.net](https://nexus.airqo.net) → **Profile → API**, click **Edit** on the relevant client, and add the public IP your server uses under **IP Addresses**.
 
 ---
 
