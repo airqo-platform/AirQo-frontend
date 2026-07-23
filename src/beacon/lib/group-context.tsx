@@ -285,6 +285,8 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
       activeGroupData,
       isActiveGroupAdmin,
       activeGroupPermissions,
+      hasPermission,
+      hasAnyPermission,
     ]
   )
 
