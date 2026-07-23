@@ -3,7 +3,7 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ## Version 2.0.27
-**Released:** July 17, 2026
+**Released:** July 23, 2026
 
 ### Fix: Claim flow — QR scanner, bulk-input, and 409 error message
 
