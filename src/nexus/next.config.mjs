@@ -45,6 +45,12 @@ const buildContentSecurityPolicy = () => {
     'https://api.paddle.com',
     'https://sandbox-buy.paddle.com',
     'https://buy.paddle.com',
+    // ProfitWell analytics (loaded by Paddle.js)
+    'https://public.profitwell.com',
+    // Map geocoding service
+    'https://photon.komoot.io',
+    // Google Tag Manager runtime beacons
+    'https://www.googletagmanager.com',
   ];
   if (apiOrigin) {
     connectSrcDomains.push(apiOrigin);
@@ -89,6 +95,10 @@ const buildContentSecurityPolicy = () => {
     // Google OAuth provider icons
     'https://lh3.googleusercontent.com',
     'https://avatars.githubusercontent.com',
+    // YouTube video thumbnails
+    'https://img.youtube.com',
+    // AirQo CDN (Learn module content)
+    'https://cdn.airqo.net',
   ];
 
   const directives = [
@@ -97,12 +107,14 @@ const buildContentSecurityPolicy = () => {
     "style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com",
     `img-src ${imgSrcDomains.join(' ')}`,
     "font-src 'self'",
-    "media-src 'self' https://res.cloudinary.com",
+    "media-src 'self' https://res.cloudinary.com https://cdn.airqo.net",
     `connect-src ${connectSrcDomains.join(' ')}`,
     "worker-src 'self' blob:",
     `frame-src ${frameSrcDomains.join(' ')}`,
     "object-src 'none'",
     "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
   ];
 
   if (isProduction) {
