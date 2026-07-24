@@ -28,7 +28,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const buildContentSecurityPolicy = () => {
   const apiOrigin = resolveApiOrigin();
 
-  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + payment + backend API
+  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + payment + OAuth + backend API
   const connectSrcDomains = [
     "'self'",
     // PostHog ingest (production uses us.i subdomain)
@@ -50,20 +50,59 @@ const buildContentSecurityPolicy = () => {
     connectSrcDomains.push(apiOrigin);
   }
 
+  // Build script-src: standard + analytics + payment SDKs
+  const scriptSrcDomains = [
+    "'self'",
+    "'unsafe-eval'",
+    "'unsafe-inline'",
+    'blob:',
+    // PostHog
+    'https://us.posthog.com',
+    'https://us.i.posthog.com',
+    'https://us-assets.i.posthog.com',
+    // Google Tag Manager / Analytics
+    'https://www.googletagmanager.com',
+    'https://www.google-analytics.com',
+    // Paddle + ProfitWell (loaded internally by Paddle.js)
+    'https://cdn.paddle.com',
+    'https://sandbox-cdn.paddle.com',
+    'https://public.profitwell.com',
+  ];
+
+  // Build frame-src: Paddle checkout iframes
+  const frameSrcDomains = [
+    "'self'",
+    'https://sandbox-buy.paddle.com',
+    'https://buy.paddle.com',
+  ];
+
+  // Build img-src: standard + third-party assets
+  const imgSrcDomains = [
+    "'self'",
+    'data:',
+    'blob:',
+    'https://res.cloudinary.com',
+    'https://asset.cloudinary.com',
+    'https://flagcdn.com',
+    'https://firebasestorage.googleapis.com',
+    'https://purecatamphetamine.github.io',
+    // Google OAuth provider icons
+    'https://lh3.googleusercontent.com',
+    'https://avatars.githubusercontent.com',
+  ];
+
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://us.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.googletagmanager.com https://www.google-analytics.com https://cdn.paddle.com https://sandbox-cdn.paddle.com",
+    `script-src ${scriptSrcDomains.join(' ')}`,
     "style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com",
-    "img-src 'self' data: blob: https://res.cloudinary.com https://asset.cloudinary.com https://flagcdn.com https://firebasestorage.googleapis.com https://purecatamphetamine.github.io",
+    `img-src ${imgSrcDomains.join(' ')}`,
     "font-src 'self'",
     "media-src 'self' https://res.cloudinary.com",
     `connect-src ${connectSrcDomains.join(' ')}`,
     "worker-src 'self' blob:",
-    "frame-src 'self' https://sandbox-buy.paddle.com https://buy.paddle.com",
+    `frame-src ${frameSrcDomains.join(' ')}`,
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
   ];
 
   if (isProduction) {
