@@ -28,7 +28,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const buildContentSecurityPolicy = () => {
   const apiOrigin = resolveApiOrigin();
 
-  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + payment + OAuth + backend API
+  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + payment + geocoding + backend API
   const connectSrcDomains = [
     "'self'",
     // PostHog ingest (production uses us.i subdomain)
