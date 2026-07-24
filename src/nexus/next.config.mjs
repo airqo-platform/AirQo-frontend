@@ -28,15 +28,23 @@ const isProduction = process.env.NODE_ENV === 'production';
 const buildContentSecurityPolicy = () => {
   const apiOrigin = resolveApiOrigin();
 
-  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + backend API
+  // Build connect-src: self + analytics + cloudinary + firebase + mapbox + payment + backend API
   const connectSrcDomains = [
     "'self'",
+    // PostHog ingest (production uses us.i subdomain)
     'https://us.posthog.com',
+    'https://us.i.posthog.com',
+    'https://us-assets.i.posthog.com',
     'https://www.google-analytics.com',
     'https://api.cloudinary.com',
     'https://firebasestorage.googleapis.com',
     'https://api.mapbox.com',
     'https://events.mapbox.com',
+    // Paddle payment provider API endpoints
+    'https://sandbox-api.paddle.com',
+    'https://api.paddle.com',
+    'https://sandbox-buy.paddle.com',
+    'https://buy.paddle.com',
   ];
   if (apiOrigin) {
     connectSrcDomains.push(apiOrigin);
@@ -44,14 +52,14 @@ const buildContentSecurityPolicy = () => {
 
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://us.posthog.com https://www.googletagmanager.com https://www.google-analytics.com",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://us.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.googletagmanager.com https://www.google-analytics.com https://cdn.paddle.com https://sandbox-cdn.paddle.com",
+    "style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://sandbox-cdn.paddle.com",
     "img-src 'self' data: blob: https://res.cloudinary.com https://asset.cloudinary.com https://flagcdn.com https://firebasestorage.googleapis.com https://purecatamphetamine.github.io",
     "font-src 'self'",
     "media-src 'self' https://res.cloudinary.com",
     `connect-src ${connectSrcDomains.join(' ')}`,
     "worker-src 'self' blob:",
-    "frame-src 'self'",
+    "frame-src 'self' https://sandbox-buy.paddle.com https://buy.paddle.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
