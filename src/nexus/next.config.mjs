@@ -41,8 +41,10 @@ const buildContentSecurityPolicy = () => {
     'https://api.mapbox.com',
     'https://events.mapbox.com',
     // Paddle payment provider API endpoints
-    'https://sandbox-vendoring.paddle.com',
-    'https://vendoring.paddle.com',
+    'https://sandbox-api.paddle.com',
+    'https://api.paddle.com',
+    'https://sandbox-buy.paddle.com',
+    'https://buy.paddle.com',
   ];
   if (apiOrigin) {
     connectSrcDomains.push(apiOrigin);
