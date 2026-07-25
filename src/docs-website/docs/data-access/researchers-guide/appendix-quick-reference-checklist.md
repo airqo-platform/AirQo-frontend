@@ -18,7 +18,7 @@ sidebar_label: "Appendix: Quick Reference Checklist"
 ### If Conducting Your Own Physical Co-location
 
 - [ ] Match LCS inlet height to the reference monitor within ±0.5 m.
-- [ ] Verify horizontal separation is between 0.5–5 m.
+- [ ] Verify horizontal separation is between 1–5 m (never below 1 m).
 - [ ] Orient all inlets identically, with ≥2 m clearance from obstructions.
 - [ ] Photograph and log full setup geometry (heights, distances, GPS, orientation) before data collection begins.
 
