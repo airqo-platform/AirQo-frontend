@@ -4,8 +4,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useMemo } from 'react';
 
-import { getConfiguredSiteUrls } from '@/lib/siteUrl';
-
 const FALLBACK_MEASUREMENT_ID = 'G-79ZVCLEDSG';
 
 declare global {
@@ -30,19 +28,13 @@ export default function GoogleAnalytics({
   const searchParams = useSearchParams();
   const resolvedMeasurementId =
     measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
-  const configuredLinkerDomains = useMemo(
-    () =>
-      getConfiguredSiteUrls()
-        .map((siteUrl) => {
-          try {
-            return new URL(siteUrl).hostname;
-          } catch {
-            return null;
-          }
-        })
-        .filter((domain): domain is string => Boolean(domain)),
-    [],
-  );
+
+  // Use the current domain for cross-domain linking
+  const configuredLinkerDomains = useMemo(() => {
+    if (typeof window === 'undefined') return [];
+    const currentHostname = window.location.hostname;
+    return currentHostname ? [currentHostname] : [];
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

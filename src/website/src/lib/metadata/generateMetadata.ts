@@ -1,237 +1,41 @@
 import { Metadata } from 'next';
 
-import {
-  compact,
-  DEFAULT_METADATA,
-  MetadataConfig,
-  PRIMARY_SITE_URL,
-  SUPPORTED_DOMAINS,
-} from './metadata.config';
-
-// Cache for domain detection to avoid repeated calculations
-let cachedDomain: string | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION = 60000; // 1 minute cache
-
-// Enhanced logging utilities with environment checks
-const isDev = process.env.NODE_ENV === 'development';
-
-const logDebug = (...args: any[]): void => {
-  if (isDev) {
-    console.log('[AirQo Metadata]', ...args);
-  }
-};
-
-const logWarn = (...args: any[]): void => {
-  if (isDev) {
-    console.warn('[AirQo Metadata Warning]', ...args);
-  }
-};
+import { getPrimarySiteUrl } from '../siteUrl';
+import { compact, DEFAULT_METADATA, MetadataConfig } from './metadata.config';
 
 const logError = (...args: any[]): void => {
   console.error('[AirQo Metadata Error]', ...args);
 };
 
 /**
- * Validates if a URL is from a supported domain
- * @param url - URL to validate
- * @returns boolean indicating if URL is valid
- */
-export const isValidDomain = (url: string): boolean => {
-  try {
-    const urlObj = new URL(url);
-    if (SUPPORTED_DOMAINS.length === 0) {
-      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
-    }
-
-    return SUPPORTED_DOMAINS.some((domain) => {
-      const domainObj = new URL(domain);
-      return urlObj.hostname === domainObj.hostname;
-    });
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Sanitizes and normalizes URLs
- * @param url - URL to sanitize
- * @returns Sanitized URL string
- */
-export const sanitizeUrl = (url: string): string => {
-  try {
-    // Remove trailing slashes and normalize
-    const normalized = url.replace(/\/+$/, '');
-
-    if (SUPPORTED_DOMAINS.length === 0) {
-      return normalized;
-    }
-
-    // Validate against our domains
-    if (!isValidDomain(normalized)) {
-      logWarn(`URL not from supported domain: ${normalized}`);
-      return PRIMARY_SITE_URL;
-    }
-
-    return normalized;
-  } catch (error) {
-    logError('URL sanitization failed:', error);
-    return PRIMARY_SITE_URL;
-  }
-};
-
-/**
- * Enhanced domain detection with multiple methods and caching
- * Implements fail-safe mechanisms and performance optimizations
- */
-export const getCurrentDomain = (): string => {
-  // Check cache first
-  const now = Date.now();
-  if (cachedDomain && now - cacheTimestamp < CACHE_DURATION) {
-    return cachedDomain;
-  }
-
-  let detectedDomain: string | null = null;
-
-  // Method 1: Client-side detection (browser environment)
-  if (typeof window !== 'undefined' && window.location) {
-    try {
-      const origin = window.location.origin;
-      if (origin && isValidDomain(origin)) {
-        detectedDomain = sanitizeUrl(origin);
-        logDebug('Client-side domain detected:', detectedDomain);
-      }
-    } catch (error) {
-      logWarn('Client-side domain detection failed:', error);
-    }
-  }
-
-  // Method 2: Environment variable detection
-  if (!detectedDomain) {
-    const envUrls = SUPPORTED_DOMAINS;
-
-    for (const envUrl of envUrls) {
-      if (envUrl) {
-        try {
-          const normalizedUrl = envUrl.replace(/\/$/, '');
-          if (isValidDomain(normalizedUrl)) {
-            detectedDomain = sanitizeUrl(normalizedUrl);
-            logDebug('Environment domain detected:', detectedDomain);
-            break;
-          }
-        } catch (error) {
-          logWarn(`Environment URL parsing failed for ${envUrl}:`, error);
-        }
-      }
-    }
-  }
-
-  // Method 3: Platform-specific detection (Vercel, Railway, Render, etc.)
-  if (!detectedDomain && typeof process !== 'undefined') {
-    const platformVars = [
-      process.env.VERCEL_URL,
-      process.env.RAILWAY_PUBLIC_DOMAIN,
-      process.env.RENDER_EXTERNAL_URL,
-    ].filter(Boolean);
-
-    for (const host of platformVars) {
-      if (host) {
-        try {
-          const fullUrl = host.startsWith('http') ? host : `https://${host}`;
-          const normalizedUrl = fullUrl.replace(/\/$/, '');
-
-          // Check if it matches our domains
-          const hostname = new URL(normalizedUrl).hostname;
-          const matchedDomain = SUPPORTED_DOMAINS.find((domain) => {
-            return new URL(domain).hostname === hostname;
-          });
-
-          if (matchedDomain) {
-            detectedDomain = sanitizeUrl(matchedDomain);
-            logDebug('Platform domain detected:', detectedDomain);
-            break;
-          }
-        } catch (error) {
-          logWarn(`Platform URL parsing failed for ${host}:`, error);
-        }
-      }
-    }
-  }
-
-  // Method 4: Header-based detection (for server-side rendering)
-  if (!detectedDomain && typeof Headers !== 'undefined') {
-    try {
-      // Check for host headers in Next.js context
-      const headerHost = process.env.HOST || process.env.HOSTNAME;
-      if (headerHost) {
-        const fullUrl = headerHost.startsWith('http')
-          ? headerHost
-          : `https://${headerHost}`;
-        if (isValidDomain(fullUrl)) {
-          detectedDomain = sanitizeUrl(fullUrl);
-          logDebug('Header-based domain detected:', detectedDomain);
-        }
-      }
-    } catch (error) {
-      logWarn('Header-based domain detection failed:', error);
-    }
-  }
-
-  // Fallback to the primary configured domain
-  if (!detectedDomain) {
-    detectedDomain = PRIMARY_SITE_URL;
-    logDebug('Using fallback domain:', detectedDomain);
-  }
-
-  // Update cache
-  cachedDomain = detectedDomain;
-  cacheTimestamp = now;
-
-  return detectedDomain;
-};
-
-/**
- * Get domain for specific contexts with optimization
- * @param context - The context for which to get the domain
- * @returns Optimized domain URL for the context
- */
-export const getDomainForContext = (
-  context?: 'social' | 'canonical' | 'api' | 'cdn',
-): string => {
-  void context;
-  return getCurrentDomain();
-};
-
-/**
- * Enhanced metadata generation with SEO optimization
- * @param config - Metadata configuration object
+ * Generate metadata for a page.
+ *
+ * @param config - Page-specific metadata configuration
+ * @param hostHeader - Optional Host header value for dynamic domain detection.
+ *                     Pass this from headers().get('x-forwarded-host') ?? headers().get('host')
  * @returns Next.js Metadata object
  */
-export function generateMetadata(config: MetadataConfig): Metadata {
-  // Input validation
+export function generateMetadata(
+  config: MetadataConfig,
+  hostHeader?: string | null,
+): Metadata {
   if (!config.title || !config.description || !config.url) {
     logError('Invalid metadata config: missing required fields', config);
     throw new Error('Metadata config must include title, description, and url');
   }
 
-  // Use provided image or default
   const image = config.image || DEFAULT_METADATA.defaultImage;
+  const siteUrl = getPrimarySiteUrl(hostHeader);
 
-  // Get context-specific domains
-  const canonicalDomain = getDomainForContext('canonical');
-  const socialDomain = getDomainForContext('social');
-
-  // Build full URLs
   const fullUrl = config.url.startsWith('http')
-    ? sanitizeUrl(config.url)
-    : `${canonicalDomain}${config.url}`;
+    ? config.url
+    : `${siteUrl}${config.url}`;
 
-  const socialUrl = config.url.startsWith('http')
-    ? sanitizeUrl(config.url)
-    : `${socialDomain}${config.url}`;
+  const socialUrl = fullUrl;
+
+  const socialDomain = siteUrl.replace('https://', '');
 
   return {
-    // Basic metadata
     title: config.title,
     description: config.description,
     keywords: config.keywords,
@@ -242,7 +46,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
     creator: 'AirQo',
     publisher: 'AirQo',
 
-    // Robots configuration for optimal crawling
     robots: {
       index: true,
       follow: true,
@@ -257,7 +60,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       },
     },
 
-    // Canonical and alternate URLs
     alternates: {
       canonical: fullUrl,
       languages: {
@@ -277,7 +79,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       },
     },
 
-    // Open Graph metadata
     openGraph: {
       type: config.type || 'website',
       url: socialUrl,
@@ -312,7 +113,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       ...(config.section && { section: config.section }),
     },
 
-    // Twitter/X metadata
     twitter: {
       card: 'summary_large_image',
       site: DEFAULT_METADATA.twitterHandle,
@@ -327,10 +127,9 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       ],
     },
 
-    // Additional metadata for enhanced SEO and social sharing
     other: compact({
       'article:publisher': 'https://www.linkedin.com/company/airqo/',
-      'twitter:domain': socialDomain.replace('https://', ''),
+      'twitter:domain': socialDomain,
       'twitter:url': socialUrl,
       'apple-mobile-web-app-title': 'AirQo',
       'apple-mobile-web-app-capable': 'yes',
@@ -346,13 +145,11 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       'format-detection': 'telephone=no',
     }),
 
-    // Verification tokens
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
     },
 
-    // Additional metadata
-    metadataBase: new URL(canonicalDomain),
+    metadataBase: new URL(siteUrl),
     category: 'Environment',
     classification: 'Air Quality Monitoring',
   };

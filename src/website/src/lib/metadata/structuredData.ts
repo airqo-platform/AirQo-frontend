@@ -17,29 +17,32 @@ interface StructuredData {
   };
 }
 
-export function generateOrganizationSchema(): StructuredData {
+export function generateOrganizationSchema(siteUrl: string): StructuredData {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'AirQo',
     description: 'Air Quality Monitoring Network Africa',
-    url: DEFAULT_METADATA.siteUrl,
+    url: siteUrl,
     image: DEFAULT_METADATA.defaultImage.url,
     publisher: {
       '@type': 'Organization',
       name: 'AirQo',
       logo: {
         '@type': 'ImageObject',
-        url: `${DEFAULT_METADATA.siteUrl}/apple-touch-icon.png`,
+        url: `${siteUrl}/apple-touch-icon.png`,
       },
     },
   };
 }
 
-export function generateWebPageSchema(config: MetadataConfig): StructuredData {
+export function generateWebPageSchema(
+  config: MetadataConfig,
+  siteUrl: string,
+): StructuredData {
   const url = config.url.startsWith('http')
     ? config.url
-    : `${DEFAULT_METADATA.siteUrl}${config.url}`;
+    : `${siteUrl}${config.url}`;
 
   const image = config.image || DEFAULT_METADATA.defaultImage;
 
@@ -55,19 +58,19 @@ export function generateWebPageSchema(config: MetadataConfig): StructuredData {
       name: 'AirQo',
       logo: {
         '@type': 'ImageObject',
-        url: `${DEFAULT_METADATA.siteUrl}/apple-touch-icon.png`,
+        url: `${siteUrl}/apple-touch-icon.png`,
       },
     },
   };
 }
 
-export function generateWebsiteSchema(): StructuredData {
+export function generateWebsiteSchema(siteUrl: string): StructuredData {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: DEFAULT_METADATA.siteName,
     description: 'Leading air quality monitoring network across Africa',
-    url: DEFAULT_METADATA.siteUrl,
+    url: siteUrl,
     image: DEFAULT_METADATA.defaultImage.url,
   };
 }
