@@ -5,7 +5,7 @@ import ReversibleContentSection from '@/components/sections/ReversibleContentSec
 import AnalyticsContentSection from './AnalyticsContentSection';
 import AppDownloadSection from './AppDownloadSection';
 import HomeDeferredSections from './HomeDeferredSections';
-import HomeDevConSection from './HomeDevConSection';
+// import HomeDevConSection from './HomeDevConSection';
 import HomePlayerSection from './HomePlayerSection';
 
 const HomePage = () => {
@@ -55,7 +55,7 @@ const HomePage = () => {
         rightWidth="lg:w-2/3"
       />
 
-      <HomeDevConSection />
+      {/* <HomeDevConSection /> */}
 
       {/* Network Coverage */}
       <ReversibleContentSection
