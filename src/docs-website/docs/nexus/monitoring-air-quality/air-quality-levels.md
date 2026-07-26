@@ -39,6 +39,6 @@ You will see these levels in several places:
 
 ## Related Guides
 
-- [Analytics Dashboard](./analytics-dashboard.md)
+- [Nexus Dashboard](./nexus-dashboard.md)
 - [Interactive Map](./interactive-map.md)
 - [Dataset Visualizer](../visualizing-data/dataset-visualizer.md)
