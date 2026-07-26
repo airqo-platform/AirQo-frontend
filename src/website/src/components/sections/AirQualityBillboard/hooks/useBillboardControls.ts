@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { getPrimarySiteUrl } from '@/lib/siteUrl';
+
 import type { BillboardState, DataType, Item } from '../types';
 
 export const useBillboardControls = (
@@ -30,7 +32,7 @@ export const useBillboardControls = (
     const itemName = (item.name || item.long_name || '')
       .toLowerCase()
       .replace(/\s+/g, '-');
-    const url = `${window.location.origin}/billboard/grid/${encodeURIComponent(itemName)}`;
+    const url = `${getPrimarySiteUrl()}/billboard/grid/${encodeURIComponent(itemName)}`;
 
     try {
       await navigator.clipboard.writeText(url);
