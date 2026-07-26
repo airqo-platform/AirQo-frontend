@@ -5,7 +5,7 @@ sidebar_label: Favorite Locations
 
 # Favorite Locations
 
-Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow this page is called **My Favorites**; in the Organization workflow the same view is called **Dashboard**.
+Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow, this page is called **My Favorites**; in the Organization workflow, the same view is called **Dashboard**.
 
 ---
 

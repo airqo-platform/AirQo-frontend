@@ -15,7 +15,7 @@ For developers looking to contribute or run the platform locally, you can find o
 
 ## Overview
 
-AirQo Nexus provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through a conversion-optimized user interface, AirQo Nexus makes it easy to visualize complex environmental data in minutes.
+AirQo Nexus provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through an intuitive user interface, AirQo Nexus makes it easy to visualize complex environmental data in minutes.
 
 With AirQo Nexus, you can explore real-time and historical air quality trends through interactive maps and custom dashboards. The platform allows you to:
 
@@ -43,6 +43,7 @@ For those needing programmatic access, our API allows you to pull raw and calibr
 | Upload and visualize my own data | [Dataset Visualizer](./visualizing-data/dataset-visualizer.md) |
 | Manage my organization's team | [Organization Management](./organization-management/managing-members.md) |
 | Share feedback or report a problem | [Sharing Feedback](./help-and-feedback/sharing-feedback.md) |
+| Delete my account | [Deleting Your Account](./getting-started/deleting-your-account.md) |
 
 ---
 

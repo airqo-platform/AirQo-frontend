@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 4
 sidebar_label: Navigating the Platform
 ---
 
@@ -21,7 +21,7 @@ The Individual workflow is your personal workspace. Use it to explore air qualit
 |-------|------|-------------|
 | **Explore** | Home | Welcome page with quick actions and an onboarding checklist |
 | | Map | Full-screen interactive map with air quality data layers |
-| | Favorite Locations | Saved locations and quick-access charts |
+| | My Favorites | Saved locations and quick-access charts |
 | **Data & Analysis** | Visualization & Data Export | Download air quality datasets with flexible configuration |
 | | Dataset Visualizer | Upload CSV or Excel files and build custom charts |
 | **Account** | Profile | Edit your name, profile picture, and account settings |

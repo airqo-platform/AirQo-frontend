@@ -23,8 +23,8 @@ The Interactive Map lets you explore air quality readings from monitoring sites 
 
 The map has two main areas:
 
-- **Map canvas** — on the right on desktop, on the top on mobile — displays monitoring sites as interactive markers.
-- **Sidebar** — on the left on desktop, on the bottom on mobile — contains search, country filter, location list, and site details.
+- **Map canvas** — on the right on desktop, at the top on mobile — displays monitoring sites as interactive markers.
+- **Sidebar** — on the left on desktop, at the bottom on mobile — contains search, country filter, location list, and site details.
 
 On desktop, the sidebar and map share the screen height. On mobile, the map takes the top 40% of the screen and the sidebar takes the bottom 60%.
 
@@ -148,7 +148,7 @@ Select **Show more** to expand additional details:
 
 ### Health Alerts
 
-A collapsible card with health tips related to the current air quality level. If the platform provides specific health tips for the site, they are listed here; otherwise a generic guidance message is shown.
+A collapsible card with health tips related to the current air quality level. If the platform provides specific health tips for the site, they are listed here; otherwise, a generic guidance message is shown.
 
 ### More Insights
 

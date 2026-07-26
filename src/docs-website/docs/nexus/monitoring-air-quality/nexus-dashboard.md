@@ -5,7 +5,7 @@ sidebar_label: AirQo Nexus Dashboard
 
 # AirQo Nexus Dashboard
 
-The AirQo Nexus Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow, the dashboard is on the **My Favorites** page; in the **Organization** workflow it is on the **Dashboard** page. Both pages show the same AirQo Nexus view, scoped to your personal or organization workspace.
+The AirQo Nexus Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow, the dashboard is on the **My Favorites** page; in the **Organization** workflow, it is on the **Dashboard** page. Both pages show the same AirQo Nexus view, scoped to your personal or organization workspace.
 
 ---
 
@@ -100,7 +100,7 @@ In the Organization workflow, the Dashboard shows the same AirQo Nexus view but 
 
 - Summary cards for the organization's selected monitoring sites
 - Trend and distribution charts for organization locations
-- Quick access to export and visualisation tools scoped to the organization
+- Quick access to export and visualization tools scoped to the organization
 
 :::caution Private organization data
 If your organization's information is set to private, recent readings will not appear on the dashboard. An administrator must make the data public in AirQo Vertex.
