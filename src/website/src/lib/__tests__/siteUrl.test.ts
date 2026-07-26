@@ -15,6 +15,13 @@ describe('siteUrl', () => {
     delete process.env.VERCEL_URL;
     delete process.env.RAILWAY_PUBLIC_DOMAIN;
     delete process.env.RENDER_EXTERNAL_URL;
+
+    // Mock window.location.origin for jsdom (returns http://localhost by default)
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, origin: 'http://localhost:3000' },
+      writable: true,
+      configurable: true,
+    });
   });
 
   afterAll(() => {
@@ -66,13 +73,35 @@ describe('siteUrl', () => {
       );
     });
 
-    it('returns Vercel URL when no Host header', () => {
-      process.env.NEXT_PUBLIC_VERCEL_URL = 'my-app.vercel.app';
-      expect(getPrimarySiteUrl()).toBe('https://my-app.vercel.app');
+    it('returns window.location.origin when no Host header', () => {
+      expect(getPrimarySiteUrl()).toBe('http://localhost:3000');
     });
 
-    it('returns localhost fallback when nothing configured', () => {
+    it('returns Vercel URL when window is not available (server-side)', () => {
+      // Simulate server-side by deleting window
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      process.env.NEXT_PUBLIC_VERCEL_URL = 'my-app.vercel.app';
+
+      expect(getPrimarySiteUrl()).toBe('https://my-app.vercel.app');
+
+      // Restore window
+      global.window = savedWindow;
+    });
+
+    it('returns localhost fallback when nothing configured (server-side)', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+
       expect(getPrimarySiteUrl()).toBe('http://localhost:3000');
+
+      global.window = savedWindow;
+    });
+
+    it('prefers Host header over window.location.origin', () => {
+      expect(getPrimarySiteUrl('airqo.africa')).toBe('https://airqo.africa');
     });
 
     it('prefers Host header over Vercel URL', () => {
