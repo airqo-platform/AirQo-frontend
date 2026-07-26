@@ -5,7 +5,7 @@ sidebar_label: Favorite Locations
 
 # Favorite Locations
 
-Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow this page is called **My Favorites**; in the Organization workflow the same view is called **Dashboard**.
+Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow, this page is called **My Favorites**; in the Organization workflow, the same view is called **Dashboard**.
 
 ---
 
@@ -13,10 +13,10 @@ Favorites let you follow up to four monitoring sites so they appear on your dash
 
 | Workflow | Sidebar Item | Web Address |
 |----------|--------------|-------------|
-| **Individual** | **My Favorites** | `https://nexus.airqo.net//user/favorites` |
-| **Organization** | **Dashboard** | `https://nexus.airqo.net//org/<your-org>/dashboard` |
+| **Individual** | **My Favorites** | `https://nexus.airqo.net/user/favorites` |
+| **Organization** | **Dashboard** | `https://nexus.airqo.net/org/<your-org>/dashboard` |
 
-You can also reach the Individual Favorites page from the [Home page](https://nexus.airqo.net//user/home) by selecting **My Favorites** or **Start here**.
+You can also reach the Individual Favorites page from the [Home page](https://nexus.airqo.net/user/home) by selecting **My Favorites** or **Start here**.
 
 ---
 
@@ -88,7 +88,7 @@ Select any location card or chart's **More Insights** option to explore the site
 
 ## Related Guides
 
-- [Analytics Dashboard](../monitoring-air-quality/analytics-dashboard.md)
+- [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
 - [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md)
 - [Interactive Map](../monitoring-air-quality/interactive-map.md)
 - [Export Air Quality Data](../exporting-data/data-export.md)
