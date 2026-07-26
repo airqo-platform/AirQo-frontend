@@ -34,7 +34,7 @@ The Organization workflow is a shared workspace for teams. It includes the same 
 
 | Group | Page | Description |
 |-------|------|-------------|
-| **Main** | Dashboard | Organization-level analytics dashboard with selected sites and charts |
+| **Main** | Dashboard | Organization-level Nexus dashboard with selected sites and charts |
 | | Visualization & Data Export | Download datasets for your organization's locations |
 | | Dataset Visualizer | Upload and visualize data files |
 | | Map | Interactive map for your organization's monitoring sites |
@@ -112,6 +112,6 @@ Use the **Organization Selector** in the header to switch workspaces:
 
 - [Creating an Account](./creating-an-account.md)
 - [Logging In](./logging-in.md)
-- [Analytics Dashboard](../monitoring-air-quality/analytics-dashboard.md)
+- [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
 - [Interactive Map](../monitoring-air-quality/interactive-map.md)
 - [Organization Management](../organization-management/managing-members.md)

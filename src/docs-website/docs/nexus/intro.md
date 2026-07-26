@@ -36,7 +36,7 @@ For those needing programmatic access, our API allows you to pull raw and calibr
 | Log in or use a social account | [Logging In](./getting-started/logging-in.md) |
 | Reset my password | [Resetting Your Password](./getting-started/resetting-your-password.md) |
 | Understand the interface and workflows | [Navigating the Platform](./getting-started/navigating-the-platform.md) |
-| View my dashboard or interpret readings | [Analytics Dashboard](./monitoring-air-quality/analytics-dashboard.md) |
+| View my dashboard or interpret readings | [Nexus Dashboard](./monitoring-air-quality/nexus-dashboard.md) |
 | Explore sites on a map | [Interactive Map](./monitoring-air-quality/interactive-map.md) |
 | Save locations for quick access | [Favorite Locations](./managing-locations/favorite-locations.md) |
 | Download air quality data | [Export Air Quality Data](./exporting-data/data-export.md) |

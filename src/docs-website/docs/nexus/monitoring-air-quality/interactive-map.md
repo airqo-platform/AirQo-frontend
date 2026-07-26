@@ -14,8 +14,8 @@ The Interactive Map lets you explore air quality readings from monitoring sites 
 1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
 2. Select **Map** in the sidebar.
 3. Direct links:
-   - **Individual workflow:** `https://nexus.airqo.net//user/map`
-   - **Organization workflow:** `https://nexus.airqo.net//org/<your-org>/map`
+   - **Individual workflow:** `https://nexus.airqo.net/user/map`
+   - **Organization workflow:** `https://nexus.airqo.net/org/<your-org>/map`
 
 ---
 
@@ -204,5 +204,5 @@ If the organization's cohort has no deployed devices yet, an empty-state banner 
 ## Related Guides
 
 - [Air Quality Levels](./air-quality-levels.md)
-- [Analytics Dashboard](./analytics-dashboard.md)
+- [Nexus Dashboard](./nexus-dashboard.md)
 - [Favorite Locations](../managing-locations/favorite-locations.md)
