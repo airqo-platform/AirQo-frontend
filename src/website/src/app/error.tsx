@@ -5,7 +5,16 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { FiHelpCircle, FiHome, FiRefreshCw } from 'react-icons/fi';
 
-import TopBanner from '@/components/layout/TopBanner';
+function MinimalBanner() {
+  return (
+    <div className="flex items-center justify-between bg-[#145DFF] px-4 py-2 text-xs text-white/90 sm:px-6">
+      <span className="font-medium">AirQo</span>
+      <span className="hidden sm:inline">
+        Bridging the Air Quality Data Gap in Africa
+      </span>
+    </div>
+  );
+}
 
 function ErrorIllustration() {
   return (
@@ -141,7 +150,7 @@ export default function GlobalError({
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <TopBanner />
+      <MinimalBanner />
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

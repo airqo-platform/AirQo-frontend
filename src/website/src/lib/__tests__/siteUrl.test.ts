@@ -36,9 +36,9 @@ describe('siteUrl', () => {
       );
     });
 
-    it('strips port from hostname', () => {
+    it('preserves port from hostname', () => {
       expect(detectSiteUrlFromHeaders('airqo.africa:443')).toBe(
-        'https://airqo.africa',
+        'https://airqo.africa:443',
       );
     });
 
@@ -62,7 +62,7 @@ describe('siteUrl', () => {
 
     it('returns URL from Host header with port', () => {
       expect(getPrimarySiteUrl('airqo.africa:8080')).toBe(
-        'https://airqo.africa',
+        'https://airqo.africa:8080',
       );
     });
 

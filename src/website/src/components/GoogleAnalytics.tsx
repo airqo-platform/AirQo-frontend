@@ -29,11 +29,21 @@ export default function GoogleAnalytics({
   const resolvedMeasurementId =
     measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
 
-  // Use the current domain for cross-domain linking
+  // GA4 linker domains for cross-domain measurement.
+  // Include all sibling AirQo properties so outbound links receive _gl params.
   const configuredLinkerDomains = useMemo(() => {
-    if (typeof window === 'undefined') return [];
-    const currentHostname = window.location.hostname;
-    return currentHostname ? [currentHostname] : [];
+    const siblingDomains = [
+      'airqo.africa',
+      'airqo.net',
+      'airqo.org',
+      'airqo.mak.ac.ug',
+      'platform.airqo.net',
+    ];
+    if (typeof window === 'undefined') return siblingDomains;
+    const current = window.location.hostname;
+    // Always include current domain + siblings
+    const all = new Set([current, ...siblingDomains]);
+    return Array.from(all);
   }, []);
 
   useEffect(() => {

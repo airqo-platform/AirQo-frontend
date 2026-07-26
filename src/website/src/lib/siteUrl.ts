@@ -8,6 +8,9 @@
 
 const LOCAL_DEV_SITE_URL = 'http://localhost:3000';
 
+// Valid hostname pattern: alphanumeric, dots, hyphens, or IPv6 in brackets
+const HOSTNAME_PATTERN = /^[a-z0-9.-]+$|^\[[0-9a-f:]+\]$/i;
+
 const normalizeSiteUrl = (value: string): string =>
   value.trim().replace(/\/+$/, '');
 
@@ -19,40 +22,28 @@ const toAbsoluteSiteUrl = (value: string): string => {
 };
 
 /**
- * Extract hostname from a Host header value, handling IPv6 addresses.
- *
- * @example
- * extractHostname('airqo.africa:443') // 'airqo.africa'
- * extractHostname('[::1]:3000')       // '::1'
- * extractHostname('localhost')        // 'localhost'
+ * Validate a hostname against basic syntax rules.
  */
-const extractHostname = (hostHeader: string): string => {
-  const trimmed = hostHeader.trim();
+const isValidHostname = (hostname: string): boolean =>
+  HOSTNAME_PATTERN.test(hostname);
 
-  // IPv6: starts with '[' -- extract everything between brackets
-  if (trimmed.startsWith('[')) {
-    const closeBracket = trimmed.indexOf(']');
-    if (closeBracket > 1) {
-      return trimmed.slice(1, closeBracket);
-    }
-  }
-
-  // Standard hostname:port -- strip the port
-  const colonIndex = trimmed.lastIndexOf(':');
-  if (colonIndex > 0) {
-    return trimmed.slice(0, colonIndex);
-  }
-
-  return trimmed;
-};
+/**
+ * Get the list of allowed hosts from environment.
+ * If empty, all valid hostnames are allowed.
+ */
+const getAllowedHosts = (): string[] =>
+  (process.env.ALLOWED_SITE_HOSTS ?? '')
+    .split(',')
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
 
 /**
  * Detect the site URL from a Host header value.
- * Works with or without port numbers (e.g. "airqo.africa" or "localhost:3000").
+ * Validates the hostname and checks against an allowlist if configured.
  *
  * @param hostHeader - The value of the Host or x-forwarded-host header
  * @param protocol - The protocol to use (defaults to https)
- * @returns The full site URL, or null if the header is empty
+ * @returns The full site URL, or null if the header is empty/invalid
  */
 export const detectSiteUrlFromHeaders = (
   hostHeader: string | null,
@@ -60,10 +51,27 @@ export const detectSiteUrlFromHeaders = (
 ): string | null => {
   if (!hostHeader) return null;
 
-  const hostname = extractHostname(hostHeader);
-  if (!hostname) return null;
+  // Extract host (hostname + port), strip any path
+  const host = hostHeader.trim().split('/')[0]?.trim();
+  if (!host) return null;
 
-  return normalizeSiteUrl(`${protocol}://${hostname}`);
+  // Extract just the hostname (before the last colon for port)
+  const hostname = host.includes('[')
+    ? host.slice(1, host.indexOf(']'))
+    : host.includes(':')
+      ? host.slice(0, host.lastIndexOf(':'))
+      : host;
+
+  // Validate hostname syntax
+  if (!isValidHostname(hostname)) return null;
+
+  // Check allowlist if configured
+  const allowed = getAllowedHosts();
+  if (allowed.length > 0 && !allowed.includes(hostname.toLowerCase())) {
+    return null;
+  }
+
+  return normalizeSiteUrl(`${protocol}://${host}`);
 };
 
 /**
@@ -71,9 +79,9 @@ export const detectSiteUrlFromHeaders = (
  *
  * Detection priority:
  * 1. Host header (server-side, most accurate)
- * 2. Vercel preview URL
- * 3. Platform-specific env vars (Railway, Render, etc.)
- * 4. window.location.origin (client-side)
+ * 2. window.location.origin (client-side - always prefer real origin)
+ * 3. Vercel preview URL
+ * 4. Platform-specific env vars (Railway, Render, etc.)
  * 5. localhost fallback (development only)
  *
  * @param hostHeader - Optional Host header value for server-side detection.
@@ -86,12 +94,17 @@ export const getPrimarySiteUrl = (hostHeader?: string | null): string => {
     if (detected) return detected;
   }
 
-  // Method 2: Vercel preview URL
+  // Method 2: Client-side detection (browser origin always wins)
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  // Method 3: Vercel preview URL
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return toAbsoluteSiteUrl(process.env.NEXT_PUBLIC_VERCEL_URL);
   }
 
-  // Method 3: Platform-specific environment variables
+  // Method 4: Platform-specific environment variables
   if (typeof process !== 'undefined') {
     const platformHost =
       process.env.VERCEL_URL ||
@@ -100,14 +113,6 @@ export const getPrimarySiteUrl = (hostHeader?: string | null): string => {
 
     if (platformHost) {
       return toAbsoluteSiteUrl(platformHost);
-    }
-  }
-
-  // Method 4: Client-side detection
-  if (typeof window !== 'undefined' && window.location) {
-    const origin = window.location.origin;
-    if (origin && !origin.includes('localhost')) {
-      return origin;
     }
   }
 

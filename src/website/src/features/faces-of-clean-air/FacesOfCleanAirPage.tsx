@@ -453,7 +453,7 @@ function FaceCard({
         type="button"
         onClick={handleDownload}
         aria-label={`Download ${displayName}'s selfie as PNG`}
-        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-0 backdrop-blur-md transition-all duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent sm:opacity-0 sm:group-hover:opacity-100"
+        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-all duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
       >
         <FiDownload className="h-4 w-4" />
       </button>

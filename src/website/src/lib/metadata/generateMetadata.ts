@@ -33,7 +33,7 @@ export function generateMetadata(
 
   const socialUrl = fullUrl;
 
-  const socialDomain = siteUrl.replace('https://', '');
+  const socialDomain = new URL(siteUrl).host;
 
   return {
     title: config.title,
