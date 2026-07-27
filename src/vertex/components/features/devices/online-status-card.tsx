@@ -186,7 +186,13 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
               {dateHint && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <AlertTriangle className="w-4 h-4 text-purple-600 cursor-help" />
+                    <button
+                      type="button"
+                      aria-label={dateHint.label}
+                      className="p-0 bg-transparent border-none cursor-help text-purple-600 inline-flex items-center"
+                    >
+                      <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <p className="text-sm font-medium mb-1">{dateHint.label}</p>

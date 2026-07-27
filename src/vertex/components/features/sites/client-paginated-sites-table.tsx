@@ -140,7 +140,14 @@ export default function ClientPaginatedSitesTable({
             {dateHint && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <AlertTriangle className="w-4 h-4 ml-1.5 text-purple-600 cursor-help inline-block" />
+                  <button
+                    type="button"
+                    aria-label={dateHint.label}
+                    onClick={(e) => e.stopPropagation()}
+                    className="ml-1.5 p-0 bg-transparent border-none cursor-help text-purple-600 inline-flex items-center"
+                  >
+                    <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="text-sm font-medium mb-1">{dateHint.label}</p>
