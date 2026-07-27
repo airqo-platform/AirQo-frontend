@@ -2,6 +2,23 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.27
+**Released:** July 27, 2026
+
+### Feat: surface `dateValidStatus` diagnostic hint on device and site status badges
+
+Adds a non-breaking diagnostic indicator for devices and sites that report a bad onboard clock or unparseable timestamp. A purple `AlertTriangle` icon appears next to the existing status badge whenever the backend returns `dateValidStatus: "future_timestamp"` or `"invalid_format"`; hovering reveals a short explanation. The field is optional and additive — existing status logic, colors, and labels are untouched.
+
+**Files changed:**
+- `app/types/devices.ts` — `dateValidStatus` optional field on `Device`
+- `app/types/sites.ts` — `dateValidStatus` optional field on `Site`
+- `core/utils/status.ts` — `getDateValidHint()` helper + `DateValidHint` interface
+- `components/features/devices/online-status-card.tsx` — hint icon next to status label
+- `components/features/devices/utils/table-columns.tsx` — hint icon in Device Status column (wrapped in `TooltipProvider`)
+- `components/features/sites/sites-list-table.tsx` — hint icon in Status column
+- `components/features/sites/client-paginated-sites-table.tsx` — hint icon in Status column
+- `components/features/sites/site-information-card.tsx` — hint icon next to status badge
+
 ## Version 2.0.26
 **Released:** July 16, 2026
 

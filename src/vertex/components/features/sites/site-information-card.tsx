@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AqEdit01, AqCopy01 } from "@airqo/icons-react";
+import { AlertTriangle } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useClipboard } from "@/core/hooks/useClipboard";
 import {
@@ -16,6 +17,7 @@ import {
   formatDisplayDate,
   getDeviceStatus,
   getStatusExplanation,
+  getDateValidHint,
 } from "@/core/utils/status";
 
 interface SiteInformationCardProps {
@@ -46,6 +48,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
+  const dateHint = getDateValidHint(site.dateValidStatus);
 
   return (
     <Card className="w-full rounded-lg flex flex-col">
@@ -94,6 +97,17 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
                     <p className="max-w-xs text-xs">{explanation}</p>
                   </TooltipContent>
                 </Tooltip>
+                {dateHint && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertTriangle className="w-4 h-4 ml-1.5 text-purple-600 cursor-help inline-block" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-sm font-medium mb-1">{dateHint.label}</p>
+                      <p className="text-xs max-w-xs">{dateHint.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </TooltipProvider>
             </div>
           </div>

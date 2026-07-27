@@ -9,7 +9,15 @@ import {
   badgeColorClasses,
   formatDisplayDate,
   getDeviceStatus,
+  getDateValidHint,
 } from "@/core/utils/status";
+import { AlertTriangle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SitesTableProps {
   itemsPerPage?: number;
@@ -137,15 +145,29 @@ export default function SitesTable({
         );
         const colors = badgeColorClasses[status.color];
         const Icon = status.icon;
+        const dateHint = getDateValidHint(site.dateValidStatus);
 
         return (
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
-            title={status.description}
-          >
-            <Icon className="w-4 h-4 mr-1" />
-            {status.label}
-          </span>
+          <TooltipProvider>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
+              title={status.description}
+            >
+              <Icon className="w-4 h-4 mr-1" />
+              {status.label}
+            </span>
+            {dateHint && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertTriangle className="w-4 h-4 ml-1.5 text-purple-600 cursor-help inline-block" />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-sm font-medium mb-1">{dateHint.label}</p>
+                  <p className="text-xs max-w-xs">{dateHint.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </TooltipProvider>
         );
       },
     },
