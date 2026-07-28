@@ -213,3 +213,29 @@ export const getStatusExplanation = (
       return "Unknown status";
   }
 };
+
+export interface DateValidHint {
+  label: string;
+  description: string;
+}
+
+export const getDateValidHint = (
+  dateValidStatus?: "valid" | "future_timestamp" | "invalid_format" | "unknown"
+): DateValidHint | null => {
+  if (dateValidStatus === "future_timestamp") {
+    return {
+      label: "Clock Error",
+      description:
+        "Device may be connected, but its reported time is in the future " +
+        "(likely a bad onboard clock/RTC). This is a device hardware issue, " +
+        "not necessarily a connectivity problem.",
+    };
+  }
+  if (dateValidStatus === "invalid_format") {
+    return {
+      label: "Timestamp Error",
+      description: "Device sent a timestamp that couldn't be parsed.",
+    };
+  }
+  return null;
+};
