@@ -72,7 +72,13 @@ async function openDeployWizard(page: Page): Promise<Locator> {
 async function fillDeviceDetailsStep(page: Page, wizard: Locator) {
   await wizard.getByRole("button", { name: "Pick a date" }).click();
   const today = String(new Date().getDate());
-  await page.getByRole("gridcell", { name: today, exact: true }).click();
+  // The grid can show `today`'s number twice when it also lands on a
+  // padding day from an adjacent month; the real cell is the one without
+  // the "day-outside" class.
+  await page
+    .getByRole("gridcell", { name: today, exact: true })
+    .and(page.locator(":not(.day-outside)"))
+    .click();
 
   await wizard.getByRole("spinbutton", { name: "Height (meters)" }).fill("3");
 

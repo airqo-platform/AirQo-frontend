@@ -119,7 +119,9 @@ async function selectDevice(user: ReturnType<typeof userEvent.setup>, label: str
 async function pickToday(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Pick a date" }));
   const today = String(new Date().getDate());
-  await user.click(screen.getByRole("gridcell", { name: today }));
+  const candidates = screen.getAllByRole("gridcell", { name: today });
+  const cell = candidates.find((el) => !el.className.includes("day-outside")) ?? candidates[0];
+  await user.click(cell);
 }
 
 async function selectFromDropdown(
