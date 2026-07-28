@@ -15,9 +15,9 @@ import {
 import {
   formatDisplayDate,
   getDeviceStatus,
-  getDateValidHint,
   getStatusExplanation,
 } from "@/core/utils/status";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 const statusColorClasses = {
   green: {
@@ -149,7 +149,6 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
 
   const colors = statusColorClasses[status.color];
   const detailedExplanation = getStatusExplanation(status.label, lastActiveCheck);
-  const dateHint = getDateValidHint(device.dateValidStatus);
 
   const Icon = status.icon;
 
@@ -183,23 +182,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
             >
               <Icon className="w-5 h-5" />
               <span>{status.label}</span>
-              {dateHint && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label={dateHint.label}
-                      className="p-0 bg-transparent border-none cursor-help text-purple-600 inline-flex items-center"
-                    >
-                      <AlertTriangle className="w-4 h-4" aria-hidden="true" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p className="text-sm font-medium mb-1">{dateHint.label}</p>
-                    <p className="text-xs max-w-xs">{dateHint.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              <DateValidHintIndicator dateValidStatus={device.dateValidStatus} />
             </div>
 
             <div className="text-sm text-muted-foreground">

@@ -9,15 +9,8 @@ import {
   badgeColorClasses,
   formatDisplayDate,
   getDeviceStatus,
-  getDateValidHint,
 } from "@/core/utils/status";
-import { AlertTriangle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 export type TableDevice = TableItem<unknown> & Device;
 
@@ -53,35 +46,16 @@ export const getColumns = (
         );
         const colors = badgeColorClasses[status.color];
         const Icon = status.icon;
-        const dateHint = getDateValidHint(item.dateValidStatus);
-
         return (
-          <TooltipProvider>
+          <>
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
             >
               <Icon className="w-4 h-4 mr-1" />
               {status.label}
             </span>
-            {dateHint && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={dateHint.label}
-                    onClick={(e) => e.stopPropagation()}
-                    className="ml-1.5 p-0 bg-transparent border-none cursor-help text-purple-600 inline-flex items-center"
-                  >
-                    <AlertTriangle className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p className="text-sm font-medium mb-1">{dateHint.label}</p>
-                  <p className="text-xs max-w-xs">{dateHint.description}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </TooltipProvider>
+            <DateValidHintIndicator dateValidStatus={item.dateValidStatus} stopPropagation />
+          </>
         );
       },
     },

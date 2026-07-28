@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AqEdit01, AqCopy01 } from "@airqo/icons-react";
-import { AlertTriangle } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useClipboard } from "@/core/hooks/useClipboard";
 import {
@@ -17,8 +16,8 @@ import {
   formatDisplayDate,
   getDeviceStatus,
   getStatusExplanation,
-  getDateValidHint,
 } from "@/core/utils/status";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 interface SiteInformationCardProps {
   site: Site;
@@ -48,8 +47,6 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
-  const dateHint = getDateValidHint(site.dateValidStatus);
-
   return (
     <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
@@ -97,23 +94,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
                     <p className="max-w-xs text-xs">{explanation}</p>
                   </TooltipContent>
                 </Tooltip>
-                {dateHint && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={dateHint.label}
-                        className="ml-1.5 p-0 bg-transparent border-none cursor-help text-purple-600 inline-flex items-center"
-                      >
-                        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="text-sm font-medium mb-1">{dateHint.label}</p>
-                      <p className="text-xs max-w-xs">{dateHint.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <DateValidHintIndicator dateValidStatus={site.dateValidStatus} />
               </TooltipProvider>
             </div>
           </div>
