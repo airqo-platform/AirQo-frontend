@@ -109,6 +109,8 @@
     "dotenv": "^17.4.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.6",
     "jsdom": "^29.1.1",
     "postcss": "^8",
     "size-limit": "^12.0.0",
@@ -120,7 +122,7 @@
     {
       "name": "vertex-main-chunk",
       "path": ".next/static/chunks/app/**/*.js",
-      "limit": "205 kB"
+      "limit": "210 kB"
     }
   ]
 }

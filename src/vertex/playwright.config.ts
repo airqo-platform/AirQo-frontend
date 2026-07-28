@@ -79,6 +79,12 @@ export default defineConfig({
     env: {
       NEXTAUTH_URL: baseURL,
       NEXTAUTH_COOKIE_DOMAIN: "",
+      // No-op when HTTP_PROXY/HTTPS_PROXY aren't set; in sandboxes that
+      // require an explicit proxy for outbound internet, routes axios and
+      // fetch through it — see the file for why that's needed at all.
+      NODE_OPTIONS: [process.env.NODE_OPTIONS, `--require "${path.resolve(__dirname, "e2e/setup/proxy-bootstrap.cjs")}"`]
+        .filter(Boolean)
+        .join(" "),
     },
   },
 });
