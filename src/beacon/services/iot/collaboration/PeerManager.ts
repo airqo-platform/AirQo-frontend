@@ -224,6 +224,12 @@ export class PeerManager {
     }
   }
 
+  sendToHost(message: any): void {
+    if (this.hostPeer) {
+      this.sendMessage(this.hostPeer.userId, message);
+    }
+  }
+
   broadcast(message: any): void {
     const jsonStr = JSON.stringify(message);
 

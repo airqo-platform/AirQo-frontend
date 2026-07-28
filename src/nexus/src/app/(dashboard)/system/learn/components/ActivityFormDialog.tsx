@@ -425,6 +425,7 @@ const ActivityFormDialog: React.FC<ActivityFormDialogProps> = ({
           </div>
 
           <div className="space-y-2">
+            {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
             {quizPayload.options.map((option, index) => (
               <div key={index} className="flex items-start gap-2">
                 <div className="flex-1">

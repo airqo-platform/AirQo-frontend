@@ -11,6 +11,7 @@ import { clearPendingGroupSwitch } from '@/shared/store/userSlice';
 import { LoadingOverlay } from './loading-overlay';
 
 const GROUP_SWITCH_FAILSAFE_MS = 15000;
+const GROUP_SWITCH_RELEASE_MS = 800;
 
 const normalizePath = (value?: string | null) => {
   const normalized = (value || '/').split('?')[0].replace(/\/+$/, '');
@@ -43,7 +44,7 @@ export function GroupSwitchOverlay() {
     if (hasReachedDestination) {
       const releaseTimer = window.setTimeout(() => {
         dispatch(clearPendingGroupSwitch());
-      }, 120);
+      }, GROUP_SWITCH_RELEASE_MS);
 
       return () => window.clearTimeout(releaseTimer);
     }

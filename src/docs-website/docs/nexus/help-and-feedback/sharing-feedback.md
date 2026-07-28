@@ -62,3 +62,10 @@ After you submit feedback:
 | Screenshot capture fails | Make sure your browser supports screen capture and that you grant permission when prompted. |
 | Image upload fails | Check that the file is a supported image format and is smaller than 5 MB. |
 | Feedback button is missing | You may be on a page where the button is hidden. Navigate to another page and try again. |
+
+---
+
+## Related Guides
+
+- [Navigating the Platform](../getting-started/navigating-the-platform.md) — learn how to move around the interface
+- [Creating an Account](../getting-started/creating-an-account.md) — get started with AirQo Nexus

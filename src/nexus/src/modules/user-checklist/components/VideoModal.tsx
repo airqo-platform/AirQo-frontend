@@ -194,7 +194,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
     <ReusableDialog
       isOpen={isOpen}
       onClose={handleClose}
-      title="Analytics Video"
+      title="Nexus Video"
       size="xl"
       showCloseButton={true}
       contentAreaClassName="p-0"

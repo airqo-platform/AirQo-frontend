@@ -13,6 +13,7 @@ interface SiteInsightsChartProps {
   className?: string;
   height?: number;
   defaultPollutant?: PollutantType;
+  selectedPollutant?: PollutantType;
 }
 
 /**
@@ -25,10 +26,12 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
   className,
   height = 150,
   defaultPollutant = 'pm2_5',
+  selectedPollutant,
 }) => {
-  // Get current pollutant from analytics store for consistency with map
+  // Prefer the map's selected pollutant over the global analytics store
   const { filters } = useAnalytics();
-  const currentPollutant = filters?.pollutant || defaultPollutant;
+  const currentPollutant =
+    selectedPollutant || filters?.pollutant || defaultPollutant;
 
   // Calculate last 7 days date range
   const dateRange = React.useMemo(() => {

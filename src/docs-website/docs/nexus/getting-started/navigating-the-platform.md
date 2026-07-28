@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 4
 sidebar_label: Navigating the Platform
 ---
 
@@ -21,7 +21,7 @@ The Individual workflow is your personal workspace. Use it to explore air qualit
 |-------|------|-------------|
 | **Explore** | Home | Welcome page with quick actions and an onboarding checklist |
 | | Map | Full-screen interactive map with air quality data layers |
-| | Favorite Locations | Saved locations and quick-access charts |
+| | My Favorites | Saved locations and quick-access charts |
 | **Data & Analysis** | Visualization & Data Export | Download air quality datasets with flexible configuration |
 | | Dataset Visualizer | Upload CSV or Excel files and build custom charts |
 | **Account** | Profile | Edit your name, profile picture, and account settings |
@@ -34,7 +34,7 @@ The Organization workflow is a shared workspace for teams. It includes the same 
 
 | Group | Page | Description |
 |-------|------|-------------|
-| **Main** | Dashboard | Organization-level analytics dashboard with selected sites and charts |
+| **Main** | Dashboard | Organization-level Nexus dashboard with selected sites and charts |
 | | Visualization & Data Export | Download datasets for your organization's locations |
 | | Dataset Visualizer | Upload and visualize data files |
 | | Map | Interactive map for your organization's monitoring sites |
@@ -112,6 +112,6 @@ Use the **Organization Selector** in the header to switch workspaces:
 
 - [Creating an Account](./creating-an-account.md)
 - [Logging In](./logging-in.md)
-- [Analytics Dashboard](../monitoring-air-quality/analytics-dashboard.md)
+- [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
 - [Interactive Map](../monitoring-air-quality/interactive-map.md)
 - [Organization Management](../organization-management/managing-members.md)

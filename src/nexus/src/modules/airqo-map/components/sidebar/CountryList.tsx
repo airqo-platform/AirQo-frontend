@@ -28,6 +28,7 @@ const CountryListSkeleton: React.FC<{ className?: string }> = ({
     )}
   >
     <div className="flex gap-2 pb-3">
+      {/* Static list — index key is safe */}
       {Array.from({ length: 1 }).map((_, index) => (
         <div
           key={index}

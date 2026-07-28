@@ -54,3 +54,28 @@ AirQo does not supply reference-grade air quality monitoring equipment. For proj
 
 For research projects seeking to integrate AirQo sensors within a larger hybrid monitoring system, contact [support@airqo.net](mailto:support@airqo.net) to discuss partnership arrangements, including technical training support, API integration, and data hosting on the AirQo platform.
 :::
+
+### 10.6 Physical Deployment Geometry for Co-location
+
+When co-locating an AirQo sensor with a reference-grade monitor (see [Section 10.5](#105-reference-grade-monitor-requirements)), the physical setup materially affects calibration model reliability, sometimes as much as sensor-intrinsic uncertainty. The specifications below are field-tested across AirQo co-location campaigns in Kampala and Nairobi and help ensure the low-cost sensor (LCS) and reference monitor sample a comparable air parcel.
+
+- **Mounting height** — Match the LCS inlet height to the reference monitor's inlet height within ±0.5 m (ideally ±0.3 m). Typical urban neighbourhood-scale sites use 2.0–4.0 m above ground level. Vertical PM gradients near traffic and dust resuspension mean height mismatches can bias results as much as sensor drift.
+- **Horizontal separation** — Position units 1–5 m apart, inlet-to-inlet. Never go below 1 m: closer spacing risks the LCS fan/pump exhaust affecting the reference monitor's inlet (or vice versa). Avoid separations beyond roughly 10–20 m so both instruments still sample the same air mass.
+- **Orientation and clearance** — Orient all inlets in the same cardinal direction, ideally facing the prevailing wind, to minimise differential rain/dust impaction. Maintain a minimum 2 m clearance radius free of walls, trees, or equipment that could create turbulence or shading; increase to 3–5 m upwind where possible.
+
+**Quick reference**
+
+| Parameter | Target | Why it matters |
+|---|---|---|
+| Vertical offset | ≤ ±0.5 m (ideal ±0.3 m) | Minimises bias from vertical PM gradients near traffic/dust sources |
+| Horizontal separation | 1–5 m (never below 1 m) | Same air mass, without fan/heat interference |
+| Inlet orientation | Identical, facing prevailing wind | Reduces differential rain/dust impaction across inlets |
+| Clearance radius | ≥ 2 m (≥ 3 m upwind preferred) | Avoids turbulence, shading, and localised sources |
+
+**Documentation** — Record inlet heights, separation distance, orientation, and GPS coordinates at setup, and again after any reconfiguration. Photograph each setup: a wide establishing shot, an inlet close-up with a tape measure visible, and any obstacles within roughly 10 m. This geometry metadata should accompany your dataset alongside the calibration model version (see [Section 10.1](#101-calibration-frequency)) so results remain auditable and reproducible across sites and seasons.
+
+**Seasonal adaptation** — In high-dust (e.g., Harmattan/dry season) or high-humidity (wet season) conditions, increase inlet inspection frequency and keep enclosures ventilated but rain-tight; see [Section 10.1](#101-calibration-frequency) for corresponding calibration interval adjustments.
+
+:::info Further reading
+For the full physical co-location framework, see the U.S. EPA Enhanced Air Sensor Guidebook and Collocation Instruction Guide: https://www.epa.gov/air-sensor-toolbox
+:::

@@ -35,11 +35,20 @@ const ThemeManager: React.FC = () => {
   const { activeGroup } = useUser();
   const { data: groupThemeData } = useGroupTheme(activeGroup?.id || '');
 
+  // Resolve the effective mode (system → OS preference) for comparison
+  const resolvedMode =
+    theme.mode === 'system'
+      ? typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      : theme.mode;
+
   // Check if current theme matches group theme
   const themesMatch =
     groupThemeData?.success && groupThemeData.data
       ? theme.primaryColor === groupThemeData.data.primaryColor &&
-        theme.mode === groupThemeData.data.mode &&
+        resolvedMode === groupThemeData.data.mode &&
         theme.interfaceStyle === groupThemeData.data.interfaceStyle &&
         theme.contentLayout === groupThemeData.data.contentLayout
       : true; // If no group theme, consider matched
@@ -76,6 +85,7 @@ const ThemeManager: React.FC = () => {
         interfaceStyle: groupTheme.interfaceStyle,
         contentLayout: groupTheme.contentLayout,
       });
+      setCustomColor(groupTheme.primaryColor);
     } else {
       // Reset to defaults
       const defaults = {
@@ -85,8 +95,8 @@ const ThemeManager: React.FC = () => {
         contentLayout: 'wide' as const,
       };
       await updateTheme(defaults);
+      setCustomColor('#1649e5');
     }
-    setCustomColor(theme.primaryColor);
   };
 
   return (

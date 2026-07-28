@@ -264,7 +264,10 @@ const RolesPage = () => {
             setCurrentPage(1);
           }}
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={value => {
+            setSearchTerm(value);
+            setCurrentPage(1);
+          }}
         />
 
         {/* Create Role Dialog */}

@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // ============================================================================
 // LoadingOverlay Component
 // ============================================================================
+
+const FADE_OUT_MS = 300;
 
 interface LoadingOverlayProps {
   /**
@@ -15,10 +17,6 @@ interface LoadingOverlayProps {
    * Additional CSS classes for the overlay
    */
   className?: string;
-  /**
-   * Background opacity (0-1)
-   */
-  opacity?: number;
   /**
    * Delay (ms) before showing to reduce flicker on fast transitions
    */
@@ -36,53 +34,67 @@ interface LoadingOverlayProps {
 const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   isVisible = true,
   className = '',
-  opacity = 0.2,
   delayMs = 120,
   title,
   description,
 }) => {
   const [shouldRender, setShouldRender] = useState(isVisible && delayMs === 0);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const hideTimerRef = useRef<number | null>(null);
   const hasCopy = Boolean(title || description);
 
   useEffect(() => {
-    if (!isVisible) {
+    if (isVisible) {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      setIsFadingOut(false);
+      if (delayMs === 0) {
+        setShouldRender(true);
+        return;
+      }
+      const timeoutId = window.setTimeout(() => {
+        setShouldRender(true);
+      }, delayMs);
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    if (!shouldRender) return;
+
+    setIsFadingOut(true);
+    hideTimerRef.current = window.setTimeout(() => {
       setShouldRender(false);
-      return;
-    }
+      setIsFadingOut(false);
+    }, FADE_OUT_MS);
 
-    if (delayMs === 0) {
-      setShouldRender(true);
-      return;
-    }
+    return () => {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, [delayMs, isVisible, shouldRender]);
 
-    const timeoutId = window.setTimeout(() => {
-      setShouldRender(true);
-    }, delayMs);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [delayMs, isVisible]);
-
-  if (!shouldRender) return null;
+  if (!shouldRender && !isFadingOut) return null;
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity ${className}`}
-      style={{ backgroundColor: `rgba(248, 250, 252, ${opacity})` }}
+      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-background/80 transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'} ${className}`}
       role="status"
       aria-live="polite"
     >
       {hasCopy ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200/70 bg-white/85 px-8 py-6 text-center shadow-sm">
+        <div className={`flex flex-col items-center gap-4 rounded-2xl border border-border bg-card/85 px-8 py-6 text-center shadow-sm transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
           <div
             className="SecondaryMainloader"
             aria-label={title || 'Loading'}
           ></div>
           <div className="max-w-sm space-y-1">
             {title ? (
-              <p className="text-sm font-semibold text-slate-900">{title}</p>
+              <p className="text-sm font-semibold text-foreground">{title}</p>
             ) : null}
             {description ? (
-              <p className="text-xs leading-5 text-slate-600">{description}</p>
+              <p className="text-xs leading-5 text-muted-foreground">{description}</p>
             ) : null}
           </div>
         </div>

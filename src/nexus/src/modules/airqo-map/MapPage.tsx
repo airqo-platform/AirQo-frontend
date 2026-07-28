@@ -160,7 +160,8 @@ const MapPage: React.FC<MapPageProps> = ({
     posthog?.capture('map_viewed');
     trackEvent('map_viewed');
     trackFeatureUsage(posthog, 'map', 'view');
-  }, [posthog]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Data ───────────────────────────────────────────────────────────────────
   const mapCohortFilter = isOrganizationFlow
@@ -339,7 +340,10 @@ const MapPage: React.FC<MapPageProps> = ({
     }
   };
 
-  const handleClusterClick = () => setSelectedLocationId(null);
+  const handleClusterClick = () => {
+    setSelectedLocationId(null);
+    dispatch(clearSelectedLocation());
+  };
   const handleBackToList = () => dispatch(clearSelectedLocation());
 
   // ── Shared props ───────────────────────────────────────────────────────────

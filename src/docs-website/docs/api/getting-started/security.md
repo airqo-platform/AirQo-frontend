@@ -5,7 +5,7 @@ sidebar_label: Security Enhancements
 
 # Security Enhancements
 
-AirQo provides multiple independent security layers that you can stack on each API client and its token. All controls are configured from **Profile → API** inside [analytics.airqo.net](https://analytics.airqo.net) — no code deployment required.
+AirQo provides multiple independent security layers that you can stack on each API client and its token. All controls are configured from **Profile → API** inside [nexus.airqo.net](https://nexus.airqo.net) — no code deployment required.
 
 ---
 
@@ -32,7 +32,7 @@ This acts as a second factor for API access — even if a token is leaked, it ca
 
 ### How to enable it
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.
 3. Check **Require client secret on every request**.
 4. Copy the displayed Client Secret and store it securely (e.g. in a secrets manager or environment variable).
@@ -76,7 +76,7 @@ This control is **required for all server-side integrations**. Without it, reque
 
 ### How to configure it
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.
 3. Add each public IP address your server uses under **IP Addresses**.
 4. Click **Update** to save.
@@ -101,7 +101,7 @@ This is the browser-equivalent of IP whitelisting: it prevents other websites fr
 
 **Client level (enforcement toggle):**
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.
 3. Check **Enforce origin restriction**.
 4. Add each allowed origin under **Allowed origins** — use the full origin with protocol, for example `https://app.airqo.net`.
@@ -136,7 +136,7 @@ This is useful when you issue tokens to third-party partners or sub-organisation
 
 ### How to configure it
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **shield** icon on the token row to open the Token Security dialog.
 3. Under **Restrict to Grids**, enter each Grid ID the token is allowed to access.
 4. Under **Restrict to Cohorts**, enter each Cohort ID the token is allowed to access.
@@ -160,7 +160,7 @@ This is useful for service accounts that should only operate during business hou
 
 ### How to configure it
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **shield** icon on the token row.
 3. In the Token Security dialog, check **Access schedule** to enable it.
 4. Select the **Allowed days** (Sun–Sat checkboxes). Leaving all days unchecked allows requests every day.
@@ -191,7 +191,7 @@ AirQo monitors request patterns on each token. If suspicious activity is detecte
 
 ### How to check and reinstate a suspended token
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. A suspended token will show a warning indicator on the token row and display the status as suspended.
 3. Click the **shield** icon to open the Token Security dialog.
 4. A banner at the top will show:

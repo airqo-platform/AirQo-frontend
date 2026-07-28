@@ -326,8 +326,8 @@ export const LocationsList: React.FC<LocationsListProps> = ({
 
   const handleLocationClick = (location: LocationData) => {
     if (location.isPhotonResult && location.photonData) {
-      // Photon result
-      onLocationSelect?.(`photon-${location.photonData.properties.osm_id}`, {
+      // Photon result — use the same ID format as the display list
+      onLocationSelect?.(location.id, {
         latitude: location.latitude!,
         longitude: location.longitude!,
         name: location.title,

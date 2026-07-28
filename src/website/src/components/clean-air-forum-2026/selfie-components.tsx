@@ -16,7 +16,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { FiCamera } from 'react-icons/fi';
+import { FiCamera, FiDownload } from 'react-icons/fi';
 
 import type { CleanAirSubmissionWithId } from '@/services/external/faces-of-clean-air.service';
 
@@ -64,6 +64,51 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
+async function downloadImageAsPng(
+  imageUrl: string,
+  displayName: string,
+): Promise<void> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error(
+        'Failed to fetch image:',
+        response.status,
+        response.statusText,
+      );
+      return;
+    }
+    const blob = await response.blob();
+    const imageBitmap = await createImageBitmap(blob);
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = imageBitmap.width;
+      canvas.height = imageBitmap.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(imageBitmap, 0, 0);
+
+      canvas.toBlob((pngBlob) => {
+        if (!pngBlob) return;
+        const url = URL.createObjectURL(pngBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${displayName.replace(/[^a-zA-Z0-9]/g, '_')}_airqo.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    } finally {
+      imageBitmap.close();
+    }
+  } catch (error) {
+    console.error('Failed to download image:', error);
+  }
+}
+
 export function FaceCard({
   submission,
   priority,
@@ -106,6 +151,14 @@ export function FaceCard({
     pointerY.set(0.5);
   }, [pointerX, pointerY]);
 
+  const handleDownload = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      void downloadImageAsPng(submission.imageUrl, displayName);
+    },
+    [submission.imageUrl, displayName],
+  );
+
   return (
     <motion.article
       layout
@@ -142,6 +195,15 @@ export function FaceCard({
         className="object-contain transition-transform duration-1000 ease-out sm:group-hover:scale-[1.05]"
         sizes="(max-width: 639px) 86vw, (max-width: 1023px) 42vw, (max-width: 1279px) 25vw, 22vw"
       />
+
+      <button
+        type="button"
+        onClick={handleDownload}
+        aria-label={`Download ${displayName}'s selfie as PNG`}
+        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-all duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+      >
+        <FiDownload className="h-4 w-4" />
+      </button>
     </motion.article>
   );
 }
