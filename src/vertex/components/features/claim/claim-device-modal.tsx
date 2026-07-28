@@ -333,9 +333,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // Single claim: error
   useEffect(() => {
     if (claimError) {
-      setError(
-        claimError.message || 'Failed to add airqo device. Please try again.',
-      );
+      setError(getApiErrorMessage(claimError));
       setStep('manual-input');
     }
   }, [claimError]);
