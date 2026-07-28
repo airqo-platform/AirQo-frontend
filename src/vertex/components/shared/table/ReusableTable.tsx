@@ -1157,52 +1157,38 @@ const ReusableTable = <T extends TableItem>({
   );
 
   // Multi-Select Logic
+  // Notify callers after setSelectedItems, not from inside its updater —
+  // those callbacks often call a parent's own setState, which React warns
+  // about ("Cannot update a component while rendering a different component").
   const handleSelectAll = useCallback(
     (isChecked: boolean) => {
+      let updatedSelected: T[];
       if (isChecked) {
-        setSelectedItems((prevSelected) => {
-          const newItems = finalPaginatedData.filter(
-            (item) => isRowSelectable(item) && !prevSelected.some(prev => prev.id === item.id)
-          );
-          const updatedSelected = [...prevSelected, ...newItems];
-          onSelectedItemsChange?.(updatedSelected);
-          onSelectedIdsChange?.(updatedSelected.map(item => item.id));
-          return updatedSelected;
-        });
+        const newItems = finalPaginatedData.filter(
+          (item) => isRowSelectable(item) && !selectedItems.some(prev => prev.id === item.id)
+        );
+        updatedSelected = [...selectedItems, ...newItems];
       } else {
         const currentPageIds = new Set(finalPaginatedData.map((item) => item.id));
-        setSelectedItems((prevSelected) => {
-          const updatedSelected = prevSelected.filter(
-            (item) => !currentPageIds.has(item.id)
-          );
-          onSelectedItemsChange?.(updatedSelected);
-          onSelectedIdsChange?.(updatedSelected.map(item => item.id));
-          return updatedSelected;
-        });
+        updatedSelected = selectedItems.filter((item) => !currentPageIds.has(item.id));
       }
+      setSelectedItems(updatedSelected);
+      onSelectedItemsChange?.(updatedSelected);
+      onSelectedIdsChange?.(updatedSelected.map(item => item.id));
     },
-    [finalPaginatedData, onSelectedItemsChange, onSelectedIdsChange, isRowSelectable]
+    [finalPaginatedData, selectedItems, onSelectedItemsChange, onSelectedIdsChange, isRowSelectable]
   );
 
   const handleSelectItem = useCallback(
     (item: T, isChecked: boolean) => {
-      if (isChecked) {
-        setSelectedItems((prevSelected) => {
-          const updatedSelected = [...prevSelected, item];
-          onSelectedItemsChange?.(updatedSelected);
-          onSelectedIdsChange?.(updatedSelected.map(i => i.id));
-          return updatedSelected;
-        });
-      } else {
-        setSelectedItems((prevSelected) => {
-          const updatedSelected = prevSelected.filter((i) => i.id !== item.id);
-          onSelectedItemsChange?.(updatedSelected);
-          onSelectedIdsChange?.(updatedSelected.map(i => i.id));
-          return updatedSelected;
-        });
-      }
+      const updatedSelected = isChecked
+        ? [...selectedItems, item]
+        : selectedItems.filter((i) => i.id !== item.id);
+      setSelectedItems(updatedSelected);
+      onSelectedItemsChange?.(updatedSelected);
+      onSelectedIdsChange?.(updatedSelected.map(i => i.id));
     },
-    [onSelectedIdsChange, onSelectedItemsChange]
+    [selectedItems, onSelectedIdsChange, onSelectedItemsChange]
   );
 
   const isAllSelectedOnPage = useMemo(
