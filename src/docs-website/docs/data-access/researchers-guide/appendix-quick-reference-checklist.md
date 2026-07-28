@@ -15,6 +15,13 @@ sidebar_label: "Appendix: Quick Reference Checklist"
 - [ ] Register for API access if needed.
 - [ ] Review WHO guidelines for your pollutants of interest.
 
+### If Conducting Your Own Physical Co-location
+
+- [ ] Match LCS inlet height to the reference monitor within ±0.5 m.
+- [ ] Verify horizontal separation is between 1–5 m (never below 1 m).
+- [ ] Orient all inlets identically, with ≥2 m clearance from obstructions.
+- [ ] Photograph and log full setup geometry (heights, distances, GPS, orientation) before data collection begins.
+
 ### During Data Download and Processing
 
 - [ ] Download calibrated (not raw) data.

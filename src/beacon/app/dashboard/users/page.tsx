@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { config } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api-client"
 import { isMockMode, getMockUsers } from "@/lib/mock-data"
 
 interface User {
@@ -106,7 +107,7 @@ export default function UsersPage() {
 
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/users/`
-      const response = await fetch(`${config.apiUrl}${apiPath}`, { headers })
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, { headers })
 
       if (response.status === 401 || response.status === 403) {
         throw new Error("Could not validate credentials. Please log in again.")
@@ -170,7 +171,7 @@ export default function UsersPage() {
 
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/users/`
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

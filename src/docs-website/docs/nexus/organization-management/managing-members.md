@@ -118,7 +118,7 @@ If you have pending invitations from other organizations:
 ### Onboarding a New Team Member
 
 1. Go to **Members > Send Invites** and enter their email address.
-2. The new member receives an email and clicks the link to join.
+2. The new member receives an email and selects the link to join.
 3. Once they accept, go to their member detail page and assign the appropriate role.
 4. Verify the member can access the features they need.
 

@@ -131,7 +131,7 @@ export default function HomePage() {
             className="rounded-md p-6 relative flex items-center justify-center cursor-pointer hover:bg-[#145DFF15]"
             style={{ background: '#145DFF08' }}
             onClick={handleModal}
-            aria-label="Play Analytics Video"
+            aria-label="Play Nexus Video"
             data-testid="video-thumbnail"
           >
             <div className="absolute inset-0 flex items-center justify-center transition-transform duration-300 hover:scale-110">
@@ -139,7 +139,7 @@ export default function HomePage() {
             </div>
             <Image
               src="/images/Home/analyticsImage.webp"
-              alt="Analytics Image"
+              alt="Nexus Image"
               width={600}
               height={350}
               className="rounded-md"

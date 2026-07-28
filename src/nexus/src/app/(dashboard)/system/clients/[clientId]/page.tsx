@@ -514,6 +514,7 @@ const ClientDetailsPage: React.FC = () => {
           </h3>
           {client.ip_addresses && client.ip_addresses.length > 0 ? (
             <div className="flex flex-wrap gap-2">
+              {/* Display-only list — no stable ID available */}
               {client.ip_addresses.map((ip, index) => (
                 <span
                   key={index}

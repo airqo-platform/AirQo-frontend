@@ -45,13 +45,28 @@ const getErrorStatus = (error: unknown): number | null => {
   return typeof candidate.status === 'number' ? candidate.status : null;
 };
 
+const isNetworkError = (error: unknown): boolean => {
+  const candidate = error as { code?: string } | null;
+  return candidate?.code === 'ERR_NETWORK';
+};
+
 const shouldAutoRetryMapReadings = (error: unknown): boolean => {
   if (isAbortLikeError(error)) {
-    return true;
+    return false;
   }
 
+  if (isNetworkError(error)) {
+    return false;
+  }
+
+  // Only retry when there is no HTTP status — truly unknown/transient errors.
+  // Don't retry 4xx/5xx since those are unlikely to succeed on retry.
   const status = getErrorStatus(error);
-  return status !== null && status >= 500 && status < 600;
+  if (status !== null) {
+    return false;
+  }
+
+  return true;
 };
 
 export interface UseMapReadingsResult {

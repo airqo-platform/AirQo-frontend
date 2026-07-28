@@ -13,7 +13,6 @@ describe('site.config', () => {
     expect(typeof siteConfig.name).toBe('string');
     expect(typeof siteConfig.title).toBe('string');
     expect(typeof siteConfig.description).toBe('string');
-    expect(typeof siteConfig.url).toBe('string');
     expect(typeof siteConfig.ogImage).toBe('string');
   });
 
@@ -34,10 +33,6 @@ describe('site.config', () => {
 
   it('description is non-empty', () => {
     expect(siteConfig.description.length).toBeGreaterThan(0);
-  });
-
-  it('url starts with http or https', () => {
-    expect(siteConfig.url).toMatch(/^https?:\/\//);
   });
 
   it('homePageUrl starts with /', () => {

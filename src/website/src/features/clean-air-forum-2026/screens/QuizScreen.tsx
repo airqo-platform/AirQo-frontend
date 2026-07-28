@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import AmbientBackground from '@/components/clean-air-forum-2026/AmbientBackground';
-import QrCodeButton from '@/components/clean-air-forum-2026/QrCodeButton';
 import Screen from '@/components/clean-air-forum-2026/Screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -449,12 +448,12 @@ export default function QuizScreen() {
             </Link>
           </motion.div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <motion.h1
               variants={headerItemVariants}
               className="whitespace-nowrap text-left leading-none text-white"
             >
-              <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+              <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                 Air Quality Quiz
               </span>
             </motion.h1>
@@ -479,7 +478,6 @@ export default function QuizScreen() {
             </p>
           </motion.div>
         </motion.header>
-        <QrCodeButton />
       </Screen>
     );
   }
@@ -488,7 +486,7 @@ export default function QuizScreen() {
     return (
       <Screen className="caf-2026-screen relative overflow-hidden">
         <AmbientBackground variant="quiz" />
-        <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+        <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1200px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
           <div className="flex w-full flex-col items-center">
             <motion.header
               variants={headerContainerVariants}
@@ -513,12 +511,12 @@ export default function QuizScreen() {
                 </Link>
               </motion.div>
 
-              <div className="min-w-0">
+              <div className="min-w-0 overflow-hidden">
                 <motion.h1
                   variants={headerItemVariants}
                   className="whitespace-nowrap text-left leading-none text-white"
                 >
-                  <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                  <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                     Air Quality Quiz
                   </span>
                 </motion.h1>
@@ -589,7 +587,6 @@ export default function QuizScreen() {
             </div>
           </div>
         </section>
-        <QrCodeButton />
       </Screen>
     );
   }
@@ -597,7 +594,7 @@ export default function QuizScreen() {
   return (
     <Screen className="caf-2026-screen relative overflow-hidden">
       <AmbientBackground variant="quiz" />
-      <section className="relative z-10 caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1600px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
+      <section className="relative z-10 caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1200px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
         <div className="caf-2026-quiz-shell flex w-full flex-col items-center">
           <motion.header
             variants={headerContainerVariants}
@@ -622,12 +619,12 @@ export default function QuizScreen() {
               </Link>
             </motion.div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 overflow-hidden">
               <motion.h1
                 variants={headerItemVariants}
                 className="whitespace-nowrap text-left leading-none text-white"
               >
-                <span className="text-[23px] font-extrabold tracking-[-0.045em] sm:text-[40px]">
+                <span className="text-[clamp(1.1rem,2.5vw,2.5rem)] font-extrabold tracking-[-0.045em]">
                   Air Quality Quiz
                 </span>
               </motion.h1>
@@ -759,7 +756,6 @@ export default function QuizScreen() {
           </div>
         </div>
       </section>
-      <QrCodeButton />
     </Screen>
   );
 }

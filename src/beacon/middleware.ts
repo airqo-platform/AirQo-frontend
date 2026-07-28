@@ -37,9 +37,11 @@ export default withAuth(
       typeof token?.airqoExp === 'number' && Date.now() / 1000 > token.airqoExp;
     const isAuthenticated = !!token && !isAirqoTokenExpired;
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+    const isOAuthCallback = request.nextUrl.searchParams.has('success') || request.nextUrl.searchParams.has('token')
     
-    // Redirect unauthenticated users to login
-    if (!isAuthenticated && !isPublicRoute) {
+    // Redirect unauthenticated users to login, unless it's an OAuth callback
+    // (We need to let the client handle OAuth callbacks to preserve the URL hash fragment)
+    if (!isAuthenticated && !isPublicRoute && !isOAuthCallback) {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('from', pathname)
       return NextResponse.redirect(loginUrl)

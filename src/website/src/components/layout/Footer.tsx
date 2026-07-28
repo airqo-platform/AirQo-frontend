@@ -43,6 +43,7 @@ const footerLinks = {
       label: 'Faces of Clean Air',
       href: '/africa-clean-air-forum-2026/faces-of-clean-air',
     },
+    { label: 'Clean Air Faces', href: '/africa-clean-air-forum-2026/selfies' },
     { label: 'Air Quality Quiz', href: '/africa-clean-air-forum-2026/quiz' },
     {
       label: 'Quiz Leaderboard',

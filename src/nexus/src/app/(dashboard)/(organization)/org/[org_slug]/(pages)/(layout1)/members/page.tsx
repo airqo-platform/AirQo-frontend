@@ -353,6 +353,7 @@ const MembersPage: React.FC = () => {
       setSelectedMembers([]);
       setSelectedRoleId('');
       setShowBulkRoleDialog(false);
+      mutate();
     } catch {
       toast.error('Failed to assign role');
     }
@@ -424,7 +425,10 @@ const MembersPage: React.FC = () => {
             onPageChange={setMembersPage}
             onPageSizeChange={setMembersPageSize}
             searchTerm={membersSearch}
-            onSearchChange={setMembersSearch}
+            onSearchChange={value => {
+              setMembersSearch(value);
+              setMembersPage(1);
+            }}
             multiSelect={true}
             selectedItems={selectedMembers}
             onSelectedItemsChange={setSelectedMembers}
@@ -455,6 +459,7 @@ const MembersPage: React.FC = () => {
                     Email Addresses *
                   </label>
                   <div className="space-y-2">
+                    {/* Dynamic form list — index is integral to onChange/onRemove callbacks */}
                     {inviteEmails.map((email, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="flex-1">

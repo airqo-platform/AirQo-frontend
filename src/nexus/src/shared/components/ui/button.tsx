@@ -195,6 +195,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         className={baseClasses}
         aria-disabled={isDisabled}
+        aria-busy={loading}
         disabled={isDisabled}
         onClick={handleClick}
         data-testid={dataTestId}

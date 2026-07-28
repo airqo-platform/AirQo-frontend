@@ -22,6 +22,36 @@ export interface UserGroup {
   }
 }
 
+// ─── Constants & Helpers ───────────────────────────────────────────────────
+
+export const ADMIN_PERMISSIONS = [
+  'SUPER_ADMIN',
+  'SYSTEM_ADMIN',
+  'ADMIN_FULL_ACCESS',
+  'GROUP_MANAGEMENT',
+  'USER_MANAGEMENT',
+  'ROLE_CREATE',
+  'ROLE_EDIT',
+  'ROLE_DELETE',
+  'ROLE_ASSIGNMENT',
+  'DEVICE_MAINTAIN',
+  'DEVICE_RECALL',
+  'DEVICE_DELETE',
+  'ORG_CREATE',
+  'ORG_UPDATE',
+  'ORG_DELETE',
+  'ORG_APPROVE',
+] as const;
+
+export function isGroupAdmin(group: UserGroup | null | undefined): boolean {
+  if (!group) return false;
+
+  const permissions = group.role?.role_permissions?.map((p) => p.permission) || [];
+  return permissions.some((p) =>
+    (ADMIN_PERMISSIONS as readonly string[]).includes(p)
+  );
+}
+
 interface GroupContextValue {
   /** The currently active group title (e.g. "airqo") */
   activeGroup: string | null
@@ -37,6 +67,12 @@ interface GroupContextValue {
   activeGroupData: UserGroup | null
   /** Whether the user is an admin of the active group */
   isActiveGroupAdmin: boolean
+  /** Active group role permissions */
+  activeGroupPermissions: string[]
+  /** Check if active group role has a specific permission */
+  hasPermission: (permission: string) => boolean
+  /** Check if active group role has any of the specified permissions */
+  hasAnyPermission: (permissions: string[]) => boolean
 }
 
 const STORAGE_KEY = "beacon_active_group"
@@ -49,6 +85,9 @@ const GroupContext = createContext<GroupContextValue>({
   error: null,
   activeGroupData: null,
   isActiveGroupAdmin: false,
+  activeGroupPermissions: [],
+  hasPermission: () => false,
+  hasAnyPermission: () => false,
 })
 
 // ─── Provider ────────────────────────────────────────────────────────────────
@@ -126,17 +165,22 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
         const user = data.users?.[0]
         const groups: UserGroup[] = user?.groups ?? []
 
-        setAvailableGroups(groups)
+        // Only update availableGroups if the data actually changed
+        setAvailableGroups((prevGroups) => {
+          if (JSON.stringify(prevGroups) === JSON.stringify(groups)) {
+            return prevGroups
+          }
+          return groups
+        })
         
         if (typeof globalThis.window !== "undefined") {
           globalThis.localStorage.setItem("beacon_available_groups", JSON.stringify(groups))
         }
 
-        // Check if user is an AirQo Admin
+        // Check if user is an AirQo Admin via role permissions
         const isAirqoAdmin = groups.some(g => {
           if (g.grp_title?.toLowerCase() === 'airqo') {
-             const roleName = g.role?.role_name?.toLowerCase() || ''
-             return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+             return isGroupAdmin(g)
           }
           return false
         })
@@ -158,8 +202,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
         let defaultGroup = groups[0]?.grp_title
         const nonAirqoOrAdminAirqo = groups.find(g => {
           if (g.grp_title.toLowerCase() === 'airqo') {
-             const roleName = g.role?.role_name?.toLowerCase() || ''
-             return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
+             return isGroupAdmin(g)
           }
           return true
         })
@@ -168,14 +211,17 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
            defaultGroup = nonAirqoOrAdminAirqo.grp_title
         }
 
-        if (persisted && groups.some((g) => g.grp_title === persisted)) {
-          setCurrentActiveGroup(persisted)
-        } else if (defaultGroup) {
-          setCurrentActiveGroup(defaultGroup)
-          if (typeof globalThis.window !== "undefined") {
-            globalThis.localStorage.setItem(STORAGE_KEY, defaultGroup)
+        setCurrentActiveGroup((prevActive) => {
+          if (persisted && groups.some((g) => g.grp_title === persisted)) {
+            return prevActive === persisted ? prevActive : persisted
+          } else if (defaultGroup) {
+            if (typeof globalThis.window !== "undefined") {
+              globalThis.localStorage.setItem(STORAGE_KEY, defaultGroup)
+            }
+            return prevActive === defaultGroup ? prevActive : defaultGroup
           }
-        }
+          return prevActive
+        })
       } catch (err: any) {
         console.error("Error fetching user groups:", err)
         setError(err.message || "Failed to load groups")
@@ -186,7 +232,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             ? globalThis.localStorage.getItem(STORAGE_KEY)
             : null
         if (persisted) {
-          setCurrentActiveGroup(persisted)
+          setCurrentActiveGroup((prevActive) => (prevActive === persisted ? prevActive : persisted))
         }
       } finally {
         setLoading(false)
@@ -194,21 +240,54 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     fetchGroups()
-  }, [session, status])
+  }, [session?.accessToken, status])
 
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null
   }, [activeGroup, availableGroups])
 
   const isActiveGroupAdmin = useMemo(() => {
-    if (!activeGroupData?.role?.role_name) return false
-    const role = activeGroupData.role.role_name.toLowerCase()
-    return role.includes('admin') || role === 'super' || role === 'net admin'
+    return isGroupAdmin(activeGroupData)
   }, [activeGroupData])
 
+  const activeGroupPermissions = useMemo(() => {
+    if (!activeGroupData?.role?.role_permissions) return []
+    return activeGroupData.role.role_permissions.map((p) => p.permission)
+  }, [activeGroupData])
+
+  const hasPermission = useCallback((permission: string): boolean => {
+    return activeGroupPermissions.includes(permission)
+  }, [activeGroupPermissions])
+
+  const hasAnyPermission = useCallback((permissions: string[]): boolean => {
+    return permissions.some((p) => activeGroupPermissions.includes(p))
+  }, [activeGroupPermissions])
+
   const value = useMemo(
-    () => ({ activeGroup, availableGroups, setActiveGroup, loading, error, activeGroupData, isActiveGroupAdmin }),
-    [activeGroup, availableGroups, setActiveGroup, loading, error, activeGroupData, isActiveGroupAdmin]
+    () => ({
+      activeGroup,
+      availableGroups,
+      setActiveGroup,
+      loading,
+      error,
+      activeGroupData,
+      isActiveGroupAdmin,
+      activeGroupPermissions,
+      hasPermission,
+      hasAnyPermission,
+    }),
+    [
+      activeGroup,
+      availableGroups,
+      setActiveGroup,
+      loading,
+      error,
+      activeGroupData,
+      isActiveGroupAdmin,
+      activeGroupPermissions,
+      hasPermission,
+      hasAnyPermission,
+    ]
   )
 
   return (

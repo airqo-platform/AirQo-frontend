@@ -17,7 +17,6 @@ ARG API_URL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
-ARG NEXT_PUBLIC_SITE_URL
 
 # Set environment variables for build (server-side variables)
 # Only set non-sensitive values. Do not store secrets in ENV here.
@@ -25,8 +24,7 @@ ARG NEXT_PUBLIC_SITE_URL
 ENV API_URL=$API_URL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY \
-    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 
 # Install dependencies and build
 COPY package*.json ./
@@ -45,17 +43,21 @@ RUN apk add --no-cache ca-certificates && update-ca-certificates
 # Runtime args for server-side environment variables
 # Runtime secrets must be supplied by the platform (docker run -e ...) or
 # via your orchestrator/secret manager. Do NOT bake them into the image.
+#
+# Runtime-only variables (not inlined at build time, read at request time):
+#   GOOGLE_SITE_VERIFICATION - used by generateMetadata() in layout.tsx
+#   NEXT_PUBLIC_HCAPTCHA_SITE_KEY - inlined at build but available at runtime
 ARG API_URL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 
 # Set environment variables for runtime (server-side variables)
 # Only set non-sensitive defaults here. Supply sensitive values at runtime.
 ENV API_URL=$API_URL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001

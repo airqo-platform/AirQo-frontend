@@ -68,7 +68,7 @@ const SENSITIVE_QUERY_KEYS = new Set([
   'secret',
 ]);
 
-const FEEDBACK_APP_NAME = 'Analytics';
+const FEEDBACK_APP_NAME = 'Nexus';
 const SCREENSHOT_ACCEPT = [...PROFILE_IMAGE_ALLOWED_MIME_TYPES].join(',');
 const HIGHLIGHT_COLOR = 'rgba(239, 68, 68, 0.25)';
 const HIGHLIGHT_STROKE = 'rgba(239, 68, 68, 0.9)';

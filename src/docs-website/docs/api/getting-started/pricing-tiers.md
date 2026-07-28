@@ -74,7 +74,7 @@ Best for commercial applications, government agencies, and any use case requirin
 
 ## How to upgrade
 
-1. Log in at [analytics.airqo.net](https://analytics.airqo.net).
+1. Log in at [nexus.airqo.net](https://nexus.airqo.net).
 2. Go to **Account Settings → Subscription**.
 3. Select your desired tier and complete payment.
 4. Your access is upgraded immediately.

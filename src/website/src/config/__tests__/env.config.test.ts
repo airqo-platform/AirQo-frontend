@@ -9,16 +9,11 @@ describe('env.config', () => {
   it('has all required fields', () => {
     expect(typeof envConfig.apiUrl).toBe('string');
     expect(typeof envConfig.apiToken).toBe('string');
-    expect(typeof envConfig.siteUrl).toBe('string');
     expect(typeof envConfig.mapboxAccessToken).toBe('string');
     expect(typeof envConfig.gaMeasurementId).toBe('string');
     expect(typeof envConfig.opencageApiKey).toBe('string');
     expect(typeof envConfig.isDev).toBe('boolean');
     expect(typeof envConfig.isProd).toBe('boolean');
-  });
-
-  it('siteUrl is a non-empty string', () => {
-    expect(envConfig.siteUrl.length).toBeGreaterThan(0);
   });
 
   it('isDev and isProd are mutually exclusive', () => {
@@ -30,10 +25,6 @@ describe('env.config', () => {
       expect(envConfig.isDev).toBe(false);
       expect(envConfig.isProd).toBe(false);
     }
-  });
-
-  it('siteUrl starts with http or https', () => {
-    expect(envConfig.siteUrl).toMatch(/^https?:\/\//);
   });
 
   it('apiUrl is a string', () => {

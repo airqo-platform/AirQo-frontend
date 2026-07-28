@@ -209,6 +209,7 @@ const MyDevicesPage = () => {
           isLoading={isLoading}
           error={error}
           multiSelect={true}
+          hiddenColumns={['groups']}
         />
 
         {/* Modals */}

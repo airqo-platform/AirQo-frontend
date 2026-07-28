@@ -48,6 +48,7 @@ import {
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
 import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
+import { isPublicAuthRoute, isAuthenticatedAccessiblePublicRoute } from '@/shared/lib/public-routes';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -143,27 +144,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-// Define public routes that don't require authentication
-const publicRoutes = [
-  '/user/login',
-  '/user/creation/individual/register',
-  '/user/creation/individual/verify-email',
-  '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
-  '/user/forgotPwd',
-  '/user/forgotPwd/reset',
-  '/user/delete/confirm', // covers /user/delete/confirm/[token]
-  '/org-invite', // Public invitation acceptance page
-  '/request-organization',
-];
-
-const isPublicAuthRoute = (pathname: string): boolean =>
-  publicRoutes.some(route => pathname.startsWith(route)) ||
-  /^\/org\/[^/]+\/(login|register)$/.test(pathname);
-
-const isAuthenticatedAccessiblePublicRoute = (pathname: string): boolean =>
-  pathname.startsWith('/org-invite') ||
-  pathname.startsWith('/request-organization');
 
 const UNAUTHORIZED_WINDOW_MS = 30000;
 const UNAUTHORIZED_THRESHOLD = 3;
@@ -684,6 +664,25 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [resetUnauthorizedTracking, status]);
 
+  // Detect invalid sessions (authenticated but no user data).
+  // The session callback returns { user: null } when the access token is expired
+  // for non-JWT opaque tokens. NextAuth still reports status 'authenticated' for
+  // this shape, so we must explicitly detect it and trigger logout.
+  useEffect(() => {
+    if (
+      status === 'authenticated' &&
+      session &&
+      !session.user &&
+      !isPublicRoute &&
+      !isLoggingOut &&
+      !hasStartedLogoutRef.current
+    ) {
+      logger.warn('Session has no user data (likely expired token), logging out');
+      hasStartedLogoutRef.current = true;
+      logout();
+    }
+  }, [status, session, isPublicRoute, isLoggingOut, logout]);
+
   // Logout when status becomes unauthenticated on protected routes
   // But skip if we're already logging out or if logout has already started.
   useEffect(() => {
@@ -697,7 +696,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       hasStartedLogoutRef.current = true;
       logout();
     }
-  }, [status, isPublicRoute, logout, isLoggingOut, protectedRouteLoginUrl]);
+  }, [status, isPublicRoute, logout, isLoggingOut]);
 
   // While session is being fetched, show a loading overlay with a short delay.
   // A small delay prevents double-glitch with app/loading.tsx Suspense boundary
@@ -712,8 +711,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // For protected routes, require authentication
-  if (!session) {
+  // For protected routes, require authentication with valid user data.
+  // A session with user: null indicates an expired/invalid token — show
+  // loading overlay while the logout effect above navigates away.
+  if (!session || (status === 'authenticated' && !session.user)) {
     return <LoadingOverlay delayMs={150} />;
   }
 

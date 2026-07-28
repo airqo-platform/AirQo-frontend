@@ -73,7 +73,7 @@ const STATUS_OPTIONS = [
 
 const APP_OPTIONS = [
   { value: 'all', label: 'All apps' },
-  { value: 'Analytics', label: 'Analytics' },
+  { value: 'Nexus', label: 'Nexus' },
   { value: 'beacon', label: 'beacon' },
   { value: 'vertex', label: 'vertex' },
 ];

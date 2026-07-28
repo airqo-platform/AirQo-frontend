@@ -191,6 +191,9 @@ export const useThemePreferences = () => {
         contentLayout: updates.contentLayout ?? theme.contentLayout,
       };
 
+      // Capture the previous theme BEFORE the optimistic update for revert on error
+      const previousTheme = getStoredTheme(activeGroup?.id);
+
       try {
         // Optimistically apply the theme locally first
         applyThemeToApp(newThemeData);
@@ -206,11 +209,15 @@ export const useThemePreferences = () => {
       } catch (error) {
         console.error('Failed to update theme preference:', error);
 
-        // Revert to previous theme on error (group-specific)
-        const storedTheme = getStoredTheme(activeGroup?.id);
-        if (storedTheme) {
-          applyThemeToApp(storedTheme);
-        }
+        // Revert to the previous theme captured before the optimistic update
+        applyThemeToApp(
+          previousTheme || {
+            primaryColor: theme.primaryColor,
+            mode: theme.mode as ThemeData['mode'],
+            interfaceStyle: theme.interfaceStyle,
+            contentLayout: theme.contentLayout,
+          }
+        );
 
         throw error;
       }

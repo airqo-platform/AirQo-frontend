@@ -20,7 +20,6 @@ export function usePollingWithVisibility(
   const callbackRef = useRef(callback);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inFlightRef = useRef(false);
-  const backoffRef = useRef(1);
   const errorCountRef = useRef(0);
 
   // Keep the callback ref fresh without re-triggering the effect.
@@ -56,7 +55,6 @@ export function usePollingWithVisibility(
 
   const refresh = useCallback(() => {
     errorCountRef.current = 0;
-    backoffRef.current = 1;
     void invoke();
   }, [invoke]);
 

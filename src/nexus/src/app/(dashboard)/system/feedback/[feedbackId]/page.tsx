@@ -465,6 +465,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
           )}
           <span className="inline-flex items-center gap-2 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
             <span className="flex items-center gap-1 text-amber-500">
+              {/* Static list — always exactly 5 stars, never reorders */}
               {Array.from({ length: 5 }, (_, index) =>
                 index < rating ? (
                   <FaStar key={index} className="h-3.5 w-3.5" />
@@ -505,6 +506,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               <DetailPanel label="Rating">
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1 text-amber-500">
+                    {/* Static list — always exactly 5 stars, never reorders */}
                     {Array.from({ length: 5 }, (_, index) =>
                       index < rating ? (
                         <FaStar key={index} className="h-4 w-4" />

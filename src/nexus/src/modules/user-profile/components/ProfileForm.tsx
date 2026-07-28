@@ -171,40 +171,17 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
     try {
       let finalPictureUrl = data.profilePicture;
 
-      // Handle profile picture changes - delete old image when clearing or uploading new
       const currentUser = userDetails?.users?.[0];
       const oldPictureUrl = currentUser?.profilePicture;
 
-      // Delete old picture when clearing OR when uploading a new one
-      const shouldDeleteOld =
-        oldPictureUrl && (finalPictureUrl === '' || pendingImage);
-      if (shouldDeleteOld) {
-        const oldPublicId = extractPublicIdFromUrl(oldPictureUrl);
-        if (oldPublicId) {
-          try {
-            await deleteFromCloudinary(oldPublicId);
-            console.debug(
-              'Successfully deleted old profile picture:',
-              oldPublicId
-            );
-          } catch (deleteError) {
-            // Log but don't block - orphaned images are better than blocked uploads
-            console.warn(
-              'Failed to delete old profile picture from Cloudinary (non-critical):',
-              deleteError instanceof Error ? deleteError.message : deleteError
-            );
-            // Continue with upload regardless of deletion result
-          }
-        }
-      }
-
-      // Upload only when user pressed Save
+      // Step 1: Upload new image first (before deleting old one)
+      // This prevents data loss if the upload fails.
       if (pendingImage) {
         const uploadRes = await uploadProfileImage(pendingImage);
         finalPictureUrl = uploadRes.secure_url;
       }
 
-      // Build changed-fields object exactly like you already do
+      // Step 2: Build changed-fields object
       const changed: Partial<ProfileFormType> = {};
       const u = userDetails?.users?.[0];
       if (u) {
@@ -230,10 +207,27 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
         return;
       }
 
+      // Step 3: Save profile (with new image URL if uploaded)
       await updateUserDetails.trigger({ userId, details: changed });
       toast.success('Profile updated successfully');
       mutateUserDetails();
-      setPendingImage(null); // clear pending image after successful save
+      setPendingImage(null);
+
+      // Step 4: Delete old image AFTER successful save (best-effort, non-blocking)
+      // Orphaned images are acceptable; blocked uploads or data loss are not.
+      const shouldDeleteOld =
+        oldPictureUrl && oldPictureUrl !== finalPictureUrl;
+      if (shouldDeleteOld) {
+        const oldPublicId = extractPublicIdFromUrl(oldPictureUrl);
+        if (oldPublicId) {
+          deleteFromCloudinary(oldPublicId).catch(deleteError => {
+            console.warn(
+              'Failed to delete old profile picture from Cloudinary (non-critical):',
+              deleteError instanceof Error ? deleteError.message : deleteError
+            );
+          });
+        }
+      }
 
       // Update checklist - mark profile completion step as completed
       try {

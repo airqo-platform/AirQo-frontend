@@ -27,8 +27,10 @@ Check your spam or junk folder.
 
 1. Open the reset link in the email.
 2. On the reset page, enter a **new password** and **confirm password**.
+   - Must be at least 8 characters
+   - Must include an uppercase letter, a lowercase letter, a number, and a special character
 3. Select **Reset Password**.
-4. After a few seconds you are redirected to the [login page](https://nexus.airqo.net/user/login), where you can sign in with your new password.
+4. After a few seconds, you are redirected to the [login page](https://nexus.airqo.net/user/login), where you can sign in with your new password.
 
 :::caution Reset links expire
 If your link is invalid or expired, return to the login page and request a new one.

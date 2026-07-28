@@ -17,8 +17,6 @@ import { getPrimarySiteUrl } from '@/lib/siteUrl';
 const GOOGLE_ANALYTICS_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-const normalizedSiteUrl = getPrimarySiteUrl();
-
 const interFont = localFont({
   src: [
     {
@@ -46,9 +44,12 @@ const interFont = localFont({
   adjustFontFallback: 'Arial',
 });
 
-// Default metadata - will be overridden by page-specific metadata
+// Root layout metadata - static to preserve static generation.
+// getPrimarySiteUrl() resolves at runtime: window.location.origin on client,
+// env vars on server. Pages needing request-time host detection (e.g. blogs/[slug])
+// should use their own generateMetadata() with headers().
 export const metadata: Metadata = {
-  metadataBase: new URL(normalizedSiteUrl),
+  metadataBase: new URL(getPrimarySiteUrl()),
   title: {
     default: 'AirQo | Bridging the Air Quality Data Gap in Africa',
     template: '%s | AirQo',
@@ -57,14 +58,12 @@ export const metadata: Metadata = {
     'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. Real-time monitoring in Uganda (Kampala), Kenya (Nairobi), Nigeria (Lagos), Ghana (Accra) and 16+ African cities. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
   keywords: [
     'AirQo',
-    // African countries - PRIMARY FOCUS
     'air quality Uganda',
     'air pollution Kenya',
     'Nigeria air quality',
     'Ghana air monitoring',
     'Rwanda air quality',
     'Tanzania pollution data',
-    // Major African cities - HIGH PRIORITY
     'Kampala air quality',
     'Nairobi pollution',
     'Lagos air quality',
@@ -75,7 +74,6 @@ export const metadata: Metadata = {
     'Mombasa pollution',
     'Kisumu air quality',
     'Entebbe air monitoring',
-    // Secondary African cities
     'Gulu air quality',
     'Mbarara pollution',
     'Nakuru air quality',
@@ -86,13 +84,11 @@ export const metadata: Metadata = {
     'Ibadan air monitoring',
     'Kumasi air quality',
     'Takoradi pollution',
-    // Regional terms
     'East Africa air quality',
     'West Africa pollution',
     'Uganda environmental monitoring',
     'Kenya air sensors',
     'Nigeria pollution data',
-    // Core technology terms
     'air quality monitoring Africa',
     'air pollution data',
     'hyperlocal air quality',
@@ -105,11 +101,9 @@ export const metadata: Metadata = {
     'environmental monitoring Africa',
     'PM2.5 Africa',
     'air quality index',
-    // Organizational
     'Makerere University air quality',
     'Google.org Africa',
     'World Bank air quality',
-    // Products
     'Africa Clean Air Forum',
     'CLEAN-Air Network',
     'Binos Monitor',
@@ -130,12 +124,12 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: normalizedSiteUrl,
+    canonical: getPrimarySiteUrl(),
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: normalizedSiteUrl,
+    url: getPrimarySiteUrl(),
     siteName: 'AirQo',
     title:
       'AirQo | Air Quality Monitoring Uganda, Kenya, Nigeria - Real-time Data',
@@ -169,7 +163,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/assets/images/white-logo.png', sizes: 'any', type: 'image/png' },
+      {
+        url: '/assets/images/white-logo.png',
+        sizes: 'any',
+        type: 'image/png',
+      },
       {
         url: '/web-app-manifest-192x192.png',
         sizes: '192x192',
@@ -188,14 +186,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const siteUrl = `${normalizedSiteUrl}/`;
-
-  // Maintenance check removed to avoid hydration and chunk loading issues
+export default function RootLayout({ children }: { children: ReactNode }) {
+  const siteUrl = `${getPrimarySiteUrl()}/`;
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -236,30 +228,12 @@ export default async function RootLayout({
       availableLanguage: ['English', 'Swahili'],
     },
     areaServed: [
-      {
-        '@type': 'Country',
-        name: 'Uganda',
-      },
-      {
-        '@type': 'Country',
-        name: 'Kenya',
-      },
-      {
-        '@type': 'Country',
-        name: 'Nigeria',
-      },
-      {
-        '@type': 'Country',
-        name: 'Ghana',
-      },
-      {
-        '@type': 'Country',
-        name: 'Rwanda',
-      },
-      {
-        '@type': 'Country',
-        name: 'Tanzania',
-      },
+      { '@type': 'Country', name: 'Uganda' },
+      { '@type': 'Country', name: 'Kenya' },
+      { '@type': 'Country', name: 'Nigeria' },
+      { '@type': 'Country', name: 'Ghana' },
+      { '@type': 'Country', name: 'Rwanda' },
+      { '@type': 'Country', name: 'Tanzania' },
     ],
     knowsAbout: [
       'Air Quality Monitoring',

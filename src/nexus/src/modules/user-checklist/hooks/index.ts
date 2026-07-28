@@ -326,41 +326,89 @@ export const useChecklistActions = () => {
 export const useChecklistIntegration = () => {
   const { markStepCompleted } = useChecklistActions();
   const { user } = useUser();
-  const { checklistItems } = useChecklist(user?.id || null);
+  const { checklistItems, refetch } = useChecklist(user?.id || null);
+
+  const resolveChecklistItems = useCallback(
+    async (): Promise<UpdateChecklistItem[]> => {
+      if (checklistItems.length > 0) {
+        return checklistItems;
+      }
+
+      // Revalidate to get the latest checklist data
+      try {
+        const updatedData = await refetch();
+        // Extract items from the re-fetched payload
+        const resolved =
+          updatedData && typeof updatedData === 'object'
+            ? ('checklist' in updatedData && updatedData.checklist
+                ? updatedData.checklist
+                : 'checklists' in updatedData &&
+                    Array.isArray(updatedData.checklists) &&
+                    updatedData.checklists.length > 0
+                  ? updatedData.checklists[0]
+                  : null) as { items?: UpdateChecklistItem[] } | null
+            : null;
+        if (resolved?.items && resolved.items.length > 0) {
+          return resolved.items;
+        }
+      } catch {
+        // refetch may fail if checklist doesn't exist yet
+      }
+
+      return [];
+    },
+    [checklistItems, refetch]
+  );
 
   const markLocationStepCompleted = useCallback(async () => {
-    if (!user?.id || !checklistItems.length) {
+    if (!user?.id) {
       console.warn(
-        'Cannot update location step: missing user ID or checklist items'
+        'Cannot update location step: missing user ID'
+      );
+      return;
+    }
+
+    const items = await resolveChecklistItems();
+    if (!items.length) {
+      console.warn(
+        'Cannot update location step: checklist items not available'
       );
       return;
     }
 
     try {
       // Step 2 is location selection (index 1)
-      await markStepCompleted(user.id, 1, checklistItems);
+      await markStepCompleted(user.id, 1, items);
     } catch (error) {
       console.error('Failed to mark location step as completed:', error);
       throw error;
     }
-  }, [user?.id, checklistItems, markStepCompleted]);
+  }, [user?.id, resolveChecklistItems, markStepCompleted]);
 
   const markProfileStepCompleted = useCallback(async () => {
-    if (!user?.id || !checklistItems.length) {
+    if (!user?.id) {
       console.warn(
-        'Cannot update profile step: missing user ID or checklist items'
+        'Cannot update profile step: missing user ID'
+      );
+      return;
+    }
+
+    const items = await resolveChecklistItems();
+    if (!items.length) {
+      console.warn(
+        'Cannot update profile step: checklist items not available'
       );
       return;
     }
 
     try {
       // Step 3 is profile completion (index 2)
-      await markStepCompleted(user.id, 2, checklistItems);
+      await markStepCompleted(user.id, 2, items);
     } catch (error) {
       console.error('Failed to mark profile step as completed:', error);
       throw error;
     }
-  }, [user?.id, checklistItems, markStepCompleted]);
+  }, [user?.id, resolveChecklistItems, markStepCompleted]);
 
   return {
     markLocationStepCompleted,

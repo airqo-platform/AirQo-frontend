@@ -71,7 +71,7 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 
 **Most likely cause:** Your server's public IP is not whitelisted.
 
-**Solution:** Log in to [analytics.airqo.net](https://analytics.airqo.net) → Account Settings → IP Whitelist. Add the public IP your server uses to make API requests.
+**Solution:** Log in to [nexus.airqo.net](https://nexus.airqo.net) → **Profile → API**, click **Edit** on the relevant client, and add the public IP your server uses under **IP Addresses**.
 
 ---
 
@@ -119,13 +119,13 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
   "success": false,
   "message": "Forecast access requires Premium Tier subscription",
   "error": "Forbidden",
-  "upgrade_url": "https://analytics.airqo.net/account/subscription"
+  "upgrade_url": "https://nexus.airqo.net/account/subscription"
 }
 ```
 
 **Cause:** You are trying to access a feature (e.g. forecasts, historical data) not included in your current tier.
 
-**Solution:** Upgrade your subscription at [analytics.airqo.net](https://analytics.airqo.net) → Account Settings → Subscription.
+**Solution:** Upgrade your subscription at [nexus.airqo.net](https://nexus.airqo.net) → Account Settings → Subscription.
 
 ---
 
