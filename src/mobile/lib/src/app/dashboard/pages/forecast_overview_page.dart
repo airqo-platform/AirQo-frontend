@@ -134,17 +134,24 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     }
   }
 
-  void _syncTodayIndex(List<Forecast> forecasts) {
-    if (_selectedDayIndex == 0) {
-      final todayIdx =
-          forecasts.indexWhere((f) => _fmtDate(f.time) == _todayStr);
-      if (todayIdx > 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() => _selectedDayIndex = todayIdx);
-        });
-      }
-    }
+  List<Forecast> _futureDailyForecasts(List<Forecast> forecasts) {
+    final today = _dateOnly(DateTime.now());
+    return forecasts
+        .where((f) => _dateOnly(f.time.toLocal()).isAfter(today))
+        .toList();
+  }
+
+  List<HourlyForecastEntry> _futureHourlyEntriesForDate(
+    HourlyForecastResponse? response,
+    DateTime date,
+  ) {
+    final entries = hourlyEntriesForDate(response, date);
+    final now = DateTime.now();
+    final selectedDateStr = _fmtDate(date.toLocal());
+    if (selectedDateStr != _fmtDate(now)) return entries;
+
+    final nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
+    return entries.where((e) => !e.time.toLocal().isBefore(nextHour)).toList();
   }
 
   void _syncHourIndex(List<HourlyForecastEntry> entries, DateTime day) {
@@ -356,17 +363,16 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     bool hourlyLoading = false,
     String? hourlyError,
   }) {
-    final forecasts = state.response.forecasts;
+    final forecasts = _futureDailyForecasts(state.response.forecasts);
     if (forecasts.isEmpty) {
       return const Center(child: Text('No forecast data available.'));
     }
 
-    _syncTodayIndex(forecasts);
-
     final idx = _selectedDayIndex.clamp(0, forecasts.length - 1);
     final day = forecasts[idx];
     final selectedDateLabel = DateFormat('EEEE, MMMM d').format(day.time);
-    final hourEntries = hourlyEntriesForDate(state.hourlyResponse, day.time);
+    final hourEntries =
+        _futureHourlyEntriesForDate(state.hourlyResponse, day.time);
     _syncHourIndex(hourEntries, day.time);
 
     final hourIdx = hourEntries.isEmpty
@@ -428,6 +434,7 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                 onInsetPanel: true,
                 selectedHourIndex: hourIdx,
                 onHourSelected: _selectHour,
+                skipCurrentHour: true,
               ),
             ),
             if (selectedHour != null) ...[
@@ -524,4 +531,6 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
   }
 
   String _fmtDate(DateTime dt) => DateFormat('yyyy-MM-dd').format(dt);
+
+  DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 }
