@@ -50,7 +50,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
 
     const apps: App[] = [
         {
-            name: 'Analytics',
+            name: 'Nexus',
             description: 'View air quality dashboards',
             icon: AqBarChartSquarePlus,
             href: getUrl('https://analytics.airqo.net/'),

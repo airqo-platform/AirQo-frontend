@@ -19,4 +19,5 @@ export const ANALYTICS_BASE_URL = stripTrailingSlash(
   process.env.NEXT_PUBLIC_ANALYTICS_URL || DEFAULT_ANALYTICS_BASE_URL
 );
 export const forgotPasswordUrl = `${ANALYTICS_BASE_URL}/user/forgotPwd`;
+export const profileSettingsUrl = `${ANALYTICS_BASE_URL}/user/profile`;
 export const signUpUrl = `${ANALYTICS_BASE_URL}/user/creation/individual/register`;

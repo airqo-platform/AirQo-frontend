@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { AqHelpCircle, AqMenu01 } from '@airqo/icons-react';
+import { AqHelpCircle, AqMenu01, AqSettings01 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import { useSession } from 'next-auth/react';
 import type { UserDetails } from '@/app/types/users';
 import { useTheme } from "next-themes";
 import { vertexConfig } from '@/vertex.config';
+import { profileSettingsUrl } from '@/core/urls';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -59,6 +60,10 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const handleLogoClick = useCallback(() => {
     router.push('/home');
   }, [router]);
+
+  const handleSettingsClick = useCallback(() => {
+    window.open(profileSettingsUrl, '_blank', 'noopener,noreferrer');
+  }, []);
 
   const LogoComponent = useCallback(
     ({ className = '', buttonProps = {} }) => (
@@ -129,6 +134,16 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
           <div className="flex items-center gap-x-1 ml-auto">
             <OrganizationPicker />
+
+            <ReusableButton
+              variant="text"
+              onClick={handleSettingsClick}
+              className="text-muted-foreground hover:text-foreground rounded-full p-2"
+              title="Settings"
+              aria-label="Settings"
+              Icon={AqSettings01}
+              iconClassName="!h-7 !w-7"
+            />
 
             <ReusableButton
               variant="text"
