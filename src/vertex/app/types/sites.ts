@@ -15,6 +15,7 @@ export interface Site {
   site_tags?: string[];
   isOnline?: boolean;
   rawOnlineStatus?: boolean;
+  dateValidStatus?: "valid" | "future_timestamp" | "invalid_format" | "unknown";
   formatted_name?: string;
   location_name?: string;
   search_name?: string;

@@ -147,6 +147,7 @@ export interface Device {
   lastActive?: string;
   lastRawData?: string;
   rawOnlineStatus?: boolean;
+  dateValidStatus?: "valid" | "future_timestamp" | "invalid_format" | "unknown";
   tags?: string[];
 }
 

@@ -17,6 +17,7 @@ import {
   getDeviceStatus,
   getStatusExplanation,
 } from "@/core/utils/status";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 interface SiteInformationCardProps {
   site: Site;
@@ -46,7 +47,6 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
-
   return (
     <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
@@ -94,6 +94,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
                     <p className="max-w-xs text-xs">{explanation}</p>
                   </TooltipContent>
                 </Tooltip>
+                <DateValidHintIndicator dateValidStatus={site.dateValidStatus} />
               </TooltipProvider>
             </div>
           </div>
