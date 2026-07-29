@@ -474,7 +474,8 @@ function DashboardContent() {
       params.delete("cohort_id")
       params.set("network", filterVal)
     }
-    router.push(`${window.location.pathname}?${params.toString()}`)
+    const qs = params.toString()
+    router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname)
   }
 
   const handleViewDetails = (netId: string) => {
