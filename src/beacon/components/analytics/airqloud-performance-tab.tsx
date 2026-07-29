@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp } from "lucide-react"
+import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp, Battery } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -43,10 +43,10 @@ interface AirQloudPerformanceTabProps {
   airqloudName: string
   entityType?: "cohort" | "grid"
   initialData?: {
-    devices: Array<{
+    devices?: Array<{
       _id?: string
       name: string
-      long_name: string
+      long_name?: string
       uptime?: number | null
       data_completeness?: number | null
       sensor_error_margin?: number | null
@@ -70,6 +70,7 @@ interface DeviceSummary {
   avgFrequency: number
   avgErrorMargin: number
   avgUptime: number
+  avgBatteryVoltage: number
 }
 
 export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entityType = "cohort", initialData }: Readonly<AirQloudPerformanceTabProps>) {
@@ -104,6 +105,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
   const [uptimeExpanded, setUptimeExpanded] = useState(false)
   const [frequencyExpanded, setFrequencyExpanded] = useState(false)
   const [sensorHealthExpanded, setSensorHealthExpanded] = useState(false)
+  const [batteryExpanded, setBatteryExpanded] = useState(false)
   const [sensorHealthMode, setSensorHealthMode] = useState<"error" | "sensors" | "correlation">("correlation")
 
   const fetchPerformanceData = async () => {
@@ -250,6 +252,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
     return performanceData.map((device) => {
       const chartData = device.backendData.map((d: any) => {
         const rc = d.record_count
+        const bat = d.battery_voltage ?? d.battery
+        const batNum = (bat != null && !isNaN(Number(bat))) ? Number(bat) : null
         return {
           timestamp: d.datetime,
           formattedTime: format(new Date(d.datetime), "MMM dd HH:mm"),
@@ -257,6 +261,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
           error_margin: (d.s1_pm2_5 != null && d.s2_pm2_5 != null) ? Math.abs(d.s1_pm2_5 - d.s2_pm2_5) : null,
           s1_pm2_5: d.s1_pm2_5 ?? null,
           s2_pm2_5: d.s2_pm2_5 ?? null,
+          battery_voltage: batNum,
         }
       }).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
@@ -338,12 +343,23 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
       const avgUptime = daily.length > 0
         ? daily.reduce((s, d) => s + Number.parseFloat(d.uptimePercentage), 0) / daily.length
         : (device.uptime || 0) * 100
+
+      const validBatteryVoltage = device.backendData
+        .map((d: any) => d.battery_voltage ?? d.battery)
+        .filter((v: any): v is number => v != null && !isNaN(Number(v)))
+        .map((v: any) => Number(v))
+
+      const avgBatteryVoltage = validBatteryVoltage.length > 0
+        ? validBatteryVoltage.reduce((a, b) => a + b, 0) / validBatteryVoltage.length
+        : 0
+
       return {
         deviceId: device.id,
         deviceName: device.name,
         avgFrequency: device.data_completeness * 100, // Represented as percentage
         avgErrorMargin: device.sensor_error_margin,
         avgUptime,
+        avgBatteryVoltage,
       }
     })
   }, [performanceData, devicesUptimeData])
@@ -584,6 +600,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                             <TableHead className="text-right">Avg Frequency</TableHead>
                             <TableHead className="text-right">Avg Error Margin</TableHead>
                             <TableHead className="text-right">Avg Daily Uptime</TableHead>
+                            <TableHead className="text-right">Avg Battery</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -593,6 +610,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                               <TableCell className="text-right">{summary.avgFrequency.toFixed(1)}</TableCell>
                               <TableCell className="text-right">{summary.avgErrorMargin.toFixed(2)}</TableCell>
                               <TableCell className="text-right">{summary.avgUptime.toFixed(1)}%</TableCell>
+                              <TableCell className="text-right">{summary.avgBatteryVoltage > 0 ? `${summary.avgBatteryVoltage.toFixed(2)}V` : "N/A"}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -865,6 +883,67 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                       ))}
                     </div>
                   </>
+                )}
+              </div>
+
+              {/* Battery Voltage Charts - Collapsible */}
+              <div>
+                <button
+                  onClick={() => setBatteryExpanded(!batteryExpanded)}
+                  className="flex items-center gap-2 mb-4 w-full hover:opacity-70 transition-opacity"
+                  type="button"
+                  aria-expanded={batteryExpanded}
+                >
+                  {batteryExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                  <Battery className="h-5 w-5 text-teal-600" />
+                  <h3 className="text-lg font-semibold">Battery Voltage</h3>
+                </button>
+                {batteryExpanded && (
+                  <div className={`grid gap-4 ${isSingleDevice ? 'md:grid-cols-2' : 'lg:grid-cols-2'}`}>
+                    {devicesChartData.map((deviceData) => (
+                      <Card key={`battery-${deviceData.deviceId}`}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={deviceData.chartData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="formattedTime"
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                tick={{ fontSize: 9 }}
+                              />
+                              <YAxis
+                                domain={['auto', 'auto']}
+                                tick={{ fontSize: 10 }}
+                                tickFormatter={(value) => `${value}V`}
+                              />
+                              <Tooltip
+                                formatter={(value: any) => [`${value}V`, 'Voltage']}
+                              />
+                              <Legend wrapperStyle={{ fontSize: '12px' }} />
+                              <Line
+                                type="monotone"
+                                dataKey="battery_voltage"
+                                stroke="#0d9488"
+                                name="Battery Voltage"
+                                strokeWidth={2}
+                                connectNulls
+                                dot={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>

@@ -104,7 +104,7 @@ export default function DashboardLayout({
 }
 
 function GroupRouteGuard({ children }: { children: React.ReactNode }) {
-  const { activeGroup, isActiveGroupAdmin, hasPermission, loading } = useGroup()
+  const { activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission, loading } = useGroup()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -122,17 +122,25 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
       pathname.startsWith('/dashboard/category') ||
       pathname.startsWith('/dashboard/stock')
 
-    const isRestrictedFeature =
-      pathname.startsWith('/dashboard/analytics') ||
-      pathname.startsWith('/dashboard/maintenance') ||
-      pathname.startsWith('/dashboard/reports')
+    const isAnalytics = pathname.startsWith('/dashboard/analytics')
+    const canAccessAnalytics = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW'])
 
-    if (isOverview || isRestrictedAirqoOnly || isRestrictedFeature) {
-      if (!canMaintainDevices) {
-        router.replace('/dashboard/devices')
-      }
+    const isMaintenance = pathname.startsWith('/dashboard/maintenance')
+    const canAccessMaintenance = !isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN')
+
+    const isReports = pathname.startsWith('/dashboard/reports')
+    const canAccessReports = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW'])
+
+    if ((isOverview || isRestrictedAirqoOnly) && (!isAirqoGroup || !canMaintainDevices)) {
+      router.replace('/dashboard/devices')
+    } else if (isAnalytics && !canAccessAnalytics) {
+      router.replace('/dashboard/devices')
+    } else if (isMaintenance && !canAccessMaintenance) {
+      router.replace('/dashboard/devices')
+    } else if (isReports && !canAccessReports) {
+      router.replace('/dashboard/devices')
     }
-  }, [activeGroup, isActiveGroupAdmin, hasPermission, loading, pathname, router])
+  }, [activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission, loading, pathname, router])
 
   if (loading && !activeGroup) {
     return (

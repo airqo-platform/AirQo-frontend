@@ -13,18 +13,17 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<SidebarProps>) {
-  const { activeGroup, isActiveGroupAdmin, hasPermission } = useGroup()
+  const { activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission } = useGroup()
   const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
 
-  // DEVICE_MAINTAIN permission (or group admin role) is required to see org devices, performance analysis, collocation, maintenance, reports
   const canMaintainDevices = hasPermission('DEVICE_MAINTAIN') || isActiveGroupAdmin
 
   const canViewOverview = isAirqoGroup && canMaintainDevices
   const canViewDevices = true // Devices tab is accessible
-  const canViewAnalytics = canMaintainDevices
+  const canViewAnalytics = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW'])
   const canViewAirqoAdminTools = isAirqoGroup && canMaintainDevices
-  const canViewMaintenance = canMaintainDevices
-  const canViewReports = canMaintainDevices
+  const canViewMaintenance = !isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN')
+  const canViewReports = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW'])
 
   return (
     <div
