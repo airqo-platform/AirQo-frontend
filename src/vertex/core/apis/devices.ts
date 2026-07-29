@@ -336,9 +336,10 @@ export const devices = {
     height: string;
     mountType: string;
     powerType: string;
-    isPrimaryInLocation: boolean;
-    latitude: string;
-    longitude: string;
+    // Static-only: mobile deployments are grid-based and never carry a site or coordinates.
+    isPrimaryInLocation?: boolean;
+    latitude?: string;
+    longitude?: string;
     site_name?: string;
     site_id?: string;
     network: string;
@@ -360,10 +361,21 @@ export const devices = {
     try {
       const toIso = (d?: string) =>
         d ? new Date(d).toISOString() : new Date().toISOString();
-      const height = Number(deviceData.height);
-      if (Number.isNaN(height)) {
-        throw new Error("Invalid numeric value for height.");
-      }
+      // Number("") is 0, not NaN, so a blank value would pass a bare Number.isNaN
+      // guard and reach the API as a real 0 — a 0m height, or a device deployed to
+      // Null Island. Blank is treated as missing.
+      const parseRequiredNumber = (value: string | undefined, label: string): number => {
+        if (value === undefined || value.trim() === "") {
+          throw new Error(`Missing ${label}.`);
+        }
+        const parsed = Number(value);
+        if (Number.isNaN(parsed)) {
+          throw new Error(`Invalid numeric value for ${label}.`);
+        }
+        return parsed;
+      };
+
+      const height = parseRequiredNumber(deviceData.height, "height");
 
       const isMobile = deviceData.deployment_type === 'mobile';
 
@@ -397,9 +409,9 @@ export const devices = {
         date: toIso(deviceData.deployment_date),
         mountType: deviceData.mountType,
         powerType: deviceData.powerType,
-        isPrimaryInLocation: deviceData.isPrimaryInLocation,
-        latitude: Number(deviceData.latitude),
-        longitude: Number(deviceData.longitude),
+        isPrimaryInLocation: deviceData.isPrimaryInLocation ?? false,
+        latitude: parseRequiredNumber(deviceData.latitude, "latitude"),
+        longitude: parseRequiredNumber(deviceData.longitude, "longitude"),
         ...(deviceData.site_id
           ? { site_id: deviceData.site_id, site_name: deviceData.site_name || `${deviceData.deviceName} Site` }
           : { site_name: deviceData.site_name || `${deviceData.deviceName} Site` }),
@@ -412,12 +424,6 @@ export const devices = {
         email: deviceData.email,
         userName: deviceData.userName,
       }];
-
-      const lat = staticPayload[0].latitude;
-      const lng = staticPayload[0].longitude;
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        throw new Error("Invalid numeric values for latitude or longitude.");
-      }
 
       const response = await jwtApiClient.post(
         `/devices/activities/deploy/batch`,

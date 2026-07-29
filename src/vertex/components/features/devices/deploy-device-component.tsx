@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, startOfDay, subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -154,11 +154,9 @@ const DeviceDetailsStep = ({
   deploymentType,
 }: DeviceDetailsStepProps) => {
   const { networks, isLoading: isLoadingNetworks, error: networksError } = useNetworks();
-  const oneMonthAgo = React.useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 1);
-    return d;
-  }, []);
+  // Start-of-day so the boundary day itself stays selectable; subMonths clamps
+  // month-end overflow (Mar 31 → Feb 28/29, not Mar 3).
+  const oneMonthAgo = React.useMemo(() => startOfDay(subMonths(new Date(), 1)), []);
 
   return (
     <div className="space-y-4">
@@ -823,8 +821,6 @@ const DeployDeviceComponent = ({
             height: deviceData.height,
             mountType: 'vehicle',
             powerType: 'alternator',
-            latitude: '',
-            longitude: '',
             network: deviceData.network || 'airqo',
             user_id: userDetails._id,
             firstName: userDetails.firstName,

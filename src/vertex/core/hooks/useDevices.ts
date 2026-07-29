@@ -661,9 +661,10 @@ export const useDeployDevice = () => {
       height: string;
       mountType: string;
       powerType: string;
-      isPrimaryInLocation: boolean;
-      latitude: string;
-      longitude: string;
+      // Static-only: mobile deployments are grid-based and never carry a site or coordinates.
+      isPrimaryInLocation?: boolean;
+      latitude?: string;
+      longitude?: string;
       site_name?: string;
       site_id?: string;
       network: string;
