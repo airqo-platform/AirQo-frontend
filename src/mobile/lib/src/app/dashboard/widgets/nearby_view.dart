@@ -200,6 +200,34 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
   }
 
+  Future<void> _evictDroppedNearbyMeasurements(
+    Set<String> currentMeasurementSiteIds,
+  ) async {
+    try {
+      final cachedData = await _cacheManager.get<List<dynamic>>(
+        boxName: CacheBoxName.location,
+        key: _cachedNearbyLocationsKey,
+        fromJson: (json) => json['locations'] as List<dynamic>,
+      );
+
+      if (cachedData == null || cachedData.data.isEmpty) return;
+
+      for (final item in cachedData.data) {
+        final siteId = item['siteId'] as String?;
+        if (siteId == null || currentMeasurementSiteIds.contains(siteId)) {
+          continue;
+        }
+
+        await _cacheManager.delete(
+          boxName: CacheBoxName.location,
+          key: 'site_measurement_$siteId',
+        );
+      }
+    } catch (e) {
+      loggy.error('Failed to evict stale nearby measurements: $e');
+    }
+  }
+
   Future<void> _updateNearbyLocations() async {
     if (_userPosition == null) {
       loggy.info('Skipping nearby filter: position not yet available');
@@ -228,6 +256,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     
     final measWithDistance = <MapEntry<Measurement, double>>[];
     final nearbyInfo = <Map<String, dynamic>>[];
+    final currentMeasurementSiteIds = allMeasurements
+        .map((measurement) => measurement.siteId)
+        .whereType<String>()
+        .toSet();
     
     for (final measurement in allMeasurements) {
       final siteDetails = measurement.siteDetails;
@@ -268,6 +300,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     final visibleMeasurements = measWithDistance.length > _maxNearbyLocations
         ? measWithDistance.sublist(0, _maxNearbyLocations)
         : measWithDistance;
+
+    await _evictDroppedNearbyMeasurements(currentMeasurementSiteIds);
     
     await _cacheManager.put<Map<String, dynamic>>(
       boxName: CacheBoxName.location,
