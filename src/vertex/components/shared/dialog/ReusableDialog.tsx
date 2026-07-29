@@ -170,7 +170,9 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     const handleEscape = (e: KeyboardEvent) => {
       const isTopmost = openDialogStack[openDialogStack.length - 1] === id
-      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current) {
+      // Don't close while a Radix popover (combobox, etc.) is open on top.
+      const hasOpenPopover = document.querySelector('[data-radix-popper-content-wrapper]')
+      if (e.key === "Escape" && isTopmost && !preventBackdropCloseRef.current && !hasOpenPopover) {
         onCloseRef.current()
       }
     }

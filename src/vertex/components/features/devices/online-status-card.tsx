@@ -17,6 +17,7 @@ import {
   getDeviceStatus,
   getStatusExplanation,
 } from "@/core/utils/status";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 const statusColorClasses = {
   green: {
@@ -181,6 +182,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
             >
               <Icon className="w-5 h-5" />
               <span>{status.label}</span>
+              <DateValidHintIndicator dateValidStatus={device.dateValidStatus} />
             </div>
 
             <div className="text-sm text-muted-foreground">

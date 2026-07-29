@@ -63,6 +63,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
       {/* Data entries */}
       <div className="space-y-2">
+        {/* Display-only list — no stable ID available */}
         {payload.map((entry, index) => (
           <div key={index} className="flex items-start justify-between gap-2">
             <div className="flex items-center space-x-2 min-w-0">

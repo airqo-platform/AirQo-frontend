@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { config } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
 
 interface Device {
@@ -55,7 +56,7 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
       const apiPath = `${prefix}/devices/map-data`
       
-      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+      const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': authService.getToken() || '',
           'Content-Type': 'application/json'

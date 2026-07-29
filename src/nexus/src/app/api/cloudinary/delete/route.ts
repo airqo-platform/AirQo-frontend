@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/shared/lib/auth';
 import type { Session } from 'next-auth';
 import logger from '@/shared/lib/logger';
+import { checkRateLimit, getClientIp } from '@/shared/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -19,21 +20,67 @@ const isValidPublicId = (publicId: string): boolean => {
   );
 };
 
+// Verify that the publicId belongs to an app-managed folder and is owned by
+// the authenticated user where applicable.
+// Cloudinary assets uploaded by this app follow conventions like:
+//   users/{userId}/...   (profile photos)
+//   groups/{groupId}/... (group logos)
+//   organizations/...    (org assets)
+//   profiles/...         (profile images)
+// This prevents deletion of arbitrary external assets while allowing
+// all legitimate app use cases. Path traversal is blocked separately.
+function isOwnedByUser(publicId: string, userId: string): boolean {
+  // Reject any publicId that contains traversal segments — these are never
+  // valid Cloudinary IDs and could be used to bypass prefix checks if we
+  // normalised them away.
+  const segments = publicId.split('/');
+  if (segments.some(segment => segment === '..' || segment === '.')) {
+    return false;
+  }
+
+  // For user-scoped assets, verify the userId segment matches the authenticated user
+  if (publicId.startsWith('users/')) {
+    return publicId.startsWith(`users/${userId}/`);
+  }
+
+  const ALLOWED_PREFIXES = [
+    'groups/',
+    'organizations/',
+    'organization_profiles/',
+    'profiles/',
+    'surveys/',
+    'feedback/',
+  ];
+
+  return ALLOWED_PREFIXES.some(prefix => publicId.startsWith(prefix));
+}
+
 export async function DELETE(request: NextRequest) {
   let body: { publicId?: string } | undefined;
   let session: Session | null = null;
 
   try {
-    // Check authentication (optional - log warning if missing but don't block)
+    // Require authentication — no unauthenticated deletions allowed
     session = (await getServerSession(authOptions)) as Session | null;
-    if (!session || !session.user) {
-      logger.warn('Cloudinary delete attempted without session', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userAgent: request.headers.get('user-agent'),
-      });
-      // Don't block the request - allow deletion to proceed
-      // TODO: Implement proper ownership verification once user context is reliable in production
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit
+    const rateLimitResult = checkRateLimit(getClientIp(request), {
+      windowMs: 60_000,
+      maxRequests: 30,
+    });
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+          },
+        }
+      );
     }
 
     // Validate environment variables
@@ -99,19 +146,29 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // TODO: Add ownership/permission check for the publicId
-    // This should verify that the authenticated user owns or has permission to delete this image
-    // For now, allowing authenticated users to delete any image
+    // Ownership check: verify the publicId belongs to the authenticated user.
+    // This enforces a naming convention scoped to the user's own folder.
+    const userId = session.user._id as string;
+    if (!isOwnedByUser(publicId, userId)) {
+      logger.warn('Cloudinary delete rejected: publicId not owned by user', {
+        publicId,
+        userId,
+      });
+      return NextResponse.json(
+        { error: 'Forbidden: you can only delete your own assets' },
+        { status: 403 }
+      );
+    }
 
     const timestamp = Math.floor(Date.now() / 1000);
 
     logger.debug('Cloudinary delete request', {
       publicId,
       timestamp,
-      userId: session?.user?._id,
+      userId,
       userName:
-        session?.user?.firstName || session?.user?.lastName
-          ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
+        session.user.firstName || session.user.lastName
+          ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
           : undefined,
     });
 
@@ -184,10 +241,10 @@ export async function DELETE(request: NextRequest) {
           statusText: response.statusText,
           cloudinaryError: result.error,
           result,
-          userId: session?.user?._id,
+          userId,
           userName:
-            session?.user?.firstName || session?.user?.lastName
-              ? `${session?.user?.firstName || ''} ${session?.user?.lastName || ''}`.trim()
+            session.user.firstName || session.user.lastName
+              ? `${session.user.firstName || ''} ${session.user.lastName || ''}`.trim()
               : undefined,
         }
       );
@@ -208,7 +265,7 @@ export async function DELETE(request: NextRequest) {
     logger.debug('Cloudinary delete successful', {
       publicId,
       result: result.result,
-      userId: session?.user?._id,
+      userId,
     });
 
     return NextResponse.json(result, {

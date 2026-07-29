@@ -14,8 +14,8 @@ The Interactive Map lets you explore air quality readings from monitoring sites 
 1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
 2. Select **Map** in the sidebar.
 3. Direct links:
-   - **Individual workflow:** `https://nexus.airqo.net//user/map`
-   - **Organization workflow:** `https://nexus.airqo.net//org/<your-org>/map`
+   - **Individual workflow:** `https://nexus.airqo.net/user/map`
+   - **Organization workflow:** `https://nexus.airqo.net/org/<your-org>/map`
 
 ---
 
@@ -23,8 +23,8 @@ The Interactive Map lets you explore air quality readings from monitoring sites 
 
 The map has two main areas:
 
-- **Map canvas** — on the right on desktop, on the top on mobile — displays monitoring sites as interactive markers.
-- **Sidebar** — on the left on desktop, on the bottom on mobile — contains search, country filter, location list, and site details.
+- **Map canvas** — on the right on desktop, at the top on mobile — displays monitoring sites as interactive markers.
+- **Sidebar** — on the left on desktop, at the bottom on mobile — contains search, country filter, location list, and site details.
 
 On desktop, the sidebar and map share the screen height. On mobile, the map takes the top 40% of the screen and the sidebar takes the bottom 60%.
 
@@ -148,7 +148,7 @@ Select **Show more** to expand additional details:
 
 ### Health Alerts
 
-A collapsible card with health tips related to the current air quality level. If the platform provides specific health tips for the site, they are listed here; otherwise a generic guidance message is shown.
+A collapsible card with health tips related to the current air quality level. If the platform provides specific health tips for the site, they are listed here; otherwise, a generic guidance message is shown.
 
 ### More Insights
 
@@ -204,5 +204,5 @@ If the organization's cohort has no deployed devices yet, an empty-state banner 
 ## Related Guides
 
 - [Air Quality Levels](./air-quality-levels.md)
-- [Analytics Dashboard](./analytics-dashboard.md)
+- [Nexus Dashboard](./nexus-dashboard.md)
 - [Favorite Locations](../managing-locations/favorite-locations.md)

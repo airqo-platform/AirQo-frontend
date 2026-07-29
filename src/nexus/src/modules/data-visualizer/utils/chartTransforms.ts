@@ -377,8 +377,8 @@ const buildHistogramModel = (
     return createEmptyModel('No numeric values were found for this metric.');
   }
 
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const min = values.reduce((a, b) => Math.min(a, b), values[0]);
+  const max = values.reduce((a, b) => Math.max(a, b), values[0]);
   const binCount = Math.min(
     12,
     Math.max(6, Math.ceil(Math.sqrt(values.length)))

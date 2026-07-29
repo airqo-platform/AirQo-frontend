@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/shared/lib/auth';
+import { normalizeApiBaseUrl } from '@/shared/lib/api-routing';
+import logger from '@/shared/lib/logger';
+import { checkRateLimit, getClientIp } from '@/shared/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 
-const normalizeApiBaseUrl = (baseUrl: string): string => {
-  const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
+// Allowlist of upstream paths this proxy is permitted to serve.
+// Derived from an audit of every createServerClient() call site:
+//   analyticsService: /devices/readings/recent, /analytics/data-download
+//   deviceService: /devices/sites/summary, /devices/grids/summary,
+//                  /devices/grids/countries, /devices/readings/map,
+//                  /predict/daily-forecasting, /predict/hourly-forecasting
+//   userService: /users/preferences/replace
+const ALLOWED_PATH_PREFIXES = [
+  'devices/readings/recent',
+  'devices/sites/summary',
+  'devices/grids/summary',
+  'devices/grids/countries',
+  'devices/readings/map',
+  'analytics/data-download',
+  'predict/daily-forecasting',
+  'predict/hourly-forecasting',
+  'users/preferences/replace',
+];
 
-  if (/\/api\/v\d+$/i.test(trimmedBaseUrl)) {
-    return trimmedBaseUrl;
-  }
-
-  if (/\/api$/i.test(trimmedBaseUrl)) {
-    return `${trimmedBaseUrl}/v2`;
-  }
-
-  return `${trimmedBaseUrl}/api/v2`;
-};
+// HTTP methods this proxy supports. POST is needed for /analytics/data-download;
+// PATCH is needed for /users/preferences/replace. PUT and DELETE are not used
+// by any serverClient call site and are removed to reduce attack surface.
+const ALLOWED_METHODS = ['GET', 'HEAD', 'POST', 'PATCH'] as const;
 
 function buildBaseUrl(): string {
   const configuredBaseUrl =
@@ -36,10 +51,7 @@ const stripVersionPrefix = (path: string): string => {
   return path.replace(/^api\/v\d+\/?/i, '');
 };
 
-const buildTargetUrl = (baseUrl: string, pathSegments: string[]): string => {
-  const targetPath = pathSegments.join('/').replace(/^\/+/, '');
-  const normalizedPath = stripVersionPrefix(targetPath);
-
+const buildTargetUrl = (baseUrl: string, normalizedPath: string): string => {
   if (!normalizedPath) {
     return baseUrl;
   }
@@ -47,10 +59,79 @@ const buildTargetUrl = (baseUrl: string, pathSegments: string[]): string => {
   return `${baseUrl}/${normalizedPath}`;
 };
 
+function hasPathTraversal(segments: string[]): boolean {
+  return segments.some(
+    segment =>
+      segment === '..' || segment.toLowerCase() === '%2e%2e'
+  );
+}
+
+function isPathAllowed(normalizedPath: string): boolean {
+  const lowerPath = normalizedPath.toLowerCase();
+  return ALLOWED_PATH_PREFIXES.some(prefix =>
+    lowerPath.startsWith(prefix.toLowerCase())
+  );
+}
+
 async function proxyRequest(request: NextRequest, pathSegments: string[]) {
   try {
+    // 1. Require a valid session
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Rate limit
+    const rateLimitResult = checkRateLimit(
+      `${getClientIp(request)}:${pathSegments.join('/')}`,
+      { windowMs: 60_000, maxRequests: 100 }
+    );
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    // 3. Block path traversal attempts
+    if (hasPathTraversal(pathSegments)) {
+      logger.warn('Path traversal attempt blocked in /api/external', {
+        pathSegments,
+        userId: session.user._id,
+      });
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+    }
+
+    // 4. Restrict HTTP methods
+    if (!ALLOWED_METHODS.includes(request.method as (typeof ALLOWED_METHODS)[number])) {
+      return NextResponse.json(
+        { error: 'Method not allowed' },
+        { status: 405 }
+      );
+    }
+
     const baseUrl = buildBaseUrl();
-    const targetUrl = new URL(buildTargetUrl(baseUrl, pathSegments));
+    const targetPath = pathSegments.join('/').replace(/^\/+/, '');
+    const normalizedPath = stripVersionPrefix(targetPath);
+
+    // 5. Enforce path allowlist
+    if (!isPathAllowed(normalizedPath)) {
+      logger.warn('Blocked request to non-allowlisted path in /api/external', {
+        path: normalizedPath,
+        userId: session.user._id,
+      });
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    const targetUrl = new URL(buildTargetUrl(baseUrl, normalizedPath));
 
     const apiToken = (process.env.API_TOKEN || '').trim();
     if (!apiToken) {
@@ -94,7 +175,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
           options.body = requestBody;
         }
       } catch (error) {
-        console.error('Failed to read request body:', error);
+        logger.error('Failed to read request body', error as Error);
       }
     }
 
@@ -133,7 +214,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
       );
     }
 
-    console.error('Proxy request failed:', error);
+    logger.error('Proxy request failed', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -155,21 +236,7 @@ export async function POST(
   return proxyRequest(request, params.path);
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  return proxyRequest(request, params.path);
-}
-
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  return proxyRequest(request, params.path);
-}
-
-export async function DELETE(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {

@@ -11,7 +11,10 @@ import type {
 
 // Get clients
 export const useClients = () => {
-  return useSWR('clients', () => clientService.getClients());
+  return useSWR('clients', () => clientService.getClients(), {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
 };
 
 // Get clients by user ID

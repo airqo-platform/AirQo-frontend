@@ -33,6 +33,7 @@ const PublishValidationDialog: React.FC<PublishValidationDialogProps> = ({
         </p>
 
         <ul className="space-y-2">
+          {/* Display-only list — no stable ID available */}
           {issues.map((issue, index) => (
             <li
               key={index}

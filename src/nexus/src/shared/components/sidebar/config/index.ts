@@ -20,6 +20,7 @@ import {
   AqFileShield02,
   AqBookOpen01,
   AqImage01,
+  AqShieldZap,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -248,6 +249,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqShield02,
       },
       {
+        id: 'system-security-exemptions',
+        label: 'Security Exemptions',
+        href: '/system/security-exemptions',
+        icon: AqShieldZap,
+      },
+      {
         id: 'system-roles-permissions',
         label: 'Roles & Permissions',
         href: '/system/roles-permissions',
@@ -365,6 +372,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Security',
             href: '/system/security',
             description: 'Review blocked ranges and flagged tokens',
+          },
+          {
+            id: 'system-security-exemptions',
+            label: 'Security Exemptions',
+            href: '/system/security-exemptions',
+            description: 'Manage per-token security bypass exemptions',
           },
           {
             id: 'system-roles-permissions',

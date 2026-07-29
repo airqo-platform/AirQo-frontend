@@ -37,6 +37,7 @@ const Pagination: React.FC<PaginationProps> = ({
     }
 
     for (let i = startPage; i <= endPage; i++) {
+      // Page number is a stable value, not an array index
       pageNumbers.push(
         <button
           key={i}

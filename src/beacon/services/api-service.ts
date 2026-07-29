@@ -4,6 +4,7 @@
  */
 
 import { config } from '@/lib/config'
+import { handleUnauthorized } from '@/lib/api-client'
 
 interface LoginCredentials {
   userName: string
@@ -128,6 +129,10 @@ class AuthService {
 
     // Handle non-successful responses
     if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAllAuthData()
+        await handleUnauthorized()
+      }
       const error: ApiError = {
         status: response.status,
         message: isJson && data.message 

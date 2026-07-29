@@ -282,7 +282,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
 
           {/* Enhanced Standards Display */}
           <div className="space-y-3">
-            {standards.map((standard: (typeof standards)[0], index: number) => {
+            {standards.map((standard: (typeof standards)[0]) => {
               const IconComponent = getAirQualityIcon(standard.level);
               const iconColor = getAirQualityColor(standard.level);
 
@@ -399,7 +399,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
 
               return (
                 <div
-                  key={index}
+                  key={standard.level}
                   className="border border-border rounded-lg p-3 hover:shadow-sm transition-all bg-card"
                 >
                   <div className="flex items-center justify-between mb-2">

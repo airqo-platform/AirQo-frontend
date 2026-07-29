@@ -81,59 +81,20 @@ export default function OrgLoginPage() {
         let errorMessage = 'Login failed. Please try again.';
         let errorTitle = 'Login Failed';
 
-        try {
-          const errorData = JSON.parse(res.error);
-          if (errorData && typeof errorData === 'object') {
-            const { status, data, message } = errorData;
-            if (status === 400 && data) {
-              if (data.message) {
-                errorMessage = data.message;
-              } else if (message) {
-                errorMessage = message;
-              }
-              if (
-                data.message?.includes('username or password does not exist')
-              ) {
-                errorTitle = 'Invalid Credentials';
-              } else if (
-                data.message?.includes('incorrect username or password')
-              ) {
-                errorTitle = 'Invalid Credentials';
-              }
-            } else if (status === 401) {
-              errorTitle = 'Unauthorized';
-              errorMessage = 'Please check your credentials and try again.';
-            } else if (status === 403) {
-              errorTitle = 'Access Denied';
-              errorMessage =
-                'You do not have permission to access this organization.';
-            } else if (status >= 500) {
-              errorTitle = 'Server Error';
-              errorMessage =
-                'Service temporarily unavailable. Please try again later.';
-            } else if (message) {
-              errorMessage = message;
-            }
-          }
-        } catch {
-          if (res.error === 'incorrect username or password') {
-            errorMessage = 'Incorrect username or password';
-            errorTitle = 'Invalid Credentials';
-          } else if (res.error.includes('incorrect username or password')) {
-            errorMessage = 'Incorrect username or password';
-            errorTitle = 'Invalid Credentials';
-          } else if (res.error.includes('This endpoint does not exist')) {
-            errorMessage =
-              'Service temporarily unavailable. Please try again later.';
-            errorTitle = 'Service Unavailable';
-          } else if (res.error.includes('Login failed')) {
-            const apiMessageMatch = res.error.match(/Login failed:?\s*(.+)/i);
-            if (apiMessageMatch && apiMessageMatch[1]) {
-              errorMessage = apiMessageMatch[1].trim();
-            }
-          } else if (res.error && res.error !== 'CredentialsSignin') {
-            errorMessage = res.error;
-          }
+        // Map the generic error code to a user-friendly message
+        if (res.error === 'CredentialsSignin') {
+          errorMessage =
+            'Incorrect username or password. Please check your credentials and try again.';
+          errorTitle = 'Invalid Credentials';
+        } else if (res.error.includes('incorrect username or password')) {
+          errorMessage = 'Incorrect username or password';
+          errorTitle = 'Invalid Credentials';
+        } else if (res.error.includes('This endpoint does not exist')) {
+          errorMessage =
+            'Service temporarily unavailable. Please try again later.';
+          errorTitle = 'Service Unavailable';
+        } else if (res.error !== 'CredentialsSignin') {
+          errorMessage = res.error;
         }
 
         toast.error(errorTitle, errorMessage);

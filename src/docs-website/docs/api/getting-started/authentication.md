@@ -11,7 +11,7 @@ Before making any API requests, you need an AirQo account and a set of API crede
 
 ## Step 1 — Create an AirQo account
 
-Go to [https://analytics.airqo.net](https://analytics.airqo.net) and sign up for a free account. Once registered, you will be taken to the AirQo Analytics dashboard.
+Go to [https://nexus.airqo.net](https://nexus.airqo.net) and sign up for a free account. Once registered, you will be taken to the AirQo Nexus dashboard.
 
 ---
 
@@ -81,7 +81,7 @@ If you are making API calls from a server (as opposed to a browser), you must wh
 
 To whitelist your IP:
 
-1. Go to **Profile → API** in [analytics.airqo.net](https://analytics.airqo.net).
+1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.
 3. Add each public IP address your servers will use under **IP Addresses**.
 

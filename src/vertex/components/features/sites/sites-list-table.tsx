@@ -10,6 +10,7 @@ import {
   formatDisplayDate,
   getDeviceStatus,
 } from "@/core/utils/status";
+import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
 
 interface SitesTableProps {
   itemsPerPage?: number;
@@ -137,15 +138,17 @@ export default function SitesTable({
         );
         const colors = badgeColorClasses[status.color];
         const Icon = status.icon;
-
         return (
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
-            title={status.description}
-          >
-            <Icon className="w-4 h-4 mr-1" />
-            {status.label}
-          </span>
+          <>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
+              title={status.description}
+            >
+              <Icon className="w-4 h-4 mr-1" />
+              {status.label}
+            </span>
+            <DateValidHintIndicator dateValidStatus={site.dateValidStatus} stopPropagation />
+          </>
         );
       },
     },

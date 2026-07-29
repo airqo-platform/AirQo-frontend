@@ -1,5 +1,3 @@
-import { getConfiguredSiteUrls, getPrimarySiteUrl } from '../siteUrl';
-
 export interface ImageMetadata {
   url: string;
   alt: string;
@@ -21,12 +19,8 @@ export interface MetadataConfig {
   section?: string;
 }
 
-export const SUPPORTED_DOMAINS = getConfiguredSiteUrls();
-export const PRIMARY_SITE_URL = getPrimarySiteUrl();
-
 export const DEFAULT_METADATA = {
   siteName: 'AirQo - Air Quality Monitoring Network Africa',
-  siteUrl: PRIMARY_SITE_URL,
   defaultImage: {
     url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
     alt: 'AirQo - Clean Air for All African Cities | Real-time Air Quality Monitoring',

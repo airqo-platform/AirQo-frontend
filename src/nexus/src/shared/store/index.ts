@@ -57,8 +57,10 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
-          'persist/PERSIST',
+          'persist/FLUSH',
           'persist/REHYDRATE',
+          'persist/PAUSE',
+          'persist/PERSIST',
           'persist/PURGE',
         ],
       },

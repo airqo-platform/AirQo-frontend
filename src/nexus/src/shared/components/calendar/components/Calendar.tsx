@@ -308,6 +308,7 @@ export function Calendar({
                   </div>
 
                   <div className="grid grid-cols-7 gap-0">
+                    {/* Static list — always 42-day grid, never reorders */}
                     {days.map((day, i) => {
                       const isCurrentMonth = dateUtils.isSameMonth(day, month);
                       return (

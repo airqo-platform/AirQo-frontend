@@ -1,6 +1,7 @@
 import {
   badgeColorClasses,
   formatDisplayDate,
+  getDateValidHint,
   getDeviceStatus,
   getSimpleStatus,
   getStatusExplanation,
@@ -149,6 +150,34 @@ describe("status utilities", () => {
           errorType: "invalid",
         })
       ).toContain("invalid date: Invalid date");
+    });
+  });
+
+  describe("getDateValidHint", () => {
+    it("returns a Clock Error hint for future_timestamp", () => {
+      expect(getDateValidHint("future_timestamp")).toEqual({
+        label: "Clock Error",
+        description: expect.stringContaining("future"),
+      });
+    });
+
+    it("returns a Timestamp Error hint for invalid_format", () => {
+      expect(getDateValidHint("invalid_format")).toEqual({
+        label: "Timestamp Error",
+        description: expect.any(String),
+      });
+    });
+
+    it("returns null for valid", () => {
+      expect(getDateValidHint("valid")).toBeNull();
+    });
+
+    it("returns null for unknown", () => {
+      expect(getDateValidHint("unknown")).toBeNull();
+    });
+
+    it("returns null when dateValidStatus is undefined", () => {
+      expect(getDateValidHint(undefined)).toBeNull();
     });
   });
 

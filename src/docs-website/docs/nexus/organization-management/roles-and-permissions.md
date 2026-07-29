@@ -13,7 +13,7 @@ A guide to managing roles, permissions, and members within your organization on 
 
 An organization is a workspace on the AirQo Nexus platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
 
-When you first join the AirQo Nexus platform, you are assigned to a default organization. Organization administrators can invite additional members, create custom roles, and configure settings.
+When you first join the AirQo Nexus platform, you start with a personal workspace in the Individual workflow. Organization administrators can invite you to join their organization, create custom roles, and configure settings.
 
 ---
 
@@ -78,7 +78,7 @@ In practice, this covers every organization, group, user, role, device, site, an
 
 ### 3. `{ORG_NAME}_ADMIN`
 
-Organization administrator. Cannot touch platform-level system controls.
+Organization administrator. Cannot modify platform-level system controls.
 
 | Category | Permissions |
 |----------|-------------|
