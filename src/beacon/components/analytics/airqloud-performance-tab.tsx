@@ -926,7 +926,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                                 tickFormatter={(value) => `${value}V`}
                               />
                               <Tooltip
-                                formatter={(value: any) => [`${value}V`, 'Voltage']}
+                                formatter={(value: any) => (value == null ? ['N/A', 'Voltage'] : [`${Number(value).toFixed(2)}V`, 'Voltage'])}
                               />
                               <Legend wrapperStyle={{ fontSize: '12px' }} />
                               <Line
