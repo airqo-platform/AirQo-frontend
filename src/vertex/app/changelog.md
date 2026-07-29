@@ -2,6 +2,35 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.31
+**Released:** July 29, 2026
+
+### Feat: Settings shortcut to the Nexus profile page, and the "Analytics" app tile renamed to "Nexus"
+
+Vertex had no entry point for account/profile settings — account management lives in the Nexus web app. A Settings icon in the topbar now hands off to the Nexus profile page in a new tab. The app-launcher tile is renamed to match the app's new name.
+
+<details>
+<summary><strong>New: Settings icon in the topbar linking to the Nexus profile page</strong></summary>
+
+- `profileSettingsUrl` added to `core/urls.tsx`, derived from the existing env-aware `ANALYTICS_BASE_URL` (`NEXT_PUBLIC_ANALYTICS_URL`, falling back to staging/production by environment) alongside `forgotPasswordUrl` / `signUpUrl` — the URL is not hardcoded in the component.
+- The button sits between `<OrganizationPicker />` and Help & Feedback, reusing the Help button's exact `variant`, `className`, and `iconClassName="!h-7 !w-7"` so size, spacing, hover, and dark-mode styling match the adjacent icons (both use the `text-muted-foreground` / `hover:text-foreground` semantic tokens).
+- Opens in a new tab via `window.open(profileSettingsUrl, '_blank', 'noopener,noreferrer')` — it navigates to a different application, so users shouldn't lose their Vertex context. Carries both `aria-label="Settings"` and a `title` tooltip.
+
+</details>
+
+<details>
+<summary><strong>Chore: app-launcher tile renamed "Analytics" → "Nexus"</strong></summary>
+
+- The Analytics app was renamed to Nexus; the `AppDropdown` tile still carried the old name.
+- Name only — the tile's `href` and the `ANALYTICS_BASE_URL` fallbacks still resolve to `analytics.airqo.net` / `staging-analytics.airqo.net`. Switching those needs the staging hostname confirmed (`staging-nexus.airqo.net` appears nowhere in the repo) and a coordinated deployment-config change for `NEXT_PUBLIC_ANALYTICS_URL`, so it is deliberate follow-up.
+
+</details>
+
+**Files changed:**
+- `core/urls.tsx` — `profileSettingsUrl` export
+- `components/layout/topbar.tsx` — Settings `ReusableButton` + `handleSettingsClick` handler
+- `components/layout/AppDropdown.tsx` — tile renamed to "Nexus"
+
 ## Version 2.0.30
 **Released:** July 28, 2026
 
