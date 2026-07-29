@@ -213,7 +213,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       if (cachedData == null || cachedData.data.isEmpty) return;
 
       for (final item in cachedData.data) {
-        final siteId = item['siteId'] as String?;
+        if (item is! Map) continue;
+
+        final siteId = item['siteId']?.toString();
         if (siteId == null || currentMeasurementSiteIds.contains(siteId)) {
           continue;
         }
