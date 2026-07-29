@@ -123,13 +123,13 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
       pathname.startsWith('/dashboard/stock')
 
     const isAnalytics = pathname.startsWith('/dashboard/analytics')
-    const canAccessAnalytics = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW'])
+    const canAccessAnalytics = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW']))
 
     const isMaintenance = pathname.startsWith('/dashboard/maintenance')
-    const canAccessMaintenance = !isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN')
+    const canAccessMaintenance = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN'))
 
     const isReports = pathname.startsWith('/dashboard/reports')
-    const canAccessReports = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW'])
+    const canAccessReports = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW']))
 
     if ((isOverview || isRestrictedAirqoOnly) && (!isAirqoGroup || !canMaintainDevices)) {
       router.replace('/dashboard/devices')

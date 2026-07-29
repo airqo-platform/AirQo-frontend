@@ -20,10 +20,10 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
 
   const canViewOverview = isAirqoGroup && canMaintainDevices
   const canViewDevices = true // Devices tab is accessible
-  const canViewAnalytics = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW'])
+  const canViewAnalytics = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['ANALYTICS_VIEW', 'DATA_VIEW']))
   const canViewAirqoAdminTools = isAirqoGroup && canMaintainDevices
-  const canViewMaintenance = !isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN')
-  const canViewReports = !isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW'])
+  const canViewMaintenance = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN'))
+  const canViewReports = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW']))
 
   return (
     <div
