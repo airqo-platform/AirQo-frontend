@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -136,20 +137,12 @@ class _HourlyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedDateStr =
-        DateFormat('yyyy-MM-dd').format(selectedDate.toLocal());
     final now = DateTime.now();
-    final nowStr = DateFormat('yyyy-MM-dd').format(now);
-    final nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
-    final dayEntries = hourlyResponse.forecasts
-        .where((e) =>
-            DateFormat('yyyy-MM-dd').format(e.time.toLocal()) ==
-            selectedDateStr)
-        .where((e) =>
-            !skipCurrentHour ||
-            selectedDateStr != nowStr ||
-            !e.time.toLocal().isBefore(nextHour))
-        .toList();
+    final dayEntries = hourlyEntriesForDate(
+      hourlyResponse,
+      selectedDate,
+      skipCurrentHour: skipCurrentHour,
+    );
 
     if (dayEntries.isEmpty) {
       return Container(
@@ -181,10 +174,13 @@ class _HourlyList extends StatelessWidget {
         itemCount: dayEntries.length,
         itemBuilder: (context, i) {
           final entry = dayEntries[i];
+          final entryTime = entry.time.toLocal();
           final isNow = entry.time.toLocal().hour == now.hour &&
-              selectedDateStr == nowStr;
+              entryTime.year == now.year &&
+              entryTime.month == now.month &&
+              entryTime.day == now.day;
           final isSelected = onHourSelected != null
-              ? i == selectedHourIndex.clamp(0, dayEntries.length - 1)
+              ? i == selectedHourIndex.clamp(0, dayEntries.length - 1).toInt()
               : isNow;
           return _HourlyChip(
             entry: entry,

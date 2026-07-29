@@ -141,19 +141,6 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
         .toList();
   }
 
-  List<HourlyForecastEntry> _futureHourlyEntriesForDate(
-    HourlyForecastResponse? response,
-    DateTime date,
-  ) {
-    final entries = hourlyEntriesForDate(response, date);
-    final now = DateTime.now();
-    final selectedDateStr = _fmtDate(date.toLocal());
-    if (selectedDateStr != _fmtDate(now)) return entries;
-
-    final nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
-    return entries.where((e) => !e.time.toLocal().isBefore(nextHour)).toList();
-  }
-
   void _syncHourIndex(List<HourlyForecastEntry> entries, DateTime day) {
     if (_timeScope != ForecastTimeScope.hourly || entries.isEmpty) return;
     final defaultIdx = defaultHourlyIndex(entries, day);
@@ -368,16 +355,19 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
       return const Center(child: Text('No forecast data available.'));
     }
 
-    final idx = _selectedDayIndex.clamp(0, forecasts.length - 1);
+    final idx = _selectedDayIndex.clamp(0, forecasts.length - 1).toInt();
     final day = forecasts[idx];
     final selectedDateLabel = DateFormat('EEEE, MMMM d').format(day.time);
-    final hourEntries =
-        _futureHourlyEntriesForDate(state.hourlyResponse, day.time);
+    final hourEntries = hourlyEntriesForDate(
+      state.hourlyResponse,
+      day.time,
+      skipCurrentHour: true,
+    );
     _syncHourIndex(hourEntries, day.time);
 
     final hourIdx = hourEntries.isEmpty
         ? 0
-        : _selectedHourIndex.clamp(0, hourEntries.length - 1);
+        : _selectedHourIndex.clamp(0, hourEntries.length - 1).toInt();
     final selectedHour = hourEntries.isNotEmpty ? hourEntries[hourIdx] : null;
 
     return SingleChildScrollView(
@@ -529,8 +519,6 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
       ),
     );
   }
-
-  String _fmtDate(DateTime dt) => DateFormat('yyyy-MM-dd').format(dt);
 
   DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 }
