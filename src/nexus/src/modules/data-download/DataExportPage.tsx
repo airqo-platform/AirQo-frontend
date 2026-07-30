@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback, useRef, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
@@ -17,6 +17,7 @@ import {
   CohortSitesResponse,
   CohortDevicesResponse,
   Grid,
+  DataDownloadRequest,
 } from '@/shared/types/api';
 import {
   DataType,
@@ -33,6 +34,8 @@ import {
   useDataExportActions,
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import { useDownloadData } from '@/shared/hooks/useAnalytics';
+import { buildDataDownloadRequest } from './utils/dataExportRequest';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
@@ -214,6 +217,161 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
+
+  // Preview state — fetched before dialog opens
+  type PreviewData = Record<string, string | number | null>;
+  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
+  const { trigger: fetchPreviewData } = useDownloadData();
+
+  const handleOpenPreview = useCallback(async () => {
+    if (isPreviewLoading) return;
+
+    setIsPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewRows([]);
+
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort();
+    }
+    const abortController = new AbortController();
+    previewAbortRef.current = abortController;
+
+    const effectiveDataType: 'calibrated' | 'raw' =
+      activeTab === 'devices' && deviceCategory === 'bam'
+        ? 'raw'
+        : (dataType as 'calibrated' | 'raw');
+
+    const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
+      dateRange,
+      activeTab,
+      selectedSites,
+      selectedDeviceIds,
+      selectedDeviceNames: selectedDevices,
+      selectedGridIds,
+      selectedGridSites,
+      selectedGridSiteIds,
+      selectedPollutants,
+      dataType: effectiveDataType,
+      fileType: 'csv',
+      frequency,
+      deviceCategory,
+    });
+
+    try {
+      const response = await fetchPreviewData(previewRequest);
+
+      if (abortController.signal.aborted) return;
+
+      if (typeof response === 'string') {
+        const parseCsvLine = (line: string): string[] => {
+          const fields: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (inQuotes) {
+              if (char === '"') {
+                if (i + 1 < line.length && line[i + 1] === '"') {
+                  current += '"';
+                  i++;
+                } else {
+                  inQuotes = false;
+                }
+              } else {
+                current += char;
+              }
+            } else {
+              if (char === '"') {
+                inQuotes = true;
+              } else if (char === ',') {
+                fields.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+          }
+          fields.push(current.trim());
+          return fields;
+        };
+
+        const lines = response.split('\n').filter((line: string) => line.trim());
+        if (lines.length > 1) {
+          const headers = parseCsvLine(lines[0]);
+          const rows: PreviewData[] = lines.slice(1, 6).map((line: string) => {
+            const values = parseCsvLine(line);
+            const row: PreviewData = {};
+            headers.forEach((header, index) => {
+              const val = values[index];
+              if (val === '' || val === undefined) {
+                row[header] = null;
+              } else {
+                const num = Number(val);
+                row[header] = isNaN(num) ? val : num;
+              }
+            });
+            return row;
+          });
+          setPreviewRows(rows);
+        } else {
+          setPreviewRows([]);
+        }
+      } else if (
+        response &&
+        typeof response === 'object' &&
+        'data' in response &&
+        Array.isArray((response as { data: unknown }).data)
+      ) {
+        const responseData = (
+          response as unknown as { data: Record<string, unknown>[] }
+        ).data;
+        const rows: PreviewData[] = responseData.slice(0, 5).map(item => {
+          const row: PreviewData = {};
+          Object.entries(item).forEach(([key, value]) => {
+            row[key] =
+              typeof value === 'number'
+                ? value
+                : value != null
+                  ? String(value)
+                  : null;
+          });
+          return row;
+        });
+        setPreviewRows(rows);
+      } else {
+        setPreviewRows([]);
+      }
+    } catch {
+      if (abortController.signal.aborted) return;
+      setPreviewError(
+        'Unable to load data preview. You can retry or proceed with the download.'
+      );
+    } finally {
+      if (!abortController.signal.aborted) {
+        setIsPreviewLoading(false);
+        setPreviewOpen(true);
+      }
+    }
+  }, [
+    isPreviewLoading,
+    fetchPreviewData,
+    dataType,
+    frequency,
+    selectedPollutants,
+    dateRange,
+    activeTab,
+    selectedSites,
+    selectedDevices,
+    selectedDeviceIds,
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds,
+    deviceCategory,
+    setPreviewOpen,
+  ]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -912,6 +1070,7 @@ const DataExportPage = () => {
               selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
+              isPreviewLoading={isPreviewLoading}
               isGroupSyncing={isGroupSyncing}
               canDownload={canDownload}
               onRefresh={handleRefreshCurrentTab}
@@ -919,7 +1078,7 @@ const DataExportPage = () => {
               onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
-              onDownload={() => setPreviewOpen(true)}
+              onDownload={handleOpenPreview}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
@@ -974,7 +1133,11 @@ const DataExportPage = () => {
             console.error('Unexpected download confirmation error:', error);
           }
         }}
+        onRetryPreview={handleOpenPreview}
         isDownloading={isDownloading}
+        previewRows={previewRows}
+        isFetchingPreview={isPreviewLoading}
+        previewError={previewError}
         dataType={dataType}
         frequency={frequency}
         fileType={fileType}
@@ -983,11 +1146,8 @@ const DataExportPage = () => {
         activeTab={activeTab}
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
-        selectedDeviceIds={selectedDeviceIds}
-        selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
-        deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}

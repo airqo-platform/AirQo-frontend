@@ -16,6 +16,7 @@ interface DataExportHeaderProps {
   selectedGridSiteIds: Record<string, string[]>;
   isDownloadReady: boolean;
   isDownloading: boolean;
+  isPreviewLoading?: boolean;
   isGroupSyncing?: boolean;
   canDownload?: boolean;
   onRefresh?: () => void;
@@ -40,6 +41,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   selectedGridSiteIds,
   isDownloadReady,
   isDownloading,
+  isPreviewLoading = false,
   isGroupSyncing = false,
   canDownload = true,
   onRefresh,
@@ -171,10 +173,14 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
                 onClick={onDownload}
                 Icon={AqDownload01}
                 className="px-4 py-2 w-full xl:w-auto"
-                disabled={isGroupSyncing || !isDownloadReady}
-                loading={isDownloading}
+                disabled={isGroupSyncing || !isDownloadReady || isDownloading}
+                loading={isPreviewLoading || isDownloading}
               >
-                {isDownloading ? 'Downloading...' : 'Review & Download'}
+                {isPreviewLoading
+                  ? 'Loading preview...'
+                  : isDownloading
+                    ? 'Downloading...'
+                    : 'Review & Download'}
               </Button>
             </span>
           </Tooltip>
