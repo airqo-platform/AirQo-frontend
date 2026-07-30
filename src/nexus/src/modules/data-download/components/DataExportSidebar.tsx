@@ -130,10 +130,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
           {/* File Title Input - First */}
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="file-title-desktop" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               File Title
             </label>
             <Input
+              id="file-title-desktop"
               type="text"
               placeholder="Enter file title (optional)"
               value={fileTitle}
@@ -270,10 +271,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* File Title Input - First */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="file-title-mobile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 File Title
               </label>
               <Input
+                id="file-title-mobile"
                 type="text"
                 placeholder="Enter file title (optional)"
                 value={fileTitle}

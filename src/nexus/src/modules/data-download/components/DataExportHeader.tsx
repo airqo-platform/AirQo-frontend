@@ -173,7 +173,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
                 onClick={onDownload}
                 Icon={AqDownload01}
                 className="px-4 py-2 w-full xl:w-auto"
-                disabled={isGroupSyncing || !isDownloadReady || isDownloading}
+                disabled={isGroupSyncing || !isDownloadReady || isPreviewLoading || isDownloading}
                 loading={isPreviewLoading || isDownloading}
               >
                 {isPreviewLoading

@@ -153,11 +153,11 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
                 <span className="text-gray-400 text-xl">&#128205;</span>
               </div>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {searchTerm
+                {searchTerm.trim()
                   ? 'No sites found matching your search.'
                   : 'No sites available'}
               </p>
-              {!searchTerm && (
+              {!searchTerm.trim() && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   This {gridType} does not have any monitoring sites configured.
                 </p>

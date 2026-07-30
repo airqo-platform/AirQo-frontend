@@ -244,23 +244,23 @@ const DataExportPage = () => {
         ? 'raw'
         : (dataType as 'calibrated' | 'raw');
 
-    const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
-      dateRange,
-      activeTab,
-      selectedSites,
-      selectedDeviceIds,
-      selectedDeviceNames: selectedDevices,
-      selectedGridIds,
-      selectedGridSites,
-      selectedGridSiteIds,
-      selectedPollutants,
-      dataType: effectiveDataType,
-      fileType: 'csv',
-      frequency,
-      deviceCategory,
-    });
-
     try {
+      const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
+        dateRange,
+        activeTab,
+        selectedSites,
+        selectedDeviceIds,
+        selectedDeviceNames: selectedDevices,
+        selectedGridIds,
+        selectedGridSites,
+        selectedGridSiteIds,
+        selectedPollutants,
+        dataType: effectiveDataType,
+        fileType: 'csv',
+        frequency,
+        deviceCategory,
+      });
+
       const response = await fetchPreviewData(previewRequest);
 
       if (abortController.signal.aborted) return;

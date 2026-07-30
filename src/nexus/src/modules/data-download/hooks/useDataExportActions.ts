@@ -675,7 +675,10 @@ const shouldUseMetadataFallback = (error: unknown): boolean => {
     return false;
   }
 
-  return status === 404 || (status !== undefined && status >= 500);
+  return (
+    status === 404 ||
+    (status !== undefined && status >= 500 && status < 600)
+  );
 };
 
 const hasDownloadRecords = (response: DataDownloadResponse | string) => {

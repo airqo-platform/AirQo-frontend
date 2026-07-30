@@ -225,8 +225,15 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           </h3>
 
           {isFetchingPreview ? (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <div
+              className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                aria-hidden="true"
+                className="animate-spin motion-reduce:animate-none rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"
+              ></div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Fetching data preview...
               </p>
@@ -304,8 +311,8 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
               </h4>
               <p className="text-xs text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-3">
                 There are no readings available for the selected time period,
-                locations, and pollutants. You can adjust your filters above and
-                the preview will update automatically.
+                locations, and pollutants. Cancel this dialog to adjust your
+                filters, then run the export again.
               </p>
               <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 dark:bg-amber-900/40 px-3 py-1.5">
                 <span className="text-amber-700 dark:text-amber-300 text-xs font-medium">
