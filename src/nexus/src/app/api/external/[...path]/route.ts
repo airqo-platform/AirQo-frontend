@@ -73,17 +73,36 @@ function isPathAllowed(normalizedPath: string): boolean {
   );
 }
 
+// Paths that may be accessed without a NextAuth session (e.g. the interest
+// onboarding page for newly-registered users).  The backend still authenticates
+// via the API token injected below.
+const SESSION_FREE_PATH_PREFIXES = [
+  'devices/sites/summary',
+  'users/preferences/replace',
+];
+
+function requiresSession(normalizedPath: string): boolean {
+  const lowerPath = normalizedPath.toLowerCase();
+  return !SESSION_FREE_PATH_PREFIXES.some(prefix =>
+    lowerPath.startsWith(prefix.toLowerCase())
+  );
+}
+
 async function proxyRequest(request: NextRequest, pathSegments: string[]) {
   try {
-    // 1. Require a valid session
+    // 1. Require a valid session (except for session-free paths)
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const normalizedTargetPath = stripVersionPrefix(
+      pathSegments.join('/').replace(/^\/+/, '')
+    );
+    if (!session?.user && requiresSession(normalizedTargetPath)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // 2. Rate limit
+    const clientId = session?.user?._id || getClientIp(request);
     const rateLimitResult = checkRateLimit(
-      `${getClientIp(request)}:${pathSegments.join('/')}`,
+      `${clientId}:${pathSegments.join('/')}`,
       { windowMs: 60_000, maxRequests: 100 }
     );
     if (!rateLimitResult.allowed) {
@@ -102,7 +121,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
     if (hasPathTraversal(pathSegments)) {
       logger.warn('Path traversal attempt blocked in /api/external', {
         pathSegments,
-        userId: session.user._id,
+        userId: session?.user?._id,
       });
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
@@ -116,14 +135,13 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
     }
 
     const baseUrl = buildBaseUrl();
-    const targetPath = pathSegments.join('/').replace(/^\/+/, '');
-    const normalizedPath = stripVersionPrefix(targetPath);
+    const normalizedPath = normalizedTargetPath;
 
     // 5. Enforce path allowlist
     if (!isPathAllowed(normalizedPath)) {
       logger.warn('Blocked request to non-allowlisted path in /api/external', {
         path: normalizedPath,
-        userId: session.user._id,
+        userId: session?.user?._id,
       });
       return NextResponse.json(
         { error: 'Forbidden' },

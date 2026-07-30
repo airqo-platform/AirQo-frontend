@@ -24,6 +24,44 @@ import {
   ROLE_CODE_MAX,
 } from './validation-limits';
 
+// Password validation constants — single source of truth
+// This set defines which special characters are allowed in passwords.
+// It is used by both the Zod regex and the PasswordRequirements checklist.
+export const PASSWORD_SPECIAL_CHARS = '@$!%*?&#^-_+=().,;:~';
+export const PASSWORD_SPECIAL_CHARS_DISPLAY =
+  '@ $ ! % * ? & # ^ - _ + = ( ) . , ; : ~';
+
+// Escape characters that are metacharacters inside a regex character class: ] \ ^ -
+const escapeCharClass = (s: string) =>
+  s.replace(/[[\]\\^-]/g, c => `\\${c}`);
+const ESCAPED_SPECIALS = escapeCharClass(PASSWORD_SPECIAL_CHARS);
+
+// Full password regex: enforces allowed character set AND required character classes.
+// The trailing +$ ensures every character is from the permitted set.
+export const PASSWORD_REGEX = new RegExp(
+  `^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[${ESCAPED_SPECIALS}])[A-Za-z\\d${ESCAPED_SPECIALS}]+$`
+);
+export const PASSWORD_ERROR_MESSAGE =
+  'Password must include uppercase, lowercase, number, and special character';
+
+const SPECIAL_CHAR_REGEX = new RegExp(`[${ESCAPED_SPECIALS}]`);
+
+export interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+export const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
+  { label: 'At least 8 characters', test: pw => pw.length >= PASSWORD_MIN },
+  { label: 'Include uppercase letter', test: pw => /[A-Z]/.test(pw) },
+  { label: 'Include lowercase letter', test: pw => /[a-z]/.test(pw) },
+  { label: 'Include at least one number', test: pw => /\d/.test(pw) },
+  {
+    label: 'Include at least one special character',
+    test: pw => SPECIAL_CHAR_REGEX.test(pw),
+  },
+];
+
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
   password: z
@@ -56,10 +94,7 @@ export const registerSchema = z.object({
     .string()
     .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
     .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      'Password must include uppercase, lowercase, number, and special character'
-    ),
+    .regex(PASSWORD_REGEX, PASSWORD_ERROR_MESSAGE),
 });
 
 export const forgotPwdSchema = z.object({
@@ -76,10 +111,7 @@ export const resetPwdSchema = z
       .string()
       .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        'Password must include uppercase, lowercase, number, and special character'
-      ),
+      .regex(PASSWORD_REGEX, PASSWORD_ERROR_MESSAGE),
     confirmPassword: z
       .string()
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
@@ -93,12 +125,9 @@ export const setPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(6, 'Password must be at least 6 characters')
+      .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
-      .regex(
-        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#?!$%^&*.,]+$/,
-        'Password must include at least one letter and one number'
-      ),
+      .regex(PASSWORD_REGEX, PASSWORD_ERROR_MESSAGE),
     confirmPassword: z
       .string()
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),
@@ -154,10 +183,7 @@ export const securitySchema = z
       .string()
       .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`)
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        'Password must include uppercase, lowercase, number, and special character'
-      ),
+      .regex(PASSWORD_REGEX, PASSWORD_ERROR_MESSAGE),
     confirmPassword: z
       .string()
       .max(PASSWORD_MAX, `Password must be ${PASSWORD_MAX} characters or less`),

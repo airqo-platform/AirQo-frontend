@@ -10,7 +10,6 @@ import {
     AqPhone01,
     AqArrowNarrowLeft,
     AqCpuChip01,
-    AqServer03,
     AqBarChartSquarePlus,
 } from '@airqo/icons-react';
 import { Smartphone } from 'lucide-react';
@@ -19,6 +18,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
+import { getEnvironmentAwareUrl } from '@/core/urls';
 
 interface App {
     name: string;
@@ -35,32 +35,20 @@ interface AppDropdownProps {
 
 const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     const [showQRCode, setShowQRCode] = useState(false);
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    const getUrl = (baseUrl: string): string => {
-        if (isProduction) return baseUrl;
-        try {
-            const url = new URL(baseUrl);
-            url.hostname = `staging-${url.hostname}`;
-            return url.toString();
-        } catch {
-            return baseUrl;
-        }
-    };
 
     const apps: App[] = [
         {
             name: 'Nexus',
             description: 'View air quality dashboards',
             icon: AqBarChartSquarePlus,
-            href: getUrl('https://analytics.airqo.net/'),
+            href: getEnvironmentAwareUrl('https://analytics.airqo.net/'),
             color: 'bg-green-500',
         },
         {
             name: 'Calibrate',
             description: 'Calibrate low-cost sensors',
             icon: AqCalibration,
-            href: getUrl('https://airqalibrate.airqo.net/'),
+            href: getEnvironmentAwareUrl('https://airqalibrate.airqo.net/'),
             color: 'bg-blue-500',
         },
         {
@@ -69,13 +57,6 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             icon: AqGlobe02Maps_Travel,
             href: 'https://airqo.net/',
             color: 'bg-purple-500',
-        },
-        {
-            name: 'Vertex',
-            description: 'Manage device deployment',
-            icon: AqServer03,
-            href: getUrl('https://vertex.airqo.net/'),
-            color: 'bg-yellow-600',
         },
         {
             name: 'API Docs',
