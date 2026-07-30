@@ -101,7 +101,7 @@ const Page: React.FC = () => {
   const userId = params.id as string;
   const token = params.token as string;
 
-  const [step, setStep] = useState<number>(1);
+  const [step, setStep] = useState<number>(0);
   const [query, setQuery] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
@@ -123,14 +123,13 @@ const Page: React.FC = () => {
   // Verify email on mount
   const { trigger: verifyEmail } = useVerifyEmail();
 
-  // Get sites data
+  // Get sites data — only after email verification completes
   const {
     data: sitesData,
     isLoading: isLoadingSites,
-    error: sitesError,
   } = useSitesSummaryWithToken(
     { search: query || undefined },
-    !!userId && !!token
+    !!userId && !!token && emailVerified
   );
 
   // Update preferences and user details
@@ -303,15 +302,44 @@ const Page: React.FC = () => {
   return (
     <AuthLayout
       pageTitle="Your interests"
-      heading={step === 1 ? 'Select Your Locations' : 'Your Interests'}
+      heading={
+        step === 0
+          ? 'Email Verified'
+          : step === 1
+            ? 'Select Your Locations'
+            : 'Your Interests'
+      }
       subtitle={
-        step === 1
-          ? 'Choose up to 4 locations you are interested in.'
-          : 'Help us tailor your experience.'
+        step === 0
+          ? 'Your email has been confirmed successfully.'
+          : step === 1
+            ? 'Choose up to 4 locations you are interested in.'
+            : 'Help us tailor your experience.'
       }
     >
       <div className="w-full">
-        {step === 1 ? (
+        {step === 0 ? (
+          <div className="space-y-6">
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="bg-green-100 dark:bg-green-900/40 rounded-full p-4 mb-4">
+                <AqCheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm">
+                Your email address has been verified. Click below to continue
+                setting up your account.
+              </p>
+            </div>
+
+            <div className="border-t pt-6 flex justify-end">
+              <Button
+                variant="filled"
+                onClick={() => setStep(1)}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        ) : step === 1 ? (
           <div className="space-y-6">
             <div>
               <label
@@ -380,11 +408,9 @@ const Page: React.FC = () => {
                 {selectedLocations.length}/{maxLocations} selected
               </div>
               <div className="flex gap-2">
-                {sitesError && (
-                  <Button variant="outlined" onClick={() => setStep(2)}>
-                    Skip Location Selection
-                  </Button>
-                )}
+                <Button variant="outlined" onClick={() => setStep(2)}>
+                  Skip Location Selection
+                </Button>
                 <Button
                   variant="filled"
                   disabled={selectedLocations.length === 0}

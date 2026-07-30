@@ -12,6 +12,7 @@ import {
   setPasswordSchema,
   type SetPasswordFormData,
 } from '@/shared/lib/validators';
+import { PasswordRequirements } from '@/shared/components/ui/password-requirements';
 import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import type { AuthMethods } from '@/shared/types/api';
 
@@ -57,6 +58,7 @@ const SetPasswordPromptDialog = () => {
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
   } = useForm<SetPasswordFormData>({
@@ -67,6 +69,8 @@ const SetPasswordPromptDialog = () => {
     },
     mode: 'onChange',
   });
+
+  const passwordValue = watch('password');
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -323,9 +327,7 @@ const SetPasswordPromptDialog = () => {
           maxLength={PASSWORD_MAX}
         />
 
-        <p className="text-xs text-muted-foreground">
-          Use 6 to 30 characters with at least one letter and one number.
-        </p>
+        <PasswordRequirements password={passwordValue || ''} />
       </form>
     </ReusableDialog>
   );
