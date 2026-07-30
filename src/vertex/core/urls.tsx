@@ -38,7 +38,16 @@ const STAGING_HOSTS: Readonly<Record<string, string>> = {
   "www.airqo.net": "staging.airqo.net",
 };
 
-const LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "::1", "0.0.0.0"];
+// `location.hostname` serialises IPv6 hosts *with* brackets per the URL spec, so
+// `http://[::1]:3000` reports "[::1]" — the bracketed form is the one that actually
+// occurs. The bare form is kept only to guard non-browser callers.
+const LOCAL_HOSTNAMES = [
+  "localhost",
+  "127.0.0.1",
+  "[::1]",
+  "::1",
+  "0.0.0.0",
+];
 
 /**
  * Rewrites a production cross-app URL to its staging equivalent when the current

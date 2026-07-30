@@ -49,6 +49,18 @@ describe('getEnvironmentAwareUrl', () => {
     );
   });
 
+  // `location.hostname` keeps IPv6 brackets — http://[::1]:3000 reports "[::1]",
+  // never a bare "::1" — so the bracketed form is what must be matched.
+  it.each(['127.0.0.1', '[::1]', '0.0.0.0'])(
+    'treats %s as local and rewrites to staging',
+    (hostname) => {
+      setHostname(hostname);
+      expect(getEnvironmentAwareUrl('https://analytics.airqo.net/')).toBe(
+        'https://staging-analytics.airqo.net/'
+      );
+    }
+  );
+
   // Not every app uses the `staging-` prefix — the marketing site is a
   // `staging.` subdomain, which a blind prefix would have turned into the
   // nonexistent `staging-airqo.net`.
