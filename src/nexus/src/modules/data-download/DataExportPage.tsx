@@ -432,28 +432,30 @@ const DataExportPage = () => {
             return row;
           });
 
-          // For countries/cities, fill in the grid name column from processed grid data
+          // For countries/cities, backfill site_name from grid.sites data
           if (activeTab === 'countries' || activeTab === 'cities') {
-            const locationKey = activeTab === 'countries' ? 'country_name' : 'city_name';
             const gridData = activeTab === 'countries' ? processedCountriesData : processedCitiesData;
 
-            // Build siteId → gridName lookup
-            const siteToGrid = new Map<string, string>();
+            // Build siteId → siteName lookup from all selected grids' sites
+            const siteIdToName = new Map<string, string>();
             gridData.forEach(grid => {
               if (grid.sites) {
-                const sites = grid.sites as Array<{ _id: string }>;
+                const sites = grid.sites as Array<{ _id: string; name: string }>;
                 sites.forEach(site => {
-                  siteToGrid.set(site._id, grid.name as string);
+                  if (site._id && site.name) {
+                    siteIdToName.set(site._id, site.name);
+                  }
                 });
               }
             });
 
+            // Backfill site_name for each row using site_id lookup
             rows.forEach(row => {
               const siteId = row.site_id ? String(row.site_id) : null;
-              if (siteId && !row[locationKey]) {
-                const gridName = siteToGrid.get(siteId);
-                if (gridName) {
-                  row[locationKey] = gridName;
+              if (siteId) {
+                const siteName = siteIdToName.get(siteId);
+                if (siteName) {
+                  row.site_name = siteName;
                 }
               }
             });
@@ -484,6 +486,32 @@ const DataExportPage = () => {
           });
           return row;
         });
+
+        // For countries/cities, backfill site_name from grid.sites data
+        if (activeTab === 'countries' || activeTab === 'cities') {
+          const gridData = activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+          const siteIdToName = new Map<string, string>();
+          gridData.forEach(grid => {
+            if (grid.sites) {
+              const sites = grid.sites as Array<{ _id: string; name: string }>;
+              sites.forEach(site => {
+                if (site._id && site.name) {
+                  siteIdToName.set(site._id, site.name);
+                }
+              });
+            }
+          });
+          rows.forEach(row => {
+            const siteId = row.site_id ? String(row.site_id) : null;
+            if (siteId) {
+              const siteName = siteIdToName.get(siteId);
+              if (siteName) {
+                row.site_name = siteName;
+              }
+            }
+          });
+        }
+
         setPreviewRows(rows);
       } else {
         setPreviewRows([]);

@@ -398,9 +398,7 @@ export const getDownloadColumnGroups = (
       ? { key: 'site_name', label: 'Site name' }
       : activeTab === 'devices'
         ? { key: 'device_name', label: 'Device name' }
-        : activeTab === 'countries'
-          ? { key: 'country_name', label: 'Country name' }
-          : { key: 'city_name', label: 'City name' };
+        : { key: 'site_name', label: 'Site name' };
 
   const uniquePollutants = Array.from(
     new Set(selectedPollutants.filter(Boolean))
