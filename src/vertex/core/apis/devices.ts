@@ -380,11 +380,19 @@ export const devices = {
       const isMobile = deviceData.deployment_type === 'mobile';
 
       if (isMobile) {
+        // Mobile deployments are grid-based. An absent grid_id would be dropped by
+        // JSON.stringify and leave as a malformed request, so fail here instead —
+        // matching how the static branch treats its own required values.
+        const gridId = deviceData.grid_id?.trim();
+        if (!gridId) {
+          throw new Error("Missing grid_id for mobile deployment.");
+        }
+
         const mobilePayload = {
           date: toIso(deviceData.deployment_date),
           mountType: 'vehicle',
           powerType: 'alternator',
-          grid_id: deviceData.grid_id,
+          grid_id: gridId,
           height,
           network: deviceData.network,
           user_id: deviceData.user_id,
