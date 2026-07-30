@@ -494,7 +494,8 @@ class AirQloudService {
     if (params.tags) queryParams.append('tags', params.tags)
 
     if (params.search) queryParams.append('search', params.search)
-    if (params.group) queryParams.append('group', params.group)
+    const group = params.group || 'airqo'
+    queryParams.append('group', group)
 
     if (params.includePerformance) queryParams.append('includePerformance', params.includePerformance.toString())
     if (params.startDateTime) queryParams.append('startDateTime', params.startDateTime)
