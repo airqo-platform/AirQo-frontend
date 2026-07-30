@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { resetPwdSchema, type ResetPwdFormData } from '@/shared/lib/validators';
+import { PasswordRequirements } from '@/shared/components/ui/password-requirements';
 import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import { useResetPassword } from '@/shared/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
@@ -24,6 +25,7 @@ export default function ResetPwdPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResetPwdFormData>({
     resolver: zodResolver(resetPwdSchema),
@@ -33,6 +35,8 @@ export default function ResetPwdPage() {
     },
     mode: 'onChange',
   });
+
+  const passwordValue = watch('password');
 
   const { trigger: resetPassword, isMutating } = useResetPassword();
 
@@ -169,6 +173,7 @@ export default function ResetPwdPage() {
             maxLength={PASSWORD_MAX}
             {...register('password')}
           />
+          <PasswordRequirements password={passwordValue || ''} />
 
           <Input
             label="Confirm Password"

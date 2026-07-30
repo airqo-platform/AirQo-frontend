@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Banner } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { securitySchema, type SecurityFormData } from '@/shared/lib/validators';
+import { PasswordRequirements } from '@/shared/components/ui/password-requirements';
 import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import { useUpdatePassword, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -25,6 +26,7 @@ const SecurityTab: React.FC = () => {
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors },
   } = useForm<SecurityFormData>({
@@ -36,6 +38,8 @@ const SecurityTab: React.FC = () => {
     },
     mode: 'onChange',
   });
+
+  const newPasswordValue = watch('newPassword');
 
   const onSubmit = async (data: SecurityFormData) => {
     if (!user?.id) {
@@ -71,20 +75,13 @@ const SecurityTab: React.FC = () => {
         description="Update your password and security preferences"
       >
         <div className="space-y-8">
-          {/* Password Section */}
+            {/* Password Section */}
           <div className="space-y-6">
             {/* Security Info */}
             <Banner
               severity="warning"
               title="Password Requirements"
-              message={
-                <ul className="list-disc list-inside space-y-1 mt-2">
-                  <li>At least 8 characters long</li>
-                  <li>Include uppercase and lowercase letters</li>
-                  <li>Include at least one number</li>
-                  <li>Include at least one special character</li>
-                </ul>
-              }
+              message="Your password must meet all the requirements listed below."
               showIcon={true}
             />
 
@@ -102,16 +99,19 @@ const SecurityTab: React.FC = () => {
               />
 
               {/* New Password */}
-              <Input
-                {...register('newPassword')}
-                label="New Password"
-                type="password"
-                placeholder="Enter your new password"
-                error={errors.newPassword?.message}
-                required
-                showPasswordToggle
-                maxLength={PASSWORD_MAX}
-              />
+              <div>
+                <Input
+                  {...register('newPassword')}
+                  label="New Password"
+                  type="password"
+                  placeholder="Enter your new password"
+                  error={errors.newPassword?.message}
+                  required
+                  showPasswordToggle
+                  maxLength={PASSWORD_MAX}
+                />
+                <PasswordRequirements password={newPasswordValue || ''} />
+              </div>
 
               {/* Confirm Password */}
               <Input

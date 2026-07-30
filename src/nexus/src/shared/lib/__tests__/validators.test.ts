@@ -36,39 +36,30 @@ const omit = <T extends Record<string, unknown>>(obj: T, ...keys: string[]) =>
 const chars = (...codes: number[]) => String.fromCharCode(...codes);
 const validEmail = 'user@example.com';
 const strongPassword = chars(
+  84,
+  101,
+  115,
+  116,
+  80,
+  97,
+  115,
+  115,
+  49,
+  33,
   65,
-  105,
-  114,
-  81,
-  111,
-  45,
-  85,
-  103,
-  97,
-  110,
-  100,
-  97,
-  45,
-  75,
-  97,
-  109,
-  112,
-  97,
-  108,
-  97,
-  45,
-  50,
-  48,
-  50,
-  52,
-  33
-);
+  98,
+  99,
+  33,
+  120,
+  121,
+  122
+); // TestPass1!Abc!xyz
 
 describe('loginSchema', () => {
   it('valid input passes', () => {
     const data = {
       email: validEmail,
-      password: chars(65, 105, 114, 81, 111, 45, 118, 97, 108, 105, 100),
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50, 51, 33, 64),
     } as unknown as LoginFormData;
     expect(loginSchema.safeParse(data).success).toBe(true);
   });
@@ -76,7 +67,7 @@ describe('loginSchema', () => {
   it('missing email fails', () => {
     expect(
       loginSchema.safeParse({
-        password: chars(65, 105, 114, 81, 111, 45, 118, 97, 108, 105, 100),
+        password: chars(65, 98, 99, 88, 121, 122, 49, 50, 51, 33, 64),
       }).success
     ).toBe(false);
   });
@@ -88,7 +79,7 @@ describe('loginSchema', () => {
   it('empty email string fails', () => {
     const data = {
       email: '',
-      password: chars(65, 105, 114, 81, 111, 45, 118, 97, 108, 105, 100),
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50, 51, 33, 64),
     } as unknown as LoginFormData;
     expect(loginSchema.safeParse(data).success).toBe(false);
   });
@@ -96,7 +87,7 @@ describe('loginSchema', () => {
   it('invalid email format fails', () => {
     const data = {
       email: 'not-an-email',
-      password: chars(65, 105, 114, 81, 111, 45, 118, 97, 108, 105, 100),
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50, 51, 33, 64),
     } as unknown as LoginFormData;
     expect(loginSchema.safeParse(data).success).toBe(false);
   });
@@ -150,7 +141,7 @@ describe('registerSchema', () => {
   it('password too short fails', () => {
     const data = {
       ...validRegister,
-      password: chars(65, 105, 114, 81, 111, 33, 49),
+      password: chars(65, 98, 99, 49, 33), // Abc1! (5 chars)
     } as unknown as RegisterFormData;
     expect(registerSchema.safeParse(data).success).toBe(false);
   });
@@ -166,7 +157,7 @@ describe('registerSchema', () => {
   it('password missing uppercase fails', () => {
     const data = {
       ...validRegister,
-      password: chars(107, 97, 109, 112, 97, 108, 97, 33, 49),
+      password: chars(97, 98, 99, 49, 33, 64, 35, 38), // abc1!@#& (no uppercase)
     } as unknown as RegisterFormData;
     expect(registerSchema.safeParse(data).success).toBe(false);
   });
@@ -174,7 +165,7 @@ describe('registerSchema', () => {
   it('password missing lowercase fails', () => {
     const data = {
       ...validRegister,
-      password: chars(75, 65, 77, 80, 65, 76, 65, 33, 49),
+      password: chars(90, 89, 88, 65, 66, 67, 49, 33, 49),
     } as unknown as RegisterFormData;
     expect(registerSchema.safeParse(data).success).toBe(false);
   });
@@ -182,7 +173,7 @@ describe('registerSchema', () => {
   it('password missing number fails', () => {
     const data = {
       ...validRegister,
-      password: chars(75, 97, 109, 112, 97, 108, 97, 33),
+      password: chars(65, 98, 99, 88, 121, 122, 33, 64), // AbcXyz!@ (no number)
     } as unknown as RegisterFormData;
     expect(registerSchema.safeParse(data).success).toBe(false);
   });
@@ -190,7 +181,39 @@ describe('registerSchema', () => {
   it('password missing special character fails', () => {
     const data = {
       ...validRegister,
-      password: chars(75, 97, 109, 112, 97, 108, 97, 49),
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50), // AbcXyz12 (no special char)
+    } as unknown as RegisterFormData;
+    expect(registerSchema.safeParse(data).success).toBe(false);
+  });
+
+  it('password with # as special character passes', () => {
+    const data = {
+      ...validRegister,
+      password: 'TestPass99##',
+    } as unknown as RegisterFormData;
+    expect(registerSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('password with ^ as special character passes', () => {
+    const data = {
+      ...validRegister,
+      password: 'Password^1a',
+    } as unknown as RegisterFormData;
+    expect(registerSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('password with () and mixed special characters passes', () => {
+    const data = {
+      ...validRegister,
+      password: 'P@ssw0rd!#_-1',
+    } as unknown as RegisterFormData;
+    expect(registerSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('password with disallowed character fails', () => {
+    const data = {
+      ...validRegister,
+      password: 'Password1\u00A0', // non-breaking space
     } as unknown as RegisterFormData;
     expect(registerSchema.safeParse(data).success).toBe(false);
   });
@@ -299,16 +322,16 @@ describe('resetPwdSchema', () => {
 
   it('password too short fails', () => {
     const data = {
-      password: chars(65, 105, 114, 81, 111, 33, 49),
-      confirmPassword: chars(65, 105, 114, 81, 111, 33, 49),
+      password: chars(65, 98, 99, 49, 33), // Abc1! (5 chars)
+      confirmPassword: chars(65, 98, 99, 49, 33),
     } as unknown as ResetPwdFormData;
     expect(resetPwdSchema.safeParse(data).success).toBe(false);
   });
 
   it('password missing required character class fails', () => {
     const data = {
-      password: chars(75, 97, 109, 112, 97, 108, 97, 49),
-      confirmPassword: chars(75, 97, 109, 112, 97, 108, 97, 49),
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50), // AbcXyz12 (no special char)
+      confirmPassword: chars(65, 98, 99, 88, 121, 122, 49, 50),
     } as unknown as ResetPwdFormData;
     expect(resetPwdSchema.safeParse(data).success).toBe(false);
   });
@@ -333,8 +356,8 @@ describe('resetPwdSchema', () => {
 
 describe('setPasswordSchema', () => {
   const validSet = {
-    password: chars(65, 105, 114, 81, 111, 49),
-    confirmPassword: chars(65, 105, 114, 81, 111, 49),
+    password: strongPassword,
+    confirmPassword: strongPassword,
   } as unknown as SetPasswordFormData;
 
   it('valid input passes', () => {
@@ -344,7 +367,7 @@ describe('setPasswordSchema', () => {
   it('missing password fails', () => {
     expect(
       setPasswordSchema.safeParse({
-        confirmPassword: chars(65, 105, 114, 81, 111, 49),
+        confirmPassword: strongPassword,
       }).success
     ).toBe(false);
   });
@@ -352,45 +375,85 @@ describe('setPasswordSchema', () => {
   it('missing confirmPassword fails', () => {
     expect(
       setPasswordSchema.safeParse({
-        password: chars(65, 105, 114, 81, 111, 49),
+        password: strongPassword,
       }).success
     ).toBe(false);
   });
 
   it('passwords do not match fails', () => {
     const data = {
-      password: chars(65, 105, 114, 81, 111, 49),
-      confirmPassword: chars(120, 121, 122, 55, 56, 57),
+      password: strongPassword,
+      confirmPassword: chars(120, 121, 122, 55, 56, 57, 48, 49, 64),
     } as unknown as SetPasswordFormData;
     expect(setPasswordSchema.safeParse(data).success).toBe(false);
   });
 
-  it('password shorter than 6 chars fails', () => {
+  it('password shorter than 8 chars fails', () => {
     const data = {
-      password: chars(97, 98, 49),
-      confirmPassword: chars(97, 98, 49),
+      password: chars(97, 98, 49, 65, 66, 33, 67),
+      confirmPassword: chars(97, 98, 49, 65, 66, 33, 67),
     } as unknown as SetPasswordFormData;
     expect(setPasswordSchema.safeParse(data).success).toBe(false);
   });
 
   it('password without number fails', () => {
     const data = {
-      password: chars(97, 98, 99, 100, 101, 102, 103),
-      confirmPassword: chars(97, 98, 99, 100, 101, 102, 103),
+      password: chars(97, 98, 99, 100, 101, 102, 65, 33),
+      confirmPassword: chars(97, 98, 99, 100, 101, 102, 65, 33),
     } as unknown as SetPasswordFormData;
     expect(setPasswordSchema.safeParse(data).success).toBe(false);
   });
 
   it('password without letter fails', () => {
     const data = {
-      password: chars(49, 50, 51, 52, 53, 54, 55),
-      confirmPassword: chars(49, 50, 51, 52, 53, 54, 55),
+      password: chars(49, 50, 51, 52, 53, 54, 55, 33),
+      confirmPassword: chars(49, 50, 51, 52, 53, 54, 55, 33),
     } as unknown as SetPasswordFormData;
     expect(setPasswordSchema.safeParse(data).success).toBe(false);
   });
 
+  it('password without uppercase fails', () => {
+    const data = {
+      password: chars(97, 98, 99, 100, 49, 33, 64, 35),
+      confirmPassword: chars(97, 98, 99, 100, 49, 33, 64, 35),
+    } as unknown as SetPasswordFormData;
+    expect(setPasswordSchema.safeParse(data).success).toBe(false);
+  });
+
+  it('password without lowercase fails', () => {
+    const data = {
+      password: chars(65, 66, 67, 68, 49, 33, 64, 35),
+      confirmPassword: chars(65, 66, 67, 68, 49, 33, 64, 35),
+    } as unknown as SetPasswordFormData;
+    expect(setPasswordSchema.safeParse(data).success).toBe(false);
+  });
+
+  it('password without special character fails', () => {
+    const data = {
+      password: chars(65, 98, 99, 88, 121, 122, 49, 50), // AbcXyz12 (no special char)
+      confirmPassword: chars(65, 98, 99, 88, 121, 122, 49, 50),
+    } as unknown as SetPasswordFormData;
+    expect(setPasswordSchema.safeParse(data).success).toBe(false);
+  });
+
+  it('password with # as special character passes', () => {
+    const data = {
+      password: 'TestPass99##',
+      confirmPassword: 'TestPass99##',
+    } as unknown as SetPasswordFormData;
+    expect(setPasswordSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('password with ^ as special character passes', () => {
+    const data = {
+      password: 'Password^1a',
+      confirmPassword: 'Password^1a',
+    } as unknown as SetPasswordFormData;
+    expect(setPasswordSchema.safeParse(data).success).toBe(true);
+  });
+
   it('password exceeding max length fails', () => {
-    const pw = repeat('a', 128) + chars(49);
+    const pw = repeat('A', 127) + chars(49, 97, 33);
     const data = {
       password: pw,
       confirmPassword: pw,
@@ -510,31 +573,23 @@ describe('profileSchema', () => {
 describe('securitySchema', () => {
   const validSecurity = {
     currentPassword: chars(
-      101,
-      120,
-      105,
-      115,
-      116,
-      105,
-      110,
-      103,
-      45,
-      97,
-      105,
-      114,
-      113,
-      111,
-      45,
-      118,
-      97,
-      108,
+      99,
       117,
+      114,
+      114,
       101,
+      110,
+      116,
       45,
+      112,
+      97,
+      115,
+      115,
+      45,
+      49,
       50,
-      48,
-      50,
-      52
+      51,
+      33
     ),
     newPassword: strongPassword,
     confirmPassword: strongPassword,
@@ -561,33 +616,7 @@ describe('securitySchema', () => {
 
   it('newPassword and confirmPassword mismatch fails', () => {
     const data = {
-      currentPassword: chars(
-        101,
-        120,
-        105,
-        115,
-        116,
-        105,
-        110,
-        103,
-        45,
-        97,
-        105,
-        114,
-        113,
-        111,
-        45,
-        118,
-        97,
-        108,
-        117,
-        101,
-        45,
-        50,
-        48,
-        50,
-        52
-      ),
+      currentPassword: chars(99, 117, 114, 114, 101, 110, 116, 45, 112, 97, 115, 115, 45, 49, 50, 51, 33),
       newPassword: strongPassword,
       confirmPassword: chars(
         68,
@@ -615,70 +644,18 @@ describe('securitySchema', () => {
 
   it('newPassword too short fails', () => {
     const data = {
-      currentPassword: chars(
-        101,
-        120,
-        105,
-        115,
-        116,
-        105,
-        110,
-        103,
-        45,
-        97,
-        105,
-        114,
-        113,
-        111,
-        45,
-        118,
-        97,
-        108,
-        117,
-        101,
-        45,
-        50,
-        48,
-        50,
-        52
-      ),
-      newPassword: chars(65, 105, 114, 81, 111, 33, 49),
-      confirmPassword: chars(65, 105, 114, 81, 111, 33, 49),
+      currentPassword: chars(99, 117, 114, 114, 101, 110, 116, 45, 112, 97, 115, 115, 45, 49, 50, 51, 33),
+      newPassword: chars(65, 98, 99, 49, 33), // Abc1! (5 chars)
+      confirmPassword: chars(65, 98, 99, 49, 33),
     } as unknown as SecurityFormData;
     expect(securitySchema.safeParse(data).success).toBe(false);
   });
 
   it('newPassword missing special character fails', () => {
     const data = {
-      currentPassword: chars(
-        101,
-        120,
-        105,
-        115,
-        116,
-        105,
-        110,
-        103,
-        45,
-        97,
-        105,
-        114,
-        113,
-        111,
-        45,
-        118,
-        97,
-        108,
-        117,
-        101,
-        45,
-        50,
-        48,
-        50,
-        52
-      ),
-      newPassword: chars(75, 97, 109, 112, 97, 108, 97, 49),
-      confirmPassword: chars(75, 97, 109, 112, 97, 108, 97, 49),
+      currentPassword: chars(99, 117, 114, 114, 101, 110, 116, 45, 112, 97, 115, 115, 45, 49, 50, 51, 33),
+      newPassword: chars(65, 98, 99, 88, 121, 122, 49, 50), // AbcXyz12 (no special char)
+      confirmPassword: chars(65, 98, 99, 88, 121, 122, 49, 50),
     } as unknown as SecurityFormData;
     expect(securitySchema.safeParse(data).success).toBe(false);
   });

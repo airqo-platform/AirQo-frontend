@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/shared/components/ui';
 import { registerSchema, type RegisterFormData } from '@/shared/lib/validators';
+import { PasswordRequirements } from '@/shared/components/ui/password-requirements';
 import {
   FIRST_NAME_MAX,
   LAST_NAME_MAX,
@@ -22,6 +23,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isValid },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -33,6 +35,8 @@ export default function RegisterPage() {
     },
     mode: 'onChange',
   });
+
+  const passwordValue = watch('password');
 
   const { trigger: registerUser, isMutating } = useRegister();
   const router = useRouter();
@@ -109,11 +113,8 @@ export default function RegisterPage() {
             showPasswordToggle
             maxLength={PASSWORD_MAX}
             {...register('password')}
-          />{' '}
-          <p className="mt-2 text-xs text-gray-500">
-            Must be at least 8 characters, include uppercase, lowercase, number,
-            and special character (e.g. #?!@$%^&*).
-          </p>
+          />
+          <PasswordRequirements password={passwordValue || ''} />
         </div>
 
         <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
