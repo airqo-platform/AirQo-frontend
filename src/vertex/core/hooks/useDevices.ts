@@ -661,9 +661,10 @@ export const useDeployDevice = () => {
       height: string;
       mountType: string;
       powerType: string;
-      isPrimaryInLocation: boolean;
-      latitude: string;
-      longitude: string;
+      // Static-only: mobile deployments are grid-based and never carry a site or coordinates.
+      isPrimaryInLocation?: boolean;
+      latitude?: string;
+      longitude?: string;
       site_name?: string;
       site_id?: string;
       network: string;
@@ -673,6 +674,14 @@ export const useDeployDevice = () => {
       lastName?: string;
       email?: string;
       userName?: string;
+      deployment_type?: 'static' | 'mobile';
+      grid_id?: string;
+      mobility_metadata?: {
+        route_id?: string;
+        coverage_area?: string;
+        operational_hours?: string;
+        movement_pattern?: string;
+      };
     }) => adapter.deployDevice(deviceData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });

@@ -2,6 +2,51 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.32
+**Released:** July 30, 2026
+
+### Feature: Mobile device deployment
+
+The deploy flow now supports both **Static** and **Mobile** deployment modes. A Deployment Mode selector appears in the "Select Deployment Type" step (Step 2); Static is the default and preserves all existing behavior.
+
+<details>
+<summary><strong>Mobile deployment path</strong></summary>
+
+- Grid selector (required) populated via `useGrids` — replaces the site source / location / map steps entirely.
+- Mount type and power type are shown as read-only preset values (Vehicle / Alternator) and enforced in the API payload; the user cannot select invalid combinations.
+- `site_id`, `site_name`, `latitude`, `longitude`, `isPrimaryInLocation`, and the Primary Site checkbox are never included in mobile submissions.
+- Optional **mobility metadata** fields (Route ID, Coverage Area, Operational Hours, Movement Pattern) are available in a collapsible section.
+- Submits to the dedicated `POST /devices/activities/deploy/mobile?deviceName={deviceName}` endpoint with a single-object body.
+
+</details>
+
+<details>
+<summary><strong>Static deployment changes</strong></summary>
+
+- **Removed Alternator from power type options** — the API rejects it for static deployments; it is now the locked value on the mobile path only.
+- Mount type, power type, and the Primary Site checkbox are hidden when mobile mode is selected, keeping Step 1 uncluttered.
+
+</details>
+
+<details>
+<summary><strong>Shared validation improvements</strong></summary>
+
+- Height field now validates `> 0` and `< 100` (exclusive) with a hint displayed on the input.
+- Deployment date calendar now blocks dates more than one month in the past (previously allowed any date back to 1900).
+
+</details>
+
+<details>
+<summary><strong>Review hardening: request typing, missing-value guards, and restored test coverage</strong></summary>
+
+- **Static-only fields are now optional in the deployment request types.** `isPrimaryInLocation`, `latitude`, and `longitude` were declared required on a request type that mobile deployments must never populate, so the mobile path had to pass filler empty strings to compile. They are optional across `DeviceDeployInput`, the `useDeployDevice` mutation parameter, and the adapter signature; the filler values are gone. `DeviceDeployInput` also now declares the mobile fields (`deployment_type`, `grid_id`, `mobility_metadata`) it was previously silent about.
+- **Blank values no longer reach the API as `0`.** `Number("")` is `0`, not `NaN`, so the previous `Number.isNaN` guards let blank height and coordinates through — a static deploy with no coordinates would have been sent to lat/long `0,0`. A single `parseRequiredNumber` helper now treats blank and whitespace-only as missing and throws before the payload is built.
+- **Mobile deployments validate `grid_id` locally.** An absent grid was dropped entirely by `JSON.stringify`, so the request reached the API with no grid at all rather than failing up front. Missing or blank now throws, matching how the static branch treats its own required values; the value is also trimmed.
+- **Deployment date lower bound is computed correctly.** The bound was built with `setMonth(getMonth() - 1)`, which overflows rather than clamping on month ends (on Mar 31 it produced Mar 3, trimming the window by nearly a month), and retained the current time-of-day, which disabled the boundary day itself since the calendar supplies dates at midnight. Now `startOfDay(subMonths(new Date(), 1))` via date-fns.
+- **Six deploy-wizard tests are running again.** Importing the component pulled in the new `useGrids` hook, which imports `core/adapters` at module scope and throws when no API origin is present in env — so `deploy-device-component.test.tsx` failed during loading and reported `0 test`. The suite showed one failing file rather than six missing assertions, leaving the static deploy path unguarded for the whole refactor. Mocking `useGrids` alongside the existing hook mocks restores them; all six pass.
+
+</details>
+
 ## Version 2.0.31
 **Released:** July 29, 2026
 
