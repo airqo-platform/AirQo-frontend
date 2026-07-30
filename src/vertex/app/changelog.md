@@ -2,6 +2,42 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.33
+**Released:** July 30, 2026
+
+### Fix: app launcher sent staging users to production apps
+
+The launcher's links resolved to production hosts when Vertex itself was running on staging, so switching apps silently moved users from staging into live production. The Vertex tile — a link to the app you are already in — is also gone.
+
+<details>
+<summary><strong>Fix: staging detection used `NODE_ENV`, which is "production" on staging too</strong></summary>
+
+- The staging deployment is a production Next.js build, so `process.env.NODE_ENV === 'production'` is true there. The launcher's `getUrl` helper took that as "we are in production" and returned production URLs unchanged — meaning every cross-app link on staging pointed at the live apps.
+- Detection now keys off the **runtime hostname** instead: URLs are rewritten when the current host contains `staging`, or when running locally. This is what Nexus and the website already do (`getEnvironmentAwareUrl` in `nexus/src/shared/utils/url.ts` and `website/src/lib/environmentAwareUrl.ts`).
+
+</details>
+
+<details>
+<summary><strong>Fix: staging hostnames were guessed by prefixing, which is wrong for some apps</strong></summary>
+
+- The old helper derived staging hosts as `staging-${hostname}` for everything. The convention is not uniform — most apps take the `staging-` prefix (`staging-analytics.airqo.net`, `staging-vertex.airqo.net`) but the marketing site is a subdomain (`staging.airqo.net`), which the prefix would have turned into the nonexistent `staging-airqo.net`. Latent rather than live, since the Website tile did not use the helper.
+- Replaced with an explicit production → staging map. Hosts absent from the map are returned unchanged rather than given a guessed prefix: `ai.airqo.net` and `airqalibrate.airqo.net` have no staging deployment anywhere in the repo, and all four frontends link to them bare, so they are deliberately unmapped.
+- `getEnvironmentAwareUrl` lives in `core/urls.tsx` alongside `ANALYTICS_BASE_URL` and is SSR-safe — with no `window` to inspect it returns the URL as written.
+
+</details>
+
+<details>
+<summary><strong>Chore: removed the Vertex tile from the launcher</strong></summary>
+
+- The launcher listed Vertex itself, offering a link to the app the user is already using. Removed, along with its now-unused `AqServer03` icon import. Six tiles instead of seven.
+
+</details>
+
+**Files changed:**
+- `core/urls.tsx` — new `getEnvironmentAwareUrl` export + `STAGING_HOSTS` map
+- `core/urls.test.ts` [NEW] — 8 cases covering SSR, production, staging, localhost, the subdomain-vs-prefix distinction, path/query preservation, unmapped hosts, and unparseable input
+- `components/layout/AppDropdown.tsx` — uses the shared helper; local `getUrl`/`isProduction` and the Vertex tile removed
+
 ## Version 2.0.32
 **Released:** July 30, 2026
 
