@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, startOfDay, subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -24,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDeviceDetails, useDevices, useDeployDevice } from "@/core/hooks/useDevices";
+import { useGrids } from "@/core/hooks/useGrids";
 import { ComboBox } from "@/components/ui/combobox";
 import { Device, type DevicePreviousSite } from "@/app/types/devices";
 import { useBanner } from "@/context/banner-context";
@@ -61,6 +62,8 @@ interface DeviceData {
   siteName: string;
   site_id: string;
   network: string;
+  deploymentType: 'static' | 'mobile';
+  grid_id: string;
 }
 
 interface DeviceDetailsStepProps {
@@ -74,15 +77,24 @@ interface DeviceDetailsStepProps {
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
   isDevicePrefilled: boolean;
+  deploymentType: 'static' | 'mobile';
 }
 
 interface DeploymentTypeStepProps {
   deviceData: DeviceData;
+  onDeploymentTypeChange: (type: 'static' | 'mobile') => void;
+  // static-specific
   siteSource: 'new' | 'previous';
   onSiteSourceChange: (value: 'new' | 'previous') => void;
   previousSites: Array<{ id: string; name: string; latitude?: number; longitude?: number }>;
   previousSitesDisabled: boolean;
   onPreviousSiteSelect: (siteId: string) => void;
+  // mobile-specific
+  grids: Array<{ _id: string; name: string; long_name?: string }>;
+  isLoadingGrids: boolean;
+  onGridSelect: (gridId: string) => void;
+  mobilityMetadata: MobilityMetadata;
+  onMobilityMetadataChange: (field: keyof MobilityMetadata, value: string) => void;
 }
 
 interface LocationStepProps {
@@ -112,8 +124,14 @@ const mountTypeOptions: MountTypeOption[] = [
 const powerTypeOptions: PowerTypeOption[] = [
   { value: "solar", label: "Solar" },
   { value: "mains", label: "Mains" },
-  { value: "alternator", label: "Alternator" },
 ];
+
+interface MobilityMetadata {
+  route_id: string;
+  coverage_area: string;
+  operational_hours: string;
+  movement_pattern: string;
+}
 
 const fetchClaimedDevices = async (): Promise<Device[]> => {
   const res = await fetch("/api/v2/devices/my-devices?claim_status=claimed");
@@ -133,8 +151,12 @@ const DeviceDetailsStep = ({
   onClaimDevice,
   isLoadingDevices,
   isDevicePrefilled,
+  deploymentType,
 }: DeviceDetailsStepProps) => {
   const { networks, isLoading: isLoadingNetworks, error: networksError } = useNetworks();
+  // Start-of-day so the boundary day itself stays selectable; subMonths clamps
+  // month-end overflow (Mar 31 → Feb 28/29, not Mar 3).
+  const oneMonthAgo = React.useMemo(() => startOfDay(subMonths(new Date(), 1)), []);
 
   return (
     <div className="space-y-4">
@@ -198,7 +220,7 @@ const DeviceDetailsStep = ({
               mode="single"
               selected={deviceData.deployment_date}
               onSelect={onDateChange}
-              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+              disabled={(date) => date > new Date() || date < oneMonthAgo}
             />
           </PopoverContent>
         </Popover>
@@ -208,98 +230,206 @@ const DeviceDetailsStep = ({
         id="height"
         name="height"
         type="number"
-        placeholder="Enter height"
+        placeholder="Enter height (0–100)"
         value={deviceData.height}
         onChange={onInputChange}
+        description="Must be greater than 0 and less than 100"
       />
-      <ReusableSelectInput
-        label="Mount Type"
-        id="mountType"
-        value={deviceData.mountType}
-        onChange={(e) => onSelectChange("mountType")(e.target.value)}
-        placeholder="Select mount type"
-      >
-        {mountTypeOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </ReusableSelectInput>
-      <ReusableSelectInput
-        label="Power Type"
-        id="powerType"
-        value={deviceData.powerType}
-        onChange={(e) => onSelectChange("powerType")(e.target.value)}
-        placeholder="Select power type"
-      >
-        {powerTypeOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </ReusableSelectInput>
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox
-          id="primarySite"
-          checked={deviceData.isPrimarySite}
-          onCheckedChange={(checked) => onCheckboxChange(checked === true)}
-        />
-        <Label htmlFor="primarySite">Primary Site</Label>
-      </div>
+      {deploymentType === 'static' && (
+        <>
+          <ReusableSelectInput
+            label="Mount Type"
+            id="mountType"
+            value={deviceData.mountType}
+            onChange={(e) => onSelectChange("mountType")(e.target.value)}
+            placeholder="Select mount type"
+          >
+            {mountTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </ReusableSelectInput>
+          <ReusableSelectInput
+            label="Power Type"
+            id="powerType"
+            value={deviceData.powerType}
+            onChange={(e) => onSelectChange("powerType")(e.target.value)}
+            placeholder="Select power type"
+          >
+            {powerTypeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </ReusableSelectInput>
+        </>
+      )}
+      {deploymentType === 'static' && (
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="primarySite"
+            checked={deviceData.isPrimarySite}
+            onCheckedChange={(checked) => onCheckboxChange(checked === true)}
+          />
+          <Label htmlFor="primarySite">Primary Site</Label>
+        </div>
+      )}
     </div>
   );
 };
 
 const DeploymentTypeStep = ({
   deviceData,
+  onDeploymentTypeChange,
   siteSource,
   onSiteSourceChange,
   previousSites,
   previousSitesDisabled,
   onPreviousSiteSelect,
+  grids,
+  isLoadingGrids,
+  onGridSelect,
+  mobilityMetadata,
+  onMobilityMetadataChange,
 }: DeploymentTypeStepProps) => {
-  return (
-    <div>
-      <div className="space-y-4">
-        <div className="grid gap-2">
-          <ReusableSelectInput
-            label="Deploy to"
-            id="deploySiteSource"
-            value={siteSource}
-            onChange={(e) => onSiteSourceChange(e.target.value as 'new' | 'previous')}
-          >
-            <option value="new">New site</option>
-            <option value="previous" disabled={previousSitesDisabled}>
-              Previous site
-            </option>
-          </ReusableSelectInput>
-          {previousSitesDisabled && (
-            <p className="text-xs text-muted-foreground">
-              No previous sites available for this device.
-            </p>
-          )}
-        </div>
+  const [showMobilityDetails, setShowMobilityDetails] = React.useState(false);
 
-        {siteSource === 'previous' && (
+  return (
+    <div className="space-y-4">
+      {/* Static vs Mobile selector */}
+      <div className="grid gap-2">
+        <ReusableSelectInput
+          label="Deployment Mode"
+          id="deploymentType"
+          value={deviceData.deploymentType}
+          onChange={(e) => onDeploymentTypeChange(e.target.value as 'static' | 'mobile')}
+        >
+          <option value="static">Static — fixed location</option>
+          <option value="mobile">Mobile — vehicle-mounted</option>
+        </ReusableSelectInput>
+      </div>
+
+      {deviceData.deploymentType === 'static' && (
+        <>
           <div className="grid gap-2">
             <ReusableSelectInput
-              label="Select previous site"
-              id="previousSite"
-              value={deviceData.site_id}
-              onChange={(e) => onPreviousSiteSelect(e.target.value)}
+              label="Deploy to"
+              id="deploySiteSource"
+              value={siteSource}
+              onChange={(e) => onSiteSourceChange(e.target.value as 'new' | 'previous')}
             >
-              <option value="" disabled>
-                Select a site
+              <option value="new">New site</option>
+              <option value="previous" disabled={previousSitesDisabled}>
+                Previous site
               </option>
-              {previousSites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
             </ReusableSelectInput>
+            {previousSitesDisabled && (
+              <p className="text-xs text-muted-foreground">
+                No previous sites available for this device.
+              </p>
+            )}
           </div>
-        )}
-      </div>
+
+          {siteSource === 'previous' && (
+            <div className="grid gap-2">
+              <ReusableSelectInput
+                label="Select previous site"
+                id="previousSite"
+                value={deviceData.site_id}
+                onChange={(e) => onPreviousSiteSelect(e.target.value)}
+              >
+                <option value="" disabled>Select a site</option>
+                {previousSites.map((site) => (
+                  <option key={site.id} value={site.id}>{site.name}</option>
+                ))}
+              </ReusableSelectInput>
+            </div>
+          )}
+        </>
+      )}
+
+      {deviceData.deploymentType === 'mobile' && (
+        <div className="space-y-4">
+          {/* Grid selector */}
+          <div className="grid gap-2">
+            <Label>Grid (required)</Label>
+            <ComboBox
+              options={grids.map((g) => ({ value: g._id, label: g.long_name || g.name }))}
+              value={deviceData.grid_id}
+              onValueChange={onGridSelect}
+              placeholder={isLoadingGrids ? 'Loading grids…' : 'Select a grid'}
+              searchPlaceholder="Search grids…"
+              emptyMessage="No grids found"
+              disabled={isLoadingGrids}
+              className="w-full"
+            />
+          </div>
+
+          {/* Locked fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label className="text-sm font-medium">Mount Type</Label>
+              <div className="flex items-center h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-500 dark:text-gray-400">
+                Vehicle
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-sm font-medium">Power Type</Label>
+              <div className="flex items-center h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-500 dark:text-gray-400">
+                Alternator
+              </div>
+            </div>
+          </div>
+
+          {/* Optional mobility metadata */}
+          <Collapsible open={showMobilityDetails} onOpenChange={setShowMobilityDetails}>
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                {showMobilityDetails ? <AqChevronUp className="h-4 w-4" /> : <AqChevronDown className="h-4 w-4" />}
+                Optional mobility details
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 mt-3">
+              <ReusableInputField
+                label="Route ID"
+                id="route_id"
+                name="route_id"
+                placeholder="e.g. route_kampala_05"
+                value={mobilityMetadata.route_id}
+                onChange={(e) => onMobilityMetadataChange('route_id', e.target.value)}
+              />
+              <ReusableInputField
+                label="Coverage Area"
+                id="coverage_area"
+                name="coverage_area"
+                placeholder="e.g. central_kampala"
+                value={mobilityMetadata.coverage_area}
+                onChange={(e) => onMobilityMetadataChange('coverage_area', e.target.value)}
+              />
+              <ReusableInputField
+                label="Operational Hours"
+                id="operational_hours"
+                name="operational_hours"
+                placeholder="e.g. 06:00-18:00"
+                value={mobilityMetadata.operational_hours}
+                onChange={(e) => onMobilityMetadataChange('operational_hours', e.target.value)}
+              />
+              <ReusableInputField
+                label="Movement Pattern"
+                id="movement_pattern"
+                name="movement_pattern"
+                placeholder="e.g. fixed-route"
+                value={mobilityMetadata.movement_pattern}
+                onChange={(e) => onMobilityMetadataChange('movement_pattern', e.target.value)}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
     </div>
   );
 };
@@ -439,10 +569,17 @@ const DeployDeviceComponent = ({
   const { showBannerWithDelay } = useBannerWithDelay();
   const { userScope, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices({ enabled: userScope !== 'personal' });
+  const { grids, isLoading: isLoadingGrids } = useGrids();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
   const [siteSource, setSiteSource] = React.useState<'new' | 'previous'>('new');
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
+  const [mobilityMetadata, setMobilityMetadata] = React.useState<MobilityMetadata>({
+    route_id: '',
+    coverage_area: '',
+    operational_hours: '',
+    movement_pattern: '',
+  });
 
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
     deviceName: prefilledDevice?.name ?? "",
@@ -456,6 +593,8 @@ const DeployDeviceComponent = ({
     siteName: prefilledDevice?.site_name ?? "",
     site_id: "",
     network: prefilledDevice?.network ?? "airqo",
+    deploymentType: 'static',
+    grid_id: "",
   });
 
   // Use external availableDevices if provided, otherwise use internal filtering
@@ -595,6 +734,19 @@ const DeployDeviceComponent = ({
     setDeviceData((prev) => ({ ...prev, isPrimarySite: checked }));
   };
 
+  const handleDeploymentTypeChange = (type: 'static' | 'mobile'): void => {
+    setDeviceData((prev) => ({ ...prev, deploymentType: type, grid_id: '' }));
+    setSiteSource('new');
+  };
+
+  const handleGridSelect = (gridId: string): void => {
+    setDeviceData((prev) => ({ ...prev, grid_id: gridId }));
+  };
+
+  const handleMobilityMetadataChange = (field: keyof MobilityMetadata, value: string): void => {
+    setMobilityMetadata((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleCoordinateChange = (lat: string, lng: string): void => {
     setDeviceData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
   };
@@ -612,7 +764,8 @@ const DeployDeviceComponent = ({
       showBanner({ severity: 'error', message: 'Incomplete Details: Please fill in all required device details.', scoped: true });
       return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, siteSource === 'new' ? 2 : 1));
+    const hasLocationStep = deviceData.deploymentType === 'static' && siteSource === 'new';
+    setCurrentStep((prev) => Math.min(prev + 1, hasLocationStep ? 2 : 1));
   };
 
   const handleBack = (): void => {
@@ -620,16 +773,17 @@ const DeployDeviceComponent = ({
   };
 
   const validateDeviceDetails = (): boolean => {
-    return Boolean(
-      deviceData.deviceName &&
-      deviceData.deployment_date &&
-      deviceData.height &&
-      deviceData.mountType &&
-      deviceData.powerType
-    );
+    const height = Number(deviceData.height);
+    const heightValid = !Number.isNaN(height) && height > 0 && height < 100;
+    const sharedValid = Boolean(deviceData.deviceName && deviceData.deployment_date) && heightValid;
+    if (deviceData.deploymentType === 'mobile') return sharedValid;
+    return sharedValid && Boolean(deviceData.mountType && deviceData.powerType);
   };
 
   const validateLocation = (): boolean => {
+    if (deviceData.deploymentType === 'mobile') {
+      return Boolean(deviceData.grid_id);
+    }
     if (siteSource === 'previous') {
       return Boolean(deviceData.site_id);
     }
@@ -644,7 +798,12 @@ const DeployDeviceComponent = ({
       return;
     }
 
-    if (siteSource === 'previous' && !deviceData.site_id) {
+    if (deviceData.deploymentType === 'mobile' && !deviceData.grid_id) {
+      showBanner({ severity: 'error', message: 'Please select a grid for mobile deployment.', scoped: true });
+      return;
+    }
+
+    if (deviceData.deploymentType === 'static' && siteSource === 'previous' && !deviceData.site_id) {
       showBanner({ severity: 'error', message: 'Select a previous site to continue.', scoped: true });
       return;
     }
@@ -652,26 +811,50 @@ const DeployDeviceComponent = ({
     const selectedPreviousSite = previousSites.find(s => s.id === deviceData.site_id);
     const previousSiteName = selectedPreviousSite?.name || deviceData.siteName || `${deviceData.deviceName} Site`;
 
+    const isMobile = deviceData.deploymentType === 'mobile';
+
     deployDevice.mutate(
-      {
-        deviceName: deviceData.deviceName,
-        deployment_date: deviceData.deployment_date?.toISOString(),
-        height: deviceData.height,
-        mountType: deviceData.mountType,
-        powerType: deviceData.powerType,
-        isPrimaryInLocation: deviceData.isPrimarySite,
-        latitude: deviceData.latitude || "",
-        longitude: deviceData.longitude || "",
-        ...(siteSource === 'previous'
-          ? { site_id: deviceData.site_id, site_name: previousSiteName }
-          : { site_name: deviceData.siteName || `${deviceData.deviceName} Site` }),
-        network: deviceData.network || "airqo",
-        user_id: userDetails._id,
-        firstName: userDetails.firstName,
-        lastName: userDetails.lastName,
-        email: userDetails.email,
-        userName: userDetails.userName,
-      },
+      isMobile
+        ? {
+            deviceName: deviceData.deviceName,
+            deployment_date: deviceData.deployment_date?.toISOString(),
+            height: deviceData.height,
+            mountType: 'vehicle',
+            powerType: 'alternator',
+            network: deviceData.network || 'airqo',
+            user_id: userDetails._id,
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+            email: userDetails.email,
+            userName: userDetails.userName,
+            deployment_type: 'mobile',
+            grid_id: deviceData.grid_id,
+            mobility_metadata: {
+              route_id: mobilityMetadata.route_id || undefined,
+              coverage_area: mobilityMetadata.coverage_area || undefined,
+              operational_hours: mobilityMetadata.operational_hours || undefined,
+              movement_pattern: mobilityMetadata.movement_pattern || undefined,
+            },
+          }
+        : {
+            deviceName: deviceData.deviceName,
+            deployment_date: deviceData.deployment_date?.toISOString(),
+            height: deviceData.height,
+            mountType: deviceData.mountType,
+            powerType: deviceData.powerType,
+            isPrimaryInLocation: deviceData.isPrimarySite,
+            latitude: deviceData.latitude || "",
+            longitude: deviceData.longitude || "",
+            ...(siteSource === 'previous'
+              ? { site_id: deviceData.site_id, site_name: previousSiteName }
+              : { site_name: deviceData.siteName || `${deviceData.deviceName} Site` }),
+            network: deviceData.network || "airqo",
+            user_id: userDetails._id,
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+            email: userDetails.email,
+            userName: userDetails.userName,
+          },
       {
         onSuccess: () => {
           if (prefilledDevice?._id) {
@@ -697,7 +880,10 @@ const DeployDeviceComponent = ({
             siteName: "",
             site_id: "",
             network: "airqo",
+            deploymentType: 'static',
+            grid_id: "",
           });
+          setMobilityMetadata({ route_id: '', coverage_area: '', operational_hours: '', movement_pattern: '' });
 
           setCurrentStep(0);
           setInputMode("siteName");
@@ -750,6 +936,7 @@ const DeployDeviceComponent = ({
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
           isDevicePrefilled={!!prefilledDevice}
+          deploymentType={deviceData.deploymentType}
         />
       ),
       footer: (
@@ -761,6 +948,7 @@ const DeployDeviceComponent = ({
       content: (
         <DeploymentTypeStep
           deviceData={deviceData}
+          onDeploymentTypeChange={handleDeploymentTypeChange}
           siteSource={siteSource}
           onSiteSourceChange={(value) => {
             if (value === 'previous' && previousSitesDisabled) return;
@@ -772,18 +960,21 @@ const DeployDeviceComponent = ({
           previousSites={previousSites}
           previousSitesDisabled={previousSitesDisabled}
           onPreviousSiteSelect={(siteId) => setDeviceData((prev) => ({ ...prev, site_id: siteId }))}
+          grids={grids}
+          isLoadingGrids={isLoadingGrids}
+          onGridSelect={handleGridSelect}
+          mobilityMetadata={mobilityMetadata}
+          onMobilityMetadataChange={handleMobilityMetadataChange}
         />
       ),
       footer: (
         <>
           <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
-          {siteSource === 'previous' ? (
+          {(deviceData.deploymentType === 'mobile' || siteSource === 'previous') ? (
             <ReusableButton
               onClick={handleDeploy}
               className="w-32"
-              disabled={
-                !(validateDeviceDetails() && validateLocation())
-              }
+              disabled={!(validateDeviceDetails() && validateLocation())}
               loading={deployDevice.isPending}
             >
               {deployDevice.isPending ? "Deploying..." : "Deploy"}
@@ -794,7 +985,7 @@ const DeployDeviceComponent = ({
         </>
       ),
     },
-    ...(siteSource === 'new' ? [
+    ...(deviceData.deploymentType === 'static' && siteSource === 'new' ? [
       {
         title: "Set Deployment Location",
         content: (

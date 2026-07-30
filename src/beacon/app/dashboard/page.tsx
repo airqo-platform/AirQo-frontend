@@ -43,8 +43,9 @@ import {
   Legend
 } from "recharts"
 import { format, parseISO } from "date-fns"
-import { networkStatusService, NetworkStatusAlert, NetworkStatistics, HourlyTrend, UptimeSummaryItem, NetworkBreakdownItem } from "@/services/network-status.service"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { networkStatusService, NetworkStatusAlert, NetworkStatistics, HourlyTrend, UptimeSummaryItem, NetworkBreakdownItem, CohortBreakdownItem, DeviceSummaryCountResponse } from "@/services/network-status.service"
+import { airQloudService, Cohort } from "@/services/airqloud.service"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const aggregateUptimeFromAlerts = (alerts: NetworkStatusAlert[]): UptimeSummaryItem[] => {
@@ -107,9 +108,11 @@ const getNetworkDisplayName = (networkVal: string): string => {
 function DashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const selectedNetwork = searchParams.get("network") || null
+  const selectedNetwork = searchParams ? searchParams.get("network") : null
+  const selectedCohortId = searchParams ? searchParams.get("cohort_id") : null
   const [activeTab, setActiveTab] = useState<'overview' | 'comparison'>('overview')
-  const { availableGroups, loading: groupsLoading } = useGroup()
+  const [comparisonMode, setComparisonMode] = useState<'network' | 'cohort'>('network')
+  const { activeGroup, availableGroups, loading: groupsLoading } = useGroup()
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null)
   const [stats, setStats] = useState<NetworkStatistics | null>(null)
   const [trends, setTrends] = useState<HourlyTrend[]>([])
@@ -117,7 +120,9 @@ function DashboardContent() {
   const [recentAlerts, setRecentAlerts] = useState<NetworkStatusAlert[]>([])
   const [allAlerts, setAllAlerts] = useState<NetworkStatusAlert[]>([])
   const [breakdownData, setBreakdownData] = useState<NetworkBreakdownItem[]>([])
+  const [cohortBreakdownData, setCohortBreakdownData] = useState<CohortBreakdownItem[]>([])
   const [availableNetworks, setAvailableNetworks] = useState<string[]>([])
+  const [availableCohorts, setAvailableCohorts] = useState<Cohort[]>([])
   const [summaryCount, setSummaryCount] = useState<DeviceSummaryCountResponse['data'] | null>(null)
   const [summaryError, setSummaryError] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
@@ -147,41 +152,64 @@ function DashboardContent() {
     try {
       const currentEndDate = new Date().toISOString()
       const currentStartDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-      const params = { start_date: currentStartDate, end_date: currentEndDate }
-      const networkParams = selectedNetwork ? { ...params, network: selectedNetwork } : params
+      const baseParams = { start_date: currentStartDate, end_date: currentEndDate }
 
-      const [statsRes, trendsRes, uptimeRes, recentRes, allRes, breakdownRes, summaryCountRes] = await Promise.all([
-        networkStatusService.getStatistics(networkParams).catch(e => { console.error(e); return { success: false, error: e }; }),
-        networkStatusService.getHourlyTrends(networkParams).catch(e => { console.error(e); return { success: false, error: e }; }),
-        networkStatusService.getUptimeSummary(14, selectedNetwork || undefined).catch(e => { console.error(e); return { success: false, error: e }; }),
-        networkStatusService.getRecentAlerts(48, selectedNetwork || undefined).catch(e => { console.error(e); return { success: false, error: e }; }),
-        networkStatusService.getAlerts({ limit: 200, start_date: currentStartDate, end_date: currentEndDate, network: selectedNetwork || undefined }).catch(e => { console.error(e); return { success: false, error: e }; }),
-        networkStatusService.getNetworkBreakdown(params).catch(e => { console.error(e); return { success: false, error: e }; }),
-        selectedNetwork ? networkStatusService.getDeviceSummaryCount(selectedNetwork).catch(e => { console.error(e); return { success: false, error: e }; }) : Promise.resolve(null)
+      const activeFilter = selectedCohortId 
+        ? { cohort_id: selectedCohortId }
+        : selectedNetwork
+        ? { network: selectedNetwork }
+        : undefined
+
+      const filterParams = selectedCohortId
+        ? { ...baseParams, cohort_id: selectedCohortId }
+        : selectedNetwork
+        ? { ...baseParams, network: selectedNetwork }
+        : baseParams
+
+      const [
+        statsRes,
+        trendsRes,
+        uptimeRes,
+        recentRes,
+        allRes,
+        breakdownRes,
+        cohortBreakdownRes,
+        summaryCountRes,
+        cohortsListRes
+      ] = await Promise.all([
+        networkStatusService.getStatistics(filterParams).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getHourlyTrends(filterParams).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getUptimeSummary(14, activeFilter).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getRecentAlerts(48, activeFilter).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getAlerts({ limit: 200, start_date: currentStartDate, end_date: currentEndDate, ...(activeFilter || {}) }).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getNetworkBreakdown(baseParams).catch(e => { console.error(e); return { success: false, error: e }; }),
+        networkStatusService.getCohortBreakdown(baseParams).catch(e => { console.error(e); return { success: false, error: e }; }),
+        activeFilter ? networkStatusService.getDeviceSummaryCount(activeFilter).catch(e => { console.error(e); return { success: false, error: e }; }) : Promise.resolve(null),
+        airQloudService.getCohorts({ limit: 100, group: activeGroup || 'airqo' }).catch(e => { console.error(e); return null; })
       ])
 
       let rawAlerts: NetworkStatusAlert[] = []
-      if (allRes && 'success' in allRes && allRes.success) {
+      if (allRes && 'alerts' in allRes && allRes.alerts) {
         rawAlerts = allRes.alerts
         setAllAlerts(rawAlerts)
       } else {
         setAllAlerts([])
       }
 
-      if (statsRes && 'success' in statsRes && statsRes.success && statsRes.statistics.length > 0) {
+      if (statsRes && 'statistics' in statsRes && statsRes.statistics.length > 0) {
         setStats(statsRes.statistics[0])
       } else {
         setStats(null)
       }
 
-      if (trendsRes && 'success' in trendsRes && trendsRes.success) {
+      if (trendsRes && 'trends' in trendsRes && trendsRes.trends) {
         const sortedTrends = [...trendsRes.trends].sort((a, b) => a._id.hour - b._id.hour)
         setTrends(sortedTrends)
       } else {
         setTrends([])
       }
 
-      if (uptimeRes && 'success' in uptimeRes && uptimeRes.success) {
+      if (uptimeRes && 'summary' in uptimeRes && uptimeRes.summary) {
         const hasNulls = uptimeRes.summary.some(
           (item: any) => item.avgOfflinePercentage === null
         )
@@ -200,7 +228,7 @@ function DashboardContent() {
         }
       }
 
-      if (recentRes && 'success' in recentRes && recentRes.success) {
+      if (recentRes && 'alerts' in recentRes && recentRes.alerts) {
         if (recentRes.alerts.length === 0 && rawAlerts.length > 0) {
           const localIncidents = rawAlerts.filter(alert => alert.threshold_exceeded).slice(0, 10)
           setRecentAlerts(localIncidents)
@@ -215,14 +243,22 @@ function DashboardContent() {
         }
       }
 
-      if (breakdownRes && 'success' in breakdownRes && breakdownRes.success) {
+      if (breakdownRes && 'data' in breakdownRes && breakdownRes.data) {
         setBreakdownData(breakdownRes.data)
         const networks = breakdownRes.data.map((item: any) => item._id)
         setAvailableNetworks(networks)
       }
 
-      if (selectedNetwork) {
-        if (summaryCountRes && 'success' in summaryCountRes && summaryCountRes.success && summaryCountRes.data) {
+      if (cohortBreakdownRes && 'data' in cohortBreakdownRes && cohortBreakdownRes.data) {
+        setCohortBreakdownData(cohortBreakdownRes.data)
+      }
+
+      if (cohortsListRes && cohortsListRes.airqlouds) {
+        setAvailableCohorts(cohortsListRes.airqlouds)
+      }
+
+      if (activeFilter) {
+        if (summaryCountRes && 'data' in summaryCountRes && summaryCountRes.data) {
           setSummaryCount(summaryCountRes.data)
           setSummaryError(false)
         } else {
@@ -237,8 +273,9 @@ function DashboardContent() {
       const anySuccess = (statsRes && 'success' in statsRes && statsRes.success) || 
                          (trendsRes && 'success' in trendsRes && trendsRes.success) || 
                          (uptimeRes && 'success' in uptimeRes && uptimeRes.success) || 
-                         (breakdownRes && 'success' in breakdownRes && breakdownRes.success);
-      if (!anySuccess && !selectedNetwork) {
+                         (breakdownRes && 'success' in breakdownRes && breakdownRes.success) ||
+                         (cohortBreakdownRes && 'success' in cohortBreakdownRes && cohortBreakdownRes.success);
+      if (!anySuccess && !activeFilter) {
         throw new Error("Unable to retrieve network data. Please verify your connection to staging.");
       }
 
@@ -253,7 +290,7 @@ function DashboardContent() {
   useEffect(() => {
     fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNetwork])
+  }, [selectedNetwork, selectedCohortId])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -313,8 +350,40 @@ function DashboardContent() {
   // Latest check info
   const latestCheck = allAlerts[0]
 
+  const isFiltered = Boolean(selectedNetwork || selectedCohortId);
+
+  const getSelectedFilterValue = (): string => {
+    if (selectedCohortId) return `cohort:${selectedCohortId}`
+    if (selectedNetwork) return `network:${selectedNetwork}`
+    return "all"
+  }
+
+  const getCohortDisplayName = (cohortId: string): string => {
+    const found = availableCohorts.find(c => c._id === cohortId) || cohortBreakdownData.find(c => c._id === cohortId);
+    if (found?.name) return found.name;
+    return `Cohort (${cohortId.slice(-6)})`;
+  }
+
+  const getItemName = (item: NetworkBreakdownItem | CohortBreakdownItem): string => {
+    if (comparisonMode === 'network') {
+      return getNetworkDisplayName(item._id);
+    }
+    const cohortItem = item as CohortBreakdownItem;
+    return cohortItem.name || getCohortDisplayName(item._id);
+  }
+
+  const getActiveFilterName = (): string => {
+    if (selectedCohortId) {
+      return getCohortDisplayName(selectedCohortId);
+    }
+    if (selectedNetwork) {
+      return getNetworkDisplayName(selectedNetwork);
+    }
+    return "All Fleets";
+  }
+
   const getActiveStatusData = () => {
-    if (selectedNetwork && summaryCount) {
+    if (isFiltered && summaryCount) {
       const pct = summaryCount.total_monitors > 0 
         ? (summaryCount.not_transmitting / summaryCount.total_monitors) * 100 
         : 0;
@@ -323,7 +392,7 @@ function DashboardContent() {
         status,
         onlinePercentage: 100 - pct,
         offlinePercentage: pct,
-        message: `Manufacturer status ${status}. Operational: ${summaryCount.operational}, Transmitting: ${summaryCount.transmitting}, Data Available: ${summaryCount.data_available}, Not Transmitting: ${summaryCount.not_transmitting}/${summaryCount.total_monitors} (${pct.toFixed(1)}%)`,
+        message: `${getActiveFilterName()} status ${status}. Operational: ${summaryCount.operational}, Transmitting: ${summaryCount.transmitting}, Data Available: ${summaryCount.data_available}, Not Transmitting: ${summaryCount.not_transmitting}/${summaryCount.total_monitors} (${pct.toFixed(1)}%)`,
         total_deployed_devices: summaryCount.total_monitors,
         not_transmitting_devices_count: summaryCount.not_transmitting,
         operational_count: summaryCount.operational
@@ -344,27 +413,27 @@ function DashboardContent() {
 
   const activeStatus = getActiveStatusData();
 
-  const activeWarningCount = selectedNetwork 
+  const activeWarningCount = isFiltered 
     ? allAlerts.filter(a => a.status === 'WARNING').length 
     : (stats?.warningCount ?? 0)
 
-  const activeCriticalCount = selectedNetwork 
+  const activeCriticalCount = isFiltered 
     ? allAlerts.filter(a => a.status === 'CRITICAL').length 
     : (stats?.criticalCount ?? 0)
 
-  const activeOperational = selectedNetwork && summaryCount
+  const activeOperational = isFiltered && summaryCount
     ? summaryCount.operational
     : (stats ? Math.round(stats.avg_operational_count) : 0)
 
-  const activeTransmitting = selectedNetwork && summaryCount
+  const activeTransmitting = isFiltered && summaryCount
     ? summaryCount.transmitting
     : (stats ? Math.round(stats.avg_transmitting_count) : 0)
 
-  const activeDataAvailable = selectedNetwork && summaryCount
+  const activeDataAvailable = isFiltered && summaryCount
     ? summaryCount.data_available
     : (stats ? Math.round(stats.avg_data_available_count) : 0)
 
-  const isEmptyState = selectedNetwork !== null && summaryCount?.total_monitors === 0;
+  const isEmptyState = isFiltered && summaryCount?.total_monitors === 0;
 
   // Map uptime to online trends
   const uptimeChartData = uptime.map(item => ({
@@ -390,19 +459,32 @@ function DashboardContent() {
     )
   }
 
-  const handleNetworkChange = (networkVal: string) => {
-    const networkParam = networkVal === "all" ? null : networkVal;
+  const handleFilterChange = (filterVal: string) => {
     const params = new URLSearchParams(window.location.search)
-    if (networkParam) {
-      params.set("network", networkParam)
-    } else {
+    if (filterVal === "all") {
       params.delete("network")
+      params.delete("cohort_id")
+    } else if (filterVal.startsWith("cohort:")) {
+      params.delete("network")
+      params.set("cohort_id", filterVal.replace("cohort:", ""))
+    } else if (filterVal.startsWith("network:")) {
+      params.delete("cohort_id")
+      params.set("network", filterVal.replace("network:", ""))
+    } else {
+      params.delete("cohort_id")
+      params.set("network", filterVal)
     }
-    router.push(`${window.location.pathname}?${params.toString()}`)
+    const qs = params.toString()
+    router.push(qs ? `${window.location.pathname}?${qs}` : window.location.pathname)
   }
 
   const handleViewDetails = (netId: string) => {
-    handleNetworkChange(netId);
+    handleFilterChange(`network:${netId}`);
+    setActiveTab('overview');
+  }
+
+  const handleViewCohortDetails = (cohortId: string) => {
+    handleFilterChange(`cohort:${cohortId}`);
     setActiveTab('overview');
   }
 
@@ -458,17 +540,39 @@ function DashboardContent() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fleet Filter:</span>
-              <Select value={selectedNetwork || "all"} onValueChange={(val) => handleNetworkChange(val)}>
-                <SelectTrigger className="w-[180px] bg-white dark:bg-slate-950 border-slate-200 text-xs font-semibold rounded-lg shadow-sm">
-                  <SelectValue placeholder="All Networks" />
+              <Select value={getSelectedFilterValue()} onValueChange={(val) => handleFilterChange(val)}>
+                <SelectTrigger className="w-[220px] bg-white dark:bg-slate-950 border-slate-200 text-xs font-semibold rounded-lg shadow-sm">
+                  <SelectValue placeholder="All Fleets" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-xs rounded-lg">
-                  <SelectItem value="all" className="font-semibold text-slate-700">All Networks (Combined)</SelectItem>
-                  {availableNetworks.map((net) => (
-                    <SelectItem key={net} value={net} className="text-slate-600">
-                      {getNetworkDisplayName(net)}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-xs rounded-lg max-h-[320px]">
+                  <SelectItem value="all" className="font-semibold text-slate-700">All Fleets (Combined)</SelectItem>
+                  
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Manufacturers</SelectLabel>
+                    {availableNetworks.map((net) => (
+                      <SelectItem key={net} value={`network:${net}`} className="text-slate-600">
+                        {getNetworkDisplayName(net)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+
+                  {availableCohorts.length > 0 && (
+                    <>
+                      <SelectSeparator />
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">Cohorts</SelectLabel>
+                        {availableCohorts.map((cohort) => {
+                          const cid = cohort._id;
+                          if (!cid) return null;
+                          return (
+                            <SelectItem key={cid} value={`cohort:${cid}`} className="text-slate-600">
+                              {cohort.name || `Cohort (${cid.slice(-6)})`}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectGroup>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               
@@ -480,14 +584,14 @@ function DashboardContent() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="bg-slate-800 text-white border-0 text-[11px] p-2 max-w-[220px] rounded-lg">
-                    Filters the entire dashboard by device manufacturer or fleet owner. Tooltips & metrics adapt dynamically.
+                    Filters the entire dashboard by device manufacturer or cohort. Tooltips &amp; metrics adapt dynamically.
                   </TooltipContent>
                 </UiTooltip>
               </TooltipProvider>
 
-              {selectedNetwork && (
+              {isFiltered && (
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  {getNetworkDisplayName(selectedNetwork)} Selected
+                  {getActiveFilterName()} Selected
                 </Badge>
               )}
             </div>
@@ -988,16 +1092,56 @@ function DashboardContent() {
         /* Comparison Tab */
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
           
+          {/* Comparison View Mode Toggle */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Comparison Breakdown Mode</h3>
+              <p className="text-xs text-muted-foreground">Switch between manufacturer network comparison and individual cohort breakdown comparison</p>
+            </div>
+            <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-xl flex gap-1 shadow-sm">
+              <Button
+                variant={comparisonMode === 'network' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setComparisonMode('network')}
+                className={`rounded-lg text-xs font-semibold px-4 py-1.5 transition-all ${
+                  comparisonMode === 'network' 
+                    ? 'shadow-sm bg-white text-slate-800 hover:bg-white dark:bg-slate-950 dark:text-white font-bold' 
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                }`}
+              >
+                Manufacturer Breakdown
+              </Button>
+              <Button
+                variant={comparisonMode === 'cohort' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setComparisonMode('cohort')}
+                className={`rounded-lg text-xs font-semibold px-4 py-1.5 transition-all ${
+                  comparisonMode === 'cohort' 
+                    ? 'shadow-sm bg-white text-slate-800 hover:bg-white dark:bg-slate-950 dark:text-white font-bold' 
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400'
+                }`}
+              >
+                Cohort Breakdown
+              </Button>
+            </div>
+          </div>
+
           {/* Comparison KPI Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
             <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800">
               <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Monitored Fleets</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  {comparisonMode === 'network' ? 'Monitored Fleets' : 'Monitored Cohorts'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-black text-slate-850 dark:text-slate-100">{breakdownData.length}</div>
-                <p className="text-xs text-slate-500 mt-1">Active manufacturer fleets</p>
+                <div className="text-3xl font-black text-slate-850 dark:text-slate-100">
+                  {comparisonMode === 'network' ? breakdownData.length : cohortBreakdownData.length}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {comparisonMode === 'network' ? 'Active manufacturer fleets' : 'Active device cohorts in staging'}
+                </p>
               </CardContent>
             </Card>
 
@@ -1007,24 +1151,28 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black text-slate-855 dark:text-slate-100">
-                  {breakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0)}
+                  {comparisonMode === 'network'
+                    ? Math.round(breakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0))
+                    : Math.round(cohortBreakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0))}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Total devices active across fleets</p>
+                <p className="text-xs text-slate-500 mt-1">Total devices active across monitored groups</p>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800 border-l-4 border-l-green-500">
               <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Best Performing Fleet</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Best Performing</CardDescription>
               </CardHeader>
               <CardContent>
-                {breakdownData.length > 0 ? (
+                {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
                   (() => {
-                    const sorted = [...breakdownData].sort((a, b) => a.avg_not_transmitting_percentage - b.avg_not_transmitting_percentage);
+                    const data = comparisonMode === 'network' ? breakdownData : cohortBreakdownData;
+                    const sorted = [...data].sort((a, b) => a.avg_not_transmitting_percentage - b.avg_not_transmitting_percentage);
                     const best = sorted[0];
+                    const name = getItemName(best);
                     return (
                       <div className="space-y-1">
-                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{getNetworkDisplayName(best._id)}</div>
+                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{name}</div>
                         <div className="text-2xl font-black text-green-600">{(100 - best.avg_not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-slate-400">online</span></div>
                       </div>
                     )
@@ -1040,13 +1188,15 @@ function DashboardContent() {
                 <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Needs Attention</CardDescription>
               </CardHeader>
               <CardContent>
-                {breakdownData.length > 0 ? (
+                {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
                   (() => {
-                    const sorted = [...breakdownData].sort((a, b) => b.avg_not_transmitting_percentage - a.avg_not_transmitting_percentage);
+                    const data = comparisonMode === 'network' ? breakdownData : cohortBreakdownData;
+                    const sorted = [...data].sort((a, b) => b.avg_not_transmitting_percentage - a.avg_not_transmitting_percentage);
                     const worst = sorted[0];
+                    const name = getItemName(worst);
                     return (
                       <div className="space-y-1">
-                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{getNetworkDisplayName(worst._id)}</div>
+                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{name}</div>
                         <div className="text-2xl font-black text-red-650">{(100 - worst.avg_not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-slate-400">online</span></div>
                       </div>
                     )
@@ -1066,17 +1216,20 @@ function DashboardContent() {
             <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800">
               <CardHeader>
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-500" /> Manufacturer Offline Rate Comparison
+                  <TrendingUp className="h-4 w-4 text-blue-500" />
+                  {comparisonMode === 'network' ? 'Manufacturer Offline Rate Comparison' : 'Cohort Offline Rate Comparison'}
                 </CardTitle>
-                <CardDescription>Average not-transmitting percentage over last 14 days (lower is better, threshold warning at 35%)</CardDescription>
+                <CardDescription>
+                  Average not-transmitting percentage over last 14 days (lower is better, threshold warning at 35%)
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-80 w-full">
-                  {breakdownData.length > 0 ? (
+                  {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart 
-                        data={breakdownData.map(item => ({
-                          name: getNetworkDisplayName(item._id),
+                        data={(comparisonMode === 'network' ? breakdownData : cohortBreakdownData).map(item => ({
+                          name: getItemName(item),
                           avgOfflinePercentage: item.avg_not_transmitting_percentage,
                           avgOnlinePercentage: 100 - item.avg_not_transmitting_percentage,
                           totalMonitors: item.avg_total_monitors
@@ -1096,7 +1249,7 @@ function DashboardContent() {
                           }}
                         />
                         <Bar dataKey="avgOfflinePercentage" radius={[4, 4, 0, 0]}>
-                          {breakdownData.map((entry, index) => {
+                          {(comparisonMode === 'network' ? breakdownData : cohortBreakdownData).map((entry, index) => {
                             const val = entry.avg_not_transmitting_percentage;
                             const color = val >= 35 ? "#EF4444" : val >= 20 ? "#F97316" : "#22C55E";
                             return <Cell key={`cell-${index}`} fill={color} />
@@ -1126,7 +1279,7 @@ function DashboardContent() {
                   <table className="w-full text-sm text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-850 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <th className="py-3 px-2">Manufacturer</th>
+                        <th className="py-3 px-2">{comparisonMode === 'network' ? 'Manufacturer' : 'Cohort'}</th>
                         <th className="py-3 px-2 text-center">Avg Fleet Size</th>
                         <th className="py-3 px-2 text-center">Avg Online Rate</th>
                         <th className="py-3 px-2 text-center">Avg Offline Rate</th>
@@ -1136,7 +1289,8 @@ function DashboardContent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {breakdownData.map((item) => {
+                      {(comparisonMode === 'network' ? breakdownData : cohortBreakdownData).map((item) => {
+                        const displayName = getItemName(item);
                         const onlineRate = 100 - item.avg_not_transmitting_percentage;
                         const minOnline = 100 - item.max_not_transmitting_percentage;
                         const maxOnline = 100 - item.min_not_transmitting_percentage;
@@ -1145,7 +1299,7 @@ function DashboardContent() {
                         return (
                           <tr key={item._id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                             <td className="py-3 px-2 font-extrabold text-slate-700 dark:text-slate-200">
-                              {getNetworkDisplayName(item._id)}
+                              {displayName}
                             </td>
                             <td className="py-3 px-2 text-center text-slate-600 dark:text-slate-400">
                               {Math.round(item.avg_total_monitors)} devices
@@ -1168,10 +1322,10 @@ function DashboardContent() {
                             </td>
                             <td className="py-3 px-2 text-center">
                               <Button 
-                                size="xs" 
+                                size="sm" 
                                 variant="outline" 
-                                className="text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50/50 hover:text-blue-700 dark:border-blue-900 dark:hover:bg-blue-950/20 rounded-md"
-                                onClick={() => handleViewDetails(item._id)}
+                                className="text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50/50 hover:text-blue-700 dark:border-blue-900 dark:hover:bg-blue-950/20 rounded-md h-7 px-2.5"
+                                onClick={() => comparisonMode === 'network' ? handleViewDetails(item._id) : handleViewCohortDetails(item._id)}
                               >
                                 View Details
                               </Button>
