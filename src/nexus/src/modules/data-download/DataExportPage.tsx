@@ -218,161 +218,6 @@ const DataExportPage = () => {
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
 
-  // Preview state — fetched before dialog opens
-  type PreviewData = Record<string, string | number | null>;
-  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const previewAbortRef = useRef<AbortController | null>(null);
-  const { trigger: fetchPreviewData } = useDownloadData();
-
-  const handleOpenPreview = useCallback(async () => {
-    if (isPreviewLoading) return;
-
-    setIsPreviewLoading(true);
-    setPreviewError(null);
-    setPreviewRows([]);
-
-    if (previewAbortRef.current) {
-      previewAbortRef.current.abort();
-    }
-    const abortController = new AbortController();
-    previewAbortRef.current = abortController;
-
-    const effectiveDataType: 'calibrated' | 'raw' =
-      activeTab === 'devices' && deviceCategory === 'bam'
-        ? 'raw'
-        : (dataType as 'calibrated' | 'raw');
-
-    try {
-      const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
-        dateRange,
-        activeTab,
-        selectedSites,
-        selectedDeviceIds,
-        selectedDeviceNames: selectedDevices,
-        selectedGridIds,
-        selectedGridSites,
-        selectedGridSiteIds,
-        selectedPollutants,
-        dataType: effectiveDataType,
-        fileType: 'csv',
-        frequency,
-        deviceCategory,
-      });
-
-      const response = await fetchPreviewData(previewRequest);
-
-      if (abortController.signal.aborted) return;
-
-      if (typeof response === 'string') {
-        const parseCsvLine = (line: string): string[] => {
-          const fields: string[] = [];
-          let current = '';
-          let inQuotes = false;
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (inQuotes) {
-              if (char === '"') {
-                if (i + 1 < line.length && line[i + 1] === '"') {
-                  current += '"';
-                  i++;
-                } else {
-                  inQuotes = false;
-                }
-              } else {
-                current += char;
-              }
-            } else {
-              if (char === '"') {
-                inQuotes = true;
-              } else if (char === ',') {
-                fields.push(current.trim());
-                current = '';
-              } else {
-                current += char;
-              }
-            }
-          }
-          fields.push(current.trim());
-          return fields;
-        };
-
-        const lines = response.split('\n').filter((line: string) => line.trim());
-        if (lines.length > 1) {
-          const headers = parseCsvLine(lines[0]);
-          const rows: PreviewData[] = lines.slice(1, 6).map((line: string) => {
-            const values = parseCsvLine(line);
-            const row: PreviewData = {};
-            headers.forEach((header, index) => {
-              const val = values[index];
-              if (val === '' || val === undefined) {
-                row[header] = null;
-              } else {
-                const num = Number(val);
-                row[header] = isNaN(num) ? val : num;
-              }
-            });
-            return row;
-          });
-          setPreviewRows(rows);
-        } else {
-          setPreviewRows([]);
-        }
-      } else if (
-        response &&
-        typeof response === 'object' &&
-        'data' in response &&
-        Array.isArray((response as { data: unknown }).data)
-      ) {
-        const responseData = (
-          response as unknown as { data: Record<string, unknown>[] }
-        ).data;
-        const rows: PreviewData[] = responseData.slice(0, 5).map(item => {
-          const row: PreviewData = {};
-          Object.entries(item).forEach(([key, value]) => {
-            row[key] =
-              typeof value === 'number'
-                ? value
-                : value != null
-                  ? String(value)
-                  : null;
-          });
-          return row;
-        });
-        setPreviewRows(rows);
-      } else {
-        setPreviewRows([]);
-      }
-    } catch {
-      if (abortController.signal.aborted) return;
-      setPreviewError(
-        'Unable to load data preview. You can retry or proceed with the download.'
-      );
-    } finally {
-      if (!abortController.signal.aborted) {
-        setIsPreviewLoading(false);
-        setPreviewOpen(true);
-      }
-    }
-  }, [
-    isPreviewLoading,
-    fetchPreviewData,
-    dataType,
-    frequency,
-    selectedPollutants,
-    dateRange,
-    activeTab,
-    selectedSites,
-    selectedDevices,
-    selectedDeviceIds,
-    selectedGridIds,
-    selectedGridSites,
-    selectedGridSiteIds,
-    deviceCategory,
-    setPreviewOpen,
-  ]);
-
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -488,6 +333,191 @@ const DataExportPage = () => {
     setSelectedDevices,
     isOrgContextReady
   );
+
+  // Preview state — fetched before dialog opens
+  type PreviewData = Record<string, string | number | null>;
+  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewAbortRef = useRef<AbortController | null>(null);
+  const { trigger: fetchPreviewData } = useDownloadData();
+
+  const handleOpenPreview = useCallback(async () => {
+    if (isPreviewLoading) return;
+
+    setIsPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewRows([]);
+
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort();
+    }
+    const abortController = new AbortController();
+    previewAbortRef.current = abortController;
+
+    const effectiveDataType: 'calibrated' | 'raw' =
+      activeTab === 'devices' && deviceCategory === 'bam'
+        ? 'raw'
+        : (dataType as 'calibrated' | 'raw');
+
+    try {
+      const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
+        dateRange,
+        activeTab,
+        selectedSites,
+        selectedDeviceIds,
+        selectedDeviceNames: selectedDevices,
+        selectedGridIds,
+        selectedGridSites,
+        selectedGridSiteIds,
+        selectedPollutants,
+        dataType: effectiveDataType,
+        fileType: 'csv',
+        frequency,
+        deviceCategory,
+      });
+
+      const response = await fetchPreviewData(previewRequest);
+
+      if (abortController.signal.aborted) return;
+
+      if (typeof response === 'string') {
+        const parseCsvLine = (line: string): string[] => {
+          const fields: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (inQuotes) {
+              if (char === '"') {
+                if (i + 1 < line.length && line[i + 1] === '"') {
+                  current += '"';
+                  i++;
+                } else {
+                  inQuotes = false;
+                }
+              } else {
+                current += char;
+              }
+            } else {
+              if (char === '"') {
+                inQuotes = true;
+              } else if (char === ',') {
+                fields.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+          }
+          fields.push(current.trim());
+          return fields;
+        };
+
+        const lines = response.split('\n').filter((line: string) => line.trim());
+        if (lines.length > 1) {
+          const headers = parseCsvLine(lines[0]);
+          const rows: PreviewData[] = lines.slice(1, 6).map((line: string) => {
+            const values = parseCsvLine(line);
+            const row: PreviewData = {};
+            headers.forEach((header, index) => {
+              const val = values[index];
+              if (val === '' || val === undefined) {
+                row[header] = null;
+              } else {
+                const num = Number(val);
+                row[header] = isNaN(num) ? val : num;
+              }
+            });
+            return row;
+          });
+
+          // For countries/cities, fill in the grid name column from processed grid data
+          if (activeTab === 'countries' || activeTab === 'cities') {
+            const locationKey = activeTab === 'countries' ? 'country_name' : 'city_name';
+            const gridData = activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+
+            // Build siteId → gridName lookup
+            const siteToGrid = new Map<string, string>();
+            gridData.forEach(grid => {
+              if (grid.sites) {
+                const sites = grid.sites as Array<{ _id: string }>;
+                sites.forEach(site => {
+                  siteToGrid.set(site._id, grid.name as string);
+                });
+              }
+            });
+
+            rows.forEach(row => {
+              const siteId = row.site_id ? String(row.site_id) : null;
+              if (siteId && !row[locationKey]) {
+                const gridName = siteToGrid.get(siteId);
+                if (gridName) {
+                  row[locationKey] = gridName;
+                }
+              }
+            });
+          }
+
+          setPreviewRows(rows);
+        } else {
+          setPreviewRows([]);
+        }
+      } else if (
+        response &&
+        typeof response === 'object' &&
+        'data' in response &&
+        Array.isArray((response as { data: unknown }).data)
+      ) {
+        const responseData = (
+          response as unknown as { data: Record<string, unknown>[] }
+        ).data;
+        const rows: PreviewData[] = responseData.slice(0, 5).map(item => {
+          const row: PreviewData = {};
+          Object.entries(item).forEach(([key, value]) => {
+            row[key] =
+              typeof value === 'number'
+                ? value
+                : value != null
+                  ? String(value)
+                  : null;
+          });
+          return row;
+        });
+        setPreviewRows(rows);
+      } else {
+        setPreviewRows([]);
+      }
+    } catch {
+      if (abortController.signal.aborted) return;
+      setPreviewError(
+        'Unable to load data preview. You can retry or proceed with the download.'
+      );
+    } finally {
+      if (!abortController.signal.aborted) {
+        setIsPreviewLoading(false);
+        setPreviewOpen(true);
+      }
+    }
+  }, [
+    isPreviewLoading,
+    fetchPreviewData,
+    dataType,
+    frequency,
+    selectedPollutants,
+    dateRange,
+    activeTab,
+    selectedSites,
+    selectedDevices,
+    selectedDeviceIds,
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds,
+    deviceCategory,
+    processedCountriesData,
+    processedCitiesData,
+    setPreviewOpen,
+  ]);
 
   // Actions and event handlers
   const { handleDownload, handleVisualizeData, isDownloading } =

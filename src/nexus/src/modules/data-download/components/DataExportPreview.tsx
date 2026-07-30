@@ -200,6 +200,8 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       title="Export Preview"
       subtitle="Choose the columns you want to keep before downloading."
       size="2xl"
+      className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl"
+      maxHeight="max-h-[90vh] sm:max-h-[85vh]"
       primaryAction={{
         label: isDownloading
           ? 'Downloading...'
@@ -261,7 +263,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </div>
           ) : previewData.length > 0 ? (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div className="max-h-64 overflow-auto">
+              <div className="max-h-80 overflow-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <tr>
@@ -349,7 +351,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {columnGroups.map(group => (
               <div
                 key={group.id}

@@ -94,6 +94,9 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       }}
       title={`Select Sites in ${gridName}`}
       subtitle={`Choose which sites under this ${gridType} to include in your data download.`}
+      size="xl"
+      className="max-w-2xl sm:max-w-3xl"
+      maxHeight="max-h-[80vh]"
       preventBackdropClose={isDownloading}
       showCloseButton={!isDownloading}
       customFooter={
