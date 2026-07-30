@@ -156,7 +156,7 @@ export const getBannerNotification = ({
     return (
       <InfoBanner
         title="Ready to Export"
-        message="Your data export configuration is complete. Click 'Download Data' to start the export process."
+        message="Your data export configuration is complete. Click 'Review & Download' to preview and start the export process."
       />
     );
   }

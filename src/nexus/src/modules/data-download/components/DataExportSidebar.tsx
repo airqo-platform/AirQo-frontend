@@ -129,13 +129,18 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           </h2>
 
           {/* File Title Input - First */}
-          <Input
-            type="text"
-            placeholder="Enter file title"
-            value={fileTitle}
-            onChange={e => setFileTitle(e.target.value)}
-            className="w-full"
-          />
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              File Title
+            </label>
+            <Input
+              type="text"
+              placeholder="Enter file title (optional)"
+              value={fileTitle}
+              onChange={e => setFileTitle(e.target.value)}
+              className="w-full"
+            />
+          </div>
 
           {/* Device Category */}
           <CustomField
@@ -264,13 +269,18 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           {/* Mobile Sidebar Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* File Title Input - First */}
-            <Input
-              type="text"
-              placeholder="Enter file title"
-              value={fileTitle}
-              onChange={e => setFileTitle(e.target.value)}
-              className="w-full"
-            />
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                File Title
+              </label>
+              <Input
+                type="text"
+                placeholder="Enter file title (optional)"
+                value={fileTitle}
+                onChange={e => setFileTitle(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
             {/* Device Category */}
             <CustomField

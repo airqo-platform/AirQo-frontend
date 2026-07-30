@@ -148,10 +148,20 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       <div className="max-h-96 overflow-y-auto">
         <div className="space-y-2">
           {filteredSites.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm
-                ? 'No sites found matching your search.'
-                : 'No sites available.'}
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <span className="text-gray-400 text-xl">&#128205;</span>
+              </div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {searchTerm
+                  ? 'No sites found matching your search.'
+                  : 'No sites available'}
+              </p>
+              {!searchTerm && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  This {gridType} does not have any monitoring sites configured.
+                </p>
+              )}
             </div>
           ) : (
             filteredSites.map(site => (

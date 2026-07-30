@@ -675,7 +675,7 @@ const shouldUseMetadataFallback = (error: unknown): boolean => {
     return false;
   }
 
-  return !status || status === 404 || status >= 500;
+  return status === 404 || (status !== undefined && status >= 500);
 };
 
 const hasDownloadRecords = (response: DataDownloadResponse | string) => {
@@ -1016,6 +1016,10 @@ export const useDataExportActions = (
             : rawResponse;
 
         if (!hasDownloadRecords(normalizedResponse)) {
+          toast.warning(
+            'No measurement data found',
+            'No readings are available for the selected time period and filters. Only location metadata has been included in this export.'
+          );
           return prepareMetadataFallback();
         }
 
@@ -1047,6 +1051,10 @@ export const useDataExportActions = (
         };
       } catch (error) {
         if (shouldUseMetadataFallback(error)) {
+          toast.warning(
+            'No measurement data found',
+            'No readings are available for the selected time period and filters. Only location metadata has been included in this export.'
+          );
           return prepareMetadataFallback();
         }
 

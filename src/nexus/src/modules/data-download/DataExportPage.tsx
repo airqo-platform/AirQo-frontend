@@ -983,9 +983,11 @@ const DataExportPage = () => {
         activeTab={activeTab}
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
+        selectedDeviceIds={selectedDeviceIds}
         selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
+        deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}

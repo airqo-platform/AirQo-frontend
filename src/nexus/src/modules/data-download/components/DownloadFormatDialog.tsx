@@ -46,7 +46,7 @@ const formatCards: Array<{
     title: 'PDF summary',
     actionLabel: 'Download PDF',
     description:
-      'Download a formatted summary with a summary, table, and page numbers.',
+      'Download a formatted summary with an overview, data table, and page numbers.',
     badge: 'Summary',
   },
 ];

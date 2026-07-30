@@ -231,11 +231,6 @@ export const useDataExportData = (
     setSelectedDevices,
   ]);
 
-  // Reset device pagination when category changes
-  useEffect(() => {
-    // This effect is handled in the parent component
-  }, [deviceCategory]);
-
   return {
     sitesHook,
     devicesHook,
