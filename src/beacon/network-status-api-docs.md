@@ -11,6 +11,7 @@
   - [4. Get Hourly Trends](#4-get-hourly-trends)
   - [5. Get Recent Alerts](#5-get-recent-alerts)
   - [6. Get Uptime Summary](#6-get-uptime-summary)
+  - [7. Get Cohort Breakdown](#7-get-cohort-breakdown)
 - [Device Status Categories](#device-status-categories)
 - [Alert Status Levels](#alert-status-levels)
 - [Severity Levels](#severity-levels)
@@ -187,6 +188,8 @@ Returns aggregated statistics over a date range, including per-category device a
 |---|---|---|
 | `start_date` | ISO 8601 datetime | Start of aggregation window |
 | `end_date` | ISO 8601 datetime | End of aggregation window |
+| `network` | string | Filter statistics by device network/manufacturer (e.g. `airqo`, `airgradient`). *Cannot be combined with `cohort_id`.* |
+| `cohort_id` | string (ObjectId) | Filter statistics by cohort ID. *Cannot be combined with `network`.* |
 
 #### Response — `200 OK`
 
@@ -237,6 +240,8 @@ Analyzes not-transmitting patterns grouped by hour of day and day of week.
 |---|---|---|
 | `start_date` | ISO 8601 datetime | Start of analysis window |
 | `end_date` | ISO 8601 datetime | End of analysis window |
+| `network` | string | Filter trends by network/manufacturer. *Cannot be combined with `cohort_id`.* |
+| `cohort_id` | string (ObjectId) | Filter trends by cohort ID. *Cannot be combined with `network`.* |
 
 #### Response — `200 OK`
 
@@ -285,6 +290,8 @@ Returns threshold-exceeded alerts within a rolling time window. Returns a maximu
 | Parameter | Type | Description | Default | Range |
 |---|---|---|---|---|
 | `hours` | integer | Look-back window in hours | 24 | 1–168 |
+| `network` | string | Filter alerts by network/manufacturer | — | — |
+| `cohort_id` | string (ObjectId) | Filter alerts by cohort ID | — | — |
 
 #### Example Request
 
@@ -339,6 +346,8 @@ Provides daily aggregated summaries for the specified number of days.
 | Parameter | Type | Description | Default | Range |
 |---|---|---|---|---|
 | `days` | integer | Number of days to summarize | 7 | 1–90 |
+| `network` | string | Filter summary by network/manufacturer | — | — |
+| `cohort_id` | string (ObjectId) | Filter summary by cohort ID | — | — |
 
 #### Example Request
 
@@ -381,6 +390,47 @@ GET /api/v2/devices/network-status/uptime-summary?days=14
 | `minOfflinePercentage` | Daily minimum not-transmitting percentage |
 | `totalChecks` | Number of checks performed that day |
 | `alertsTriggered` | Number of threshold-exceeded checks |
+
+---
+
+### 7. Get Cohort Breakdown
+
+Provides an all-cohorts comparative breakdown of average transmission metrics and monitor counts.
+
+**`GET /breakdown/cohorts`**
+
+#### Query Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `start_date` | ISO 8601 datetime | Start of aggregation window |
+| `end_date` | ISO 8601 datetime | End of aggregation window |
+
+#### Example Request
+
+```
+GET /api/v2/devices/network-status/breakdown/cohorts
+```
+
+#### Response — `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "successfully performed aggregation",
+  "data": [
+    {
+      "_id": "664c92a1e4b0123456789abc",
+      "name": "Kampala Central Cohort",
+      "totalChecks": 168,
+      "avg_total_monitors": 45,
+      "avg_not_transmitting_percentage": 15.2,
+      "max_not_transmitting_percentage": 30.0,
+      "min_not_transmitting_percentage": 5.0
+    }
+  ]
+}
+```
 
 ---
 

@@ -62,6 +62,21 @@ export interface NetworkBreakdownResponse {
   data: NetworkBreakdownItem[];
 }
 
+export interface CohortBreakdownItem {
+  _id: string; // cohort ObjectId
+  name?: string; // cohort name if returned
+  totalChecks: number;
+  avg_total_monitors: number;
+  avg_not_transmitting_percentage: number;
+  max_not_transmitting_percentage: number;
+  min_not_transmitting_percentage: number;
+}
+
+export interface CohortBreakdownResponse {
+  success: boolean;
+  data: CohortBreakdownItem[];
+}
+
 export interface DeviceSummaryCountResponse {
   success: boolean;
   data: {
@@ -118,6 +133,7 @@ class NetworkStatusService {
     status?: 'OK' | 'WARNING' | 'CRITICAL';
     threshold_exceeded?: boolean;
     network?: string;
+    cohort_id?: string;
   }): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
     return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/', params);
   }
@@ -126,6 +142,7 @@ class NetworkStatusService {
     start_date?: string;
     end_date?: string;
     network?: string;
+    cohort_id?: string;
   }): Promise<{ success: boolean; statistics: NetworkStatistics[] }> {
     return this.fetchFromApi<{ success: boolean; statistics: NetworkStatistics[] }>('/statistics', params);
   }
@@ -134,16 +151,37 @@ class NetworkStatusService {
     start_date?: string;
     end_date?: string;
     network?: string;
+    cohort_id?: string;
   }): Promise<{ success: boolean; trends: HourlyTrend[] }> {
     return this.fetchFromApi<{ success: boolean; trends: HourlyTrend[] }>('/trends/hourly', params);
   }
 
-  async getRecentAlerts(hours = 24, network?: string): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
-    return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/recent', { hours, network });
+  async getRecentAlerts(
+    hours = 24, 
+    filter?: string | { network?: string; cohort_id?: string }
+  ): Promise<{ success: boolean; alerts: NetworkStatusAlert[] }> {
+    const params: Record<string, any> = { hours };
+    if (typeof filter === 'string') {
+      params.network = filter;
+    } else if (filter) {
+      if (filter.network) params.network = filter.network;
+      if (filter.cohort_id) params.cohort_id = filter.cohort_id;
+    }
+    return this.fetchFromApi<{ success: boolean; alerts: NetworkStatusAlert[] }>('/recent', params);
   }
 
-  async getUptimeSummary(days = 7, network?: string): Promise<{ success: boolean; summary: UptimeSummaryItem[] }> {
-    return this.fetchFromApi<{ success: boolean; summary: UptimeSummaryItem[] }>('/uptime-summary', { days, network });
+  async getUptimeSummary(
+    days = 7, 
+    filter?: string | { network?: string; cohort_id?: string }
+  ): Promise<{ success: boolean; summary: UptimeSummaryItem[] }> {
+    const params: Record<string, any> = { days };
+    if (typeof filter === 'string') {
+      params.network = filter;
+    } else if (filter) {
+      if (filter.network) params.network = filter.network;
+      if (filter.cohort_id) params.cohort_id = filter.cohort_id;
+    }
+    return this.fetchFromApi<{ success: boolean; summary: UptimeSummaryItem[] }>('/uptime-summary', params);
   }
 
   async getNetworkBreakdown(params?: {
@@ -153,11 +191,21 @@ class NetworkStatusService {
     return this.fetchFromApi<NetworkBreakdownResponse>('/breakdown', params);
   }
 
-  async getDeviceSummaryCount(network?: string): Promise<DeviceSummaryCountResponse> {
+  async getCohortBreakdown(params?: {
+    start_date?: string;
+    end_date?: string;
+  }): Promise<CohortBreakdownResponse> {
+    return this.fetchFromApi<CohortBreakdownResponse>('/breakdown/cohorts', params);
+  }
+
+  async getDeviceSummaryCount(filter?: string | { network?: string; cohort_id?: string }): Promise<DeviceSummaryCountResponse> {
     const baseUrl = buildPlatformApiUrl('devices/summary/count', 'v2');
     const url = new URL(baseUrl);
-    if (network) {
-      url.searchParams.append('network', network);
+    if (typeof filter === 'string') {
+      url.searchParams.append('network', filter);
+    } else if (filter) {
+      if (filter.network) url.searchParams.append('network', filter.network);
+      if (filter.cohort_id) url.searchParams.append('cohort_id', filter.cohort_id);
     }
     const response = await fetch(url.toString(), {
       headers: this.getHeaders(),

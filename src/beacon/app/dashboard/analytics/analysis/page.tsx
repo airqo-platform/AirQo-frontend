@@ -27,6 +27,7 @@ import {
 import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
+import AirQloudPerformanceTab from "./airqloud-performance-tab"
 
 interface DateRange {
   from: string
@@ -916,6 +917,7 @@ export default function AnalysisResultsPage() {
                         <TabsTrigger value="summary">Summary</TabsTrigger>
                         <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
                         <TabsTrigger value="hourly">Hourly</TabsTrigger>
+                        <TabsTrigger value="performance">Performance</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="summary" className="mt-6 space-y-6">
@@ -1048,6 +1050,14 @@ export default function AnalysisResultsPage() {
                       </TabsContent>
                       <TabsContent value="hourly" className="mt-6">
                         <DeviceHourHeatmaps devices={processedDevices} />
+                      </TabsContent>
+                      <TabsContent value="performance" className="mt-6">
+                        <AirQloudPerformanceTab
+                          airqloudId={aq.id}
+                          airqloudName={aq.name}
+                          initialData={aq}
+                          entityType={analysisType === "grids" ? "grid" : "cohort"}
+                        />
                       </TabsContent>
                     </Tabs>
                   </div>
