@@ -30,6 +30,13 @@ vi.mock("@/core/hooks/useNetworks", () => ({
   useNetworks: vi.fn(),
 }));
 
+// useGrids imports core/adapters at module scope, which resolves the API origin
+// from env and throws at import time under Vitest — mocking keeps the whole file
+// loadable. Grids only matter to the mobile deployment path.
+vi.mock("@/core/hooks/useGrids", () => ({
+  useGrids: () => ({ grids: [], isLoading: false }),
+}));
+
 const showBannerMock = vi.fn();
 vi.mock("@/context/banner-context", () => ({
   BannerSlot: () => null,
