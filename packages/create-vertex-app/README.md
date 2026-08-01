@@ -11,7 +11,6 @@ pnpm create @airqo/vertex-app my-app
 # or
 npx @airqo/create-vertex-app my-app
 # or
-```bash
 npm create @airqo/vertex-app@latest my-app -- --yes \
   --org-name "KCCA Air Quality" --short-name KCCA \
   --color "#00A86B" --tiles openstreetmap
