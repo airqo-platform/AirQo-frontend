@@ -1,6 +1,6 @@
 # create-vertex-app
 
-Scaffold a [Vertex](https://github.com/airqo-platform/AirQo-frontend/blob/staging/src/vertex-template/README.md) IoT dashboard app — a configurable, mock-first device management UI built with Next.js. The generated app runs on **mock data out of the box**: no backend, credentials, or `.env` file required.
+Built for anyone with an IoT project who wants to spend less time building the dashboard and more time on what their project actually does. It started as [AirQo](https://airqo.net)'s own device management dashboard, but it's been opened up so anyone can use it for any kind of IoT device.
 
 ## Usage
 
@@ -10,9 +10,14 @@ npm create @airqo/vertex-app@latest my-app
 pnpm create @airqo/vertex-app my-app
 # or
 npx @airqo/create-vertex-app my-app
+# or
+```bash
+npm create @airqo/vertex-app@latest my-app -- --yes \
+  --org-name "KCCA Air Quality" --short-name KCCA \
+  --color "#00A86B" --tiles openstreetmap
 ```
 
-Answer a few prompts (organization name, theme color, map tiles), then:
+You'll be asked a few questions (your organization's name, a color, which map to use), then:
 
 ```bash
 cd my-app
@@ -20,40 +25,13 @@ npm install
 npm run dev
 ```
 
-### Non-interactive
 
-```bash
-npm create @airqo/vertex-app@latest my-app -- --yes \
-  --org-name "KCCA Air Quality" --short-name KCCA \
-  --color "#00A86B" --tiles openstreetmap
-```
+Everything else — turning features on or off, links, logins, connecting your own data — is set in a file called `vertex.config.ts` that gets created in your new project. Open `vertex.config.example.ts` in the project for a version with notes explaining each setting.
 
-| Flag | Description |
-| --- | --- |
-| `-y, --yes` | Skip prompts, accept defaults |
-| `--org-name` | Organization name (titles, footer, metadata) |
-| `--short-name` | Short name for compact UI spots |
-| `--color` | Primary theme color (hex) |
-| `--tiles` | `openstreetmap` (no token) or `mapbox` |
-| `--git` / `--no-git` | Initialize a git repository (default: yes) |
+## Contribute to this project
 
-All further customization — feature flags, links, auth, adapters — lives in the generated `vertex.config.ts` (see `vertex.config.example.ts` in the project for the annotated reference).
+We'd love your help improving create-vertex-app. Please read the [AirQo Frontend contribution guide](https://github.com/airqo-platform/AirQo-frontend/blob/staging/CONTRIBUTING.md) before opening a pull request.
 
-## How it works
+## License
 
-The CLI ships a snapshot of [`src/vertex-template`](https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/vertex-template) inside the npm package, copied in at publish time by the `prepack` hook ([scripts/sync-template.mjs](https://github.com/airqo-platform/AirQo-frontend/blob/staging/packages/create-vertex-app/scripts/sync-template.mjs)). Scaffolding is therefore offline-capable and deterministic: a given CLI version always produces the same project.
-
-Because npm strips `.gitignore` files from published tarballs, the sync script stores it as `_gitignore` and the CLI renames it back when scaffolding.
-
-## Development
-
-```bash
-cd packages/create-vertex-app
-npm install
-npm run sync-template   # copy src/vertex-template into template/
-npm run build           # bundle src/ into dist/ with tsup
-node dist/index.js /tmp/demo-app   # try it
-npm run test:smoke      # full non-interactive end-to-end check
-```
-
-`template/` and `dist/` are generated and gitignored; `prepack` rebuilds both, so `npm publish` is always self-consistent with the template source at that commit.
+MIT © AirQo
