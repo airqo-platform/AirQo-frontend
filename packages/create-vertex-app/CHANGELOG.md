@@ -2,8 +2,8 @@
 
 > **Note**: This changelog tracks releases of the `@airqo/create-vertex-app` CLI published to npm. The scaffolded app comes from [src/vertex-template](https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/vertex-template), which is versioned separately — see its own [changelog](https://github.com/airqo-platform/AirQo-frontend/blob/staging/src/vertex-template/app/changelog.md). A given CLI release ships the template snapshot as of that publish.
 
-## Version 0.1.0
-**Released:** Unreleased
+## Version 0.1.4
+**Released:** 2026-08-02
 
 ### Feature: Initial CLI to Scaffold Vertex Dashboard Apps
 
