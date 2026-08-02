@@ -25,7 +25,7 @@ npm run dev
 ```
 
 
-Everything else — turning features on or off, links, logins, connecting your own data — is set in a file called `vertex.config.ts` that gets created in your new project. Open `vertex.config.example.ts` in the project for a version with notes explaining each setting.
+Everything else — turning features on or off, links, logins, connecting your own data, is set in a file called `vertex.config.ts` that gets created in your new project. Open `vertex.config.example.ts` in the project for a version with notes explaining each setting.
 
 ## Contribute to this project
 
