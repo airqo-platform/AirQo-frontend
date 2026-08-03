@@ -23,6 +23,11 @@ const SKIP_PATHS = [
   '/public/'
 ]
 
+const isProduction = process.env.NODE_ENV === 'production';
+const sessionCookieName = isProduction
+  ? '__Secure-next-auth.session-token'
+  : 'next-auth.session-token';
+
 export default withAuth(
   function middleware(request) {
     const { pathname } = request.nextUrl
@@ -33,8 +38,9 @@ export default withAuth(
     }
 
     const token = request.nextauth.token as any;
+    const expTime = token?.exp ?? token?.airqoExp;
     const isAirqoTokenExpired =
-      typeof token?.airqoExp === 'number' && Date.now() / 1000 > token.airqoExp;
+      typeof expTime === 'number' && Date.now() / 1000 > expTime;
     const isAuthenticated = !!token && !isAirqoTokenExpired;
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
     const isOAuthCallback = request.nextUrl.searchParams.has('success') || request.nextUrl.searchParams.has('token')
@@ -82,6 +88,12 @@ export default withAuth(
     pages: {
       signIn: "/login",
     },
+    cookies: {
+      sessionToken: {
+        name: sessionCookieName,
+      },
+    },
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   }
 )
 
