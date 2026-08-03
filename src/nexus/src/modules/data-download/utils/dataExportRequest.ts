@@ -6,6 +6,7 @@ interface BuildDataDownloadRequestArgs {
   dateRange: DateRange | undefined;
   activeTab: TabType;
   selectedSites: string[];
+  selectedSiteIds?: string[];
   selectedDeviceIds: string[];
   selectedDeviceNames?: string[];
   selectedGridIds: string[];
@@ -62,7 +63,7 @@ const resolveGridSitesForDownload = (
 export const buildDataDownloadRequest = ({
   dateRange,
   activeTab,
-  selectedSites,
+  selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
   selectedGridSites,
@@ -107,7 +108,7 @@ export const buildDataDownloadRequest = ({
       activeTab === 'countries' || activeTab === 'cities'
         ? 'lowcost'
         : deviceCategory,
-    ...(activeTab === 'sites' && { sites: selectedSites }),
+    ...(activeTab === 'sites' && { sites: selectedSiteIds || [] }),
     ...(activeTab === 'devices' &&
       (selectedDeviceNames && selectedDeviceNames.length > 0
         ? { device_names: selectedDeviceNames }

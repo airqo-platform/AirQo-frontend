@@ -13,6 +13,8 @@ import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import { toast } from '@/shared/components/ui/toast';
+import Dialog from '@/shared/components/ui/dialog';
+import { AqAlertTriangle } from '@airqo/icons-react';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -220,6 +222,11 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
+  const [tabChangeConfirm, setTabChangeConfirm] = React.useState<{
+    isOpen: boolean;
+    targetTab: TabType;
+    selectionCount: number;
+  }>({ isOpen: false, targetTab: 'sites', selectionCount: 0 });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -256,6 +263,17 @@ const DataExportPage = () => {
     }
   }, [isOrgFlow, activeTab, handleTabChange]);
 
+  // Preview state — fetched before dialog opens
+  type PreviewData = Record<string, string | number | null>;
+  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewPartialWarning, setPreviewPartialWarning] = useState<
+    | { totalSelected: number; withData: number; missingNames: string[] }
+    | undefined
+  >(undefined);
+  const previewAbortRef = useRef<AbortController | null>(null);
+
   // Wrap handleTabChange to prevent org flow from accessing countries/cities
   const wrappedHandleTabChange = useCallback(
     (tab: TabType) => {
@@ -269,16 +287,18 @@ const DataExportPage = () => {
 
       // Warn user before switching tabs if they have active selections
       if (tab !== activeTab) {
-        const hasActiveSelections =
-          selectedSiteIds.length > 0 ||
-          selectedDeviceIds.length > 0 ||
-          selectedGridIds.length > 0;
+        const selectionCount =
+          selectedSiteIds.length +
+          selectedDeviceIds.length +
+          selectedGridIds.length;
 
-        if (hasActiveSelections) {
-          const confirmed = window.confirm(
-            'Switching tabs will clear your current selections. Do you want to continue?'
-          );
-          if (!confirmed) return;
+        if (selectionCount > 0) {
+          setTabChangeConfirm({
+            isOpen: true,
+            targetTab: tab,
+            selectionCount,
+          });
+          return;
         }
 
         trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
@@ -297,6 +317,33 @@ const DataExportPage = () => {
     },
     [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog, selectedSiteIds, selectedDeviceIds, selectedGridIds]
   );
+
+  const confirmTabChange = useCallback(() => {
+    const { targetTab } = tabChangeConfirm;
+    setTabChangeConfirm(prev => ({ ...prev, isOpen: false }));
+
+    // Clear preview state to prevent stale data
+    setPreviewRows([]);
+    setPreviewError(null);
+    setPreviewPartialWarning(undefined);
+    setPreviewOpen(false);
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort();
+    }
+
+    trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
+      from_tab: activeTab,
+      to_tab: targetTab,
+      is_org_flow: isOrgFlow,
+    });
+    trackEvent('data_export_tab_changed', {
+      from_tab: activeTab,
+      to_tab: targetTab,
+      is_org_flow: isOrgFlow,
+    });
+
+    handleTabChange(targetTab);
+  }, [tabChangeConfirm, activeTab, isOrgFlow, handleTabChange, posthog, setPreviewOpen, setPreviewRows, setPreviewError, setPreviewPartialWarning]);
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
@@ -350,16 +397,26 @@ const DataExportPage = () => {
     isOrgContextReady
   );
 
+  // Compute site names from cache to avoid stale state issues
+  const selectedSiteNames = useMemo(
+    () =>
+      selectedSiteIds.map(id => {
+        const cached = selectedSitesCache[id];
+        if (cached) {
+          return String(
+            cached.name || cached.search_name || cached.location_name || id
+          );
+        }
+        // Fallback: find in current page data
+        const site = processedSitesData.find(item => String(item.id) === id);
+        return site
+          ? String(site.name || site.search_name || site.location_name || id)
+          : id;
+      }),
+    [selectedSiteIds, selectedSitesCache, processedSitesData]
+  );
+
   // Preview state — fetched before dialog opens
-  type PreviewData = Record<string, string | number | null>;
-  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [previewPartialWarning, setPreviewPartialWarning] = useState<
-    | { totalSelected: number; withData: number; missingNames: string[] }
-    | undefined
-  >(undefined);
-  const previewAbortRef = useRef<AbortController | null>(null);
   const { trigger: fetchPreviewData } = useDownloadData();
 
   const handleOpenPreview = useCallback(async () => {
@@ -481,11 +538,10 @@ const DataExportPage = () => {
                   ? selectedDeviceIds
                   : gridSiteIds,
               activeTab === 'sites'
-                ? selectedSites
+                ? selectedSiteNames
                 : activeTab === 'devices'
                   ? selectedDevices
-                  : gridSiteNames,
-              countriesCitiesGridData
+                  : gridSiteNames
             )
           );
         } else {
@@ -571,11 +627,10 @@ const DataExportPage = () => {
                 ? selectedDeviceIds
                 : gridSiteIdsObj,
             activeTab === 'sites'
-              ? selectedSites
+              ? selectedSiteNames
               : activeTab === 'devices'
                 ? selectedDevices
-                : gridSiteNamesObj,
-            countriesCitiesGridDataObj
+                : gridSiteNamesObj
           )
         );
       } else {
@@ -603,6 +658,7 @@ const DataExportPage = () => {
     dateRange,
     activeTab,
     selectedSites,
+    selectedSiteNames,
     selectedDevices,
     selectedSiteIds,
     selectedDeviceIds,
@@ -628,7 +684,7 @@ const DataExportPage = () => {
     useDataExportActions(
       dateRange,
       activeTab,
-      selectedSites,
+      selectedSiteNames,
       selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
@@ -793,8 +849,12 @@ const DataExportPage = () => {
     const stringIds = selectedIds.map(id => String(id));
     if (activeTab === 'sites') {
       setSelectedSiteIds(stringIds);
-      // For sites, IDs are the same as names for the API
-      setSelectedSites(stringIds);
+      // For sites, get human-readable names from processedSitesData
+      const siteNames = stringIds.map(id => {
+        const site = processedSitesData.find(item => String(item.id) === id);
+        return site ? String(site.name || site.search_name || site.location_name || id) : id;
+      });
+      setSelectedSites(siteNames);
       setSelectedSitesCache(prevCache =>
         rebuildSelectionCache(stringIds, processedSitesData, prevCache)
       );
@@ -1356,6 +1416,32 @@ const DataExportPage = () => {
         onSave={handleSaveFormatSelection}
         locationCount={pendingDownload?.locationCount || 0}
       />
+
+      {/* Tab Change Confirmation Dialog */}
+      <Dialog
+        isOpen={tabChangeConfirm.isOpen}
+        onClose={() => setTabChangeConfirm(prev => ({ ...prev, isOpen: false }))}
+        title="Switch Tab?"
+        subtitle="Your current selections will be cleared"
+        icon={AqAlertTriangle}
+        iconColor="text-amber-600"
+        iconBgColor="bg-amber-100"
+        primaryAction={{
+          label: 'Switch Tab',
+          onClick: confirmTabChange,
+          className: 'bg-amber-600 hover:bg-amber-700 text-white',
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () => setTabChangeConfirm(prev => ({ ...prev, isOpen: false })),
+        }}
+        size="md"
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          You have {tabChangeConfirm.selectionCount} item{tabChangeConfirm.selectionCount !== 1 ? 's' : ''} selected.
+          Switching tabs will clear all current selections. Do you want to continue?
+        </p>
+      </Dialog>
     </div>
   );
 };

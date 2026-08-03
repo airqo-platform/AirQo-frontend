@@ -1,11 +1,13 @@
 import React from 'react';
 import { Tooltip } from 'flowbite-react';
 import { Button } from '@/shared/components/ui';
+import Dialog from '@/shared/components/ui/dialog';
 import {
   AqAnnotationX,
   AqDownload01,
   AqRefreshCcw01,
   AqHelpCircle,
+  AqAlertTriangle,
 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
@@ -61,6 +63,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onToggleHelpBanner,
   selectionCount = 0,
 }) => {
+  const [showClearConfirm, setShowClearConfirm] = React.useState(false);
+
   const hasSelections =
     selectedSiteIds.length > 0 ||
     selectedDeviceIds.length > 0 ||
@@ -74,11 +78,14 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
 
   const handleClearClick = () => {
     if (totalSelectionCount > 5) {
-      const confirmed = window.confirm(
-        `You have ${totalSelectionCount} items selected. Are you sure you want to clear all selections?`
-      );
-      if (!confirmed) return;
+      setShowClearConfirm(true);
+    } else {
+      onClearSelections();
     }
+  };
+
+  const confirmClear = () => {
+    setShowClearConfirm(false);
     onClearSelections();
   };
 
@@ -225,6 +232,32 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           </Tooltip>
         )}
       </div>
+
+      {/* Clear All Confirmation Dialog */}
+      <Dialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        title="Clear All Selections?"
+        subtitle="This action cannot be undone"
+        icon={AqAlertTriangle}
+        iconColor="text-amber-600"
+        iconBgColor="bg-amber-100"
+        primaryAction={{
+          label: 'Clear All',
+          onClick: confirmClear,
+          className: 'bg-amber-600 hover:bg-amber-700 text-white',
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () => setShowClearConfirm(false),
+        }}
+        size="md"
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          You have {totalSelectionCount} item{totalSelectionCount !== 1 ? 's' : ''} selected.
+          Are you sure you want to clear all selections?
+        </p>
+      </Dialog>
     </div>
   );
 };
