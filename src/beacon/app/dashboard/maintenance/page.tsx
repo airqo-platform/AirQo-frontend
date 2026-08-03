@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
-import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight, Pentagon } from "lucide-react"
+import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight, Pentagon, Download } from "lucide-react"
 import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
@@ -336,6 +336,62 @@ export default function MaintenancePage() {
         setIsRouting(false);
         setRoutePath([]);
     }
+
+    const handleExportCSV = (devicesToExport?: MaintenanceMapItem[]) => {
+        const targetDevices = devicesToExport || (polygonSelectedDevices.length > 0 ? polygonSelectedDevices : filteredMapData);
+
+        if (!targetDevices || targetDevices.length === 0) {
+            toast({
+                title: "Export Error",
+                description: "No devices available to export.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const escapeCSV = (val: any): string => {
+            if (val === null || val === undefined) return '""';
+            const str = String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const headers = ["Device Name", "Latitude", "Longitude", "Uptime (%)", "Error Margin"];
+        const rows = targetDevices.map(device => {
+            const rawUptime = Number(device.uptime);
+            const uptimePct = Number.isFinite(rawUptime) ? (rawUptime <= 1 ? rawUptime * 100 : rawUptime) : 0;
+            const em = Number(device.error_margin);
+            const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A";
+
+            return [
+                escapeCSV(device.device_name || device.device_id || ""),
+                escapeCSV(device.latitude ?? ""),
+                escapeCSV(device.longitude ?? ""),
+                escapeCSV(uptimePct.toFixed(1)),
+                escapeCSV(errorMarginStr)
+            ];
+        });
+
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `maintenance-devices-${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        toast({
+            title: "CSV Exported",
+            description: `Exported ${targetDevices.length} devices to CSV.`,
+        });
+    };
 
 
     // Fetch map data when days or tags change
@@ -738,7 +794,22 @@ export default function MaintenancePage() {
                             </div>
 
                             <button
-                                onClick={isRouting ? clearRoute : calculateRoute}
+                                onClick={() => handleExportCSV()}
+                                disabled={loadingMap || (polygonSelectedDevices.length === 0 && !filteredMapData?.length)}
+                                className="flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 disabled:opacity-50 shadow-sm"
+                                title="Export device data to CSV"
+                            >
+                                <Download className="w-3.5 h-3.5 mr-1.5 text-gray-500" />
+                                Export CSV
+                                {polygonSelectedDevices.length > 0 && (
+                                    <span className="ml-1.5 px-1.5 py-0.2 bg-blue-50 text-blue-700 text-[10px] rounded-full font-semibold">
+                                        Polygon ({polygonSelectedDevices.length})
+                                    </span>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={isRouting ? clearRoute : () => calculateRoute()}
                                 disabled={loadingMap || !filteredMapData?.length}
                                 className={`flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${isRouting
                                     ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
@@ -772,12 +843,20 @@ export default function MaintenancePage() {
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="mb-3">
+                                <div className="mb-3 flex items-center gap-2">
                                     <button
                                         onClick={() => calculateRoute(polygonSelectedDevices)}
-                                        className="w-full px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                        className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors font-medium"
                                     >
                                         Generate Route
+                                    </button>
+                                    <button
+                                        onClick={() => handleExportCSV(polygonSelectedDevices)}
+                                        className="px-3 py-2 bg-white text-gray-700 border border-gray-200 text-xs rounded-md hover:bg-gray-50 transition-colors font-medium flex items-center gap-1.5 shadow-sm"
+                                        title="Export polygon devices to CSV"
+                                    >
+                                        <Download className="w-3.5 h-3.5 text-gray-500" />
+                                        Export CSV
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto border border-gray-100 rounded-md min-h-0">
