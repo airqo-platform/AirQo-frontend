@@ -29,8 +29,9 @@ import { normalizeCohortIds } from '../utils/cohortUtils';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
-  revalidateOnReconnect: false,
-  shouldRetryOnError: false,
+  revalidateOnReconnect: true,
+  shouldRetryOnError: true,
+  errorRetryCount: 2,
   dedupingInterval: 5000,
 } as const;
 
@@ -54,19 +55,22 @@ const useAbortableFetcher = <T>(
 ) => {
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
-
   return useCallback(async () => {
+    // Abort any previous in-flight request
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
     try {
       return await fetcher(controller.signal);
+    } catch (error) {
+      // Don't throw AbortError — SWR treats errors as permanent failures.
+      // AbortError means the request was cancelled (e.g. new request started),
+      // not that something went wrong. SWR will retry with the new fetcher.
+      if (isAbortError(error)) {
+        return undefined as T;
+      }
+      throw error;
     } finally {
       if (abortRef.current === controller) {
         abortRef.current = null;
@@ -86,6 +90,9 @@ const useCohortSitesQuery = (
   enabled = true,
   cohortsLoading = false
 ) => {
+  const cohortsLoadingRef = useRef(cohortsLoading);
+  cohortsLoadingRef.current = cohortsLoading;
+
   const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
 
   const key = shouldFetch
@@ -101,7 +108,7 @@ const useCohortSitesQuery = (
 
   const result = useSWR<CohortSitesResponse>(key, fetchCohortSites, {
     ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoading,
+    isPaused: () => cohortsLoadingRef.current,
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';
@@ -120,6 +127,9 @@ const useCohortDevicesQuery = (
   enabled = true,
   cohortsLoading = false
 ) => {
+  const cohortsLoadingRef = useRef(cohortsLoading);
+  cohortsLoadingRef.current = cohortsLoading;
+
   const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
 
   const key = shouldFetch
@@ -135,7 +145,7 @@ const useCohortDevicesQuery = (
 
   const result = useSWR<CohortDevicesResponse>(key, fetchCohortDevices, {
     ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoading,
+    isPaused: () => cohortsLoadingRef.current,
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';
