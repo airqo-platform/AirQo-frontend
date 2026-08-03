@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
@@ -39,6 +39,11 @@ export interface PreparedDownloadResult {
   activeTab: TabType;
   locationCount: number;
   summaryItems: Array<{ label: string; value: string }>;
+  partialDataWarning?: {
+    totalSelected: number;
+    withData: number;
+    missingNames: string[];
+  };
 }
 
 type MetadataRow = Record<string, unknown>;
@@ -690,6 +695,228 @@ const hasDownloadRecords = (response: DataDownloadResponse | string) => {
   return Array.isArray(response.data) && response.data.length > 0;
 };
 
+const getResponseLocationIds = (
+  response: DataDownloadResponse | string,
+  activeTab: TabType
+): Set<string> => {
+  const ids = new Set<string>();
+
+  if (typeof response === 'string') {
+    const rows = parseDownloadCsvRows(response);
+    if (rows.length < 2) return ids;
+    const headers = rows[0];
+
+    if (activeTab === 'devices') {
+      const deviceIdx = headers.findIndex(
+        h => h === 'device_id' || h === 'device_name'
+      );
+      if (deviceIdx === -1) return ids;
+      for (let i = 1; i < rows.length; i++) {
+        const val = rows[i]?.[deviceIdx]?.trim();
+        if (val) ids.add(val);
+      }
+    } else {
+      // For sites, countries, cities — extract all possible identifiers
+      const siteIdIdx = headers.findIndex(
+        h => h === 'site_id' || h === '_id' || h === 'id'
+      );
+      const siteNameIdx = headers.findIndex(
+        h => h === 'site_name' || h === 'name' || h === 'search_name'
+      );
+      for (let i = 1; i < rows.length; i++) {
+        if (siteIdIdx !== -1) {
+          const val = rows[i]?.[siteIdIdx]?.trim();
+          if (val) ids.add(val);
+        }
+        if (siteNameIdx !== -1) {
+          const val = rows[i]?.[siteNameIdx]?.trim();
+          if (val) ids.add(val);
+        }
+      }
+    }
+    return ids;
+  }
+
+  if (Array.isArray(response.data)) {
+    for (const item of response.data) {
+      if (activeTab === 'devices') {
+        const id = String(item.device_name ?? '').trim();
+        if (id) ids.add(id);
+      } else {
+        // For sites, countries, cities — extract all possible identifiers
+        const itemRecord = item as unknown as Record<string, unknown>;
+        const siteId = String(
+          itemRecord.site_id ?? itemRecord._id ?? itemRecord.id ?? ''
+        ).trim();
+        const siteName = String(
+          item.site_name ?? itemRecord.name ?? itemRecord.search_name ?? ''
+        ).trim();
+        if (siteId) ids.add(siteId);
+        if (siteName) ids.add(siteName);
+      }
+    }
+  }
+
+  return ids;
+};
+
+const buildPartialDataWarning = (
+  response: DataDownloadResponse | string,
+  activeTab: TabType,
+  selectedIds: string[],
+  selectedNames: string[],
+  gridData?: TableItem[]
+): { totalSelected: number; withData: number; missingNames: string[] } | undefined => {
+  if (selectedIds.length === 0) return undefined;
+
+  const responseIds = getResponseLocationIds(response, activeTab);
+  const missingNames: string[] = [];
+
+  // For countries/cities, build a mapping from GridSite._id to response site_name
+  const siteIdToResponseName =
+    activeTab === 'countries' || activeTab === 'cities'
+      ? buildSiteIdToResponseSiteNameMap(response, gridData || [])
+      : new Map<string, string>();
+
+  selectedIds.forEach((id, index) => {
+    const name = selectedNames[index] || id;
+    let hasData = false;
+
+    if (activeTab === 'countries' || activeTab === 'cities') {
+      // For countries/cities, check if the GridSite._id has a matching site_name in the response
+      const responseSiteName = siteIdToResponseName.get(id);
+      hasData =
+        responseIds.has(id) ||
+        responseIds.has(name) ||
+        (responseSiteName !== undefined && responseIds.has(responseSiteName)) ||
+        // Also check by name directly (in case selectedNames contains site names)
+        responseIds.has(name.toLowerCase()) ||
+        responseIds.has(id.toLowerCase());
+    } else {
+      // For sites/devices, direct comparison
+      hasData =
+        responseIds.has(id) ||
+        responseIds.has(name) ||
+        responseIds.has(name.toLowerCase()) ||
+        responseIds.has(id.toLowerCase());
+    }
+
+    if (!hasData) {
+      missingNames.push(name);
+    }
+  });
+
+  if (missingNames.length === 0 || missingNames.length === selectedIds.length) {
+    return undefined;
+  }
+
+  return {
+    totalSelected: selectedIds.length,
+    withData: selectedIds.length - missingNames.length,
+    missingNames,
+  };
+};
+
+export type PartialDataWarning = {
+  totalSelected: number;
+  withData: number;
+  missingNames: string[];
+};
+
+export { buildPartialDataWarning, getGridSiteNames };
+
+const getGridSiteNames = (
+  activeTab: TabType,
+  selectedGridIds: string[],
+  selectedGridSiteIds: Record<string, string[]>,
+  selectedGridSites: Record<string, string[]>,
+  gridData: TableItem[]
+): string[] => {
+  if (activeTab !== 'countries' && activeTab !== 'cities') return [];
+
+  const siteNames: string[] = [];
+  const siteIdToName = new Map<string, string>();
+
+  // Build lookup from grid data
+  gridData.forEach(grid => {
+    const sites = grid.sites as Array<{ _id: string; name: string }> | undefined;
+    if (sites) {
+      sites.forEach(site => {
+        if (site._id && site.name) {
+          siteIdToName.set(site._id, site.name);
+        }
+      });
+    }
+  });
+
+  // Get all selected site IDs and map to names
+  selectedGridIds.forEach(gridId => {
+    const customSites = selectedGridSiteIds[gridId];
+    const defaultSites = selectedGridSites[gridId];
+    const sites = customSites && customSites.length > 0 ? customSites : defaultSites || [];
+    sites.forEach(siteId => {
+      const name = siteIdToName.get(siteId) || siteId;
+      siteNames.push(name);
+    });
+  });
+
+  return siteNames;
+};
+
+const buildGridSiteIdToNameMap = (
+  gridData: TableItem[]
+): Map<string, string> => {
+  const map = new Map<string, string>();
+  gridData.forEach(grid => {
+    const sites = grid.sites as Array<{ _id: string; name: string }> | undefined;
+    if (sites) {
+      sites.forEach(site => {
+        if (site._id && site.name) {
+          map.set(site._id, site.name);
+        }
+      });
+    }
+  });
+  return map;
+};
+
+const buildSiteIdToResponseSiteNameMap = (
+  response: DataDownloadResponse | string,
+  gridData: TableItem[]
+): Map<string, string> => {
+  const gridSiteIdToName = buildGridSiteIdToNameMap(gridData);
+  const responseSiteNames = new Set<string>();
+
+  // Extract site names from response
+  if (typeof response === 'string') {
+    const rows = parseDownloadCsvRows(response);
+    if (rows.length < 2) return new Map();
+    const headers = rows[0];
+    const siteNameIdx = headers.findIndex(h => h === 'site_name');
+    if (siteNameIdx === -1) return new Map();
+    for (let i = 1; i < rows.length; i++) {
+      const val = rows[i]?.[siteNameIdx]?.trim();
+      if (val) responseSiteNames.add(val);
+    }
+  } else if (Array.isArray(response.data)) {
+    for (const item of response.data) {
+      const siteName = String(item.site_name ?? '').trim();
+      if (siteName) responseSiteNames.add(siteName);
+    }
+  }
+
+  // Build mapping: GridSite._id -> response site_name
+  // by matching grid site names against response site names
+  const result = new Map<string, string>();
+  gridSiteIdToName.forEach((gridSiteName, gridSiteId) => {
+    if (responseSiteNames.has(gridSiteName)) {
+      result.set(gridSiteId, gridSiteName);
+    }
+  });
+
+  return result;
+};
+
 const getCalendarDayDifference = (from: Date, to: Date) => {
   const startUtc = Date.UTC(
     from.getFullYear(),
@@ -789,6 +1016,7 @@ export const useDataExportActions = (
   const posthog = usePostHog();
   const { trigger: fetchDownloadData, isMutating: isDownloading } =
     useDownloadData();
+  const downloadAbortRef = useRef<AbortController | null>(null);
 
   interface HandleDownloadOptions {
     customSelectedGridSiteIds?: Record<string, string[]>;
@@ -892,6 +1120,12 @@ export const useDataExportActions = (
         frequency,
         deviceCategory,
       });
+
+      if (downloadAbortRef.current) {
+        downloadAbortRef.current.abort();
+      }
+      const abortController = new AbortController();
+      downloadAbortRef.current = abortController;
 
       trackFeatureUsage(posthog, 'data_export', 'download_started', {
         active_tab: activeTab,
@@ -1006,6 +1240,9 @@ export const useDataExportActions = (
 
       try {
         const rawResponse = await fetchDownloadData(request);
+
+        if (abortController.signal.aborted) return null;
+
         const normalizedResponse =
           activeTab === 'countries' || activeTab === 'cities'
             ? normalizeCountryCityDownloadResponse(
@@ -1033,6 +1270,47 @@ export const useDataExportActions = (
               ? selectedDeviceIds.length
               : sitesForDownload.length;
 
+        const countriesCitiesGridData =
+          activeTab === 'countries' ? countriesData : citiesData;
+        const gridSiteNames =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? getGridSiteNames(
+                activeTab,
+                selectedGridIds,
+                effectiveSelectedGridSiteIds,
+                selectedGridSites,
+                countriesCitiesGridData
+              )
+            : [];
+
+        const partialDataWarning = buildPartialDataWarning(
+          normalizedResponse,
+          activeTab,
+          activeTab === 'sites'
+            ? selectedSiteIds
+            : activeTab === 'devices'
+              ? selectedDeviceIds
+              : sitesForDownload,
+          activeTab === 'sites'
+            ? selectedSites
+            : activeTab === 'devices'
+              ? selectedDevices
+              : gridSiteNames,
+          countriesCitiesGridData
+        );
+
+        if (partialDataWarning) {
+          const missingList = partialDataWarning.missingNames.slice(0, 3).join(', ');
+          const suffix =
+            partialDataWarning.missingNames.length > 3
+              ? ` and ${partialDataWarning.missingNames.length - 3} more`
+              : '';
+          toast.warning(
+            'Partial data returned',
+            `${partialDataWarning.withData} of ${partialDataWarning.totalSelected} selected locations returned data. No readings found for: ${missingList}${suffix}.`
+          );
+        }
+
         return {
           request,
           response: normalizedResponse,
@@ -1051,8 +1329,11 @@ export const useDataExportActions = (
             downloadColumnKeys,
             false
           ),
+          partialDataWarning,
         };
       } catch (error) {
+        if (abortController.signal.aborted) return null;
+
         if (shouldUseMetadataFallback(error)) {
           toast.warning(
             'No measurement data found',
@@ -1165,6 +1446,15 @@ export const useDataExportActions = (
     dispatch,
     posthog,
   ]);
+
+  // Cleanup abort controller on unmount
+  React.useEffect(() => {
+    return () => {
+      if (downloadAbortRef.current) {
+        downloadAbortRef.current.abort();
+      }
+    };
+  }, []);
 
   return {
     handleDownload,

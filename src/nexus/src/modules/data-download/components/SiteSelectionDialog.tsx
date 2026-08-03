@@ -3,6 +3,7 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 import { GridSite } from '@/shared/types/api';
 
 const toNormalizedText = (value: unknown): string =>
@@ -153,7 +154,7 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
           {filteredSites.length === 0 ? (
             <div className="text-center py-8">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
-                <span className="text-gray-400 text-xl">&#128205;</span>
+                <AqMarkerPin01 className="w-6 h-6 text-gray-400" />
               </div>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {searchTerm.trim()

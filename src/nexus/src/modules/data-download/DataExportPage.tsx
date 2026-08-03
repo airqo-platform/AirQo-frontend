@@ -32,6 +32,8 @@ import { useDataExportState } from './hooks/useDataExportState';
 import {
   type PreparedDownloadResult,
   useDataExportActions,
+  buildPartialDataWarning,
+  getGridSiteNames,
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import { useDownloadData } from '@/shared/hooks/useAnalytics';
@@ -40,6 +42,7 @@ import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
   buildDownloadXlsxBlob,
+  parseDownloadCsvRows,
 } from './utils/dataExportFile';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
@@ -339,6 +342,10 @@ const DataExportPage = () => {
   const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewPartialWarning, setPreviewPartialWarning] = useState<
+    | { totalSelected: number; withData: number; missingNames: string[] }
+    | undefined
+  >(undefined);
   const previewAbortRef = useRef<AbortController | null>(null);
   const { trigger: fetchPreviewData } = useDownloadData();
 
@@ -348,6 +355,7 @@ const DataExportPage = () => {
     setIsPreviewLoading(true);
     setPreviewError(null);
     setPreviewRows([]);
+    setPreviewPartialWarning(undefined);
 
     if (previewAbortRef.current) {
       previewAbortRef.current.abort();
@@ -382,43 +390,10 @@ const DataExportPage = () => {
       if (abortController.signal.aborted) return;
 
       if (typeof response === 'string') {
-        const parseCsvLine = (line: string): string[] => {
-          const fields: string[] = [];
-          let current = '';
-          let inQuotes = false;
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (inQuotes) {
-              if (char === '"') {
-                if (i + 1 < line.length && line[i + 1] === '"') {
-                  current += '"';
-                  i++;
-                } else {
-                  inQuotes = false;
-                }
-              } else {
-                current += char;
-              }
-            } else {
-              if (char === '"') {
-                inQuotes = true;
-              } else if (char === ',') {
-                fields.push(current.trim());
-                current = '';
-              } else {
-                current += char;
-              }
-            }
-          }
-          fields.push(current.trim());
-          return fields;
-        };
-
-        const lines = response.split('\n').filter((line: string) => line.trim());
-        if (lines.length > 1) {
-          const headers = parseCsvLine(lines[0]);
-          const rows: PreviewData[] = lines.slice(1, 6).map((line: string) => {
-            const values = parseCsvLine(line);
+        const parsedRows = parseDownloadCsvRows(response);
+        if (parsedRows.length > 1) {
+          const headers = parsedRows[0];
+          const rows: PreviewData[] = parsedRows.slice(1, 6).map((values: string[]) => {
             const row: PreviewData = {};
             headers.forEach((header, index) => {
               const val = values[index];
@@ -462,8 +437,40 @@ const DataExportPage = () => {
           }
 
           setPreviewRows(rows);
+          const countriesCitiesGridData =
+            activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+          const gridSiteNames =
+            activeTab === 'countries' || activeTab === 'cities'
+              ? getGridSiteNames(
+                  activeTab,
+                  selectedGridIds,
+                  selectedGridSiteIds,
+                  selectedGridSites,
+                  countriesCitiesGridData
+                )
+              : [];
+          setPreviewPartialWarning(
+            buildPartialDataWarning(
+              response,
+              activeTab,
+              activeTab === 'sites'
+                ? selectedSiteIds
+                : activeTab === 'devices'
+                  ? selectedDeviceIds
+                  : selectedGridSiteIds
+                    ? Object.values(selectedGridSiteIds).flat()
+                    : [],
+              activeTab === 'sites'
+                ? selectedSites
+                : activeTab === 'devices'
+                  ? selectedDevices
+                  : gridSiteNames,
+              countriesCitiesGridData
+            )
+          );
         } else {
           setPreviewRows([]);
+          setPreviewPartialWarning(undefined);
         }
       } else if (
         response &&
@@ -513,14 +520,47 @@ const DataExportPage = () => {
         }
 
         setPreviewRows(rows);
+        const countriesCitiesGridDataObj =
+          activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+        const gridSiteNamesObj =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? getGridSiteNames(
+                activeTab,
+                selectedGridIds,
+                selectedGridSiteIds,
+                selectedGridSites,
+                countriesCitiesGridDataObj
+              )
+            : [];
+        setPreviewPartialWarning(
+          buildPartialDataWarning(
+            response,
+            activeTab,
+            activeTab === 'sites'
+              ? selectedSiteIds
+              : activeTab === 'devices'
+                ? selectedDeviceIds
+                : selectedGridSiteIds
+                  ? Object.values(selectedGridSiteIds).flat()
+                  : [],
+            activeTab === 'sites'
+              ? selectedSites
+              : activeTab === 'devices'
+                ? selectedDevices
+                : gridSiteNamesObj,
+            countriesCitiesGridDataObj
+          )
+        );
       } else {
         setPreviewRows([]);
+        setPreviewPartialWarning(undefined);
       }
     } catch {
       if (abortController.signal.aborted) return;
       setPreviewError(
         'Unable to load data preview. You can retry or proceed with the download.'
       );
+      setPreviewPartialWarning(undefined);
     } finally {
       if (!abortController.signal.aborted) {
         setIsPreviewLoading(false);
@@ -537,6 +577,7 @@ const DataExportPage = () => {
     activeTab,
     selectedSites,
     selectedDevices,
+    selectedSiteIds,
     selectedDeviceIds,
     selectedGridIds,
     selectedGridSites,
@@ -546,6 +587,14 @@ const DataExportPage = () => {
     processedCitiesData,
     setPreviewOpen,
   ]);
+
+  useEffect(() => {
+    return () => {
+      if (previewAbortRef.current) {
+        previewAbortRef.current.abort();
+      }
+    };
+  }, []);
 
   // Actions and event handlers
   const { handleDownload, handleVisualizeData, isDownloading } =
@@ -1196,6 +1245,7 @@ const DataExportPage = () => {
         previewRows={previewRows}
         isFetchingPreview={isPreviewLoading}
         previewError={previewError}
+        partialDataWarning={previewPartialWarning}
         dataType={dataType}
         frequency={frequency}
         fileType={fileType}

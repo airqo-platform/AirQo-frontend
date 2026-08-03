@@ -9,6 +9,7 @@ import {
 } from '@/shared/components/charts/constants';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { areArraysEqual } from '@/shared/utils/arrays';
+import { AqAlertTriangle, AqSearchMd } from '@airqo/icons-react';
 import {
   getDefaultDownloadColumnKeys,
   getDownloadColumnGroups,
@@ -16,6 +17,12 @@ import {
 } from '../utils/dataExportFile';
 
 type PreviewData = Record<string, string | number | null>;
+
+export interface PartialDataWarning {
+  totalSelected: number;
+  withData: number;
+  missingNames: string[];
+}
 
 interface DataExportPreviewProps {
   isOpen: boolean;
@@ -28,6 +35,7 @@ interface DataExportPreviewProps {
   previewRows: PreviewData[];
   isFetchingPreview: boolean;
   previewError: string | null;
+  partialDataWarning?: PartialDataWarning;
 
   // Export configuration
   dataType: string;
@@ -51,6 +59,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   previewRows,
   isFetchingPreview,
   previewError,
+  partialDataWarning,
   dataType,
   frequency,
   fileType,
@@ -243,9 +252,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           ) : previewError ? (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-6 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 mb-3">
-                <span className="text-amber-600 dark:text-amber-400 text-xl">
-                  &#9888;
-                </span>
+                <AqAlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Unable to Load Preview
@@ -262,51 +269,64 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
               </Button>
             </div>
           ) : previewData.length > 0 ? (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div className="max-h-80 overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                    <tr>
-                      {previewColumns.map(column => (
-                        <th
-                          key={column.key}
-                          className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
-                        >
-                          {column.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((row, rowIndex) => (
-                      <tr
-                        key={rowIndex}
-                        className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                      >
+            <>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <div className="max-h-80 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                      <tr>
                         {previewColumns.map(column => (
-                          <td
+                          <th
                             key={column.key}
-                            className="px-3 py-2 text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+                            className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
                           >
-                            {typeof row[column.key] === 'number'
-                              ? Number.isInteger(row[column.key])
-                                ? String(row[column.key])
-                                : Number(row[column.key]).toFixed(2)
-                              : String(row[column.key] ?? '')}
-                          </td>
+                            {column.label}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {previewData.map((row, rowIndex) => (
+                        <tr
+                          key={rowIndex}
+                          className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                        >
+                          {previewColumns.map(column => (
+                            <td
+                              key={column.key}
+                              className="px-3 py-2 text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+                            >
+                              {typeof row[column.key] === 'number'
+                                ? Number.isInteger(row[column.key])
+                                  ? String(row[column.key])
+                                  : Number(row[column.key]).toFixed(2)
+                                : String(row[column.key] ?? '')}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+              {partialDataWarning && (
+                <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    <span className="font-medium">
+                      {partialDataWarning.withData} of {partialDataWarning.totalSelected} selected locations returned data.
+                    </span>{' '}
+                    No readings found for:{' '}
+                    {partialDataWarning.missingNames.slice(0, 3).join(', ')}
+                    {partialDataWarning.missingNames.length > 3 &&
+                      ` and ${partialDataWarning.missingNames.length - 3} more`}
+                  </p>
+                </div>
+              )}
+            </>
           ) : hasNoData ? (
             <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-5 text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 mb-3">
-                <span className="text-amber-600 dark:text-amber-400 text-xl">
-                  &#128269;
-                </span>
+                <AqSearchMd className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
                 No Measurement Data Found

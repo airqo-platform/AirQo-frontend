@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui';
+import { AqLightbulb01 } from '@airqo/icons-react';
 import { Grid } from '@/shared/types/api';
 
 interface SelectedGridsSummaryProps {
@@ -61,10 +62,13 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
           );
         })}
       </div>
-      <div className="mt-3 text-xs text-blue-700 dark:text-blue-300">
-        💡 Tip: Click &quot;Choose Sites&quot; to select specific monitoring
-        locations, or use the main download button to download all sites in your
-        selection.
+      <div className="mt-3 text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
+        <AqLightbulb01 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+        <span>
+          Tip: Click &quot;Choose Sites&quot; to select specific monitoring
+          locations, or use the main download button to download all sites in your
+          selection.
+        </span>
       </div>
     </div>
   );

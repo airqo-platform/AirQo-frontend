@@ -61,8 +61,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     Object.keys(selectedGridSiteIds).length > 0;
 
   const reviewDownloadTooltip = isDownloadReady
-    ? 'Review the export configuration before downloading. If no readings are returned, the download falls back to location metadata.'
-    : 'To enable download, please select a date range, at least one location, and at least one pollutant.';
+    ? 'Preview your export before downloading'
+    : 'Select a date range, location, and pollutant to enable download';
 
   return (
     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4 min-w-0">
