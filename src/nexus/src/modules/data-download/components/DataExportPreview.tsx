@@ -310,16 +310,29 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                 </div>
               </div>
               {partialDataWarning && (
-                <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <span className="font-medium">
-                      {partialDataWarning.withData} of {partialDataWarning.totalSelected} selected locations returned data.
-                    </span>{' '}
-                    No readings found for:{' '}
-                    {partialDataWarning.missingNames.slice(0, 3).join(', ')}
-                    {partialDataWarning.missingNames.length > 3 &&
-                      ` and ${partialDataWarning.missingNames.length - 3} more`}
-                  </p>
+                <div className="mt-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <AqAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Partial Data Available
+                      </p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        {partialDataWarning.withData} of {partialDataWarning.totalSelected} selected {locationType.toLowerCase()} have data.
+                        {partialDataWarning.missingNames.length > 0 && (
+                          <>
+                            {' '}No readings found for:{' '}
+                            {partialDataWarning.missingNames.slice(0, 3).join(', ')}
+                            {partialDataWarning.missingNames.length > 3 &&
+                              ` and ${partialDataWarning.missingNames.length - 3} more`}
+                          </>
+                        )}
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        Your download will include metadata for all locations, but only those with data will have measurement values.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </>
@@ -404,10 +417,49 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           </div>
 
           {selectedColumnKeys.length === 0 && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Select at least one column to enable the download.
-            </p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                No columns selected
+              </p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                Enable at least one column above to continue. Without columns, the download button will remain disabled.
+              </p>
+            </div>
           )}
+        </div>
+
+        {/* What You Will Download - Summary before confirmation */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+            What You Will Download
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <span className="text-blue-600 dark:text-blue-400">Locations:</span>
+              <p className="text-blue-900 dark:text-blue-100 font-medium">{selectedLocations.length}</p>
+            </div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400">With data:</span>
+              <p className="text-blue-900 dark:text-blue-100 font-medium">
+                {partialDataWarning ? partialDataWarning.withData : selectedLocations.length}
+              </p>
+            </div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400">Without data:</span>
+              <p className="text-blue-900 dark:text-blue-100 font-medium">
+                {partialDataWarning ? partialDataWarning.totalSelected - partialDataWarning.withData : 0}
+              </p>
+            </div>
+            <div>
+              <span className="text-blue-600 dark:text-blue-400">Columns:</span>
+              <p className="text-blue-900 dark:text-blue-100 font-medium">{selectedColumnKeys.length}</p>
+            </div>
+          </div>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+            {hasNoData
+              ? 'Download includes location metadata only (names, coordinates, device info).'
+              : 'Preview shows first 5 rows. Full download includes all matching data.'}
+          </p>
         </div>
 
         {/* Configuration Summary */}

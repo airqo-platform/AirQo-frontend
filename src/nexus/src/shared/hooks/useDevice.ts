@@ -30,8 +30,7 @@ import { normalizeCohortIds } from '../utils/cohortUtils';
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
-  shouldRetryOnError: true,
-  errorRetryCount: 2,
+  shouldRetryOnError: false,
   dedupingInterval: 5000,
 } as const;
 
@@ -55,6 +54,13 @@ const useAbortableFetcher = <T>(
 ) => {
   const abortRef = useRef<AbortController | null>(null);
 
+  // Cleanup abort controller on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   return useCallback(async () => {
     // Abort any previous in-flight request
     abortRef.current?.abort();
@@ -64,12 +70,9 @@ const useAbortableFetcher = <T>(
     try {
       return await fetcher(controller.signal);
     } catch (error) {
-      // Don't throw AbortError — SWR treats errors as permanent failures.
-      // AbortError means the request was cancelled (e.g. new request started),
-      // not that something went wrong. SWR will retry with the new fetcher.
-      if (isAbortError(error)) {
-        return undefined as T;
-      }
+      // Let AbortError propagate — SWR sets error but useCohortSitesQuery
+      // suppresses it via isAbortError check. This prevents SWR from treating
+      // cancellation as a successful value or triggering unnecessary retries.
       throw error;
     } finally {
       if (abortRef.current === controller) {

@@ -267,7 +267,20 @@ const DataExportPage = () => {
         return;
       }
 
+      // Warn user before switching tabs if they have active selections
       if (tab !== activeTab) {
+        const hasActiveSelections =
+          selectedSiteIds.length > 0 ||
+          selectedDeviceIds.length > 0 ||
+          selectedGridIds.length > 0;
+
+        if (hasActiveSelections) {
+          const confirmed = window.confirm(
+            'Switching tabs will clear your current selections. Do you want to continue?'
+          );
+          if (!confirmed) return;
+        }
+
         trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
           from_tab: activeTab,
           to_tab: tab,
@@ -282,7 +295,7 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog]
+    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog, selectedSiteIds, selectedDeviceIds, selectedGridIds]
   );
 
   // Data fetching and processing (initial call with empty array)
@@ -449,6 +462,15 @@ const DataExportPage = () => {
                   countriesCitiesGridData
                 )
               : [];
+          const gridSiteIds =
+            activeTab === 'countries' || activeTab === 'cities'
+              ? (() => {
+                  const custom = Object.values(selectedGridSiteIds).flat();
+                  return custom.length > 0
+                    ? custom
+                    : Object.values(selectedGridSites).flat();
+                })()
+              : [];
           setPreviewPartialWarning(
             buildPartialDataWarning(
               response,
@@ -457,9 +479,7 @@ const DataExportPage = () => {
                 ? selectedSiteIds
                 : activeTab === 'devices'
                   ? selectedDeviceIds
-                  : selectedGridSiteIds
-                    ? Object.values(selectedGridSiteIds).flat()
-                    : [],
+                  : gridSiteIds,
               activeTab === 'sites'
                 ? selectedSites
                 : activeTab === 'devices'
@@ -532,6 +552,15 @@ const DataExportPage = () => {
                 countriesCitiesGridDataObj
               )
             : [];
+        const gridSiteIdsObj =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? (() => {
+                const custom = Object.values(selectedGridSiteIds).flat();
+                return custom.length > 0
+                  ? custom
+                  : Object.values(selectedGridSites).flat();
+              })()
+            : [];
         setPreviewPartialWarning(
           buildPartialDataWarning(
             response,
@@ -540,9 +569,7 @@ const DataExportPage = () => {
               ? selectedSiteIds
               : activeTab === 'devices'
                 ? selectedDeviceIds
-                : selectedGridSiteIds
-                  ? Object.values(selectedGridSiteIds).flat()
-                  : [],
+                : gridSiteIdsObj,
             activeTab === 'sites'
               ? selectedSites
               : activeTab === 'devices'
@@ -681,6 +708,10 @@ const DataExportPage = () => {
       dataType !== 'raw'
     ) {
       setDataType('raw');
+      toast.info(
+        'Data Type Updated',
+        'Reference monitors only provide raw data. Data type has been set to Raw.'
+      );
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
 
@@ -1022,7 +1053,6 @@ const DataExportPage = () => {
 
       return true;
     } catch (error) {
-      console.error('Failed to save export:', error);
       const errorMessage = error instanceof Error ? error.message : '';
 
       if (format === 'pdf' && /export too large for pdf/i.test(errorMessage)) {
@@ -1030,14 +1060,13 @@ const DataExportPage = () => {
       } else {
         toast.error(
           'Save Failed',
-          errorMessage || 'We could not save the file. Please try again.'
+          `${errorMessage || 'We could not save the file.'} Click a format button to retry.`
         );
       }
 
-      if (format === 'json') {
-        setSaveFormatDialogOpen(false);
-        setPendingDownload(null);
-      }
+      // Clear dialog state on all formats so user can retry
+      setSaveFormatDialogOpen(false);
+      setPendingDownload(null);
 
       return false;
     }
@@ -1052,8 +1081,7 @@ const DataExportPage = () => {
 
     try {
       await savePreparedDownload(pendingDownload, format);
-    } catch (error) {
-      console.error('Failed to save export:', error);
+    } catch {
       toast.error(
         'Save Failed',
         'We could not save the file. Please try again.'
@@ -1069,6 +1097,24 @@ const DataExportPage = () => {
       localStorage.setItem('hideDataExportHelpBanner', 'true');
     }
   };
+
+  const handleToggleHelpBanner = () => {
+    setShowHelpBanner(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hideDataExportHelpBanner', String(!next));
+      }
+      return next;
+    });
+  };
+
+  // Compute the total selection count for the current tab
+  const selectionCount = useMemo(() => {
+    if (activeTab === 'sites') return selectedSiteIds.length;
+    if (activeTab === 'devices') return selectedDeviceIds.length;
+    // countries/cities: count selected grid IDs
+    return selectedGridIds.length;
+  }, [activeTab, selectedSiteIds, selectedDeviceIds, selectedGridIds]);
 
   if (isOrgUnresolved) {
     return (
@@ -1189,6 +1235,9 @@ const DataExportPage = () => {
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
+              showHelpBanner={showHelpBanner}
+              onToggleHelpBanner={handleToggleHelpBanner}
+              selectionCount={selectionCount}
             />
 
             <DataExportTable

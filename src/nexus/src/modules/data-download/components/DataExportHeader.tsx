@@ -5,6 +5,7 @@ import {
   AqAnnotationX,
   AqDownload01,
   AqRefreshCcw01,
+  AqHelpCircle,
 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
@@ -28,6 +29,9 @@ interface DataExportHeaderProps {
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
   isOrgFlow?: boolean;
+  showHelpBanner?: boolean;
+  onToggleHelpBanner?: () => void;
+  selectionCount?: number;
 }
 
 /**
@@ -53,12 +57,30 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onToggleSidebar,
   sidebarOpen = false,
   isOrgFlow = false,
+  showHelpBanner = true,
+  onToggleHelpBanner,
+  selectionCount = 0,
 }) => {
   const hasSelections =
     selectedSiteIds.length > 0 ||
     selectedDeviceIds.length > 0 ||
     selectedGridIds.length > 0 ||
     Object.keys(selectedGridSiteIds).length > 0;
+
+  const totalSelectionCount =
+    selectedSiteIds.length +
+    selectedDeviceIds.length +
+    selectedGridIds.length;
+
+  const handleClearClick = () => {
+    if (totalSelectionCount > 5) {
+      const confirmed = window.confirm(
+        `You have ${totalSelectionCount} items selected. Are you sure you want to clear all selections?`
+      );
+      if (!confirmed) return;
+    }
+    onClearSelections();
+  };
 
   const reviewDownloadTooltip = isDownloadReady
     ? 'Preview your export before downloading'
@@ -126,6 +148,21 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:flex xl:flex-wrap gap-2 w-full min-w-0 xl:w-auto mt-3 xl:mt-0">
+        {!showHelpBanner && onToggleHelpBanner && (
+          <Tooltip content="Show getting-started tips" placement="top">
+            <span className="inline-flex w-full xl:w-auto">
+              <Button
+                variant="outlined"
+                onClick={onToggleHelpBanner}
+                Icon={AqHelpCircle}
+                size="sm"
+                className="px-4 py-2 w-full xl:w-auto"
+              >
+                Show Tips
+              </Button>
+            </span>
+          </Tooltip>
+        )}
         {onRefresh && (
           <Button
             variant="outlined"
@@ -142,7 +179,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         {hasSelections && (
           <Button
             variant="outlined"
-            onClick={onClearSelections}
+            onClick={handleClearClick}
             Icon={AqAnnotationX}
             disabled={isGroupSyncing}
             className="px-4 py-2 w-full xl:w-auto"
@@ -180,7 +217,9 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
                   ? 'Loading preview...'
                   : isDownloading
                     ? 'Downloading...'
-                    : 'Review & Download'}
+                    : selectionCount > 0
+                      ? `Review & Download (${selectionCount})`
+                      : 'Review & Download'}
               </Button>
             </span>
           </Tooltip>

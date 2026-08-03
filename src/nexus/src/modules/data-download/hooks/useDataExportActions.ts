@@ -701,6 +701,11 @@ const getResponseLocationIds = (
 ): Set<string> => {
   const ids = new Set<string>();
 
+  const addId = (val: string) => {
+    ids.add(val);
+    ids.add(val.toLowerCase());
+  };
+
   if (typeof response === 'string') {
     const rows = parseDownloadCsvRows(response);
     if (rows.length < 2) return ids;
@@ -713,7 +718,7 @@ const getResponseLocationIds = (
       if (deviceIdx === -1) return ids;
       for (let i = 1; i < rows.length; i++) {
         const val = rows[i]?.[deviceIdx]?.trim();
-        if (val) ids.add(val);
+        if (val) addId(val);
       }
     } else {
       // For sites, countries, cities — extract all possible identifiers
@@ -726,11 +731,11 @@ const getResponseLocationIds = (
       for (let i = 1; i < rows.length; i++) {
         if (siteIdIdx !== -1) {
           const val = rows[i]?.[siteIdIdx]?.trim();
-          if (val) ids.add(val);
+          if (val) addId(val);
         }
         if (siteNameIdx !== -1) {
           const val = rows[i]?.[siteNameIdx]?.trim();
-          if (val) ids.add(val);
+          if (val) addId(val);
         }
       }
     }
@@ -741,7 +746,7 @@ const getResponseLocationIds = (
     for (const item of response.data) {
       if (activeTab === 'devices') {
         const id = String(item.device_name ?? '').trim();
-        if (id) ids.add(id);
+        if (id) addId(id);
       } else {
         // For sites, countries, cities — extract all possible identifiers
         const itemRecord = item as unknown as Record<string, unknown>;
@@ -751,8 +756,8 @@ const getResponseLocationIds = (
         const siteName = String(
           item.site_name ?? itemRecord.name ?? itemRecord.search_name ?? ''
         ).trim();
-        if (siteId) ids.add(siteId);
-        if (siteName) ids.add(siteName);
+        if (siteId) addId(siteId);
+        if (siteName) addId(siteName);
       }
     }
   }
@@ -772,41 +777,92 @@ const buildPartialDataWarning = (
   const responseIds = getResponseLocationIds(response, activeTab);
   const missingNames: string[] = [];
 
-  // For countries/cities, build a mapping from GridSite._id to response site_name
-  const siteIdToResponseName =
-    activeTab === 'countries' || activeTab === 'cities'
-      ? buildSiteIdToResponseSiteNameMap(response, gridData || [])
-      : new Map<string, string>();
+  if (activeTab === 'countries' || activeTab === 'cities') {
+    // For countries/cities, we need to match selected site IDs against response site names.
+    // Since grid.sites may be empty, we use two strategies:
+    // 1. If we have names (from grid.sites), try to match directly
+    // 2. Otherwise, count unique sites in response and compare against selected count
 
-  selectedIds.forEach((id, index) => {
-    const name = selectedNames[index] || id;
-    let hasData = false;
+    const siteIdToResponseName = buildSiteIdToResponseSiteNameMap(response, gridData || []);
 
-    if (activeTab === 'countries' || activeTab === 'cities') {
-      // For countries/cities, check if the GridSite._id has a matching site_name in the response
-      const responseSiteName = siteIdToResponseName.get(id);
-      hasData =
-        responseIds.has(id) ||
-        responseIds.has(name) ||
-        (responseSiteName !== undefined && responseIds.has(responseSiteName)) ||
-        // Also check by name directly (in case selectedNames contains site names)
-        responseIds.has(name.toLowerCase()) ||
-        responseIds.has(id.toLowerCase());
-    } else {
-      // For sites/devices, direct comparison
-      hasData =
-        responseIds.has(id) ||
-        responseIds.has(name) ||
-        responseIds.has(name.toLowerCase()) ||
-        responseIds.has(id.toLowerCase());
+    // Count unique sites that have data in the response
+    const responseSiteNames = new Set<string>();
+    if (typeof response === 'string') {
+      const rows = parseDownloadCsvRows(response);
+      if (rows.length >= 2) {
+        const headers = rows[0];
+        const siteNameIdx = headers.findIndex(
+          h => h === 'site_name' || h === 'name' || h === 'search_name'
+        );
+        if (siteNameIdx !== -1) {
+          for (let i = 1; i < rows.length; i++) {
+            const val = rows[i]?.[siteNameIdx]?.trim();
+            if (val) responseSiteNames.add(val.toLowerCase());
+          }
+        }
+      }
+    } else if (Array.isArray(response.data)) {
+      for (const item of response.data) {
+        const siteName = String(item.site_name ?? '').trim().toLowerCase();
+        if (siteName) responseSiteNames.add(siteName);
+      }
     }
 
-    if (!hasData) {
-      missingNames.push(name);
-    }
-  });
+    const sitesWithDataCount = responseSiteNames.size;
 
-  if (missingNames.length === 0 || missingNames.length === selectedIds.length) {
+    // Check each selected site
+    selectedIds.forEach((id, index) => {
+      const name = selectedNames[index];
+      let hasData = false;
+
+      if (name) {
+        // We have a human-readable name — try direct matching
+        const responseSiteName = siteIdToResponseName.get(id);
+        hasData =
+          responseIds.has(id) ||
+          responseIds.has(name) ||
+          (responseSiteName !== undefined && responseIds.has(responseSiteName)) ||
+          responseIds.has(name.toLowerCase()) ||
+          responseIds.has(id.toLowerCase());
+      } else {
+        // No name available — we can't determine if this specific site has data
+        // Mark as unknown (don't add to missingNames)
+        hasData = true; // Assume it might have data to avoid false warnings
+      }
+
+      if (!hasData) {
+        missingNames.push(name || `Site ${index + 1}`);
+      }
+    });
+
+    // If we couldn't resolve names but the response has fewer sites than selected,
+    // adjust the warning to be more accurate
+    if (missingNames.length === 0 && sitesWithDataCount > 0 && sitesWithDataCount < selectedIds.length) {
+      // Some sites are missing but we don't know which ones
+      const missingCount = selectedIds.length - sitesWithDataCount;
+      return {
+        totalSelected: selectedIds.length,
+        withData: sitesWithDataCount,
+        missingNames: [`${missingCount} site${missingCount > 1 ? 's' : ''} with no data`],
+      };
+    }
+  } else {
+    // For sites/devices, direct comparison
+    selectedIds.forEach((id, index) => {
+      const name = selectedNames[index] || id;
+      const hasData =
+        responseIds.has(id) ||
+        responseIds.has(name) ||
+        responseIds.has(name.toLowerCase()) ||
+        responseIds.has(id.toLowerCase());
+
+      if (!hasData) {
+        missingNames.push(name);
+      }
+    });
+  }
+
+  if (missingNames.length === 0) {
     return undefined;
   }
 
@@ -837,13 +893,21 @@ const getGridSiteNames = (
   const siteNames: string[] = [];
   const siteIdToName = new Map<string, string>();
 
-  // Build lookup from grid data
+  // Build lookup from grid data — handles both populated and empty sites arrays
   gridData.forEach(grid => {
-    const sites = grid.sites as Array<{ _id: string; name: string }> | undefined;
-    if (sites) {
+    const sites = grid.sites as Array<{
+      _id: string;
+      name: string;
+      search_name?: string;
+      formatted_name?: string;
+      location_name?: string;
+    }> | undefined;
+    if (sites && sites.length > 0) {
       sites.forEach(site => {
-        if (site._id && site.name) {
-          siteIdToName.set(site._id, site.name);
+        if (site._id) {
+          const name =
+            site.name || site.search_name || site.formatted_name || site.location_name || site._id;
+          siteIdToName.set(site._id, name);
         }
       });
     }
@@ -855,8 +919,11 @@ const getGridSiteNames = (
     const defaultSites = selectedGridSites[gridId];
     const sites = customSites && customSites.length > 0 ? customSites : defaultSites || [];
     sites.forEach(siteId => {
-      const name = siteIdToName.get(siteId) || siteId;
-      siteNames.push(name);
+      const name = siteIdToName.get(siteId);
+      if (name) {
+        siteNames.push(name);
+      }
+      // If no name found, don't add the raw ID — we'll handle this in the warning
     });
   });
 
@@ -868,11 +935,20 @@ const buildGridSiteIdToNameMap = (
 ): Map<string, string> => {
   const map = new Map<string, string>();
   gridData.forEach(grid => {
-    const sites = grid.sites as Array<{ _id: string; name: string }> | undefined;
+    const sites = grid.sites as Array<{
+      _id: string;
+      name: string;
+      search_name?: string;
+      formatted_name?: string;
+      location_name?: string;
+    }> | undefined;
     if (sites) {
       sites.forEach(site => {
-        if (site._id && site.name) {
-          map.set(site._id, site.name);
+        if (site._id) {
+          // Use the most readable name available
+          const name =
+            site.name || site.search_name || site.formatted_name || site.location_name || site._id;
+          map.set(site._id, name);
         }
       });
     }
@@ -884,10 +960,32 @@ const buildSiteIdToResponseSiteNameMap = (
   response: DataDownloadResponse | string,
   gridData: TableItem[]
 ): Map<string, string> => {
-  const gridSiteIdToName = buildGridSiteIdToNameMap(gridData);
-  const responseSiteNames = new Set<string>();
+  // Build a comprehensive lookup from grid site IDs to all possible names
+  const gridSiteIdToNames = new Map<string, Set<string>>();
+  gridData.forEach(grid => {
+    const sites = grid.sites as Array<{
+      _id: string;
+      name: string;
+      search_name?: string;
+      formatted_name?: string;
+      location_name?: string;
+    }> | undefined;
+    if (sites) {
+      sites.forEach(site => {
+        if (site._id) {
+          const names = new Set<string>();
+          if (site.name) names.add(site.name.toLowerCase());
+          if (site.search_name) names.add(site.search_name.toLowerCase());
+          if (site.formatted_name) names.add(site.formatted_name.toLowerCase());
+          if (site.location_name) names.add(site.location_name.toLowerCase());
+          gridSiteIdToNames.set(site._id, names);
+        }
+      });
+    }
+  });
 
   // Extract site names from response
+  const responseSiteNames = new Set<string>();
   if (typeof response === 'string') {
     const rows = parseDownloadCsvRows(response);
     if (rows.length < 2) return new Map();
@@ -895,22 +993,44 @@ const buildSiteIdToResponseSiteNameMap = (
     const siteNameIdx = headers.findIndex(h => h === 'site_name');
     if (siteNameIdx === -1) return new Map();
     for (let i = 1; i < rows.length; i++) {
-      const val = rows[i]?.[siteNameIdx]?.trim();
+      const val = rows[i]?.[siteNameIdx]?.trim().toLowerCase();
       if (val) responseSiteNames.add(val);
     }
   } else if (Array.isArray(response.data)) {
     for (const item of response.data) {
-      const siteName = String(item.site_name ?? '').trim();
+      const siteName = String(item.site_name ?? '').trim().toLowerCase();
       if (siteName) responseSiteNames.add(siteName);
     }
   }
 
   // Build mapping: GridSite._id -> response site_name
-  // by matching grid site names against response site names
+  // by checking if any of the grid site's names appear in the response
   const result = new Map<string, string>();
-  gridSiteIdToName.forEach((gridSiteName, gridSiteId) => {
-    if (responseSiteNames.has(gridSiteName)) {
-      result.set(gridSiteId, gridSiteName);
+  const gridSiteIdToName = buildGridSiteIdToNameMap(gridData);
+
+  gridSiteIdToNames.forEach((gridNames, gridSiteId) => {
+    const responseNameArray = Array.from(responseSiteNames);
+    const gridNameArray = Array.from(gridNames);
+    outer: for (const responseName of responseNameArray) {
+      for (const gridName of gridNameArray) {
+        // Exact match (case-insensitive)
+        if (responseName === gridName) {
+          result.set(gridSiteId, gridSiteIdToName.get(gridSiteId) || gridSiteId);
+          break outer;
+        }
+        // Partial match: shorter string must be at least half the length of longer one
+        // and must be at least 4 characters to avoid false positives
+        const shorter = responseName.length < gridName.length ? responseName : gridName;
+        const longer = responseName.length < gridName.length ? gridName : responseName;
+        if (
+          shorter.length >= 4 &&
+          shorter.length >= longer.length / 2 &&
+          longer.includes(shorter)
+        ) {
+          result.set(gridSiteId, gridSiteIdToName.get(gridSiteId) || gridSiteId);
+          break outer;
+        }
+      }
     }
   });
 
