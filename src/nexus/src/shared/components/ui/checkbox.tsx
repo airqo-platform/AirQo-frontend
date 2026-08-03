@@ -10,6 +10,7 @@ export type CheckboxProps = Omit<
 > & {
   onCheckedChange?: (checked: boolean) => void;
   indeterminate?: boolean;
+  label?: React.ReactNode;
 };
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
@@ -20,6 +21,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       checked: controlledChecked,
       defaultChecked,
       indeterminate = false,
+      label,
       ...props
     },
     ref
@@ -90,6 +92,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             )}
           </span>
         </span>
+        {label && <span className="ml-2">{label}</span>}
       </label>
     );
   }

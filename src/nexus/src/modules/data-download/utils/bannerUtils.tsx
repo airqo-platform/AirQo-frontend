@@ -12,6 +12,7 @@ interface BannerNotificationProps {
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedGridIds: string[];
+  selectedGridSiteCount: number;
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
   isDownloadReady: boolean;
@@ -31,6 +32,7 @@ export const getBannerNotification = ({
   selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
+  selectedGridSiteCount,
   selectedPollutants,
   deviceCategory,
   isDownloadReady,
@@ -112,6 +114,18 @@ export const getBannerNotification = ({
       <WarningBanner
         title="Location Selection Required"
         message={`Please select at least one ${locationTypeLabel} to include in your data export.`}
+      />
+    );
+  }
+
+  if (
+    (activeTab === 'countries' || activeTab === 'cities') &&
+    selectedGridSiteCount === 0
+  ) {
+    return (
+      <WarningBanner
+        title="Monitoring Site Selection Required"
+        message={`The selected ${activeTab === 'countries' ? 'country' : 'city'} has no monitoring sites selected. Choose at least one site before exporting.`}
       />
     );
   }

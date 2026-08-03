@@ -221,6 +221,53 @@ const parseCsvRows = (csvText: string): string[][] => {
 export const parseDownloadCsvRows = (csvText: string): string[][] =>
   parseCsvRows(csvText);
 
+/**
+ * Converts either API response format into records for previews and file
+ * transforms. Axios normally gives JSON responses as objects, but accepting a
+ * JSON string here also keeps the export flow safe when content negotiation
+ * returns the body as text.
+ */
+export const parseDownloadResponseRecords = (
+  response: DataDownloadResponse | string
+): DownloadRecord[] => {
+  if (typeof response !== 'string') {
+    return Array.isArray(response?.data)
+      ? response.data.map(item =>
+          normalizeDownloadRecord(isPlainObject(item) ? item : {})
+        )
+      : [];
+  }
+
+  const trimmedResponse = response.trim();
+  if (trimmedResponse.startsWith('{') || trimmedResponse.startsWith('[')) {
+    try {
+      const parsed: unknown = JSON.parse(trimmedResponse);
+      const records = Array.isArray(parsed)
+        ? parsed
+        : parsed && typeof parsed === 'object' && 'data' in parsed
+          ? (parsed as { data?: unknown }).data
+          : [];
+
+      if (Array.isArray(records)) {
+        return records.map(item =>
+          normalizeDownloadRecord(isPlainObject(item) ? item : {})
+        );
+      }
+    } catch {
+      // Fall through to CSV parsing for malformed/non-JSON text responses.
+    }
+  }
+
+  const [headers = [], ...dataRows] = parseCsvRows(response);
+  return dataRows.map(row => {
+    const record: DownloadRecord = {};
+    headers.forEach((header, index) => {
+      record[header] = row[index] ?? '';
+    });
+    return normalizeDownloadRecord(record);
+  });
+};
+
 const escapeCsvValue = (value: unknown) => {
   if (value === null || value === undefined) {
     return '""';
@@ -354,29 +401,35 @@ const resolveSelectedHeaders = (
 
 const extractDownloadRecords = (response: DataDownloadResponse | string) => {
   if (typeof response === 'string') {
-    const rows = parseCsvRows(response);
-    const [headers = [], ...dataRows] = rows;
-
-    const records = dataRows.map(row => {
-      const record: DownloadRecord = {};
-
-      headers.forEach((header, index) => {
-        record[header] = row[index] ?? '';
-      });
-
-      return normalizeDownloadRecord(record);
-    });
+    const records = parseDownloadResponseRecords(response);
+    const trimmedResponse = response.trim();
+    const isJsonResponse =
+      trimmedResponse.startsWith('{') || trimmedResponse.startsWith('[');
+    const parsedJson = isJsonResponse
+      ? (() => {
+          try {
+            return JSON.parse(trimmedResponse);
+          } catch {
+            return null;
+          }
+        })()
+      : null;
+    const responseObject =
+      parsedJson && !Array.isArray(parsedJson) && typeof parsedJson === 'object'
+        ? ({
+            ...(parsedJson as Record<string, unknown>),
+            data: records,
+          } as unknown as DataDownloadResponse)
+        : null;
 
     return {
       records,
-      headers,
-      responseObject: null as DataDownloadResponse | null,
+      headers: getRecordHeaders(records),
+      responseObject,
     };
   }
 
-  const records = response.data.map(item =>
-    normalizeDownloadRecord(isPlainObject(item) ? item : {})
-  );
+  const records = parseDownloadResponseRecords(response);
 
   return {
     records,

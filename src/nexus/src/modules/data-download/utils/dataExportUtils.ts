@@ -26,7 +26,7 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
   return undefined;
 };
 
-const getSiteDisplayName = (site?: SiteNameSource): string => {
+export const getSiteDisplayName = (site?: SiteNameSource): string => {
   const displayName =
     getFirstNonEmptyString(
       site?.search_name,
@@ -59,8 +59,8 @@ export const processSitesData = (
   return sitesData.map((site, index) => ({
     ...site,
     id:
-      (site.site_id as string | number) ||
       (site._id as string | number) ||
+      (site.site_id as string | number) ||
       index,
     name: getSiteDisplayName(site as SiteNameSource),
     city: removeUnderscores((site.city as string) || '--'),
@@ -85,7 +85,13 @@ export const processDevicesData = (
       (device.device_id as string | number) ||
       (device._id as string | number) ||
       index,
-    name: getFirstNonEmptyString(device.name, device.device_name, (device as Record<string, unknown>).search_name, (device as Record<string, unknown>).formatted_name) || '--',
+    name:
+      getFirstNonEmptyString(
+        device.name,
+        device.device_name,
+        (device as Record<string, unknown>).search_name,
+        (device as Record<string, unknown>).formatted_name
+      ) || '--',
     network: ((device.network as string) || '--').toUpperCase(),
     category: (device.category as string) || '--',
   }));
