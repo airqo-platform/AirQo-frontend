@@ -81,7 +81,7 @@ export class DateUtils {
   }
 
   static getDefaultPresets(): CalendarPreset[] {
-    const today = new Date();
+    const today = startOfDay(new Date());
 
     return [
       {

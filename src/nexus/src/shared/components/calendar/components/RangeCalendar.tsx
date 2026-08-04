@@ -10,7 +10,6 @@ interface RangeCalendarProps {
   onApply?: (value: DateRange) => void;
   onCancel?: () => void;
   initialRange?: DateRange;
-  onPresetSelect?: (value: DateRange) => void;
 }
 
 export function RangeCalendar({
