@@ -39,7 +39,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const isTokenExpired = (exp?: number): boolean => {
   if (!exp) return false;
-  return Date.now() / 1000 > exp;
+  // Add a 5-minute (300 seconds) grace period for clock drift
+  return Date.now() / 1000 > (exp + 300);
 };
 
 const configuredCookieDomain =
@@ -159,6 +160,7 @@ export const authOptions: NextAuthOptions = {
             timezone: decoded?.timezone || '',
             phoneNumber: decoded?.phoneNumber || '',
             airqoExp: decoded?.exp,
+            exp: decoded?.exp,
             authMethods: profile.authMethods,
           };
         }
@@ -236,6 +238,7 @@ export const authOptions: NextAuthOptions = {
               timezone: decoded.timezone || '',
               phoneNumber: decoded.phoneNumber || '',
               airqoExp: decoded.exp,
+              exp: decoded.exp,
             };
           }
 
@@ -247,14 +250,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  // cookies: {
-  //   sessionToken: {
-  //     name: isProduction
-  //       ? '__Secure-next-auth.session-token'
-  //       : 'next-auth.session-token',
-  //     options: cookieOptions,
-  //   },
-  // },
+  cookies: {
+    sessionToken: {
+      name: isProduction
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: cookieOptions,
+    },
+  },
 
   session: {
     strategy: 'jwt',
@@ -280,7 +283,8 @@ export const authOptions: NextAuthOptions = {
         token.timezone = user.timezone;
         token.phoneNumber = user.phoneNumber;
         token.image = user.image ?? undefined;
-        token.airqoExp = (user as any).airqoExp;
+        token.airqoExp = (user as any).airqoExp ?? (user as any).exp;
+        token.exp = (user as any).exp ?? (user as any).airqoExp;
         token.authMethods = user.authMethods;
       }
 
@@ -300,7 +304,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      if (isTokenExpired(token.airqoExp as number | undefined)) {
+      const tokenExp = (token.airqoExp ?? token.exp) as number | undefined;
+      if (isTokenExpired(tokenExp)) {
         return { ...session, user: null as any };
       }
 
@@ -322,7 +327,8 @@ export const authOptions: NextAuthOptions = {
           timezone: token.timezone as string,
           phoneNumber: token.phoneNumber as string,
           image: (token.image as string) || '',
-          airqoExp: token.airqoExp,
+          airqoExp: token.airqoExp ?? token.exp,
+          exp: token.exp ?? token.airqoExp,
         } as any;
       }
       return session;
