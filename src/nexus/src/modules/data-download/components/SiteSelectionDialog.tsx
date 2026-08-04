@@ -3,6 +3,7 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 import { GridSite } from '@/shared/types/api';
 
 const toNormalizedText = (value: unknown): string =>
@@ -94,6 +95,9 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       }}
       title={`Select Sites in ${gridName}`}
       subtitle={`Choose which sites under this ${gridType} to include in your data download.`}
+      size="xl"
+      className="max-w-2xl sm:max-w-3xl"
+      maxHeight="max-h-[80vh]"
       preventBackdropClose={isDownloading}
       showCloseButton={!isDownloading}
       customFooter={
@@ -148,10 +152,20 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       <div className="max-h-96 overflow-y-auto">
         <div className="space-y-2">
           {filteredSites.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm
-                ? 'No sites found matching your search.'
-                : 'No sites available.'}
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                <AqMarkerPin01 className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {searchTerm.trim()
+                  ? 'No sites found matching your search.'
+                  : 'No sites available'}
+              </p>
+              {!searchTerm.trim() && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  This {gridType} does not have any monitoring sites configured.
+                </p>
+              )}
             </div>
           ) : (
             filteredSites.map(site => (

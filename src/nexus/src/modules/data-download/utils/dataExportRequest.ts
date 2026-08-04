@@ -5,7 +5,9 @@ import { DeviceCategory, TabType } from '../types/dataExportTypes';
 interface BuildDataDownloadRequestArgs {
   dateRange: DateRange | undefined;
   activeTab: TabType;
-  selectedSites: string[];
+  /** Human-readable site names are intentionally not used for site exports. */
+  selectedSites?: string[];
+  selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedDeviceNames?: string[];
   selectedGridIds: string[];
@@ -37,32 +39,57 @@ const toUtcDayEndIso = (date: Date) =>
     )
   ).toISOString();
 
-const resolveGridSitesForDownload = (
+const normalizeSelection = (values: string[] | undefined): string[] =>
+  Array.from(
+    new Set((values ?? []).map(value => String(value).trim()).filter(Boolean))
+  );
+
+export const resolveGridSitesForDownload = (
   selectedGridIds: string[],
   selectedGridSites: Record<string, string[]>,
   selectedGridSiteIds: Record<string, string[]>
-) => {
-  const sitesForDownload: string[] = [];
+) =>
+  normalizeSelection(
+    selectedGridIds.flatMap(gridId => {
+      const hasCustomSelection = Object.prototype.hasOwnProperty.call(
+        selectedGridSiteIds,
+        gridId
+      );
 
-  selectedGridIds.forEach(gridId => {
-    const hasCustomSelection = Object.prototype.hasOwnProperty.call(
-      selectedGridSiteIds,
-      gridId
-    );
-    const customSites = selectedGridSiteIds[gridId];
-    const defaultSites = selectedGridSites[gridId];
-    const sites = hasCustomSelection ? customSites || [] : defaultSites || [];
+      // An explicit custom selection, including [], is authoritative. Never
+      // silently turn an intentional empty selection back into "all sites".
+      return hasCustomSelection
+        ? (selectedGridSiteIds[gridId] ?? [])
+        : (selectedGridSites[gridId] ?? []);
+    })
+  );
 
-    sitesForDownload.push(...sites);
-  });
+const getDeviceSelector = (
+  selectedDeviceIds: string[],
+  selectedDeviceNames?: string[]
+): { device_ids: string[] } | { device_names: string[] } => {
+  const deviceIds = normalizeSelection(selectedDeviceIds);
+  const deviceNames = normalizeSelection(selectedDeviceNames);
 
-  return sitesForDownload;
+  // Names are only safe when they map one-to-one to the current selection.
+  // Otherwise use IDs, which are the authoritative table selection values.
+  if (deviceNames.length === deviceIds.length && deviceNames.length > 0) {
+    return { device_names: deviceNames };
+  }
+
+  if (deviceIds.length > 0) {
+    return { device_ids: deviceIds };
+  }
+
+  throw new Error(
+    'At least one device ID or device name is required for export'
+  );
 };
 
 export const buildDataDownloadRequest = ({
   dateRange,
   activeTab,
-  selectedSites,
+  selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
   selectedGridSites,
@@ -84,13 +111,31 @@ export const buildDataDownloadRequest = ({
       ? 'raw'
       : (dataType as DataDownloadRequest['datatype']);
 
-  const effectiveGridSiteIds = customSelectedGridSiteIds || selectedGridSiteIds;
+  const normalizedSiteIds = normalizeSelection(selectedSiteIds);
+  const effectiveGridSiteIds = customSelectedGridSiteIds ?? selectedGridSiteIds;
 
   const sitesForDownload = resolveGridSitesForDownload(
     selectedGridIds,
     selectedGridSites,
     effectiveGridSiteIds
   );
+
+  const selection =
+    activeTab === 'sites'
+      ? normalizedSiteIds.length > 0
+        ? { sites: normalizedSiteIds }
+        : (() => {
+            throw new Error('At least one site ID is required for export');
+          })()
+      : activeTab === 'devices'
+        ? getDeviceSelector(selectedDeviceIds, selectedDeviceNames)
+        : sitesForDownload.length > 0
+          ? { sites: sitesForDownload }
+          : (() => {
+              throw new Error(
+                'At least one monitoring site is required for country or city export'
+              );
+            })();
 
   return {
     datatype: effectiveDataType,
@@ -107,13 +152,6 @@ export const buildDataDownloadRequest = ({
       activeTab === 'countries' || activeTab === 'cities'
         ? 'lowcost'
         : deviceCategory,
-    ...(activeTab === 'sites' && { sites: selectedSites }),
-    ...(activeTab === 'devices' &&
-      (selectedDeviceNames && selectedDeviceNames.length > 0
-        ? { device_names: selectedDeviceNames }
-        : { device_ids: selectedDeviceIds })),
-    ...((activeTab === 'countries' || activeTab === 'cities') && {
-      sites: sitesForDownload,
-    }),
+    ...selection,
   };
 };

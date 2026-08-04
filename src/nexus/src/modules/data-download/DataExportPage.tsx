@@ -1,7 +1,13 @@
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, {
+  useMemo,
+  useEffect,
+  useCallback,
+  useState,
+} from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
+import { SuccessBanner } from '@/shared/components/ui/banner';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
 import { DownloadFormatDialog } from './components/DownloadFormatDialog';
@@ -13,6 +19,8 @@ import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import { toast } from '@/shared/components/ui/toast';
+import Dialog from '@/shared/components/ui/dialog';
+import { AqAlertTriangle } from '@airqo/icons-react';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -34,10 +42,15 @@ import {
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import {
+  resolveGridSitesForDownload,
+} from './utils/dataExportRequest';
+import { getSiteDisplayName } from './utils/dataExportUtils';
+import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
   buildDownloadXlsxBlob,
 } from './utils/dataExportFile';
+import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -94,6 +107,8 @@ const rebuildSelectionCache = (
   return nextCache;
 };
 
+type PreviewData = Record<string, string | number | null>;
+
 const DataExportPage = () => {
   const pathname = usePathname();
   const posthog = usePostHog();
@@ -144,7 +159,6 @@ const DataExportPage = () => {
     fileType,
     selectedPollutants,
     selectedSites,
-    selectedDevices,
     selectedSiteIds,
     selectedDeviceIds,
     selectedGridIds,
@@ -197,12 +211,19 @@ const DataExportPage = () => {
   const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [pendingColumnKeys, setPendingColumnKeys] = React.useState<
+    string[] | null
+  >(null);
   const [pendingDownload, setPendingDownload] =
     React.useState<PreparedDownloadResult | null>(null);
   const [saveFormatDialogOpen, setSaveFormatDialogOpen] = React.useState(false);
   const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
     null
   );
+  const [downloadSuccess, setDownloadSuccess] = React.useState<{
+    format: string;
+    message: string;
+  } | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const refreshInFlightRef = React.useRef(false);
   const isMountedRef = React.useRef(true);
@@ -214,6 +235,11 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
+  const [tabChangeConfirm, setTabChangeConfirm] = React.useState<{
+    isOpen: boolean;
+    targetTab: TabType;
+    selectionCount: number;
+  }>({ isOpen: false, targetTab: 'sites', selectionCount: 0 });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -221,6 +247,13 @@ const DataExportPage = () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  // Auto-dismiss success banner after 10 seconds
+  useEffect(() => {
+    if (!downloadSuccess) return;
+    const timer = setTimeout(() => setDownloadSuccess(null), 10000);
+    return () => clearTimeout(timer);
+  }, [downloadSuccess]);
 
   useEffect(() => {
     if (!isOrgFlow) {
@@ -250,6 +283,35 @@ const DataExportPage = () => {
     }
   }, [isOrgFlow, activeTab, handleTabChange]);
 
+  // Preview state — built from cached data (no API call needed)
+  const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const clearPreviewState = useCallback(() => {
+    setPreviewRows([]);
+    setPreviewError(null);
+    setIsPreviewLoading(false);
+    setPreviewOpen(false);
+  }, [setPreviewOpen]);
+
+  const clearSelectionState = useCallback(() => {
+    handleClearSelections();
+    setSelectedSitesCache({});
+    setSelectedDevicesCache({});
+    setSelectedCountriesCache({});
+    setSelectedCitiesCache({});
+    setSelectedGridForSites(null);
+    setSiteSelectionDialogOpen(false);
+    setSiteSelectionDownloading(false);
+    setPendingColumnKeys(null);
+    setPendingDownload(null);
+    setSaveFormatDialogOpen(false);
+    setSavingFormat(null);
+    setDownloadSuccess(null);
+    clearPreviewState();
+  }, [clearPreviewState, handleClearSelections]);
+
   // Wrap handleTabChange to prevent org flow from accessing countries/cities
   const wrappedHandleTabChange = useCallback(
     (tab: TabType) => {
@@ -261,7 +323,24 @@ const DataExportPage = () => {
         return;
       }
 
+      // Warn user before switching tabs if they have active selections
       if (tab !== activeTab) {
+        const selectionCount =
+          selectedSiteIds.length +
+          selectedDeviceIds.length +
+          selectedGridIds.length;
+
+        if (selectionCount > 0) {
+          setTabChangeConfirm({
+            isOpen: true,
+            targetTab: tab,
+            selectionCount,
+          });
+          return;
+        }
+
+        clearSelectionState();
+
         trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
           from_tab: activeTab,
           to_tab: tab,
@@ -276,8 +355,45 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [activeTab, isGroupSyncing, isOrgFlow, handleTabChange, posthog]
+    [
+      activeTab,
+      clearSelectionState,
+      handleTabChange,
+      isGroupSyncing,
+      isOrgFlow,
+      posthog,
+      selectedDeviceIds,
+      selectedGridIds,
+      selectedSiteIds,
+    ]
   );
+
+  const confirmTabChange = useCallback(() => {
+    const { targetTab } = tabChangeConfirm;
+    setTabChangeConfirm(prev => ({ ...prev, isOpen: false }));
+
+    clearSelectionState();
+
+    trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
+      from_tab: activeTab,
+      to_tab: targetTab,
+      is_org_flow: isOrgFlow,
+    });
+    trackEvent('data_export_tab_changed', {
+      from_tab: activeTab,
+      to_tab: targetTab,
+      is_org_flow: isOrgFlow,
+    });
+
+    handleTabChange(targetTab);
+  }, [
+    tabChangeConfirm,
+    activeTab,
+    isOrgFlow,
+    handleTabChange,
+    posthog,
+    clearSelectionState,
+  ]);
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
@@ -331,13 +447,213 @@ const DataExportPage = () => {
     isOrgContextReady
   );
 
+  const selectedDeviceNamesForExport = useMemo(() => {
+    const source = [...selectedDevicesForActions, ...processedDevicesData];
+    const names = selectedDeviceIds.map(id => {
+      const device = source.find(item => String(item.id) === id);
+      const name = device?.name ?? device?.device_name;
+      return typeof name === 'string' && name.trim() && name !== '--'
+        ? name.trim()
+        : null;
+    });
+
+    return names.every(Boolean) ? (names as string[]) : [];
+  }, [processedDevicesData, selectedDeviceIds, selectedDevicesForActions]);
+
+  // Compute site names from cache to avoid stale state issues
+  const selectedSiteNames = useMemo(
+    () =>
+      selectedSiteIds.map(id => {
+        const cached = selectedSitesCache[id];
+        if (cached) {
+          const displayName = getSiteDisplayName(cached);
+          return displayName === '--' ? id : displayName;
+        }
+        // Fallback: find in current page data
+        const site = processedSitesData.find(item => String(item.id) === id);
+        if (!site) return id;
+
+        const displayName = getSiteDisplayName(site);
+        return displayName === '--' ? id : displayName;
+      }),
+    [selectedSiteIds, selectedSitesCache, processedSitesData]
+  );
+
+  // Build preview rows from cached data (no API call needed)
+  const handleOpenPreview = useCallback(() => {
+    if (isPreviewLoading) return;
+
+    setIsPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewRows([]);
+
+    try {
+      let rows: PreviewData[] = [];
+
+      // Derive config-based field values for the preview
+      const frequencyLabel =
+        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] || frequency;
+      const formatNetwork = (val: unknown): string | null => {
+        if (typeof val !== 'string' || !val.trim()) return null;
+        return val.trim().toUpperCase();
+      };
+      const formattedDate = (() => {
+        if (!dateRange?.from || !dateRange?.to) return 'Not selected';
+        const fmt = (d: Date) =>
+          d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+        return `${fmt(dateRange.from)} – ${fmt(dateRange.to)}`;
+      })();
+
+      if (activeTab === 'sites') {
+        rows = selectedSiteIds.map(id => {
+          const site = selectedSitesCache[id];
+          const name = site
+            ? (site.name ?? site.site_name ?? id)
+            : id;
+          const row: PreviewData = {
+            id: site?.id ?? id,
+            site_name: name as string,
+            datetime: formattedDate,
+            frequency: frequencyLabel,
+            network:
+              formatNetwork(site?.network ?? site?.sensor_manufacturer ?? site?.data_provider),
+            latitude: (site?.latitude ?? site?.lat ?? null) as string | number | null,
+            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as string | number | null,
+            site_id: (site?.site_id ?? site?.id ?? id) as string,
+          };
+          if (site?.search_name) row.search_name = site.search_name as string;
+          if (site?.formatted_name) row.formatted_name = site.formatted_name as string;
+          if (site?.location_name) row.location_name = site.location_name as string;
+          if (site?.city) row.city = site.city as string;
+          if (site?.country) row.country = site.country as string;
+          if (site?.data_provider) row.data_provider = site.data_provider as string;
+          return row;
+        });
+      } else if (activeTab === 'devices') {
+        rows = selectedDeviceIds.map(id => {
+          const device = selectedDevicesCache[id];
+          const name = device
+            ? (device.name ?? device.device_name ?? id)
+            : id;
+          const row: PreviewData = {
+            id: device?.id ?? id,
+            device_name: name as string,
+            datetime: formattedDate,
+            frequency: frequencyLabel,
+            network:
+              formatNetwork(device?.network ?? device?.sensor_manufacturer ?? device?.manufacturer),
+            device_id: (device?.device_id ?? device?.id ?? id) as string,
+            latitude: (device?.latitude ?? device?.lat ?? null) as string | number | null,
+            longitude: (device?.longitude ?? device?.lng ?? device?.lon ?? null) as string | number | null,
+          };
+          if (device?.site_name) row.site_name = device.site_name as string;
+          if (device?.category) row.category = device.category as string;
+          return row;
+        });
+      } else if (activeTab === 'countries' || activeTab === 'cities') {
+        // For countries/cities, build preview from selected grid sites
+        const resolvedSiteIds = resolveGridSitesForDownload(
+          selectedGridIds,
+          selectedGridSites,
+          selectedGridSiteIds
+        );
+        const gridData =
+          activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+
+        // Build siteId → siteName and siteId → network lookups from grid data
+        const siteIdToName = new Map<string, string>();
+        const siteIdToNetwork = new Map<string, string | null>();
+        gridData.forEach(grid => {
+          const gridNetwork = formatNetwork(grid.network ?? grid.sensor_manufacturer);
+          const sites = grid.sites as
+            | Array<{ _id?: string; name?: string }>
+            | undefined;
+          sites?.forEach(site => {
+            if (site._id) {
+              siteIdToName.set(String(site._id), String(site.name ?? site._id));
+              siteIdToNetwork.set(String(site._id), gridNetwork);
+            }
+          });
+        });
+
+        rows = resolvedSiteIds.map(siteId => ({
+          id: siteId,
+          site_id: siteId,
+          site_name: siteIdToName.get(siteId) ?? siteId,
+          datetime: formattedDate,
+          frequency: frequencyLabel,
+          network: siteIdToNetwork.get(siteId) ?? null,
+          latitude: null,
+          longitude: null,
+        }));
+      }
+
+      setPreviewRows(rows);
+    } catch {
+      setPreviewError(
+        'Unable to build data preview. Please try again.'
+      );
+    } finally {
+      setIsPreviewLoading(false);
+      setPreviewOpen(true);
+    }
+  }, [
+    isPreviewLoading,
+    activeTab,
+    dateRange,
+    frequency,
+    selectedSiteIds,
+    selectedDeviceIds,
+    selectedSitesCache,
+    selectedDevicesCache,
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds,
+    processedCountriesData,
+    processedCitiesData,
+    setPreviewOpen,
+  ]);
+
+  // A preview is a snapshot of the current export configuration. Close and
+  // discard it as soon as a filter or selection changes so stale rows cannot
+  // be mistaken for the next export.
+  const previewFromTimestamp = dateRange?.from?.getTime();
+  const previewToTimestamp = dateRange?.to?.getTime();
+
+  useEffect(() => {
+    if (previewOpen) {
+      clearPreviewState();
+    }
+    // previewOpen is intentionally omitted: this effect reacts only to
+    // configuration changes, not to opening the preview itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeTab,
+    clearPreviewState,
+    dataType,
+    previewFromTimestamp,
+    previewToTimestamp,
+    deviceCategory,
+    frequency,
+    selectedDeviceIds,
+    selectedGridIds,
+    selectedGridSiteIds,
+    selectedGridSites,
+    selectedPollutants,
+    selectedSiteIds,
+  ]);
+
   // Actions and event handlers
-  const { handleDownload, handleVisualizeData, isDownloading } =
+  const { handleDownload, handleVisualizeData, isDownloading, cancelDownload } =
     useDataExportActions(
       dateRange,
       activeTab,
-      selectedSites,
-      selectedDevices,
+      selectedSiteNames,
+      selectedDeviceNamesForExport,
       selectedSiteIds,
       selectedDeviceIds,
       selectedGridIds,
@@ -416,6 +732,10 @@ const DataExportPage = () => {
       dataType !== 'raw'
     ) {
       setDataType('raw');
+      toast.info(
+        'Data Type Updated',
+        'Reference monitors only provide raw data. Data type has been set to Raw.'
+      );
     }
   }, [activeTab, deviceCategory, dataType, setDataType]);
 
@@ -429,32 +749,17 @@ const DataExportPage = () => {
       previousGroupId &&
       currentGroupId !== previousGroupId
     ) {
-      resetGroupScopedState(!siteSelectionDownloading);
-      setPendingDownload(null);
-      setSaveFormatDialogOpen(false);
-      setSavingFormat(null);
-      setSelectedSitesCache({});
-      setSelectedDevicesCache({});
-      setSelectedCountriesCache({});
-      setSelectedCitiesCache({});
-      setSelectedGridForSites(null);
-      setSiteSelectionDialogOpen(false);
-      setSiteSelectionDownloading(false);
+      cancelDownload();
+      resetGroupScopedState(true);
+      clearSelectionState();
     }
 
     previousGroupIdRef.current = currentGroupId;
   }, [
     activeGroup?.id,
+    cancelDownload,
+    clearSelectionState,
     resetGroupScopedState,
-    setPendingDownload,
-    setSaveFormatDialogOpen,
-    setSavingFormat,
-    setSelectedDevicesCache,
-    setSelectedGridForSites,
-    setSelectedSitesCache,
-    setSiteSelectionDialogOpen,
-    setSiteSelectionDownloading,
-    siteSelectionDownloading,
   ]);
 
   // Handle sidebar visibility based on screen size
@@ -470,6 +775,16 @@ const DataExportPage = () => {
   }, [setSidebarOpen]);
 
   // Check if download is ready
+  const selectedGridSiteCount = useMemo(
+    () =>
+      resolveGridSitesForDownload(
+        selectedGridIds,
+        selectedGridSites,
+        selectedGridSiteIds
+      ).length,
+    [selectedGridIds, selectedGridSites, selectedGridSiteIds]
+  );
+
   const isDownloadReady = useMemo(() => {
     const hasDateRange = dateRange?.from && dateRange?.to;
     const hasSelections =
@@ -477,8 +792,7 @@ const DataExportPage = () => {
         ? selectedSiteIds.length > 0
         : activeTab === 'devices'
           ? selectedDeviceIds.length > 0
-          : Object.keys(selectedGridSiteIds).length > 0 ||
-            Object.keys(selectedGridSites).length > 0; // countries and cities use custom or default site selections
+          : selectedGridSiteCount > 0;
     const hasPollutants = selectedPollutants.length > 0;
 
     return Boolean(hasDateRange && hasSelections && hasPollutants);
@@ -487,8 +801,7 @@ const DataExportPage = () => {
     activeTab,
     selectedSiteIds,
     selectedDeviceIds,
-    selectedGridSiteIds,
-    selectedGridSites,
+    selectedGridSiteCount,
     selectedPollutants,
   ]);
 
@@ -497,8 +810,14 @@ const DataExportPage = () => {
     const stringIds = selectedIds.map(id => String(id));
     if (activeTab === 'sites') {
       setSelectedSiteIds(stringIds);
-      // For sites, IDs are the same as names for the API
-      setSelectedSites(stringIds);
+      // For sites, get human-readable names from processedSitesData
+      const siteNames = stringIds.map(id => {
+        const site = processedSitesData.find(item => String(item.id) === id);
+        return site
+          ? String(site.name || site.search_name || site.location_name || id)
+          : id;
+      });
+      setSelectedSites(siteNames);
       setSelectedSitesCache(prevCache =>
         rebuildSelectionCache(stringIds, processedSitesData, prevCache)
       );
@@ -510,7 +829,9 @@ const DataExportPage = () => {
     } else if (activeTab === 'countries' || activeTab === 'cities') {
       // For countries/cities, select all sites by default
       setSelectedGridIds(stringIds);
-      const newSelectedGridSites: Record<string, string[]> = {};
+      const newSelectedGridSites: Record<string, string[]> = {
+        ...selectedGridSites,
+      };
       if (stringIds.length > 0) {
         const gridData =
           activeTab === 'countries'
@@ -522,13 +843,26 @@ const DataExportPage = () => {
             const sites = grid.sites as Array<{ _id: string }>;
             const siteIds = sites.map(site => site._id);
             newSelectedGridSites[id] = siteIds;
-          } else {
+          } else if (
+            !Object.prototype.hasOwnProperty.call(newSelectedGridSites, id)
+          ) {
             newSelectedGridSites[id] = [];
           }
         });
       }
+      Object.keys(newSelectedGridSites).forEach(gridId => {
+        if (!stringIds.includes(gridId)) {
+          delete newSelectedGridSites[gridId];
+        }
+      });
       setSelectedGridSites(newSelectedGridSites);
-      setSelectedGridSiteIds({}); // Reset custom selection
+      const selectedGridIdSet = new Set(stringIds);
+      const retainedCustomSelections = Object.fromEntries(
+        Object.entries(selectedGridSiteIds).filter(([gridId]) =>
+          selectedGridIdSet.has(gridId)
+        )
+      );
+      setSelectedGridSiteIds(retainedCustomSelections);
 
       if (activeTab === 'countries') {
         setSelectedCountriesCache(prevCache =>
@@ -592,11 +926,15 @@ const DataExportPage = () => {
 
   // Handle site selection dialog
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
+    if (!selectedGridForSites) {
+      return;
+    }
+
     setSiteSelectionDownloading(true);
     try {
       const nextSelectedGridSiteIds = {
         ...selectedGridSiteIds,
-        [selectedGridForSites!.grid._id]: selectedSiteIds,
+        [selectedGridForSites.grid._id]: selectedSiteIds,
       };
       setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
@@ -605,11 +943,12 @@ const DataExportPage = () => {
         customSelectedGridSiteIds: nextSelectedGridSiteIds,
       });
 
-      // Close dialog only on successful download preparation
+      // Store prepared download and open format dialog directly
       if (preparedDownload) {
         setSiteSelectionDialogOpen(false);
         setSelectedGridForSites(null);
-        openSaveFormatDialog(preparedDownload);
+        setPendingDownload(preparedDownload);
+        setSaveFormatDialogOpen(true);
       }
     } catch (error) {
       // Error is already handled in handleDownload
@@ -645,17 +984,6 @@ const DataExportPage = () => {
       }
     }
   }, [currentHook, isGroupSyncing, isRefreshing]);
-
-  const openSaveFormatDialog = (download: PreparedDownloadResult) => {
-    if (fileType === 'json') {
-      void savePreparedDownload(download, 'json');
-      return;
-    }
-
-    setPendingDownload(download);
-    setSavingFormat(null);
-    setSaveFormatDialogOpen(true);
-  };
 
   const savePreparedDownload = async (
     download: PreparedDownloadResult,
@@ -751,13 +1079,11 @@ const DataExportPage = () => {
               ? 'Your CSV file has been saved.'
               : 'Your JSON file has been saved.';
 
-      toast.success(`Saved as ${savedLabel}`, savedMessage);
+      setDownloadSuccess({ format: savedLabel, message: savedMessage });
       setSaveFormatDialogOpen(false);
-      setPendingDownload(null);
 
       return true;
     } catch (error) {
-      console.error('Failed to save export:', error);
       const errorMessage = error instanceof Error ? error.message : '';
 
       if (format === 'pdf' && /export too large for pdf/i.test(errorMessage)) {
@@ -765,13 +1091,8 @@ const DataExportPage = () => {
       } else {
         toast.error(
           'Save Failed',
-          errorMessage || 'We could not save the file. Please try again.'
+          `${errorMessage || 'We could not save the file.'} Click a format button to retry.`
         );
-      }
-
-      if (format === 'json') {
-        setSaveFormatDialogOpen(false);
-        setPendingDownload(null);
       }
 
       return false;
@@ -779,19 +1100,30 @@ const DataExportPage = () => {
   };
 
   const handleSaveFormatSelection = async (format: SaveFormat) => {
-    if (!pendingDownload) {
-      return;
-    }
-
     setSavingFormat(format);
 
     try {
-      await savePreparedDownload(pendingDownload, format);
-    } catch (error) {
-      console.error('Failed to save export:', error);
+      // Use pendingDownload if already prepared (from grid site selection),
+      // otherwise make the API call now that user has chosen a format
+      const preparedDownload = pendingDownload ?? (await handleDownload({
+        exportColumnKeys: pendingColumnKeys ?? undefined,
+      }));
+
+      if (!preparedDownload) {
+        setSavingFormat(null);
+        return;
+      }
+
+      const saved = await savePreparedDownload(preparedDownload, format);
+
+      if (saved) {
+        setPendingDownload(null);
+        setPendingColumnKeys(null);
+      }
+    } catch {
       toast.error(
-        'Save Failed',
-        'We could not save the file. Please try again.'
+        'Download Failed',
+        'We could not complete your download. Please try again.'
       );
     } finally {
       setSavingFormat(null);
@@ -804,6 +1136,31 @@ const DataExportPage = () => {
       localStorage.setItem('hideDataExportHelpBanner', 'true');
     }
   };
+
+  const handleToggleHelpBanner = () => {
+    setShowHelpBanner(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hideDataExportHelpBanner', String(!next));
+      }
+      return next;
+    });
+  };
+
+  // Compute the total selection count for the current tab
+  const selectionCount = useMemo(() => {
+    if (activeTab === 'sites') return selectedSiteIds.length;
+    if (activeTab === 'devices') return selectedDeviceIds.length;
+    // countries/cities: count selected grid IDs
+    return selectedGridIds.length;
+  }, [activeTab, selectedSiteIds, selectedDeviceIds, selectedGridIds]);
+
+  // Export location count — on grid tabs a "location" is a monitoring site
+  const exportLocationCount = useMemo(() => {
+    if (activeTab === 'sites') return selectedSiteIds.length;
+    if (activeTab === 'devices') return selectedDeviceIds.length;
+    return selectedGridSiteCount;
+  }, [activeTab, selectedSiteIds, selectedDeviceIds, selectedGridSiteCount]);
 
   if (isOrgUnresolved) {
     return (
@@ -867,6 +1224,7 @@ const DataExportPage = () => {
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
               selectedGridIds={selectedGridIds}
+              selectedGridSiteCount={selectedGridSiteCount}
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
@@ -896,6 +1254,7 @@ const DataExportPage = () => {
                       ? (processedCountriesData as unknown as Grid[])
                       : (processedCitiesData as unknown as Grid[])
                   }
+                  selectedGridSites={selectedGridSites}
                   selectedGridSiteIds={selectedGridSiteIds}
                   onCustomizeSites={(grid: Grid) => {
                     setSelectedGridForSites({ grid, gridType: activeTab });
@@ -912,18 +1271,33 @@ const DataExportPage = () => {
               selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
+              isPreviewLoading={isPreviewLoading}
               isGroupSyncing={isGroupSyncing}
               canDownload={canDownload}
               onRefresh={handleRefreshCurrentTab}
               isRefreshing={isRefreshing}
               onTabChange={wrappedHandleTabChange}
-              onClearSelections={handleClearSelections}
+              onClearSelections={clearSelectionState}
               onVisualizeData={handleVisualizeData}
-              onDownload={() => setPreviewOpen(true)}
+              onDownload={handleOpenPreview}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
               isOrgFlow={isOrgFlow}
+              showHelpBanner={showHelpBanner}
+              onToggleHelpBanner={handleToggleHelpBanner}
+              selectionCount={selectionCount}
             />
+
+            {/* Download Success Banner */}
+            {downloadSuccess && (
+              <SuccessBanner
+                dense
+                dismissible
+                onDismiss={() => setDownloadSuccess(null)}
+                title={`Saved as ${downloadSuccess.format}`}
+                message={downloadSuccess.message}
+              />
+            )}
 
             <DataExportTable
               activeTab={activeTab}
@@ -960,21 +1334,16 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={async (selectedColumnKeys: string[]) => {
-          try {
-            const preparedDownload = await handleDownload({
-              exportColumnKeys: selectedColumnKeys,
-            });
-
-            if (preparedDownload) {
-              setPreviewOpen(false);
-              openSaveFormatDialog(preparedDownload);
-            }
-          } catch (error) {
-            console.error('Unexpected download confirmation error:', error);
-          }
+        onConfirm={(selectedColumnKeys: string[]) => {
+          setPendingColumnKeys(selectedColumnKeys);
+          setPreviewOpen(false);
+          setSaveFormatDialogOpen(true);
         }}
+        onRetryPreview={handleOpenPreview}
         isDownloading={isDownloading}
+        previewRows={previewRows}
+        isFetchingPreview={isPreviewLoading}
+        previewError={previewError}
         dataType={dataType}
         frequency={frequency}
         fileType={fileType}
@@ -982,7 +1351,7 @@ const DataExportPage = () => {
         dateRange={dateRange}
         activeTab={activeTab}
         selectedSites={selectedSites}
-        selectedDevices={selectedDevices}
+        selectedDevices={selectedDeviceNamesForExport}
         selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
@@ -1032,11 +1401,42 @@ const DataExportPage = () => {
           if (!savingFormat) {
             setSaveFormatDialogOpen(false);
             setPendingDownload(null);
+            setPendingColumnKeys(null);
           }
         }}
         onSave={handleSaveFormatSelection}
-        locationCount={pendingDownload?.locationCount || 0}
+        locationCount={exportLocationCount}
       />
+
+      {/* Tab Change Confirmation Dialog */}
+      <Dialog
+        isOpen={tabChangeConfirm.isOpen}
+        onClose={() =>
+          setTabChangeConfirm(prev => ({ ...prev, isOpen: false }))
+        }
+        title="Switch Tab?"
+        subtitle="Your current selections will be cleared"
+        icon={AqAlertTriangle}
+        iconColor="text-amber-600"
+        iconBgColor="bg-amber-100"
+        primaryAction={{
+          label: 'Switch Tab',
+          onClick: confirmTabChange,
+          className: 'bg-amber-600 hover:bg-amber-700 text-white',
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () =>
+            setTabChangeConfirm(prev => ({ ...prev, isOpen: false })),
+        }}
+        size="md"
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          You have {tabChangeConfirm.selectionCount} item
+          {tabChangeConfirm.selectionCount !== 1 ? 's' : ''} selected. Switching
+          tabs will clear all current selections. Do you want to continue?
+        </p>
+      </Dialog>
     </div>
   );
 };
