@@ -39,7 +39,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const isTokenExpired = (exp?: number): boolean => {
   if (!exp) return false;
-  return Date.now() / 1000 > exp;
+  // Add a 5-minute (300 seconds) grace period for clock drift
+  return Date.now() / 1000 > (exp + 300);
 };
 
 const configuredCookieDomain =
