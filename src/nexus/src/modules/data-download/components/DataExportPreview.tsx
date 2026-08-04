@@ -50,6 +50,7 @@ interface DataExportPreviewProps {
   activeTab: 'sites' | 'devices' | 'countries' | 'cities';
   selectedSites: string[];
   selectedDevices: string[];
+  selectedGridIds: string[];
   selectedGridSites: Record<string, string[]>;
   selectedGridSiteIds: Record<string, string[]>;
 }
@@ -71,6 +72,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   activeTab,
   selectedSites,
   selectedDevices,
+  selectedGridIds,
   selectedGridSites,
   selectedGridSiteIds,
 }) => {
@@ -138,19 +140,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       case 'devices':
         return selectedDevices;
       case 'countries':
-      case 'cities': {
-        const gridIds = Array.from(
-          new Set([
-            ...Object.keys(selectedGridSites),
-            ...Object.keys(selectedGridSiteIds),
-          ])
-        );
+      case 'cities':
         return resolveGridSitesForDownload(
-          gridIds,
+          selectedGridIds,
           selectedGridSites,
           selectedGridSiteIds
         );
-      }
       default:
         return [];
     }
@@ -158,6 +153,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     activeTab,
     selectedSites,
     selectedDevices,
+    selectedGridIds,
     selectedGridSites,
     selectedGridSiteIds,
   ]);

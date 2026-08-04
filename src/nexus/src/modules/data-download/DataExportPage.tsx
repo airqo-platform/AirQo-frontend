@@ -556,14 +556,8 @@ const DataExportPage = () => {
         });
       } else if (activeTab === 'countries' || activeTab === 'cities') {
         // For countries/cities, build preview from selected grid sites
-        const gridIds = Array.from(
-          new Set([
-            ...Object.keys(selectedGridSites),
-            ...Object.keys(selectedGridSiteIds),
-          ])
-        );
         const resolvedSiteIds = resolveGridSitesForDownload(
-          gridIds,
+          selectedGridIds,
           selectedGridSites,
           selectedGridSiteIds
         );
@@ -616,6 +610,7 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedSitesCache,
     selectedDevicesCache,
+    selectedGridIds,
     selectedGridSites,
     selectedGridSiteIds,
     processedCountriesData,
@@ -1100,8 +1095,6 @@ const DataExportPage = () => {
         );
       }
 
-      setSaveFormatDialogOpen(false);
-
       return false;
     }
   };
@@ -1121,7 +1114,12 @@ const DataExportPage = () => {
         return;
       }
 
-      await savePreparedDownload(preparedDownload, format);
+      const saved = await savePreparedDownload(preparedDownload, format);
+
+      if (saved) {
+        setPendingDownload(null);
+        setPendingColumnKeys(null);
+      }
     } catch {
       toast.error(
         'Download Failed',
@@ -1129,8 +1127,6 @@ const DataExportPage = () => {
       );
     } finally {
       setSavingFormat(null);
-      setPendingDownload(null);
-      setPendingColumnKeys(null);
     }
   };
 
@@ -1158,6 +1154,13 @@ const DataExportPage = () => {
     // countries/cities: count selected grid IDs
     return selectedGridIds.length;
   }, [activeTab, selectedSiteIds, selectedDeviceIds, selectedGridIds]);
+
+  // Export location count — on grid tabs a "location" is a monitoring site
+  const exportLocationCount = useMemo(() => {
+    if (activeTab === 'sites') return selectedSiteIds.length;
+    if (activeTab === 'devices') return selectedDeviceIds.length;
+    return selectedGridSiteCount;
+  }, [activeTab, selectedSiteIds, selectedDeviceIds, selectedGridSiteCount]);
 
   if (isOrgUnresolved) {
     return (
@@ -1349,6 +1352,7 @@ const DataExportPage = () => {
         activeTab={activeTab}
         selectedSites={selectedSites}
         selectedDevices={selectedDeviceNamesForExport}
+        selectedGridIds={selectedGridIds}
         selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
       />
@@ -1401,7 +1405,7 @@ const DataExportPage = () => {
           }
         }}
         onSave={handleSaveFormatSelection}
-        locationCount={selectionCount}
+        locationCount={exportLocationCount}
       />
 
       {/* Tab Change Confirmation Dialog */}

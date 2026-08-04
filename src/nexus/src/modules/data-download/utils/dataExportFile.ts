@@ -248,11 +248,12 @@ export const parseDownloadResponseRecords = (
           ? (parsed as { data?: unknown }).data
           : [];
 
-      if (Array.isArray(records)) {
-        return records.map(item =>
-          normalizeDownloadRecord(isPlainObject(item) ? item : {})
-        );
-      }
+      // Valid JSON — return even if records is not an array (empty list).
+      return Array.isArray(records)
+        ? records.map(item =>
+            normalizeDownloadRecord(isPlainObject(item) ? item : {})
+          )
+        : [];
     } catch {
       // Fall through to CSV parsing for malformed/non-JSON text responses.
     }

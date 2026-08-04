@@ -32,43 +32,42 @@ const normalizeKey = (value: string): string =>
     .toLowerCase()
     .replace(/[\s-]+/g, '_');
 
-const getRecordValue = (record: DownloadRecord, aliases: string[]): string => {
-  const normalizedRecord = Object.entries(record).reduce(
-    (values, [key, value]) => {
-      values[normalizeKey(key)] = value;
-      return values;
-    },
-    {} as Record<string, unknown>
-  );
+const normalizeRecordKeys = (record: DownloadRecord): Record<string, unknown> =>
+  Object.entries(record).reduce((values, [key, value]) => {
+    values[normalizeKey(key)] = value;
+    return values;
+  }, {} as Record<string, unknown>);
 
+const pickNormalizedValue = (
+  normalizedRecord: Record<string, unknown>,
+  aliases: string[]
+): string => {
   for (const alias of aliases) {
     const value = normalizeValue(normalizedRecord[normalizeKey(alias)]);
     if (value) return value;
   }
-
   return '';
 };
 
-const getRecordValues = (
-  record: DownloadRecord,
+const pickNormalizedValues = (
+  normalizedRecord: Record<string, unknown>,
   aliases: string[]
-): string[] => {
-  const normalizedRecord = Object.entries(record).reduce(
-    (values, [key, value]) => {
-      values[normalizeKey(key)] = value;
-      return values;
-    },
-    {} as Record<string, unknown>
-  );
-
-  return Array.from(
+): string[] =>
+  Array.from(
     new Set(
       aliases
         .map(alias => normalizeValue(normalizedRecord[normalizeKey(alias)]))
         .filter(Boolean)
     )
   );
-};
+
+const getRecordValue = (record: DownloadRecord, aliases: string[]): string =>
+  pickNormalizedValue(normalizeRecordKeys(record), aliases);
+
+const getRecordValues = (
+  record: DownloadRecord,
+  aliases: string[]
+): string[] => pickNormalizedValues(normalizeRecordKeys(record), aliases);
 
 const getIdentifierAliases = (activeTab: TabType) => {
   if (activeTab === 'devices') {
@@ -133,12 +132,6 @@ export const getMeasurementRecords = (
   );
 };
 
-const getSelectedLabels = (selectedIds: string[], selectedLabels: string[]) =>
-  selectedIds.map((id, index) => {
-    const label = selectedLabels[index]?.trim();
-    return label || id;
-  });
-
 const countValues = (values: string[]) => {
   const counts = new Map<string, number>();
   values.forEach(value => counts.set(value, (counts.get(value) || 0) + 1));
@@ -162,13 +155,24 @@ export const getDataAvailability = (
   selectedLabels: string[],
   selectedPollutants?: string[]
 ): PartialDataWarning | undefined => {
-  const normalizedSelectedIds = Array.from(
-    new Set(selectedIds.map(normalizeValue).filter(Boolean))
-  );
-  if (normalizedSelectedIds.length === 0) return undefined;
+  // Pair IDs with labels before deduplication to preserve alignment
+  const seenIds = new Set<string>();
+  const selectedPairs = selectedIds
+    .map((id, index) => ({
+      id: normalizeValue(id),
+      label: selectedLabels[index]?.trim() || '',
+    }))
+    .filter(pair => {
+      if (!pair.id || seenIds.has(pair.id)) return false;
+      seenIds.add(pair.id);
+      return true;
+    });
+  if (selectedPairs.length === 0) return undefined;
+
+  const normalizedSelectedIds = selectedPairs.map(pair => pair.id);
 
   const records = getMeasurementRecords(response, selectedPollutants);
-  const labels = getSelectedLabels(normalizedSelectedIds, selectedLabels);
+  const labels = selectedPairs.map(pair => pair.label || pair.id);
 
   if (records.length === 0) {
     return {

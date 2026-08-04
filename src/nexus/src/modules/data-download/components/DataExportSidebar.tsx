@@ -118,7 +118,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     }
   }, [deviceCategory]);
   const showDownloadLimitNotice = useMemo(() => {
-    if (!dateRange?.from || !dateRange?.to) return true;
+    if (!dateRange?.from || !dateRange?.to) return false;
 
     return (
       Math.abs(dateRange.to.getTime() - dateRange.from.getTime()) /
@@ -301,7 +301,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
       {/* Mobile/Tablet Sidebar - Below lg breakpoint */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-[60] w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out overflow-visible ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-[60] w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out motion-reduce:transition-none overflow-visible ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${sidebarOpen ? 'flex' : 'hidden'}`}
       >
