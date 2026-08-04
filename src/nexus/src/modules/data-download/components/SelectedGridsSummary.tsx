@@ -1,11 +1,13 @@
 import React from 'react';
 import { Button } from '@/shared/components/ui';
+import { AqLightbulb01 } from '@airqo/icons-react';
 import { Grid } from '@/shared/types/api';
 
 interface SelectedGridsSummaryProps {
   activeTab: 'countries' | 'cities';
   selectedGridIds: string[];
   processedGridsData: Grid[];
+  selectedGridSites: Record<string, string[]>;
   selectedGridSiteIds: Record<string, string[]>;
   onCustomizeSites: (grid: Grid) => void;
 }
@@ -14,6 +16,7 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
   activeTab,
   selectedGridIds,
   processedGridsData,
+  selectedGridSites,
   selectedGridSiteIds,
   onCustomizeSites,
 }) => {
@@ -31,8 +34,13 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
       <div className="space-y-3">
         {selectedGrids.map(grid => {
           const totalSites = grid.sites?.length || 0;
-          const customSites = selectedGridSiteIds[grid._id] || [];
-          const selectedSites = customSites.length;
+          const hasCustomSelection = Object.prototype.hasOwnProperty.call(
+            selectedGridSiteIds,
+            grid._id
+          );
+          const selectedSites = hasCustomSelection
+            ? selectedGridSiteIds[grid._id]?.length || 0
+            : selectedGridSites[grid._id]?.length || 0;
 
           return (
             <div
@@ -46,7 +54,7 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {selectedSites > 0
                     ? `${selectedSites} of ${totalSites} sites selected`
-                    : `No sites selected`}
+                    : 'No monitoring sites selected'}
                 </div>
               </div>
               <Button
@@ -55,16 +63,19 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
                 onClick={() => onCustomizeSites(grid)}
                 className="ml-3"
               >
-                {selectedSites > 0 ? 'Modify Sites' : 'Choose Sites'}
+                {hasCustomSelection ? 'Modify Sites' : 'Customize Sites'}
               </Button>
             </div>
           );
         })}
       </div>
-      <div className="mt-3 text-xs text-blue-700 dark:text-blue-300">
-        💡 Tip: Click &quot;Choose Sites&quot; to select specific monitoring
-        locations, or use the main download button to download all sites in your
-        selection.
+      <div className="mt-3 text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
+        <AqLightbulb01 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+        <span>
+          Tip: Click &quot;Choose Sites&quot; to select specific monitoring
+          locations, or use the main download button to download all sites in
+          your selection.
+        </span>
       </div>
     </div>
   );

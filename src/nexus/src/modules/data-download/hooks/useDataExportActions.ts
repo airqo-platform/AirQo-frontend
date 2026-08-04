@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
@@ -15,8 +15,14 @@ import {
   createSitesFromDevicesForVisualization,
   createSitesFromGridsForVisualization,
 } from '../utils/dataExportUtils';
-import { buildDataDownloadRequest } from '../utils/dataExportRequest';
-import { parseDownloadCsvRows } from '../utils/dataExportFile';
+import {
+  buildDataDownloadRequest,
+  resolveGridSitesForDownload,
+} from '../utils/dataExportRequest';
+import { parseDownloadResponseRecords } from '../utils/dataExportFile';
+import {
+  getMeasurementRecords,
+} from '../utils/dataAvailability';
 import type {
   DataDownloadRequest,
   DataDownloadResponse,
@@ -465,9 +471,6 @@ interface GridLocationLookupEntry {
   locationName: string;
 }
 
-const isPlainRecord = (value: unknown): value is DownloadRecord =>
-  !!value && typeof value === 'object' && !Array.isArray(value);
-
 const getNormalizedString = (...values: unknown[]) =>
   getStringValue(...values) || '';
 
@@ -559,23 +562,7 @@ const normalizeCountryCityDownloadResponse = (
     selectedGridSiteIds
   );
 
-  const records: DownloadRecord[] =
-    typeof response === 'string'
-      ? (() => {
-          const rows = parseDownloadCsvRows(response);
-          const [headers = [], ...dataRows] = rows;
-
-          return dataRows.map(row => {
-            const record: DownloadRecord = {};
-
-            headers.forEach((header, index) => {
-              record[header] = row[index] ?? '';
-            });
-
-            return record;
-          });
-        })()
-      : response.data.map(item => (isPlainRecord(item) ? { ...item } : {}));
+  const records: DownloadRecord[] = parseDownloadResponseRecords(response);
 
   const enhancedRecords = records.map(record => {
     const recordSiteId = getNormalizedString(
@@ -675,16 +662,77 @@ const shouldUseMetadataFallback = (error: unknown): boolean => {
     return false;
   }
 
-  return !status || status === 404 || status >= 500;
+  return (
+    status === 404 || (status !== undefined && status >= 500 && status < 600)
+  );
 };
 
-const hasDownloadRecords = (response: DataDownloadResponse | string) => {
-  if (typeof response === 'string') {
-    const [, ...dataRows] = parseDownloadCsvRows(response);
-    return dataRows.some(row => row.some(value => value.trim() !== ''));
-  }
+const hasDownloadRecords = (
+  response: DataDownloadResponse | string,
+  selectedPollutants: string[]
+) => {
+  return getMeasurementRecords(response, selectedPollutants).length > 0;
+};
 
-  return Array.isArray(response.data) && response.data.length > 0;
+export { getGridSiteNames };
+
+const getGridSiteNames = (
+  activeTab: TabType,
+  selectedGridIds: string[],
+  selectedGridSiteIds: Record<string, string[]>,
+  selectedGridSites: Record<string, string[]>,
+  gridData: TableItem[]
+): string[] => {
+  if (activeTab !== 'countries' && activeTab !== 'cities') return [];
+
+  const siteNames: string[] = [];
+  const siteIdToName = new Map<string, string>();
+
+  // Build lookup from grid data — handles both populated and empty sites arrays
+  gridData.forEach(grid => {
+    const sites = grid.sites as
+      | Array<{
+          _id: string;
+          name: string;
+          search_name?: string;
+          formatted_name?: string;
+          location_name?: string;
+        }>
+      | undefined;
+    if (sites && sites.length > 0) {
+      sites.forEach(site => {
+        if (site._id) {
+          const name =
+            site.name ||
+            site.search_name ||
+            site.formatted_name ||
+            site.location_name ||
+            site._id;
+          siteIdToName.set(site._id, name);
+        }
+      });
+    }
+  });
+
+  // Get all selected site IDs and map to names
+  selectedGridIds.forEach(gridId => {
+    const hasCustomSelection = Object.prototype.hasOwnProperty.call(
+      selectedGridSiteIds,
+      gridId
+    );
+    const sites = hasCustomSelection
+      ? selectedGridSiteIds[gridId] || []
+      : selectedGridSites[gridId] || [];
+    sites.forEach(siteId => {
+      const name = siteIdToName.get(siteId);
+      if (name) {
+        siteNames.push(name);
+      }
+      // If no name found, don't add the raw ID — we'll handle this in the warning
+    });
+  });
+
+  return siteNames;
 };
 
 const getCalendarDayDifference = (from: Date, to: Date) => {
@@ -786,6 +834,7 @@ export const useDataExportActions = (
   const posthog = usePostHog();
   const { trigger: fetchDownloadData, isMutating: isDownloading } =
     useDownloadData();
+  const downloadAbortRef = useRef<AbortController | null>(null);
 
   interface HandleDownloadOptions {
     customSelectedGridSiteIds?: Record<string, string[]>;
@@ -831,16 +880,24 @@ export const useDataExportActions = (
       }
 
       const effectiveSelectedGridSiteIds =
-        customSelectedGridSiteIds || selectedGridSiteIds;
+        customSelectedGridSiteIds ?? selectedGridSiteIds;
+
+      const sitesForDownload =
+        activeTab === 'countries' || activeTab === 'cities'
+          ? resolveGridSitesForDownload(
+              selectedGridIds,
+              selectedGridSites,
+              effectiveSelectedGridSiteIds
+            )
+          : [];
 
       if (
         (activeTab === 'countries' || activeTab === 'cities') &&
-        Object.keys(effectiveSelectedGridSiteIds).length === 0 &&
-        Object.keys(selectedGridSites).length === 0
+        sitesForDownload.length === 0
       ) {
         toast.error(
           `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
-          `Please select a ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
+          `Please select at least one monitoring site under the selected ${activeTab === 'countries' ? 'country' : 'city'}.`
         );
         return null;
       }
@@ -877,6 +934,7 @@ export const useDataExportActions = (
         dateRange,
         activeTab,
         selectedSites,
+        selectedSiteIds,
         selectedDeviceIds,
         selectedDeviceNames: selectedDevices,
         selectedGridIds,
@@ -889,6 +947,12 @@ export const useDataExportActions = (
         frequency,
         deviceCategory,
       });
+
+      if (downloadAbortRef.current) {
+        downloadAbortRef.current.abort();
+      }
+      const abortController = new AbortController();
+      downloadAbortRef.current = abortController;
 
       trackFeatureUsage(posthog, 'data_export', 'download_started', {
         active_tab: activeTab,
@@ -919,23 +983,6 @@ export const useDataExportActions = (
         duration_days: durationDays,
         time_period_type: timePeriodType,
       });
-
-      // Extract sites for countries/cities
-      const sitesForDownload: string[] = [];
-      if (activeTab === 'countries' || activeTab === 'cities') {
-        const effectiveSelectedGridSiteIds =
-          customSelectedGridSiteIds || selectedGridSiteIds;
-        // For each selected grid, use custom selection if available, otherwise use default selection
-        selectedGridIds.forEach(gridId => {
-          const customSites = effectiveSelectedGridSiteIds[gridId];
-          const defaultSites = selectedGridSites[gridId];
-          const sites =
-            customSites && customSites.length > 0
-              ? customSites
-              : defaultSites || [];
-          sitesForDownload.push(...sites);
-        });
-      }
 
       const downloadColumnKeys = getDownloadColumnKeysForRequest(
         activeTab,
@@ -1003,6 +1050,9 @@ export const useDataExportActions = (
 
       try {
         const rawResponse = await fetchDownloadData(request);
+
+        if (abortController.signal.aborted) return null;
+
         const normalizedResponse =
           activeTab === 'countries' || activeTab === 'cities'
             ? normalizeCountryCityDownloadResponse(
@@ -1015,7 +1065,11 @@ export const useDataExportActions = (
               )
             : rawResponse;
 
-        if (!hasDownloadRecords(normalizedResponse)) {
+        if (!hasDownloadRecords(normalizedResponse, selectedPollutants)) {
+          toast.warning(
+            'No measurement data found',
+            'No readings are available for the selected time period and filters. Only location metadata has been included in this export.'
+          );
           return prepareMetadataFallback();
         }
 
@@ -1025,6 +1079,11 @@ export const useDataExportActions = (
             : activeTab === 'devices'
               ? selectedDeviceIds.length
               : sitesForDownload.length;
+
+        toast.success(
+          'Download ready',
+          `Your export for ${effectiveLocationCount} location${effectiveLocationCount !== 1 ? 's' : ''} is ready.`
+        );
 
         return {
           request,
@@ -1046,7 +1105,13 @@ export const useDataExportActions = (
           ),
         };
       } catch (error) {
+        if (abortController.signal.aborted) return null;
+
         if (shouldUseMetadataFallback(error)) {
+          toast.warning(
+            'No measurement data found',
+            'No readings are available for the selected time period and filters. Only location metadata has been included in this export.'
+          );
           return prepareMetadataFallback();
         }
 
@@ -1155,9 +1220,22 @@ export const useDataExportActions = (
     posthog,
   ]);
 
+  const cancelDownload = useCallback(() => {
+    downloadAbortRef.current?.abort();
+    downloadAbortRef.current = null;
+  }, []);
+
+  // Cleanup abort controller on unmount
+  React.useEffect(() => {
+    return () => {
+      cancelDownload();
+    };
+  }, [cancelDownload]);
+
   return {
     handleDownload,
     handleVisualizeData,
     isDownloading,
+    cancelDownload,
   };
 };
