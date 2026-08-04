@@ -7,6 +7,7 @@ import React, {
 import { usePostHog } from 'posthog-js/react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
+import { SuccessBanner } from '@/shared/components/ui/banner';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
 import { DownloadFormatDialog } from './components/DownloadFormatDialog';
@@ -219,6 +220,10 @@ const DataExportPage = () => {
   const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
     null
   );
+  const [downloadSuccess, setDownloadSuccess] = React.useState<{
+    format: string;
+    message: string;
+  } | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const refreshInFlightRef = React.useRef(false);
   const isMountedRef = React.useRef(true);
@@ -242,6 +247,13 @@ const DataExportPage = () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  // Auto-dismiss success banner after 10 seconds
+  useEffect(() => {
+    if (!downloadSuccess) return;
+    const timer = setTimeout(() => setDownloadSuccess(null), 10000);
+    return () => clearTimeout(timer);
+  }, [downloadSuccess]);
 
   useEffect(() => {
     if (!isOrgFlow) {
@@ -296,6 +308,7 @@ const DataExportPage = () => {
     setPendingDownload(null);
     setSaveFormatDialogOpen(false);
     setSavingFormat(null);
+    setDownloadSuccess(null);
     clearPreviewState();
   }, [clearPreviewState, handleClearSelections]);
 
@@ -1071,7 +1084,7 @@ const DataExportPage = () => {
               ? 'Your CSV file has been saved.'
               : 'Your JSON file has been saved.';
 
-      toast.success(`Saved as ${savedLabel}`, savedMessage);
+      setDownloadSuccess({ format: savedLabel, message: savedMessage });
       setSaveFormatDialogOpen(false);
 
       return true;
@@ -1271,6 +1284,17 @@ const DataExportPage = () => {
               onToggleHelpBanner={handleToggleHelpBanner}
               selectionCount={selectionCount}
             />
+
+            {/* Download Success Banner */}
+            {downloadSuccess && (
+              <SuccessBanner
+                dense
+                dismissible
+                onDismiss={() => setDownloadSuccess(null)}
+                title={`Saved as ${downloadSuccess.format}`}
+                message={downloadSuccess.message}
+              />
+            )}
 
             <DataExportTable
               activeTab={activeTab}
