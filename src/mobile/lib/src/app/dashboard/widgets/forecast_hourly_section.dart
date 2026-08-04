@@ -142,6 +142,7 @@ class _HourlyList extends StatelessWidget {
       hourlyResponse,
       selectedDate,
       skipCurrentHour: skipCurrentHour,
+      now: now,
     );
 
     if (dayEntries.isEmpty) {

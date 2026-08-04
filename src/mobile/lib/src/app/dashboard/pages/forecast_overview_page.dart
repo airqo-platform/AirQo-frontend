@@ -358,10 +358,12 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     final idx = _selectedDayIndex.clamp(0, forecasts.length - 1).toInt();
     final day = forecasts[idx];
     final selectedDateLabel = DateFormat('EEEE, MMMM d').format(day.time);
+    final now = DateTime.now();
     final hourEntries = hourlyEntriesForDate(
       state.hourlyResponse,
       day.time,
       skipCurrentHour: true,
+      now: now,
     );
     _syncHourIndex(hourEntries, day.time);
 

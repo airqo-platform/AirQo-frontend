@@ -77,6 +77,7 @@ List<HourlyForecastEntry> hourlyEntriesForDate(
   HourlyForecastResponse? response,
   DateTime date, {
   bool skipCurrentHour = false,
+  DateTime? now,
 }) {
   if (response == null) return [];
   final dateStr = _fmtDate(date.toLocal());
@@ -86,10 +87,15 @@ List<HourlyForecastEntry> hourlyEntriesForDate(
 
   if (!skipCurrentHour) return entries;
 
-  final now = DateTime.now();
-  if (dateStr != _fmtDate(now)) return entries;
+  final currentTime = now ?? DateTime.now();
+  if (dateStr != _fmtDate(currentTime)) return entries;
 
-  final nextHour = DateTime(now.year, now.month, now.day, now.hour).add(
+  final nextHour = DateTime(
+    currentTime.year,
+    currentTime.month,
+    currentTime.day,
+    currentTime.hour,
+  ).add(
     const Duration(hours: 1),
   );
   return entries.where((e) => !e.time.toLocal().isBefore(nextHour)).toList();
