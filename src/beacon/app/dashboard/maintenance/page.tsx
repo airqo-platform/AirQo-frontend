@@ -351,7 +351,13 @@ export default function MaintenancePage() {
 
         const escapeCSV = (val: any): string => {
             if (val === null || val === undefined) return '""';
-            const str = String(val);
+            let str = String(val);
+
+            // Prevent CSV/Excel formula injection
+            if (/^[=+\-@]/.test(str)) {
+                str = `'${str}`;
+            }
+
             if (str.includes(',') || str.includes('"') || str.includes('\n')) {
                 return `"${str.replace(/"/g, '""')}"`;
             }
