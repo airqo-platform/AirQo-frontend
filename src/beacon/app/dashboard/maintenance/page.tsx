@@ -390,9 +390,13 @@ export default function MaintenancePage() {
         const a = document.createElement("a");
         a.href = url;
         a.download = `maintenance-devices-${new Date().toISOString().split("T")[0]}.csv`;
+        a.style.display = "none";
+        document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
-
+        setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        }, 0);
         toast({
             title: "CSV Exported",
             description: `Exported ${targetDevices.length} devices to CSV.`,
