@@ -22,7 +22,6 @@ import {
 import { parseDownloadResponseRecords } from '../utils/dataExportFile';
 import {
   getMeasurementRecords,
-  getPartialDataWarning,
 } from '../utils/dataAvailability';
 import type {
   DataDownloadRequest,
@@ -46,11 +45,6 @@ export interface PreparedDownloadResult {
   activeTab: TabType;
   locationCount: number;
   summaryItems: Array<{ label: string; value: string }>;
-  partialDataWarning?: {
-    totalSelected: number;
-    withData: number;
-    missingNames: string[];
-  };
 }
 
 type MetadataRow = Record<string, unknown>;
@@ -1086,48 +1080,10 @@ export const useDataExportActions = (
               ? selectedDeviceIds.length
               : sitesForDownload.length;
 
-        const countriesCitiesGridData =
-          activeTab === 'countries' ? countriesData : citiesData;
-        const gridSiteNames =
-          activeTab === 'countries' || activeTab === 'cities'
-            ? getGridSiteNames(
-                activeTab,
-                selectedGridIds,
-                effectiveSelectedGridSiteIds,
-                selectedGridSites,
-                countriesCitiesGridData
-              )
-            : [];
-
-        const partialDataWarning = getPartialDataWarning(
-          normalizedResponse,
-          activeTab,
-          activeTab === 'sites'
-            ? selectedSiteIds
-            : activeTab === 'devices'
-              ? selectedDeviceIds
-              : sitesForDownload,
-          activeTab === 'sites'
-            ? selectedSites
-            : activeTab === 'devices'
-              ? selectedDevices
-              : gridSiteNames,
-          selectedPollutants
+        toast.success(
+          'Download ready',
+          `Your export for ${effectiveLocationCount} location${effectiveLocationCount !== 1 ? 's' : ''} is ready.`
         );
-
-        if (partialDataWarning) {
-          const missingList = partialDataWarning.missingNames
-            .slice(0, 3)
-            .join(', ');
-          const suffix =
-            partialDataWarning.missingNames.length > 3
-              ? ` and ${partialDataWarning.missingNames.length - 3} more`
-              : '';
-          toast.warning(
-            'Partial data returned',
-            `${partialDataWarning.withData} of ${partialDataWarning.totalSelected} selected locations returned data. No readings found for: ${missingList}${suffix}.`
-          );
-        }
 
         return {
           request,
@@ -1147,7 +1103,6 @@ export const useDataExportActions = (
             downloadColumnKeys,
             false
           ),
-          partialDataWarning,
         };
       } catch (error) {
         if (abortController.signal.aborted) return null;

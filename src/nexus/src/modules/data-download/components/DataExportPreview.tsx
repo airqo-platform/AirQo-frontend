@@ -13,12 +13,11 @@ import {
   FREQUENCY_LABELS,
   DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
-import { InfoBanner } from '@/shared/components/ui/banner';
+import { WarningBanner, InfoBanner } from '@/shared/components/ui/banner';
 import { areArraysEqual } from '@/shared/utils/arrays';
 import {
   AqAlertTriangle,
   AqLoading02,
-  AqSearchMd,
   AqSettings01,
 } from '@airqo/icons-react';
 import {
@@ -30,12 +29,6 @@ import { resolveGridSitesForDownload } from '../utils/dataExportRequest';
 
 type PreviewData = Record<string, string | number | null>;
 
-export interface PartialDataWarning {
-  totalSelected: number;
-  withData: number;
-  missingNames: string[];
-}
-
 interface DataExportPreviewProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,11 +36,10 @@ interface DataExportPreviewProps {
   onRetryPreview: () => void;
   isDownloading: boolean;
 
-  // Preview data fetched by parent before dialog opened
+  // Preview data built from cached data (no API call)
   previewRows: PreviewData[];
   isFetchingPreview: boolean;
   previewError: string | null;
-  partialDataWarning?: PartialDataWarning;
 
   // Export configuration
   dataType: string;
@@ -71,7 +63,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   previewRows,
   isFetchingPreview,
   previewError,
-  partialDataWarning,
   dataType,
   frequency,
   fileType,
@@ -225,14 +216,13 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     !previewError &&
     previewRows.length === 0 &&
     selectedColumnKeys.length > 0;
-  const hasMissingData = Boolean(partialDataWarning?.missingNames.length);
 
   return (
     <ReusableDialog
       isOpen={isOpen}
       onClose={onClose}
       title="Export Preview"
-      subtitle="Choose the columns you want to keep before downloading."
+      subtitle={`Review the ${selectedLocations.length} selected ${locationType.toLowerCase()} below. Choose the columns you want to keep before downloading.`}
       size="2xl"
       className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl"
       maxHeight="max-h-[90vh] sm:max-h-[85vh]"
@@ -333,7 +323,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                 <AqLoading02 className="w-8 h-8 text-primary animate-spin" />
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Fetching data preview...
+                Building preview...
               </p>
             </div>
           ) : previewError ? (
@@ -392,61 +382,16 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                   </table>
                 </div>
               </div>
-              {hasMissingData && partialDataWarning && (
-                <div className="mt-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <AqAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                        Partial Data Available
-                      </p>
-                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                        {partialDataWarning.withData === 0
-                          ? `No readings were found for the selected ${locationType.toLowerCase()} for these filters.`
-                          : `Readings were found for ${partialDataWarning.withData} of ${partialDataWarning.totalSelected} selected ${locationType.toLowerCase()} for these filters.`}
-                        {partialDataWarning.missingNames.length > 0 && (
-                          <>
-                            {' '}
-                            No readings found for:{' '}
-                            {partialDataWarning.missingNames
-                              .slice(0, 3)
-                              .join(', ')}
-                            {partialDataWarning.missingNames.length > 3 &&
-                              ` and ${partialDataWarning.missingNames.length - 3} more`}
-                          </>
-                        )}
-                      </p>
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                        The download will include metadata for every selected
-                        location; measurement values will be present only where
-                        readings were found.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Showing metadata for all {selectedLocations.length} selected {locationType.toLowerCase()}. The actual download will include measurement data for these locations based on your export configuration.
+              </p>
             </>
           ) : hasNoData ? (
-            <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-5 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 mb-3">
-                <AqSearchMd className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                No Measurement Data Found
-              </h4>
-              <p className="text-xs text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-3">
-                There are no readings available for the selected time period,
-                locations, and pollutants. Cancel this dialog to adjust your
-                filters, then run the export again.
-              </p>
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 dark:bg-amber-900/40 px-3 py-1.5">
-                <span className="text-amber-700 dark:text-amber-300 text-xs font-medium">
-                  If you proceed, you will receive a metadata-only file
-                  (location names, coordinates, and device info) with no
-                  measurement values.
-                </span>
-              </div>
-            </div>
+            <WarningBanner
+              dense
+              title="No Measurement Data Found"
+              message="There are no readings available for the selected time period, locations, and pollutants. If you proceed, you will receive a metadata-only file (location names, coordinates, and device info) with no measurement values."
+            />
           ) : (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -456,61 +401,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           )}
         </div>
 
-        {/* Keep the general guidance only when there is no more specific warning. */}
-        {!hasMissingData && (
-          <InfoBanner
-            dense
-            title="What happens when readings are unavailable"
-            message="If no readings match the selected filters, the download provides metadata for the selected locations so you can still identify them."
-          />
-        )}
-
-        {/* What You Will Download - Summary before confirmation */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
-            What You Will Download
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div>
-              <span className="text-blue-600 dark:text-blue-400">
-                Locations:
-              </span>
-              <p className="text-blue-900 dark:text-blue-100 font-medium">
-                {selectedLocations.length}
-              </p>
-            </div>
-            <div>
-              <span className="text-blue-600 dark:text-blue-400">
-                With data:
-              </span>
-              <p className="text-blue-900 dark:text-blue-100 font-medium">
-                {partialDataWarning ? partialDataWarning.withData : '—'}
-              </p>
-            </div>
-            <div>
-              <span className="text-blue-600 dark:text-blue-400">
-                Without data:
-              </span>
-              <p className="text-blue-900 dark:text-blue-100 font-medium">
-                {partialDataWarning
-                  ? partialDataWarning.totalSelected -
-                    partialDataWarning.withData
-                  : '—'}
-              </p>
-            </div>
-            <div>
-              <span className="text-blue-600 dark:text-blue-400">Columns:</span>
-              <p className="text-blue-900 dark:text-blue-100 font-medium">
-                {selectedColumnKeys.length}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-            {hasNoData
-              ? 'Download includes location metadata only (names, coordinates, device info).'
-              : 'Preview shows first 5 rows. Full download includes all matching data.'}
-          </p>
-        </div>
+        {/* Warning banner about potentially missing data */}
+        <WarningBanner
+          dense
+          title="Data May Be Incomplete"
+          message="The data you download may contain missing values or no data at all. If no data is available for your selected filters, you will download the metadata for the selected locations only."
+        />
 
         {/* Configuration Summary */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -565,7 +461,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
         {/* Export Notes */}
         <InfoBanner
           dense
-          message="Preview shows the first 5 rows of your export. Your download will include all matching data with only the columns selected above."
+          message="This preview shows a summary of your selected locations. Your download will include all measurement data matching your export configuration with only the columns selected above."
         />
       </div>
     </ReusableDialog>

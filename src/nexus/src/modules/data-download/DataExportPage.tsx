@@ -2,7 +2,6 @@ import React, {
   useMemo,
   useEffect,
   useCallback,
-  useRef,
   useState,
 } from 'react';
 import { usePostHog } from 'posthog-js/react';
@@ -25,8 +24,6 @@ import {
   CohortSitesResponse,
   CohortDevicesResponse,
   Grid,
-  DataDownloadRequest,
-  DataDownloadResponse,
 } from '@/shared/types/api';
 import {
   DataType,
@@ -41,13 +38,9 @@ import { useDataExportState } from './hooks/useDataExportState';
 import {
   type PreparedDownloadResult,
   useDataExportActions,
-  getGridSiteNames,
 } from './hooks/useDataExportActions';
-import { getDataAvailability } from './utils/dataAvailability';
 import { useDataExportData } from './hooks/useDataExportData';
-import { useDownloadData } from '@/shared/hooks/useAnalytics';
 import {
-  buildDataDownloadRequest,
   resolveGridSitesForDownload,
 } from './utils/dataExportRequest';
 import { getSiteDisplayName } from './utils/dataExportUtils';
@@ -55,8 +48,8 @@ import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
   buildDownloadXlsxBlob,
-  parseDownloadResponseRecords,
 } from './utils/dataExportFile';
+import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import { trackEvent } from '@/shared/utils/analytics';
@@ -114,70 +107,6 @@ const rebuildSelectionCache = (
 };
 
 type PreviewData = Record<string, string | number | null>;
-
-const getPreviewField = (
-  record: Record<string, unknown>,
-  aliases: string[]
-): unknown => {
-  const normalizedAliases = new Set(
-    aliases.map(alias => alias.toLowerCase().replace(/[\s-]+/g, '_'))
-  );
-
-  const entry = Object.entries(record).find(([key]) =>
-    normalizedAliases.has(key.toLowerCase().replace(/[\s-]+/g, '_'))
-  );
-
-  return entry?.[1];
-};
-
-const buildPreviewRows = (
-  response: DataDownloadResponse | string,
-  activeTab: TabType,
-  countriesData: TableItem[],
-  citiesData: TableItem[]
-): PreviewData[] => {
-  const records = parseDownloadResponseRecords(response);
-  const gridData = activeTab === 'countries' ? countriesData : citiesData;
-  const siteIdToName = new Map<string, string>();
-
-  if (activeTab === 'countries' || activeTab === 'cities') {
-    gridData.forEach(grid => {
-      const sites = grid.sites as
-        | Array<{ _id?: string; name?: string }>
-        | undefined;
-
-      sites?.forEach(site => {
-        if (site._id && site.name) {
-          siteIdToName.set(String(site._id), String(site.name));
-        }
-      });
-    });
-  }
-
-  return records.slice(0, 5).map(record => {
-    const row: PreviewData = {};
-
-    Object.entries(record).forEach(([key, value]) => {
-      row[key] =
-        typeof value === 'number'
-          ? value
-          : value == null
-            ? null
-            : String(value);
-    });
-
-    if (activeTab === 'countries' || activeTab === 'cities') {
-      const siteId = getPreviewField(record, ['site_id', 'siteId']);
-      const siteName = siteId ? siteIdToName.get(String(siteId)) : undefined;
-
-      if (siteName) {
-        row.site_name = siteName;
-      }
-    }
-
-    return row;
-  });
-};
 
 const DataExportPage = () => {
   const pathname = usePathname();
@@ -281,6 +210,9 @@ const DataExportPage = () => {
   const [selectedCitiesCache, setSelectedCitiesCache] = React.useState<
     Record<string, TableItem>
   >({});
+  const [pendingColumnKeys, setPendingColumnKeys] = React.useState<
+    string[] | null
+  >(null);
   const [pendingDownload, setPendingDownload] =
     React.useState<PreparedDownloadResult | null>(null);
   const [saveFormatDialogOpen, setSaveFormatDialogOpen] = React.useState(false);
@@ -339,22 +271,14 @@ const DataExportPage = () => {
     }
   }, [isOrgFlow, activeTab, handleTabChange]);
 
-  // Preview state — fetched before dialog opens
+  // Preview state — built from cached data (no API call needed)
   const [previewRows, setPreviewRows] = useState<PreviewData[]>([]);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [previewPartialWarning, setPreviewPartialWarning] = useState<
-    | { totalSelected: number; withData: number; missingNames: string[] }
-    | undefined
-  >(undefined);
-  const previewAbortRef = useRef<AbortController | null>(null);
 
   const clearPreviewState = useCallback(() => {
-    previewAbortRef.current?.abort();
-    previewAbortRef.current = null;
     setPreviewRows([]);
     setPreviewError(null);
-    setPreviewPartialWarning(undefined);
     setIsPreviewLoading(false);
     setPreviewOpen(false);
   }, [setPreviewOpen]);
@@ -368,6 +292,7 @@ const DataExportPage = () => {
     setSelectedGridForSites(null);
     setSiteSelectionDialogOpen(false);
     setSiteSelectionDownloading(false);
+    setPendingColumnKeys(null);
     setPendingDownload(null);
     setSaveFormatDialogOpen(false);
     setSavingFormat(null);
@@ -541,146 +466,145 @@ const DataExportPage = () => {
     [selectedSiteIds, selectedSitesCache, processedSitesData]
   );
 
-  // Preview state — fetched before dialog opens
-  const { trigger: fetchPreviewData } = useDownloadData();
-
-  const handleOpenPreview = useCallback(async () => {
+  // Build preview rows from cached data (no API call needed)
+  const handleOpenPreview = useCallback(() => {
     if (isPreviewLoading) return;
 
     setIsPreviewLoading(true);
     setPreviewError(null);
     setPreviewRows([]);
-    setPreviewPartialWarning(undefined);
-
-    if (previewAbortRef.current) {
-      previewAbortRef.current.abort();
-    }
-    const abortController = new AbortController();
-    previewAbortRef.current = abortController;
-
-    const effectiveDataType: 'calibrated' | 'raw' =
-      activeTab === 'devices' && deviceCategory === 'bam'
-        ? 'raw'
-        : (dataType as 'calibrated' | 'raw');
 
     try {
-      const previewRequest: DataDownloadRequest = buildDataDownloadRequest({
-        dateRange,
-        activeTab,
-        selectedSites,
-        selectedSiteIds,
-        selectedDeviceIds,
-        selectedDeviceNames: selectedDeviceNamesForExport,
-        selectedGridIds,
-        selectedGridSites,
-        selectedGridSiteIds,
-        selectedPollutants,
-        dataType: effectiveDataType,
-        fileType: 'csv',
-        frequency,
-        deviceCategory,
-      });
+      let rows: PreviewData[] = [];
 
-      const response = await fetchPreviewData(previewRequest);
+      // Derive config-based field values for the preview
+      const frequencyLabel =
+        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] || frequency;
+      const formatNetwork = (val: unknown): string | null => {
+        if (typeof val !== 'string' || !val.trim()) return null;
+        return val.trim().toUpperCase();
+      };
+      const formattedDate = (() => {
+        if (!dateRange?.from || !dateRange?.to) return 'Not selected';
+        const fmt = (d: Date) =>
+          d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+        return `${fmt(dateRange.from)} – ${fmt(dateRange.to)}`;
+      })();
 
-      if (abortController.signal.aborted) return;
-
-      const selectedAvailabilityIds =
-        activeTab === 'sites'
-          ? selectedSiteIds
-          : activeTab === 'devices'
-            ? selectedDeviceIds
-            : resolveGridSitesForDownload(
-                selectedGridIds,
-                selectedGridSites,
-                selectedGridSiteIds
-              );
-      const selectedAvailabilityLabels =
-        activeTab === 'sites'
-          ? selectedSiteNames
-          : activeTab === 'devices'
-            ? selectedDeviceNamesForExport
-            : getGridSiteNames(
-                activeTab,
-                selectedGridIds,
-                selectedGridSiteIds,
-                selectedGridSites,
-                activeTab === 'countries'
-                  ? processedCountriesData
-                  : processedCitiesData
-              );
-      const previewAvailability = getDataAvailability(
-        response,
-        activeTab,
-        selectedAvailabilityIds,
-        selectedAvailabilityLabels,
-        selectedPollutants
-      );
-
-      if (typeof response === 'string') {
-        const rows = buildPreviewRows(
-          response,
-          activeTab,
-          processedCountriesData,
-          processedCitiesData
+      if (activeTab === 'sites') {
+        rows = selectedSiteIds.map(id => {
+          const site = selectedSitesCache[id];
+          const name = site
+            ? (site.name ?? site.site_name ?? id)
+            : id;
+          const row: PreviewData = {
+            id: site?.id ?? id,
+            site_name: name as string,
+            datetime: formattedDate,
+            frequency: frequencyLabel,
+            network:
+              formatNetwork(site?.network ?? site?.sensor_manufacturer ?? site?.data_provider),
+            latitude: (site?.latitude ?? site?.lat ?? null) as string | number | null,
+            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as string | number | null,
+            site_id: (site?.site_id ?? site?.id ?? id) as string,
+          };
+          if (site?.search_name) row.search_name = site.search_name as string;
+          if (site?.formatted_name) row.formatted_name = site.formatted_name as string;
+          if (site?.location_name) row.location_name = site.location_name as string;
+          if (site?.city) row.city = site.city as string;
+          if (site?.country) row.country = site.country as string;
+          if (site?.data_provider) row.data_provider = site.data_provider as string;
+          return row;
+        });
+      } else if (activeTab === 'devices') {
+        rows = selectedDeviceIds.map(id => {
+          const device = selectedDevicesCache[id];
+          const name = device
+            ? (device.name ?? device.device_name ?? id)
+            : id;
+          const row: PreviewData = {
+            id: device?.id ?? id,
+            device_name: name as string,
+            datetime: formattedDate,
+            frequency: frequencyLabel,
+            network:
+              formatNetwork(device?.network ?? device?.sensor_manufacturer ?? device?.manufacturer),
+            device_id: (device?.device_id ?? device?.id ?? id) as string,
+            latitude: (device?.latitude ?? device?.lat ?? null) as string | number | null,
+            longitude: (device?.longitude ?? device?.lng ?? device?.lon ?? null) as string | number | null,
+          };
+          if (device?.site_name) row.site_name = device.site_name as string;
+          if (device?.category) row.category = device.category as string;
+          return row;
+        });
+      } else if (activeTab === 'countries' || activeTab === 'cities') {
+        // For countries/cities, build preview from selected grid sites
+        const gridIds = Array.from(
+          new Set([
+            ...Object.keys(selectedGridSites),
+            ...Object.keys(selectedGridSiteIds),
+          ])
         );
-        if (rows.length > 0) {
-          // Site names are normalized in buildPreviewRows.
-          // Build siteId → siteName lookup from all selected grids' sites
-          setPreviewRows(rows);
-          setPreviewPartialWarning(previewAvailability);
-        } else {
-          setPreviewRows([]);
-          setPreviewPartialWarning(previewAvailability);
-        }
-      } else if (
-        response &&
-        typeof response === 'object' &&
-        'data' in response &&
-        Array.isArray((response as { data: unknown }).data)
-      ) {
-        const rows = buildPreviewRows(
-          response,
-          activeTab,
-          processedCountriesData,
-          processedCitiesData
+        const resolvedSiteIds = resolveGridSitesForDownload(
+          gridIds,
+          selectedGridSites,
+          selectedGridSiteIds
         );
+        const gridData =
+          activeTab === 'countries' ? processedCountriesData : processedCitiesData;
 
-        setPreviewRows(rows);
-        setPreviewPartialWarning(previewAvailability);
-      } else {
-        setPreviewRows([]);
-        setPreviewPartialWarning(previewAvailability);
+        // Build siteId → siteName and siteId → network lookups from grid data
+        const siteIdToName = new Map<string, string>();
+        const siteIdToNetwork = new Map<string, string | null>();
+        gridData.forEach(grid => {
+          const gridNetwork = formatNetwork(grid.network ?? grid.sensor_manufacturer);
+          const sites = grid.sites as
+            | Array<{ _id?: string; name?: string }>
+            | undefined;
+          sites?.forEach(site => {
+            if (site._id) {
+              siteIdToName.set(String(site._id), String(site.name ?? site._id));
+              siteIdToNetwork.set(String(site._id), gridNetwork);
+            }
+          });
+        });
+
+        rows = resolvedSiteIds.map(siteId => ({
+          id: siteId,
+          site_id: siteId,
+          site_name: siteIdToName.get(siteId) ?? siteId,
+          datetime: formattedDate,
+          frequency: frequencyLabel,
+          network: siteIdToNetwork.get(siteId) ?? null,
+          latitude: null,
+          longitude: null,
+        }));
       }
+
+      setPreviewRows(rows);
     } catch {
-      if (abortController.signal.aborted) return;
       setPreviewError(
-        'Unable to load data preview. You can retry or proceed with the download.'
+        'Unable to build data preview. Please try again.'
       );
-      setPreviewPartialWarning(undefined);
     } finally {
-      if (!abortController.signal.aborted) {
-        setIsPreviewLoading(false);
-        setPreviewOpen(true);
-      }
+      setIsPreviewLoading(false);
+      setPreviewOpen(true);
     }
   }, [
     isPreviewLoading,
-    fetchPreviewData,
-    dataType,
-    frequency,
-    selectedPollutants,
-    dateRange,
     activeTab,
-    selectedSites,
-    selectedSiteNames,
-    selectedDeviceNamesForExport,
+    dateRange,
+    frequency,
     selectedSiteIds,
     selectedDeviceIds,
-    selectedGridIds,
+    selectedSitesCache,
+    selectedDevicesCache,
     selectedGridSites,
     selectedGridSiteIds,
-    deviceCategory,
     processedCountriesData,
     processedCitiesData,
     setPreviewOpen,
@@ -714,14 +638,6 @@ const DataExportPage = () => {
     selectedPollutants,
     selectedSiteIds,
   ]);
-
-  useEffect(() => {
-    return () => {
-      if (previewAbortRef.current) {
-        previewAbortRef.current.abort();
-      }
-    };
-  }, []);
 
   // Actions and event handlers
   const { handleDownload, handleVisualizeData, isDownloading, cancelDownload } =
@@ -1019,11 +935,12 @@ const DataExportPage = () => {
         customSelectedGridSiteIds: nextSelectedGridSiteIds,
       });
 
-      // Close dialog only on successful download preparation
+      // Store prepared download and open format dialog directly
       if (preparedDownload) {
         setSiteSelectionDialogOpen(false);
         setSelectedGridForSites(null);
-        openSaveFormatDialog(preparedDownload);
+        setPendingDownload(preparedDownload);
+        setSaveFormatDialogOpen(true);
       }
     } catch (error) {
       // Error is already handled in handleDownload
@@ -1059,17 +976,6 @@ const DataExportPage = () => {
       }
     }
   }, [currentHook, isGroupSyncing, isRefreshing]);
-
-  const openSaveFormatDialog = (download: PreparedDownloadResult) => {
-    if (fileType === 'json') {
-      void savePreparedDownload(download, 'json');
-      return;
-    }
-
-    setPendingDownload(download);
-    setSavingFormat(null);
-    setSaveFormatDialogOpen(true);
-  };
 
   const savePreparedDownload = async (
     download: PreparedDownloadResult,
@@ -1167,7 +1073,6 @@ const DataExportPage = () => {
 
       toast.success(`Saved as ${savedLabel}`, savedMessage);
       setSaveFormatDialogOpen(false);
-      setPendingDownload(null);
 
       return true;
     } catch (error) {
@@ -1182,30 +1087,37 @@ const DataExportPage = () => {
         );
       }
 
-      // Clear dialog state on all formats so user can retry
       setSaveFormatDialogOpen(false);
-      setPendingDownload(null);
 
       return false;
     }
   };
 
   const handleSaveFormatSelection = async (format: SaveFormat) => {
-    if (!pendingDownload) {
-      return;
-    }
-
     setSavingFormat(format);
 
     try {
-      await savePreparedDownload(pendingDownload, format);
+      // Use pendingDownload if already prepared (from grid site selection),
+      // otherwise make the API call now that user has chosen a format
+      const preparedDownload = pendingDownload ?? (await handleDownload({
+        exportColumnKeys: pendingColumnKeys ?? undefined,
+      }));
+
+      if (!preparedDownload) {
+        setSavingFormat(null);
+        return;
+      }
+
+      await savePreparedDownload(preparedDownload, format);
     } catch {
       toast.error(
-        'Save Failed',
-        'We could not save the file. Please try again.'
+        'Download Failed',
+        'We could not complete your download. Please try again.'
       );
     } finally {
       setSavingFormat(null);
+      setPendingDownload(null);
+      setPendingColumnKeys(null);
     }
   };
 
@@ -1395,26 +1307,16 @@ const DataExportPage = () => {
       <DataExportPreview
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        onConfirm={async (selectedColumnKeys: string[]) => {
-          try {
-            const preparedDownload = await handleDownload({
-              exportColumnKeys: selectedColumnKeys,
-            });
-
-            if (preparedDownload) {
-              setPreviewOpen(false);
-              openSaveFormatDialog(preparedDownload);
-            }
-          } catch (error) {
-            console.error('Unexpected download confirmation error:', error);
-          }
+        onConfirm={(selectedColumnKeys: string[]) => {
+          setPendingColumnKeys(selectedColumnKeys);
+          setPreviewOpen(false);
+          setSaveFormatDialogOpen(true);
         }}
         onRetryPreview={handleOpenPreview}
         isDownloading={isDownloading}
         previewRows={previewRows}
         isFetchingPreview={isPreviewLoading}
         previewError={previewError}
-        partialDataWarning={previewPartialWarning}
         dataType={dataType}
         frequency={frequency}
         fileType={fileType}
@@ -1471,10 +1373,11 @@ const DataExportPage = () => {
           if (!savingFormat) {
             setSaveFormatDialogOpen(false);
             setPendingDownload(null);
+            setPendingColumnKeys(null);
           }
         }}
         onSave={handleSaveFormatSelection}
-        locationCount={pendingDownload?.locationCount || 0}
+        locationCount={selectionCount}
       />
 
       {/* Tab Change Confirmation Dialog */}

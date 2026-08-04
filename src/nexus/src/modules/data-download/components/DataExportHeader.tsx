@@ -77,11 +77,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     selectedGridIds.length;
 
   const handleClearClick = () => {
-    if (totalSelectionCount > 5) {
-      setShowClearConfirm(true);
-    } else {
-      onClearSelections();
-    }
+    setShowClearConfirm(true);
   };
 
   const confirmClear = () => {
@@ -154,18 +150,17 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:flex xl:flex-wrap gap-2 w-full min-w-0 xl:w-auto mt-3 xl:mt-0">
+      <div className="flex flex-wrap items-center gap-2 w-full min-w-0 xl:w-auto mt-3 xl:mt-0">
         {!showHelpBanner && onToggleHelpBanner && (
           <Tooltip content="Show getting-started tips" placement="top">
-            <span className="inline-flex w-full xl:w-auto">
+            <span className="inline-flex">
               <Button
                 variant="outlined"
                 onClick={onToggleHelpBanner}
                 Icon={AqHelpCircle}
                 size="sm"
-                className="px-4 py-2 w-full xl:w-auto"
               >
-                Show Tips
+                Tips
               </Button>
             </span>
           </Tooltip>
@@ -178,7 +173,6 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             loading={isRefreshing}
             disabled={isGroupSyncing || isRefreshing}
             size="sm"
-            className="px-4 py-2 w-full xl:w-auto"
           >
             Refresh
           </Button>
@@ -189,7 +183,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             onClick={handleClearClick}
             Icon={AqAnnotationX}
             disabled={isGroupSyncing}
-            className="px-4 py-2 w-full xl:w-auto"
+            size="sm"
           >
             Clear All
           </Button>
@@ -204,24 +198,25 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             ((activeTab === 'countries' || activeTab === 'cities') &&
               selectedGridIds.length === 0)
           }
-          className="px-4 py-2 w-full xl:w-auto"
+          size="sm"
         >
           Visualize Data
         </Button>
         {/* Preview button removed: preview shown via Review & Download flow */}
         {canDownload && (
           <Tooltip content={reviewDownloadTooltip} placement="top">
-            <span className="inline-flex w-full xl:w-auto">
+            <span className="inline-flex">
               <Button
                 variant="filled"
                 onClick={onDownload}
                 Icon={AqDownload01}
-                className="px-4 py-2 w-full xl:w-auto"
+                size="sm"
                 disabled={isGroupSyncing || !isDownloadReady || isPreviewLoading || isDownloading}
                 loading={isPreviewLoading || isDownloading}
+                className="whitespace-nowrap"
               >
                 {isPreviewLoading
-                  ? 'Loading preview...'
+                  ? 'Loading...'
                   : isDownloading
                     ? 'Downloading...'
                     : selectionCount > 0
