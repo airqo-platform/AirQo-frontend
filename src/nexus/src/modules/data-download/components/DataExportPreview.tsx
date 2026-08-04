@@ -1,30 +1,45 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Checkbox from '@/shared/components/ui/checkbox';
+import { Button } from '@/shared/components/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { DateRange } from '@/shared/components/calendar/types';
 import {
   FREQUENCY_LABELS,
   DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
-import { InfoBanner } from '@/shared/components/ui/banner';
+import { WarningBanner, InfoBanner } from '@/shared/components/ui/banner';
 import { areArraysEqual } from '@/shared/utils/arrays';
+import {
+  AqAlertTriangle,
+  AqLoading02,
+  AqSettings01,
+} from '@airqo/icons-react';
 import {
   getDefaultDownloadColumnKeys,
   getDownloadColumnGroups,
   getDownloadColumnLabelMap,
 } from '../utils/dataExportFile';
+import { resolveGridSitesForDownload } from '../utils/dataExportRequest';
+
+type PreviewData = Record<string, string | number | null>;
 
 interface DataExportPreviewProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedColumnKeys: string[]) => void;
+  onRetryPreview: () => void;
   isDownloading: boolean;
+
+  // Preview data built from cached data (no API call)
+  previewRows: PreviewData[];
+  isFetchingPreview: boolean;
+  previewError: string | null;
 
   // Export configuration
   dataType: string;
@@ -40,22 +55,15 @@ interface DataExportPreviewProps {
   selectedGridSiteIds: Record<string, string[]>;
 }
 
-type PreviewData = Record<string, string | number | null>;
-
-const SAMPLE_POLLUTANT_VALUES: Record<string, [number, number]> = {
-  pm2_5: [36.37, 30.97],
-  pm10: [46.42, 42.11],
-  no2: [18.27, 16.81],
-  so2: [8.12, 7.44],
-  o3: [22.54, 23.71],
-  co: [0.82, 0.74],
-};
-
 export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  onRetryPreview,
   isDownloading,
+  previewRows,
+  isFetchingPreview,
+  previewError,
   dataType,
   frequency,
   fileType,
@@ -68,10 +76,23 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   selectedGridSites,
   selectedGridSiteIds,
 }) => {
+  const defaultColumnKeys = useMemo(
+    () => getDefaultDownloadColumnKeys(activeTab, selectedPollutants, dataType),
+    [activeTab, dataType, selectedPollutants]
+  );
+
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<string[]>(() =>
     getDefaultDownloadColumnKeys(activeTab, selectedPollutants, dataType)
   );
-  const previousOpenRef = useRef(false);
+
+  // Reset column selection when dialog opens with new default columns
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedColumnKeys(prev =>
+        areArraysEqual(prev, defaultColumnKeys) ? prev : defaultColumnKeys
+      );
+    }
+  }, [defaultColumnKeys, isOpen]);
 
   const formattedDateRange = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return 'Not selected';
@@ -101,13 +122,14 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     [activeTab, dataType, selectedPollutants]
   );
 
-  const columnLabelMap = useMemo(
-    () => getDownloadColumnLabelMap(activeTab, selectedPollutants, dataType),
-    [activeTab, dataType, selectedPollutants]
+  const columnOptionCount = useMemo(
+    () =>
+      columnGroups.reduce((count, group) => count + group.options.length, 0),
+    [columnGroups]
   );
 
-  const defaultColumnKeys = useMemo(
-    () => getDefaultDownloadColumnKeys(activeTab, selectedPollutants, dataType),
+  const columnLabelMap = useMemo(
+    () => getDownloadColumnLabelMap(activeTab, selectedPollutants, dataType),
     [activeTab, dataType, selectedPollutants]
   );
 
@@ -118,13 +140,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       case 'devices':
         return selectedDevices;
       case 'countries':
-      case 'cities': {
-        const customSites = Object.values(selectedGridSiteIds).flat();
-        if (customSites.length > 0) {
-          return customSites;
-        }
-        return Object.values(selectedGridSites).flat();
-      }
+      case 'cities':
+        return resolveGridSitesForDownload(
+          selectedGridIds,
+          selectedGridSites,
+          selectedGridSiteIds
+        );
       default:
         return [];
     }
@@ -132,6 +153,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     activeTab,
     selectedSites,
     selectedDevices,
+    selectedGridIds,
     selectedGridSites,
     selectedGridSiteIds,
   ]);
@@ -150,46 +172,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     }
   }, [activeTab]);
 
-  const locationColumnKey = useMemo(() => {
-    switch (activeTab) {
-      case 'sites':
-        return 'site_name';
-      case 'devices':
-        return 'device_name';
-      case 'countries':
-        return 'country_name';
-      case 'cities':
-        return 'city_name';
-      default:
-        return 'site_name';
-    }
-  }, [activeTab]);
-
-  const locationSampleValue = useMemo(() => {
-    switch (activeTab) {
-      case 'sites':
-        return selectedSites[0] || 'Sample Site';
-      case 'devices':
-        return selectedDevices[0] || 'sample_device';
-      case 'countries':
-        return selectedGridIds[0] || 'Sample Country';
-      case 'cities':
-        return selectedGridIds[0] || 'Sample City';
-      default:
-        return 'Sample Location';
-    }
-  }, [activeTab, selectedDevices, selectedGridIds, selectedSites]);
-
-  useEffect(() => {
-    if (isOpen && !previousOpenRef.current) {
-      setSelectedColumnKeys(prev =>
-        areArraysEqual(prev, defaultColumnKeys) ? prev : defaultColumnKeys
-      );
-    }
-
-    previousOpenRef.current = isOpen;
-  }, [defaultColumnKeys, isOpen]);
-
   const handleColumnToggle = useCallback((key: string, checked: boolean) => {
     setSelectedColumnKeys(prev => {
       if (checked) {
@@ -199,73 +181,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       return prev.filter(columnKey => columnKey !== key);
     });
   }, []);
-
-  const sampleRows = useMemo<PreviewData[]>(() => {
-    if (!dateRange?.from) {
-      return [];
-    }
-
-    const baseDate = dateRange.from;
-
-    const createSampleDate = (index: number) => {
-      const sampleDate = new Date(baseDate);
-
-      switch (frequency) {
-        case 'raw':
-        case 'hourly':
-          sampleDate.setHours(sampleDate.getHours() + index);
-          break;
-        case 'weekly':
-          sampleDate.setDate(sampleDate.getDate() + index * 7);
-          break;
-        case 'monthly':
-          sampleDate.setMonth(sampleDate.getMonth() + index);
-          break;
-        default:
-          sampleDate.setDate(sampleDate.getDate() + index);
-          break;
-      }
-
-      return sampleDate;
-    };
-
-    return [0, 1].map(index => {
-      const sampleDate = createSampleDate(index);
-
-      const row: PreviewData = {
-        [locationColumnKey]: locationSampleValue,
-        datetime: sampleDate.toISOString().replace('T', ' ').replace('Z', ''),
-        frequency,
-        network: 'airqo',
-        latitude: 0.3244820075131162,
-        longitude: 32.571073376413565,
-        temperature: index === 0 ? 25.83641260890321 : 26.85111111111112,
-        humidity: index === 0 ? 72.06045440983412 : 63.484772961816304,
-      };
-
-      selectedPollutants.forEach(pollutant => {
-        const values = SAMPLE_POLLUTANT_VALUES[pollutant] || [36.37, 30.97];
-        const value = index === 0 ? values[0] : values[1];
-
-        if (dataType === 'calibrated') {
-          row[`${pollutant}_calibrated_value`] = Number(
-            (value * 0.92).toFixed(2)
-          );
-        } else {
-          row[pollutant] = value;
-        }
-      });
-
-      return row;
-    });
-  }, [
-    dateRange?.from,
-    frequency,
-    locationColumnKey,
-    locationSampleValue,
-    dataType,
-    selectedPollutants,
-  ]);
 
   const previewColumns = useMemo(
     () =>
@@ -281,7 +196,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       return [];
     }
 
-    return sampleRows.map(row => {
+    return previewRows.map(row => {
       const filteredRow: PreviewData = {};
 
       selectedColumnKeys.forEach(key => {
@@ -290,17 +205,29 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
 
       return filteredRow;
     });
-  }, [sampleRows, selectedColumnKeys]);
+  }, [previewRows, selectedColumnKeys]);
+
+  const hasNoData =
+    !isFetchingPreview &&
+    !previewError &&
+    previewRows.length === 0 &&
+    selectedColumnKeys.length > 0;
 
   return (
     <ReusableDialog
       isOpen={isOpen}
       onClose={onClose}
       title="Export Preview"
-      subtitle="Choose the columns you want to keep before downloading."
+      subtitle={`Review the ${selectedLocations.length} selected ${locationType.toLowerCase()} below. Choose the columns you want to keep before downloading.`}
       size="2xl"
+      className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl"
+      maxHeight="max-h-[90vh] sm:max-h-[85vh]"
       primaryAction={{
-        label: isDownloading ? 'Downloading...' : 'Confirm & Download',
+        label: isDownloading
+          ? 'Downloading...'
+          : hasNoData
+            ? 'Download Metadata Only'
+            : 'Confirm & Download',
         onClick: () => onConfirm(selectedColumnKeys),
         disabled: isDownloading || selectedColumnKeys.length === 0,
         loading: isDownloading,
@@ -313,60 +240,169 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       }}
     >
       <div className="space-y-6">
-        <InfoBanner
-          title="Metadata fallback enabled"
-          message="If the selected filters return no readings, the download automatically falls back to metadata for the selected locations."
-        />
-
-        {/* Download Columns */}
-        <div className="space-y-3">
-          <div>
+        {/* Data Preview — at top so loading/empty/error states are immediately visible */}
+        <div>
+          <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-sm text-gray-900 dark:text-gray-100">
-              Download Columns
+              Data Preview
             </h3>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Turn columns on or off to match the file you want.
-            </p>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  Icon={AqSettings01}
+                  iconPosition="start"
+                  aria-label={`Configure columns, ${selectedColumnKeys.length} of ${columnOptionCount} selected`}
+                  className="shrink-0"
+                >
+                  <span>Configure columns</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="z-[10002] max-h-[min(70vh,32rem)] w-80 overflow-y-auto p-2"
+              >
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Configure columns
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {selectedColumnKeys.length} of {columnOptionCount} selected
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+
+                {columnGroups.map(group => (
+                  <fieldset key={group.id} className="px-2 py-2">
+                    <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      {group.title}
+                    </legend>
+                    <div className="space-y-1">
+                      {group.options.map(option => (
+                        <Checkbox
+                          key={option.key}
+                          checked={selectedColumnKeys.includes(option.key)}
+                          onCheckedChange={checked =>
+                            handleColumnToggle(option.key, checked === true)
+                          }
+                          label={
+                            <span className="leading-5 text-gray-900 dark:text-gray-100">
+                              {option.label}
+                            </span>
+                          }
+                          aria-label={option.label}
+                          className="w-full rounded-md px-2 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                ))}
+
+                {selectedColumnKeys.length === 0 && (
+                  <p className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+                    Select at least one column to enable download.
+                  </p>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {columnGroups.map(group => (
-              <div
-                key={group.id}
-                className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
-              >
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {group.title}
-                </h4>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {group.options.map(option => (
-                    <label
-                      key={option.key}
-                      className="flex items-start gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/60"
-                    >
-                      <Checkbox
-                        checked={selectedColumnKeys.includes(option.key)}
-                        onCheckedChange={checked =>
-                          handleColumnToggle(option.key, checked === true)
-                        }
-                        className="mt-0.5"
-                      />
-                      <span className="leading-5 text-gray-900 dark:text-gray-100">
-                        {option.label}
-                      </span>
-                    </label>
-                  ))}
+          {isFetchingPreview ? (
+            <div
+              className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center"
+              role="status"
+              aria-live="polite"
+            >
+              <div aria-hidden="true" className="flex justify-center mb-4">
+                <AqLoading02 className="w-8 h-8 text-primary animate-spin" />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Building preview...
+              </p>
+            </div>
+          ) : previewError ? (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-6 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 mb-3">
+                <AqAlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                Unable to Load Preview
+              </h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-sm mx-auto">
+                {previewError}
+              </p>
+              <Button variant="outlined" size="sm" onClick={onRetryPreview}>
+                Retry
+              </Button>
+            </div>
+          ) : previewData.length > 0 ? (
+            <>
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <div className="max-h-80 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                      <tr>
+                        {previewColumns.map(column => (
+                          <th
+                            key={column.key}
+                            className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+                          >
+                            {column.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewData.map((row, rowIndex) => (
+                        <tr
+                          key={rowIndex}
+                          className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                        >
+                          {previewColumns.map(column => (
+                            <td
+                              key={column.key}
+                              className="px-3 py-2 text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+                            >
+                              {typeof row[column.key] === 'number'
+                                ? Number.isInteger(row[column.key])
+                                  ? String(row[column.key])
+                                  : Number(row[column.key]).toFixed(2)
+                                : String(row[column.key] ?? '')}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {selectedColumnKeys.length === 0 && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Select at least one column to enable the download.
-            </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Showing metadata for all {selectedLocations.length} selected {locationType.toLowerCase()}. The actual download will include measurement data for these locations based on your export configuration.
+              </p>
+            </>
+          ) : hasNoData ? (
+            <WarningBanner
+              dense
+              title="No Measurement Data Found"
+              message="There are no readings available for the selected time period, locations, and pollutants. If you proceed, you will receive a metadata-only file (location names, coordinates, and device info) with no measurement values."
+            />
+          ) : (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No preview data available.
+              </p>
+            </div>
           )}
         </div>
+
+        {/* Warning banner about potentially missing data */}
+        <WarningBanner
+          dense
+          title="Data May Be Incomplete"
+          message="The data you download may contain missing values or no data at all. If no data is available for your selected filters, you will download the metadata for the selected locations only."
+        />
 
         {/* Configuration Summary */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -418,65 +454,10 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           </div>
         </div>
 
-        {/* Data Preview */}
-        <div>
-          <h3 className="text-sm text-gray-900 dark:text-gray-100 mb-3">
-            Data Preview (Sample Rows)
-          </h3>
-
-          {selectedColumnKeys.length === 0 ? (
-            <InfoBanner
-              title="Preview Unavailable"
-              message="Select at least one column above to preview the export output."
-            />
-          ) : previewData.length > 0 ? (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div className="max-h-64 overflow-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                    <tr>
-                      {previewColumns.map(column => (
-                        <th
-                          key={column.key}
-                          className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
-                        >
-                          {column.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.map((row, rowIndex) => (
-                      <tr
-                        key={rowIndex}
-                        className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                      >
-                        {previewColumns.map(column => (
-                          <td
-                            key={column.key}
-                            className="px-3 py-2 text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 last:border-r-0"
-                          >
-                            {typeof row[column.key] === 'number'
-                              ? Number(row[column.key]).toFixed(2)
-                              : String(row[column.key] ?? '')}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-sm text-gray-600 dark:text-gray-400">
-              No preview data available
-            </div>
-          )}
-        </div>
-
         {/* Export Notes */}
         <InfoBanner
-          message={`This preview is for the file setup only. Your download will use the same data selection and keep only the columns you choose here.`}
+          dense
+          message="This preview shows a summary of your selected locations. Your download will include all measurement data matching your export configuration with only the columns selected above."
         />
       </div>
     </ReusableDialog>

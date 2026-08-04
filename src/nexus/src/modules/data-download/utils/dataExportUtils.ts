@@ -26,7 +26,7 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
   return undefined;
 };
 
-const getSiteDisplayName = (site?: SiteNameSource): string => {
+export const getSiteDisplayName = (site?: SiteNameSource): string => {
   const displayName =
     getFirstNonEmptyString(
       site?.search_name,
@@ -59,8 +59,8 @@ export const processSitesData = (
   return sitesData.map((site, index) => ({
     ...site,
     id:
-      (site.site_id as string | number) ||
       (site._id as string | number) ||
+      (site.site_id as string | number) ||
       index,
     name: getSiteDisplayName(site as SiteNameSource),
     city: removeUnderscores((site.city as string) || '--'),
@@ -85,7 +85,13 @@ export const processDevicesData = (
       (device.device_id as string | number) ||
       (device._id as string | number) ||
       index,
-    name: (device.name as string) || '--',
+    name:
+      getFirstNonEmptyString(
+        device.name,
+        device.device_name,
+        (device as Record<string, unknown>).search_name,
+        (device as Record<string, unknown>).formatted_name
+      ) || '--',
     network: ((device.network as string) || '--').toUpperCase(),
     category: (device.category as string) || '--',
   }));
@@ -124,18 +130,20 @@ export const getDefaultDateRange = () => {
 };
 
 /**
- * Maps device IDs to device names for API calls
+ * Maps device IDs to device names for API calls.
+ * Preserves order and includes the device ID as fallback when name is missing.
  */
 export const mapDeviceIdsToNames = (
   deviceIds: string[],
   devicesData: TableItem[]
 ): string[] => {
-  return deviceIds
-    .map(id => {
-      const device = devicesData.find(item => String(item.id) === id);
-      return device?.name as string;
-    })
-    .filter(Boolean);
+  return deviceIds.map(id => {
+    const device = devicesData.find(item => String(item.id) === id);
+    if (device?.name && device.name !== '--') {
+      return device.name as string;
+    }
+    return id;
+  });
 };
 
 /**
