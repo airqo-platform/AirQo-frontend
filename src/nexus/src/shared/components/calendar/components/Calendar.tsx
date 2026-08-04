@@ -25,7 +25,10 @@ const dateUtils = {
   startOfWeek: (date: Date) => {
     const d = new Date(date);
     const day = d.getDay();
-    d.setDate(d.getDate() - day);
+    // Weeks start on Monday: Mon=0, Tue=1, ..., Sun=6
+    // getDay() returns: Sun=0, Mon=1, ..., Sat=6
+    // Formula: (day + 6) % 7 converts Mon-start offset
+    d.setDate(d.getDate() - ((day + 6) % 7));
     return d;
   },
 
@@ -139,7 +142,9 @@ export function Calendar({
       const month = dateUtils.addMonths(displayMonth, i);
       const start = dateUtils.startOfWeek(dateUtils.startOfMonth(month));
       const end = new Date(dateUtils.endOfMonth(month));
-      end.setDate(end.getDate() + (6 - end.getDay()));
+      // Extend to end of week (Sunday) for Monday-start weeks
+      // (7 - getDay()) % 7 adds 0 for Sunday, 6 for Monday, etc.
+      end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
 
       return {
         month,

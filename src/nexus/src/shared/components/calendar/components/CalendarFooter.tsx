@@ -26,10 +26,30 @@ const dateUtils = {
       'Nov',
       'Dec',
     ];
+    const fullMonths = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
 
     switch (format) {
       case 'full':
         return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      case 'month-year':
+        return `${fullMonths[date.getMonth()]} ${date.getFullYear()}`;
+      case 'short-month':
+        return months[date.getMonth()];
+      case 'day':
+        return date.getDate().toString();
       default:
         return date.toDateString();
     }

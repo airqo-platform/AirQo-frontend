@@ -3,49 +3,7 @@
 import React, { useCallback } from 'react';
 import { Calendar } from './Calendar';
 import { DateRange } from '../types';
-
-// Preset configurations
-const getPresets = () => {
-  const today = new Date();
-  return [
-    { label: 'Today', from: today, to: today },
-    {
-      label: 'Yesterday',
-      from: new Date(today.getTime() - 24 * 60 * 60 * 1000),
-      to: new Date(today.getTime() - 24 * 60 * 60 * 1000),
-    },
-    {
-      label: 'Last 7 days',
-      from: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000),
-      to: today,
-    },
-    {
-      label: 'Last 30 days',
-      from: new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000),
-      to: today,
-    },
-    {
-      label: 'Last 90 days',
-      from: new Date(today.getTime() - 89 * 24 * 60 * 60 * 1000),
-      to: today,
-    },
-    {
-      label: 'This month',
-      from: new Date(today.getFullYear(), today.getMonth(), 1),
-      to: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-    },
-    {
-      label: 'This year',
-      from: new Date(today.getFullYear(), 0, 1),
-      to: new Date(today.getFullYear(), 11, 31),
-    },
-    {
-      label: 'Last year',
-      from: new Date(today.getFullYear() - 1, 0, 1),
-      to: new Date(today.getFullYear() - 1, 11, 31),
-    },
-  ];
-};
+import { DateUtils } from '../utils/date-utils';
 
 interface RangeCalendarProps {
   showPresets?: boolean;
@@ -70,8 +28,8 @@ export function RangeCalendar({
   );
 
   const handlePresetSelect = useCallback(
-    (preset: { from: Date; to: Date }) => {
-      const presetRange = { from: preset.from, to: preset.to };
+    (preset: { label: string; value: DateRange }) => {
+      const presetRange = { from: preset.value.from, to: preset.value.to };
       setSelectedRange(presetRange);
       onApply?.(presetRange);
     },
@@ -82,7 +40,7 @@ export function RangeCalendar({
     setSelectedRange(range);
   }, []);
 
-  const presets = getPresets();
+  const presets = DateUtils.getDefaultPresets();
 
   const presetSidebar = showPresets ? (
     <div
