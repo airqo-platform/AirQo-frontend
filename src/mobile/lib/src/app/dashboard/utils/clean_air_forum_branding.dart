@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 
-/// Branding for the Africa Clean Air Forum selfie filter, based on the
-/// "AQ/CAF" Figma templates (file `Z0OLd2awVqgZhytJULgO8L`, node 169:534 /
-/// 169:491).
+/// Visual theme for the AirQo selfie filter, based on the "AQ/CAF" Figma
+/// templates (file `Z0OLd2awVqgZhytJULgO8L`, node 169:534 / 169:491).
 ///
 /// All templates were designed on a 1080x1080 canvas — [kCafReferenceWidth]
 /// — so every size/gap in [CleanAirForumFilterCard] and
@@ -14,28 +14,28 @@ import 'package:flutter_svg/flutter_svg.dart';
 class CleanAirForumBrand {
   const CleanAirForumBrand._();
 
-  /// "Vibrant sky blue" — matches the Africa Clean Air Network palette.
-  static const Color skyBlue = Color(0xFF1E9BE0);
-
-  /// "Nature green" — matches the Africa Clean Air Network palette.
-  static const Color natureGreen = Color(0xFF2FA84F);
-
-  /// Deep teal used for the filter card's bottom scrim, matching the Figma
-  /// "AQ/CAF" template.
+  /// Deep teal used for the filter card's bottom scrim (default option).
   static const Color scrimTeal = Color(0xFF005257);
 
-  /// Text color for the "Shared from the AirQo app" pill/caption, matching
-  /// the Figma template exactly (distinct from [scrimTeal]).
+  /// Text color for the "Shared from the AirQo app" pill/caption.
   static const Color sharedCaptionText = Color(0xFF1F3D3D);
+}
 
-  /// Wordmark shown top-left on the selfie filter card.
-  static const String title = 'Africa Clean Air Forum';
+/// Selectable bottom-scrim colors for the selfie filter overlay.
+enum FilterScrimColor {
+  teal('Teal', Color(0xFF005257)),
+  airqoBlue('AirQo blue', Color(0xFF145FFF)),
+  pink('Pink', Color(0xFFE8538F));
 
-  /// Host city + year shown under the [title] wordmark.
-  static const String edition = 'Pretoria 2026';
+  final String label;
+  final Color color;
 
-  /// Event date range shown in the corner of the filter card.
-  static const String dateRange = '13TH-16TH JULY';
+  const FilterScrimColor(this.label, this.color);
+}
+
+/// Formats the timestamp shown on the filter card, e.g. "5 Aug 2026 · 7:33 PM".
+String formatFilterTimestamp(DateTime dateTime) {
+  return DateFormat('d MMM yyyy · h:mm a').format(dateTime);
 }
 
 /// Reference canvas width the Figma "AQ/CAF" templates were designed at.
@@ -68,66 +68,98 @@ class AirQoIconMark extends StatelessWidget {
   }
 }
 
-/// AirQo icon + [CleanAirForumBrand.title] wordmark lockup shown top-left on the
-/// selfie filter card: logo mark, a vertical divider, then the title/edition
-/// text — matches the Figma "AQ/CAF" header exactly (node 169:538).
+/// AirQo icon shown top-left on the selfie filter card.
 ///
 /// [scale] is the card's rendered width divided by [kCafReferenceWidth];
 /// every size below is a Figma design pixel value multiplied by it.
-class CleanAirForumBrandHeader extends StatelessWidget {
+class AirQoFilterHeader extends StatelessWidget {
   final double scale;
 
-  const CleanAirForumBrandHeader({super.key, required this.scale});
+  const AirQoFilterHeader({super.key, required this.scale});
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = 143.38 * scale;
-    final gap = 17 * scale;
-    final dividerWidth = (4 * scale).clamp(1.0, double.infinity);
-    final dividerHeight = 98 * scale;
-    final titleFontSize = 35.974 * scale;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: AirQoIconMark(size: 143.38 * scale),
+    );
+  }
+}
 
+/// Horizontal row of scrim color swatches for filter personalization.
+class FilterScrimColorPicker extends StatelessWidget {
+  final FilterScrimColor selected;
+  final ValueChanged<FilterScrimColor> onSelected;
+
+  const FilterScrimColorPicker({
+    super.key,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        AirQoIconMark(size: iconSize),
-        SizedBox(width: gap),
-        Container(width: dividerWidth, height: dividerHeight, color: Colors.white),
-        SizedBox(width: gap),
-        Flexible(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                CleanAirForumBrand.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: titleFontSize,
-                  height: 1.1,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (CleanAirForumBrand.edition.isNotEmpty)
-                Text(
-                  CleanAirForumBrand.edition,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: titleFontSize,
-                    height: 1.1,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-            ],
+        for (final option in FilterScrimColor.values) ...[
+          if (option != FilterScrimColor.values.first) const SizedBox(width: 12),
+          _ScrimSwatch(
+            color: option.color,
+            selected: selected == option,
+            onTap: () => onSelected(option),
           ),
-        ),
+        ],
       ],
+    );
+  }
+}
+
+class _ScrimSwatch extends StatelessWidget {
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ScrimSwatch({
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Filter color',
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            border: Border.all(
+              color: selected ? Colors.white : Colors.transparent,
+              width: 2,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.5),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
+          ),
+          child: selected
+              ? const Icon(Icons.check, color: Colors.white, size: 18)
+              : null,
+        ),
+      ),
     );
   }
 }

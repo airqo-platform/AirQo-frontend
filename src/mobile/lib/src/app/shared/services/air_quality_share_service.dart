@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
 
 class AirQualityShareService {
@@ -45,7 +46,7 @@ class AirQualityShareService {
     );
   }
 
-  /// Shares the composited selfie + Clean Air Forum branded card.
+  /// Shares the composited selfie + AirQo filter card.
   static Future<ShareResult> shareCleanAirForumFilter(
     Uint8List imageBytes,
     Measurement measurement, {
@@ -58,13 +59,39 @@ class AirQualityShareService {
 
     return _shareImage(
       imageBytes,
-      fileName: 'clean-air-forum-filter.png',
-      text: "I'm checking the air quality in $locationName with AirQo at "
-          'the Clean Air Forum! 🌍💨\n\n'
+      fileName: 'airqo-selfie-filter.png',
+      text: "I'm checking the air quality in $locationName with AirQo! 🌍💨\n\n"
           'Join me on the app here: $appLink',
-      subject: 'Clean Air Forum x AirQo',
+      subject: 'Air quality selfie from AirQo',
       sharePositionOrigin: sharePositionOrigin,
     );
+  }
+
+  /// Saves the composited selfie filter directly to the device photo library.
+  ///
+  /// Throws [GallerySaveException] when permission is denied or the save fails.
+  static Future<void> saveFilterToGallery(Uint8List imageBytes) async {
+    final hasAccess = await Gal.hasAccess(toAlbum: true);
+    if (!hasAccess) {
+      final granted = await Gal.requestAccess(toAlbum: true);
+      if (!granted) {
+        throw GallerySaveException.permissionDenied();
+      }
+    }
+
+    try {
+      await Gal.putImageBytes(
+        imageBytes,
+        name: 'airqo-selfie-filter-${DateTime.now().millisecondsSinceEpoch}',
+      );
+    } on GalException catch (e) {
+      if (e.type == GalExceptionType.accessDenied) {
+        throw GallerySaveException.permissionDenied();
+      }
+      throw GallerySaveException.failed();
+    } catch (_) {
+      throw GallerySaveException.failed();
+    }
   }
 
   /// Shares the transparent branding sticker meant to be pasted onto an
@@ -75,9 +102,9 @@ class AirQualityShareService {
   }) {
     return _shareImage(
       imageBytes,
-      fileName: 'clean-air-forum-sticker.png',
-      text: 'Add this to your Instagram Story! 🌍💨 #CleanAirForum #AirQo',
-      subject: 'Clean Air Forum x AirQo',
+      fileName: 'airqo-sticker.png',
+      text: 'Add this to your Instagram Story! 🌍💨 #AirQo',
+      subject: 'Air quality sticker from AirQo',
       sharePositionOrigin: sharePositionOrigin,
     );
   }
@@ -153,4 +180,18 @@ class AirQualityShareService {
 
     return parts.join(', ');
   }
+}
+
+enum GallerySaveFailure { permissionDenied, failed }
+
+class GallerySaveException implements Exception {
+  final GallerySaveFailure kind;
+
+  const GallerySaveException._(this.kind);
+
+  factory GallerySaveException.permissionDenied() =>
+      const GallerySaveException._(GallerySaveFailure.permissionDenied);
+
+  factory GallerySaveException.failed() =>
+      const GallerySaveException._(GallerySaveFailure.failed);
 }
