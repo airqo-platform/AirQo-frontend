@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -18,6 +19,7 @@ class ForecastHourlySection extends StatelessWidget {
   final bool onInsetPanel;
   final int selectedHourIndex;
   final ValueChanged<int>? onHourSelected;
+  final bool skipCurrentHour;
 
   const ForecastHourlySection({
     super.key,
@@ -30,6 +32,7 @@ class ForecastHourlySection extends StatelessWidget {
     this.onInsetPanel = false,
     this.selectedHourIndex = 0,
     this.onHourSelected,
+    this.skipCurrentHour = false,
   });
 
   @override
@@ -49,8 +52,8 @@ class ForecastHourlySection extends StatelessWidget {
               itemCount: 8,
               itemBuilder: (_, i) => Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: ShimmerContainer(
-                    width: 64, height: 100, borderRadius: 12),
+                child:
+                    ShimmerContainer(width: 64, height: 100, borderRadius: 12),
               ),
             ),
           )
@@ -64,6 +67,7 @@ class ForecastHourlySection extends StatelessWidget {
             onInsetPanel: onInsetPanel,
             selectedHourIndex: selectedHourIndex,
             onHourSelected: onHourSelected,
+            skipCurrentHour: skipCurrentHour,
           ),
       ],
     );
@@ -92,8 +96,8 @@ class _ErrorRow extends StatelessWidget {
           Expanded(
             child: Text(
               'Hourly data unavailable',
-              style: TextStyle(
-                  fontSize: 13, color: AppTextColors.muted(context)),
+              style:
+                  TextStyle(fontSize: 13, color: AppTextColors.muted(context)),
             ),
           ),
           TextButton(
@@ -115,6 +119,7 @@ class _HourlyList extends StatelessWidget {
   final bool onInsetPanel;
   final int selectedHourIndex;
   final ValueChanged<int>? onHourSelected;
+  final bool skipCurrentHour;
 
   const _HourlyList({
     required this.hourlyResponse,
@@ -123,6 +128,7 @@ class _HourlyList extends StatelessWidget {
     this.onInsetPanel = false,
     required this.selectedHourIndex,
     this.onHourSelected,
+    this.skipCurrentHour = false,
   });
 
   Color _surfaceColor(BuildContext context) => onInsetPanel
@@ -131,12 +137,13 @@ class _HourlyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedDateStr =
-        DateFormat('yyyy-MM-dd').format(selectedDate.toLocal());
-    final dayEntries = hourlyResponse.forecasts
-        .where((e) =>
-            DateFormat('yyyy-MM-dd').format(e.time.toLocal()) == selectedDateStr)
-        .toList();
+    final now = DateTime.now();
+    final dayEntries = hourlyEntriesForDate(
+      hourlyResponse,
+      selectedDate,
+      skipCurrentHour: skipCurrentHour,
+      now: now,
+    );
 
     if (dayEntries.isEmpty) {
       return Container(
@@ -153,16 +160,14 @@ class _HourlyList extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'No hourly data available for this day.',
-              style: TextStyle(
-                  fontSize: 13, color: AppTextColors.muted(context)),
+              style:
+                  TextStyle(fontSize: 13, color: AppTextColors.muted(context)),
             ),
           ],
         ),
       );
     }
 
-    final now = DateTime.now();
-    final nowStr = DateFormat('yyyy-MM-dd').format(now);
     return SizedBox(
       height: 100,
       child: ListView.builder(
@@ -170,10 +175,13 @@ class _HourlyList extends StatelessWidget {
         itemCount: dayEntries.length,
         itemBuilder: (context, i) {
           final entry = dayEntries[i];
+          final entryTime = entry.time.toLocal();
           final isNow = entry.time.toLocal().hour == now.hour &&
-              selectedDateStr == nowStr;
+              entryTime.year == now.year &&
+              entryTime.month == now.month &&
+              entryTime.day == now.day;
           final isSelected = onHourSelected != null
-              ? i == selectedHourIndex.clamp(0, dayEntries.length - 1)
+              ? i == selectedHourIndex.clamp(0, dayEntries.length - 1).toInt()
               : isNow;
           return _HourlyChip(
             entry: entry,
