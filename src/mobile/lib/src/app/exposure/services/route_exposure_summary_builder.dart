@@ -72,9 +72,8 @@ class RouteExposureSummaryBuilder {
       exposureLevel: exposureLevel,
       headline: _headlineFor(exposureLevel),
       guidance: _guidanceFor(exposureLevel, origin.name, destination.name),
-      highestSiteName: highestMeasurement?.siteDetails?.name ??
-          highestMeasurement?.siteId ??
-          (nearbySites.isNotEmpty ? nearbySites.first.name : null),
+      highestSiteName:
+          highestMeasurement?.siteDetails?.name ?? highestMeasurement?.siteId,
     );
   }
 

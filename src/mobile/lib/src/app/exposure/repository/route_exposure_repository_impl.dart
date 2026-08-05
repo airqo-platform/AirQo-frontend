@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class RouteExposureRepositoryImpl implements RouteExposureRepository {
+  static const Duration _requestTimeout = Duration(seconds: 15);
+
   RouteExposureRepositoryImpl({
     http.Client? httpClient,
     RouteExposureSummaryBuilder? summaryBuilder,
@@ -85,7 +88,10 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       'key': apiKey,
     });
 
-    final response = await _httpClient.get(uri);
+    final response = await _withRequestTimeout(
+      _httpClient.get(uri),
+      'Trip directions request timed out.',
+    );
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch trip directions.');
     }
@@ -135,19 +141,22 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     required List<_RoutePoint> routePoints,
     required double radiusKm,
   }) async {
-    final response = await _httpClient.post(
-      Uri.parse(
-          '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/nearest-locations'),
-      headers: await _getAuthHeaders(),
-      body: jsonEncode({
-        'polyline': routePoints
-            .map((point) => {
-                  'lat': point.lat,
-                  'lng': point.lng,
-                })
-            .toList(),
-        'radius': radiusKm,
-      }),
+    final response = await _withRequestTimeout(
+      _httpClient.post(
+        Uri.parse(
+            '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/nearest-locations'),
+        headers: await _getAuthHeaders(),
+        body: jsonEncode({
+          'polyline': routePoints
+              .map((point) => {
+                    'lat': point.lat,
+                    'lng': point.lng,
+                  })
+              .toList(),
+          'radius': radiusKm,
+        }),
+      ),
+      'Route monitoring locations request timed out.',
     );
 
     if (response.statusCode != 200) {
@@ -196,8 +205,10 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       },
     );
 
-    final response =
-        await _httpClient.get(uri, headers: await _getAuthHeaders());
+    final response = await _withRequestTimeout(
+      _httpClient.get(uri, headers: await _getAuthHeaders()),
+      'Route measurements request timed out.',
+    );
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch route measurements.');
     }
@@ -240,6 +251,17 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       headers['Authorization'] = 'JWT $appToken';
     }
     return headers;
+  }
+
+  Future<http.Response> _withRequestTimeout(
+    Future<http.Response> request,
+    String timeoutMessage,
+  ) async {
+    try {
+      return await request.timeout(_requestTimeout);
+    } on TimeoutException {
+      throw Exception(timeoutMessage);
+    }
   }
 
   List<_RoutePoint> _decodePolyline(String encoded) {

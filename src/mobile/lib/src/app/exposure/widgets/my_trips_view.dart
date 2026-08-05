@@ -84,6 +84,7 @@ class _MyTripsViewState extends State<MyTripsView> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _summary = null;
     });
 
     try {
@@ -158,6 +159,8 @@ class _MyTripsViewState extends State<MyTripsView> {
           onOriginChanged: (value) {
             setState(() {
               _originId = value;
+              _summary = null;
+              _errorMessage = null;
               if (_destinationId == value) {
                 _destinationId =
                     sites.firstWhere((site) => site.id != value).id;
@@ -167,6 +170,8 @@ class _MyTripsViewState extends State<MyTripsView> {
           onDestinationChanged: (value) {
             setState(() {
               _destinationId = value;
+              _summary = null;
+              _errorMessage = null;
             });
           },
           onSwap: () {
@@ -174,6 +179,8 @@ class _MyTripsViewState extends State<MyTripsView> {
               final currentOrigin = _originId;
               _originId = _destinationId;
               _destinationId = currentOrigin;
+              _summary = null;
+              _errorMessage = null;
             });
           },
           onAnalyze: _loadTripExposure,
@@ -564,13 +571,16 @@ class _TripMessageCard extends StatelessWidget {
 class _RouteExposureRepositoryFactory implements RouteExposureRepository {
   const _RouteExposureRepositoryFactory();
 
+  static final RouteExposureRepositoryImpl _delegate =
+      RouteExposureRepositoryImpl();
+
   @override
   Future<RouteExposureSummary> buildTripExposure({
     required SelectedSite origin,
     required SelectedSite destination,
     double radiusKm = 2.5,
   }) {
-    return RouteExposureRepositoryImpl().buildTripExposure(
+    return _delegate.buildTripExposure(
       origin: origin,
       destination: destination,
       radiusKm: radiusKm,
