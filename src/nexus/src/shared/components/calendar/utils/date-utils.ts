@@ -73,14 +73,15 @@ export class DateUtils {
   }
 
   static getCalendarDays(displayMonth: Date): Date[] {
-    const start = startOfWeek(startOfMonth(displayMonth));
-    const end = endOfWeek(endOfMonth(displayMonth));
+    // Weeks start on Monday (weekStartsOn: 1)
+    const start = startOfWeek(startOfMonth(displayMonth), { weekStartsOn: 1 });
+    const end = endOfWeek(endOfMonth(displayMonth), { weekStartsOn: 1 });
 
     return eachDayOfInterval({ start, end });
   }
 
   static getDefaultPresets(): CalendarPreset[] {
-    const today = new Date();
+    const today = startOfDay(new Date());
 
     return [
       {
@@ -100,6 +101,10 @@ export class DateUtils {
         value: { from: subDays(today, 29), to: today },
       },
       {
+        label: 'Last 90 days',
+        value: { from: subDays(today, 89), to: today },
+      },
+      {
         label: 'This month',
         value: { from: startOfMonth(today), to: endOfMonth(today) },
       },
@@ -114,6 +119,13 @@ export class DateUtils {
         label: 'This year',
         value: { from: startOfYear(today), to: endOfYear(today) },
       },
+      {
+        label: 'Last year',
+        value: {
+          from: startOfYear(subMonths(today, 12)),
+          to: endOfYear(subMonths(today, 12)),
+        },
+      },
     ];
   }
 
@@ -122,7 +134,7 @@ export class DateUtils {
   }
 
   static getWeekdays(): string[] {
-    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
   }
 
   static getMonthNames(): string[] {
