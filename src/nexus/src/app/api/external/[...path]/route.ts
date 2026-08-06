@@ -69,10 +69,14 @@ function hasPathTraversal(segments: string[]): boolean {
 }
 
 function isPathAllowed(normalizedPath: string): boolean {
-  const lowerPath = normalizedPath.toLowerCase();
-  return ALLOWED_PATH_PREFIXES.some(prefix =>
-    lowerPath.startsWith(prefix.toLowerCase())
-  );
+  const lowerPath = normalizedPath.replace(/\/+$/, '').toLowerCase();
+  return ALLOWED_PATH_PREFIXES.some(prefix => {
+    const lowerPrefix = prefix.replace(/\/+$/, '').toLowerCase();
+    return (
+      lowerPath === lowerPrefix ||
+      lowerPath.startsWith(`${lowerPrefix}/`)
+    );
+  });
 }
 
 // Paths that may be accessed without a NextAuth session (e.g. the interest
