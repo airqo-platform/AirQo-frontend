@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,6 @@ import { PasswordRequirements } from '@/shared/components/ui/password-requiremen
 import { PASSWORD_MAX } from '@/shared/lib/validation-limits';
 import { useResetPassword } from '@/shared/hooks/useAuth';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useRouter } from 'next/navigation';
 import { LoadingState } from '@/shared/components/ui/loading-state';
