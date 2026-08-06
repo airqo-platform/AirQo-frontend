@@ -16,6 +16,7 @@ import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
 import 'package:airqo/src/app/exposure/widgets/declared_place_card.dart';
 import 'package:airqo/src/app/exposure/widgets/entry_place_card.dart';
+import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
 import 'package:airqo/src/app/exposure/widgets/place_card_tour.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -26,7 +27,6 @@ import 'package:airqo/src/meta/utils/colors.dart';
 /// Empty-state floating chips (SVG, tinted in _FloatingTypeTag).
 const String _kEmptyStateHomeIconAsset = 'assets/icons/home_icon.svg';
 const String _kEmptyStateWorkIconAsset = 'assets/icons/place_type_work_tab.svg';
-
 
 // ---------------------------------------------------------------------------
 
@@ -109,10 +109,13 @@ class _ExposureBodyState extends State<_ExposureBody> {
           final favourites = dashState is DashboardLoaded
               ? (dashState.userPreferences?.selectedSites ?? <SelectedSite>[])
               : <SelectedSite>[];
-          final untagged = favourites.where((s) => !declaredIds.contains(s.id)).toList();
+          final untagged =
+              favourites.where((s) => !declaredIds.contains(s.id)).toList();
 
-          final showEmptyMyPlaces =
-              loaded != null && _myPlacesSelected && declared.isEmpty && untagged.isEmpty;
+          final showEmptyMyPlaces = loaded != null &&
+              _myPlacesSelected &&
+              declared.isEmpty &&
+              untagged.isEmpty;
 
           /// Single "day of view" for cards (weekday vs weekend windows). Replace with
           /// calendar/date-picker state when historical days are supported.
@@ -134,8 +137,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
               ),
               if (!_myPlacesSelected)
                 SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _MyTripsPlaceholder(isDark: Theme.of(context).brightness == Brightness.dark),
+                  child: MyTripsView(savedSites: favourites),
                 )
               else
                 SliverPadding(
@@ -156,14 +158,15 @@ class _ExposureBodyState extends State<_ExposureBody> {
                           // Attach key to first card so the tour can locate it.
                           key: i == 0 ? _firstCardKey : null,
                           place: p,
-                          exposureLevel: avg != null ? ExposureLevelExtension.fromPm25(avg) : null,
+                          exposureLevel: avg != null
+                              ? ExposureLevelExtension.fromPm25(avg)
+                              : null,
                           hourlyReadings: readings,
                           dayOfView: dayOfView,
                         );
                       }),
                       ...untagged.map((s) => EntryPlaceCard(site: s)),
-                      if (showEmptyMyPlaces)
-                        const _EmptyState(),
+                      if (showEmptyMyPlaces) const _EmptyState(),
                     ]),
                   ),
                 ),
@@ -257,7 +260,9 @@ class _ExposurePill extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected
                 ? AppColors.primaryColor
-                : (isDark ? AppColors.darkHighlight : AppColors.dividerColorlight),
+                : (isDark
+                    ? AppColors.darkHighlight
+                    : AppColors.dividerColorlight),
             borderRadius: BorderRadius.circular(30),
           ),
           alignment: Alignment.center,
@@ -272,49 +277,6 @@ class _ExposurePill extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MyTripsPlaceholder extends StatelessWidget {
-  final bool isDark;
-
-  const _MyTripsPlaceholder({required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.route_rounded,
-            size: 48,
-            color: isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'My Trips',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : AppColors.boldHeadlineColor5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Trip-based exposure will show here.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.4,
-              color: isDark ? AppColors.secondaryHeadlineColor2 : AppColors.boldHeadlineColor,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -430,7 +392,9 @@ class _EmptyState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
-                color: isDark ? AppColors.secondaryHeadlineColor2 : AppColors.boldHeadlineColor,
+                color: isDark
+                    ? AppColors.secondaryHeadlineColor2
+                    : AppColors.boldHeadlineColor,
                 height: 1.4,
               ),
             ),
@@ -475,6 +439,7 @@ class _PreviewCard extends StatelessWidget {
   final String name;
   final bool showBadge;
   final bool isDark;
+
   /// Shorter card for the second row (Kawempe) to keep CTA above the fold.
   final bool compact;
 
@@ -680,7 +645,8 @@ class _FloatingTypeTag extends StatelessWidget {
     final borderSide = isActive
         ? BorderSide.none
         : BorderSide(
-            color: isDark ? AppColors.dividerColordark : const Color(0xFFE1E7EC),
+            color:
+                isDark ? AppColors.dividerColordark : const Color(0xFFE1E7EC),
           );
 
     return Material(

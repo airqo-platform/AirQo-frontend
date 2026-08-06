@@ -75,13 +75,30 @@ class ForecastReadingSnapshot {
 
 List<HourlyForecastEntry> hourlyEntriesForDate(
   HourlyForecastResponse? response,
-  DateTime date,
-) {
+  DateTime date, {
+  bool skipCurrentHour = false,
+  DateTime? now,
+}) {
   if (response == null) return [];
   final dateStr = _fmtDate(date.toLocal());
-  return response.forecasts
+  final entries = response.forecasts
       .where((e) => _fmtDate(e.time.toLocal()) == dateStr)
       .toList();
+
+  if (!skipCurrentHour) return entries;
+
+  final currentTime = now ?? DateTime.now();
+  if (dateStr != _fmtDate(currentTime)) return entries;
+
+  final nextHour = DateTime(
+    currentTime.year,
+    currentTime.month,
+    currentTime.day,
+    currentTime.hour,
+  ).add(
+    const Duration(hours: 1),
+  );
+  return entries.where((e) => !e.time.toLocal().isBefore(nextHour)).toList();
 }
 
 String _fmtDate(DateTime dt) {
@@ -90,7 +107,8 @@ String _fmtDate(DateTime dt) {
       '${dt.day.toString().padLeft(2, '0')}';
 }
 
-int defaultHourlyIndex(List<HourlyForecastEntry> entries, DateTime selectedDay) {
+int defaultHourlyIndex(
+    List<HourlyForecastEntry> entries, DateTime selectedDay) {
   if (entries.isEmpty) return 0;
   final now = DateTime.now();
   final todayStr = _fmtDate(now);
