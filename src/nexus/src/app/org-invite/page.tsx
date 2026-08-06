@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import { AqCheckCircle, AqXCircle } from '@airqo/icons-react';
 import { userService } from '@/shared/services/userService';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -111,6 +112,14 @@ const iconVariants = {
     },
   },
 };
+
+export default function OrgInvitePageWrapper() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <OrgInvitePage />
+    </Suspense>
+  );
+}
 
 const OrgInvitePage = () => {
   const searchParams = useSearchParams();
@@ -359,4 +368,4 @@ const OrgInvitePage = () => {
   );
 };
 
-export default OrgInvitePage;
+// Default export handled by OrgInvitePageWrapper above

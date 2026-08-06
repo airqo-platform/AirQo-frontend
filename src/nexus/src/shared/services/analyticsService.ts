@@ -78,14 +78,13 @@ export class AnalyticsService {
     await syncClientSessionToken(this.authenticatedClient);
   }
 
-  // Get chart data - authenticated endpoint
+  // Get chart data - proxied to avoid CORS issues with direct browser-to-API calls
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
-    await this.ensureAuthenticated();
     const response =
-      await this.authenticatedClient.post<AnalyticsChartResponse>(
+      await this.serverClient.post<AnalyticsChartResponse>(
         '/analytics/dashboard/chart/d3/data',
         request,
         { signal }

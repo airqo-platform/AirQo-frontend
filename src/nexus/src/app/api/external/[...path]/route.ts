@@ -12,7 +12,8 @@ const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 
 // Allowlist of upstream paths this proxy is permitted to serve.
 // Derived from an audit of every createServerClient() call site:
-//   analyticsService: /devices/readings/recent, /analytics/data-download
+//   analyticsService: /devices/readings/recent, /analytics/data-download,
+//                     /analytics/dashboard/chart/d3/data
 //   deviceService: /devices/sites/summary, /devices/grids/summary,
 //                  /devices/grids/countries, /devices/readings/map,
 //                  /predict/daily-forecasting, /predict/hourly-forecasting
@@ -24,6 +25,7 @@ const ALLOWED_PATH_PREFIXES = [
   'devices/grids/countries',
   'devices/readings/map',
   'analytics/data-download',
+  'analytics/dashboard/chart/d3/data',
   'predict/daily-forecasting',
   'predict/hourly-forecasting',
   'users/preferences/replace',
@@ -67,10 +69,14 @@ function hasPathTraversal(segments: string[]): boolean {
 }
 
 function isPathAllowed(normalizedPath: string): boolean {
-  const lowerPath = normalizedPath.toLowerCase();
-  return ALLOWED_PATH_PREFIXES.some(prefix =>
-    lowerPath.startsWith(prefix.toLowerCase())
-  );
+  const lowerPath = normalizedPath.replace(/\/+$/, '').toLowerCase();
+  return ALLOWED_PATH_PREFIXES.some(prefix => {
+    const lowerPrefix = prefix.replace(/\/+$/, '').toLowerCase();
+    return (
+      lowerPath === lowerPrefix ||
+      lowerPath.startsWith(`${lowerPrefix}/`)
+    );
+  });
 }
 
 // Paths that may be accessed without a NextAuth session (e.g. the interest

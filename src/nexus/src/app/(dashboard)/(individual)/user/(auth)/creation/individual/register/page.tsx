@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import Link from 'next/link';
@@ -18,8 +19,17 @@ import {
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useRouter } from 'next/navigation';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <RegisterPageContent />
+    </Suspense>
+  );
+}
+
+function RegisterPageContent() {
   const {
     register,
     handleSubmit,
