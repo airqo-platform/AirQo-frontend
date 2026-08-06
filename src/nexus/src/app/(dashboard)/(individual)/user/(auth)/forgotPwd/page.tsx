@@ -13,9 +13,18 @@ import {
 import { EMAIL_MAX } from '@/shared/lib/validation-limits';
 import { useForgotPassword } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 export default function ForgotPwdPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ForgotPwdPageContent />
+    </Suspense>
+  );
+}
+
+function ForgotPwdPageContent() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
 

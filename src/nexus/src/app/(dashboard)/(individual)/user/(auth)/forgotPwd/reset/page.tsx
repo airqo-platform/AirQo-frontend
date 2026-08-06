@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Button, Input } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
@@ -13,8 +14,17 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { useRouter } from 'next/navigation';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 export default function ResetPwdPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ResetPwdPageContent />
+    </Suspense>
+  );
+}
+
+function ResetPwdPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [token, setToken] = useState<string>('');

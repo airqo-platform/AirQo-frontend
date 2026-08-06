@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import SelectedEmailCard from '@/shared/components/auth/SelectedEmailCard';
@@ -18,8 +18,17 @@ import {
   redirectWithReload,
 } from '@/shared/lib/auth-redirect';
 import { CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
   const searchParams = useSearchParams();

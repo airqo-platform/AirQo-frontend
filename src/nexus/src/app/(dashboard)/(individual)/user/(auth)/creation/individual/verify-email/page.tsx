@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Input } from '@/shared/components/ui';
 import Link from 'next/link';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
-const IndividualAccountVerification = () => {
+export default function IndividualAccountVerification() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <IndividualAccountVerificationContent />
+    </Suspense>
+  );
+}
+
+const IndividualAccountVerificationContent = () => {
   const [email, setEmail] = useState('');
 
   useEffect(() => {
@@ -56,4 +65,4 @@ const IndividualAccountVerification = () => {
   );
 };
 
-export default IndividualAccountVerification;
+// Default export is IndividualAccountVerification above

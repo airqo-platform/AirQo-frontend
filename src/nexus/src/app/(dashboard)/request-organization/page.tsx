@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { AqCheckCircle } from '@airqo/icons-react';
 import { countries } from 'countries-list';
 import { useCreateOrganizationRequest } from '@/shared/hooks';
@@ -27,6 +27,7 @@ import {
   EMAIL_MAX,
   USE_CASE_MAX,
 } from '@/shared/lib/validation-limits';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 const ORGANIZATION_TYPES = [
   { value: 'government', label: 'Government' },
@@ -67,7 +68,7 @@ const INITIAL_FORM: FormData = {
   organization_type: 'government',
 };
 
-const RequestOrganizationPage = () => {
+const RequestOrganizationPageContent = () => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {}
@@ -442,4 +443,10 @@ const RequestOrganizationPage = () => {
   );
 };
 
-export default RequestOrganizationPage;
+export default function RequestOrganizationPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <RequestOrganizationPageContent />
+    </Suspense>
+  );
+}
