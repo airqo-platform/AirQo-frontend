@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { deviceService } from '../../../shared/services/deviceService';
 import type {
   MapReadingsResponse,
@@ -83,9 +84,20 @@ export interface UseMapReadingsResult {
 export function useMapReadings(
   cohort_id?: string | null
 ): UseMapReadingsResult {
+  const { data: session, status: sessionStatus } = useSession();
   const normalizedCohortId =
     cohort_id === null ? 'disabled' : (cohort_id ?? 'all');
   const enabled = cohort_id !== null;
+  const sessionUser = session?.user as
+    | { id?: string; _id?: string; email?: string | null }
+    | undefined;
+  const sessionScope =
+    sessionUser?.id ||
+    sessionUser?._id ||
+    sessionUser?.email ||
+    (sessionStatus === 'authenticated' ? 'authenticated' : 'pending');
+  const requestEnabled = enabled && sessionStatus === 'authenticated';
+  const queryScope = `${sessionScope}:${normalizedCohortId}`;
   const autoRetriedKeyRef = useRef<string | null>(null);
 
   const {
@@ -95,7 +107,7 @@ export function useMapReadings(
     error,
     refetch: refetchQuery,
   } = useQuery<MapReading[], Error>({
-    queryKey: ['map', 'readings', normalizedCohortId],
+    queryKey: ['map', 'readings', sessionScope, normalizedCohortId],
     queryFn: async ({ signal }) => {
       const response: MapReadingsResponse =
         await deviceService.getMapReadingsWithToken(
@@ -104,29 +116,32 @@ export function useMapReadings(
         );
       return response.measurements;
     },
-    enabled,
+    enabled: requestEnabled,
     networkMode: 'online',
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    // A map view should always validate its readings when it mounts. Cached
+    // data is still used immediately while the request is in flight.
+    refetchOnMount: 'always',
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 60 * 12,
   });
 
   useEffect(() => {
     autoRetriedKeyRef.current = null;
-  }, [normalizedCohortId]);
+  }, [queryScope]);
 
   useEffect(() => {
-    if (!enabled || !error || !shouldAutoRetryMapReadings(error)) {
+    if (!requestEnabled || !error || !shouldAutoRetryMapReadings(error)) {
       return;
     }
 
-    if (autoRetriedKeyRef.current === normalizedCohortId) {
+    if (autoRetriedKeyRef.current === queryScope) {
       return;
     }
 
-    autoRetriedKeyRef.current = normalizedCohortId;
+    autoRetriedKeyRef.current = queryScope;
 
     const retryTimer = window.setTimeout(() => {
       void refetchQuery();
@@ -135,7 +150,7 @@ export function useMapReadings(
     return () => {
       window.clearTimeout(retryTimer);
     };
-  }, [enabled, error, normalizedCohortId, refetchQuery]);
+  }, [queryScope, error, refetchQuery, requestEnabled]);
 
   const refetch = useCallback(async () => {
     await refetchQuery();
@@ -154,8 +169,13 @@ export function useMapReadings(
 
   return {
     readings,
-    isLoading: isLoading || (readings.length === 0 && isFetching),
-    error: error?.message ?? null,
+    // Keep the map covered until authentication and the first readings
+    // request are both ready. This prevents an initial blank map during the
+    // login/session hand-off.
+    isLoading:
+      sessionStatus === 'loading' ||
+      (requestEnabled && (isLoading || (readings.length === 0 && isFetching))),
+    error: requestEnabled ? (error?.message ?? null) : null,
     refetch,
   };
 }

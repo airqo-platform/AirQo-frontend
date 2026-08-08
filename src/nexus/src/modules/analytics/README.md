@@ -197,8 +197,6 @@ const POLLUTANT_OPTIONS = [
 
 AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at runtime. The values below are historical documentation only; do not use them for classification or display.
 
-Based on WHO guidelines for PM2.5:
-
 - AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at runtime.
 
 ## API Integration

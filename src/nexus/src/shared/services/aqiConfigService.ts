@@ -24,12 +24,15 @@ const validateAqiRangesResponse = (
 ): AqiRangesResponse => {
   const ranges = response?.data?.ranges;
   const responsePollutant = response?.data?.pollutant;
-  const hasExpectedKeys = ranges?.every(
+  const orderedRanges = ranges
+    ? [...ranges].sort((a, b) => a.display_order - b.display_order)
+    : undefined;
+  const hasExpectedKeys = orderedRanges?.every(
     (range, index) => range.key === AQI_RANGE_KEYS[index]
   );
-  const hasValidBoundaries = ranges?.every((range, index) => {
-    const nextRange = ranges[index + 1];
-    const isLastRange = index === ranges.length - 1;
+  const hasValidBoundaries = orderedRanges?.every((range, index) => {
+    const nextRange = orderedRanges[index + 1];
+    const isLastRange = index === orderedRanges.length - 1;
 
     return (
       Number.isFinite(range.min_value) &&
@@ -117,7 +120,6 @@ export class AqiConfigService {
     const response = await client.delete<AqiRangesResponse>(
       '/devices/aqi-ranges',
       {
-        params: { admin_secret: adminSecret },
         data: { admin_secret: adminSecret },
       }
     );

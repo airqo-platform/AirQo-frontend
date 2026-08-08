@@ -42,6 +42,9 @@ const formatDateTime = (value: string) =>
     minute: '2-digit',
   });
 
+const normalizeAqiCategory = (value: string) =>
+  value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
 const SelfiesListContent: React.FC = () => {
   const [aqiFilter, setAqiFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,9 +116,7 @@ const SelfiesListContent: React.FC = () => {
   }, [deleteTarget, triggerDelete]);
 
   if (isLoading) {
-    return (
-      <LoadingState className="min-h-[400px]" text="Loading selfies..." />
-    );
+    return <LoadingState className="min-h-[400px]" text="Loading selfies..." />;
   }
 
   if (isForbiddenError(error)) {
@@ -168,9 +169,13 @@ const SelfiesListContent: React.FC = () => {
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              {aqiConfig?.ranges.find(
-                range => range.label.toLowerCase() === cat.toLowerCase()
-              )?.label || cat}
+              {aqiConfig?.ranges.find(range => {
+                const normalizedCategory = normalizeAqiCategory(cat);
+                return (
+                  normalizeAqiCategory(range.key) === normalizedCategory ||
+                  normalizeAqiCategory(range.label) === normalizedCategory
+                );
+              })?.label || cat}
             </button>
           ))}
         </div>
@@ -202,72 +207,72 @@ const SelfiesListContent: React.FC = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredSelfies.map(selfie => (
             <Card
-                key={selfie._id}
-                className={`group overflow-hidden p-0 transition-shadow hover:shadow-lg ${
-                  selfie.hidden ? 'opacity-60' : ''
-                }`}
+              key={selfie._id}
+              className={`group overflow-hidden p-0 transition-shadow hover:shadow-lg ${
+                selfie.hidden ? 'opacity-60' : ''
+              }`}
+            >
+              <button
+                type="button"
+                className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
+                onClick={() => setSelectedSelfie(selfie)}
+                disabled={isProcessing}
+                aria-label={`View selfie by ${selfie.displayName ?? 'Unknown user'}`}
               >
-                <button
-                  type="button"
-                  className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
-                  onClick={() => setSelectedSelfie(selfie)}
-                  disabled={isProcessing}
-                  aria-label={`View selfie by ${selfie.displayName ?? 'Unknown user'}`}
-                >
-                  <Image
-                    src={selfie.imageUrl}
-                    alt={`Selfie by ${selfie.displayName ?? 'Unknown user'}`}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  {selfie.hidden && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-black">
-                        Hidden
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{selfie.avatarIcon}</span>
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {selfie.displayName ?? 'Unknown user'}
+                <Image
+                  src={selfie.imageUrl}
+                  alt={`Selfie by ${selfie.displayName ?? 'Unknown user'}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {selfie.hidden && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-black">
+                      Hidden
                     </span>
                   </div>
+                )}
+              </button>
 
-                  <p className="text-xs text-muted-foreground truncate">
-                    {selfie.locationName}
-                  </p>
-
-                  <p className="text-[10px] text-muted-foreground">
-                    {formatDateTime(selfie.createdAt)}
-                  </p>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-border">
-                    <Button
-                      variant={selfie.hidden ? 'filled' : 'ghost'}
-                      size="sm"
-                      paddingStyles="h-7 px-2 text-xs"
-                      onClick={() => void handleToggleHide(selfie)}
-                      disabled={isProcessing}
-                    >
-                      {selfie.hidden ? 'Restore' : 'Hide'}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      paddingStyles="h-7 px-2 text-xs"
-                      onClick={() => setDeleteTarget(selfie)}
-                      disabled={isProcessing}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+              <div className="p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{selfie.avatarIcon}</span>
+                  <span className="text-sm font-medium text-foreground truncate">
+                    {selfie.displayName ?? 'Unknown user'}
+                  </span>
                 </div>
-              </Card>
+
+                <p className="text-xs text-muted-foreground truncate">
+                  {selfie.locationName}
+                </p>
+
+                <p className="text-[10px] text-muted-foreground">
+                  {formatDateTime(selfie.createdAt)}
+                </p>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-border">
+                  <Button
+                    variant={selfie.hidden ? 'filled' : 'ghost'}
+                    size="sm"
+                    paddingStyles="h-7 px-2 text-xs"
+                    onClick={() => void handleToggleHide(selfie)}
+                    disabled={isProcessing}
+                  >
+                    {selfie.hidden ? 'Restore' : 'Hide'}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    paddingStyles="h-7 px-2 text-xs"
+                    onClick={() => setDeleteTarget(selfie)}
+                    disabled={isProcessing}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
       )}

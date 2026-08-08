@@ -175,7 +175,19 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
     activeGroupMissingFromFreshGroups;
   useGlobalLoading(isUserDataLoading, { priority: 90 });
 
-  if (isUserDataLoading) return null;
+  if (isUserDataLoading) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center bg-background px-6"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground shadow-sm">
+          Loading your account…
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

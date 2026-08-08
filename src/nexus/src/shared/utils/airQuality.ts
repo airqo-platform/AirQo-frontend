@@ -490,11 +490,18 @@ export const getAirQualityLevel = (
     return 'no-value';
   }
 
-  const range = config.ranges.find(
-    item =>
-      value >= item.min_value &&
-      (item.max_value === null || value <= item.max_value)
+  const orderedRanges = [...config.ranges].sort(
+    (a, b) => a.min_value - b.min_value
   );
+  const range =
+    orderedRanges.find(
+      item =>
+        value >= item.min_value &&
+        (item.max_value === null || value <= item.max_value)
+    ) ??
+    // A valid server configuration may leave small decimal gaps between bands.
+    // Attribute those readings to the closest lower configured band.
+    [...orderedRanges].reverse().find(item => value >= item.min_value);
 
   if (!range) {
     return 'no-value';

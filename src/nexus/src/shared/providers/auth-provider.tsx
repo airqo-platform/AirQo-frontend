@@ -49,7 +49,10 @@ import {
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
 import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
-import { isPublicAuthRoute, isAuthenticatedAccessiblePublicRoute } from '@/shared/lib/public-routes';
+import {
+  isPublicAuthRoute,
+  isAuthenticatedAccessiblePublicRoute,
+} from '@/shared/lib/public-routes';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -140,7 +143,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // group context. The sync completes in a single effect tick (synchronous
   // Redux dispatch), so the overlay flicker is imperceptible.
   const isGroupSyncing = shouldSyncToUserGroup || shouldSyncToRouteOrgGroup;
-  useGlobalLoading(isGroupSyncing, { priority: 80, delayMs: 0 });
+  useGlobalLoading(isGroupSyncing, { priority: 80 });
 
   if (isGroupSyncing) return null;
 
@@ -683,7 +686,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       !isLoggingOut &&
       !hasStartedLogoutRef.current
     ) {
-      logger.warn('Session has no user data (likely expired token), logging out');
+      logger.warn(
+        'Session has no user data (likely expired token), logging out'
+      );
       hasStartedLogoutRef.current = true;
       logout();
     }

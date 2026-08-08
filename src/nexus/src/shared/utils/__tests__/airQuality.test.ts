@@ -118,6 +118,10 @@ describe('airQuality', () => {
       expect(getAirQualityLevel(30, 'pm2_5')).toBe('moderate');
     });
 
+    it('classifies values in decimal gaps using the closest lower band', () => {
+      expect(getAirQualityLevel(9.1005, 'pm2_5')).toBe('good');
+    });
+
     it('defaults to pm2_5 when pollutant is not specified', () => {
       expect(getAirQualityLevel(5)).toBe('good');
     });

@@ -8,6 +8,7 @@ import {
   Input,
   LoadingState,
   PageHeading,
+  Dialog,
   toast,
 } from '@/shared/components/ui';
 import { AccessDenied } from '@/shared/components/AccessDenied';
@@ -29,6 +30,7 @@ const AqiRangesPage: React.FC = () => {
   const [draft, setDraft] = useState<AqiRangeUpdate[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!config) return;
@@ -56,12 +58,25 @@ const AqiRangesPage: React.FC = () => {
 
     for (let index = 0; index < draft.length; index += 1) {
       const range = draft[index];
+      const sourceRange = config?.ranges.find(item => item.key === range.key);
       if (!range.label.trim() || !/^#[0-9a-f]{6}$/i.test(range.color)) {
         return 'Each category needs a label and a valid six-digit hex color.';
       }
 
       if (range.max_value !== null && !Number.isFinite(range.max_value)) {
         return 'Maximum values must be valid numbers or blank for Hazardous.';
+      }
+
+      if (range.max_value !== null && range.max_value < 0) {
+        return 'Maximum values cannot be negative.';
+      }
+
+      if (
+        range.max_value !== null &&
+        sourceRange &&
+        range.max_value <= sourceRange.min_value
+      ) {
+        return `The maximum for ${range.key} must be greater than its minimum (${sourceRange.min_value}).`;
       }
 
       if (index < draft.length - 1 && range.max_value === null) {
@@ -80,7 +95,7 @@ const AqiRangesPage: React.FC = () => {
     }
 
     return null;
-  }, [draft]);
+  }, [config, draft]);
 
   const updateDraft = <K extends keyof AqiRangeUpdate>(
     index: number,
@@ -137,6 +152,11 @@ const AqiRangesPage: React.FC = () => {
       return;
     }
 
+    setIsResetConfirmOpen(true);
+  };
+
+  const handleResetConfirmed = async () => {
+    setIsResetConfirmOpen(false);
     setIsResetting(true);
     try {
       await aqiConfigService.resetAqiRanges(adminSecret.trim());
@@ -180,7 +200,10 @@ const AqiRangesPage: React.FC = () => {
           />
 
           {isLoading && !config ? (
-            <LoadingState className="min-h-[420px]" text="Loading AQI ranges..." />
+            <LoadingState
+              className="min-h-[420px]"
+              text="Loading AQI ranges..."
+            />
           ) : error && !config ? (
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-foreground">
@@ -195,8 +218,8 @@ const AqiRangesPage: React.FC = () => {
               {Boolean(error) && (
                 <Card className="border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                   AQI configuration refresh failed. The form is showing the last
-                  successful configuration; retry before saving if the server has
-                  changed since it was loaded.
+                  successful configuration; retry before saving if the server
+                  has changed since it was loaded.
                 </Card>
               )}
               <Card className="p-5">
@@ -238,7 +261,9 @@ const AqiRangesPage: React.FC = () => {
                               {range.key}
                             </td>
                             <td className="px-5 py-4 text-muted-foreground">
-                              {sourceRange?.min_value ?? '—'}
+                              {index === 0
+                                ? (sourceRange?.min_value ?? '--')
+                                : (draft[index - 1]?.max_value ?? '--')}
                             </td>
                             <td className="px-5 py-4">
                               <Input
@@ -265,7 +290,11 @@ const AqiRangesPage: React.FC = () => {
                                 aria-label={`${range.key} label`}
                                 value={range.label}
                                 onChange={event =>
-                                  updateDraft(index, 'label', event.target.value)
+                                  updateDraft(
+                                    index,
+                                    'label',
+                                    event.target.value
+                                  )
                                 }
                               />
                             </td>
@@ -276,7 +305,11 @@ const AqiRangesPage: React.FC = () => {
                                   type="color"
                                   value={range.color}
                                   onChange={event =>
-                                    updateDraft(index, 'color', event.target.value)
+                                    updateDraft(
+                                      index,
+                                      'color',
+                                      event.target.value
+                                    )
                                   }
                                   className="h-9 w-12 cursor-pointer rounded border border-border bg-transparent p-1"
                                 />
@@ -284,7 +317,11 @@ const AqiRangesPage: React.FC = () => {
                                   aria-label={`${range.key} color`}
                                   value={range.color}
                                   onChange={event =>
-                                    updateDraft(index, 'color', event.target.value)
+                                    updateDraft(
+                                      index,
+                                      'color',
+                                      event.target.value
+                                    )
                                   }
                                 />
                               </div>
@@ -318,7 +355,7 @@ const AqiRangesPage: React.FC = () => {
                       className="border-red-300 text-red-700 hover:bg-red-50"
                       loading={isResetting}
                       disabled={isSaving}
-                      onClick={handleReset}
+                      onClick={() => void handleReset()}
                     >
                       Reset to defaults
                     </Button>
@@ -338,6 +375,31 @@ const AqiRangesPage: React.FC = () => {
                   </p>
                 )}
               </Card>
+              <Dialog
+                isOpen={isResetConfirmOpen}
+                onClose={() => setIsResetConfirmOpen(false)}
+                title="Reset AQI ranges?"
+                subtitle="This affects the shared configuration for every user."
+                size="md"
+                preventBackdropClose
+                ariaLabel="Confirm reset of AQI ranges"
+                primaryAction={{
+                  label: 'Reset all ranges',
+                  variant: 'danger',
+                  loading: isResetting,
+                  onClick: () => void handleResetConfirmed(),
+                }}
+                secondaryAction={{
+                  label: 'Cancel',
+                  onClick: () => setIsResetConfirmOpen(false),
+                }}
+              >
+                <p className="text-sm text-muted-foreground">
+                  This permanently discards all customized AQI boundaries,
+                  labels, and colors and restores the server defaults. The
+                  change cannot be undone.
+                </p>
+              </Dialog>
             </div>
           )}
         </div>

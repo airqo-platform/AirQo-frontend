@@ -18,6 +18,15 @@ import type {
   AqiRangesResponse,
 } from '@/shared/types/aqi';
 
+const isAbortError = (value: unknown): boolean => {
+  if (typeof DOMException !== 'undefined' && value instanceof DOMException) {
+    return value.name === 'AbortError';
+  }
+
+  const error = value as { code?: string; name?: string } | null;
+  return error?.name === 'AbortError' || error?.code === 'ERR_CANCELED';
+};
+
 export const AQI_RANGES_CACHE_KEY = 'config/aqi-ranges';
 
 interface AqiConfigContextValue {
@@ -48,7 +57,7 @@ export function AqiConfigProvider({
     isLoading: swrIsLoading,
     isValidating,
     mutate,
-  } = useSWR<AqiRangesResponse>(
+  } = useSWR<AqiRangesResponse | undefined>(
     enabled ? getAqiRangesCacheKey('pm2_5') : null,
     async () => {
       abortRef.current?.abort();
@@ -57,6 +66,9 @@ export function AqiConfigProvider({
 
       try {
         return await aqiConfigService.getAqiRanges('pm2_5', controller.signal);
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) return undefined;
+        throw fetchError;
       } finally {
         if (abortRef.current === controller) {
           abortRef.current = null;
@@ -77,7 +89,6 @@ export function AqiConfigProvider({
   useEffect(
     () => () => {
       abortRef.current?.abort();
-      setActiveAqiConfig(null);
     },
     []
   );
@@ -112,7 +123,9 @@ export function AqiConfigProvider({
   return (
     <AqiConfigContext.Provider value={value}>
       {children}
-      {enabled && error && !config && <AqiConfigFailure onRetry={mutate} />}
+      {enabled && error && !isAbortError(error) && !config && (
+        <AqiConfigFailure onRetry={mutate} />
+      )}
     </AqiConfigContext.Provider>
   );
 }
@@ -122,13 +135,33 @@ function AqiConfigFailure({
 }: {
   onRetry: () => Promise<AqiRangesResponse | undefined>;
 }) {
+  const retryRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    retryRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !retryRef.current) return;
+      event.preventDefault();
+      retryRef.current.focus();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div
-      role="alert"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="aqi-config-failure-title"
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-background/80 p-6 backdrop-blur-sm"
     >
       <div className="max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
-        <h2 className="text-base font-semibold text-foreground">
+        <h2
+          id="aqi-config-failure-title"
+          className="text-base font-semibold text-foreground"
+        >
           AQI configuration unavailable
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -136,6 +169,7 @@ function AqiConfigFailure({
           configuration service is available.
         </p>
         <button
+          ref={retryRef}
           type="button"
           onClick={() => void onRetry()}
           className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
