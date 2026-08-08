@@ -27,9 +27,9 @@ import {
 // Password validation constants — single source of truth
 // This set defines which special characters are allowed in passwords.
 // It is used by both the Zod regex and the PasswordRequirements checklist.
-export const PASSWORD_SPECIAL_CHARS = '@$!%*?&#^-_+=().,;:~';
+export const PASSWORD_SPECIAL_CHARS = '@#?!$%^&*.,()+_-';
 export const PASSWORD_SPECIAL_CHARS_DISPLAY =
-  '@ $ ! % * ? & # ^ - _ + = ( ) . , ; : ~';
+  '@ # ? ! $ % ^ & * . , ( ) + _ -';
 
 // Escape characters that are metacharacters inside a regex character class: ] \ ^ -
 const escapeCharClass = (s: string) =>

@@ -26,7 +26,6 @@ const IndividualAccountVerificationContent = () => {
 
   return (
     <AuthLayout
-      pageTitle="Verify Email | AirQo"
       heading="Please confirm your email address"
       subtitle="An email with confirmation instructions was sent to"
     >

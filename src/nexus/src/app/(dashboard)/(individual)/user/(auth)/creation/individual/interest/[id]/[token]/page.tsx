@@ -301,7 +301,6 @@ const Page: React.FC = () => {
 
   return (
     <AuthLayout
-      pageTitle="Your interests"
       heading={
         step === 0
           ? 'Email Verified'

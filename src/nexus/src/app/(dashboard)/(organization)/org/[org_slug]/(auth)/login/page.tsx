@@ -127,7 +127,6 @@ export default function OrgLoginPage() {
 
   return (
     <AuthLayout
-      pageTitle="Organization Login"
       heading={`Sign in to ${orgSlug}`}
       subtitle="Use your organization email first, then confirm your password on the next screen."
     >
