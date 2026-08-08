@@ -162,7 +162,6 @@ function RegisterPageContent() {
 
   return (
     <AuthLayout
-      pageTitle="Register"
       heading={'Create your individual account'}
       subtitle={'Access open air quality data and insights across Africa'}
     >

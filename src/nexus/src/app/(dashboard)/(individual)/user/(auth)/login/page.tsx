@@ -129,7 +129,6 @@ function LoginPageContent() {
 
   return (
     <AuthLayout
-      pageTitle="Login"
       heading="Access open air quality data and insights across Africa"
       subtitle="AirQo provides openly available air quality data to support research, policy, and public awareness."
     >

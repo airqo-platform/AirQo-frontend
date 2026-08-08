@@ -1,11 +1,9 @@
 'use client';
 
 import { ReactNode } from 'react';
-import Head from 'next/head';
 import { AqAirQo } from '@airqo/icons-react';
 
 interface AuthLayoutProps {
-  pageTitle: string;
   children: ReactNode;
   heading?: string;
   subtitle?: string;
@@ -17,7 +15,6 @@ interface AuthLayoutProps {
 const Logo = () => <AqAirQo className="h-9 w-14" />;
 
 const AuthLayout = ({
-  pageTitle,
   children,
   heading,
   subtitle,
@@ -26,11 +23,6 @@ const AuthLayout = ({
   subtitleClassName = 'text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium leading-relaxed',
 }: AuthLayoutProps) => (
   <>
-    <Head>
-      <title>{pageTitle}</title>
-      <meta property="og:title" content={pageTitle} key="title" />
-    </Head>
-
     <main className="h-dvh w-full overflow-y-auto overscroll-contain bg-gray-50 px-4 py-4 dark:bg-[#151718] sm:px-6 sm:py-10">
       <div className="flex min-h-full items-center justify-center">
         <section className="w-full max-w-xl rounded-none border-0 bg-transparent px-0 py-4 shadow-none dark:bg-transparent sm:rounded-2xl sm:border sm:border-gray-200 sm:bg-white sm:px-10 sm:py-9 sm:shadow-sm sm:dark:border-gray-700 sm:dark:bg-[#1b1d1e]">
@@ -39,7 +31,7 @@ const AuthLayout = ({
               <Logo />
             </div>
 
-            {(heading || subtitle) && (
+            {(heading || subtitle || microLine) && (
               <div className="space-y-3 text-left">
                 {heading && <h1 className={headingClassName}>{heading}</h1>}
                 {subtitle && <p className={subtitleClassName}>{subtitle}</p>}
