@@ -25,7 +25,6 @@ import { toast } from '@/shared/components/ui/toast';
 import logger from '@/shared/lib/logger';
 import { SWRProvider } from '@/shared/providers/swr-provider';
 import { QueryProvider } from '@/shared/providers/query-provider';
-import { AqiConfigProvider } from '@/shared/providers/aqi-config-provider';
 import SetPasswordPromptDialog from '@/shared/components/auth/SetPasswordPromptDialog';
 import { runClientCacheMaintenance } from '@/shared/lib/clientCache';
 import {
@@ -273,11 +272,7 @@ function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
         scopeKey={cacheScope}
         enablePersistence={enablePersistence}
       >
-        <AqiConfigProvider
-          enabled={status === 'authenticated' && !!session?.user}
-        >
-          {children}
-        </AqiConfigProvider>
+        {children}
       </QueryProvider>
     </SWRProvider>
   );

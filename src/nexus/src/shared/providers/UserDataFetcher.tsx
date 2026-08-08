@@ -23,6 +23,7 @@ import type { User } from '@/shared/types/api';
 import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import logger from '@/shared/lib/logger';
+import { AqiConfigProvider } from '@/shared/providers/aqi-config-provider';
 
 /**
  * Component that automatically fetches and stores user data when authenticated
@@ -176,18 +177,23 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
   useGlobalLoading(isUserDataLoading, { priority: 90 });
 
   if (isUserDataLoading) {
-    return (
-      <div
-        className="flex min-h-screen items-center justify-center bg-background px-6"
-        role="status"
-        aria-live="polite"
-      >
-        <div className="rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground shadow-sm">
-          Loading your account…
-        </div>
-      </div>
-    );
+    // The global loading provider owns the account bootstrap UI. Keep the
+    // page unmounted so sign-in has one consistent loading surface.
+    return null;
   }
 
-  return <>{children}</>;
+  const canLoadAqiConfig = Boolean(
+    status === 'authenticated' &&
+      userId &&
+      data &&
+      !isLoading &&
+      !error &&
+      !activeGroupMissingFromFreshGroups
+  );
+
+  return (
+    <AqiConfigProvider enabled={canLoadAqiConfig}>
+      {children}
+    </AqiConfigProvider>
+  );
 }
