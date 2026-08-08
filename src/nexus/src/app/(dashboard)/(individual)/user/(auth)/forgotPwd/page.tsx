@@ -63,7 +63,6 @@ function ForgotPwdPageContent() {
 
   return (
     <AuthLayout
-      pageTitle="Forgot Password"
       heading="Forgot Your Password?"
       subtitle={
         isSubmitted

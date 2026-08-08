@@ -97,7 +97,6 @@ function ResetPwdPageContent() {
   if (!isTokenValid) {
     return (
       <AuthLayout
-        pageTitle="Reset Password"
         heading="Invalid Reset Link"
         subtitle="The password reset link is invalid or has expired. Please request a new one."
       >
@@ -113,7 +112,6 @@ function ResetPwdPageContent() {
 
   return (
     <AuthLayout
-      pageTitle="Reset Password"
       heading="Reset Your Password"
       subtitle={
         isPasswordReset
