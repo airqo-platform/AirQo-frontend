@@ -105,6 +105,13 @@ const sendToSlack = async (
     return;
   }
 
+  // A missing webhook is a deployment configuration issue, not an application
+  // error. Avoid creating a second failing request to /api/slack/notify.
+  if (!process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL) {
+    log.debug('Slack notifications skipped because no webhook is configured');
+    return;
+  }
+
   // Check if this is a duplicate error
   if (isDuplicate(error)) {
     log.info('Skipping duplicate error notification');

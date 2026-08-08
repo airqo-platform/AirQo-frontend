@@ -1,5 +1,5 @@
-import { ApiClient, createAuthenticatedClient, createOpenClient } from './apiClient';
-import { syncClientSessionToken } from './sessionAuthToken';
+import { ApiClient, createAuthenticatedClient } from './apiClient';
+import { resolveSessionAccessToken } from './sessionAuthToken';
 import { AQI_RANGE_KEYS } from '../types/aqi';
 import type {
   AqiRangesResponse,
@@ -55,18 +55,35 @@ const validateAqiRangesResponse = (
 };
 
 export class AqiConfigService {
-  private readonly openClient: ApiClient;
   private readonly authenticatedClient: ApiClient;
 
   constructor() {
-    this.openClient = createOpenClient();
     this.authenticatedClient = createAuthenticatedClient();
   }
 
+  private async requireAuthenticatedClient(): Promise<ApiClient> {
+    const { fetchSucceeded, token } = await resolveSessionAccessToken();
+    if (!fetchSucceeded) {
+      throw new Error('Unable to verify the current session');
+    }
+    if (!token) {
+      throw new Error('AQI configuration requires an authenticated session');
+    }
+
+    this.authenticatedClient.setAuthToken(token);
+    return this.authenticatedClient;
+  }
+
   async getAqiRanges(signal?: AbortSignal): Promise<AqiRangesResponse> {
-    const response = await this.openClient.get<AqiRangesResponse>(
+    const client = await this.requireAuthenticatedClient();
+    const response = await client.get<AqiRangesResponse>(
       '/devices/aqi-ranges',
-      { signal }
+      {
+        signal,
+        // The provider renders a dedicated retry state for this shared config;
+        // avoid turning an expected unavailable-config state into Slack noise.
+        suppressErrorLogging: true,
+      }
     );
     return validateAqiRangesResponse(
       extractSuccessData(response.data, 'Failed to load AQI ranges')
@@ -76,8 +93,8 @@ export class AqiConfigService {
   async updateAqiRanges(
     payload: UpdateAqiRangesRequest
   ): Promise<AqiRangesResponse> {
-    await syncClientSessionToken(this.authenticatedClient);
-    const response = await this.authenticatedClient.put<AqiRangesResponse>(
+    const client = await this.requireAuthenticatedClient();
+    const response = await client.put<AqiRangesResponse>(
       '/devices/aqi-ranges',
       payload
     );
@@ -85,8 +102,8 @@ export class AqiConfigService {
   }
 
   async resetAqiRanges(adminSecret: string): Promise<AqiRangesResponse> {
-    await syncClientSessionToken(this.authenticatedClient);
-    const response = await this.authenticatedClient.delete<AqiRangesResponse>(
+    const client = await this.requireAuthenticatedClient();
+    const response = await client.delete<AqiRangesResponse>(
       '/devices/aqi-ranges',
       {
         params: { admin_secret: adminSecret },

@@ -21,7 +21,7 @@ import {
 import { useLogout } from '@/shared/hooks/useLogout';
 import type { User } from '@/shared/types/api';
 import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import logger from '@/shared/lib/logger';
 
 /**
@@ -169,13 +169,13 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
   // Note: Preferences are managed entirely by SWR in individual components to prevent loops
   // The Redux preferences store is used for cross-component state sharing, not data fetching
 
-  if (
+  const isUserDataLoading =
     hasStalePersistedUser ||
     (status === 'authenticated' && !!userId && isLoading && !data) ||
-    activeGroupMissingFromFreshGroups
-  ) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+    activeGroupMissingFromFreshGroups;
+  useGlobalLoading(isUserDataLoading, { priority: 90 });
+
+  if (isUserDataLoading) return null;
 
   return <>{children}</>;
 }

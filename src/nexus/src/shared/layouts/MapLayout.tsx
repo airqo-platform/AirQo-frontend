@@ -9,7 +9,7 @@ import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { FeedbackLauncher } from '@/modules/feedback';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { useAppSelector } from '@/shared/hooks/redux';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
 
 interface MainLayoutProps {
@@ -25,11 +25,10 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const theme = useAppSelector(state => state.theme);
   const { isLoggingOut } = useUser();
+  useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
 
   return (
     <>
-      <LoadingOverlay isVisible={isLoggingOut} delayMs={0} />
-
       <div
         className={cn(
           'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',

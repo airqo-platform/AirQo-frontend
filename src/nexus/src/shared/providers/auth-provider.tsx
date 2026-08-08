@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { UserDataFetcher } from './UserDataFetcher';
 import {
   selectActiveGroup,
@@ -139,9 +139,10 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // This prevents dashboard components from making API calls with the wrong
   // group context. The sync completes in a single effect tick (synchronous
   // Redux dispatch), so the overlay flicker is imperceptible.
-  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
-    return <LoadingOverlay delayMs={0} />;
-  }
+  const isGroupSyncing = shouldSyncToUserGroup || shouldSyncToRouteOrgGroup;
+  useGlobalLoading(isGroupSyncing, { priority: 80, delayMs: 0 });
+
+  if (isGroupSyncing) return null;
 
   return <>{children}</>;
 }
@@ -269,7 +270,11 @@ function AuthScopedCacheProviders({ children }: { children: React.ReactNode }) {
         scopeKey={cacheScope}
         enablePersistence={enablePersistence}
       >
-        <AqiConfigProvider>{children}</AqiConfigProvider>
+        <AqiConfigProvider
+          enabled={status === 'authenticated' && !!session?.user}
+        >
+          {children}
+        </AqiConfigProvider>
       </QueryProvider>
     </SWRProvider>
   );
@@ -699,13 +704,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isPublicRoute, logout, isLoggingOut]);
 
-  // While session is being fetched, show a loading overlay with a short delay.
-  // A small delay prevents double-glitch with app/loading.tsx Suspense boundary
-  // that also renders a LoadingOverlay during page transitions.
-  // Exception: For public routes, don't show loading overlay (let them render immediately)
-  if (status === 'loading' && !isPublicRoute) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  const isAuthLoading =
+    !isPublicRoute &&
+    (status === 'loading' ||
+      !session ||
+      (status === 'authenticated' && !session.user));
+  useGlobalLoading(isAuthLoading, { priority: 90 });
 
   // For public routes, allow rendering even if unauthenticated
   if (isPublicRoute) {
@@ -715,9 +719,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   // For protected routes, require authentication with valid user data.
   // A session with user: null indicates an expired/invalid token — show
   // loading overlay while the logout effect above navigates away.
-  if (!session || (status === 'authenticated' && !session.user)) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  if (isAuthLoading) return null;
 
   return (
     <UserDataFetcher>
@@ -734,6 +736,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [bootstrapSession, setBootstrapSession] = useState<
     BackendOAuthSession | null | undefined
   >(isPublicRoute ? null : undefined);
+
+  useGlobalLoading(bootstrapSession === undefined, { priority: 100 });
 
   useEffect(() => {
     runClientCacheMaintenance();
@@ -847,9 +851,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (bootstrapSession === undefined) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  if (bootstrapSession === undefined) return null;
 
   return (
     <SessionProvider

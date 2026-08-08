@@ -12,11 +12,7 @@ import {
 } from '@/shared/components/ui';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { AqRefreshCw05 } from '@airqo/icons-react';
-import { useSWRConfig } from 'swr';
-import {
-  AQI_RANGES_CACHE_KEY,
-  useAqiConfig,
-} from '@/shared/providers/aqi-config-provider';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { aqiConfigService } from '@/shared/services/aqiConfigService';
 import { AQI_RANGE_KEYS, type AqiRangeUpdate } from '@/shared/types/aqi';
 import {
@@ -28,7 +24,6 @@ const EMPTY_SECRET = '';
 
 const AqiRangesPage: React.FC = () => {
   const { config, isLoading, error, refresh } = useAqiConfig();
-  const { mutate } = useSWRConfig();
   const [adminSecret, setAdminSecret] = useState(EMPTY_SECRET);
   const [updatedBy, setUpdatedBy] = useState('');
   const [draft, setDraft] = useState<AqiRangeUpdate[]>([]);
@@ -101,7 +96,7 @@ const AqiRangesPage: React.FC = () => {
 
   const revalidateAfterMutation = async (successMessage: string) => {
     try {
-      await mutate(AQI_RANGES_CACHE_KEY);
+      await refresh();
       toast.success(successMessage);
     } catch {
       toast.success(
