@@ -9,6 +9,8 @@ export const AQI_RANGE_KEYS = [
 
 export type AqiRangeKey = (typeof AQI_RANGE_KEYS)[number];
 
+export type AqiPollutant = 'pm2_5' | 'pm10';
+
 export interface AqiRange {
   key: AqiRangeKey;
   label: string;
@@ -20,6 +22,7 @@ export interface AqiRange {
 }
 
 export interface AqiConfig {
+  pollutant: AqiPollutant;
   standard: string;
   source: string;
   version: string | null;

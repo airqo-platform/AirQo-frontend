@@ -4,6 +4,7 @@ import type {
   FrequencyType,
   PollutantType,
 } from '@/shared/components/charts/types';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 // Air Quality Level type definitions
 export type AirQualityLevel =
@@ -39,6 +40,7 @@ export interface AnalyticsCardProps {
   className?: string;
   showIcon?: boolean;
   selectedPollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
   onClick?: (site: SiteData) => void;
 }
 
@@ -66,6 +68,7 @@ export interface QuickAccessLocationsProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   selectedPollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
   isLoading?: boolean;
   placeholderCount?: number;
   errorMessage?: string | null;

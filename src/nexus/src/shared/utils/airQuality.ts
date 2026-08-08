@@ -24,7 +24,7 @@ import {
 } from '@airqo/icons-react';
 import { HiMinus } from 'react-icons/hi';
 import type { ComponentType } from 'react';
-import type { AqiConfig, AqiRangeKey } from '@/shared/types/aqi';
+import type { AqiConfig, AqiPollutant, AqiRangeKey } from '@/shared/types/aqi';
 
 // ========================================
 // TYPES
@@ -40,7 +40,7 @@ export type AirQualityLevel =
   | 'no-value';
 
 // TODO: Expand to support additional pollutants (no2, o3, co, so2) when needed
-export type PollutantType = 'pm2_5' | 'pm10';
+export type PollutantType = AqiPollutant;
 
 export type StandardsOrganization = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
 
@@ -107,9 +107,18 @@ export const AIR_QUALITY_COLORS: Record<AirQualityLevel, string> = {
 } as Record<AirQualityLevel, string>;
 
 let activeAqiConfig: AqiConfig | null = null;
+const activeAqiConfigs = new Map<PollutantType, AqiConfig>();
 
 export const setActiveAqiConfig = (config: AqiConfig | null): void => {
-  activeAqiConfig = config;
+  if (!config) {
+    activeAqiConfig = null;
+    activeAqiConfigs.clear();
+  } else {
+    activeAqiConfigs.set(config.pollutant, config);
+    if (config.pollutant === 'pm2_5') {
+      activeAqiConfig = config;
+    }
+  }
 
   for (const level of Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
     Exclude<AirQualityLevel, 'no-value'>
@@ -122,6 +131,10 @@ export const setActiveAqiConfig = (config: AqiConfig | null): void => {
 };
 
 export const getActiveAqiConfig = (): AqiConfig | null => activeAqiConfig;
+
+export const getActiveAqiConfigForPollutant = (
+  pollutant: PollutantType
+): AqiConfig | null => activeAqiConfigs.get(pollutant) ?? null;
 
 export const AQI_RANGE_KEY_BY_LEVEL: Record<
   Exclude<AirQualityLevel, 'no-value'>,
@@ -146,9 +159,11 @@ export const getAqiRangeForLevel = (
 export const getAirQualityLevelForRangeKey = (
   key: AqiRangeKey
 ): AirQualityLevel => {
-  const level = (Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
-    Exclude<AirQualityLevel, 'no-value'>
-  >).find(candidate => AQI_RANGE_KEY_BY_LEVEL[candidate] === key);
+  const level = (
+    Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
+      Exclude<AirQualityLevel, 'no-value'>
+    >
+  ).find(candidate => AQI_RANGE_KEY_BY_LEVEL[candidate] === key);
   return level ?? 'no-value';
 };
 
@@ -464,12 +479,9 @@ export const AIR_QUALITY_STANDARDS = WHO_PM25_STANDARDS;
  */
 export const getAirQualityLevel = (
   value: number | null | undefined,
-  _pollutant: PollutantType = 'pm2_5',
-  config: AqiConfig | null = activeAqiConfig
+  pollutant: PollutantType = 'pm2_5',
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(pollutant)
 ): AirQualityLevel => {
-  // Retained for positional API compatibility; the shared endpoint is global
-  // across pollutant types, so classification intentionally ignores it.
-  void _pollutant;
   if (value === null || value === undefined || isNaN(value)) {
     return 'no-value';
   }
@@ -500,7 +512,9 @@ export const getAirQualityColor = (
   level: AirQualityLevel,
   config: AqiConfig | null = activeAqiConfig
 ): string => {
-  return getAqiRangeForLevel(level, config)?.color || AIR_QUALITY_COLORS['no-value'];
+  return (
+    getAqiRangeForLevel(level, config)?.color || AIR_QUALITY_COLORS['no-value']
+  );
 };
 
 /**
@@ -570,7 +584,9 @@ export const getAirQualityLabel = (
   level: AirQualityLevel,
   organization: StandardsOrganization = 'WHO',
   pollutant: 'PM2.5' | 'PM10' = 'PM2.5',
-  config: AqiConfig | null = activeAqiConfig
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(
+    pollutant === 'PM10' ? 'pm10' : 'pm2_5'
+  )
 ): string => {
   const configuredLabel = getAqiRangeForLevel(level, config)?.label;
   if (configuredLabel) return configuredLabel;
@@ -590,7 +606,7 @@ export const getAirQualityInfo = (
   value: number | null | undefined,
   pollutant: PollutantType = 'pm2_5',
   organization: StandardsOrganization = 'WHO',
-  config: AqiConfig | null = activeAqiConfig
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(pollutant)
 ): AirQualityInfo => {
   const level = getAirQualityLevel(value, pollutant, config);
 

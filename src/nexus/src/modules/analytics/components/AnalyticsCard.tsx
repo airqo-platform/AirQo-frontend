@@ -5,13 +5,10 @@ import { usePostHog } from 'posthog-js/react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import type { AnalyticsCardProps } from '../types';
-import {
-  getAirQualityColor,
-  getAirQualityLabel,
-  mapAqiCategoryToLevel,
-} from '../utils';
+import { getAirQualityLabel } from '../utils';
 import { Tooltip } from 'flowbite-react';
 import { getAirQualityIcon, TREND_ICONS } from '@/shared/utils/airQuality';
+import { getAirQualityColor as getSharedAirQualityColor } from '@/shared/utils/airQuality';
 import { getPollutantLabel } from '@/shared/components/charts/utils';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { useResizeObserver } from '@/shared/hooks';
@@ -20,7 +17,14 @@ import { anonymizeSiteData, trackEvent } from '@/shared/utils/analytics';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
-  ({ siteData, className, showIcon = true, selectedPollutant, onClick }) => {
+  ({
+    siteData,
+    className,
+    showIcon = true,
+    selectedPollutant,
+    aqiConfig = null,
+    onClick,
+  }) => {
     const posthog = usePostHog();
     // truncation refs
     const nameRef = useRef<HTMLHeadingElement>(null);
@@ -48,21 +52,25 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
       location,
       value,
       status: rawStatus,
-      aqi_category,
       pollutant,
       trend,
       percentageDifference,
     } = siteData;
 
-    // Prefer the API-provided aqi_category when available and map it to
-    // the internal status keys used by the app. Fall back to existing status.
-    const status = mapAqiCategoryToLevel(aqi_category || rawStatus);
-
-    const statusColor = getAirQualityColor(status);
-    const statusLabel = getAirQualityLabel(status);
+    // `status` is calculated from the selected pollutant's value and ranges.
+    // The API's aqi_category may belong to a different pollutant, so it must
+    // not override the active card status.
+    const status = rawStatus;
 
     // Use selected pollutant for display, fallback to site data pollutant
     const displayPollutant = selectedPollutant || (pollutant as PollutantType);
+    const statusColor = getSharedAirQualityColor(status, aqiConfig);
+    const statusLabel = getAirQualityLabel(
+      status,
+      'WHO',
+      displayPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+      aqiConfig
+    );
 
     const displayName = getSiteDisplayName(siteData);
 

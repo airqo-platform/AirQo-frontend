@@ -16,6 +16,7 @@ import type { AirQualityLevel } from '../airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
 
 const TEST_AQI_CONFIG: AqiConfig = {
+  pollutant: 'pm2_5',
   standard: 'test',
   source: 'test',
   version: null,
@@ -37,7 +38,30 @@ const TEST_AQI_CONFIG: AqiConfig = {
   })),
 };
 
-beforeAll(() => setActiveAqiConfig(TEST_AQI_CONFIG));
+const TEST_PM10_AQI_CONFIG: AqiConfig = {
+  ...TEST_AQI_CONFIG,
+  pollutant: 'pm10',
+  ranges: [
+    ['good', 'Good', 54, '#34C759'],
+    ['moderate', 'Moderate', 154, '#ECAA06'],
+    ['u4sg', 'Unhealthy for Sensitive Groups', 254, '#FF851F'],
+    ['unhealthy', 'Unhealthy', 354, '#F7453C'],
+    ['very_unhealthy', 'Very Unhealthy', 424, '#AC5CD9'],
+    ['hazardous', 'Hazardous', null, '#D95BA3'],
+  ].map(([key, label, max_value, color], index) => ({
+    key: key as AqiConfig['ranges'][number]['key'],
+    label: label as string,
+    min_value: [0, 55, 155, 255, 355, 425][index],
+    max_value: max_value as number | null,
+    color: color as string,
+    display_order: index + 1,
+  })),
+};
+
+beforeAll(() => {
+  setActiveAqiConfig(TEST_AQI_CONFIG);
+  setActiveAqiConfig(TEST_PM10_AQI_CONFIG);
+});
 
 describe('airQuality', () => {
   describe('getAirQualityLevel', () => {
@@ -87,9 +111,11 @@ describe('airQuality', () => {
       expect(getAirQualityLevel(501, 'pm2_5')).toBe('hazardous');
     });
 
-    it('uses the same configured ranges for pollutant views', () => {
+    it('uses pollutant-specific configured ranges', () => {
       expect(getAirQualityLevel(0, 'pm10')).toBe('good');
-      expect(getAirQualityLevel(30, 'pm10')).toBe('moderate');
+      expect(getAirQualityLevel(30, 'pm10')).toBe('good');
+      expect(getAirQualityLevel(60, 'pm10')).toBe('moderate');
+      expect(getAirQualityLevel(30, 'pm2_5')).toBe('moderate');
     });
 
     it('defaults to pm2_5 when pollutant is not specified', () => {
@@ -155,9 +181,9 @@ describe('airQuality', () => {
       } as const;
 
       Object.entries(expected).forEach(([key, level]) => {
-        expect(getAirQualityLevelForRangeKey(key as keyof typeof expected)).toBe(
-          level
-        );
+        expect(
+          getAirQualityLevelForRangeKey(key as keyof typeof expected)
+        ).toBe(level);
         expect(getAirQualityIconForRangeKey(key as keyof typeof expected)).toBe(
           getAirQualityIcon(level)
         );

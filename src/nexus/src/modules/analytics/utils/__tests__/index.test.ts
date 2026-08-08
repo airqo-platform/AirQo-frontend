@@ -21,6 +21,7 @@ import { setActiveAqiConfig } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
 
 const TEST_AQI_CONFIG: AqiConfig = {
+  pollutant: 'pm2_5',
   standard: 'test',
   source: 'test',
   version: null,
@@ -42,7 +43,30 @@ const TEST_AQI_CONFIG: AqiConfig = {
   })),
 };
 
-beforeAll(() => setActiveAqiConfig(TEST_AQI_CONFIG));
+const TEST_PM10_AQI_CONFIG: AqiConfig = {
+  ...TEST_AQI_CONFIG,
+  pollutant: 'pm10',
+  ranges: [
+    ['good', 'Good', 54, '#34C759'],
+    ['moderate', 'Moderate', 154, '#ECAA06'],
+    ['u4sg', 'Unhealthy for Sensitive Groups', 254, '#FF851F'],
+    ['unhealthy', 'Unhealthy', 354, '#F7453C'],
+    ['very_unhealthy', 'Very Unhealthy', 424, '#AC5CD9'],
+    ['hazardous', 'Hazardous', null, '#D95BA3'],
+  ].map(([key, label, max_value, color], index) => ({
+    key: key as AqiConfig['ranges'][number]['key'],
+    label: label as string,
+    min_value: [0, 55, 155, 255, 355, 425][index],
+    max_value: max_value as number | null,
+    color: color as string,
+    display_order: index + 1,
+  })),
+};
+
+beforeAll(() => {
+  setActiveAqiConfig(TEST_AQI_CONFIG);
+  setActiveAqiConfig(TEST_PM10_AQI_CONFIG);
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -165,7 +189,7 @@ describe('getAirQualityLevel', () => {
   });
 
   it('returns moderate for mid-range PM10 values', () => {
-    expect(getAirQualityLevel(10, 'pm10')).toBe('moderate');
+    expect(getAirQualityLevel(60, 'pm10')).toBe('moderate');
   });
 
   it('returns no-value for null value', () => {
@@ -768,7 +792,7 @@ describe('calculateAverageAirQuality', () => {
   });
 
   it('uses provided pollutant parameter for level calculation', () => {
-    const sites = [makeSiteData({ value: 30 })];
+    const sites = [makeSiteData({ value: 60 })];
     const result = calculateAverageAirQuality(sites, 'pm10');
     expect(result.level).toBe('moderate');
   });

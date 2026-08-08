@@ -46,6 +46,7 @@ import { usePostHog } from 'posthog-js/react';
 import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { toast } from '@/shared/components/ui/toast';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -82,6 +83,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     getDefaultDateRange()
   );
   const [dataType, setDataType] = useState<'calibrated' | 'raw'>('calibrated');
+  const { config: selectedAqiConfig } = useAqiConfig(pollutant);
 
   // State for tracking which sites are visible on chart (checked)
   const [visibleSites, setVisibleSites] = useState<Set<string>>(new Set());
@@ -667,6 +669,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
               }}
               frequency={frequency}
               pollutant={pollutant}
+              aqiConfig={selectedAqiConfig}
             />
           </ChartContainer>
         </div>

@@ -19,9 +19,11 @@ import {
   getAirQualityLabel as getSharedAirQualityLabel,
   mapAqiCategoryToLevel as mapSharedAqiCategoryToLevel,
   type PollutantType,
+  type StandardsOrganization,
 } from '@/shared/utils/airQuality';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RecentReading } from '@/shared/types/api';
+import type { AqiConfig } from '@/shared/types/aqi';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 // Re-export shared utilities for convenience
@@ -46,9 +48,10 @@ export {
  */
 export const getAirQualityLevel = (
   value: number | null | undefined,
-  pollutant: string = 'pm2_5'
+  pollutant: string = 'pm2_5',
+  config?: AqiConfig | null
 ): AirQualityLevel => {
-  return getSharedAirQualityLevel(value, pollutant as PollutantType);
+  return getSharedAirQualityLevel(value, pollutant as PollutantType, config);
 };
 
 /**
@@ -83,8 +86,13 @@ export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
  * @param level - Air quality level
  * @returns Human readable label
  */
-export const getAirQualityLabel = (level: AirQualityLevel): string => {
-  return getSharedAirQualityLabel(level);
+export const getAirQualityLabel = (
+  level: AirQualityLevel,
+  organization: StandardsOrganization = 'WHO',
+  pollutant: 'PM2.5' | 'PM10' = 'PM2.5',
+  config?: AqiConfig | null
+): string => {
+  return getSharedAirQualityLabel(level, organization, pollutant, config);
 };
 
 /**
@@ -262,7 +270,8 @@ const getRecentReadingSiteName = (
  */
 export const normalizeRecentReadingsToSiteData = (
   measurements: RecentReading[],
-  activePollutant: 'pm2_5' | 'pm10' = 'pm2_5'
+  activePollutant: 'pm2_5' | 'pm10' = 'pm2_5',
+  aqiConfig?: AqiConfig | null
 ): SiteData[] => {
   if (!measurements || !Array.isArray(measurements)) {
     return [];
@@ -293,7 +302,7 @@ export const normalizeRecentReadingsToSiteData = (
 
     // Get air quality level
     const status = hasPollutantValue
-      ? getAirQualityLevel(value, activePollutant)
+      ? getAirQualityLevel(value, activePollutant, aqiConfig)
       : 'no-value';
 
     return {

@@ -12,18 +12,26 @@ import useSWR from 'swr';
 import { aqiConfigService } from '@/shared/services/aqiConfigService';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { setActiveAqiConfig } from '@/shared/utils/airQuality';
-import type { AqiConfig, AqiRangesResponse } from '@/shared/types/aqi';
+import type {
+  AqiConfig,
+  AqiPollutant,
+  AqiRangesResponse,
+} from '@/shared/types/aqi';
 
 export const AQI_RANGES_CACHE_KEY = 'config/aqi-ranges';
 
 interface AqiConfigContextValue {
   config: AqiConfig | null;
+  enabled: boolean;
   isLoading: boolean;
   error: unknown;
   refresh: () => Promise<AqiRangesResponse | undefined>;
 }
 
 const AqiConfigContext = createContext<AqiConfigContextValue | null>(null);
+
+const getAqiRangesCacheKey = (pollutant: AqiPollutant) =>
+  `${AQI_RANGES_CACHE_KEY}:${pollutant}`;
 
 export function AqiConfigProvider({
   children,
@@ -34,32 +42,37 @@ export function AqiConfigProvider({
 }) {
   const abortRef = useRef<AbortController | null>(null);
   const [activeConfig, setActiveConfig] = useState<AqiConfig | null>(null);
-  const { data, error, isLoading: swrIsLoading, isValidating, mutate } =
-    useSWR<AqiRangesResponse>(
-      enabled ? AQI_RANGES_CACHE_KEY : null,
-      async () => {
-        abortRef.current?.abort();
-        const controller = new AbortController();
-        abortRef.current = controller;
+  const {
+    data,
+    error,
+    isLoading: swrIsLoading,
+    isValidating,
+    mutate,
+  } = useSWR<AqiRangesResponse>(
+    enabled ? getAqiRangesCacheKey('pm2_5') : null,
+    async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-        try {
-          return await aqiConfigService.getAqiRanges(controller.signal);
-        } finally {
-          if (abortRef.current === controller) {
-            abortRef.current = null;
-          }
+      try {
+        return await aqiConfigService.getAqiRanges('pm2_5', controller.signal);
+      } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
         }
-      },
-      {
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false,
-        // The scoped SWR provider discards persisted entries after 30 minutes.
-        // Reuse valid cached configuration instead of refetching on every mount.
-        revalidateIfStale: false,
-        shouldRetryOnError: false,
-        dedupingInterval: 1000 * 60 * 5,
       }
-    );
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      // The scoped SWR provider discards persisted entries after 30 minutes.
+      // Reuse valid cached configuration instead of refetching on every mount.
+      revalidateIfStale: false,
+      shouldRetryOnError: false,
+      dedupingInterval: 1000 * 60 * 5,
+    }
+  );
 
   useEffect(
     () => () => {
@@ -88,6 +101,7 @@ export function AqiConfigProvider({
   const value = useMemo<AqiConfigContextValue>(
     () => ({
       config,
+      enabled,
       isLoading,
       error: enabled ? error : undefined,
       refresh: () => mutate(),
@@ -133,10 +147,54 @@ function AqiConfigFailure({
   );
 }
 
-export const useAqiConfig = (): AqiConfigContextValue => {
+export const useAqiConfig = (
+  pollutant: AqiPollutant = 'pm2_5'
+): AqiConfigContextValue => {
   const context = useContext(AqiConfigContext);
   if (!context) {
     throw new Error('useAqiConfig must be used within AqiConfigProvider');
   }
-  return context;
+  const isDefaultPollutant = pollutant === 'pm2_5';
+  const [activePollutantConfig, setActivePollutantConfig] =
+    useState<AqiConfig | null>(null);
+  const { data, error, isLoading, isValidating, mutate } =
+    useSWR<AqiRangesResponse>(
+      context.enabled && !isDefaultPollutant
+        ? getAqiRangesCacheKey(pollutant)
+        : null,
+      async () => {
+        return await aqiConfigService.getAqiRanges(pollutant);
+      },
+      {
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        revalidateIfStale: false,
+        shouldRetryOnError: false,
+        dedupingInterval: 1000 * 60 * 5,
+      }
+    );
+
+  useEffect(() => {
+    if (!isDefaultPollutant) {
+      const nextConfig = data?.data ?? null;
+      setActiveAqiConfig(nextConfig);
+      setActivePollutantConfig(nextConfig);
+    }
+  }, [data?.data, isDefaultPollutant]);
+
+  if (isDefaultPollutant) return context;
+
+  const hasUnactivatedConfig =
+    Boolean(data?.data) && activePollutantConfig?.pollutant !== pollutant;
+
+  return {
+    // Keep the returned config in lockstep with the registry update above.
+    // This second render prevents consumers from displaying a loaded legend
+    // while markers/cards still classify against the previous pollutant.
+    config: activePollutantConfig ?? data?.data ?? null,
+    enabled: context.enabled,
+    isLoading: isLoading || isValidating || hasUnactivatedConfig,
+    error,
+    refresh: () => mutate(),
+  };
 };

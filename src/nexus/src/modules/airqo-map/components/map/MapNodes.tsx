@@ -9,6 +9,7 @@ import {
 } from '@/shared/utils/airQuality';
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 // ─── Public types ──────────────────────────────────────────────────────────────
 
@@ -81,6 +82,8 @@ interface MapNodesProps {
   isHovered?: boolean;
   className?: string;
   selectedPollutant?: PollutantType;
+  /** AQI bands for the currently selected pollutant. */
+  aqiConfig?: AqiConfig | null;
   /**
    * Rounded to the nearest integer for memo comparison — avoids glitching
    * caused by fractional zoom updates during smooth pan/zoom animations.
@@ -112,6 +115,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   isHovered = false,
   className,
   selectedPollutant = 'pm2_5',
+  aqiConfig = null,
   zoomLevel = 10,
   isTooltipOpen = false,
 }) => {
@@ -151,12 +155,13 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 
     const sortedValues = [...pollutantValues].sort((a, b) => a - b);
     const BestIcon = getAirQualityIcon(
-      getAirQualityLevel(sortedValues[0], selectedPollutant)
+      getAirQualityLevel(sortedValues[0], selectedPollutant, aqiConfig)
     );
     const WorstIcon = getAirQualityIcon(
       getAirQualityLevel(
         sortedValues[sortedValues.length - 1],
-        selectedPollutant
+        selectedPollutant,
+        aqiConfig
       )
     );
 
@@ -171,6 +176,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       <CustomTooltip
         data={cluster}
         selectedPollutant={selectedPollutant}
+        aqiConfig={aqiConfig}
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
       >
@@ -217,11 +223,15 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   if (reading) {
     const pollutantValue =
       selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
-    const level = getAirQualityLevel(pollutantValue, selectedPollutant);
+    const level = getAirQualityLevel(
+      pollutantValue,
+      selectedPollutant,
+      aqiConfig
+    );
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
-    const levelColor = getAirQualityColor(level);
+    const levelColor = getAirQualityColor(level, aqiConfig);
 
     const ariaLabel = `Air quality: ${roundDecimals(pollutantValue, 1)} ${
       selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'
@@ -271,6 +281,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       <CustomTooltip
         data={reading}
         selectedPollutant={selectedPollutant}
+        aqiConfig={aqiConfig}
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
         forceOpen={isTooltipOpen}
@@ -345,6 +356,7 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
     prev.nodeType !== next.nodeType ||
     prev.size !== next.size ||
     prev.selectedPollutant !== next.selectedPollutant ||
+    prev.aqiConfig !== next.aqiConfig ||
     prev.isTooltipOpen !== next.isTooltipOpen
   )
     return false;

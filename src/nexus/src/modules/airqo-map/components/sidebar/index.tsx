@@ -10,6 +10,7 @@ import { LocationDetailsPanel } from './LocationDetailsPanel';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 interface LocationData {
   _id: string;
@@ -35,6 +36,8 @@ interface MapSidebarProps {
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;
   selectedPollutant?: PollutantType;
+  isPollutantLoading?: boolean;
+  aqiConfig?: AqiConfig | null;
   cohort_id?: string;
   isOrganizationFlow?: boolean;
 }
@@ -53,6 +56,8 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onBackToList,
   locationDetailsLoading = false,
   selectedPollutant = 'pm2_5',
+  isPollutantLoading = false,
+  aqiConfig = null,
   cohort_id,
   isOrganizationFlow = false,
 }) => {
@@ -126,6 +131,8 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
             onBack={onBackToList}
             loading={locationDetailsLoading}
             selectedPollutant={selectedPollutant}
+            isPollutantLoading={isPollutantLoading}
+            aqiConfig={aqiConfig}
           />
         </div>
       ) : (

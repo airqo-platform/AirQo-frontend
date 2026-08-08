@@ -2,6 +2,7 @@ import { ApiClient, createAuthenticatedClient } from './apiClient';
 import { resolveSessionAccessToken } from './sessionAuthToken';
 import { AQI_RANGE_KEYS } from '../types/aqi';
 import type {
+  AqiPollutant,
   AqiRangesResponse,
   UpdateAqiRangesRequest,
 } from '../types/aqi';
@@ -18,9 +19,11 @@ const extractSuccessData = <T extends { success?: boolean; message?: string }>(
 };
 
 const validateAqiRangesResponse = (
-  response: AqiRangesResponse
+  response: AqiRangesResponse,
+  requestedPollutant: AqiPollutant
 ): AqiRangesResponse => {
   const ranges = response?.data?.ranges;
+  const responsePollutant = response?.data?.pollutant;
   const hasExpectedKeys = ranges?.every(
     (range, index) => range.key === AQI_RANGE_KEYS[index]
   );
@@ -31,7 +34,9 @@ const validateAqiRangesResponse = (
     return (
       Number.isFinite(range.min_value) &&
       range.min_value >= 0 &&
-      (isLastRange ? range.max_value === null : Number.isFinite(range.max_value)) &&
+      (isLastRange
+        ? range.max_value === null
+        : Number.isFinite(range.max_value)) &&
       (range.max_value === null || range.max_value > range.min_value) &&
       (!nextRange ||
         range.max_value === null ||
@@ -43,6 +48,7 @@ const validateAqiRangesResponse = (
 
   if (
     response?.success !== true ||
+    responsePollutant !== requestedPollutant ||
     !ranges ||
     ranges.length !== AQI_RANGE_KEYS.length ||
     !hasExpectedKeys ||
@@ -74,11 +80,15 @@ export class AqiConfigService {
     return this.authenticatedClient;
   }
 
-  async getAqiRanges(signal?: AbortSignal): Promise<AqiRangesResponse> {
+  async getAqiRanges(
+    pollutant: AqiPollutant = 'pm2_5',
+    signal?: AbortSignal
+  ): Promise<AqiRangesResponse> {
     const client = await this.requireAuthenticatedClient();
     const response = await client.get<AqiRangesResponse>(
       '/devices/aqi-ranges',
       {
+        params: { pollutant },
         signal,
         // The provider renders a dedicated retry state for this shared config;
         // avoid turning an expected unavailable-config state into Slack noise.
@@ -86,7 +96,8 @@ export class AqiConfigService {
       }
     );
     return validateAqiRangesResponse(
-      extractSuccessData(response.data, 'Failed to load AQI ranges')
+      extractSuccessData(response.data, 'Failed to load AQI ranges'),
+      pollutant
     );
   }
 

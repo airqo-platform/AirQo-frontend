@@ -314,12 +314,12 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
     [number, number] | null
   >(null);
   const currentMapStyle = useSelector(selectMapStyle);
-  const { config: aqiConfig } = useAqiConfig();
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   const pollutantType = React.useMemo(
     () => getPollutantType(config.metricColumn),
     [config.metricColumn]
   );
+  const { config: aqiConfig } = useAqiConfig(pollutantType ?? 'pm2_5');
   const points = React.useMemo(
     () => buildMapPoints(rows, config),
     [config, rows]
@@ -376,7 +376,12 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
             .slice()
             .sort((a, b) => a.display_order - b.display_order)
             .map(range =>
-              getAirQualityInfo(range.min_value, pollutantType, 'WHO', aqiConfig)
+              getAirQualityInfo(
+                range.min_value,
+                pollutantType,
+                'WHO',
+                aqiConfig
+              )
             )
         : [],
     [aqiConfig, pollutantType]

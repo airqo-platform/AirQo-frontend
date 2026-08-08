@@ -5,21 +5,23 @@ import { Tooltip } from 'flowbite-react';
 import { IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { cn } from '@/shared/lib/utils';
 import { isMobile } from '@/shared/utils/responsive';
-import {
-  getAirQualityIconForRangeKey,
-  type PollutantType,
-} from '@/shared/utils/airQuality';
-import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { getAirQualityIconForRangeKey } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 interface MapLegendProps {
   className?: string;
   defaultCollapsed?: boolean;
-  pollutant?: PollutantType;
+  config?: AqiConfig | null;
+  isLoading?: boolean;
+  error?: unknown;
 }
 
 export const MapLegend: React.FC<MapLegendProps> = ({
   className,
   defaultCollapsed = false,
+  config = null,
+  isLoading = false,
+  error,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -27,7 +29,6 @@ export const MapLegend: React.FC<MapLegendProps> = ({
     }
     return defaultCollapsed;
   });
-  const { config, isLoading } = useAqiConfig();
   const ranges = [...(config?.ranges ?? [])].sort(
     (a, b) => a.display_order - b.display_order
   );
@@ -91,6 +92,11 @@ export const MapLegend: React.FC<MapLegendProps> = ({
               Loading AQI ranges…
             </p>
           )}
+          {Boolean(error) && !config && (
+            <p className="px-1 py-2 text-xs text-red-600">
+              AQI ranges unavailable for this pollutant.
+            </p>
+          )}
           {ranges.map(range => {
             const IconComponent = getAirQualityIconForRangeKey(range.key);
             return (
@@ -106,8 +112,7 @@ export const MapLegend: React.FC<MapLegendProps> = ({
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {range.min_value}–
-                        {range.max_value === null ? '∞' : range.max_value}{' '}
-                        µg/m³
+                        {range.max_value === null ? '∞' : range.max_value} µg/m³
                       </div>
                     </div>
                   }

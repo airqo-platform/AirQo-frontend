@@ -24,6 +24,7 @@ import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 import { toast } from '@/shared/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -103,6 +104,9 @@ interface EnhancedMapProps {
   onRefreshData?: () => Promise<void>;
   flyToLocation?: { longitude: number; latitude: number; zoom?: number };
   selectedPollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
+  isAqiConfigLoading?: boolean;
+  aqiConfigError?: unknown;
   onPollutantChange?: (pollutant: PollutantType) => void;
   selectionContextKey?: string;
 }
@@ -119,6 +123,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   onRefreshData,
   flyToLocation,
   selectedPollutant = 'pm2_5',
+  aqiConfig = null,
+  isAqiConfigLoading = false,
+  aqiConfigError,
   onPollutantChange,
   selectionContextKey,
 }) => {
@@ -281,13 +288,23 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           latitude: avgLat,
           pointCount: n,
           readings: members,
-          mostCommonLevel: getAirQualityLevel(avgVal, selectedPollutant),
+          mostCommonLevel: getAirQualityLevel(
+            avgVal,
+            selectedPollutant,
+            aqiConfig
+          ),
         });
       }
     }
 
     return { clusters: result, clusterMemberIds: memberIds };
-  }, [airQualityData, clusterZoom, viewState.zoom, selectedPollutant]);
+  }, [
+    airQualityData,
+    aqiConfig,
+    clusterZoom,
+    viewState.zoom,
+    selectedPollutant,
+  ]);
 
   const soloReadings = useMemo(
     () => airQualityData.filter(r => !clusterMemberIds.has(r.id)),
@@ -570,6 +587,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               onHover={handleHover}
               isHovered={hoveredId === cluster.id}
               selectedPollutant={selectedPollutant}
+              aqiConfig={aqiConfig}
               zoomLevel={viewState.zoom}
             />
           </Marker>
@@ -593,6 +611,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               isHovered={hoveredId === reading.id}
               size="md"
               selectedPollutant={selectedPollutant}
+              aqiConfig={aqiConfig}
               isTooltipOpen={pinnedTooltipId === reading.id}
               zoomLevel={viewState.zoom}
             />
@@ -612,7 +631,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       <div className="hidden md:block">
-        <MapLegend pollutant={selectedPollutant} />
+        <MapLegend
+          config={aqiConfig}
+          isLoading={isAqiConfigLoading}
+          error={aqiConfigError}
+        />
       </div>
 
       {onPollutantChange && (
@@ -632,11 +655,13 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       <MapLoadingOverlay
-        isVisible={isLoading || isRefreshing}
+        isVisible={isLoading || isRefreshing || isAqiConfigLoading}
         message={
-          isLoading
-            ? 'Loading air quality data…'
-            : 'Refreshing air quality data…'
+          isAqiConfigLoading
+            ? `Loading ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} ranges…`
+            : isLoading
+              ? 'Loading air quality data…'
+              : 'Refreshing air quality data…'
         }
       />
     </div>
