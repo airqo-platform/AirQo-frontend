@@ -208,7 +208,9 @@ function RegisterPageContent() {
             showPasswordToggle
             maxLength={PASSWORD_MAX}
             containerClassName="mb-2"
-            {...register('password')}
+            {...register('password', {
+              onChange: () => setPasswordCopied(false),
+            })}
           />
 
           <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
