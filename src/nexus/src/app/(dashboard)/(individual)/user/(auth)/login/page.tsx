@@ -132,12 +132,6 @@ function LoginPageContent() {
       pageTitle="Login"
       heading="Access open air quality data and insights across Africa"
       subtitle="AirQo provides openly available air quality data to support research, policy, and public awareness."
-      rightText={
-        <>
-          What you&apos;ve built here is so much better for air pollution
-          monitoring than anything else on the market!
-        </>
-      }
     >
       {step === 'email' ? (
         <form onSubmit={handleContinue} className="w-full space-y-4">

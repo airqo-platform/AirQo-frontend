@@ -82,7 +82,7 @@ function RegisterPageContent() {
       subtitle={'Access open air quality data and insights across Africa'}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        <div className="flex gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex-1">
             <Input
               label="First name"
