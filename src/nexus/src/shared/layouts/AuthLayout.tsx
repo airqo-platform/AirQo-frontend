@@ -31,16 +31,16 @@ const AuthLayout = ({
       <meta property="og:title" content={pageTitle} key="title" />
     </Head>
 
-    <main className="min-h-dvh w-full overflow-y-auto bg-gray-50 px-4 py-6 dark:bg-[#151718] sm:px-6 sm:py-10">
-      <div className="flex min-h-[calc(100dvh-3rem)] items-center justify-center sm:min-h-[calc(100dvh-5rem)]">
-        <section className="w-full max-w-xl rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-sm dark:border-gray-700 dark:bg-[#1b1d1e] sm:px-10 sm:py-9">
+    <main className="h-dvh w-full overflow-y-auto overscroll-contain bg-gray-50 px-4 py-4 dark:bg-[#151718] sm:px-6 sm:py-10">
+      <div className="flex min-h-full items-center justify-center">
+        <section className="w-full max-w-xl rounded-none border-0 bg-transparent px-0 py-4 shadow-none dark:bg-transparent sm:rounded-2xl sm:border sm:border-gray-200 sm:bg-white sm:px-10 sm:py-9 sm:shadow-sm sm:dark:border-gray-700 sm:dark:bg-[#1b1d1e]">
           <div className="mx-auto w-full max-w-[440px] space-y-7 sm:space-y-8">
-            <div className="flex justify-center">
+            <div className="flex justify-start">
               <Logo />
             </div>
 
             {(heading || subtitle) && (
-              <div className="space-y-3 text-center">
+              <div className="space-y-3 text-left">
                 {heading && <h1 className={headingClassName}>{heading}</h1>}
                 {subtitle && <p className={subtitleClassName}>{subtitle}</p>}
                 {microLine && (
