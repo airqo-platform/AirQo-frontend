@@ -29,7 +29,7 @@ import {
 } from 'recharts';
 import type { LegendPayload } from 'recharts';
 import type { ChartSeriesModel, VisualizerChartConfig } from '../types';
-import { AIR_QUALITY_CATEGORY_COLORS } from '../constants';
+import { mapAqiCategoryToLevel, getAirQualityColor } from '@/shared/utils/airQuality';
 import {
   formatColumnLabel,
   formatMeasurementLabel,
@@ -405,9 +405,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     config.seriesColors[key] || primaryPalette[index % primaryPalette.length];
   const getChartPieColor = (label: string, index: number) =>
     config.seriesColors[label] ||
-    AIR_QUALITY_CATEGORY_COLORS[
-      label as keyof typeof AIR_QUALITY_CATEGORY_COLORS
-    ] ||
+    getAirQualityColor(mapAqiCategoryToLevel(label)) ||
     primaryPalette[index % primaryPalette.length];
   const grid = config.showGrid ? (
     <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />

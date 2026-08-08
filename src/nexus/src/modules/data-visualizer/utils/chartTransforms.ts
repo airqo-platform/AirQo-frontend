@@ -1,7 +1,10 @@
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import {
+  getAirQualityColor,
+  getAirQualityInfo,
+  mapAqiCategoryToLevel,
+} from '@/shared/utils/airQuality';
 import {
   getPrimaryColor,
-  AIR_QUALITY_CATEGORY_COLORS,
   MAX_CHART_RENDER_ROWS,
 } from '../constants';
 import type {
@@ -525,7 +528,5 @@ export const getPieSegmentColor = (
   colors: Record<string, string>
 ) =>
   colors[label] ||
-  AIR_QUALITY_CATEGORY_COLORS[
-    label as keyof typeof AIR_QUALITY_CATEGORY_COLORS
-  ] ||
+  getAirQualityColor(mapAqiCategoryToLevel(label)) ||
   getPrimaryColor(index);

@@ -2,15 +2,42 @@ import {
   getAirQualityLevel,
   getAirQualityColor,
   getAirQualityIcon,
+  getAirQualityIconForRangeKey,
+  getAirQualityLevelForRangeKey,
   getAirQualityInfo,
   mapAqiCategoryToLevel,
   getPollutantLabel,
-  POLLUTANT_RANGES,
+  setActiveAqiConfig,
   AQ_STANDARDS,
   REFERENCE_LINES,
   AIR_QUALITY_COLORS,
 } from '../airQuality';
 import type { AirQualityLevel } from '../airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
+
+const TEST_AQI_CONFIG: AqiConfig = {
+  standard: 'test',
+  source: 'test',
+  version: null,
+  effective_from: null,
+  ranges: [
+    ['good', 'Good', 9.1, '#34C759'],
+    ['moderate', 'Moderate', 35.49, '#ECAA06'],
+    ['u4sg', 'Unhealthy for Sensitive Groups', 55.49, '#FF851F'],
+    ['unhealthy', 'Unhealthy', 125.49, '#F7453C'],
+    ['very_unhealthy', 'Very Unhealthy', 225.49, '#AC5CD9'],
+    ['hazardous', 'Hazardous', null, '#D95BA3'],
+  ].map(([key, label, max_value, color], index) => ({
+    key: key as AqiConfig['ranges'][number]['key'],
+    label: label as string,
+    min_value: [0, 9.101, 35.491, 55.491, 125.491, 225.491][index],
+    max_value: max_value as number | null,
+    color: color as string,
+    display_order: index + 1,
+  })),
+};
+
+beforeAll(() => setActiveAqiConfig(TEST_AQI_CONFIG));
 
 describe('airQuality', () => {
   describe('getAirQualityLevel', () => {
@@ -56,20 +83,13 @@ describe('airQuality', () => {
       expect(getAirQualityLevel(230, 'pm2_5')).toBe('hazardous');
     });
 
-    it('returns no-value for invalid (over 500.5) pm2_5', () => {
-      expect(getAirQualityLevel(501, 'pm2_5')).toBe('no-value');
+    it('uses the configured unbounded hazardous range', () => {
+      expect(getAirQualityLevel(501, 'pm2_5')).toBe('hazardous');
     });
 
-    it('works for pm10 with different thresholds', () => {
+    it('uses the same configured ranges for pollutant views', () => {
       expect(getAirQualityLevel(0, 'pm10')).toBe('good');
-      expect(getAirQualityLevel(30, 'pm10')).toBe('good');
-      expect(getAirQualityLevel(60, 'pm10')).toBe('moderate');
-      expect(getAirQualityLevel(160, 'pm10')).toBe(
-        'unhealthy-sensitive-groups'
-      );
-      expect(getAirQualityLevel(260, 'pm10')).toBe('unhealthy');
-      expect(getAirQualityLevel(360, 'pm10')).toBe('very-unhealthy');
-      expect(getAirQualityLevel(430, 'pm10')).toBe('hazardous');
+      expect(getAirQualityLevel(30, 'pm10')).toBe('moderate');
     });
 
     it('defaults to pm2_5 when pollutant is not specified', () => {
@@ -119,6 +139,28 @@ describe('airQuality', () => {
       levels.forEach(level => {
         const iconComponent = getAirQualityIcon(level);
         expect(iconComponent).toBeDefined();
+      });
+    });
+  });
+
+  describe('AQI range icon mapping', () => {
+    it('maps every API range key to its matching AQI icon level', () => {
+      const expected = {
+        good: 'good',
+        moderate: 'moderate',
+        u4sg: 'unhealthy-sensitive-groups',
+        unhealthy: 'unhealthy',
+        very_unhealthy: 'very-unhealthy',
+        hazardous: 'hazardous',
+      } as const;
+
+      Object.entries(expected).forEach(([key, level]) => {
+        expect(getAirQualityLevelForRangeKey(key as keyof typeof expected)).toBe(
+          level
+        );
+        expect(getAirQualityIconForRangeKey(key as keyof typeof expected)).toBe(
+          getAirQualityIcon(level)
+        );
       });
     });
   });
@@ -207,26 +249,10 @@ describe('airQuality', () => {
     });
   });
 
-  describe('POLLUTANT_RANGES', () => {
-    it('pm2_5 has entries', () => {
-      expect(POLLUTANT_RANGES.pm2_5).toBeDefined();
-      expect(Array.isArray(POLLUTANT_RANGES.pm2_5)).toBe(true);
-      expect(POLLUTANT_RANGES.pm2_5.length).toBeGreaterThan(0);
-    });
-
-    it('pm10 has entries', () => {
-      expect(POLLUTANT_RANGES.pm10).toBeDefined();
-      expect(Array.isArray(POLLUTANT_RANGES.pm10)).toBe(true);
-      expect(POLLUTANT_RANGES.pm10.length).toBeGreaterThan(0);
-    });
-
-    it('each entry has limit and category', () => {
-      [...POLLUTANT_RANGES.pm2_5, ...POLLUTANT_RANGES.pm10].forEach(entry => {
-        expect(entry).toHaveProperty('limit');
-        expect(entry).toHaveProperty('category');
-        expect(typeof entry.limit).toBe('number');
-        expect(typeof entry.category).toBe('string');
-      });
+  describe('dynamic AQI configuration', () => {
+    it('uses API-provided labels and colors', () => {
+      expect(getAirQualityInfo(10).label).toBe('Moderate');
+      expect(getAirQualityColor('hazardous')).toBe('#D95BA3');
     });
   });
 

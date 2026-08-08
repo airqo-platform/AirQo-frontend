@@ -25,44 +25,13 @@ import {
   useDeleteSelfie,
 } from '@/modules/selfies';
 import type { Selfie } from '@/shared/types/api';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import {
+  getAirQualityColor,
+  mapAqiCategoryToLevel,
+} from '@/shared/utils/airQuality';
 
 const EVENT_ID = 'clean-air-forum-2026';
-
-const AQI_STYLES: Record<string, { bg: string; text: string }> = {
-  Good: {
-    bg: 'bg-emerald-100 dark:bg-emerald-950/40',
-    text: 'text-emerald-800 dark:text-emerald-300',
-  },
-  Moderate: {
-    bg: 'bg-amber-100 dark:bg-amber-950/40',
-    text: 'text-amber-800 dark:text-amber-300',
-  },
-  'Unhealthy for Sensitive Groups': {
-    bg: 'bg-orange-100 dark:bg-orange-950/40',
-    text: 'text-orange-800 dark:text-orange-300',
-  },
-  Unhealthy: {
-    bg: 'bg-red-100 dark:bg-red-950/40',
-    text: 'text-red-800 dark:text-red-300',
-  },
-  'Very Unhealthy': {
-    bg: 'bg-purple-100 dark:bg-purple-950/40',
-    text: 'text-purple-800 dark:text-purple-300',
-  },
-  Hazardous: {
-    bg: 'bg-rose-100 dark:bg-rose-950/40',
-    text: 'text-rose-800 dark:text-rose-300',
-  },
-};
-
-const AQI_SHORT_LABELS: Record<string, string> = {
-  Good: 'Good',
-  Moderate: 'Moderate',
-  'Unhealthy for Sensitive Groups': 'USG',
-  Unhealthy: 'Unhealthy',
-  'Very Unhealthy': 'V. Unhealthy',
-  Hazardous: 'Hazardous',
-};
 
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString('en-US', {
@@ -73,12 +42,6 @@ const formatDateTime = (value: string) =>
     minute: '2-digit',
   });
 
-const getAqiStyle = (category: string) =>
-  AQI_STYLES[category] || {
-    bg: 'bg-slate-100 dark:bg-slate-950/40',
-    text: 'text-slate-800 dark:text-slate-300',
-  };
-
 const SelfiesListContent: React.FC = () => {
   const [aqiFilter, setAqiFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,6 +49,7 @@ const SelfiesListContent: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Selfie | null>(null);
 
   const { data, error, isLoading, mutate } = useSelfies(EVENT_ID);
+  const { config: aqiConfig } = useAqiConfig();
   const { trigger: triggerHide, isMutating: isHiding } = useHideSelfie();
   const { trigger: triggerUnhide, isMutating: isUnhiding } = useUnhideSelfie();
   const { trigger: triggerDelete, isMutating: isDeleting } = useDeleteSelfie();
@@ -204,7 +168,9 @@ const SelfiesListContent: React.FC = () => {
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              {AQI_SHORT_LABELS[cat] || cat}
+              {aqiConfig?.ranges.find(
+                range => range.label.toLowerCase() === cat.toLowerCase()
+              )?.label || cat}
             </button>
           ))}
         </div>
@@ -341,9 +307,16 @@ const SelfiesListContent: React.FC = () => {
                 )}
                 {selectedSelfie.aqiCategory && (
                   <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      getAqiStyle(selectedSelfie.aqiCategory).bg
-                    } ${getAqiStyle(selectedSelfie.aqiCategory).text}`}
+                    className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={(() => {
+                      const color = getAirQualityColor(
+                        mapAqiCategoryToLevel(selectedSelfie.aqiCategory)
+                      );
+                      return {
+                        color: color || undefined,
+                        backgroundColor: color ? `${color}20` : undefined,
+                      };
+                    })()}
                   >
                     {selectedSelfie.aqiCategory}
                   </span>

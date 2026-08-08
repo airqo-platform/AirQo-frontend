@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import { getAirQualityInfo, getAirQualityColor } from '@/shared/utils/airQuality';
 import { useForecast, type ForecastMode } from '../../hooks/useForecast';
 import { AqCloudOff } from '@airqo/icons-react';
 import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
@@ -69,20 +69,6 @@ function getFullTime(value: string | undefined | null): string {
   });
 }
 
-function getAqiBgClass(category: string | undefined): string {
-  if (!category) return 'bg-gray-50 border-gray-200';
-  const c = category.toLowerCase();
-  if (c.includes('good')) return 'bg-green-50 border-green-200';
-  if (c.includes('moderate')) return 'bg-yellow-50 border-yellow-200';
-  if (c.includes('sensitive') || c.includes('usg'))
-    return 'bg-orange-50 border-orange-200';
-  if (c.includes('unhealthy') && !c.includes('very'))
-    return 'bg-red-50 border-red-200';
-  if (c.includes('very unhealthy')) return 'bg-purple-50 border-purple-200';
-  if (c.includes('hazardous')) return 'bg-pink-50 border-pink-200';
-  return 'bg-gray-50 border-gray-200';
-}
-
 // ── Tab selector ─────────────────────────────────────────────────────────────
 const ModeTabs: React.FC<{
   active: ForecastMode;
@@ -123,7 +109,7 @@ const DailyPill: React.FC<{
 
   const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
   const ForecastIcon = airInfo.icon;
-  const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
+  const aqiColor = getAirQualityColor(airInfo.level);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
@@ -163,8 +149,16 @@ const DailyPill: React.FC<{
           'flex flex-col items-center rounded-xl py-2.5 px-2.5 min-w-[64px] border transition-all duration-200 flex-shrink-0 cursor-default',
           isToday
             ? 'bg-blue-600 border-blue-600 shadow-md'
-            : cn(bgClass, 'hover:shadow-sm')
+            : 'hover:shadow-sm'
         )}
+        style={
+          isToday
+            ? undefined
+            : {
+                backgroundColor: aqiColor ? `${aqiColor}20` : undefined,
+                borderColor: aqiColor || undefined,
+              }
+        }
       >
         {/* Day name */}
         <span
@@ -234,7 +228,7 @@ const HourlyPill: React.FC<{
 
   const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
   const ForecastIcon = airInfo.icon;
-  const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
+  const aqiColor = getAirQualityColor(airInfo.level);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
@@ -272,8 +266,16 @@ const HourlyPill: React.FC<{
           'flex flex-col items-center rounded-xl py-2 px-1.5 min-w-[52px] border transition-all duration-200 flex-shrink-0 cursor-default',
           isFirst
             ? 'bg-blue-600 border-blue-600 shadow-md'
-            : cn(bgClass, 'hover:shadow-sm')
+            : 'hover:shadow-sm'
         )}
+        style={
+          isFirst
+            ? undefined
+            : {
+                backgroundColor: aqiColor ? `${aqiColor}20` : undefined,
+                borderColor: aqiColor || undefined,
+              }
+        }
       >
         {/* Hour */}
         <span

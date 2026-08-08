@@ -5,6 +5,7 @@ import { cn, roundDecimals } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
   getAirQualityIcon,
+  getAirQualityColor,
 } from '@/shared/utils/airQuality';
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
@@ -54,19 +55,6 @@ const ICON_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
   sm: 'w-5 h-5',
   md: 'w-7 h-7',
   lg: 'w-10 h-10',
-};
-
-/**
- * Tailwind classes for AQI level backgrounds.
- * Defined at module scope so they are never re-allocated during render.
- */
-const LEVEL_BG: Record<string, string> = {
-  good: 'bg-green-500',
-  moderate: 'bg-yellow-500',
-  'unhealthy-sensitive-groups': 'bg-orange-500',
-  unhealthy: 'bg-red-500',
-  'very-unhealthy': 'bg-purple-500',
-  hazardous: 'bg-red-900',
 };
 
 /**
@@ -233,7 +221,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
-    const levelBg = LEVEL_BG[level] ?? 'bg-gray-400';
+    const levelColor = getAirQualityColor(level);
 
     const ariaLabel = `Air quality: ${roundDecimals(pollutantValue, 1)} ${
       selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'
@@ -247,9 +235,9 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           className={cn(
             'rounded-full border-2 border-white shadow-sm',
             'flex items-center justify-center font-bold text-white text-xs',
-            sizeClass,
-            levelBg
+            sizeClass
           )}
+          style={{ backgroundColor: levelColor }}
         >
           {roundDecimals(pollutantValue, 0)}
         </div>
@@ -259,9 +247,9 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         <div
           className={cn(
             'rounded-full border-2 border-white shadow-sm',
-            sizeClass,
-            levelBg
+            sizeClass
           )}
+          style={{ backgroundColor: levelColor }}
         />
       );
     } else {

@@ -16,3 +16,4 @@ export { surveyService } from './surveyService';
 export { subscriptionService } from './subscriptionService';
 export { applicationEmailConfigService } from './applicationEmailConfigService';
 export { learnAdminService } from './learnAdminService';
+export { aqiConfigService } from './aqiConfigService';

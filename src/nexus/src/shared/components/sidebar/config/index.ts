@@ -279,6 +279,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqMail04,
       },
       {
+        id: 'system-aqi-ranges',
+        label: 'AQI Ranges',
+        href: '/system/aqi-ranges',
+        icon: AqSettings01,
+      },
+      {
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
@@ -397,6 +403,12 @@ const globalSidebarConfig: NavGroup[] = [
             href: '/system/email-configs',
             description:
               'Maintain admin CC and application email configuration',
+          },
+          {
+            id: 'system-aqi-ranges',
+            label: 'AQI Ranges',
+            href: '/system/aqi-ranges',
+            description: 'Manage the live AQI category boundaries and colors',
           },
           {
             id: 'system-org-requests',

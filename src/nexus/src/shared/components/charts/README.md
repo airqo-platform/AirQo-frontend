@@ -324,12 +324,8 @@ const { optimizedData, isOptimizing, optimizeData } = useChartPerformance({
 
 Built-in support for WHO Air Quality Guidelines:
 
-- **Good**: 0-12 µg/m³ (Green)
-- **Moderate**: 12-35 µg/m³ (Yellow)
-- **Unhealthy for Sensitive Groups**: 35-55 µg/m³ (Orange)
-- **Unhealthy**: 55-150 µg/m³ (Red)
-- **Very Unhealthy**: 150-250 µg/m³ (Purple)
-- **Hazardous**: 250+ µg/m³ (Maroon)
+- AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at runtime.
+- The Systems → AQI Ranges page can update or reset the active configuration.
 
 ## 📊 Export Features
 
