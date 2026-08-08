@@ -73,9 +73,11 @@ export function GlobalLoadingProvider({
 
   const activeRequest = useMemo(
     () =>
-      Object.values(requests).sort(
-        (left, right) => right.priority - left.priority
-      )[0],
+      Object.values(requests).reduce<LoadingRequest | undefined>(
+        (current, request) =>
+          !current || request.priority > current.priority ? request : current,
+        undefined
+      ),
     [requests]
   );
 

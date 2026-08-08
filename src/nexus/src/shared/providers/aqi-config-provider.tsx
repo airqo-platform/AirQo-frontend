@@ -61,7 +61,13 @@ export function AqiConfigProvider({
       }
     );
 
-  useEffect(() => () => abortRef.current?.abort(), []);
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      setActiveAqiConfig(null);
+    },
+    []
+  );
 
   const fetchedConfig = data?.data ?? null;
 

@@ -111,8 +111,9 @@ let activeAqiConfig: AqiConfig | null = null;
 export const setActiveAqiConfig = (config: AqiConfig | null): void => {
   activeAqiConfig = config;
 
-  for (const level of Object.keys(AQI_RANGE_KEY_BY_LEVEL) as AirQualityLevel[]) {
-    if (level === 'no-value') continue;
+  for (const level of Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
+    Exclude<AirQualityLevel, 'no-value'>
+  >) {
     const range = config?.ranges.find(
       item => item.key === AQI_RANGE_KEY_BY_LEVEL[level]
     );
@@ -463,10 +464,12 @@ export const AIR_QUALITY_STANDARDS = WHO_PM25_STANDARDS;
  */
 export const getAirQualityLevel = (
   value: number | null | undefined,
-  pollutant: PollutantType = 'pm2_5',
+  _pollutant: PollutantType = 'pm2_5',
   config: AqiConfig | null = activeAqiConfig
 ): AirQualityLevel => {
-  void pollutant;
+  // Retained for positional API compatibility; the shared endpoint is global
+  // across pollutant types, so classification intentionally ignores it.
+  void _pollutant;
   if (value === null || value === undefined || isNaN(value)) {
     return 'no-value';
   }
@@ -475,13 +478,11 @@ export const getAirQualityLevel = (
     return 'no-value';
   }
 
-  const range = [...config.ranges]
-    .sort((a, b) => a.display_order - b.display_order)
-    .find(
-      item =>
-        value >= item.min_value &&
-        (item.max_value === null || value <= item.max_value)
-    );
+  const range = config.ranges.find(
+    item =>
+      value >= item.min_value &&
+      (item.max_value === null || value <= item.max_value)
+  );
 
   if (!range) {
     return 'no-value';
