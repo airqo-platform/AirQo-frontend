@@ -17,6 +17,126 @@ import type {
   SiteData,
 } from '../../types';
 import type { RecentReading } from '@/shared/types/api';
+import { setActiveAqiConfig } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
+
+const TEST_AQI_CONFIG: AqiConfig = {
+  pollutant: 'pm2_5',
+  standard: 'test',
+  source: 'test',
+  version: null,
+  effective_from: null,
+  ranges: [
+    {
+      key: 'good',
+      label: 'Good',
+      min_value: 0,
+      max_value: 9.1,
+      color: '#34C759',
+      display_order: 1,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      min_value: 9.101,
+      max_value: 35.49,
+      color: '#ECAA06',
+      display_order: 2,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      min_value: 35.491,
+      max_value: 55.49,
+      color: '#FF851F',
+      display_order: 3,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      min_value: 55.491,
+      max_value: 125.49,
+      color: '#F7453C',
+      display_order: 4,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      min_value: 125.491,
+      max_value: 225.49,
+      color: '#AC5CD9',
+      display_order: 5,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      min_value: 225.491,
+      max_value: null,
+      color: '#D95BA3',
+      display_order: 6,
+    },
+  ],
+};
+
+const TEST_PM10_AQI_CONFIG: AqiConfig = {
+  ...TEST_AQI_CONFIG,
+  pollutant: 'pm10',
+  ranges: [
+    {
+      key: 'good',
+      label: 'Good',
+      min_value: 0,
+      max_value: 54,
+      color: '#34C759',
+      display_order: 1,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      min_value: 55,
+      max_value: 154,
+      color: '#ECAA06',
+      display_order: 2,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      min_value: 155,
+      max_value: 254,
+      color: '#FF851F',
+      display_order: 3,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      min_value: 255,
+      max_value: 354,
+      color: '#F7453C',
+      display_order: 4,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      min_value: 355,
+      max_value: 424,
+      color: '#AC5CD9',
+      display_order: 5,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      min_value: 425,
+      max_value: null,
+      color: '#D95BA3',
+      display_order: 6,
+    },
+  ],
+};
+
+beforeAll(() => {
+  setActiveAqiConfig(TEST_AQI_CONFIG);
+  setActiveAqiConfig(TEST_PM10_AQI_CONFIG);
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,11 +255,11 @@ describe('getAirQualityLevel', () => {
   });
 
   it('returns good for low PM10 values', () => {
-    expect(getAirQualityLevel(10, 'pm10')).toBe('good');
+    expect(getAirQualityLevel(0, 'pm10')).toBe('good');
   });
 
   it('returns moderate for mid-range PM10 values', () => {
-    expect(getAirQualityLevel(80, 'pm10')).toBe('moderate');
+    expect(getAirQualityLevel(60, 'pm10')).toBe('moderate');
   });
 
   it('returns no-value for null value', () => {
@@ -742,9 +862,9 @@ describe('calculateAverageAirQuality', () => {
   });
 
   it('uses provided pollutant parameter for level calculation', () => {
-    const sites = [makeSiteData({ value: 30 })];
+    const sites = [makeSiteData({ value: 60 })];
     const result = calculateAverageAirQuality(sites, 'pm10');
-    expect(result.level).toBe('good');
+    expect(result.level).toBe('moderate');
   });
 });
 

@@ -24,6 +24,7 @@ import {
 } from '@airqo/icons-react';
 import { HiMinus } from 'react-icons/hi';
 import type { ComponentType } from 'react';
+import type { AqiConfig, AqiPollutant, AqiRangeKey } from '@/shared/types/aqi';
 
 // ========================================
 // TYPES
@@ -39,7 +40,7 @@ export type AirQualityLevel =
   | 'no-value';
 
 // TODO: Expand to support additional pollutants (no2, o3, co, so2) when needed
-export type PollutantType = 'pm2_5' | 'pm10';
+export type PollutantType = AqiPollutant;
 
 export type StandardsOrganization = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
 
@@ -51,11 +52,6 @@ export interface AirQualityStandard {
   };
   color: string;
   description: string;
-}
-
-export interface PollutantRange {
-  limit: number;
-  category: string;
 }
 
 export interface AirQualityInfo {
@@ -100,41 +96,76 @@ export const TREND_ICONS = {
 // ========================================
 
 export const AIR_QUALITY_COLORS: Record<AirQualityLevel, string> = {
-  good: '#34C759', // green-500
-  moderate: '#ECAA06', // amber-500
-  'unhealthy-sensitive-groups': '#FF851F', // red-500
-  unhealthy: '#F7453C', // violet-500
-  'very-unhealthy': '#AC5CD9', // red-600
-  hazardous: '#D95BA3', // red-900
+  // Populated from /devices/aqi-ranges by AqiConfigProvider.
+  good: '',
+  moderate: '',
+  'unhealthy-sensitive-groups': '',
+  unhealthy: '',
+  'very-unhealthy': '',
+  hazardous: '',
   'no-value': '#6B7280', // gray-500
-} as const;
+} as Record<AirQualityLevel, string>;
 
-// ========================================
-// POLLUTANT RANGES FOR CATEGORIZATION
-// ========================================
+let activeAqiConfig: AqiConfig | null = null;
+const activeAqiConfigs = new Map<PollutantType, AqiConfig>();
 
-export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
-  pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
-    { limit: 225.5, category: 'Hazardous' },
-    { limit: 125.5, category: 'VeryUnhealthy' },
-    { limit: 55.5, category: 'Unhealthy' },
-    { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 9.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  pm10: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 424.1, category: 'Hazardous' },
-    { limit: 354.1, category: 'VeryUnhealthy' },
-    { limit: 254.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  // TODO: Add support for additional pollutants when needed:
-  // no2, o3, co, so2 with their respective ranges
-} as const;
+export const setActiveAqiConfig = (config: AqiConfig | null): void => {
+  if (!config) {
+    activeAqiConfig = null;
+    activeAqiConfigs.clear();
+  } else {
+    activeAqiConfigs.set(config.pollutant, config);
+    if (config.pollutant === 'pm2_5') {
+      activeAqiConfig = config;
+    }
+  }
+
+  for (const level of Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
+    Exclude<AirQualityLevel, 'no-value'>
+  >) {
+    const range = config?.ranges.find(
+      item => item.key === AQI_RANGE_KEY_BY_LEVEL[level]
+    );
+    AIR_QUALITY_COLORS[level] = range?.color ?? '';
+  }
+};
+
+export const getActiveAqiConfig = (): AqiConfig | null => activeAqiConfig;
+
+export const getActiveAqiConfigForPollutant = (
+  pollutant: PollutantType
+): AqiConfig | null => activeAqiConfigs.get(pollutant) ?? null;
+
+export const AQI_RANGE_KEY_BY_LEVEL: Record<
+  Exclude<AirQualityLevel, 'no-value'>,
+  AqiRangeKey
+> = {
+  good: 'good',
+  moderate: 'moderate',
+  'unhealthy-sensitive-groups': 'u4sg',
+  unhealthy: 'unhealthy',
+  'very-unhealthy': 'very_unhealthy',
+  hazardous: 'hazardous',
+};
+
+export const getAqiRangeForLevel = (
+  level: AirQualityLevel,
+  config: AqiConfig | null = activeAqiConfig
+) => {
+  const key = level === 'no-value' ? null : AQI_RANGE_KEY_BY_LEVEL[level];
+  return key ? config?.ranges.find(range => range.key === key) : undefined;
+};
+
+export const getAirQualityLevelForRangeKey = (
+  key: AqiRangeKey
+): AirQualityLevel => {
+  const level = (
+    Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
+      Exclude<AirQualityLevel, 'no-value'>
+    >
+  ).find(candidate => AQI_RANGE_KEY_BY_LEVEL[candidate] === key);
+  return level ?? 'no-value';
+};
 
 // ========================================
 // WHO AIR QUALITY STANDARDS
@@ -448,37 +479,35 @@ export const AIR_QUALITY_STANDARDS = WHO_PM25_STANDARDS;
  */
 export const getAirQualityLevel = (
   value: number | null | undefined,
-  pollutant: PollutantType = 'pm2_5'
+  pollutant: PollutantType = 'pm2_5',
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(pollutant)
 ): AirQualityLevel => {
   if (value === null || value === undefined || isNaN(value)) {
     return 'no-value';
   }
 
-  // Get the ranges for the specified pollutant
-  const pollutantRanges = POLLUTANT_RANGES[pollutant];
-  if (!pollutantRanges) {
+  if (!config) {
     return 'no-value';
   }
 
-  // Find the first range where value is greater than or equal to the limit
-  const range = pollutantRanges.find(r => value >= r.limit);
+  const orderedRanges = [...config.ranges].sort(
+    (a, b) => a.min_value - b.min_value
+  );
+  const range =
+    orderedRanges.find(
+      item =>
+        value >= item.min_value &&
+        (item.max_value === null || value <= item.max_value)
+    ) ??
+    // A valid server configuration may leave small decimal gaps between bands.
+    // Attribute those readings to the closest lower configured band.
+    [...orderedRanges].reverse().find(item => value >= item.min_value);
 
   if (!range) {
     return 'no-value';
   }
 
-  // Map category to air quality level names
-  const levelMapping: Record<string, AirQualityLevel> = {
-    GoodAir: 'good',
-    ModerateAir: 'moderate',
-    UnhealthyForSensitiveGroups: 'unhealthy-sensitive-groups',
-    Unhealthy: 'unhealthy',
-    VeryUnhealthy: 'very-unhealthy',
-    Hazardous: 'hazardous',
-    Invalid: 'no-value',
-  };
-
-  return levelMapping[range.category] || 'no-value';
+  return getAirQualityLevelForRangeKey(range.key);
 };
 
 /**
@@ -486,8 +515,13 @@ export const getAirQualityLevel = (
  * @param level - Air quality level
  * @returns Hex color string
  */
-export const getAirQualityColor = (level: AirQualityLevel): string => {
-  return AIR_QUALITY_COLORS[level] || AIR_QUALITY_COLORS['no-value'];
+export const getAirQualityColor = (
+  level: AirQualityLevel,
+  config: AqiConfig | null = activeAqiConfig
+): string => {
+  return (
+    getAqiRangeForLevel(level, config)?.color || AIR_QUALITY_COLORS['no-value']
+  );
 };
 
 /**
@@ -500,6 +534,9 @@ export const getAirQualityIcon = (
 ): ComponentType<{ className?: string }> => {
   return AIR_QUALITY_ICONS[level] || AIR_QUALITY_ICONS['no-value'];
 };
+
+export const getAirQualityIconForRangeKey = (key: AqiRangeKey) =>
+  getAirQualityIcon(getAirQualityLevelForRangeKey(key));
 
 /**
  * Get air quality threshold data by level using shared standards
@@ -553,8 +590,14 @@ export const getAirQualityThreshold = (
 export const getAirQualityLabel = (
   level: AirQualityLevel,
   organization: StandardsOrganization = 'WHO',
-  pollutant: 'PM2.5' | 'PM10' = 'PM2.5'
+  pollutant: 'PM2.5' | 'PM10' = 'PM2.5',
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(
+    pollutant === 'PM10' ? 'pm10' : 'pm2_5'
+  )
 ): string => {
+  const configuredLabel = getAqiRangeForLevel(level, config)?.label;
+  if (configuredLabel) return configuredLabel;
+
   const threshold = getAirQualityThreshold(level, organization, pollutant);
   return threshold?.level || 'No Data';
 };
@@ -569,9 +612,10 @@ export const getAirQualityLabel = (
 export const getAirQualityInfo = (
   value: number | null | undefined,
   pollutant: PollutantType = 'pm2_5',
-  organization: StandardsOrganization = 'WHO'
+  organization: StandardsOrganization = 'WHO',
+  config: AqiConfig | null = getActiveAqiConfigForPollutant(pollutant)
 ): AirQualityInfo => {
-  const level = getAirQualityLevel(value, pollutant);
+  const level = getAirQualityLevel(value, pollutant, config);
 
   // Map pollutant types to display formats for threshold lookups
   const pollutantDisplayMap: Record<PollutantType, 'PM2.5' | 'PM10'> = {
@@ -584,7 +628,7 @@ export const getAirQualityInfo = (
 
   return {
     level,
-    label: getAirQualityLabel(level, organization, displayType),
+    label: getAirQualityLabel(level, organization, displayType, config),
     icon: getAirQualityIcon(level),
     description: getAirQualityThreshold(level, organization, displayType)
       ?.description,
@@ -601,6 +645,15 @@ export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
   if (!category || typeof category !== 'string') return 'no-value';
 
   const normalized = category.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+  const configuredRange = activeAqiConfig?.ranges.find(
+    range =>
+      range.label.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === normalized ||
+      range.key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === normalized
+  );
+  if (configuredRange) {
+    return getAirQualityLevelForRangeKey(configuredRange.key);
+  }
 
   switch (normalized) {
     case 'good':

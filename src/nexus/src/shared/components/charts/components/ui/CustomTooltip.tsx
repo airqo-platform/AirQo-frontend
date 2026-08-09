@@ -6,12 +6,14 @@ import { cn } from '@/shared/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import { getChartLocationDisplayName } from '../../utils';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 interface CustomTooltipProps extends TooltipData {
   className?: string;
   showAirQualityLevel?: boolean;
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
+  aqiConfig?: AqiConfig | null;
 }
 
 const formatTooltipDate = (
@@ -38,6 +40,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   showAirQualityLevel = true,
   frequency,
   pollutant = 'pm2_5',
+  aqiConfig = null,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -45,7 +48,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
   const primaryData = payload[0];
   const value = primaryData.value as number;
-  const airQualityLevel = getAirQualityInfo(value, pollutant);
+  const airQualityLevel = getAirQualityInfo(value, pollutant, 'WHO', aqiConfig);
   const locationName = getChartLocationDisplayName(primaryData.payload);
 
   return (

@@ -13,25 +13,15 @@ import {
   NEMA_KENYA_PM10_STANDARDS,
   STANDARDS_ORGANIZATIONS,
   REFERENCE_LINES,
-  AIR_QUALITY_ICONS,
 } from '../../constants';
 import { AirQualityStandardsConfig, ChartStandardsType } from '../../types';
 import {
   NEMA_PM25_STANDARDS,
   NEMA_PM10_STANDARDS,
+  getAirQualityColor as getConfiguredAirQualityColor,
+  getAirQualityIcon,
+  mapAqiCategoryToLevel,
 } from '@/shared/utils/airQuality';
-
-// Air quality level colors for consistency
-export const colors = {
-  Invalid: '#C6D1DB',
-  Hazardous: '#D95BA3',
-  VeryUnhealthy: '#AC5CD9',
-  Unhealthy: '#F7453C',
-  UnhealthyForSensitiveGroups: '#FF851F',
-  ModerateAir: '#FFD633',
-  GoodAir: '#34C759',
-  undefined: '#C6D1DB',
-};
 
 interface StandardsDialogProps {
   open: boolean;
@@ -77,33 +67,9 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     }
   }, [currentStandards]);
 
-  // Get the appropriate icon for air quality level
-  const getAirQualityIcon = (level: string) => {
-    // Map level names to air quality level keys
-    const levelKeyMap: Record<string, keyof typeof AIR_QUALITY_ICONS> = {
-      Good: 'good',
-      Moderate: 'moderate',
-      'Unhealthy for Sensitive Groups': 'unhealthy-sensitive-groups',
-      Unhealthy: 'unhealthy',
-      'Very Unhealthy': 'very-unhealthy',
-      Hazardous: 'hazardous',
-    };
-
-    const levelKey = levelKeyMap[level] || 'good';
-    return AIR_QUALITY_ICONS[levelKey];
-  };
-
   // Get color for air quality level
   const getAirQualityColor = (level: string) => {
-    const colorMap: Record<string, string> = {
-      Good: colors.GoodAir,
-      Moderate: colors.ModerateAir,
-      'Unhealthy for Sensitive Groups': colors.UnhealthyForSensitiveGroups,
-      Unhealthy: colors.Unhealthy,
-      'Very Unhealthy': colors.VeryUnhealthy,
-      Hazardous: colors.Hazardous,
-    };
-    return colorMap[level] || colors.GoodAir;
+    return getConfiguredAirQualityColor(mapAqiCategoryToLevel(level));
   };
 
   const getStandardsData = useCallback(() => {
@@ -283,8 +249,9 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
           {/* Enhanced Standards Display */}
           <div className="space-y-3">
             {standards.map((standard: (typeof standards)[0]) => {
-              const IconComponent = getAirQualityIcon(standard.level);
-              const iconColor = getAirQualityColor(standard.level);
+              const standardLevel = mapAqiCategoryToLevel(standard.level);
+              const IconComponent = getAirQualityIcon(standardLevel);
+              const iconColor = getAirQualityColor(standardLevel);
 
               // Get specific values for annual and 24-hour based on WHO 2021, NEMA Uganda, and NEMA Kenya standards
               const getDetailedValues = () => {

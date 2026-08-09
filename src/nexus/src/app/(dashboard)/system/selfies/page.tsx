@@ -25,44 +25,13 @@ import {
   useDeleteSelfie,
 } from '@/modules/selfies';
 import type { Selfie } from '@/shared/types/api';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import {
+  getAirQualityColor,
+  mapAqiCategoryToLevel,
+} from '@/shared/utils/airQuality';
 
 const EVENT_ID = 'clean-air-forum-2026';
-
-const AQI_STYLES: Record<string, { bg: string; text: string }> = {
-  Good: {
-    bg: 'bg-emerald-100 dark:bg-emerald-950/40',
-    text: 'text-emerald-800 dark:text-emerald-300',
-  },
-  Moderate: {
-    bg: 'bg-amber-100 dark:bg-amber-950/40',
-    text: 'text-amber-800 dark:text-amber-300',
-  },
-  'Unhealthy for Sensitive Groups': {
-    bg: 'bg-orange-100 dark:bg-orange-950/40',
-    text: 'text-orange-800 dark:text-orange-300',
-  },
-  Unhealthy: {
-    bg: 'bg-red-100 dark:bg-red-950/40',
-    text: 'text-red-800 dark:text-red-300',
-  },
-  'Very Unhealthy': {
-    bg: 'bg-purple-100 dark:bg-purple-950/40',
-    text: 'text-purple-800 dark:text-purple-300',
-  },
-  Hazardous: {
-    bg: 'bg-rose-100 dark:bg-rose-950/40',
-    text: 'text-rose-800 dark:text-rose-300',
-  },
-};
-
-const AQI_SHORT_LABELS: Record<string, string> = {
-  Good: 'Good',
-  Moderate: 'Moderate',
-  'Unhealthy for Sensitive Groups': 'USG',
-  Unhealthy: 'Unhealthy',
-  'Very Unhealthy': 'V. Unhealthy',
-  Hazardous: 'Hazardous',
-};
 
 const formatDateTime = (value: string) =>
   new Date(value).toLocaleString('en-US', {
@@ -73,11 +42,8 @@ const formatDateTime = (value: string) =>
     minute: '2-digit',
   });
 
-const getAqiStyle = (category: string) =>
-  AQI_STYLES[category] || {
-    bg: 'bg-slate-100 dark:bg-slate-950/40',
-    text: 'text-slate-800 dark:text-slate-300',
-  };
+const normalizeAqiCategory = (value: string) =>
+  value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
 const SelfiesListContent: React.FC = () => {
   const [aqiFilter, setAqiFilter] = useState('all');
@@ -86,6 +52,7 @@ const SelfiesListContent: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Selfie | null>(null);
 
   const { data, error, isLoading, mutate } = useSelfies(EVENT_ID);
+  const { config: aqiConfig } = useAqiConfig();
   const { trigger: triggerHide, isMutating: isHiding } = useHideSelfie();
   const { trigger: triggerUnhide, isMutating: isUnhiding } = useUnhideSelfie();
   const { trigger: triggerDelete, isMutating: isDeleting } = useDeleteSelfie();
@@ -149,9 +116,7 @@ const SelfiesListContent: React.FC = () => {
   }, [deleteTarget, triggerDelete]);
 
   if (isLoading) {
-    return (
-      <LoadingState className="min-h-[400px]" text="Loading selfies..." />
-    );
+    return <LoadingState className="min-h-[400px]" text="Loading selfies..." />;
   }
 
   if (isForbiddenError(error)) {
@@ -204,7 +169,13 @@ const SelfiesListContent: React.FC = () => {
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              {AQI_SHORT_LABELS[cat] || cat}
+              {aqiConfig?.ranges.find(range => {
+                const normalizedCategory = normalizeAqiCategory(cat);
+                return (
+                  normalizeAqiCategory(range.key) === normalizedCategory ||
+                  normalizeAqiCategory(range.label) === normalizedCategory
+                );
+              })?.label || cat}
             </button>
           ))}
         </div>
@@ -236,72 +207,72 @@ const SelfiesListContent: React.FC = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredSelfies.map(selfie => (
             <Card
-                key={selfie._id}
-                className={`group overflow-hidden p-0 transition-shadow hover:shadow-lg ${
-                  selfie.hidden ? 'opacity-60' : ''
-                }`}
+              key={selfie._id}
+              className={`group overflow-hidden p-0 transition-shadow hover:shadow-lg ${
+                selfie.hidden ? 'opacity-60' : ''
+              }`}
+            >
+              <button
+                type="button"
+                className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
+                onClick={() => setSelectedSelfie(selfie)}
+                disabled={isProcessing}
+                aria-label={`View selfie by ${selfie.displayName ?? 'Unknown user'}`}
               >
-                <button
-                  type="button"
-                  className="relative aspect-square w-full cursor-pointer overflow-hidden bg-muted"
-                  onClick={() => setSelectedSelfie(selfie)}
-                  disabled={isProcessing}
-                  aria-label={`View selfie by ${selfie.displayName ?? 'Unknown user'}`}
-                >
-                  <Image
-                    src={selfie.imageUrl}
-                    alt={`Selfie by ${selfie.displayName ?? 'Unknown user'}`}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  {selfie.hidden && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-black">
-                        Hidden
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{selfie.avatarIcon}</span>
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {selfie.displayName ?? 'Unknown user'}
+                <Image
+                  src={selfie.imageUrl}
+                  alt={`Selfie by ${selfie.displayName ?? 'Unknown user'}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {selfie.hidden && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <span className="rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-black">
+                      Hidden
                     </span>
                   </div>
+                )}
+              </button>
 
-                  <p className="text-xs text-muted-foreground truncate">
-                    {selfie.locationName}
-                  </p>
-
-                  <p className="text-[10px] text-muted-foreground">
-                    {formatDateTime(selfie.createdAt)}
-                  </p>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-border">
-                    <Button
-                      variant={selfie.hidden ? 'filled' : 'ghost'}
-                      size="sm"
-                      paddingStyles="h-7 px-2 text-xs"
-                      onClick={() => void handleToggleHide(selfie)}
-                      disabled={isProcessing}
-                    >
-                      {selfie.hidden ? 'Restore' : 'Hide'}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      paddingStyles="h-7 px-2 text-xs"
-                      onClick={() => setDeleteTarget(selfie)}
-                      disabled={isProcessing}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+              <div className="p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{selfie.avatarIcon}</span>
+                  <span className="text-sm font-medium text-foreground truncate">
+                    {selfie.displayName ?? 'Unknown user'}
+                  </span>
                 </div>
-              </Card>
+
+                <p className="text-xs text-muted-foreground truncate">
+                  {selfie.locationName}
+                </p>
+
+                <p className="text-[10px] text-muted-foreground">
+                  {formatDateTime(selfie.createdAt)}
+                </p>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-border">
+                  <Button
+                    variant={selfie.hidden ? 'filled' : 'ghost'}
+                    size="sm"
+                    paddingStyles="h-7 px-2 text-xs"
+                    onClick={() => void handleToggleHide(selfie)}
+                    disabled={isProcessing}
+                  >
+                    {selfie.hidden ? 'Restore' : 'Hide'}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    paddingStyles="h-7 px-2 text-xs"
+                    onClick={() => setDeleteTarget(selfie)}
+                    disabled={isProcessing}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
       )}
@@ -341,9 +312,16 @@ const SelfiesListContent: React.FC = () => {
                 )}
                 {selectedSelfie.aqiCategory && (
                   <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      getAqiStyle(selectedSelfie.aqiCategory).bg
-                    } ${getAqiStyle(selectedSelfie.aqiCategory).text}`}
+                    className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={(() => {
+                      const color = getAirQualityColor(
+                        mapAqiCategoryToLevel(selectedSelfie.aqiCategory)
+                      );
+                      return {
+                        color: color || undefined,
+                        backgroundColor: color ? `${color}20` : undefined,
+                      };
+                    })()}
                   >
                     {selectedSelfie.aqiCategory}
                   </span>

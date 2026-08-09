@@ -12,7 +12,7 @@ import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation
 import { Footer } from '@/shared/components/ui/footer';
 import { NotificationBanner } from '@/shared/components/NotificationBanner';
 import { useAppSelector } from '@/shared/hooks/redux';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
 import { MaintenanceBanner } from '../components';
 import { FeedbackLauncher } from '@/modules/feedback';
@@ -35,12 +35,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const theme = useAppSelector(state => state.theme);
   const { isLoading: userLoading, isLoggingOut } = useUser();
+  useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
 
   return (
     <>
-      {/* Full-screen loading overlay during logout */}
-      <LoadingOverlay isVisible={isLoggingOut} delayMs={0} />
-
       {!isLoggingOut && (
         <>
           <a

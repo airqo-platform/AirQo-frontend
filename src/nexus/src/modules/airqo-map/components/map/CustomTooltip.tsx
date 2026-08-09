@@ -12,6 +12,7 @@ import {
 } from '@/shared/utils/airQuality';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ interface CustomTooltipProps {
   children: React.ReactElement;
   className?: string;
   selectedPollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
   onTooltipAction?: (data: AirQualityReading | ClusterData) => void;
   onTooltipHoverChange?: (isHovering: boolean) => void;
   showZoomHint?: boolean;
@@ -53,8 +55,9 @@ const formatDate = (date: Date | string): string => {
 const ClusterTooltipContent: React.FC<{
   cluster: ClusterData;
   selectedPollutant: PollutantType;
+  aqiConfig?: AqiConfig | null;
   onTooltipAction?: (data: ClusterData) => void;
-}> = ({ cluster, selectedPollutant, onTooltipAction }) => {
+}> = ({ cluster, selectedPollutant, aqiConfig, onTooltipAction }) => {
   const validReadings = cluster.readings.filter(r => {
     const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
     return val !== undefined && !isNaN(val);
@@ -82,10 +85,15 @@ const ClusterTooltipContent: React.FC<{
       return sum + val;
     }, 0) / validReadings.length;
 
-  const level = getAirQualityLevel(avgValue, selectedPollutant);
+  const level = getAirQualityLevel(avgValue, selectedPollutant, aqiConfig);
   const IconComponent = getAirQualityIcon(level);
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
+  const color = getAirQualityColor(level, aqiConfig);
+  const label = getAirQualityLabel(
+    level,
+    'WHO',
+    selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+    aqiConfig
+  );
 
   return (
     <div className="p-2 min-w-[250px] max-w-[350px]">
@@ -128,9 +136,16 @@ const ClusterTooltipContent: React.FC<{
 const ReadingTooltipContent: React.FC<{
   reading: AirQualityReading;
   selectedPollutant: PollutantType;
+  aqiConfig?: AqiConfig | null;
   showZoomHint: boolean;
   onTooltipAction?: (data: AirQualityReading) => void;
-}> = ({ reading, selectedPollutant, showZoomHint, onTooltipAction }) => {
+}> = ({
+  reading,
+  selectedPollutant,
+  aqiConfig,
+  showZoomHint,
+  onTooltipAction,
+}) => {
   const pollutantValue =
     selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
 
@@ -150,10 +165,19 @@ const ReadingTooltipContent: React.FC<{
     );
   }
 
-  const level = getAirQualityLevel(pollutantValue, selectedPollutant);
+  const level = getAirQualityLevel(
+    pollutantValue,
+    selectedPollutant,
+    aqiConfig
+  );
   const IconComponent = getAirQualityIcon(level);
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
+  const color = getAirQualityColor(level, aqiConfig);
+  const label = getAirQualityLabel(
+    level,
+    'WHO',
+    selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+    aqiConfig
+  );
   const meta = getMonitorMetadata(reading);
 
   return (
@@ -252,6 +276,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   children,
   className,
   selectedPollutant = 'pm2_5',
+  aqiConfig = null,
   onTooltipAction,
   onTooltipHoverChange,
   showZoomHint = false,
@@ -265,6 +290,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     <ClusterTooltipContent
       cluster={data as ClusterData}
       selectedPollutant={selectedPollutant}
+      aqiConfig={aqiConfig}
       onTooltipAction={
         onTooltipAction as ((d: ClusterData) => void) | undefined
       }
@@ -273,6 +299,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     <ReadingTooltipContent
       reading={data as AirQualityReading}
       selectedPollutant={selectedPollutant}
+      aqiConfig={aqiConfig}
       showZoomHint={showZoomHint}
       onTooltipAction={
         onTooltipAction as ((d: AirQualityReading) => void) | undefined

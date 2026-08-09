@@ -10,9 +10,11 @@ import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/
 import { SiteInsightsChart } from '@/modules/airqo-map/components/sidebar/SiteInsightsChart';
 import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 interface LocationData {
   _id: string;
@@ -27,6 +29,8 @@ interface LocationDetailsPanelProps {
   onBack?: () => void;
   loading?: boolean;
   selectedPollutant?: PollutantType;
+  isPollutantLoading?: boolean;
+  aqiConfig?: AqiConfig | null;
 }
 
 const getHealthTip = (level: string): string => {
@@ -78,6 +82,8 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   onBack,
   loading = false,
   selectedPollutant = 'pm2_5',
+  isPollutantLoading = false,
+  aqiConfig = null,
 }) => {
   const currentLocationData = React.useMemo(() => {
     if (mapReading) {
@@ -112,10 +118,15 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
   const airQualityInfo = React.useMemo(() => {
     if (pollutantValue != null) {
-      return getAirQualityInfo(pollutantValue, selectedPollutant);
+      return getAirQualityInfo(
+        pollutantValue,
+        selectedPollutant,
+        'WHO',
+        aqiConfig
+      );
     }
     return null;
-  }, [pollutantValue, selectedPollutant]);
+  }, [aqiConfig, pollutantValue, selectedPollutant]);
 
   const healthTips =
     (mapReading as MapReading)?.health_tips ||
@@ -186,7 +197,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   // the browser default min-height:auto on flex children which would otherwise
   // let content expand the parent instead of scrolling.
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="relative h-full flex flex-col overflow-hidden">
       <LocationDetailsHeader
         locationData={currentLocationData}
         onBack={onBack}
@@ -194,14 +205,13 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div className="p-4 space-y-4 pb-8">
-          <WeeklyForecastCard
-            siteId={currentLocationData._id}
-          />
+          <WeeklyForecastCard siteId={currentLocationData._id} />
 
           <CurrentAirQualityCard
             locationData={currentLocationData}
             mapReading={mapReading}
             selectedPollutant={selectedPollutant}
+            aqiConfig={aqiConfig}
           />
 
           <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
@@ -268,6 +278,18 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
           )}
         </div>
       </div>
+      {isPollutantLoading && (
+        <div
+          className="absolute inset-0 z-20 flex items-center justify-center bg-background/75 p-4 backdrop-blur-[1px]"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+            <LoadingSpinner size={16} />
+            Loading {selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} data…
+          </div>
+        </div>
+      )}
     </div>
   );
 };

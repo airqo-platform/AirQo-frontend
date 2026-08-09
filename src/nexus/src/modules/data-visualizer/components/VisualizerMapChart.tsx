@@ -11,12 +11,14 @@ import { formatMeasurementLabel } from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
 import { selectMapStyle } from '@/shared/store/selectors';
 import {
-  AIR_QUALITY_COLORS,
+  getAirQualityColor,
   getAirQualityIcon,
   getAirQualityInfo,
   type AirQualityLevel,
   type PollutantType,
 } from '@/shared/utils/airQuality';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import type { AqiConfig } from '@/shared/types/aqi';
 
 interface VisualizerMapChartProps {
   rows: UploadedDataRow[];
@@ -57,11 +59,6 @@ const COLOR_SCALE = [
   '#f97316',
   '#dc2626',
 ] as const;
-const AQI_LEGEND_SAMPLES: Record<PollutantType, number[]> = {
-  pm2_5: [3, 12, 20, 30, 60, 120],
-  pm10: [10, 30, 60, 100, 200, 400],
-};
-
 const formatNumber = (value: number | null) =>
   value === null
     ? 'No value'
@@ -147,13 +144,14 @@ const getGridSize = (points: VisualizerMapPoint[]) => {
 
 const buildPointFeatures = (
   points: VisualizerMapPoint[],
-  pollutantType: PollutantType | null
+  pollutantType: PollutantType | null,
+  aqiConfig: AqiConfig | null
 ): FeatureCollection => ({
   type: 'FeatureCollection',
   features: points.map(point => {
     const airQualityInfo =
       pollutantType && typeof point.value === 'number'
-        ? getAirQualityInfo(point.value, pollutantType)
+        ? getAirQualityInfo(point.value, pollutantType, 'WHO', aqiConfig)
         : null;
 
     return {
@@ -177,7 +175,8 @@ const buildPointFeatures = (
 
 const buildGridFeatures = (
   points: VisualizerMapPoint[],
-  pollutantType: PollutantType | null
+  pollutantType: PollutantType | null,
+  aqiConfig: AqiConfig | null
 ): FeatureCollection => {
   const gridSize = getGridSize(points);
   const cells = new Map<
@@ -215,7 +214,7 @@ const buildGridFeatures = (
           : null;
       const airQualityInfo =
         pollutantType && typeof value === 'number'
-          ? getAirQualityInfo(value, pollutantType)
+          ? getAirQualityInfo(value, pollutantType, 'WHO', aqiConfig)
           : null;
       const west = cell.longitude;
       const south = cell.latitude;
@@ -267,23 +266,25 @@ const getValueDomain = (points: VisualizerMapPoint[]) => {
     : { min, max };
 };
 
-const buildAqiColorExpression = (): ExpressionSpecification =>
+const buildAqiColorExpression = (
+  aqiConfig: AqiConfig | null
+): ExpressionSpecification =>
   [
     'match',
     ['get', 'aqLevel'],
     'good',
-    AIR_QUALITY_COLORS.good,
+    getAirQualityColor('good', aqiConfig),
     'moderate',
-    AIR_QUALITY_COLORS.moderate,
+    getAirQualityColor('moderate', aqiConfig),
     'unhealthy-sensitive-groups',
-    AIR_QUALITY_COLORS['unhealthy-sensitive-groups'],
+    getAirQualityColor('unhealthy-sensitive-groups', aqiConfig),
     'unhealthy',
-    AIR_QUALITY_COLORS.unhealthy,
+    getAirQualityColor('unhealthy', aqiConfig),
     'very-unhealthy',
-    AIR_QUALITY_COLORS['very-unhealthy'],
+    getAirQualityColor('very-unhealthy', aqiConfig),
     'hazardous',
-    AIR_QUALITY_COLORS.hazardous,
-    AIR_QUALITY_COLORS['no-value'],
+    getAirQualityColor('hazardous', aqiConfig),
+    getAirQualityColor('no-value', aqiConfig),
   ] as ExpressionSpecification;
 
 const buildContinuousColorExpression = (valueDomain: {
@@ -318,6 +319,7 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
     () => getPollutantType(config.metricColumn),
     [config.metricColumn]
   );
+  const { config: aqiConfig } = useAqiConfig(pollutantType ?? 'pm2_5');
   const points = React.useMemo(
     () => buildMapPoints(rows, config),
     [config, rows]
@@ -327,12 +329,12 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
     [points]
   );
   const pointCollection = React.useMemo(
-    () => buildPointFeatures(points, pollutantType),
-    [points, pollutantType]
+    () => buildPointFeatures(points, pollutantType, aqiConfig),
+    [aqiConfig, points, pollutantType]
   );
   const gridCollection = React.useMemo(
-    () => buildGridFeatures(points, pollutantType),
-    [points, pollutantType]
+    () => buildGridFeatures(points, pollutantType, aqiConfig),
+    [aqiConfig, points, pollutantType]
   );
   const valueDomain = React.useMemo(() => getValueDomain(points), [points]);
   const layerMode = config.mapLayer ?? 'points';
@@ -341,15 +343,13 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
     () =>
       pollutantType
         ? [
-            AIR_QUALITY_COLORS.good,
-            AIR_QUALITY_COLORS.moderate,
-            AIR_QUALITY_COLORS['unhealthy-sensitive-groups'],
-            AIR_QUALITY_COLORS.unhealthy,
-            AIR_QUALITY_COLORS['very-unhealthy'],
-            AIR_QUALITY_COLORS.hazardous,
+            ...(aqiConfig?.ranges ?? [])
+              .slice()
+              .sort((a, b) => a.display_order - b.display_order)
+              .map(range => range.color),
           ]
         : COLOR_SCALE,
-    [pollutantType]
+    [aqiConfig, pollutantType]
   );
   const averageValue = React.useMemo(() => {
     const values = points
@@ -365,18 +365,26 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
   const averageAirQualityInfo = React.useMemo(
     () =>
       pollutantType && typeof averageValue === 'number'
-        ? getAirQualityInfo(averageValue, pollutantType)
+        ? getAirQualityInfo(averageValue, pollutantType, 'WHO', aqiConfig)
         : null,
-    [averageValue, pollutantType]
+    [aqiConfig, averageValue, pollutantType]
   );
   const aqiLegendItems = React.useMemo(
     () =>
-      pollutantType
-        ? AQI_LEGEND_SAMPLES[pollutantType].map(sample =>
-            getAirQualityInfo(sample, pollutantType)
-          )
+      pollutantType && aqiConfig
+        ? aqiConfig.ranges
+            .slice()
+            .sort((a, b) => a.display_order - b.display_order)
+            .map(range =>
+              getAirQualityInfo(
+                range.min_value,
+                pollutantType,
+                'WHO',
+                aqiConfig
+              )
+            )
         : [],
-    [pollutantType]
+    [aqiConfig, pollutantType]
   );
 
   if (!config.latitudeColumn || !config.longitudeColumn) {
@@ -474,7 +482,7 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
               type="fill"
               paint={{
                 'fill-color': pollutantType
-                  ? buildAqiColorExpression()
+                  ? buildAqiColorExpression(aqiConfig)
                   : buildContinuousColorExpression(valueDomain),
                 'fill-opacity': 0.58,
                 'fill-outline-color': '#ffffff',
@@ -543,7 +551,7 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
                     9,
                   ],
                   'circle-color': pollutantType
-                    ? buildAqiColorExpression()
+                    ? buildAqiColorExpression(aqiConfig)
                     : buildContinuousColorExpression(valueDomain),
                   'circle-opacity': 0.88,
                   'circle-stroke-color': '#ffffff',

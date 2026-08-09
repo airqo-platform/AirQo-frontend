@@ -15,12 +15,12 @@ This module provides a comprehensive analytics dashboard for air quality data vi
 
 Uses @airqo/icons-react for status indicators:
 
-- `AqGood` - Good air quality (0-15 μg/m³)
-- `AqModerate` - Moderate air quality (15.1-35 μg/m³)
-- `AqUnhealthyForSensitiveGroups` - UHFSG (35.1-55 μg/m³)
-- `AqUnhealthy` - Unhealthy (55.1-150 μg/m³)
-- `AqVeryUnhealthy` - Very unhealthy (150.1-250 μg/m³)
-- `AqHazardous` - Hazardous (250.1+ μg/m³)
+- `AqGood` - Good air quality (boundaries supplied by the AQI configuration API)
+- `AqModerate` - Moderate air quality (boundaries supplied by the AQI configuration API)
+- `AqUnhealthyForSensitiveGroups` - UHFSG (boundaries supplied by the AQI configuration API)
+- `AqUnhealthy` - Unhealthy (boundaries supplied by the AQI configuration API)
+- `AqVeryUnhealthy` - Very unhealthy (boundaries supplied by the AQI configuration API)
+- `AqHazardous` - Hazardous (boundaries supplied by the AQI configuration API)
 - `AqNoValue` - No data available
 
 ### 📊 Data Integration
@@ -195,14 +195,9 @@ const POLLUTANT_OPTIONS = [
 
 ### Air Quality Thresholds
 
-Based on WHO guidelines for PM2.5:
+AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at runtime. The values below are historical documentation only; do not use them for classification or display.
 
-- **Good**: 0-15 μg/m³ (Green)
-- **Moderate**: 15.1-35 μg/m³ (Yellow)
-- **UHFSG**: 35.1-55 μg/m³ (Orange)
-- **Unhealthy**: 55.1-150 μg/m³ (Red)
-- **Very Unhealthy**: 150.1-250 μg/m³ (Purple)
-- **Hazardous**: 250.1+ μg/m³ (Maroon)
+- AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at runtime.
 
 ## API Integration
 

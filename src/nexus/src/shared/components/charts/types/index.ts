@@ -1,3 +1,5 @@
+import type { AqiConfig } from '@/shared/types/aqi';
+
 // Chart data types
 export interface AirQualityDataPoint {
   site_id: string;
@@ -162,6 +164,7 @@ export interface DynamicChartProps {
   className?: string;
   frequency?: FrequencyType;
   pollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
   showReferenceLines?: boolean;
   standards?: StandardsType;
   id?: string;

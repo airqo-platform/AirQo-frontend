@@ -13,6 +13,7 @@ import { formatRoundedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
 import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 // Types for location data
@@ -27,12 +28,14 @@ interface CurrentAirQualityCardProps {
   locationData: LocationData;
   mapReading?: MapReading | AirQualityReading;
   selectedPollutant?: PollutantType;
+  aqiConfig?: AqiConfig | null;
 }
 
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   locationData,
   mapReading,
   selectedPollutant = 'pm2_5',
+  aqiConfig = null,
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
@@ -45,10 +48,15 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
   const airQualityInfo = React.useMemo(() => {
     if (pollutantValue !== null && pollutantValue !== undefined) {
-      return getAirQualityInfo(pollutantValue, selectedPollutant);
+      return getAirQualityInfo(
+        pollutantValue,
+        selectedPollutant,
+        'WHO',
+        aqiConfig
+      );
     }
     return null;
-  }, [pollutantValue, selectedPollutant]);
+  }, [aqiConfig, pollutantValue, selectedPollutant]);
   const AirQualityIcon = airQualityInfo?.icon;
 
   // Helper function to extract city and country from location name
@@ -184,10 +192,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </div>
             </div>
             <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-              {airQualityInfo?.level ||
-                (mapReading as MapReading)?.aqi_category ||
-                (mapReading as AirQualityReading)?.aqiCategory ||
-                '--'}
+              {airQualityInfo?.label ?? '--'}
             </div>
           </div>
 

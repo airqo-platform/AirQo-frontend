@@ -38,6 +38,7 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -56,6 +57,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Get filters from Redux
   const { filters } = useAnalytics();
+  // Load the range set for the active analytics pollutant before classifying
+  // cards and charts. The keyed provider cache keeps PM2.5 and PM10 isolated.
+  const { config: selectedAqiConfig, isLoading: pollutantConfigLoading } =
+    useAqiConfig(filters.pollutant);
 
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
@@ -119,6 +124,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     selectedSiteIds,
     selectedSites,
     enabled: isOrgContextReady,
+    aqiConfig: selectedAqiConfig,
   });
 
   // Get chart data for line chart - only when user has selected sites
@@ -448,13 +454,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     <div className={`space-y-4 ${className}`}>
       {/* Favorite Locations Card */}
       <QuickAccessCard
-        sites={siteCards}
+        sites={pollutantConfigLoading ? [] : siteCards}
         onManageFavorites={handleManageFavorites}
         onRefresh={handleRefreshDashboard}
         isRefreshing={siteCardsRefreshing || isRefreshing}
         selectedPollutant={filters.pollutant}
+        aqiConfig={selectedAqiConfig}
         onCardClick={handleCardClick}
-        isLoading={siteCardsLoading}
+        isLoading={siteCardsLoading || pollutantConfigLoading}
         placeholderCount={selectedSites.length}
         errorMessage={siteCardsError}
         showIcon={showIcons}
@@ -502,7 +509,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshLineChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
-          loading={lineChartLoading || lineChartRefreshing}
+          loading={lineChartLoading || lineChartRefreshing || pollutantConfigLoading}
         >
           <DynamicChart
             data={lineChartData}
@@ -514,6 +521,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               height: 400,
             }}
             pollutant={filters.pollutant}
+            aqiConfig={selectedAqiConfig}
             frequency={filters.frequency}
             showReferenceLines={true}
             autoSelectType={false}
@@ -532,7 +540,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshBarChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
-          loading={barChartLoading || barChartRefreshing}
+          loading={barChartLoading || barChartRefreshing || pollutantConfigLoading}
         >
           <DynamicChart
             data={barChartData}
@@ -544,6 +552,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               height: 400,
             }}
             pollutant={filters.pollutant}
+            aqiConfig={selectedAqiConfig}
             frequency={filters.frequency}
             autoSelectType={false}
           />

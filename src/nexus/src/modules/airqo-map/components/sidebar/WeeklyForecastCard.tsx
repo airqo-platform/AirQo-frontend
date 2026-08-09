@@ -2,12 +2,14 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import { getAirQualityInfo, getAirQualityColor } from '@/shared/utils/airQuality';
 import { useForecast, type ForecastMode } from '../../hooks/useForecast';
 import { AqCloudOff } from '@airqo/icons-react';
 import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Tooltip } from 'flowbite-react';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import type { AqiConfig } from '@/shared/types/aqi';
 import {
   resolveParsedNumber,
   type DailyForecastItem,
@@ -69,20 +71,6 @@ function getFullTime(value: string | undefined | null): string {
   });
 }
 
-function getAqiBgClass(category: string | undefined): string {
-  if (!category) return 'bg-gray-50 border-gray-200';
-  const c = category.toLowerCase();
-  if (c.includes('good')) return 'bg-green-50 border-green-200';
-  if (c.includes('moderate')) return 'bg-yellow-50 border-yellow-200';
-  if (c.includes('sensitive') || c.includes('usg'))
-    return 'bg-orange-50 border-orange-200';
-  if (c.includes('unhealthy') && !c.includes('very'))
-    return 'bg-red-50 border-red-200';
-  if (c.includes('very unhealthy')) return 'bg-purple-50 border-purple-200';
-  if (c.includes('hazardous')) return 'bg-pink-50 border-pink-200';
-  return 'bg-gray-50 border-gray-200';
-}
-
 // ── Tab selector ─────────────────────────────────────────────────────────────
 const ModeTabs: React.FC<{
   active: ForecastMode;
@@ -110,7 +98,8 @@ const ModeTabs: React.FC<{
 const DailyPill: React.FC<{
   item: DailyForecastItem;
   isToday: boolean;
-}> = ({ item, isToday }) => {
+  aqiConfig: AqiConfig | null;
+}> = ({ item, isToday, aqiConfig }) => {
   const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
   const pm25Low = resolveParsedNumber(item.forecast?.pm2_5_low);
   const pm25High = resolveParsedNumber(item.forecast?.pm2_5_high);
@@ -121,9 +110,9 @@ const DailyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
+  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   const ForecastIcon = airInfo.icon;
-  const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
+  const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
@@ -163,8 +152,16 @@ const DailyPill: React.FC<{
           'flex flex-col items-center rounded-xl py-2.5 px-2.5 min-w-[64px] border transition-all duration-200 flex-shrink-0 cursor-default',
           isToday
             ? 'bg-blue-600 border-blue-600 shadow-md'
-            : cn(bgClass, 'hover:shadow-sm')
+            : 'hover:shadow-sm'
         )}
+        style={
+          isToday
+            ? undefined
+            : {
+                backgroundColor: aqiColor ? `${aqiColor}20` : undefined,
+                borderColor: aqiColor || undefined,
+              }
+        }
       >
         {/* Day name */}
         <span
@@ -223,7 +220,8 @@ const DailyPill: React.FC<{
 const HourlyPill: React.FC<{
   item: HourlyForecastItem;
   isFirst: boolean;
-}> = ({ item, isFirst }) => {
+  aqiConfig: AqiConfig | null;
+}> = ({ item, isFirst, aqiConfig }) => {
   const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
   const aqiCategory = item.aqi?.aqi_category ?? item.aqi?.label ?? '';
   const aqiLabel = item.aqi?.label ?? '';
@@ -232,9 +230,9 @@ const HourlyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5');
+  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   const ForecastIcon = airInfo.icon;
-  const bgClass = getAqiBgClass(aqiCategory || airInfo.label);
+  const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
@@ -272,8 +270,16 @@ const HourlyPill: React.FC<{
           'flex flex-col items-center rounded-xl py-2 px-1.5 min-w-[52px] border transition-all duration-200 flex-shrink-0 cursor-default',
           isFirst
             ? 'bg-blue-600 border-blue-600 shadow-md'
-            : cn(bgClass, 'hover:shadow-sm')
+            : 'hover:shadow-sm'
         )}
+        style={
+          isFirst
+            ? undefined
+            : {
+                backgroundColor: aqiColor ? `${aqiColor}20` : undefined,
+                borderColor: aqiColor || undefined,
+              }
+        }
       >
         {/* Hour */}
         <span
@@ -347,6 +353,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   siteId,
 }) => {
   const [mode, setMode] = React.useState<ForecastMode>('daily');
+  const { config: pm25AqiConfig } = useAqiConfig('pm2_5');
 
   const { dailyItems, hourlyItems, isLoading, error } = useForecast({
     siteId,
@@ -403,7 +410,12 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
           <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
             <div className="flex gap-2 min-w-max py-1">
               {dailyItems.slice(0, 7).map((item, idx) => (
-                <DailyPill key={item.date} item={item} isToday={idx === 0} />
+                <DailyPill
+                  key={item.date}
+                  item={item}
+                  isToday={idx === 0}
+                  aqiConfig={pm25AqiConfig}
+                />
               ))}
             </div>
           </div>
@@ -421,6 +433,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
                     key={item.timestamp}
                     item={item}
                     isFirst={idx === 0}
+                    aqiConfig={pm25AqiConfig}
                   />
                 ))}
               </div>

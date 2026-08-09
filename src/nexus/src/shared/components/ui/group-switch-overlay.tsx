@@ -8,7 +8,7 @@ import {
   selectPendingGroupSwitch,
 } from '@/shared/store/selectors';
 import { clearPendingGroupSwitch } from '@/shared/store/userSlice';
-import { LoadingOverlay } from './loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 
 const GROUP_SWITCH_FAILSAFE_MS = 15000;
 const GROUP_SWITCH_RELEASE_MS = 800;
@@ -35,6 +35,16 @@ export function GroupSwitchOverlay() {
     !!pendingGroupSwitch &&
     activeGroup?.id === pendingGroupSwitch.targetGroupId &&
     matchesDestinationPath(pathname, pendingGroupSwitch.destinationPath);
+
+  useGlobalLoading(Boolean(pendingGroupSwitch), {
+    priority: 80,
+    title: pendingGroupSwitch
+      ? `Switching to ${pendingGroupSwitch.targetGroupName}`
+      : undefined,
+    description: pendingGroupSwitch
+      ? 'Updating your workspace, and opening fresh content.'
+      : undefined,
+  });
 
   useEffect(() => {
     if (!pendingGroupSwitch) {
@@ -70,17 +80,7 @@ export function GroupSwitchOverlay() {
     return () => window.clearTimeout(failsafeTimer);
   }, [dispatch, hasReachedDestination, pendingGroupSwitch, pathname]);
 
-  if (!pendingGroupSwitch) {
-    return null;
-  }
-
-  return (
-    <LoadingOverlay
-      delayMs={120}
-      title={`Switching to ${pendingGroupSwitch.targetGroupName}`}
-      description="Updating your workspace, and opening fresh content."
-    />
-  );
+  return null;
 }
 
 export default GroupSwitchOverlay;

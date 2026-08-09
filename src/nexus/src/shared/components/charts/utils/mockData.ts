@@ -149,14 +149,14 @@ export const generateChartTypeTestData = (chartType: string) => {
   switch (chartType) {
     case 'pie':
       return [
-        { time: 'Good (0-12)', value: 45, site: 'Distribution', count: 45 },
+        { time: 'Good', value: 45, site: 'Distribution', count: 45 },
         {
-          time: 'Moderate (12-35)',
+          time: 'Moderate',
           value: 30,
           site: 'Distribution',
           count: 30,
         },
-        { time: 'Unhealthy (35+)', value: 25, site: 'Distribution', count: 25 },
+        { time: 'Unhealthy', value: 25, site: 'Distribution', count: 25 },
       ];
 
     case 'radar':

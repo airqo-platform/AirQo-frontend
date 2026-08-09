@@ -134,7 +134,11 @@ describe('/api/slack/notify - Security', () => {
 
     it('sends error notification to Slack webhook', async () => {
       const errorPayload = {
-        error: { message: 'Something broke', name: 'TypeError', stack: 'at foo' },
+        error: {
+          message: 'Something broke',
+          name: 'TypeError',
+          stack: 'at foo',
+        },
         timestamp: '2025-01-01T00:00:00Z',
         userAgent: 'Mozilla/5.0',
         url: 'http://localhost:3000/dashboard',

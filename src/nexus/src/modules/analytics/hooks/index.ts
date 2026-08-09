@@ -18,6 +18,7 @@ import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '@/shared/services/analyticsService';
 import type { SiteData, ChartData } from '../types';
+import type { AqiConfig } from '@/shared/types/aqi';
 import type {
   ChartDataPoint,
   DataDownloadRequest,
@@ -32,6 +33,7 @@ interface AnalyticsSelections {
   selectedSiteIds: string[];
   selectedSites: Site[];
   enabled?: boolean;
+  aqiConfig?: AqiConfig | null;
 }
 
 type PreferenceSite = Partial<Site> & {
@@ -129,7 +131,8 @@ const buildNoValueSiteCard = (
 const buildSiteCardsFromRecentReadings = (
   siteCards: SiteData[],
   selectedSites: Site[],
-  pollutant: 'pm2_5' | 'pm10'
+  pollutant: 'pm2_5' | 'pm10',
+  aqiConfig?: AqiConfig | null
 ): SiteData[] => {
   if (!Array.isArray(siteCards) || siteCards.length === 0) {
     return selectedSites.map(selectedSite =>
@@ -161,6 +164,10 @@ const buildSiteCardsFromRecentReadings = (
       country: siteCard.country ?? selectedSite.country,
       city: siteCard.city ?? selectedSite.city,
       region: siteCard.region ?? selectedSite.region,
+      status:
+        siteCard.status === 'no-value'
+          ? 'no-value'
+          : getAirQualityLevel(siteCard.value, pollutant, aqiConfig),
       pollutant,
     };
   });
@@ -179,7 +186,8 @@ const createLatestSiteCardDateRange = () => {
 const buildSiteCardsFromChartPoints = (
   chartPoints: ChartDataPoint[],
   selectedSites: Site[],
-  pollutant: 'pm2_5' | 'pm10'
+  pollutant: 'pm2_5' | 'pm10',
+  aqiConfig?: AqiConfig | null
 ): SiteData[] => {
   if (!Array.isArray(chartPoints) || chartPoints.length === 0) {
     return selectedSites.map(selectedSite =>
@@ -228,7 +236,7 @@ const buildSiteCardsFromChartPoints = (
       city: selectedSite.city,
       region: selectedSite.region,
       value: latestValue,
-      status: getAirQualityLevel(latestValue, pollutant),
+      status: getAirQualityLevel(latestValue, pollutant, aqiConfig),
       pollutant,
       unit: 'μg/m³',
       trend: generateTrend(latestValue, previousValue),
@@ -485,6 +493,7 @@ export const useAnalyticsSiteCards = ({
   selectedSiteIds,
   selectedSites,
   enabled = true,
+  aqiConfig = null,
 }: AnalyticsSelections) => {
   const { filters } = useAnalytics();
   const { user, activeGroup } = useUser();
@@ -508,6 +517,13 @@ export const useAnalyticsSiteCards = ({
     [selectedSites]
   );
   const activeGroupKey = activeGroup?.id ?? 'no-active-group';
+  const aqiConfigKey = useMemo(
+    () =>
+      aqiConfig?.ranges
+        .map(range => `${range.key}:${range.min_value}:${range.max_value}`)
+        .join('|') ?? 'unloaded',
+    [aqiConfig]
+  );
 
   const shouldFetch =
     enabled && selectedSiteIds.length > 0 && selectedSites.length > 0;
@@ -520,6 +536,7 @@ export const useAnalyticsSiteCards = ({
       selectedSiteIdsKey,
       selectedSitesKey,
       filters.pollutant,
+      aqiConfigKey,
     ],
     [
       activeGroupKey,
@@ -527,6 +544,7 @@ export const useAnalyticsSiteCards = ({
       selectedSiteIdsKey,
       selectedSitesKey,
       user?.id,
+      aqiConfigKey,
     ]
   );
   const currentRequestKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
@@ -549,10 +567,12 @@ export const useAnalyticsSiteCards = ({
         return buildSiteCardsFromRecentReadings(
           normalizeRecentReadingsToSiteData(
             response?.measurements ?? [],
-            activePollutant
+            activePollutant,
+            aqiConfig
           ),
           selectedSites,
-          activePollutant
+          activePollutant,
+          aqiConfig
         );
       } catch (error) {
         if (
@@ -579,7 +599,8 @@ export const useAnalyticsSiteCards = ({
         return buildSiteCardsFromChartPoints(
           fallbackResponse?.data ?? [],
           selectedSites,
-          activePollutant
+          activePollutant,
+          aqiConfig
         );
       }
     },
@@ -619,8 +640,11 @@ export const useAnalyticsSiteCards = ({
       return [];
     }
 
-    return query.data ?? [];
-  }, [query.data, shouldFetch]);
+    const activePollutant = filters.pollutant === 'pm10' ? 'pm10' : 'pm2_5';
+    return (query.data ?? []).filter(
+      site => site.pollutant === activePollutant
+    );
+  }, [filters.pollutant, query.data, shouldFetch]);
 
   const refetchSiteCards = useCallback(async () => {
     if (!shouldFetch) {
