@@ -110,7 +110,7 @@ const DailyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5', 'WHO', aqiConfig);
+  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   const ForecastIcon = airInfo.icon;
   const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
 
@@ -230,7 +230,7 @@ const HourlyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25 ?? 0, 'pm2_5', 'WHO', aqiConfig);
+  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   const ForecastIcon = airInfo.icon;
   const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
 

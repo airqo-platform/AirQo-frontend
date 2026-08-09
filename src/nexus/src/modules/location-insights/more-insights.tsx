@@ -83,7 +83,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     getDefaultDateRange()
   );
   const [dataType, setDataType] = useState<'calibrated' | 'raw'>('calibrated');
-  const { config: selectedAqiConfig } = useAqiConfig(pollutant);
+  const { config: selectedAqiConfig, isLoading: aqiConfigLoading } = useAqiConfig(pollutant);
 
   // State for tracking which sites are visible on chart (checked)
   const [visibleSites, setVisibleSites] = useState<Set<string>>(new Set());
@@ -656,7 +656,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
                   option.value.toLowerCase() === pollutant
               )?.label || pollutant.toUpperCase()
             } ${visibleSites.size >= MAX_VISIBLE_SITES ? '(Max sites reached)' : ''}`}
-            loading={isChartLoading}
+            loading={isChartLoading || aqiConfigLoading}
             className="h-full flex flex-col border"
             showTitle={false}
             showMoreButton={false}

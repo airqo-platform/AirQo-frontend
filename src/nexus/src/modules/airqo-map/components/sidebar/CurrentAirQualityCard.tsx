@@ -192,7 +192,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </div>
             </div>
             <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-              {airQualityInfo?.level ?? '--'}
+              {airQualityInfo?.label ?? '--'}
             </div>
           </div>
 

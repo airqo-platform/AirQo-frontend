@@ -509,7 +509,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshLineChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
-          loading={lineChartLoading || lineChartRefreshing}
+          loading={lineChartLoading || lineChartRefreshing || pollutantConfigLoading}
         >
           <DynamicChart
             data={lineChartData}
@@ -540,7 +540,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshBarChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
-          loading={barChartLoading || barChartRefreshing}
+          loading={barChartLoading || barChartRefreshing || pollutantConfigLoading}
         >
           <DynamicChart
             data={barChartData}

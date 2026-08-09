@@ -27,6 +27,11 @@ const validateAqiRangesResponse = (
   const orderedRanges = ranges
     ? [...ranges].sort((a, b) => a.display_order - b.display_order)
     : undefined;
+  const hasSequentialDisplayOrder = orderedRanges?.every(
+    (range, index) =>
+      Number.isInteger(range.display_order) &&
+      range.display_order === index + 1
+  );
   const hasExpectedKeys = orderedRanges?.every(
     (range, index) => range.key === AQI_RANGE_KEYS[index]
   );
@@ -54,6 +59,7 @@ const validateAqiRangesResponse = (
     responsePollutant !== requestedPollutant ||
     !ranges ||
     ranges.length !== AQI_RANGE_KEYS.length ||
+    !hasSequentialDisplayOrder ||
     !hasExpectedKeys ||
     !hasValidBoundaries
   ) {

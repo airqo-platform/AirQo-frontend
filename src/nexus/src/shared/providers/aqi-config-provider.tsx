@@ -191,13 +191,30 @@ export const useAqiConfig = (
   const isDefaultPollutant = pollutant === 'pm2_5';
   const [activePollutantConfig, setActivePollutantConfig] =
     useState<AqiConfig | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const { data, error, isLoading, isValidating, mutate } =
-    useSWR<AqiRangesResponse>(
+    useSWR<AqiRangesResponse | undefined>(
       context.enabled && !isDefaultPollutant
         ? getAqiRangesCacheKey(pollutant)
         : null,
       async () => {
-        return await aqiConfigService.getAqiRanges(pollutant);
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        try {
+          return await aqiConfigService.getAqiRanges(
+            pollutant,
+            controller.signal
+          );
+        } catch (fetchError) {
+          if (isAbortError(fetchError)) return undefined;
+          throw fetchError;
+        } finally {
+          if (abortRef.current === controller) {
+            abortRef.current = null;
+          }
+        }
       },
       {
         revalidateOnFocus: false,
@@ -207,6 +224,13 @@ export const useAqiConfig = (
         dedupingInterval: 1000 * 60 * 5,
       }
     );
+
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+    },
+    []
+  );
 
   useEffect(() => {
     if (!isDefaultPollutant) {

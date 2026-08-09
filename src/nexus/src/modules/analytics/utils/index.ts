@@ -40,6 +40,19 @@ export {
   getPollutantUnits,
 };
 
+const VALID_POLLUTANT_TYPES: ReadonlySet<string> = new Set([
+  'pm2_5',
+  'pm10',
+]);
+
+const normalizePollutantType = (value: string): PollutantType => {
+  const normalized = value?.toLowerCase().replace('.', '_') ?? '';
+  if (VALID_POLLUTANT_TYPES.has(normalized)) {
+    return normalized as PollutantType;
+  }
+  return 'pm2_5';
+};
+
 /**
  * Determine air quality level based on pollutant value using shared utility
  * @param value - Pollutant concentration value
@@ -48,10 +61,10 @@ export {
  */
 export const getAirQualityLevel = (
   value: number | null | undefined,
-  pollutant: string = 'pm2_5',
+  pollutant: PollutantType = 'pm2_5',
   config?: AqiConfig | null
 ): AirQualityLevel => {
-  return getSharedAirQualityLevel(value, pollutant as PollutantType, config);
+  return getSharedAirQualityLevel(value, pollutant, config);
 };
 
 /**
@@ -185,7 +198,7 @@ export const transformAnalyticsData = (
 
     const level = getAirQualityLevel(
       latestPoint.value,
-      latestPoint.pollutant?.toLowerCase().replace('.', '_') || 'pm2_5'
+      normalizePollutantType(latestPoint.pollutant || 'pm2_5')
     );
     const trend = generateTrend(latestPoint.value, previousPoint?.value);
 
@@ -241,7 +254,7 @@ export const calculateAverageAirQuality = (
 
   const averageValue =
     validSites.reduce((sum, site) => sum + site.value, 0) / validSites.length;
-  const level = getAirQualityLevel(averageValue, pollutant);
+  const level = getAirQualityLevel(averageValue, normalizePollutantType(pollutant));
 
   return {
     averageValue,

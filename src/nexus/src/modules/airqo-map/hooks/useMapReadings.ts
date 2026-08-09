@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { deviceService } from '../../../shared/services/deviceService';
@@ -7,8 +7,6 @@ import type {
   MapReadingsResponse,
   MapReading,
 } from '../../../shared/types/api';
-
-const MAP_READINGS_AUTO_RETRY_DELAY_MS = 750;
 
 const isAbortLikeError = (error: unknown): boolean => {
   const candidate = error as {
@@ -27,47 +25,6 @@ const isAbortLikeError = (error: unknown): boolean => {
     candidate.code === 'ERR_CANCELED' ||
     candidate.message === 'canceled'
   );
-};
-
-const getErrorStatus = (error: unknown): number | null => {
-  if (!error || typeof error !== 'object') {
-    return null;
-  }
-
-  const candidate = error as {
-    status?: number;
-    response?: { status?: number };
-  };
-
-  if (typeof candidate.response?.status === 'number') {
-    return candidate.response.status;
-  }
-
-  return typeof candidate.status === 'number' ? candidate.status : null;
-};
-
-const isNetworkError = (error: unknown): boolean => {
-  const candidate = error as { code?: string } | null;
-  return candidate?.code === 'ERR_NETWORK';
-};
-
-const shouldAutoRetryMapReadings = (error: unknown): boolean => {
-  if (isAbortLikeError(error)) {
-    return false;
-  }
-
-  if (isNetworkError(error)) {
-    return false;
-  }
-
-  // Only retry when there is no HTTP status — truly unknown/transient errors.
-  // Don't retry 4xx/5xx since those are unlikely to succeed on retry.
-  const status = getErrorStatus(error);
-  if (status !== null) {
-    return false;
-  }
-
-  return true;
 };
 
 export interface UseMapReadingsResult {
@@ -91,14 +48,11 @@ export function useMapReadings(
   const sessionUser = session?.user as
     | { id?: string; _id?: string; email?: string | null }
     | undefined;
-  const sessionScope =
-    sessionUser?.id ||
-    sessionUser?._id ||
-    sessionUser?.email ||
-    (sessionStatus === 'authenticated' ? 'authenticated' : 'pending');
-  const requestEnabled = enabled && sessionStatus === 'authenticated';
-  const queryScope = `${sessionScope}:${normalizedCohortId}`;
-  const autoRetriedKeyRef = useRef<string | null>(null);
+  const stableUserId =
+    sessionUser?.id || sessionUser?._id || sessionUser?.email || null;
+  const hasStableUserId = Boolean(stableUserId);
+  const sessionScope = stableUserId || 'pending';
+  const requestEnabled = enabled && sessionStatus === 'authenticated' && hasStableUserId;
 
   const {
     data: readings = [],
@@ -128,33 +82,10 @@ export function useMapReadings(
     gcTime: 1000 * 60 * 60 * 12,
   });
 
-  useEffect(() => {
-    autoRetriedKeyRef.current = null;
-  }, [queryScope]);
-
-  useEffect(() => {
-    if (!requestEnabled || !error || !shouldAutoRetryMapReadings(error)) {
-      return;
-    }
-
-    if (autoRetriedKeyRef.current === queryScope) {
-      return;
-    }
-
-    autoRetriedKeyRef.current = queryScope;
-
-    const retryTimer = window.setTimeout(() => {
-      void refetchQuery();
-    }, MAP_READINGS_AUTO_RETRY_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(retryTimer);
-    };
-  }, [queryScope, error, refetchQuery, requestEnabled]);
-
   const refetch = useCallback(async () => {
+    if (!requestEnabled) return;
     await refetchQuery();
-  }, [refetchQuery]);
+  }, [requestEnabled, refetchQuery]);
 
   const noopRefetch = useCallback(async () => undefined, []);
 
@@ -175,7 +106,10 @@ export function useMapReadings(
     isLoading:
       sessionStatus === 'loading' ||
       (requestEnabled && (isLoading || (readings.length === 0 && isFetching))),
-    error: requestEnabled ? (error?.message ?? null) : null,
+    error:
+      requestEnabled && error && !isAbortLikeError(error)
+        ? error.message
+        : null,
     refetch,
   };
 }
