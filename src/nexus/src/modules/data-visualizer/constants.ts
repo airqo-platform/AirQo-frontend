@@ -75,12 +75,3 @@ export const SOURCE_COLUMN_LABELS: Record<InternalSourceColumnKey, string> = {
   [SOURCE_COLUMN_KEYS.INTERNAL.file]: 'Source file',
   [SOURCE_COLUMN_KEYS.INTERNAL.sheet]: 'Workbook sheet',
 };
-
-export const AIR_QUALITY_CATEGORY_COLORS = {
-  Good: '#22c55e',
-  Moderate: '#eab308',
-  'Unhealthy for Sensitive Groups': '#f97316',
-  Unhealthy: '#ef4444',
-  'Very Unhealthy': '#8b5cf6',
-  Hazardous: '#7f1d1d',
-};

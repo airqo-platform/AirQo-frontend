@@ -24,6 +24,8 @@ import { InfoBanner } from '@/shared/components/ui/banner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { useCohort } from '@/shared/hooks';
 import { AqAlertTriangle } from '@airqo/icons-react';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 interface MapPageProps {
   cohortId?: string;
@@ -72,6 +74,24 @@ const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
   </div>
 );
 
+const NoPollutantDataBanner: React.FC<{
+  pollutant: PollutantType;
+  className?: string;
+}> = ({ pollutant, className }) => (
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+    <InfoBanner
+      title="No readings for this pollutant"
+      message={
+        <>
+          This map has readings, but none are available for{' '}
+          {pollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} yet.
+        </>
+      }
+      className="shadow-lg bg-white/95 backdrop-blur-sm border-amber-200"
+    />
+  </div>
+);
+
 // ─── MapPage ──────────────────────────────────────────────────────────────────
 
 const MapPage: React.FC<MapPageProps> = ({
@@ -113,9 +133,13 @@ const MapPage: React.FC<MapPageProps> = ({
   const [selectedLocationId, setSelectedLocationId] = React.useState<
     string | null
   >(null);
-  const [selectedPollutant, setSelectedPollutant] = React.useState<
-    'pm2_5' | 'pm10'
-  >('pm2_5');
+  const [selectedPollutant, setSelectedPollutant] =
+    React.useState<PollutantType>('pm2_5');
+  const {
+    config: selectedAqiConfig,
+    isLoading: pollutantConfigLoading,
+    error: pollutantConfigError,
+  } = useAqiConfig(selectedPollutant);
 
   const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const primaryCohortId = React.useMemo(() => {
@@ -231,8 +255,15 @@ const MapPage: React.FC<MapPageProps> = ({
     isOrganizationFlow &&
     !!primaryCohortId &&
     !mapDataLoading &&
-    normalizedReadings.length === 0 &&
+    !pollutantConfigLoading &&
+    readings.length === 0 &&
     !hasNoMapData;
+
+  const showNoPollutantDataState =
+    !mapDataLoading &&
+    !pollutantConfigLoading &&
+    readings.length > 0 &&
+    normalizedReadings.length === 0;
 
   const contentHeight = `calc(100dvh - ${navHeight}px)`;
   const isMdUp = useMediaQuery({ minWidth: 768 });
@@ -355,6 +386,9 @@ const MapPage: React.FC<MapPageProps> = ({
     onRefreshData: refetch,
     flyToLocation,
     selectedPollutant,
+    aqiConfig: selectedAqiConfig,
+    isAqiConfigLoading: pollutantConfigLoading,
+    aqiConfigError: pollutantConfigError,
     onPollutantChange: handlePollutantChange,
     selectionContextKey,
   };
@@ -370,6 +404,8 @@ const MapPage: React.FC<MapPageProps> = ({
     onBackToList: handleBackToList,
     locationDetailsLoading,
     selectedPollutant,
+    isPollutantLoading: pollutantConfigLoading,
+    aqiConfig: selectedAqiConfig,
     cohort_id: cohortId,
     isOrganizationFlow,
   };
@@ -440,6 +476,8 @@ const MapPage: React.FC<MapPageProps> = ({
             <PrivateOrgBanner />
           ) : showEmptyCohortState ? (
             <EmptyCohortBanner />
+          ) : showNoPollutantDataState ? (
+            <NoPollutantDataBanner pollutant={selectedPollutant} />
           ) : null}
           {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
@@ -470,6 +508,11 @@ const MapPage: React.FC<MapPageProps> = ({
             <PrivateOrgBanner className="text-sm" />
           ) : showEmptyCohortState ? (
             <EmptyCohortBanner className="text-sm" />
+          ) : showNoPollutantDataState ? (
+            <NoPollutantDataBanner
+              className="text-sm"
+              pollutant={selectedPollutant}
+            />
           ) : null}
           {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>

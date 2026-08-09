@@ -9,7 +9,7 @@ import {
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { UserDataFetcher } from './UserDataFetcher';
 import {
   selectActiveGroup,
@@ -48,7 +48,11 @@ import {
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
 import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
-import { isPublicAuthRoute, isAuthenticatedAccessiblePublicRoute } from '@/shared/lib/public-routes';
+import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
+import {
+  isPublicAuthRoute,
+  isAuthenticatedAccessiblePublicRoute,
+} from '@/shared/lib/public-routes';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -138,9 +142,10 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // This prevents dashboard components from making API calls with the wrong
   // group context. The sync completes in a single effect tick (synchronous
   // Redux dispatch), so the overlay flicker is imperceptible.
-  if (shouldSyncToUserGroup || shouldSyncToRouteOrgGroup) {
-    return <LoadingOverlay delayMs={0} />;
-  }
+  const isGroupSyncing = shouldSyncToUserGroup || shouldSyncToRouteOrgGroup;
+  useGlobalLoading(isGroupSyncing, { priority: 80 });
+
+  if (isGroupSyncing) return <LoadingOverlay delayMs={0} />;
 
   return <>{children}</>;
 }
@@ -677,7 +682,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       !isLoggingOut &&
       !hasStartedLogoutRef.current
     ) {
-      logger.warn('Session has no user data (likely expired token), logging out');
+      logger.warn(
+        'Session has no user data (likely expired token), logging out'
+      );
       hasStartedLogoutRef.current = true;
       logout();
     }
@@ -698,13 +705,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isPublicRoute, logout, isLoggingOut]);
 
-  // While session is being fetched, show a loading overlay with a short delay.
-  // A small delay prevents double-glitch with app/loading.tsx Suspense boundary
-  // that also renders a LoadingOverlay during page transitions.
-  // Exception: For public routes, don't show loading overlay (let them render immediately)
-  if (status === 'loading' && !isPublicRoute) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  const isAuthLoading =
+    !isPublicRoute &&
+    (status === 'loading' ||
+      !session ||
+      (status === 'authenticated' && !session.user));
+  useGlobalLoading(isAuthLoading, { priority: 90 });
 
   // For public routes, allow rendering even if unauthenticated
   if (isPublicRoute) {
@@ -714,9 +720,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   // For protected routes, require authentication with valid user data.
   // A session with user: null indicates an expired/invalid token — show
   // loading overlay while the logout effect above navigates away.
-  if (!session || (status === 'authenticated' && !session.user)) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  if (isAuthLoading) return <LoadingOverlay delayMs={0} />;
 
   return (
     <UserDataFetcher>
@@ -733,6 +737,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [bootstrapSession, setBootstrapSession] = useState<
     BackendOAuthSession | null | undefined
   >(isPublicRoute ? null : undefined);
+
+  useGlobalLoading(bootstrapSession === undefined, { priority: 100 });
 
   useEffect(() => {
     runClientCacheMaintenance();
@@ -846,9 +852,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (bootstrapSession === undefined) {
-    return <LoadingOverlay delayMs={150} />;
-  }
+  if (bootstrapSession === undefined) return <LoadingOverlay delayMs={0} />;
 
   return (
     <SessionProvider

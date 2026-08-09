@@ -55,6 +55,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   className,
   frequency = 'daily',
   pollutant = 'pm2_5',
+  aqiConfig = null,
   showReferenceLines: controlledShowReferenceLines,
   standards = 'WHO',
   id,
@@ -257,7 +258,13 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     if (!chartConfig.showTooltip) return null;
     return (
       <Tooltip
-        content={<CustomTooltip pollutant={pollutant} frequency={frequency} />}
+        content={
+          <CustomTooltip
+            pollutant={pollutant}
+            frequency={frequency}
+            aqiConfig={aqiConfig}
+          />
+        }
         wrapperStyle={{ zIndex: 9999 }}
         wrapperClassName="recharts-tooltip"
       />

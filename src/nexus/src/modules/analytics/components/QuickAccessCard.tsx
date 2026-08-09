@@ -116,6 +116,7 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     showIcon = true,
     onShowIconsChange,
     selectedPollutant,
+    aqiConfig = null,
     isLoading = false,
     placeholderCount = 0,
     errorMessage = null,
@@ -213,6 +214,7 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
                   className="w-full"
                   showIcon={showIcon}
                   selectedPollutant={selectedPollutant}
+                  aqiConfig={aqiConfig}
                   onClick={onCardClick || (() => {})}
                 />
               ))

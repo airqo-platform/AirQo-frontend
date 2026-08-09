@@ -7,6 +7,7 @@ import { useAnalytics } from '@/modules/analytics/hooks/useAnalytics';
 import { LoadingSpinner } from '@/shared/components/ui';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { cn } from '@/shared/lib/utils';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 
 interface SiteInsightsChartProps {
   siteId: string;
@@ -32,6 +33,7 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
   const { filters } = useAnalytics();
   const currentPollutant =
     selectedPollutant || filters?.pollutant || defaultPollutant;
+  const { config: aqiConfig } = useAqiConfig(currentPollutant);
 
   // Calculate last 7 days date range
   const dateRange = React.useMemo(() => {
@@ -117,6 +119,7 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
           strokeWidth: 2,
         }}
         pollutant={currentPollutant}
+        aqiConfig={aqiConfig}
         frequency="daily"
         autoSelectType={false}
         responsive={true}
