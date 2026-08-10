@@ -331,10 +331,10 @@ const WelcomePage = () => {
             </div>
             <div>
               <span className="text-lg font-medium text-gray-900 dark:text-white">
-                Add AirQo Device
+                Claim AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
-                Have an AirQo sensor? Easily add it to your workspace
+                Received an AirQo sensor? Claim it into your workspace
               </span>
             </div>
           </button>
@@ -441,7 +441,7 @@ const WelcomePage = () => {
                 onClick={() => setIsClaimModalOpen(true)}
                 Icon={Plus}
               >
-                Add AirQo Device
+                Claim AirQo Device
               </ReusableButton>
               <ReusableButton
                 variant="outlined"

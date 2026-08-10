@@ -15,16 +15,16 @@ describe("CohortsEmptyState", () => {
 
     expect(screen.getByText("No Cohorts Found")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Add AirQo Device" })
+      screen.getByRole("button", { name: "Claim AirQo Device" })
     ).toBeInTheDocument();
   });
 
-  it("opens the claim device modal when Add AirQo Device is clicked", async () => {
+  it("opens the claim device modal when Claim AirQo Device is clicked", async () => {
     const user = userEvent.setup();
     render(<CohortsEmptyState />);
 
     expect(screen.queryByTestId("claim-device-modal")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Add AirQo Device" }));
+    await user.click(screen.getByRole("button", { name: "Claim AirQo Device" }));
     expect(screen.getByTestId("claim-device-modal")).toBeInTheDocument();
   });
 });

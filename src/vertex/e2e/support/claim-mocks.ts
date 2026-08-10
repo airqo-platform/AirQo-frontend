@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import type { CapturedCall } from "./device-mocks";
 
 /**
- * Route interceptions for the Add AirQo Device (claim) wizard's cohort-import
+ * Route interceptions for the Claim AirQo Device wizard's cohort-import
  * path — the only method-select option currently live in the UI (manual/QR/
  * bulk entries are commented out of MethodSelectStep pending completion).
  * Verify stays a GET so real cohort-ID validation is exercised; only the
