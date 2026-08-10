@@ -19,10 +19,10 @@ tolerations: {}
 resources:
   requests:
     cpu: 10m
-    memory: 20Mi
+    memory: 128Mi
   limits:
-    cpu: 50m
-    memory: 150Mi
+    cpu: 200m
+    memory: 300Mi
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
