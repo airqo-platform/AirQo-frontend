@@ -284,11 +284,11 @@ export const METADATA_CONFIGS = {
       'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1786456550/website/photos/network_zw6quv.webp',
       alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
-      width: 1200,
-      height: 630,
-      type: 'image/png',
+      width: 2170,
+      height: 1488,
+      type: 'image/webp',
     },
   },
   solutionsKampalaStudy: {
