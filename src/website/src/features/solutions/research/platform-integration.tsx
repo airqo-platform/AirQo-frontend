@@ -3,6 +3,13 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const integrationImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1737012325/website/photos/Solutions/unnamed_v5i87v.png',
+  { width: 800 },
+);
+
 const animations = {
   container: {
     hidden: { opacity: 0, y: 50 },
@@ -90,7 +97,7 @@ export default function PlatformIntegration() {
         <motion.div className="lg:w-1/2 relative" variants={animations.image}>
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1737012325/website/photos/Solutions/unnamed_v5i87v.png"
+              src={integrationImage}
               alt="Air Quality Data Integration"
               width={800}
               height={600}

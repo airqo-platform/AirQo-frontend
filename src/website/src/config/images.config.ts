@@ -10,8 +10,8 @@ export type ImageConfig = {
 };
 
 const imagesConfig: ImageConfig = {
-  defaultPlaceholder: '/images/placeholder.png',
-  cloudinaryBaseUrl: 'https://res.cloudinary.com/airqo/image/upload',
+  defaultPlaceholder: '/assets/images/placeholder.webp',
+  cloudinaryBaseUrl: 'https://res.cloudinary.com/dbibjvyhm/image/upload',
   breakpoints: {
     mobile: 640,
     tablet: 768,

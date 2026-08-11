@@ -1,12 +1,42 @@
 import React from 'react';
 
 import ReversibleContentSection from '@/components/sections/ReversibleContentSection';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 import AnalyticsContentSection from './AnalyticsContentSection';
 import AppDownloadSection from './AppDownloadSection';
 import HomeDeferredSections from './HomeDeferredSections';
 // import HomeDevConSection from './HomeDevConSection';
 import HomePlayerSection from './HomePlayerSection';
+
+const CONTENT_IMAGE_WIDTH = 1200;
+
+const images = {
+  monitorHome: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757020397/website/photos/monitorHome_dmmrsk_tof2wo.webp',
+    { width: CONTENT_IMAGE_WIDTH },
+  ),
+  analyticsHome: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
+    { width: CONTENT_IMAGE_WIDTH },
+  ),
+  apiWrapper: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
+    { width: CONTENT_IMAGE_WIDTH },
+  ),
+  networkCoverage: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+    { width: CONTENT_IMAGE_WIDTH },
+  ),
+  cleanAirForum: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1772537998/website/photos/Clean-Air-Forum-Save-the-Date_1_xgtbul.png',
+    { width: CONTENT_IMAGE_WIDTH },
+  ),
+  mobileAppMockup: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
+    { width: 800 },
+  ),
+};
 
 const HomePage = () => {
   return (
@@ -23,7 +53,7 @@ const HomePage = () => {
         description="Our Binos Air Quality Monitors are designed, manufactured, and calibrated specifically for African urban environments. Optimized to withstand extreme weather, high dust, and heat, these locally built monitors provide accurate, AI-calibrated air quality data. Easy to install on buildings or motorcycle taxis, they enable high-resolution, mobile monitoring to fill data gaps across cities. Powered by solar or mains electricity and operating on reliable 2G networks, Binos Monitors deliver actionable insights to support effective air quality management across Africa. "
         buttonText="Learn more"
         buttonLink="/products/monitor"
-        imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757020397/website/photos/monitorHome_dmmrsk_tof2wo.webp"
+        imageUrl={images.monitorHome}
         reverse={false}
         backgroundColor="bg-transparent"
       />
@@ -35,7 +65,7 @@ const HomePage = () => {
         description="Access and visualise real-time and historical air quality information across Africa through our easy-to-use AirQo Nexus."
         buttonText="Learn more"
         buttonLink="/products/analytics"
-        imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png"
+        imageUrl={images.analyticsHome}
         backgroundColor="bg-[#EDF3FF]"
         subtitleColor="text-black"
         subtitleBgColor="bg-white"
@@ -48,7 +78,7 @@ const HomePage = () => {
         description="Are you a developer? We invite you to leverage our open-air quality data on your App"
         buttonText="Get started here"
         buttonLink="/products/api"
-        imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png"
+        imageUrl={images.apiWrapper}
         reverse={true}
         backgroundColor="bg-transparent"
         leftWidth="lg:w-1/3"
@@ -69,7 +99,7 @@ const HomePage = () => {
         }
         buttonText="View Network Coverage"
         buttonLink="/solutions/network-coverage"
-        imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png"
+        imageUrl={images.networkCoverage}
         backgroundColor="bg-transparent"
         reverse={true}
         imageClassName="object-cover rounded-xl"
@@ -98,7 +128,7 @@ const HomePage = () => {
         }
         buttonText="Learn more"
         buttonLink="https://cleanairafrica.org/events/annual-forum-2026-pretoria/"
-        imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1772537998/website/photos/Clean-Air-Forum-Save-the-Date_1_xgtbul.png"
+        imageUrl={images.cleanAirForum}
         reverse={false}
         backgroundColor="bg-[#EDF3FF]"
         subtitleColor="text-black"
@@ -112,7 +142,7 @@ const HomePage = () => {
         description="Discover the quality of air you are breathing"
         appStoreLink="https://apps.apple.com/ug/app/airqo-air-quality/id1337573091"
         googlePlayLink="https://play.google.com/store/apps/details?id=com.airqo.app"
-        mockupImage="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png"
+        mockupImage={images.mobileAppMockup}
       />
     </div>
   );

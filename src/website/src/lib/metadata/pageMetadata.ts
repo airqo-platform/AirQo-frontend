@@ -1,7 +1,61 @@
 import { Metadata } from 'next';
 
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
 import { generateMetadata } from './generateMetadata';
 import { MetadataConfig } from './metadata.config';
+
+// Shared optimized OG images (q_auto/f_auto + width 1200 for social cards)
+const OG_IMAGES = {
+  airQuality: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    { width: 1200 },
+  ),
+  team: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+    { width: 1200 },
+  ),
+  monitor: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+    { width: 1200 },
+  ),
+  analytics: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
+    { width: 1200 },
+  ),
+  api: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
+    { width: 1200 },
+  ),
+  mobileApp: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
+    { width: 1200 },
+  ),
+  networkScreenshot: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+    { width: 1200 },
+  ),
+  forum: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+    { width: 1200 },
+  ),
+  community: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
+    { width: 1200 },
+  ),
+  networkCoverage: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1786456550/website/photos/network_zw6quv.webp',
+    { width: 1200 },
+  ),
+  careers: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
+    { width: 1200 },
+  ),
+  events: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp',
+    { width: 1200 },
+  ),
+} as const;
 
 // Page-specific metadata configurations with enhanced SEO
 export const METADATA_CONFIGS = {
@@ -14,7 +68,7 @@ export const METADATA_CONFIGS = {
       'air quality Africa, air pollution monitoring, African air quality network, real-time PM2.5 Africa, air quality sensors Africa, pollution data Africa, air monitoring network, African cities air quality, air quality monitoring system, low-cost sensors Africa, clean air Africa, air quality app Africa, air quality API, environmental monitoring Africa, PM2.5 tracking, air pollution data, Makerere University air quality, Google.org Africa, WHO air quality Africa, air quality research Africa, African environmental data',
     url: '/',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: "AirQo - Africa's Leading Air Quality Monitoring Network with Real-time Pollution Data",
       width: 1200,
       height: 630,
@@ -30,7 +84,7 @@ export const METADATA_CONFIGS = {
       'About AirQo Uganda, Makerere University research, air quality innovation Uganda, Kampala environmental research, AirQo team Kenya, Professor Bainomugisha Uganda, air pollution monitoring Africa, Uganda environmental technology, Kenya air quality research, Nigeria pollution initiative, Ghana clean air, Google.org Africa partnership, World Bank Uganda, EPIC Air Quality Fund Africa, Uganda innovation, East Africa air research, environmental technology Uganda, Kampala innovation hub, African scientists air quality',
     url: '/about-us',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+      url: OG_IMAGES.team,
       alt: 'AirQo Team at Makerere University - Leading Air Quality Research in Africa',
       width: 1200,
       height: 630,
@@ -46,7 +100,7 @@ export const METADATA_CONFIGS = {
       'AirQo Binos monitor Uganda, air quality sensors Kenya, pollution monitors Nigeria, Ghana air sensors, Kampala air quality monitor, Nairobi pollution sensor, Lagos air monitor, Accra PM2.5 sensor, African climate sensors, Uganda environmental equipment, Kenya pollution devices, tropical weather sensors, dust-resistant monitors Africa, solar powered air sensors, Uganda made monitors, East Africa air sensors, West Africa pollution monitors, low-cost sensors Uganda, Makerere University sensors',
     url: '/products/monitor',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'AirQo Binos Air Quality Monitor - Locally Designed for African Cities',
       width: 1200,
       height: 630,
@@ -62,7 +116,7 @@ export const METADATA_CONFIGS = {
       'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, AirQo Nexus Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities AirQo Nexus, platform.airqo.net Uganda',
     url: '/products/nexus',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
+      url: OG_IMAGES.analytics,
       alt: 'AirQo Nexus Platform - Real-time Air Quality Dashboard for Africa',
       width: 1200,
       height: 630,
@@ -78,7 +132,7 @@ export const METADATA_CONFIGS = {
       'AirQo API, air quality API Africa, open air data, developer API, environmental data API, PM2.5 API, pollution data access, RESTful API, air quality SDK, African cities data, real-time air API, historical air data, free API tier, environmental monitoring API',
     url: '/products/api',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
+      url: OG_IMAGES.api,
       alt: 'AirQo Developer API - Open Access to African Air Quality Data',
       width: 1200,
       height: 630,
@@ -157,7 +211,7 @@ export const METADATA_CONFIGS = {
       'AirQo app Uganda, air quality app Kenya, pollution app Nigeria, Ghana air app, Kampala air quality app, Nairobi pollution app, Lagos air quality tracker, Accra PM2.5 app, Uganda pollution alerts, Kenya air monitoring app, Nigeria environmental app, East Africa air app, African cities air quality, free air quality app Africa, Uganda health app, Kenya pollution tracker, Android air quality Uganda, iOS pollution app Africa, Jinja air app, Mombasa air quality',
     url: '/products/mobile-app',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
+      url: OG_IMAGES.mobileApp,
       alt: 'AirQo Mobile App - Air Quality Monitoring in Your Pocket',
       width: 1200,
       height: 630,
@@ -173,7 +227,7 @@ export const METADATA_CONFIGS = {
       'AirQalibrate, sensor calibration, air quality calibration, data quality assurance, sensor accuracy, ML calibration, drift correction, sensor maintenance, environmental monitoring QA, calibration platform, sensor network management, data validation',
     url: '/products/calibrate',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: 'AirQalibrate - Advanced Sensor Calibration Platform',
       width: 1200,
       height: 630,
@@ -189,7 +243,7 @@ export const METADATA_CONFIGS = {
       'Contact AirQo Uganda, AirQo Kampala office, Makerere University contact, Uganda air quality support, Kenya partnership AirQo, Nigeria collaboration inquiries, Ghana AirQo contact, Kampala office address, Uganda technical support, East Africa partnerships, AirQo email Uganda, Makerere University Kampala, Uganda environmental organization, Kenya AirQo office, African partnership inquiries',
     url: '/contact',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+      url: OG_IMAGES.team,
       alt: 'Contact AirQo Team - Air Quality Experts at Makerere University',
       width: 1200,
       height: 630,
@@ -205,7 +259,7 @@ export const METADATA_CONFIGS = {
       'Kampala air quality map, Nairobi pollution map, Lagos air quality live, Accra PM2.5 map, Uganda air quality data, Kenya pollution map, Nigeria air monitoring, Ghana air data, Jinja air quality, Mombasa pollution data, Kisumu air map, Entebbe air quality, East Africa pollution map, interactive air map Uganda, real-time air quality Kenya, Uganda environmental data, Kenya air research data, live pollution Uganda, African cities air map, PM2.5 map Africa',
     url: '/explore-data',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'AirQo Interactive Air Quality Map - Explore Data Across Africa',
       width: 1200,
       height: 630,
@@ -221,7 +275,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
     url: '/africa-clean-air-forum/about',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Nairobi - Partnerships for Clean Air in Africa',
       width: 1200,
       height: 630,
@@ -237,7 +291,7 @@ export const METADATA_CONFIGS = {
       'Smart city Kampala, Nairobi smart city air quality, Lagos urban monitoring, Accra city pollution, Uganda municipal air monitoring, Kenya city government solutions, Nigeria urban air quality, Ghana smart city sensors, Kampala city planning, Nairobi urban data, African city governments, Uganda urban planning, Kenya municipal solutions, city air dashboard Uganda, urban environmental Uganda, Jinja city monitoring, Mombasa urban planning',
     url: '/solutions/african-cities',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'Air Quality Solutions for African Smart Cities',
       width: 1200,
       height: 630,
@@ -253,7 +307,7 @@ export const METADATA_CONFIGS = {
       'Community air monitoring Uganda, citizen science Kenya, grassroots Nigeria air quality, community empowerment Uganda, Kampala neighborhood pollution, Nairobi community air data, Lagos local air monitoring, African community science, Uganda environmental justice, Kenya local action, community health Uganda, neighborhood air quality Kenya, participatory monitoring Africa, Uganda community leaders, Kenya NGO air monitoring, African community empowerment',
     url: '/solutions/communities',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
+      url: OG_IMAGES.community,
       alt: 'Community-Driven Air Quality Monitoring Solutions',
       width: 1200,
       height: 630,
@@ -269,7 +323,7 @@ export const METADATA_CONFIGS = {
       'Air quality research Uganda, Makerere University data, Kenya academic air data, Nigeria research API, Ghana environmental research, Uganda university air data, African research collaboration, academic datasets Uganda, Kampala research data, Nairobi university data, air quality science Africa, Uganda policy research, Kenya environmental studies, African air quality publications, research API Uganda, Makerere partnerships',
     url: '/solutions/research',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Air Quality Research Data and Tools for Academia',
       width: 1200,
       height: 630,
@@ -284,7 +338,7 @@ export const METADATA_CONFIGS = {
       'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1786456550/website/photos/network_zw6quv.webp',
+      url: OG_IMAGES.networkCoverage,
       alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
       width: 2170,
       height: 1488,
@@ -300,7 +354,7 @@ export const METADATA_CONFIGS = {
       'Kampala air quality study, air pollution research Kampala, clean air initiative, citizen science air quality, real-time pollution monitoring, health exposure study, urban air quality research, community participation, environmental health Kampala, AirQo study',
     url: '/solutions/kampala-study',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: 'Kampala Air Quality Research Study - Real-time Pollution Monitoring',
       width: 1200,
       height: 630,
@@ -315,7 +369,7 @@ export const METADATA_CONFIGS = {
       'AirQo privacy policy, data protection, GDPR compliance, user privacy, personal data security, privacy rights, data collection policy, information security',
     url: '/legal/privacy-policy',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'AirQo Privacy Policy and Data Protection',
       width: 1200,
       height: 630,
@@ -330,7 +384,7 @@ export const METADATA_CONFIGS = {
       'AirQo cookies policy, local storage policy, cookies, browser storage, authentication cookies, analytics cookies, user preferences, Mapbox cookies, Google Auth cookies',
     url: '/legal/cookies',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'AirQo Cookies and Local Storage Policy',
       width: 1200,
       height: 630,
@@ -345,7 +399,7 @@ export const METADATA_CONFIGS = {
       'AirQo terms of service, usage agreement, platform terms, service conditions, API terms, data usage rights, legal terms, user agreement',
     url: '/legal/terms-of-service',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'AirQo Terms of Service',
       width: 1200,
       height: 630,
@@ -360,7 +414,7 @@ export const METADATA_CONFIGS = {
       'AirQo payment policy, refund terms, billing policy, payment processing, transaction terms, refund process, service billing',
     url: '/legal/payment-refund-policy',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      url: OG_IMAGES.monitor,
       alt: 'AirQo Payment and Refund Policies',
       width: 1200,
       height: 630,
@@ -376,7 +430,7 @@ export const METADATA_CONFIGS = {
       'AirQo open data, Creative Commons license, data usage policy, open data access, attribution requirements, research data rights, API licensing, environmental data sharing',
     url: '/legal/airqo-data',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'AirQo Open Data Policy and Licensing',
       width: 1200,
       height: 630,
@@ -392,7 +446,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sessions',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Conference Sessions',
       width: 1200,
       height: 630,
@@ -408,7 +462,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/speakers',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Distinguished Speakers',
       width: 1200,
       height: 630,
@@ -424,7 +478,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/resources',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Resources and Downloads',
       width: 1200,
       height: 630,
@@ -440,7 +494,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sponsorships',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Sponsorship Opportunities',
       width: 1200,
       height: 630,
@@ -456,7 +510,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/logistics',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Venue in Nairobi',
       width: 1200,
       height: 630,
@@ -471,7 +525,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/program-committee',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Program Committee',
       width: 1200,
       height: 630,
@@ -487,7 +541,7 @@ export const METADATA_CONFIGS = {
       'Air quality glossary, PM2.5 definition, AQI explained, air pollution terms, monitoring terminology, WHO guidelines, environmental definitions, technical glossary',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/glossary',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Air Quality Terms and Definitions Glossary',
       width: 1200,
       height: 630,
@@ -503,7 +557,7 @@ export const METADATA_CONFIGS = {
       'Africa Clean Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/partners',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      url: OG_IMAGES.forum,
       alt: 'Africa Clean Air Forum 2025 Partners and Collaborators',
       width: 1200,
       height: 630,
@@ -519,7 +573,7 @@ export const METADATA_CONFIGS = {
       'AirQo jobs Uganda, environmental careers Kampala, data science jobs Uganda, engineering careers Kenya, Nairobi environmental jobs, Uganda tech careers, remote jobs Uganda, Makerere University careers, Kampala NGO jobs, Kenya data science, Uganda research positions, environmental jobs East Africa, air quality careers Africa, impact jobs Uganda, sustainability careers Kampala, Uganda tech jobs, Kenya engineering jobs',
     url: '/careers',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
+      url: OG_IMAGES.careers,
       alt: 'Join AirQo Team - Environmental Careers in Africa',
       width: 1200,
       height: 630,
@@ -535,7 +589,7 @@ export const METADATA_CONFIGS = {
       'AirQo events, air quality conferences, environmental workshops, community events, hackathons, training sessions, webinars, African environmental events',
     url: '/events',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp',
+      url: OG_IMAGES.events,
       alt: 'AirQo Events and Conferences',
       width: 1200,
       height: 630,
@@ -550,7 +604,7 @@ export const METADATA_CONFIGS = {
       'AirQo press, media coverage, press releases, journalist resources, news coverage, media kit, expert quotes, air quality news, environmental journalism Africa',
     url: '/press',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+      url: OG_IMAGES.team,
       alt: 'AirQo Press and Media Resources',
       width: 1200,
       height: 630,
@@ -565,7 +619,7 @@ export const METADATA_CONFIGS = {
       'AirQo blogs, air quality insights, environmental stories, clean air updates, air quality research, African air pollution news, community impact stories, air quality blog',
     url: '/blogs',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: 'AirQo Blogs and Insights',
       width: 1200,
       height: 630,
@@ -580,7 +634,7 @@ export const METADATA_CONFIGS = {
       'AirQo resources, research publications, air quality reports, technical guides, policy briefs, educational materials, case studies, datasets, monitoring guides',
     url: '/resources',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: 'AirQo Resources and Publications Library',
       width: 1200,
       height: 630,
@@ -596,7 +650,7 @@ export const METADATA_CONFIGS = {
       'AirQo FAQ, frequently asked questions, air quality help, sensor questions, data access FAQ, API documentation, PM2.5 explained, partnership inquiries',
     url: '/faqs',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: OG_IMAGES.airQuality,
       alt: 'AirQo Frequently Asked Questions',
       width: 1200,
       height: 630,
@@ -612,7 +666,7 @@ export const METADATA_CONFIGS = {
       'AirQo partners, Google.org partnership, World Bank collaboration, WHO partnership, UNEP, environmental partnerships, African collaborations, strategic partners, funding partners',
     url: '/partners',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+      url: OG_IMAGES.team,
       alt: 'AirQo Strategic Partners and Collaborators',
       width: 1200,
       height: 630,
@@ -628,7 +682,7 @@ export const METADATA_CONFIGS = {
       'air quality Uganda, Kampala air pollution, Uganda PM2.5, Jinja air quality, Entebbe pollution, Kampala pollution levels, Uganda environmental data, air quality monitoring Uganda, Kampala air today, Uganda pollution map, Mbarara air quality, Gulu pollution, Kampala smog, Uganda air index, real-time air Uganda, Kampala air quality today, pollution Uganda cities, Uganda air quality app, Makerere air quality, Uganda air health',
     url: '/uganda-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Uganda Air Quality Map - Kampala, Jinja, Entebbe Real-time PM2.5',
       width: 1200,
       height: 630,
@@ -644,7 +698,7 @@ export const METADATA_CONFIGS = {
       'air quality Kenya, Nairobi air pollution, Kenya PM2.5, Mombasa air quality, Kisumu pollution, Nairobi pollution levels, Kenya environmental data, air quality monitoring Kenya, Nairobi air today, Kenya pollution map, Nakuru air quality, Eldoret pollution, Nairobi smog, Kenya air index, real-time air Kenya, Nairobi air quality today, pollution Kenya cities, Kenya air quality app, Nairobi air health',
     url: '/kenya-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Kenya Air Quality Map - Nairobi, Mombasa, Kisumu Real-time PM2.5',
       width: 1200,
       height: 630,
@@ -660,7 +714,7 @@ export const METADATA_CONFIGS = {
       'air quality Nigeria, Lagos air pollution, Nigeria PM2.5, Abuja air quality, Port Harcourt pollution, Lagos pollution levels, Nigeria environmental data, air quality monitoring Nigeria, Lagos air today, Nigeria pollution map, Kano air quality, Ibadan pollution, Lagos smog, Nigeria air index, real-time air Nigeria, Lagos air quality today, pollution Nigeria cities, Nigeria air quality app, Lagos air health',
     url: '/nigeria-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Nigeria Air Quality Map - Lagos, Abuja, Port Harcourt PM2.5',
       width: 1200,
       height: 630,
@@ -676,7 +730,7 @@ export const METADATA_CONFIGS = {
       'air quality Ghana, Accra air pollution, Ghana PM2.5, Kumasi air quality, Takoradi pollution, Accra pollution levels, Ghana environmental data, air quality monitoring Ghana, Accra air today, Ghana pollution map, Kumasi pollution levels, Accra smog, Ghana air index, real-time air Ghana, Accra air quality today, pollution Ghana cities, Ghana air quality app, Accra air health',
     url: '/ghana-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Ghana Air Quality Map - Accra, Kumasi Real-time PM2.5',
       width: 1200,
       height: 630,
@@ -692,7 +746,7 @@ export const METADATA_CONFIGS = {
       'air quality Rwanda, Kigali air pollution, Rwanda PM2.5, Kigali air quality, Rwanda pollution levels, Rwanda environmental data, air quality monitoring Rwanda, Kigali air today, Rwanda pollution map, Kigali pollution levels, Rwanda air index, real-time air Rwanda, Kigali air quality today, Rwanda air quality app',
     url: '/rwanda-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Rwanda Air Quality Map - Kigali Real-time PM2.5',
       width: 1200,
       height: 630,
@@ -708,7 +762,7 @@ export const METADATA_CONFIGS = {
       'air quality Tanzania, Dar es Salaam air pollution, Tanzania PM2.5, Arusha air quality, Mwanza pollution, Dar es Salaam pollution levels, Tanzania environmental data, air quality monitoring Tanzania, Dar es Salaam air today, Tanzania pollution map, Tanzania air index, real-time air Tanzania, Tanzania air quality app',
     url: '/tanzania-air-quality',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      url: OG_IMAGES.networkScreenshot,
       alt: 'Tanzania Air Quality Map - Dar es Salaam Real-time PM2.5',
       width: 1200,
       height: 630,

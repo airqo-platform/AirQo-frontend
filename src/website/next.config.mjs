@@ -102,6 +102,57 @@ const nextConfig = {
       },
     ];
   },
+
+  // Caching + security headers
+  async headers() {
+    const immutableAssets = {
+      key: 'Cache-Control',
+      value: 'public, max-age=31536000, immutable',
+    };
+
+    return [
+      {
+        source: '/assets/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/fonts/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/QR/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/clean-air-forum-2026/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/favicon.ico',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/web-app-manifest-192x192.png',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/web-app-manifest-512x512.png',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), payment=(), usb=()',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -8,6 +8,30 @@ import { BiDownload } from 'react-icons/bi';
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useImpactNumbers } from '@/hooks/useApiHooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  hero: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+    { width: 1000 },
+  ),
+  locallyBuilt: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/section-1_ia0mjq.webp',
+    { width: 1200 },
+  ),
+  mobileMonitoring: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869451/website/photos/OurProducts/Monitor/image21_bppqoe.jpg',
+    { width: 1200 },
+  ),
+  coverage: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/Africa_bujaie.webp',
+    { width: 1200 },
+  ),
+  field: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1743546958/website/photos/OurProducts/Monitor/Two_members_in_field_knwffk.jpg',
+    { width: 1000 },
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -84,7 +108,7 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg"
+              src={images.hero}
               alt="Air quality monitor installation"
               width={500}
               height={350}
@@ -145,7 +169,7 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/section-1_ia0mjq.webp"
+              src={images.locallyBuilt}
               alt="Local Monitor"
               width={741}
               height={540}
@@ -173,7 +197,7 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869451/website/photos/OurProducts/Monitor/image21_bppqoe.jpg"
+              src={images.mobileMonitoring}
               alt="Air quality monitor on a motorcycle"
               width={741}
               height={540}
@@ -220,7 +244,7 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132444/website/photos/OurProducts/Monitor/Africa_bujaie.webp"
+              src={images.coverage}
               alt="Air Quality Monitors"
               width={600}
               height={400}
@@ -394,7 +418,7 @@ const MonitorPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1743546958/website/photos/OurProducts/Monitor/Two_members_in_field_knwffk.jpg"
+              src={images.field}
               alt="Two members in the field installing the monitor"
               width={500}
               height={400}

@@ -1,3 +1,5 @@
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
 export interface ImageMetadata {
   url: string;
   alt: string;
@@ -22,7 +24,10 @@ export interface MetadataConfig {
 export const DEFAULT_METADATA = {
   siteName: 'AirQo - Air Quality Monitoring Network Africa',
   defaultImage: {
-    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    url: optimizeCloudinaryUrl(
+      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      { width: 1200 },
+    ),
     alt: 'AirQo - Clean Air for All African Cities | Real-time Air Quality Monitoring',
     width: 1200,
     height: 630,

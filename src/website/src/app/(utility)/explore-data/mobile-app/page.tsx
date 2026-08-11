@@ -3,13 +3,29 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import {
+  CLOUDINARY_IMAGES,
+  optimizeCloudinaryUrl,
+} from '@/services/external/cloudinary.service';
+
+const images = {
+  hero: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/explore/man-download-app_qg1pt2.png',
+    { width: 1200 },
+  ),
+  qrCode: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1770647202/website/photos/explore/frame_k2ncpc.png',
+    { width: 440 },
+  ),
+};
+
 const AppPromo = () => {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Left Side: Image with responsiveness */}
       <div className="hidden md:block w-full lg:w-1/2 relative h-64 lg:h-auto">
         <Image
-          src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/explore/man-download-app_qg1pt2.png"
+          src={images.hero}
           alt="User using AirQo app"
           fill
           className="object-cover w-full h-full"
@@ -36,7 +52,7 @@ const AppPromo = () => {
           className="mb-8"
         >
           <Image
-            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+            src={CLOUDINARY_IMAGES.logo}
             alt="AirQo Logo"
             width={80}
             height={80}
@@ -67,12 +83,7 @@ const AppPromo = () => {
         >
           {/* QR Code - Larger size for better visibility */}
           <div className="border border-gray-300 rounded-lg p-4 hidden lg:block">
-            <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1770647202/website/photos/explore/frame_k2ncpc.png"
-              alt="QR Code"
-              width={220}
-              height={220}
-            />
+            <Image src={images.qrCode} alt="QR Code" width={220} height={220} />
           </div>
 
           {/* Download buttons */}
@@ -84,7 +95,7 @@ const AppPromo = () => {
               className="block"
             >
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179257/website/photos/apple_vpcn6j.png"
+                src={CLOUDINARY_IMAGES.appleStoreBadge}
                 alt="Download on the App Store"
                 width={160}
                 height={50}
@@ -97,7 +108,7 @@ const AppPromo = () => {
               className="block"
             >
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179280/website/photos/google_play_vdmjrx.png"
+                src={CLOUDINARY_IMAGES.googlePlayBadge}
                 alt="Get it on Google Play"
                 width={160}
                 height={50}
