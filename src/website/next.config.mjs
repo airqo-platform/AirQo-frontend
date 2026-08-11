@@ -120,8 +120,8 @@ const nextConfig = {
     return [
       {
         source: '/assets/:path*',
-        headers: [revalidatableAssets],
-      }
+        headers: [immutableAssets],
+      },
       {
         source: '/fonts/:path*',
         headers: [immutableAssets],

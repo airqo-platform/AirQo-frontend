@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml/badge.svg)](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend) [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-**Website** is the AirQo marketing and analytics application for air quality data visualization. Built with Next.js 14, React 18, TypeScript, Tailwind CSS, Redux Toolkit, and TanStack React Query. The live website is at [airqo.net](https://airqo.net).
+**Website** is the AirQo marketing and analytics application for air quality data visualization. Built with Next.js 14, React 18, TypeScript, Tailwind CSS, Redux Toolkit, and TanStack React Query. The live website is at [airqo.net](https://airqo.net)
 
 > **Note:** This is the frontend portion of the project. The backend is built with Django and maintained in the [airqo-api](https://github.com/airqo-platform/airqo-api) repository.
 
@@ -10,13 +10,23 @@
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Available Scripts](#available-scripts)
-- [Environment Variables](#environment-variables)
-- [Testing](#testing)
-- [Running with Docker](#running-with-docker)
-- [Contributing](#contributing)
+- [Website](#website)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+  - [Project Structure](#project-structure)
+  - [Available Scripts](#available-scripts)
+  - [Environment Variables](#environment-variables)
+    - [Server-side Variables](#server-side-variables)
+    - [Client-side Variables](#client-side-variables)
+  - [Testing](#testing)
+    - [Unit Tests (Jest)](#unit-tests-jest)
+    - [E2E Tests (Selenium + Mocha)](#e2e-tests-selenium--mocha)
+    - [Coverage](#coverage)
+  - [Running with Docker](#running-with-docker)
+  - [Contributing](#contributing)
+  - [Learn More](#learn-more)
 
 ---
 
