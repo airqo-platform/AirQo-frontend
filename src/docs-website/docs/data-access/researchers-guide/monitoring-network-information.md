@@ -19,3 +19,5 @@ sidebar_label: 6. Monitoring Network Information
 ### Data Partnerships and Accessibility
 
 The AirQo monitoring network includes devices owned and operated by multiple stakeholders: AirQo (Makerere University) as primary operator, municipal governments, research institutions, and international development partners. Most partner-owned monitors are publicly accessible through the AirQo platform.
+
+For a continent-wide view beyond AirQo's own network — including monitoring initiatives run by other institutions across Africa — see the [Network Coverage Metadata](./data-access-channels.md#network-coverage-metadata-africa-wide) resource, which lets you explore station coverage by country, instrumentation type, and institutional ownership.
