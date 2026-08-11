@@ -5,7 +5,7 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 import { generateMetadata } from './generateMetadata';
 import { MetadataConfig } from './metadata.config';
 
-// Shared optimized OG images (q_auto/f_auto + width 1200 for social cards)
+// Shared optimized OG images (q_auto/f_webp + width 1200 for social cards)
 const OG_IMAGES = {
   airQuality: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
