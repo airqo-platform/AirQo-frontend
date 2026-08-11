@@ -11,7 +11,14 @@ const NonBlockingFontLink = ({ href }: { href: string }) => {
     }
   }, []);
 
-  return <link ref={linkRef} rel="stylesheet" href={href} media="print" />;
+  return (
+    <>
+      <link ref={linkRef} rel="stylesheet" href={href} media="print" />
+      <noscript>
+        <link rel="stylesheet" href={href} />
+      </noscript>
+    </>
+  );
 };
 
 export default NonBlockingFontLink;
