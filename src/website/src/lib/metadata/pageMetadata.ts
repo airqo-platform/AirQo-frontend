@@ -340,8 +340,8 @@ export const METADATA_CONFIGS = {
     image: {
       url: OG_IMAGES.networkCoverage,
       alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
-      width: 2170,
-      height: 1488,
+      width: 1200,
+      height: 823,
       type: 'image/webp',
     },
   },

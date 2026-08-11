@@ -49,6 +49,12 @@ const images = {
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_quotes_odzokg.webp',
     { width: 120 },
   ),
+  championStar: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/Communities_Star_qcl1e6.svg',
+  ),
+  arrowLeft: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_arrow_left_qnp4qz.svg',
+  ),
 };
 
 // Define motion variants for different animations
@@ -124,7 +130,7 @@ const CommunitiesPage = () => {
           <motion.div variants={itemVariants}>
             <div className="flex items-center mb-4">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/Communities_Star_qcl1e6.svg"
+                src={images.championStar}
                 alt="AirQommunity Champion Icon"
                 width={90}
                 height={90}
@@ -210,7 +216,7 @@ const CommunitiesPage = () => {
                 300
               </span>
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_arrow_left_qnp4qz.svg"
+                src={images.arrowLeft}
                 alt="AirQommunity Icon"
                 width={60}
                 height={52}

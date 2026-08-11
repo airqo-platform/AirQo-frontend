@@ -110,6 +110,13 @@ const nextConfig = {
       value: 'public, max-age=31536000, immutable',
     };
 
+    // Stable, non-fingerprinted URLs must be revalidatable so release
+    // updates to these files are not retained by caches for a year.
+    const revalidatableAssets = {
+      key: 'Cache-Control',
+      value: 'public, max-age=0, must-revalidate',
+    };
+
     return [
       {
         source: '/assets/:path*',
@@ -125,19 +132,19 @@ const nextConfig = {
       },
       {
         source: '/clean-air-forum-2026/:path*',
-        headers: [immutableAssets],
+        headers: [revalidatableAssets],
       },
       {
         source: '/favicon.ico',
-        headers: [immutableAssets],
+        headers: [revalidatableAssets],
       },
       {
         source: '/web-app-manifest-192x192.png',
-        headers: [immutableAssets],
+        headers: [revalidatableAssets],
       },
       {
         source: '/web-app-manifest-512x512.png',
-        headers: [immutableAssets],
+        headers: [revalidatableAssets],
       },
       {
         source: '/:path*',

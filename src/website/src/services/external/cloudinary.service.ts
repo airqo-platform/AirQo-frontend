@@ -11,7 +11,7 @@ export type CloudinaryImageOptions = {
 };
 
 const hasExistingTransformation = (segment: string): boolean =>
-  /^(w_|h_|q_|f_|c_|g_|dpr_|e_|fl_|so_|vc_|br_)/.test(segment);
+  /^(w_|h_|q_|f_|c_|g_|dpr_|e_|fl_|so_|vc_|br_|t_)/.test(segment);
 
 export function optimizeCloudinaryUrl(
   url: string,
@@ -47,7 +47,7 @@ export function optimizeCloudinaryUrl(
   const {
     width,
     height,
-    crop = width ? 'limit' : undefined,
+    crop = width || height ? 'limit' : undefined,
     quality = 'auto',
     format = 'webp',
   } = options;

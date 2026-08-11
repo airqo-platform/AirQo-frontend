@@ -31,6 +31,19 @@ describe('optimizeCloudinaryUrl', () => {
     );
   });
 
+  it('does not double-transform URLs that start with a named transformation', () => {
+    const transformed =
+      'https://res.cloudinary.com/dbibjvyhm/image/upload/t_square/v1728132435/website/photos/AirQuality_meyioj.webp';
+    expect(optimizeCloudinaryUrl(transformed, { width: 800 })).toBe(
+      transformed,
+    );
+  });
+
+  it('applies c_limit for height-only resizing', () => {
+    const result = optimizeCloudinaryUrl(BASE_URL, { height: 400 });
+    expect(result).toContain('c_limit,h_400,q_auto,f_webp');
+  });
+
   it('skips SVG assets', () => {
     const svg =
       'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/Communities_Star_qcl1e6.svg';
