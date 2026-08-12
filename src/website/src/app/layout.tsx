@@ -8,14 +8,21 @@ import { ReactNode, Suspense } from 'react';
 
 import GlobalRouteChrome from '@/components/GlobalRouteChrome';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import NonBlockingFontLink from '@/components/NonBlockingFontLink';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/components/providers/ReduxProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 import { getPrimarySiteUrl } from '@/lib/siteUrl';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const GOOGLE_ANALYTICS_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+const DEFAULT_OG_IMAGE = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+  { width: 1200 },
+);
 
 const interFont = localFont({
   src: [
@@ -137,7 +144,7 @@ export const metadata: Metadata = {
       'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. Real-time monitoring in Uganda (Kampala), Kenya (Nairobi), Nigeria (Lagos), Ghana (Accra). We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
     images: [
       {
-        url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: 'AirQo - Clean Air for Uganda, Kenya, Nigeria, Ghana - African Cities Air Quality',
@@ -154,7 +161,7 @@ export const metadata: Metadata = {
       'Track air quality in Kampala, Nairobi, Lagos, Accra. Real-time PM2.5 data from 200+ monitors across Uganda, Kenya, Nigeria, Ghana. Free mobile app.',
     images: [
       {
-        url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+        url: DEFAULT_OG_IMAGE,
         alt: 'AirQo - Air Quality Monitoring Across African Cities',
         width: 1200,
         height: 630,
@@ -283,6 +290,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="//translate.gstatic.com"
           crossOrigin="anonymous"
         />
+        <link
+          rel="preconnect"
+          href="//fonts.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="//fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+
+        {/* DM Mono (used on the For Communities page) loaded non-blocking */}
+        <NonBlockingFontLink href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap" />
 
         <meta name="referrer" content="no-referrer" />
 

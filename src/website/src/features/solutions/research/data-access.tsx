@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
 const animations = {
   container: {
     hidden: { opacity: 0, y: 50 },
@@ -31,7 +33,10 @@ const CONTENT = {
   images: {
     blob: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_blob_fill_ro37jv.svg',
     consultation: [
-      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1737011992/website/photos/Solutions/6T9B9239_ksveld.jpg',
+      optimizeCloudinaryUrl(
+        'https://res.cloudinary.com/dbibjvyhm/image/upload/v1737011992/website/photos/Solutions/6T9B9239_ksveld.jpg',
+        { width: 800 },
+      ),
     ],
   },
 };

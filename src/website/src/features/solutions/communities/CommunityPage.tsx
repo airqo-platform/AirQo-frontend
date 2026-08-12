@@ -10,7 +10,52 @@ import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useDispatch } from '@/hooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 import { openModal } from '@/store/slices/modalSlice';
+
+const IMAGE_800 = 800;
+const IMAGE_1200 = 1200;
+
+const images = {
+  airQommunities: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQommunities_gnx5of.webp',
+    { width: IMAGE_1200 },
+  ),
+  championRect405: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248680/website/photos/Solutions/Rectangle_405_cl9ixu.webp',
+    { width: IMAGE_800 },
+  ),
+  championRect411: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_411_ueuurb.webp',
+    { width: IMAGE_800 },
+  ),
+  championStory: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1743547336/website/photos/Solutions/AIRQO_STORY_29_icjkc0.jpg',
+    { width: IMAGE_800 },
+  ),
+  accessImg01: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/AirQo_Web_IMG01_kyvty5.webp',
+    { width: IMAGE_800 },
+  ),
+  accessImg10: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_Web_IMG10_rpw83s.webp',
+    { width: IMAGE_800 },
+  ),
+  accessRect408: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_408_tkcdpv.webp',
+    { width: IMAGE_800 },
+  ),
+  quotes: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_quotes_odzokg.webp',
+    { width: 120 },
+  ),
+  championStar: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/Communities_Star_qcl1e6.svg',
+  ),
+  arrowLeft: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_arrow_left_qnp4qz.svg',
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -59,7 +104,7 @@ const CommunitiesPage = () => {
       >
         <motion.div variants={itemVariants}>
           <Image
-            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQommunities_gnx5of.webp"
+            src={images.airQommunities}
             alt="AirQo + Communities"
             width={1166}
             height={277}
@@ -85,7 +130,7 @@ const CommunitiesPage = () => {
           <motion.div variants={itemVariants}>
             <div className="flex items-center mb-4">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/Communities_Star_qcl1e6.svg"
+                src={images.championStar}
                 alt="AirQommunity Champion Icon"
                 width={90}
                 height={90}
@@ -117,7 +162,7 @@ const CommunitiesPage = () => {
             <div className="grid grid-rows-2 gap-4">
               {/* Always visible */}
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248680/website/photos/Solutions/Rectangle_405_cl9ixu.webp"
+                src={images.championRect405}
                 alt="Champion 2"
                 width={500}
                 height={500}
@@ -126,7 +171,7 @@ const CommunitiesPage = () => {
               {/* Visible from sm and above */}
               <div className="hidden sm:block">
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_411_ueuurb.webp"
+                  src={images.championRect411}
                   alt="Champion 1"
                   width={500}
                   height={500}
@@ -138,7 +183,7 @@ const CommunitiesPage = () => {
             {/* Right Column: Large Image (Visible from sm and above) */}
             <div className="hidden sm:flex">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1743547336/website/photos/Solutions/AIRQO_STORY_29_icjkc0.jpg"
+                src={images.championStory}
                 alt="Champion 3"
                 width={500}
                 height={700}
@@ -171,7 +216,7 @@ const CommunitiesPage = () => {
                 300
               </span>
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248677/website/photos/Solutions/AirQo_arrow_left_qnp4qz.svg"
+                src={images.arrowLeft}
                 alt="AirQommunity Icon"
                 width={60}
                 height={52}
@@ -246,7 +291,7 @@ const CommunitiesPage = () => {
             <div className="grid grid-rows-2 gap-4">
               {/* Always visible */}
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/AirQo_Web_IMG01_kyvty5.webp"
+                src={images.accessImg01}
                 alt="Image 1"
                 width={500}
                 height={500}
@@ -255,7 +300,7 @@ const CommunitiesPage = () => {
               {/* Visible from sm and above */}
               <div className="hidden sm:block">
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_Web_IMG10_rpw83s.webp"
+                  src={images.accessImg10}
                   alt="Image 2"
                   width={500}
                   height={500}
@@ -267,7 +312,7 @@ const CommunitiesPage = () => {
             {/* Right Column: Large Image (Visible from sm and above) */}
             <div className="hidden sm:flex">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248679/website/photos/Solutions/Rectangle_408_tkcdpv.webp"
+                src={images.accessRect408}
                 alt="Large Image"
                 width={500}
                 height={700}
@@ -288,7 +333,7 @@ const CommunitiesPage = () => {
         <CardWrapper className="bg-yellow-50">
           <motion.div className="text-left space-y-4" variants={itemVariants}>
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728248678/website/photos/Solutions/AirQo_quotes_odzokg.webp"
+              src={images.quotes}
               alt="Quote Icon"
               width={60}
               height={60}
