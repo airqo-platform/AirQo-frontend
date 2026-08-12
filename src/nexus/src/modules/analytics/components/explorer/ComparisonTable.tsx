@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { ErrorState } from '@/shared/components/ui/error-state';
-import { AqChevronUp, AqChevronDown, AqArrowUp, AqArrowDown, AqRefreshCcw01 } from '@airqo/icons-react';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
+import { AqArrowUp, AqArrowDown, AqRefreshCcw01 } from '@airqo/icons-react';
 import { HiMinus } from 'react-icons/hi';
 import {
   useComparisonReadings,
@@ -21,7 +20,6 @@ import {
   getAirQualityLevel,
   mapAqiCategoryToLevel,
 } from '@/shared/utils/airQuality';
-import { cn } from '@/shared/lib/utils';
 import type { AqiConfig } from '@/shared/types/aqi';
 import type { RecentReading } from '@/shared/types/api';
 
@@ -34,10 +32,8 @@ interface ComparisonTableProps {
   className?: string;
 }
 
-type SortKey = 'pm2_5' | 'pm10' | 'name' | 'time';
-type SortDirection = 'asc' | 'desc';
-
 interface ComparisonRow {
+  id: string;
   siteId: string;
   name: string;
   city: string;
@@ -47,6 +43,7 @@ interface ComparisonRow {
   category: string | null;
   percentageDifference: number | null;
   time: string | null;
+  [key: string]: unknown;
 }
 
 const formatValue = (value: number | null): string => {
@@ -69,10 +66,11 @@ const formatRelativeTime = (value: string | null): string => {
 
 /**
  * Comparison of the latest readings across every selected location —
- * deliberately unlimited, AirGradient-style. Columns are sortable; PM2.5 and
- * PM10 values are threshold-colored from the live AQI config, missing values
- * render as a dash, and each row carries the site's trend vs the previous
- * reading.
+ * deliberately unlimited, AirGradient-style. Built on the shared
+ * ServerSideTable (search, sortable columns, pagination, standard states)
+ * so it matches every other table in the app. PM2.5 and PM10 columns are
+ * threshold-colored from the live AQI config, missing values render as a
+ * dash, and each row carries the site's trend vs the previous reading.
  */
 export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   siteIds,
@@ -81,20 +79,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   onNamesResolved,
   className,
 }) => {
-  const [sortKey, setSortKey] = useState<SortKey>('pm2_5');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
-
-  const { data: readings, isLoading, error, refetch } = useComparisonReadings(
-    siteIds,
-    true
-  );
-
-  // Reset to the first page when the selection changes
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [siteIds]);
+  const { data: readings, isLoading, isFetching, error, refetch } =
+    useComparisonReadings(siteIds, true);
 
   const rows = useMemo<ComparisonRow[]>(() => {
     const readingsBySite = new Map<string, RecentReading>();
@@ -118,6 +104,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           : null;
 
       return {
+        id: siteId,
         siteId,
         name:
           siteNames.get(siteId) ??
@@ -142,80 +129,6 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     if (names.size > 0) onNamesResolved(names);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readings]);
-
-  const sortedRows = useMemo(() => {
-    const sorted = [...rows];
-    const directionMultiplier = sortDirection === 'asc' ? 1 : -1;
-
-    sorted.sort((left, right) => {
-      if (sortKey === 'name') {
-        return (
-          left.name.localeCompare(right.name) * directionMultiplier
-        );
-      }
-      if (sortKey === 'time') {
-        const leftTime = left.time ? new Date(left.time).getTime() : -1;
-        const rightTime = right.time ? new Date(right.time).getTime() : -1;
-        return (leftTime - rightTime) * directionMultiplier;
-      }
-      const leftValue = left[sortKey] ?? -1;
-      const rightValue = right[sortKey] ?? -1;
-      return (leftValue - rightValue) * directionMultiplier;
-    });
-
-    return sorted;
-  }, [rows, sortKey, sortDirection]);
-
-  // Client-side pagination (handles the last partial page + bounds correctly)
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return sortedRows.slice(start, start + PAGE_SIZE);
-  }, [sortedRows, safePage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(Math.min(Math.max(1, page), totalPages));
-  };
-
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(key);
-      setSortDirection(key === 'name' ? 'asc' : 'desc');
-    }
-    setCurrentPage(1);
-  };
-
-  const SortHeader: React.FC<{ label: string; sortableKey: SortKey; className?: string }> = ({
-    label,
-    sortableKey,
-    className,
-  }) => (
-    <button
-      type="button"
-      onClick={() => handleSort(sortableKey)}
-      aria-label={`Sort by ${label}`}
-      className={cn(
-        'inline-flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors',
-        className
-      )}
-    >
-      {label}
-      {sortKey === sortableKey ? (
-        sortDirection === 'asc' ? (
-          <AqChevronUp className="h-3.5 w-3.5" />
-        ) : (
-          <AqChevronDown className="h-3.5 w-3.5" />
-        )
-      ) : (
-        <span className="text-gray-300 dark:text-gray-600">
-          <AqChevronUp className="h-3 w-3" />
-        </span>
-      )}
-    </button>
-  );
 
   // Each pollutant column must be colored against ITS OWN AQI ranges —
   // pm2_5 and pm10 breakpoints differ (the legend uses the page-selected
@@ -244,7 +157,9 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           style={{ backgroundColor: color || '#6B7280' }}
           aria-hidden
         />
-        <span className="font-semibold text-foreground">{formatValue(value)}</span>
+        <span className="font-semibold text-foreground">
+          {formatValue(value)}
+        </span>
         <span className="text-xs text-muted-foreground">µg/m³</span>
       </span>
     );
@@ -306,163 +221,124 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     );
   };
 
+  const columns = useMemo(() => {
+    const rightAlign = {
+      headerClassName: 'text-right',
+      cellClassName: 'whitespace-nowrap text-right',
+    };
+
+    return [
+      {
+        key: 'name',
+        label: 'Location',
+        sortable: true,
+        render: (_value: unknown, item: ComparisonRow) => (
+          <div className="min-w-0">
+            <p className="truncate font-medium text-foreground">{item.name}</p>
+            {(item.city || item.country) && (
+              <p className="truncate text-xs text-muted-foreground">
+                {[item.city, item.country].filter(Boolean).join(', ')}
+              </p>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'pm2_5',
+        label: 'PM2.5',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown) =>
+          renderValue(typeof value === 'number' ? value : null, 'pm2_5'),
+      },
+      {
+        key: 'pm10',
+        label: 'PM10',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown) =>
+          renderValue(typeof value === 'number' ? value : null, 'pm10'),
+      },
+      {
+        key: 'category',
+        label: 'AQI level',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown, item: ComparisonRow) => (
+          <div className="flex justify-end">
+            {renderCategory(
+              typeof value === 'string' ? value : null,
+              item.pm2_5
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'percentageDifference',
+        label: 'Trend',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown) =>
+          renderTrend(typeof value === 'number' ? value : null),
+      },
+      {
+        key: 'time',
+        label: 'Last reading',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown) => (
+          <span className="text-xs text-muted-foreground">
+            {formatRelativeTime(typeof value === 'string' ? value : null)}
+          </span>
+        ),
+      },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pm25AqiConfig, pm10AqiConfig]);
+
   return (
-    <Card className={className}>
-      <CardContent className="p-0">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Location comparison
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+    <ServerSideTable
+      title="Location comparison"
+      data={rows}
+      columns={columns}
+      loading={isLoading}
+      isRefreshing={isFetching}
+      error={error ? error.message : null}
+      onRefresh={() => void refetch()}
+      searchableColumns={['name', 'city', 'country']}
+      showClientPagination
+      className={className}
+      customHeader={
+        <div className="w-full space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
               Latest readings across all {siteIds.length} selected location
               {siteIds.length === 1 ? '' : 's'} — no limit applied.
             </p>
+            <Button
+              variant="outlined"
+              size="sm"
+              Icon={AqRefreshCcw01}
+              onClick={() => void refetch()}
+              loading={isLoading}
+              disabled={isLoading}
+              aria-label="Refresh comparison"
+            >
+              Refresh
+            </Button>
           </div>
-          <Button
-            variant="outlined"
-            size="sm"
-            Icon={AqRefreshCcw01}
-            onClick={() => void refetch()}
-            loading={isLoading}
-            disabled={isLoading}
-            aria-label="Refresh comparison"
-          >
-            Refresh
-          </Button>
-        </div>
-
-        <div className="px-4 pt-3">
           <AqiLegend aqiConfig={aqiConfig} />
         </div>
-
-        {siteIds.length === 0 ? (
-          <div className="p-4">
-            <EmptyState
-              compact
-              title="No locations to compare"
-              description="Add locations to your charts to see their latest readings side by side."
-            />
-          </div>
-        ) : error && !isLoading ? (
-          <div className="p-4">
-            <ErrorState
-              compact
-              title="Unable to load readings"
-              description={error.message}
-              retryAction={{ label: 'Retry', onClick: () => void refetch() }}
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-2.5">
-                    <SortHeader label="Location" sortableKey="name" />
-                  </th>
-                  <th className="px-3 py-2.5 text-right">
-                    <SortHeader label="PM2.5" sortableKey="pm2_5" />
-                  </th>
-                  <th className="px-3 py-2.5 text-right">
-                    <SortHeader label="PM10" sortableKey="pm10" />
-                  </th>
-                  <th className="px-3 py-2.5 text-right">AQI level</th>
-                  <th className="px-3 py-2.5 text-right">Trend</th>
-                  <th className="px-3 py-2.5 text-right">
-                    <SortHeader label="Last reading" sortableKey="time" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading && rows.length === 0 ? (
-                  Array.from({ length: 5 }, (_, index) => (
-                    <tr key={index} className="border-b border-border/60">
-                      <td colSpan={6} className="px-4 py-3">
-                        <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-                      </td>
-                    </tr>
-                  ))
-                ) : sortedRows.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                      No readings available for the selected locations yet.
-                    </td>
-                  </tr>
-                ) : (
-                  pageRows.map(row => (
-                    <tr
-                      key={row.siteId}
-                      className="border-b border-border/60 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                    >
-                      <td className="px-4 py-2.5">
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-foreground">
-                            {row.name}
-                          </p>
-                          {(row.city || row.country) && (
-                            <p className="truncate text-xs text-muted-foreground">
-                              {[row.city, row.country].filter(Boolean).join(', ')}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        {renderValue(row.pm2_5, 'pm2_5')}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        {renderValue(row.pm10, 'pm10')}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <div className="flex justify-end">
-                          {renderCategory(row.category, row.pm2_5)}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        {renderTrend(row.percentageDifference)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-xs text-muted-foreground">
-                        {formatRelativeTime(row.time)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination footer — clamped at the bounds, correct on the last page */}
-        {!isLoading && sortedRows.length > PAGE_SIZE && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-border bg-muted/30">
-            <div className="text-xs text-muted-foreground">
-              Showing {Math.min((safePage - 1) * PAGE_SIZE + 1, sortedRows.length)}–{Math.min(safePage * PAGE_SIZE, sortedRows.length)} of {sortedRows.length} locations
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handlePageChange(safePage - 1)}
-                disabled={safePage <= 1}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="text-xs text-muted-foreground">
-                Page {safePage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => handlePageChange(safePage + 1)}
-                disabled={safePage >= totalPages}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      }
+      emptyComponent={
+        <EmptyState
+          compact
+          title="No locations to compare"
+          description="Add locations to your charts to see their latest readings side by side."
+          className="min-h-[300px] border-0 bg-transparent"
+        />
+      }
+    />
   );
 };
 

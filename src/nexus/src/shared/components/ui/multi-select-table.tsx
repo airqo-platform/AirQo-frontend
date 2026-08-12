@@ -110,6 +110,8 @@ interface MultiSelectTableProps<T = TableItem> {
   error?: string | null;
   loadingComponent?: React.ReactNode;
   errorComponent?: React.ReactNode;
+  /** Custom empty state rendered when the table has no data (overrides the default) */
+  emptyComponent?: React.ReactNode;
   onRefresh?: () => void;
   headerComponent?: React.ReactNode;
   multiSelect?: boolean;
@@ -520,6 +522,7 @@ const MultiSelectTable = <T extends TableItem>({
   error = null,
   loadingComponent = null,
   errorComponent = null,
+  emptyComponent = null,
   onRefresh,
   headerComponent,
   multiSelect = false,
@@ -739,6 +742,18 @@ const MultiSelectTable = <T extends TableItem>({
 
       if (aValue == null) return 1;
       if (bValue == null) return -1;
+
+      // Numeric-aware compare: finite numbers sort numerically so columns
+      // like PM2.5/AQI/rank behave correctly instead of lexicographically.
+      if (
+        typeof aValue === 'number' &&
+        typeof bValue === 'number' &&
+        Number.isFinite(aValue) &&
+        Number.isFinite(bValue)
+      ) {
+        const diff = aValue - bValue;
+        return sortConfig.direction === 'asc' ? diff : -diff;
+      }
 
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
@@ -1124,19 +1139,21 @@ const MultiSelectTable = <T extends TableItem>({
                 />
               ))
             ) : paginatedData.length === 0 ? (
-              <EmptyState
-                title={
-                  searchTerm || hasActiveFilters || hasActiveColumnFilters
-                    ? 'No matching results found'
-                    : 'No data available'
-                }
-                description={
-                  searchTerm || hasActiveFilters || hasActiveColumnFilters
-                    ? "Try adjusting your search or filters to find what you're looking for."
-                    : 'There is no data to display at the moment.'
-                }
-                className="min-h-[300px] border-0 bg-transparent"
-              />
+              emptyComponent ?? (
+                <EmptyState
+                  title={
+                    searchTerm || hasActiveFilters || hasActiveColumnFilters
+                      ? 'No matching results found'
+                      : 'No data available'
+                  }
+                  description={
+                    searchTerm || hasActiveFilters || hasActiveColumnFilters
+                      ? "Try adjusting your search or filters to find what you're looking for."
+                      : 'There is no data to display at the moment.'
+                  }
+                  className="min-h-[300px] border-0 bg-transparent"
+                />
+              )
             ) : (
               <table className="w-full bg-card table-auto">
                 <thead className="border-b bg-muted border-border">

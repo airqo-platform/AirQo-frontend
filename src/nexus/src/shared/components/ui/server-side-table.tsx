@@ -29,6 +29,8 @@ export interface ServerSideTableProps<T = TableItem> {
   isRefreshing?: boolean;
   error?: string | null;
   onRefresh?: () => void;
+  /** Custom empty state rendered when the table has no data (overrides the default) */
+  emptyComponent?: React.ReactNode;
   className?: string;
   multiSelect?: boolean;
   selectedItems?: (string | number)[];
@@ -45,6 +47,8 @@ export interface ServerSideTableProps<T = TableItem> {
   // Server-side search props (optional for client-side)
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
+  /** Restrict the built-in client-side search to these columns (null = all) */
+  searchableColumns?: string[] | null;
 
   // Custom header component
   customHeader?: React.ReactNode;
@@ -68,6 +72,7 @@ export function ServerSideTable<T extends TableItem>({
   isRefreshing = false,
   error,
   onRefresh,
+  emptyComponent,
   className,
   multiSelect = false,
   selectedItems,
@@ -82,6 +87,8 @@ export function ServerSideTable<T extends TableItem>({
 
   searchTerm,
   onSearchChange,
+
+  searchableColumns,
 
   customHeader,
 
@@ -186,10 +193,12 @@ export function ServerSideTable<T extends TableItem>({
         isRefreshing={isRefreshing}
         error={error}
         onRefresh={onRefresh}
+        emptyComponent={emptyComponent}
         multiSelect={multiSelect}
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
         searchable={true} // Enable search in table header
+        searchableColumns={searchableColumns}
         showPagination={showClientPagination} // Enable built-in pagination for client-side operations
         sortable={true}
         headerComponent={customHeader}

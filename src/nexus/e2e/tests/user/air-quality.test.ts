@@ -235,7 +235,7 @@ describe('Air Quality pages (end-to-end)', function () {
 
     // Leaderboard table with rows
     await waitFor(By.xpath("//h2[contains(normalize-space(), 'Live rankings')]"), 30);
-    const rows = await driver.findElements(By.xpath("//h2[contains(normalize-space(), 'Live rankings')]/ancestor::div[1]/following-sibling::div//tbody/tr"));
+    const rows = await driver.findElements(By.xpath("//table[.//th[normalize-space()='Rank']]//tbody/tr"));
     expect(rows.length).to.be.greaterThan(0);
 
     await captureLogs();
@@ -248,20 +248,20 @@ describe('Air Quality pages (end-to-end)', function () {
     // Switch to City
     await click(By.xpath("//*[@role='radio' and normalize-space()='City']"));
     await driver.sleep(2000);
-    const cityRows = await driver.findElements(By.xpath("//h2[contains(normalize-space(), 'Live rankings')]/ancestor::div[1]/following-sibling::div//tbody/tr"));
+    const cityRows = await driver.findElements(By.xpath("//table[.//th[normalize-space()='Rank']]//tbody/tr"));
     expect(cityRows.length).to.be.greaterThan(0);
 
     // Switch to Cleanest first
     await click(By.xpath("//*[@role='radio' and normalize-space()='Cleanest first']"));
     await driver.sleep(2000);
-    const firstCell = await text(By.xpath("//h2[contains(normalize-space(), 'Live rankings')]/ancestor::div[1]/following-sibling::div//tbody/tr[1]/td[2]"));
+    const firstCell = await text(By.xpath("//table[.//th[normalize-space()='Rank']]//tbody/tr[1]/td[2]"));
     expect(firstCell.trim().length).to.be.greaterThan(0);
 
     // Change limit to Top 10
     await click(By.xpath("//select[@aria-label='Number of entries']"));
     await driver.findElement(By.xpath("//select[@aria-label='Number of entries']/option[normalize-space()='Top 10']")).click();
     await driver.sleep(2000);
-    const top10Rows = await driver.findElements(By.xpath("//h2[contains(normalize-space(), 'Live rankings')]/ancestor::div[1]/following-sibling::div//tbody/tr"));
+    const top10Rows = await driver.findElements(By.xpath("//table[.//th[normalize-space()='Rank']]//tbody/tr"));
     expect(top10Rows.length).to.be.greaterThan(0);
     expect(top10Rows.length).to.be.at.most(10);
 
@@ -281,7 +281,7 @@ describe('Air Quality pages (end-to-end)', function () {
     // Chart title is a CardTitle (h3), not h2
     expect(await visible(By.xpath("//h3[contains(normalize-space(), 'PM2.5 trends by year')]"))).to.be.true;
 
-    const table = await driver.findElements(By.xpath("//h2[contains(normalize-space(), 'Year-by-year comparison')]/ancestor::div[2]//table/tbody/tr"));
+    const table = await driver.findElements(By.xpath("//table[.//th[normalize-space()='Location']]//tbody/tr"));
     expect(table.length).to.be.greaterThan(0);
 
     await captureLogs();
@@ -467,11 +467,11 @@ describe('Air Quality pages (end-to-end)', function () {
     expect(await visible(By.xpath("//select[@aria-label='Comparison pollutant']"))).to.be.true;
 
     // Table rows exist (sites from the chart)
-    const rows = await driver.findElements(By.xpath("//h2[contains(normalize-space(), 'Location comparison')]/ancestor::div[3]//tbody/tr"));
+    const rows = await driver.findElements(By.xpath("//table[.//th[normalize-space()='PM2.5']]//tbody/tr"));
     expect(rows.length).to.be.greaterThan(0);
 
-    // Sort by PM2.5 column
-    await click(By.xpath("//h2[contains(normalize-space(), 'Location comparison')]/ancestor::div[3]//button[contains(., 'PM2.5')]"));
+    // Sort by PM2.5 column (sortable header span in the shared table)
+    await click(By.xpath("//table[.//th[normalize-space()='PM2.5']]//th[.//span[normalize-space()='PM2.5']]"));
     await driver.sleep(1000);
 
     // No raw ids anywhere
