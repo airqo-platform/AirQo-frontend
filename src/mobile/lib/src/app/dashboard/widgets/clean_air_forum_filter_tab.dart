@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/utils/clean_air_forum_branding.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_camera_screen.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_filter_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/share_sheet_widgets.dart';
@@ -10,6 +11,7 @@ import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
 import 'package:airqo/src/app/shared/services/air_quality_share_service.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/clean_air_forum_submission_service.dart';
+import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -21,13 +23,13 @@ import 'package:share_plus/share_plus.dart';
 
 enum _SelfieSource { liveCamera, gallery }
 
-/// The "Forum filter" tab of the share sheet: selfie acquisition (live
-/// camera or gallery), branded filter preview, the share action, and the
-/// opt-in submission to the conference wall display.
+/// The "Selfie filter" tab of the share sheet: selfie acquisition (live
+/// camera or gallery), filter preview, save/share actions, and the opt-in
+/// submission to the conference wall display (when enabled).
 ///
-/// The selfie and consent values are lifted to the parent sheet — this
-/// widget is unmounted when the user switches share tabs, so holding them
-/// here would lose them on every switch.
+/// The selfie, consent, and scrim color values are lifted to the parent
+/// sheet — this widget is unmounted when the user switches share tabs, so
+/// holding them here would lose them on every switch.
 class CleanAirForumFilterTab extends StatefulWidget {
   final Measurement measurement;
   final String? fallbackLocationName;
@@ -41,6 +43,8 @@ class CleanAirForumFilterTab extends StatefulWidget {
   final ValueChanged<File> onSelfieChanged;
   final bool consentToDisplay;
   final ValueChanged<bool> onConsentChanged;
+  final FilterScrimColor scrimColor;
+  final ValueChanged<FilterScrimColor> onScrimColorChanged;
 
   /// Surfaces status/error text in the sheet's inline banner.
   final ShareSheetMessenger onMessage;
@@ -57,6 +61,8 @@ class CleanAirForumFilterTab extends StatefulWidget {
     required this.onSelfieChanged,
     required this.consentToDisplay,
     required this.onConsentChanged,
+    required this.scrimColor,
+    required this.onScrimColorChanged,
     required this.onMessage,
     this.fallbackLocationName,
     this.sharePositionOrigin,
@@ -72,8 +78,13 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
   final ImagePicker _picker = ImagePicker();
 
   bool _isPickingSelfie = false;
+  bool _isSavingFilter = false;
   bool _isSharingFilter = false;
   bool _isSendingToWall = false;
+  DateTime? _capturedAt;
+
+  bool get _conferenceWallEnabled =>
+      FeatureFlagService.instance.isEnabled(AppFeatureFlag.conferenceWall);
 
   CleanAirForumSubmissionService get _submissionService =>
       widget.submissionService ?? CleanAirForumSubmissionService.instance;
@@ -93,10 +104,10 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       if (!mounted) return;
 
       widget.onSelfieChanged(File(picked.path));
-      if (widget.consentToDisplay) unawaited(_submitCurrentSelfieToWall());
+      if (_conferenceWallEnabled && widget.consentToDisplay) {
+        unawaited(_submitCurrentSelfieToWall());
+      }
     } on PlatformException catch (e) {
-      // "Try again" is wrong advice when access is denied — the fix lives
-      // in system settings, so link straight there.
       if (e.code.contains('denied')) {
         widget.onMessage(
           source == ImageSource.camera
@@ -131,9 +142,6 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        // Same flush-to-bottom treatment as the main sheet — fold the
-        // safe-area inset into the content's own padding rather than
-        // leaving a transparent gap below the sheet.
         final bottomSafeArea = MediaQuery.paddingOf(sheetContext).bottom;
 
         return DecoratedBox(
@@ -155,7 +163,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
                     _SelfieSourceTile(
                       iconAsset: 'assets/icons/camera.svg',
                       title: 'Take photo',
-                      subtitle: 'See the branding while you frame your shot',
+                      subtitle: 'See the overlay while you frame your shot',
                       onTap: () => Navigator.of(sheetContext)
                           .pop(_SelfieSource.liveCamera),
                     ),
@@ -200,13 +208,16 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
           builder: (_) => CleanAirForumCameraScreen(
             measurement: widget.measurement,
             fallbackLocationName: widget.fallbackLocationName,
+            scrimColor: widget.scrimColor,
           ),
         ),
       );
       if (file != null && mounted) {
         widget.onSelfieChanged(file);
         AnalyticsService().trackCafSelfieCaptured();
-        if (widget.consentToDisplay) unawaited(_submitCurrentSelfieToWall());
+        if (_conferenceWallEnabled && widget.consentToDisplay) {
+          unawaited(_submitCurrentSelfieToWall());
+        }
       }
     } catch (_) {
       widget.onMessage("Couldn't open the camera.", isError: true);
@@ -215,12 +226,51 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
     }
   }
 
+  Future<Uint8List?> _captureFilterImage() async {
+    final capturedAt = DateTime.now();
+    setState(() => _capturedAt = capturedAt);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return null;
+    return captureShareBoundary(context, _filterKey);
+  }
+
+  Future<void> _saveFilter() async {
+    if (_isSavingFilter || widget.selfieFile == null) return;
+    setState(() => _isSavingFilter = true);
+
+    try {
+      final imageBytes = await _captureFilterImage();
+      if (imageBytes == null) {
+        widget.onMessage("Couldn't save the filter. Try again.", isError: true);
+        return;
+      }
+
+      await AirQualityShareService.saveFilterToGallery(imageBytes);
+      widget.onMessage('Saved to your photos!');
+    } on GallerySaveException catch (e) {
+      if (e.kind == GallerySaveFailure.permissionDenied) {
+        widget.onMessage(
+          'Photo library access is off.',
+          isError: true,
+          actionLabel: 'Settings',
+          onAction: openAppSettings,
+        );
+      } else {
+        widget.onMessage("Couldn't save the filter. Try again.", isError: true);
+      }
+    } catch (_) {
+      widget.onMessage("Couldn't save the filter. Try again.", isError: true);
+    } finally {
+      if (mounted) setState(() => _isSavingFilter = false);
+    }
+  }
+
   Future<void> _shareFilter() async {
     if (_isSharingFilter || widget.selfieFile == null) return;
     setState(() => _isSharingFilter = true);
 
     try {
-      final imageBytes = await captureShareBoundary(context, _filterKey);
+      final imageBytes = await _captureFilterImage();
       if (imageBytes == null) {
         widget.onMessage("Couldn't share the filter. Try again.",
             isError: true);
@@ -247,16 +297,11 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
     }
   }
 
-  /// Captures the current filter card and sends it to the wall — triggered
-  /// the moment consent is given (or a new/changed photo is picked while
-  /// already consented), rather than being bundled into the personal
-  /// "Share" action. Piggybacking on share made consent look like it should
-  /// be enough on its own, but nothing was actually sent to the wall until
-  /// the user *also* shared the filter externally.
   Future<void> _submitCurrentSelfieToWall() async {
+    if (!_conferenceWallEnabled) return;
     if (widget.selfieFile == null) return;
     if (_isSendingToWall) return;
-    final imageBytes = await captureShareBoundary(context, _filterKey);
+    final imageBytes = await _captureFilterImage();
     if (imageBytes == null) {
       widget.onMessage("Couldn't prepare the filter. Try again.",
           isError: true);
@@ -266,26 +311,18 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
   }
 
   Future<void> _submitToConferenceWall(Uint8List imageBytes) async {
-    // Retry (which can fire from the root SnackBar even after dismissal)
-    // and repeated shares must not enqueue duplicate wall submissions.
-    // Not rendered directly — the sheet's inline banner (via onMessage's
-    // `loading: true`) is the only visible sign of progress now.
     if (_isSendingToWall) return;
     _isSendingToWall = true;
     widget.onMessage('Sending to the wall…', loading: true);
     try {
-      // The API's displayName can be the user's email when they're logged
-      // in — never surface it here, since the wall itself hides identity.
       await _submissionService.submitSelfie(
         imageBytes: imageBytes,
         measurement: widget.measurement,
         fallbackLocationName: widget.fallbackLocationName,
       );
       AnalyticsService().trackCafWallSubmissionSent();
-      widget.onMessage("You're on the forum wall!");
+      widget.onMessage("You're on the conference wall!");
     } catch (e) {
-      // Report only the failure category — raw messages can carry API
-      // response details that don't belong in analytics.
       AnalyticsService().trackCafWallSubmissionFailed(
         error: e is SelfieSubmissionException
             ? e.kind.name
@@ -319,21 +356,25 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
   @override
   Widget build(BuildContext context) {
     final hasSelfie = widget.selfieFile != null;
+    final isBusy = _isSavingFilter || _isSharingFilter;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // The template is always visible — even before a selfie is picked —
-        // so it stays previewable while switching between share tabs. Full
-        // width (no artificial max-width cap) so it matches the Card tab's
-        // size for a consistent look across all three share formats.
         RepaintBoundary(
           key: _filterKey,
           child: CleanAirForumFilterCard(
             selfieFile: widget.selfieFile,
             measurement: widget.measurement,
             fallbackLocationName: widget.fallbackLocationName,
+            scrimColor: widget.scrimColor,
+            capturedAt: _capturedAt,
           ),
+        ),
+        const SizedBox(height: 12),
+        FilterScrimColorPicker(
+          selected: widget.scrimColor,
+          onSelected: widget.onScrimColorChanged,
         ),
         const SizedBox(height: 16),
         if (hasSelfie)
@@ -378,13 +419,56 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
             label: const Text('Take selfie'),
           ),
         if (hasSelfie) ...[
-          const SizedBox(height: 12),
-          _buildConsentSection(),
+          if (_conferenceWallEnabled) ...[
+            const SizedBox(height: 12),
+            _buildConsentSection(),
+          ],
           const SizedBox(height: 16),
-          ShareActionButton(
-            label: _isSharingFilter ? 'Preparing filter...' : 'Share filter',
-            loading: _isSharingFilter,
-            onPressed: _isSharingFilter ? null : _shareFilter,
+          Row(
+            children: [
+              Expanded(
+                child: ShareActionButton(
+                  label: _isSavingFilter ? 'Saving...' : 'Save to photos',
+                  loading: _isSavingFilter,
+                  onPressed: isBusy ? null : _saveFilter,
+                  icon: SvgPicture.asset(
+                    'assets/icons/download-01.svg',
+                    width: 18,
+                    height: 18,
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: isBusy ? null : _shareFilter,
+                  style: learnExposureSecondaryButtonStyle(context),
+                  icon: _isSharingFilter
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: LearnDesignTokens.headline(context),
+                          ),
+                        )
+                      : SvgPicture.asset(
+                          'assets/icons/share-icon.svg',
+                          width: 18,
+                          height: 18,
+                          colorFilter: ColorFilter.mode(
+                            LearnDesignTokens.headline(context),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                  label: Text(
+                    _isSharingFilter ? 'Preparing...' : 'Share',
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ],
@@ -409,7 +493,7 @@ class _CleanAirForumFilterTabState extends State<CleanAirForumFilterTab> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Shown live on the Clean Air Forum wall display.',
+                'Shown live on the conference wall display.',
                 style: LearnDesignTokens.completionCaption(context),
               ),
             ],
