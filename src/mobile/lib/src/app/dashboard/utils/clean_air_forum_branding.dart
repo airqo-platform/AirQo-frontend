@@ -105,6 +105,7 @@ class FilterScrimColorPicker extends StatelessWidget {
         for (final option in FilterScrimColor.values) ...[
           if (option != FilterScrimColor.values.first) const SizedBox(width: 12),
           _ScrimSwatch(
+            label: option.label,
             color: option.color,
             selected: selected == option,
             onTap: () => onSelected(option),
@@ -116,11 +117,13 @@ class FilterScrimColorPicker extends StatelessWidget {
 }
 
 class _ScrimSwatch extends StatelessWidget {
+  final String label;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
 
   const _ScrimSwatch({
+    required this.label,
     required this.color,
     required this.selected,
     required this.onTap,
@@ -131,7 +134,7 @@ class _ScrimSwatch extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Filter color',
+      label: 'Filter color, $label',
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(

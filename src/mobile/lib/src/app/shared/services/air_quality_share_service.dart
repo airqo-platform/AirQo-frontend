@@ -71,9 +71,9 @@ class AirQualityShareService {
   ///
   /// Throws [GallerySaveException] when permission is denied or the save fails.
   static Future<void> saveFilterToGallery(Uint8List imageBytes) async {
-    final hasAccess = await Gal.hasAccess(toAlbum: true);
+    final hasAccess = await Gal.hasAccess();
     if (!hasAccess) {
-      final granted = await Gal.requestAccess(toAlbum: true);
+      final granted = await Gal.requestAccess();
       if (!granted) {
         throw GallerySaveException.permissionDenied();
       }
