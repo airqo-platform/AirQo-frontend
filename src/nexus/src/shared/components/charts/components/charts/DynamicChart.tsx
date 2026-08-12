@@ -26,9 +26,15 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { LegendPayload } from 'recharts';
-import { DynamicChartProps, ChartType, NormalizedChartData } from '../../types';
+import {
+  DynamicChartProps,
+  ChartType,
+  NormalizedChartData,
+  TooltipData,
+} from '../../types';
 import { CustomTooltip } from '../ui/CustomTooltip';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
+import type { AqiConfig } from '@/shared/types/aqi';
 import {
   autoSelectChartType,
   groupDataBySite,
@@ -46,6 +52,47 @@ import {
   CHART_ANIMATIONS,
 } from '../../constants';
 import { cn } from '@/shared/lib/utils';
+
+/**
+ * Wraps the custom tooltip so the chart can learn the hovered data index
+ * (recharts 3 passes `activeIndex` to tooltip content). The index drives the
+ * "focus one item, blur the rest" emphasis on lines, bars and points.
+ */
+interface HoverAwareTooltipProps extends TooltipData {
+  onHoverChange: (index: number | null) => void;
+  focusedDataKey?: string | null;
+  className?: string;
+  showAirQualityLevel?: boolean;
+  frequency?: string;
+  pollutant?: 'pm2_5' | 'pm10';
+  aqiConfig?: AqiConfig | null;
+}
+
+const HoverAwareTooltip: React.FC<HoverAwareTooltipProps> = ({
+  onHoverChange,
+  focusedDataKey,
+  ...tooltipProps
+}) => {
+  const { active, activeIndex } = tooltipProps;
+
+  React.useEffect(() => {
+    onHoverChange(
+      active && typeof activeIndex === 'number' ? activeIndex : null
+    );
+  }, [active, activeIndex, onHoverChange]);
+
+  return (
+    <CustomTooltip {...tooltipProps} focusedDataKey={focusedDataKey} />
+  );
+};
+
+/** Dimming rules: 1 = full, lower = blurred (see the focus/blur design below) */
+const FULL_OPACITY = 1;
+const SOFT_BLUR = 0.6;
+/** Opacity of grayed-out (non-focused) series/bars */
+const GRAYED_OPACITY = 0.55;
+/** "Skeleton" gray applied to non-focused series when one is focused */
+const GRAYED_SERIES_COLOR = 'rgb(var(--muted-foreground))';
 
 export const DynamicChart: React.FC<DynamicChartProps> = ({
   data,
@@ -65,6 +112,21 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   const [localShowReferenceLines, setLocalShowReferenceLines] = useState(
     controlledShowReferenceLines ?? false
   );
+
+  // Hover focus state: `activeIndex` is the hovered data point (any series);
+  // `activeKey` narrows the focus to ONE series (its line/bar under the
+  // cursor). Everything else is blurred while either is set.
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+
+  const handleHoverIndexChange = useCallback((index: number | null) => {
+    setActiveIndex(index);
+  }, []);
+
+  const clearHover = useCallback(() => {
+    setActiveIndex(null);
+    setActiveKey(null);
+  }, []);
 
   // Sync with controlled prop
   React.useEffect(() => {
@@ -121,6 +183,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     const converted = convertToMultiSeriesFormat(grouped);
     return { chartData: converted, seriesKeys: keys };
   }, [data, chartType, config.dataKey]);
+
+  // Reset the emphasis when the dataset changes so stale hover state can't
+  // leave the chart blurred after a data refresh.
+  React.useEffect(() => {
+    clearHover();
+  }, [chartData, clearHover]);
 
   // Handle legend toggle using native Recharts legend events
   const handleLegendClick = useCallback((entry: LegendPayload) => {
@@ -259,7 +327,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return (
       <Tooltip
         content={
-          <CustomTooltip
+          <HoverAwareTooltip
+            onHoverChange={handleHoverIndexChange}
+            focusedDataKey={activeKey}
             pollutant={pollutant}
             frequency={frequency}
             aqiConfig={aqiConfig}
@@ -307,25 +377,119 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     );
   };
 
-  // Render series for line/area charts
+  // Active dot rendered at the hovered point. Hovering a dot narrows the
+  // focus to that series (the rest of the chart grays out).
+  const renderActiveDot = useCallback(
+    (dotProps: {
+      dataKey?: unknown;
+      index?: number;
+      cx?: number;
+      cy?: number;
+      fill?: string;
+    }) => {
+      if (dotProps.cx == null || dotProps.cy == null) {
+        return null;
+      }
+      const dotKey = String(dotProps.dataKey ?? '');
+      const isFocused = activeKey === dotKey;
+      const isDimmed = activeKey !== null && !isFocused;
+      return (
+        <circle
+          cx={dotProps.cx}
+          cy={dotProps.cy}
+          r={isFocused ? 6 : 4.5}
+          fill={isDimmed ? GRAYED_SERIES_COLOR : dotProps.fill || '#145DFF'}
+          stroke="hsl(var(--background))"
+          strokeWidth={2}
+          className="cursor-pointer"
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }}
+          onMouseEnter={() => setActiveKey(dotKey)}
+          onMouseLeave={() => setActiveKey(null)}
+        />
+      );
+    },
+    [activeKey]
+  );
+
+  // Render series for line/area charts. The best-practice "emphasis focus"
+  // pattern (ECharts `focus: 'series'`, Nivo highlight): hovering anywhere on
+  // the chart reveals per-point dots; moving onto a LINE (its dots) focuses
+  // that series — it stays vivid and slightly thicker while every other
+  // series is grayed out in a skeleton tone. The tooltip then concentrates
+  // on the focused series and you can walk along its points for details.
   const renderLineSeries = (Component: typeof Line | typeof Area) => {
     return seriesKeys.map((key, index) => {
       const isHidden = hiddenSeries.has(key);
       const color =
         config.seriesColors?.[key] || config.color || getPrimaryColor(index);
+      const isFocused = activeKey === key;
+      const state =
+        activeIndex === null
+          ? 'idle'
+          : activeKey === null
+            ? 'band'
+            : isFocused
+              ? 'focused'
+              : 'dimmed';
+
+      const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
+      const strokeOpacity =
+        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+      const strokeWidth =
+        (config.strokeWidth || 2) + (state === 'focused' ? 1 : 0);
+      const areaFillOpacity =
+        Component === Area
+          ? (config.fillOpacity || 0.1) * strokeOpacity
+          : undefined;
+
+      // Resting dots double as per-series hover targets: an invisible fat
+      // hit circle makes the whole line hoverable (recharts has no per-line
+      // mouse events, so the dots are the hit area — same trick ECharts uses
+      // with emphasis symbols).
+      const renderSeriesDot = (dotProps: {
+        dataKey?: unknown;
+        cx?: number;
+        cy?: number;
+        index?: number;
+      }) => {
+        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+          return null;
+        }
+        const isDimmed = activeKey !== null && !isFocused;
+        return (
+          <g>
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={16}
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setActiveKey(key)}
+              onMouseLeave={() => setActiveKey(null)}
+            />
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={isFocused ? 3.5 : 2.5}
+              fill={isDimmed ? GRAYED_SERIES_COLOR : color}
+              stroke="none"
+            />
+          </g>
+        );
+      };
 
       return (
         <Component
           key={key}
           type="monotone"
           dataKey={key}
-          stroke={color}
-          fill={Component === Area ? color : undefined}
-          fillOpacity={
-            Component === Area ? config.fillOpacity || 0.1 : undefined
-          }
-          strokeWidth={config.strokeWidth || 2}
-          dot={false}
+          stroke={strokeColor}
+          fill={Component === Area ? strokeColor : undefined}
+          fillOpacity={areaFillOpacity}
+          strokeOpacity={strokeOpacity}
+          strokeWidth={strokeWidth}
+          dot={renderSeriesDot}
+          activeDot={renderActiveDot}
           connectNulls={false}
           hide={isHidden}
         />
@@ -333,14 +497,51 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     });
   };
 
-  // Render series for bar charts
+  // Render series for bar charts. Hovering a specific bar keeps it at full
+  // color with rounded corners + outline; every other bar (other series and
+  // other time slots) is grayed out in a skeleton tone.
   const renderBarSeries = () => {
     return seriesKeys.map((key, index) => {
       const isHidden = hiddenSeries.has(key);
       const color =
         config.seriesColors?.[key] || config.color || getPrimaryColor(index);
 
-      return <Bar key={key} dataKey={key} fill={color} hide={isHidden} />;
+      return (
+        <Bar
+          key={key}
+          dataKey={key}
+          fill={color}
+          hide={isHidden}
+          onMouseEnter={(_data: unknown, itemIndex: number) => {
+            setActiveKey(key);
+            setActiveIndex(itemIndex);
+          }}
+          onMouseLeave={() => {
+            setActiveKey(null);
+          }}
+        >
+          {chartData.map((_, cellIndex) => {
+            const focused = activeKey === key && activeIndex === cellIndex;
+            const dimmed = activeKey !== null && !focused;
+            return (
+              <Cell
+                key={`cell-${key}-${cellIndex}`}
+                fill={dimmed ? GRAYED_SERIES_COLOR : color}
+                fillOpacity={dimmed ? GRAYED_OPACITY : FULL_OPACITY}
+                // Recharts types only allow `number` here; the tuple form is
+                // valid at runtime (rounded top corners on the focused bar).
+                radius={
+                  focused
+                    ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                    : 0
+                }
+                stroke={focused ? color : 'none'}
+                strokeWidth={focused ? 1.5 : 0}
+              />
+            );
+          })}
+        </Bar>
+      );
     });
   };
 
@@ -349,7 +550,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     switch (chartType) {
       case 'line':
         return (
-          <LineChart {...commonProps}>
+          <LineChart {...commonProps} onMouseLeave={clearHover}>
             {renderGrid()}
             {renderXAxis()}
             {renderYAxis()}
@@ -362,7 +563,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'area':
         return (
-          <AreaChart {...commonProps}>
+          <AreaChart {...commonProps} onMouseLeave={clearHover}>
             {renderGrid()}
             {renderXAxis()}
             {renderYAxis()}
@@ -377,6 +578,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         return (
           <BarChart
             {...commonProps}
+            onMouseLeave={clearHover}
             // Use configured values for optimal bar appearance
             barCategoryGap={BAR_CHART_CONFIG.barCategoryGap}
             barGap={BAR_CHART_CONFIG.barGap}
@@ -394,7 +596,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
 
       case 'scatter':
         return (
-          <ScatterChart {...commonProps}>
+          <ScatterChart {...commonProps} onMouseLeave={clearHover}>
             {renderGrid()}
             {renderXAxis()}
             {renderYAxis()}
@@ -408,7 +610,19 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
                 getPrimaryColor(index);
 
               return (
-                <Scatter key={key} dataKey={key} fill={color} hide={isHidden} />
+                <Scatter key={key} dataKey={key} fill={color} hide={isHidden}>
+                  {chartData.map((_, pointIndex) => {
+                    const dimmed =
+                      activeIndex !== null && activeIndex !== pointIndex;
+                    return (
+                      <Cell
+                        key={`scatter-cell-${key}-${pointIndex}`}
+                        fill={dimmed ? GRAYED_SERIES_COLOR : color}
+                        fillOpacity={dimmed ? GRAYED_OPACITY : FULL_OPACITY}
+                      />
+                    );
+                  })}
+                </Scatter>
               );
             })}
             {renderReferenceLines()}

@@ -173,11 +173,11 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
 
       {/* Collapsible forecast for this chart's first site */}
       {firstSiteId && (
-        <div className="border-t border-border bg-muted/30">
+        <div className="border-t border-border bg-muted/40">
           <button
             type="button"
             onClick={() => setForecastOpen(prev => !prev)}
-            className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+            className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
             aria-expanded={forecastOpen}
           >
             <span className="flex items-center gap-2">
@@ -193,11 +193,17 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
               )}
             />
           </button>
-          {forecastOpen && (
-            <div className="px-2 pb-3">
+          <div
+            className={cn(
+              'overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none',
+              forecastOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+            )}
+            aria-hidden={!forecastOpen}
+          >
+            <div className="px-3 pb-3">
               <WeeklyForecastCard siteId={firstSiteId} />
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

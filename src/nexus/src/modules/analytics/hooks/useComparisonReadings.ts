@@ -61,6 +61,23 @@ export const useComparisonReadings = (
 };
 
 /**
+ * Resolves a display name from site details using the standard fallback
+ * chain: search_name → name → location_name → formatted_name.
+ * Returns undefined when no non-empty field exists.
+ */
+export const resolveSiteName = (
+  siteDetails: RecentReading['siteDetails'] | undefined
+): string | undefined => {
+  return (
+    siteDetails?.search_name?.trim() ||
+    siteDetails?.name?.trim() ||
+    siteDetails?.location_name?.trim() ||
+    siteDetails?.formatted_name?.trim() ||
+    undefined
+  );
+};
+
+/**
  * Builds a siteId → display-name map from the readings (each reading carries
  * its site details), skipping sites with no name.
  */
@@ -69,7 +86,7 @@ export const extractReadingNames = (
 ): Map<string, string> => {
   const names = new Map<string, string>();
   (readings ?? []).forEach(reading => {
-    const name = reading.siteDetails?.search_name;
+    const name = resolveSiteName(reading.siteDetails);
     if (name) names.set(reading.site_id, name);
   });
   return names;

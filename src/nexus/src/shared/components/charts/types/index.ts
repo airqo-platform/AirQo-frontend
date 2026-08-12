@@ -100,6 +100,8 @@ export interface TooltipData {
     payload: NormalizedChartData;
   }>;
   label?: string | number;
+  /** Index of the hovered data point (recharts 3 passes this to tooltip content) */
+  activeIndex?: number | undefined;
 }
 
 // Legend types

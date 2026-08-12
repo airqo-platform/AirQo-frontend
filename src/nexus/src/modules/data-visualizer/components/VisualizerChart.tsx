@@ -55,6 +55,13 @@ interface ChartTooltipProps {
     value?: string | number;
   }>;
   label?: string | number;
+  /** Index of the hovered data point (recharts 3 passes this to tooltip content) */
+  activeIndex?: number | undefined;
+  /**
+   * When set, only entries of this series are shown — hover focus mode.
+   * The rest of the chart is blurred to match.
+   */
+  focusedDataKey?: string | null;
 }
 
 interface ReferenceLineDescriptor {
@@ -186,8 +193,21 @@ const formatNumber = (value: unknown) => {
   }).format(value);
 };
 
-const ChartTooltip = ({ active, payload, label }: ChartTooltipProps) => {
+const ChartTooltip = ({
+  active,
+  payload,
+  label,
+  focusedDataKey = null,
+}: ChartTooltipProps) => {
   if (!active || !payload?.length) {
+    return null;
+  }
+
+  const visiblePayload = focusedDataKey
+    ? payload.filter(entry => String(entry.dataKey) === focusedDataKey)
+    : payload;
+
+  if (visiblePayload.length === 0) {
     return null;
   }
 
@@ -197,7 +217,7 @@ const ChartTooltip = ({ active, payload, label }: ChartTooltipProps) => {
         {formatAxisTick(String(label ?? ''))}
       </div>
       <div className="space-y-1.5">
-        {payload.map((entry, index) => (
+        {visiblePayload.map((entry, index) => (
           <div
             key={`${entry.dataKey ?? entry.name}-${index}`}
             className="flex items-center justify-between gap-4"
@@ -218,6 +238,39 @@ const ChartTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     </div>
   );
 };
+
+interface HoverAwareTooltipProps extends ChartTooltipProps {
+  onHoverChange: (index: number | null) => void;
+}
+
+/**
+ * Wraps the tooltip so the chart can learn the hovered data index
+ * (recharts 3 passes `activeIndex` to tooltip content). The index drives the
+ * "focus one item, blur the rest" emphasis on lines, bars and points.
+ */
+const HoverAwareTooltip: React.FC<HoverAwareTooltipProps> = ({
+  onHoverChange,
+  focusedDataKey,
+  ...tooltipProps
+}) => {
+  const { active, activeIndex } = tooltipProps;
+
+  React.useEffect(() => {
+    onHoverChange(
+      active && typeof activeIndex === 'number' ? activeIndex : null
+    );
+  }, [active, activeIndex, onHoverChange]);
+
+  return <ChartTooltip {...tooltipProps} focusedDataKey={focusedDataKey} />;
+};
+
+/** Dimming rules: 1 = full, lower = blurred (see the focus/blur design below) */
+const FULL_OPACITY = 1;
+const SOFT_BLUR = 0.6;
+/** Opacity of grayed-out (non-focused) series/bars */
+const GRAYED_OPACITY = 0.55;
+/** "Skeleton" gray applied to non-focused series when one is focused */
+const GRAYED_SERIES_COLOR = 'rgb(var(--muted-foreground))';
 
 const getCustomReferenceLine = (
   config: VisualizerChartConfig
@@ -375,6 +428,27 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     () => new Set()
   );
 
+  // Hover focus state: `activeIndex` is the hovered data point (any series);
+  // `activeKey` narrows the focus to ONE series (its line/bar under the
+  // cursor). Everything else is blurred while either is set.
+  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+  const [activeKey, setActiveKey] = React.useState<string | null>(null);
+
+  const handleHoverIndexChange = React.useCallback((index: number | null) => {
+    setActiveIndex(index);
+  }, []);
+
+  const clearHover = React.useCallback(() => {
+    setActiveIndex(null);
+    setActiveKey(null);
+  }, []);
+
+  // Reset the emphasis when the dataset changes so stale hover state can't
+  // leave the chart blurred after a data refresh.
+  React.useEffect(() => {
+    clearHover();
+  }, [model.data, clearHover]);
+
   React.useEffect(() => {
     setHiddenSeries(current => {
       const available = new Set(model.seriesKeys);
@@ -385,6 +459,40 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       return next.size === current.size ? current : next;
     });
   }, [model.seriesKeys]);
+
+  // Active dot rendered at the hovered point. Hovering a dot narrows the
+  // focus to that series (the rest of the chart grays out).
+  const renderActiveDot = React.useCallback(
+    (dotProps: {
+      dataKey?: unknown;
+      index?: number;
+      cx?: number;
+      cy?: number;
+      fill?: string;
+    }) => {
+      if (dotProps.cx == null || dotProps.cy == null) {
+        return null;
+      }
+      const dotKey = String(dotProps.dataKey ?? '');
+      const isFocused = activeKey === dotKey;
+      const isDimmed = activeKey !== null && !isFocused;
+      return (
+        <circle
+          cx={dotProps.cx}
+          cy={dotProps.cy}
+          r={isFocused ? 6 : 4.5}
+          fill={isDimmed ? GRAYED_SERIES_COLOR : dotProps.fill || '#145DFF'}
+          stroke="hsl(var(--background))"
+          strokeWidth={2}
+          className="cursor-pointer"
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }}
+          onMouseEnter={() => setActiveKey(dotKey)}
+          onMouseLeave={() => setActiveKey(null)}
+        />
+      );
+    },
+    [activeKey]
+  );
 
   if (model.emptyReason || model.data.length === 0) {
     return (
@@ -417,7 +525,16 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   const grid = config.showGrid ? (
     <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
   ) : null;
-  const tooltip = <Tooltip content={<ChartTooltip />} />;
+  const tooltip = (
+    <Tooltip
+      content={
+        <HoverAwareTooltip
+          onHoverChange={handleHoverIndexChange}
+          focusedDataKey={activeKey}
+        />
+      }
+    />
+  );
   const handleLegendClick = (entry: LegendPayload) => {
     const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
     if (!seriesKey) {
@@ -512,9 +629,65 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       />
     ));
 
+  // Render series for line/area charts. The best-practice "emphasis focus"
+  // pattern (ECharts `focus: 'series'`, Nivo highlight): hovering anywhere on
+  // the chart reveals per-point dots; moving onto a LINE (its dots) focuses
+  // that series — it stays vivid and slightly thicker while every other
+  // series is grayed out in a skeleton tone. The tooltip then concentrates
+  // on the focused series and you can walk along its points for details.
   const renderLineSeries = () =>
     model.seriesKeys.map((key, index) => {
       const color = getChartSeriesColor(key, index);
+      const isFocused = activeKey === key;
+      const state =
+        activeIndex === null
+          ? 'idle'
+          : activeKey === null
+            ? 'band'
+            : isFocused
+              ? 'focused'
+              : 'dimmed';
+
+      const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
+      const strokeOpacity =
+        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+      const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
+
+      // Resting dots double as per-series hover targets: an invisible fat
+      // hit circle makes the whole line hoverable (recharts has no per-line
+      // mouse events, so the dots are the hit area — same trick ECharts uses
+      // with emphasis symbols).
+      const renderSeriesDot = (dotProps: {
+        dataKey?: unknown;
+        cx?: number;
+        cy?: number;
+        index?: number;
+      }) => {
+        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+          return null;
+        }
+        const isDimmed = activeKey !== null && !isFocused;
+        return (
+          <g>
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={16}
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setActiveKey(key)}
+              onMouseLeave={() => setActiveKey(null)}
+            />
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={isFocused ? 3.5 : 2.5}
+              fill={isDimmed ? GRAYED_SERIES_COLOR : color}
+              stroke="none"
+            />
+          </g>
+        );
+      };
 
       return (
         <Line
@@ -522,9 +695,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           type="monotone"
           dataKey={key}
           name={model.seriesLabels[key] ?? key}
-          stroke={color}
-          strokeWidth={2}
-          dot={false}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          strokeOpacity={strokeOpacity}
+          dot={renderSeriesDot}
+          activeDot={renderActiveDot}
           connectNulls={false}
           hide={hiddenSeries.has(key)}
         />
@@ -534,6 +709,52 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   const renderAreaSeries = () =>
     model.seriesKeys.map((key, index) => {
       const color = getChartSeriesColor(key, index);
+      const isFocused = activeKey === key;
+      const state =
+        activeIndex === null
+          ? 'idle'
+          : activeKey === null
+            ? 'band'
+            : isFocused
+              ? 'focused'
+              : 'dimmed';
+
+      const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
+      const strokeOpacity =
+        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+      const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
+
+      const renderSeriesDot = (dotProps: {
+        dataKey?: unknown;
+        cx?: number;
+        cy?: number;
+        index?: number;
+      }) => {
+        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+          return null;
+        }
+        const isDimmed = activeKey !== null && !isFocused;
+        return (
+          <g>
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={16}
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setActiveKey(key)}
+              onMouseLeave={() => setActiveKey(null)}
+            />
+            <circle
+              cx={dotProps.cx}
+              cy={dotProps.cy}
+              r={isFocused ? 3.5 : 2.5}
+              fill={isDimmed ? GRAYED_SERIES_COLOR : color}
+              stroke="none"
+            />
+          </g>
+        );
+      };
 
       return (
         <Area
@@ -541,28 +762,65 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           type="monotone"
           dataKey={key}
           name={model.seriesLabels[key] ?? key}
-          stroke={color}
-          fill={color}
-          fillOpacity={0.16}
-          strokeWidth={2}
-          dot={false}
+          stroke={strokeColor}
+          fill={strokeColor}
+          fillOpacity={0.16 * strokeOpacity}
+          strokeOpacity={strokeOpacity}
+          strokeWidth={strokeWidth}
+          dot={renderSeriesDot}
+          activeDot={renderActiveDot}
           connectNulls={false}
           hide={hiddenSeries.has(key)}
         />
       );
     });
 
+  // Render series for bar charts. Hovering a specific bar keeps it at full
+  // color with rounded corners + outline; every other bar (other series and
+  // other time slots) is grayed out in a skeleton tone.
   const renderBarSeries = () =>
-    model.seriesKeys.map((key, index) => (
-      <Bar
-        key={key}
-        dataKey={key}
-        name={model.seriesLabels[key] ?? key}
-        fill={getChartSeriesColor(key, index)}
-        maxBarSize={72}
-        hide={hiddenSeries.has(key)}
-      />
-    ));
+    model.seriesKeys.map((key, index) => {
+      const color = getChartSeriesColor(key, index);
+
+      return (
+        <Bar
+          key={key}
+          dataKey={key}
+          name={model.seriesLabels[key] ?? key}
+          fill={color}
+          maxBarSize={72}
+          hide={hiddenSeries.has(key)}
+          onMouseEnter={(_data: unknown, itemIndex: number) => {
+            setActiveKey(key);
+            setActiveIndex(itemIndex);
+          }}
+          onMouseLeave={() => {
+            setActiveKey(null);
+          }}
+        >
+          {model.data.map((_, cellIndex) => {
+            const focused = activeKey === key && activeIndex === cellIndex;
+            const dimmed = activeKey !== null && !focused;
+            return (
+              <Cell
+                key={`cell-${key}-${cellIndex}`}
+                fill={dimmed ? GRAYED_SERIES_COLOR : color}
+                fillOpacity={dimmed ? GRAYED_OPACITY : FULL_OPACITY}
+                // Recharts types only allow `number` here; the tuple form is
+                // valid at runtime (rounded top corners on the focused bar).
+                radius={
+                  focused
+                    ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                    : 0
+                }
+                stroke={focused ? color : 'none'}
+                strokeWidth={focused ? 1.5 : 0}
+              />
+            );
+          })}
+        </Bar>
+      );
+    });
 
   const renderCartesianAxes = (isScatter = false) => (
     <>
@@ -682,29 +940,45 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'scatter') {
       return (
-        <ScatterChart data={model.data} margin={cartesianMargin}>
+        <ScatterChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
           {grid}
           {renderCartesianAxes(true)}
           {tooltip}
           {legend}
           {renderReferenceLines()}
-          {model.seriesKeys.map((key, index) => (
-            <Scatter
-              key={key}
-              data={model.data.filter(point => point[key] !== null)}
-              dataKey={key}
-              name={model.seriesLabels[key] ?? key}
-              fill={getChartSeriesColor(key, index)}
-              hide={hiddenSeries.has(key)}
-            />
-          ))}
+          {model.seriesKeys.map((key, index) => {
+            const seriesData = model.data.filter(point => point[key] !== null);
+            const color = getChartSeriesColor(key, index);
+            return (
+              <Scatter
+                key={key}
+                data={seriesData}
+                dataKey={key}
+                name={model.seriesLabels[key] ?? key}
+                fill={color}
+                hide={hiddenSeries.has(key)}
+              >
+                {seriesData.map((_, pointIndex) => {
+                  const dimmed =
+                    activeIndex !== null && activeIndex !== pointIndex;
+                  return (
+                    <Cell
+                      key={`scatter-cell-${key}-${pointIndex}`}
+                      fill={dimmed ? GRAYED_SERIES_COLOR : color}
+                      fillOpacity={dimmed ? GRAYED_OPACITY : FULL_OPACITY}
+                    />
+                  );
+                })}
+              </Scatter>
+            );
+          })}
         </ScatterChart>
       );
     }
 
     if (config.type === 'area') {
       return (
-        <AreaChart data={model.data} margin={cartesianMargin}>
+        <AreaChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -717,7 +991,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'bar' || config.type === 'histogram') {
       return (
-        <BarChart data={model.data} margin={cartesianMargin}>
+        <BarChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -730,7 +1004,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'composed') {
       return (
-        <ComposedChart data={model.data} margin={cartesianMargin}>
+        <ComposedChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -750,9 +1024,87 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                   fillOpacity={0.72}
                   maxBarSize={64}
                   hide={hiddenSeries.has(key)}
-                />
+                  onMouseEnter={(_data: unknown, itemIndex: number) => {
+                    setActiveKey(key);
+                    setActiveIndex(itemIndex);
+                  }}
+                  onMouseLeave={() => {
+                    setActiveKey(null);
+                  }}
+                >
+                  {model.data.map((_, cellIndex) => {
+                    const focusedCell =
+                      activeKey === key && activeIndex === cellIndex;
+                    const dimmed = activeKey !== null && !focusedCell;
+                    return (
+                      <Cell
+                        key={`cell-${key}-${cellIndex}`}
+                        fill={dimmed ? GRAYED_SERIES_COLOR : color}
+                        fillOpacity={dimmed ? GRAYED_OPACITY * 0.72 : FULL_OPACITY * 0.72}
+                        radius={
+                          focusedCell
+                            ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                            : 0
+                        }
+                        stroke={focusedCell ? color : 'none'}
+                        strokeWidth={focusedCell ? 1.5 : 0}
+                      />
+                    );
+                  })}
+                </Bar>
               );
             }
+
+            const isFocused = activeKey === key;
+            const state =
+              activeIndex === null
+                ? 'idle'
+                : activeKey === null
+                  ? 'band'
+                  : isFocused
+                    ? 'focused'
+                    : 'dimmed';
+            const strokeColor =
+              state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
+            const strokeOpacity =
+              state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+            const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
+
+            const renderSeriesDot = (dotProps: {
+              dataKey?: unknown;
+              cx?: number;
+              cy?: number;
+              index?: number;
+            }) => {
+              if (
+                activeIndex === null ||
+                dotProps.cx == null ||
+                dotProps.cy == null
+              ) {
+                return null;
+              }
+              const isDimmed = activeKey !== null && !isFocused;
+              return (
+                <g>
+                  <circle
+                    cx={dotProps.cx}
+                    cy={dotProps.cy}
+                    r={16}
+                    fill="transparent"
+                    className="cursor-pointer"
+                    onMouseEnter={() => setActiveKey(key)}
+                    onMouseLeave={() => setActiveKey(null)}
+                  />
+                  <circle
+                    cx={dotProps.cx}
+                    cy={dotProps.cy}
+                    r={isFocused ? 3.5 : 2.5}
+                    fill={isDimmed ? GRAYED_SERIES_COLOR : color}
+                    stroke="none"
+                  />
+                </g>
+              );
+            };
 
             return (
               <Line
@@ -760,9 +1112,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 type="monotone"
                 dataKey={key}
                 name={name}
-                stroke={color}
-                strokeWidth={2}
-                dot={false}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeOpacity={strokeOpacity}
+                dot={renderSeriesDot}
+                activeDot={renderActiveDot}
                 hide={hiddenSeries.has(key)}
               />
             );
@@ -772,7 +1126,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     }
 
     return (
-      <LineChart data={model.data} margin={cartesianMargin}>
+      <LineChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
         {grid}
         {renderCartesianAxes()}
         {tooltip}

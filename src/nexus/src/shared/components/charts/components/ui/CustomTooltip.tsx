@@ -14,6 +14,11 @@ interface CustomTooltipProps extends TooltipData {
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
+  /**
+   * When set, only entries of this series are shown — hover focus mode.
+   * The rest of the chart is blurred in DynamicChart to match.
+   */
+  focusedDataKey?: string | null;
 }
 
 const formatTooltipDate = (
@@ -41,12 +46,21 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   frequency,
   pollutant = 'pm2_5',
   aqiConfig = null,
+  focusedDataKey = null,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
 
-  const primaryData = payload[0];
+  const visiblePayload = focusedDataKey
+    ? payload.filter(entry => String(entry.dataKey) === focusedDataKey)
+    : payload;
+
+  if (visiblePayload.length === 0) {
+    return null;
+  }
+
+  const primaryData = visiblePayload[0];
   const value = primaryData.value as number;
   const airQualityLevel = getAirQualityInfo(value, pollutant, 'WHO', aqiConfig);
   const locationName = getChartLocationDisplayName(primaryData.payload);
@@ -67,7 +81,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       {/* Data entries */}
       <div className="space-y-2">
         {/* Display-only list — no stable ID available */}
-        {payload.map((entry, index) => (
+        {visiblePayload.map((entry, index) => (
           <div key={index} className="flex items-start justify-between gap-2">
             <div className="flex items-center space-x-2 min-w-0">
               <div
@@ -91,7 +105,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
       {/* Air Quality Level (only for single value) */}
       {showAirQualityLevel &&
-        payload.length === 1 &&
+        visiblePayload.length === 1 &&
         typeof value === 'number' && (
           <div className="mt-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">

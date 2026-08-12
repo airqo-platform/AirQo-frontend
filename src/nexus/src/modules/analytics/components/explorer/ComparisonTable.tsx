@@ -10,6 +10,7 @@ import { HiMinus } from 'react-icons/hi';
 import {
   useComparisonReadings,
   extractReadingNames,
+  resolveSiteName,
 } from '../../hooks/useComparisonReadings';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AqiLegend } from './AqiLegend';
@@ -108,7 +109,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         siteId,
         name:
           siteNames.get(siteId) ??
-          reading?.siteDetails?.search_name ??
+          resolveSiteName(reading?.siteDetails) ??
           'Unknown location',
         city: reading?.siteDetails?.city ?? '',
         country: reading?.siteDetails?.country ?? '',
