@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { HiChevronDown } from 'react-icons/hi';
@@ -125,7 +125,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       });
       toast.success(`Chart exported as ${format.toUpperCase()} successfully`);
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error('Export failed:', error instanceof Error ? error.message : error);
       toast.error(`Failed to export chart as ${format.toUpperCase()}`);
     } finally {
       setIsExporting(false);
@@ -140,7 +140,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         toast.success('Data refreshed');
       } catch (error) {
         toast.error('Failed to refresh data');
-        console.error('Refresh error:', error);
+        console.error('Refresh error:', error instanceof Error ? error.message : error);
       } finally {
         setIsRefreshing(false);
       }
@@ -169,7 +169,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       setIsEditingTitle(false);
       toast.success('Chart title updated');
     } catch (error) {
-      console.error('Failed to update chart title:', error);
+      console.error('Failed to update chart title:', error instanceof Error ? error.message : error);
       toast.error('Failed to update chart title');
     } finally {
       setIsSavingTitle(false);
@@ -551,3 +551,4 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
     </Card>
   );
 };
+

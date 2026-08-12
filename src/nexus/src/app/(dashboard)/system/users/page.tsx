@@ -37,7 +37,7 @@ interface UsersTableRow extends User {
 
 const UserManagementPage: React.FC = () => {
   const router = useRouter();
-  const { data, isLoading, error, mutate } = useUsers();
+  const { data, isLoading, isValidating, error, mutate } = useUsers();
   const { data: rolesResponse, isLoading: rolesLoading } = useRolesSummary();
   const updateUserRole = useUpdateUserRole();
 
@@ -433,6 +433,7 @@ const UserManagementPage: React.FC = () => {
         columns={columns}
         data={paginatedUsers}
         loading={isLoading}
+        isRefreshing={isValidating}
         currentPage={page}
         totalPages={totalPages}
         pageSize={pageSize}

@@ -12,7 +12,6 @@ import {
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import type { AqiConfig } from '@/shared/types/aqi';
-import { getPollutantLabel } from '@/shared/components/charts/utils';
 
 interface AnalyticsChartTileProps {
   draft: ExplorerChartDraft;
@@ -78,15 +77,19 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
     await refresh?.();
   }, [refresh]);
 
+  // ASCII-safe subtitle: some fonts render subscript/unicode glyphs as boxes,
+  // so use plain "PM2.5"/"PM10" and simple separators.
+  const plainPollutant = draft.pollutant === 'pm10' ? 'PM10' : 'PM2.5';
+
   const subtitleParts = [
-    getPollutantLabel(draft.pollutant),
+    plainPollutant,
     draft.frequency,
     formatChartRangeLabel(draft.startDate, draft.endDate),
     draft.siteIds.length > 0 &&
       `${draft.siteIds.length} location${draft.siteIds.length === 1 ? '' : 's'}`,
   ].filter(Boolean);
 
-  const subtitle = draft.subtitle || subtitleParts.join(' · ');
+  const subtitle = draft.subtitle || subtitleParts.join(' | ');
   const firstSiteId = draft.siteIds[0] ?? '';
 
   return (

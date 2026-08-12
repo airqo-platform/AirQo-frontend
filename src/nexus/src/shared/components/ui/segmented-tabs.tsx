@@ -50,14 +50,15 @@ export const SegmentedTabs = <T extends string>({
             aria-checked={isActive}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
-            className={cn(
-              'font-medium rounded-md transition-all duration-200 whitespace-nowrap',
-              size === 'sm' ? 'text-xs py-1.5 px-4' : 'text-sm py-2 px-5',
-              isActive
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-              option.disabled && 'opacity-50 cursor-not-allowed'
-            )}
+          className={cn(
+            'font-medium rounded-md transition-all duration-200 whitespace-nowrap',
+            // "md" matches the SelectField button height (py-2.5 text-sm)
+            size === 'sm' ? 'text-xs py-1.5 px-4' : 'text-sm py-2.5 px-4',
+            isActive
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+            option.disabled && 'opacity-50 cursor-not-allowed'
+          )}
           >
             {option.label}
           </button>

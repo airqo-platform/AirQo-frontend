@@ -1,16 +1,17 @@
-'use client';
+﻿'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { cn } from '@/shared/lib/utils';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui/toast';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
-import { AqPresentationChart02, AqPlus } from '@airqo/icons-react';
+import { AqPlus } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
 import {
   useGroupCharts,
@@ -22,6 +23,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AnalyticsChartTile } from './explorer/AnalyticsChartTile';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
 import { ComparisonTable } from './explorer/ComparisonTable';
+import { ComparisonCards } from './explorer/ComparisonCards';
 import { AqiLegend } from './explorer/AqiLegend';
 import {
   useComparisonReadings,
@@ -46,11 +48,17 @@ interface AnalyticsExplorerPageProps {
 }
 
 type ViewMode = 'grid' | 'full' | 'table';
+type CompareMode = 'table' | 'cards';
 
 const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
   { value: 'grid', label: 'Grid view' },
   { value: 'full', label: 'Full view' },
   { value: 'table', label: 'Compare table' },
+];
+
+const COMPARE_VIEW_OPTIONS: { value: CompareMode; label: string }[] = [
+  { value: 'table', label: 'Table' },
+  { value: 'cards', label: 'Cards' },
 ];
 
 const isCancellationError = (error: unknown): boolean => {
@@ -68,7 +76,7 @@ const isCancellationError = (error: unknown): boolean => {
 };
 
 /**
- * Air Quality Analytics — a dashboard of user-configurable charts persisted
+ * Air Quality Analytics - a dashboard of user-configurable charts persisted
  * to the group's chart configurations (auth-service). Each chart carries its
  * own title, pollutant, frequency, custom date range, style and locations.
  * The AQI scale is shown ONCE at page level (IQAir/WAQI pattern), forecasts
@@ -84,6 +92,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [compareMode, setCompareMode] = useState<CompareMode>('table');
   const [tablePollutant, setTablePollutant] = useState<PollutantType>('pm2_5');
   const { config: tableAqiConfig } = useAqiConfig(tablePollutant);
   const { config: aqiConfig } = useAqiConfig('pm2_5');
@@ -218,18 +227,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const persistDraft = useCallback(
     async (draft: ExplorerChartDraft, namesSnapshot: Record<string, string>) => {
       if (draft.id) {
-        // Update: flat partial body (verified live — the chartConfig
-        // wrapper is silently ignored by PUT).
-        await updateMutation.trigger({
-          groupId,
-          chartId: draft.id,
-          request: {
-            ...draftToPersistedConfig(draft),
-            site_ids: draft.siteIds,
-            device_ids: draft.deviceIds,
-          },
-        });
-        writeChartSidecar(groupId, draft.id, {
+        // Update: flat partial body (verified live â€” the chartConfig
+        // wrapper is silently ignored by PUT). Round-trip the persisted
+        // fieldId so edits don't reset the chart's slot to 1.
+        const nextSidecar = {
           subtitle: draft.subtitle,
           pollutant: draft.pollutant,
           frequency: draft.frequency,
@@ -237,9 +238,38 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           startDate: draft.startDate,
           endDate: draft.endDate,
           siteNames: namesSnapshot,
-        });
+        };
+        // Write the sidecar FIRST so the optimistic cache update renders the
+        // client-side fields (subtitle, pollutant, range, ...) instantly;
+        // roll it back if the PUT fails.
+        const prevSidecar = readChartSidecar(groupId, draft.id);
+        writeChartSidecar(groupId, draft.id, nextSidecar);
+        try {
+          await updateMutation.trigger({
+            groupId,
+            chartId: draft.id,
+            request: {
+              ...draftToPersistedConfig(draft, draft.fieldId),
+              site_ids: draft.siteIds,
+              device_ids: draft.deviceIds,
+            },
+          });
+        } catch (error) {
+          writeChartSidecar(groupId, draft.id, prevSidecar);
+          throw error;
+        }
       } else {
-        const fieldId = (charts.length % 8) + 1;
+        // Create: pick the next free slot (1-8), avoiding slots already in use
+        const usedFieldIds = new Set(
+          charts.map(chart => chart.fieldId).filter((id): id is number => id >= 1)
+        );
+        let fieldId = 1;
+        for (let slot = 1; slot <= 8; slot++) {
+          if (!usedFieldIds.has(slot)) {
+            fieldId = slot;
+            break;
+          }
+        }
         const result = await createMutation.trigger({
           groupId,
           request: {
@@ -262,7 +292,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         }
       }
     },
-    [charts.length, createMutation, groupId, updateMutation]
+    [charts, createMutation, groupId, updateMutation]
   );
 
   const handleSaveDraft = useCallback(
@@ -284,7 +314,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         handleCloseDialog();
       } catch (error) {
         if (isCancellationError(error)) return;
-        console.error('Failed to save chart configuration:', error);
+        console.error('Failed to save chart configuration:', error instanceof Error ? error.message : error);
         setSaveError(
           getUserFriendlyErrorMessage(error, {
             Default: 'We could not save the chart configuration.',
@@ -359,7 +389,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           posthog?.capture('analytics_chart_deleted', { title: draft.title });
         } catch (error) {
           if (isCancellationError(error)) return;
-          console.error('Failed to delete chart configuration:', error);
+          console.error('Failed to delete chart configuration:', error instanceof Error ? error.message : error);
           toast.error(
             'Delete failed',
             getUserFriendlyErrorMessage(error, {
@@ -402,15 +432,15 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         />
       ))}
 
-      {/* Add chart tile — mirrors the "+ Add Favorite" pattern */}
+      {/* Build chart tile */}
       <button
         type="button"
         onClick={handleOpenCreate}
-        aria-label="Add chart"
+        aria-label="Build chart"
         className="flex min-h-[240px] w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/50 dark:border-primary/80 bg-primary/10 text-primary transition-all duration-200 hover:scale-[0.99] hover:bg-primary/15"
       >
         <AqPlus className="h-8 w-8" />
-        <span className="text-sm font-medium">Add chart</span>
+        <span className="text-sm font-medium">Build chart</span>
         <span className="px-6 text-center text-xs text-muted-foreground">
           Configure a new chart with its own locations, pollutant and time
           range.
@@ -423,18 +453,19 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     <div className={cn('space-y-5', className)}>
       <PageHeading
         title="Air Quality Analytics"
-        subtitle="Build and save as many charts as you need — each with its own locations, pollutant, time range and style — or compare every selected location side by side."
-        infoLine="Charts are saved to this group's chart configurations and are available to every group member."
+        subtitle="Build and save as many charts as you need, each with its own locations, pollutant, time range and style, or compare every selected location side by side."
+        infoLine="Charts are saved when you click Add chart or Save changes."
         action={
-          <Button
-            variant="filled"
-            size="sm"
-            Icon={AqPresentationChart02}
-            onClick={handleOpenCreate}
-            disabled={isInitialLoading || !groupId}
-          >
-            Add chart
-          </Button>
+          charts.length > 0 ? (
+            <Button
+              variant="filled"
+              size="sm"
+              onClick={handleOpenCreate}
+              disabled={isInitialLoading || !groupId}
+            >
+              Build chart
+            </Button>
+          ) : undefined
         }
       />
 
@@ -448,59 +479,84 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           description={
             chartsError instanceof Error
               ? chartsError.message
-              : 'We could not load this group’s saved charts.'
+              : "We could not load your saved charts."
           }
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       ) : charts.length === 0 ? (
         <EmptyState
           title="No charts yet"
-          description="Add your first chart to start exploring air quality trends for this group's monitoring locations."
-          action={{ label: 'Add chart', onClick: handleOpenCreate }}
+          description="Add your first chart to start exploring air quality trends."
+          action={{ label: 'Build chart', onClick: handleOpenCreate }}
         />
       ) : (
         <>
-          {/* View switcher */}
-          <SegmentedTabs
-            ariaLabel="Analytics view"
-            options={VIEW_OPTIONS}
-            value={viewMode}
-            onChange={setViewMode}
-          />
+          {/* View switcher - wrapped in a card, sized to content */}
+          <Card className="w-fit">
+            <CardContent className="p-2">
+              <SegmentedTabs
+                ariaLabel="Analytics view"
+                options={VIEW_OPTIONS}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            </CardContent>
+          </Card>
 
-          {/* AQI scale — shown ONCE at page level (IQAir/WAQI pattern),
-              pollutant-aware in the table view */}
-          <AqiLegend
-            aqiConfig={viewMode === 'table' ? tableAqiConfig : aqiConfig}
-            collapsible
-            className="max-w-3xl"
-          />
+          {/* AQI scale - shown once at page level for the chart and card
+              views; the comparison table renders its own legend inline so it
+              is not duplicated here */}
+          {viewMode !== 'table' && <AqiLegend aqiConfig={aqiConfig} />}
 
           {viewMode === 'table' ? (
             <>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  Legend pollutant
-                </span>
-                <select
-                  aria-label="Comparison pollutant"
-                  value={tablePollutant}
-                  onChange={event =>
-                    setTablePollutant(event.target.value as PollutantType)
-                  }
-                  className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-3 py-1.5 text-sm"
-                >
-                  <option value="pm2_5">PM2.5</option>
-                  <option value="pm10">PM10</option>
-                </select>
+              <div className="flex flex-wrap items-center gap-3">
+                <Card className="w-fit">
+                  <CardContent className="p-1">
+                    <SegmentedTabs
+                      ariaLabel="Comparison layout"
+                      options={COMPARE_VIEW_OPTIONS}
+                      value={compareMode}
+                      onChange={setCompareMode}
+                    />
+                  </CardContent>
+                </Card>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    Legend pollutant
+                  </span>
+                  <select
+                    aria-label="Comparison pollutant"
+                    value={tablePollutant}
+                    onChange={event =>
+                      setTablePollutant(event.target.value as PollutantType)
+                    }
+                    className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-3 py-1.5 text-sm"
+                  >
+                    <option value="pm2_5">PM2.5</option>
+                    <option value="pm10">PM10</option>
+                  </select>
+                </div>
               </div>
 
-              <ComparisonTable
-                siteIds={allSiteIds}
-                siteNames={siteNames}
-                aqiConfig={tableAqiConfig}
-                onNamesResolved={handleNamesResolved}
-              />
+              {compareMode === 'table' ? (
+                <ComparisonTable
+                  siteIds={allSiteIds}
+                  siteNames={siteNames}
+                  aqiConfig={tableAqiConfig}
+                  onNamesResolved={handleNamesResolved}
+                />
+              ) : (
+                <>
+                  <AqiLegend aqiConfig={tableAqiConfig} />
+                  <ComparisonCards
+                    siteIds={allSiteIds}
+                    siteNames={siteNames}
+                    aqiConfig={tableAqiConfig}
+                    onNamesResolved={handleNamesResolved}
+                  />
+                </>
+              )}
             </>
           ) : (
             <>
@@ -525,10 +581,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                   type="button"
                   onClick={handleOpenCreate}
                   className="flex min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/50 dark:border-primary/80 bg-primary/10 text-primary transition-all duration-200 hover:bg-primary/15"
-                  aria-label="Add chart"
+                  aria-label="Build chart"
                 >
                   <AqPlus className="h-7 w-7" />
-                  <span className="text-sm font-medium">Add chart</span>
+                  <span className="text-sm font-medium">Build chart</span>
                 </button>
               )}
             </>
@@ -551,3 +607,4 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
 };
 
 export default AnalyticsExplorerPage;
+

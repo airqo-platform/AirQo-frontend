@@ -87,17 +87,14 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
     [devicesData.devices]
   );
 
-  // SiteId -> display name for currently selected sites (from the loaded
-  // sites list, or the resolved device site name, or a generic label).
+  // SiteId -> display name for currently selected sites. Existing names are
+  // preserved so selections made on other pages don't regress to a generic
+  // label (the parent's map is overwritten from this one).
   const selectedNames = useMemo(() => {
     const names = new Map<string, string>();
-    sitesData.sites.forEach(site => {
-      if (selectedSiteIds.includes(site.id)) {
-        names.set(site.id, site.location);
-      }
-    });
     selectedSiteIds.forEach(id => {
-      if (!names.has(id)) names.set(id, UNKNOWN_LABEL);
+      const site = sitesData.sites.find(s => s.id === id);
+      names.set(id, site?.location ?? UNKNOWN_LABEL);
     });
     return names;
   }, [sitesData.sites, selectedSiteIds]);
@@ -123,6 +120,10 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
 
   const isOverLimit = mergedSiteIds.length > maxSelection;
 
+  // Keep previously-known display names for selected sites that aren't on
+  // the current page, so the parent's names map never regresses to a label.
+  const knownNamesRef = useRef<Map<string, string>>(new Map());
+
   // Push the merged selection up only when it actually changed. The parent
   // mirrors it straight back down through `selectedSiteIds`, so an
   // unconditional push would loop forever.
@@ -130,6 +131,16 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
   useEffect(() => {
     const names = new Map<string, string>(selectedNames);
     deviceResolvedSites.forEach((name, siteId) => names.set(siteId, name));
+    // Fill gaps with previously known names (off-page selections)
+    selectedNames.forEach((name, id) => {
+      if (name === UNKNOWN_LABEL && knownNamesRef.current.has(id)) {
+        names.set(id, knownNamesRef.current.get(id) as string);
+      }
+    });
+    // Remember real names for future pushes
+    names.forEach((name, id) => {
+      if (name !== UNKNOWN_LABEL) knownNamesRef.current.set(id, name);
+    });
 
     const namesKey = Array.from(names.entries())
       .sort(([a], [b]) => a.localeCompare(b))
@@ -140,10 +151,16 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
       return;
     }
     lastPushedKeyRef.current = key;
+    // Never propagate a selection over the configured cap — the user sees an
+    // inline warning instead of silently saving an oversized chart scope.
+    if (mergedSiteIds.length > maxSelection) {
+      return;
+    }
     onSelectionChange(mergedSiteIds, names);
   }, [
     mergedSiteIds,
     deviceResolvedSites,
+    maxSelection,
     onSelectionChange,
     selectedNames,
   ]);
@@ -283,6 +300,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
           selectedItems={selectedSiteIds}
           onSelectedItemsChange={handleSiteSelectionChange}
           loading={sitesData.isLoading}
+          isRefreshing={sitesData.isRefreshing}
           error={sitesData.error}
           currentPage={sitesData.currentPage}
           totalPages={sitesData.totalPages}
@@ -302,6 +320,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
           selectedItems={selectedDeviceIdsLocal}
           onSelectedItemsChange={handleDeviceSelectionChange}
           loading={devicesData.isLoading}
+          isRefreshing={devicesData.isRefreshing}
           error={devicesData.error}
           currentPage={devicesData.currentPage}
           totalPages={devicesData.totalPages}
@@ -321,7 +340,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
           <EmptyState
             compact
             title="No sites found"
-            description="Try a different search, or check that this group has monitoring sites assigned."
+            description="Try a different search, or check that monitoring sites are assigned."
           />
         )}
 
@@ -332,7 +351,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
           <EmptyState
             compact
             title="No devices found"
-            description="Try a different search, or check that this group has devices assigned."
+            description="Try a different search, or check that devices are assigned."
           />
         )}
     </div>

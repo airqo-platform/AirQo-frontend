@@ -26,6 +26,8 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     onClick,
     showTrend = true,
     interactive = true,
+    headerLabel,
+    extraInfo,
   }) => {
     const posthog = usePostHog();
     // truncation refs
@@ -121,6 +123,11 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0 pr-4">
+              {headerLabel && (
+                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {headerLabel}
+                </p>
+              )}
               <Tooltip content={displayName} className="bg-black">
                 <h5
                   ref={nameRef}
@@ -213,6 +220,9 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               )}
             </div>
           </div>
+
+          {/* Extra info row (e.g. AQI index + monitoring sites) */}
+          {extraInfo && <div className="pt-1">{extraInfo}</div>}
         </CardContent>
       </Card>
     );

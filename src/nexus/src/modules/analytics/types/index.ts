@@ -46,6 +46,10 @@ export interface AnalyticsCardProps {
   showTrend?: boolean;
   /** Make the card clickable (role/button/cursor, defaults to true) */
   interactive?: boolean;
+  /** Small uppercase label rendered above the site name (e.g. "Most polluted") */
+  headerLabel?: string;
+  /** Optional content rendered below the value/icon row (e.g. AQI + site count) */
+  extraInfo?: ReactNode;
 }
 
 // Favorite locations props interface

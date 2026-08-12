@@ -12,6 +12,8 @@ export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
 export interface ExplorerChartDraft {
   /** Persisted chart config _id (empty for an unsaved draft) */
   id: string;
+  /** ThingSpeak field slot (1–8) the backend requires — round-tripped */
+  fieldId: number;
   title: string;
   /** Display subtitle — kept client-side (see sidecar note below) */
   subtitle: string;
@@ -196,7 +198,7 @@ export const computeDaysFromRange = (
   return Math.max(1, Math.round((end - start) / DAY_MS));
 };
 
-/** Compact label for a chart's date range, e.g. "Aug 4 – Aug 11, 2026" */
+/** Compact label for a chart's date range, e.g. "Aug 4 - Aug 11, 2026" */
 export const formatChartRangeLabel = (
   startDate: string,
   endDate: string
@@ -214,9 +216,9 @@ export const formatChartRangeLabel = (
     });
   const sameYear = start.getFullYear() === end.getFullYear();
   if (sameYear) {
-    return `${format(start, false)} – ${format(end, true)}`;
+    return `${format(start, false)} - ${format(end, true)}`;
   }
-  return `${format(start, true)} – ${format(end, true)}`;
+  return `${format(start, true)} - ${format(end, true)}`;
 };
 
 /**
@@ -242,6 +244,10 @@ export const persistedConfigToDraft = (
 
   return {
     id: config._id ?? '',
+    fieldId:
+      typeof config.fieldId === 'number' && config.fieldId >= 1
+        ? config.fieldId
+        : 1,
     title: config.title || 'Untitled chart',
     subtitle: sidecar.subtitle,
     chartType: normalizeExplorerChartType(config.chartType),

@@ -12,6 +12,7 @@ import {
   useComparisonReadings,
   extractReadingNames,
 } from '../../hooks/useComparisonReadings';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AqiLegend } from './AqiLegend';
 import {
   getAirQualityColor,
@@ -82,11 +83,18 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
 }) => {
   const [sortKey, setSortKey] = useState<SortKey>('pm2_5');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { data: readings, isLoading, error, refetch } = useComparisonReadings(
     siteIds,
     true
   );
+
+  // Reset to the first page when the selection changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [siteIds]);
 
   const rows = useMemo<ComparisonRow[]>(() => {
     const readingsBySite = new Map<string, RecentReading>();
@@ -158,6 +166,18 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     return sorted;
   }, [rows, sortKey, sortDirection]);
 
+  // Client-side pagination (handles the last partial page + bounds correctly)
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return sortedRows.slice(start, start + PAGE_SIZE);
+  }, [sortedRows, safePage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  };
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
@@ -165,6 +185,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       setSortKey(key);
       setSortDirection(key === 'name' ? 'asc' : 'desc');
     }
+    setCurrentPage(1);
   };
 
   const SortHeader: React.FC<{ label: string; sortableKey: SortKey; className?: string }> = ({
@@ -196,6 +217,12 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     </button>
   );
 
+  // Each pollutant column must be colored against ITS OWN AQI ranges —
+  // pm2_5 and pm10 breakpoints differ (the legend uses the page-selected
+  // pollutant, which only matches the pm2_5 column).
+  const { config: pm25AqiConfig } = useAqiConfig('pm2_5');
+  const { config: pm10AqiConfig } = useAqiConfig('pm10');
+
   const renderValue = (
     value: number | null,
     pollutant: 'pm2_5' | 'pm10'
@@ -207,8 +234,9 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         </span>
       );
     }
-    const level = getAirQualityLevel(value, pollutant, aqiConfig ?? null);
-    const color = getAirQualityColor(level, aqiConfig ?? null);
+    const columnConfig = pollutant === 'pm10' ? pm10AqiConfig : pm25AqiConfig;
+    const level = getAirQualityLevel(value, pollutant, columnConfig ?? null);
+    const color = getAirQualityColor(level, columnConfig ?? null);
     return (
       <span className="inline-flex items-center gap-1.5 tabular-nums">
         <span
@@ -251,12 +279,16 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   };
 
   const renderCategory = (category: string | null, pm25: number | null) => {
+    // The badge reflects the PM2.5 reading (its own config) when available,
+    // falling back to the API-provided category string.
     const level = mapAqiCategoryToLevel(category ?? undefined);
     const levelFromValue =
-      pm25 !== null ? getAirQualityLevel(pm25, 'pm2_5', aqiConfig ?? null) : level;
+      pm25 !== null
+        ? getAirQualityLevel(pm25, 'pm2_5', pm25AqiConfig ?? null)
+        : level;
     const resolvedLevel = levelFromValue !== 'no-value' ? levelFromValue : level;
-    const label = getAirQualityLabel(resolvedLevel, 'WHO', 'PM2.5', aqiConfig ?? null);
-    const color = getAirQualityColor(resolvedLevel, aqiConfig ?? null);
+    const label = getAirQualityLabel(resolvedLevel, 'WHO', 'PM2.5', pm25AqiConfig ?? null);
+    const color = getAirQualityColor(resolvedLevel, pm25AqiConfig ?? null);
     const Icon = getAirQualityIcon(resolvedLevel);
 
     if (resolvedLevel === 'no-value') {
@@ -301,7 +333,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         </div>
 
         <div className="px-4 pt-3">
-          <AqiLegend aqiConfig={aqiConfig} compact />
+          <AqiLegend aqiConfig={aqiConfig} />
         </div>
 
         {siteIds.length === 0 ? (
@@ -358,7 +390,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  sortedRows.map(row => (
+                  pageRows.map(row => (
                     <tr
                       key={row.siteId}
                       className="border-b border-border/60 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/60"
@@ -397,6 +429,36 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination footer — clamped at the bounds, correct on the last page */}
+        {!isLoading && sortedRows.length > PAGE_SIZE && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-border bg-muted/30">
+            <div className="text-xs text-muted-foreground">
+              Showing {Math.min((safePage - 1) * PAGE_SIZE + 1, sortedRows.length)}–{Math.min(safePage * PAGE_SIZE, sortedRows.length)} of {sortedRows.length} locations
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePageChange(safePage - 1)}
+                disabled={safePage <= 1}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-muted-foreground">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => handlePageChange(safePage + 1)}
+                disabled={safePage >= totalPages}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </CardContent>

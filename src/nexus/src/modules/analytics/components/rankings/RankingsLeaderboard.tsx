@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -73,6 +73,31 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
 }) => {
   const generatedAt = rankings[0]?.generated_at;
 
+  // Client-side pagination (handles the last partial page + bounds correctly)
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(rankings.length / PAGE_SIZE));
+  const [currentPage, setCurrentPage] = useState(1);
+  const safePage = Math.min(currentPage, totalPages);
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return rankings.slice(start, start + PAGE_SIZE);
+  }, [rankings, safePage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  };
+
+  // Reset to the first page when the dataset changes (level/sort/limit) —
+  // keyed on the data content, not the array identity, so background
+  // revalidations with identical data don't reset the page.
+  const datasetKey = useMemo(
+    () => rankings.map(entry => `${entry.rank}:${entry.name}`).join('|'),
+    [rankings]
+  );
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [datasetKey]);
+
   return (
     <Card className={className}>
       <CardContent className="p-0">
@@ -124,10 +149,10 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
                 </tr>
               </thead>
               <tbody>
-        {isLoading ? (
+                {isLoading ? (
           <SkeletonRows />
         ) : (
-          rankings.map(entry => {
+          pageRows.map(entry => {
             const isTopThree = entry.rank >= 1 && entry.rank <= 3;
             const medal = MEDAL_EMOJI[entry.rank];
             return (
@@ -206,6 +231,36 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination footer — clamped at the bounds, correct on the last page */}
+        {!isLoading && rankings.length > PAGE_SIZE && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-border bg-muted/30">
+            <div className="text-xs text-muted-foreground">
+              Showing {Math.min((safePage - 1) * PAGE_SIZE + 1, rankings.length)}–{Math.min(safePage * PAGE_SIZE, rankings.length)} of {rankings.length} locations
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePageChange(safePage - 1)}
+                disabled={safePage <= 1}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-xs text-muted-foreground">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => handlePageChange(safePage + 1)}
+                disabled={safePage >= totalPages}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </CardContent>

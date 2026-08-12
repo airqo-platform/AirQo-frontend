@@ -196,13 +196,15 @@ describe('Air Quality pages (end-to-end)', function () {
   // â”€â”€ login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const login = async () => {
     await driver.get(`${BASE}/user/login`);
-    await waitFor(By.css('input[type="email"]'));
+    // Fresh dev servers compile the route's client chunks on first hit, which
+    // can take 60-120s; the login form only appears after hydration.
+    await waitFor(By.css('input[type="email"]'), 150);
     await type(By.css('input[type="email"]'), EMAIL);
     await click(By.css('button[type="submit"]'));
-    await waitFor(By.css('input[type="password"]'));
+    await waitFor(By.css('input[type="password"]'), 150);
     await type(By.css('input[type="password"]'), PASSWORD);
     await click(By.css('button[type="submit"]'));
-    await driver.wait(until.urlContains('/user/home'), 60_000);
+    await driver.wait(until.urlContains('/user/home'), 120_000);
     await captureLogs();
   };
 
@@ -211,8 +213,8 @@ describe('Air Quality pages (end-to-end)', function () {
     await driver.get(`${BASE}/user/air-quality/rankings`);
     await waitFor(By.xpath("//h1[contains(normalize-space(), 'Air Quality Rankings')]"), 60);
 
-    // Page-level AQI legend with ranges
-    expect(await visible(By.xpath("//button[contains(., 'AQI legend')]"))).to.be.true;
+    // Page-level AQI legend with ranges (static — no toggle button)
+    expect(await visible(By.xpath("//*[normalize-space()='Hazardous']"))).to.be.true;
     expect(await visible(By.xpath("//*[normalize-space()='Good']"))).to.be.true;
     expect(await visible(By.xpath("//*[normalize-space()='Hazardous']"))).to.be.true;
 
@@ -289,14 +291,14 @@ describe('Air Quality pages (end-to-end)', function () {
   it('Analytics: page renders with view switcher, legend and add-chart affordance', async () => {
     await driver.get(`${BASE}/user/air-quality/analytics`);
     await waitFor(By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]"), 60);
-    await waitFor(By.xpath("//button[normalize-space()='Add chart']"), 30);
+    await waitFor(By.xpath("//button[normalize-space()='Build chart']"), 30);
 
     // The AQI legend renders once charts exist; the empty state shows the CTA
     const hasCharts = await visible(By.xpath("//*[@role='radio' and normalize-space()='Grid view']"), 5);
     if (hasCharts) {
       expect(await visible(By.xpath("//*[@role='radio' and normalize-space()='Full view']"))).to.be.true;
       expect(await visible(By.xpath("//*[@role='radio' and normalize-space()='Compare table']"))).to.be.true;
-      expect(await visible(By.xpath("//button[contains(., 'AQI legend')]"))).to.be.true;
+      expect(await visible(By.xpath("//*[normalize-space()='Hazardous']"))).to.be.true;
     } else {
       expect(await visible(By.xpath("//*[contains(normalize-space(), 'No charts yet')]"))).to.be.true;
     }
@@ -309,7 +311,7 @@ describe('Air Quality pages (end-to-end)', function () {
     await waitFor(By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]"), 60);
 
     // Open the add-chart dialog (empty state CTA or header button)
-    await click(By.xpath("//button[normalize-space()='Add chart']"));
+    await click(By.xpath("//button[normalize-space()='Build chart']"));
     await waitForDialogReady();
 
     // Title + subtitle inputs

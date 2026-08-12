@@ -51,13 +51,22 @@ export const RankingsHistoryFilters: React.FC<
 }) => {
   const yearOptions = useMemo(buildYearOptions, []);
 
+  // Constrain the year lists so the span can never exceed the backend cap:
+  // the start must keep `end - start + 1 <= MAX_SPAN_YEARS`, and the end
+  // must keep `start` within reach.
   const startYearOptions = useMemo(
-    () => yearOptions.filter(year => year <= endYear),
+    () =>
+      yearOptions.filter(
+        year => year <= endYear && year >= endYear - MAX_SPAN_YEARS + 1
+      ),
     [yearOptions, endYear]
   );
 
   const endYearOptions = useMemo(
-    () => yearOptions.filter(year => year >= startYear),
+    () =>
+      yearOptions.filter(
+        year => year >= startYear && year <= startYear + MAX_SPAN_YEARS - 1
+      ),
     [yearOptions, startYear]
   );
 
@@ -66,16 +75,22 @@ export const RankingsHistoryFilters: React.FC<
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <SegmentedTabs
-          ariaLabel="Ranking level"
-          options={LEVEL_OPTIONS.map(option => ({
-            ...option,
-            disabled,
-          }))}
-          value={level}
-          onChange={onLevelChange}
-        />
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="space-y-2 mb-4">
+          <span className="block text-sm font-medium text-muted-foreground">
+            Level
+          </span>
+          <SegmentedTabs
+            ariaLabel="Ranking level"
+            options={LEVEL_OPTIONS.map(option => ({
+              ...option,
+              disabled,
+            }))}
+            value={level}
+            onChange={onLevelChange}
+            size="md"
+          />
+        </div>
 
         <SelectField
           label="Start year"

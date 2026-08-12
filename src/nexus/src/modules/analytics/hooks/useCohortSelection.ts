@@ -99,6 +99,14 @@ export const useSitesForSelection = ({
 
   const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
 
+  // Reset pagination when the dataset changes (e.g. a group switch while the
+  // picker is open) so `skip` never overshoots the new cohort's pages.
+  const cohortIdsKey = cohortIds.join(',');
+  useEffect(() => {
+    setCurrentPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohortIdsKey]);
+
   const params = useMemo((): CohortSitesParams => {
     const effectivePageSize = Math.min(pageSize, maxLimit);
     const nextParams: CohortSitesParams = {
@@ -142,7 +150,7 @@ export const useSitesForSelection = ({
     ? ['selection/sites', groupId || 'active-group', cohortIds, params]
     : null;
 
-  const { data, error, isLoading, mutate: mutateData } = useSWR(
+  const { data, error, isLoading, isValidating, mutate: mutateData } = useSWR(
     key,
     fetchSites,
     {
@@ -190,6 +198,10 @@ export const useSitesForSelection = ({
     currentPage,
     pageSize: Math.min(pageSize, maxLimit),
     searchTerm,
+    // True while data exists and a revalidation (search/page change) is in
+    // flight — the picker table shows an in-place refreshing overlay instead
+    // of swapping the whole table for a loading state.
+    isRefreshing: hasData && isValidating,
     isLoading: !hasData && (isLoading || cohortsLoading),
     error: resolvedError ? (resolvedError.message ?? null) : null,
     setCurrentPage,
@@ -221,6 +233,14 @@ export const useDevicesForSelection = ({
   );
 
   const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
+
+  // Reset pagination when the dataset changes (e.g. a group switch while the
+  // picker is open) so `skip` never overshoots the new cohort's pages.
+  const cohortIdsKey = cohortIds.join(',');
+  useEffect(() => {
+    setCurrentPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohortIdsKey]);
 
   const params = useMemo((): CohortDevicesParams => {
     const effectivePageSize = Math.min(pageSize, maxLimit);
@@ -265,7 +285,7 @@ export const useDevicesForSelection = ({
     ? ['selection/devices', groupId || 'active-group', cohortIds, params]
     : null;
 
-  const { data, error, isLoading, mutate: mutateData } = useSWR(
+  const { data, error, isLoading, isValidating, mutate: mutateData } = useSWR(
     key,
     fetchDevices,
     {
@@ -311,6 +331,10 @@ export const useDevicesForSelection = ({
     currentPage,
     pageSize: Math.min(pageSize, maxLimit),
     searchTerm,
+    // True while data exists and a revalidation (search/page change) is in
+    // flight — the picker table shows an in-place refreshing overlay instead
+    // of swapping the whole table for a loading state.
+    isRefreshing: hasData && isValidating,
     isLoading: !hasData && (isLoading || cohortsLoading),
     error: resolvedError ? (resolvedError.message ?? null) : null,
     setCurrentPage,

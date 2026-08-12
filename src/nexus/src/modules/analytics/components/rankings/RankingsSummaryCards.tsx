@@ -24,7 +24,7 @@ const buildHighlightSiteData = (entry: RankingEntry): SiteData => ({
   _id: `ranking-${entry.level}-${entry.name}`,
   name: entry.name,
   search_name: entry.name,
-  location: `${entry.site_count} monitoring site${entry.site_count === 1 ? '' : 's'}`,
+  location: `${entry.level === 'city' ? 'City' : 'Country'} · ${entry.country_code?.toUpperCase() ?? 'Africa'}`,
   country: entry.country_code ?? undefined,
   value: entry.avg_pm2_5 ?? 0,
   status: mapAqiCategoryToLevel(entry.aqi_category ?? undefined),
@@ -35,8 +35,26 @@ const buildHighlightSiteData = (entry: RankingEntry): SiteData => ({
 });
 
 /**
+ * Extra AQI metadata shown under the favorites-style card: derived AQI index
+ * plus how many sites contributed to the average.
+ */
+const buildExtraInfo = (entry: RankingEntry): React.ReactNode => (
+  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+    <span>
+      <span className="font-semibold text-foreground">AQI</span> {entry.aqi_index ?? '—'}
+    </span>
+    <span>
+      <span className="font-semibold text-foreground">{entry.site_count}</span>{' '}
+      site{entry.site_count === 1 ? '' : 's'}
+    </span>
+  </div>
+);
+
+/**
  * Highlight cards above the leaderboard — most polluted and cleanest air
- * reuse the favorites AnalyticsCard for consistency, plus a count card.
+ * reuse the favorites AnalyticsCard (showing the entry name, PM2.5 value,
+ * AQI icon and category) plus the AQI index and site count, with a count
+ * card in the same visual language.
  */
 export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
   rankings,
@@ -78,11 +96,9 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
   return (
     <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4', className)}>
       <AnalyticsCard
-        siteData={{
-          ...buildHighlightSiteData(worst),
-          name: 'Most polluted',
-          search_name: 'Most polluted',
-        }}
+        siteData={buildHighlightSiteData(worst)}
+        headerLabel="Most polluted"
+        extraInfo={buildExtraInfo(worst)}
         aqiConfig={aqiConfig ?? null}
         selectedPollutant="pm2_5"
         showIcon
@@ -90,11 +106,9 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
         interactive={false}
       />
       <AnalyticsCard
-        siteData={{
-          ...buildHighlightSiteData(best),
-          name: 'Cleanest air',
-          search_name: 'Cleanest air',
-        }}
+        siteData={buildHighlightSiteData(best)}
+        headerLabel="Cleanest air"
+        extraInfo={buildExtraInfo(best)}
         aqiConfig={aqiConfig ?? null}
         selectedPollutant="pm2_5"
         showIcon
@@ -106,9 +120,9 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
       <Card>
         <CardContent className="p-4 flex flex-col justify-between space-y-4 h-full">
           <div className="flex-1 min-w-0 pr-4">
-            <h5 className="text-md truncate max-w-[140px] mb-1">
+            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Locations ranked
-            </h5>
+            </p>
             <p className="text-sm text-gray-500 truncate max-w-[180px]">
               entries with recent readings
             </p>

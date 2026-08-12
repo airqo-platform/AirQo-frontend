@@ -147,6 +147,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
     if (!canSave || isSaving) return;
     onSave({
       id: draft?.id ?? '',
+      fieldId: draft?.fieldId ?? 1,
       title: title.trim(),
       subtitle: subtitle.trim(),
       chartType,
@@ -171,8 +172,8 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       title={draft ? 'Edit chart configuration' : 'Add chart'}
       subtitle={
         draft
-          ? 'Update this chart — changes are saved to the group chart configuration.'
-          : 'Configure a new chart — it will be added to this group’s saved chart configurations.'
+          ? 'Update this chart - changes are saved to its configuration.'
+          : "Configure a new chart - it will be added to your saved charts."
       }
       icon={AqPresentationChart02}
       size="2xl"
@@ -275,6 +276,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
             className="bg-white dark:bg-[#1d1f20] dark:border-gray-700 shadow-sm w-auto"
             showPresets
             returnFormat="backend-datetime"
+            useDialog
           />
         </div>
 

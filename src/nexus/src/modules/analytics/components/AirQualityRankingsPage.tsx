@@ -126,22 +126,20 @@ export const AirQualityRankingsPage: React.FC<
         }
       />
 
-      {/* Tab switcher — SegmentedTabs component for consistency */}
-      <SegmentedTabs
-        ariaLabel="Rankings views"
-        options={TAB_OPTIONS}
-        value={tab}
-        onChange={setTab}
-      />
+      {/* Tab switcher — wrapped in a card, sized to content */}
+      <Card className="w-fit">
+        <CardContent className="p-2">
+          <SegmentedTabs
+            ariaLabel="Rankings views"
+            options={TAB_OPTIONS}
+            value={tab}
+            onChange={setTab}
+          />
+        </CardContent>
+      </Card>
 
       {/* AQI legend — page-level, visible across both tabs */}
-      <div className="px-1">
-        <AqiLegend
-          aqiConfig={aqiConfig}
-          collapsible
-          className="max-w-3xl"
-        />
-      </div>
+      <AqiLegend aqiConfig={aqiConfig} />
 
       {tab === 'live' ? (
         <>

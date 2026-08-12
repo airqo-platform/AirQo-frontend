@@ -81,6 +81,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
   const {
     sites,
     isLoading,
+    isRefreshing: isTableRefreshing,
     error,
     retry,
     totalSites,
@@ -379,6 +380,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           selectedItems={selectedIds}
           onSelectedItemsChange={handleTableSelectionChange}
           loading={isLoading}
+          isRefreshing={isTableRefreshing}
           error={error}
           // Server-side pagination props
           currentPage={currentPage}
