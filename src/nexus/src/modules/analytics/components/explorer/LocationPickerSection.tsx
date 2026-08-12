@@ -218,7 +218,6 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
     () => [
       { key: 'name', label: 'Device', sortable: true },
       { key: 'site', label: 'Deployed site', sortable: true },
-      { key: 'status', label: 'Status', sortable: true },
       { key: 'lastData', label: 'Last data', sortable: true },
     ],
     []
