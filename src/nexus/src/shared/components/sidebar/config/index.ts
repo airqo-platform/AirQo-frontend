@@ -21,6 +21,7 @@ import {
   AqBookOpen01,
   AqImage01,
   AqShieldZap,
+  AqTrophy01,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -80,6 +81,18 @@ const userSidebarConfig: NavGroup[] = [
         label: 'My Favorites',
         href: '/user/favorites',
         icon: AqStar06,
+      },
+      {
+        id: 'air-quality-rankings',
+        label: 'Air Quality Rankings',
+        href: '/user/air-quality/rankings',
+        icon: AqTrophy01,
+      },
+      {
+        id: 'air-quality-analytics',
+        label: 'Air Quality Analytics',
+        href: '/user/air-quality/analytics',
+        icon: AqPresentationChart02,
       },
     ],
   },
@@ -145,6 +158,18 @@ const orgSidebarConfig: NavGroup[] = [
         label: 'Map',
         href: '/org/map',
         icon: AqGlobe05,
+      },
+      {
+        id: 'air-quality-rankings',
+        label: 'Air Quality Rankings',
+        href: '/org/air-quality/rankings',
+        icon: AqTrophy01,
+      },
+      {
+        id: 'air-quality-analytics',
+        label: 'Air Quality Analytics',
+        href: '/org/air-quality/analytics',
+        icon: AqPresentationChart02,
       },
     ],
   },
@@ -542,3 +567,4 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
   ],
 };
+

@@ -10,6 +10,11 @@ import type {
   UpdateOrganizationGroupThemeRequest,
   UpdateOrganizationGroupThemeResponse,
   GetUserPreferencesListResponse,
+  GroupChartListResponse,
+  GroupChartDetailResponse,
+  CreateGroupChartRequest,
+  UpdateGroupChartRequest,
+  GroupChartMutationResponse,
   ApiErrorResponse,
 } from '../types/api';
 import { syncClientSessionToken } from './sessionAuthToken';
@@ -263,6 +268,140 @@ export class PreferencesService {
         error,
         'Failed to update organization group theme'
       );
+    }
+  }
+
+  // ── Group chart configurations ────────────────────────────────────────────
+  // Contract verified live against staging (auth-service):
+  //   GET    /users/preferences/groups/:grpId/charts           → list documents
+  //   POST   /users/preferences/groups/:grpId/charts           → create (chartConfig wrapper)
+  //   GET    /users/preferences/groups/:grpId/charts/:chartId  → single (flat config + site_ids/device_ids)
+  //   PUT    /users/preferences/groups/:grpId/charts/:chartId  → partial update (FLAT body, no wrapper)
+  //   DELETE /users/preferences/groups/:grpId/charts/:chartId  → delete
+
+  // List all group chart configuration documents
+  async getGroupCharts(groupId: string): Promise<GroupChartListResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.get<
+        GroupChartListResponse | ApiErrorResponse
+      >(`/users/preferences/groups/${groupId}/charts`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to get group chart configurations',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as GroupChartListResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(
+        error,
+        'Failed to get group chart configurations'
+      );
+    }
+  }
+
+  // Get a single chart configuration with its site/device scope
+  async getGroupChart(
+    groupId: string,
+    chartId: string
+  ): Promise<GroupChartDetailResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.get<
+        GroupChartDetailResponse | ApiErrorResponse
+      >(`/users/preferences/groups/${groupId}/charts/${chartId}`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to get chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as GroupChartDetailResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to get chart configuration');
+    }
+  }
+
+  // Create a group chart configuration
+  async createGroupChart(
+    groupId: string,
+    request: CreateGroupChartRequest
+  ): Promise<GroupChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.post<
+        GroupChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/groups/${groupId}/charts`, request);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to create chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as GroupChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to create chart configuration');
+    }
+  }
+
+  // Update a group chart configuration (flat partial body — verified live)
+  async updateGroupChart(
+    groupId: string,
+    chartId: string,
+    request: UpdateGroupChartRequest
+  ): Promise<GroupChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.put<
+        GroupChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/groups/${groupId}/charts/${chartId}`, request);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to update chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as GroupChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to update chart configuration');
+    }
+  }
+
+  // Delete a group chart configuration
+  async deleteGroupChart(
+    groupId: string,
+    chartId: string
+  ): Promise<GroupChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.delete<
+        GroupChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/groups/${groupId}/charts/${chartId}`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to delete chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as GroupChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to delete chart configuration');
     }
   }
 }

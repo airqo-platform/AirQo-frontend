@@ -153,6 +153,18 @@ export interface ChartContainerProps {
   error?: string | null;
   showTitle?: boolean;
   showMoreButton?: boolean;
+  /**
+   * When provided, the More menu gains "Edit title & subtitle" and the header
+   * becomes inline-editable. The callback persists the change.
+   */
+  onEditTitle?: (title: string, subtitle?: string) => Promise<void> | void;
+  /** Custom actions rendered at the top of the More dropdown (e.g. edit/delete chart) */
+  menuItems?: React.ReactNode;
+  /**
+   * Footer hint rendered under the chart body (e.g. "Last update …"), used
+   * for trust signaling (IQAir/AirGradient pattern).
+   */
+  footerHint?: React.ReactNode;
 }
 
 // Dynamic chart props

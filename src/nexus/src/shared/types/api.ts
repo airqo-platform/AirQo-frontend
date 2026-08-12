@@ -2576,3 +2576,149 @@ export interface UpdateTokenBypassResponse {
     bypass_ip_blacklist?: boolean;
   };
 }
+
+// Air quality rankings types (device-registry /devices/readings/rankings)
+export type RankingsLevel = 'country' | 'city';
+export type RankingsSort = 'best' | 'worst';
+
+export interface RankingsParams {
+  level?: RankingsLevel;
+  sort?: RankingsSort;
+  limit?: number;
+}
+
+export interface RankingsHistoryParams {
+  level?: RankingsLevel;
+  start_year: number;
+  end_year: number;
+}
+
+// AQI category strings as returned by the rankings API (snake_case keys,
+// e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
+export type RankingsAqiCategory =
+  | 'good'
+  | 'moderate'
+  | 'u4sg'
+  | 'unhealthy'
+  | 'very_unhealthy'
+  | 'hazardous';
+
+export interface RankingEntry {
+  rank: number;
+  name: string;
+  level: RankingsLevel;
+  country_code: string | null;
+  avg_pm2_5: number | null;
+  aqi_index: number | null;
+  aqi_category: RankingsAqiCategory | null;
+  site_count: number;
+  generated_at: string;
+}
+
+export interface RankingsResponse {
+  success: boolean;
+  message: string;
+  data: RankingEntry[];
+}
+
+export interface RankingYearValue {
+  year: number;
+  avg_pm2_5: number | null;
+  aqi_category: RankingsAqiCategory | null;
+  site_count: number;
+}
+
+export interface RankingHistoryEntry {
+  name: string;
+  level: RankingsLevel;
+  country_code: string | null;
+  values: RankingYearValue[];
+}
+
+export interface RankingsHistoryResponse {
+  success: boolean;
+  message: string;
+  data: RankingHistoryEntry[];
+}
+
+// Group chart configuration types (auth-service
+// /users/preferences/groups/:grp_id/charts). Contract verified live against
+// staging: documents store device_ids/site_ids plus a `chartConfigurations`
+// array; the create request wraps chart settings in a `chartConfig` object,
+// while updates are sent as flat partial fields.
+export interface GroupChartReferenceLine {
+  value: number;
+  label?: string;
+  color?: string;
+  style?: 'solid' | 'dashed' | 'dotted';
+}
+
+export interface GroupChartConfig {
+  _id?: string;
+  fieldId: number;
+  title: string;
+  chartType: string;
+  days?: number;
+  results?: number;
+  showLegend?: boolean;
+  showGrid?: boolean;
+  showTooltip?: boolean;
+  color?: string;
+  backgroundColor?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  referenceLines?: GroupChartReferenceLine[];
+  comparisonPeriod?: {
+    enabled?: boolean;
+    type?: string;
+  };
+  /** Scope merged in by the list hook from the parent document */
+  site_ids?: string[];
+  device_ids?: string[];
+}
+
+export interface GroupChartDocument {
+  _id: string;
+  group_id: string;
+  device_ids: string[];
+  site_ids: string[];
+  chartConfigurations: GroupChartConfig[];
+  created_by?: string;
+  updated_by?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GroupChartListResponse {
+  success: boolean;
+  message: string;
+  data: GroupChartDocument[];
+}
+
+export interface GroupChartDetailResponse {
+  success: boolean;
+  message: string;
+  data: GroupChartConfig & {
+    device_ids: string[];
+    site_ids: string[];
+  };
+}
+
+export interface CreateGroupChartRequest {
+  tenant?: string;
+  device_ids?: string[];
+  site_ids?: string[];
+  chartConfig: GroupChartConfig;
+}
+
+export interface UpdateGroupChartRequest
+  extends Partial<GroupChartConfig> {
+  device_ids?: string[];
+  site_ids?: string[];
+}
+
+export interface GroupChartMutationResponse {
+  success: boolean;
+  message: string;
+  data?: GroupChartConfig;
+}

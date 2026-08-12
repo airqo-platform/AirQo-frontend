@@ -8,6 +8,9 @@ import {
   AqAtom02,
   AqFileShield02,
   AqBarChartSquareUp,
+  AqEdit02,
+  AqCheck,
+  AqXClose,
 } from '@airqo/icons-react';
 
 import {
@@ -25,6 +28,8 @@ import {
   CardTitle,
   CardContent,
 } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -63,6 +68,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   error = null,
   showTitle = true,
   showMoreButton = true,
+  onEditTitle,
+  menuItems,
+  footerHint,
 }) => {
   const posthog = usePostHog();
   const [isExporting, setIsExporting] = useState(false);
@@ -74,6 +82,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(title);
+  const [draftSubtitle, setDraftSubtitle] = useState(subtitle ?? '');
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
   const { exportRef, exportChart } = useChartExport();
 
   // Close dropdown when loading, refreshing, or error states occur
@@ -82,6 +94,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       setIsDropdownOpen(false);
     }
   }, [loading, isRefreshing, error]);
+
+  // Keep edit drafts in sync with the controlled title/subtitle
+  React.useEffect(() => {
+    if (!isEditingTitle) {
+      setDraftTitle(title);
+      setDraftSubtitle(subtitle ?? '');
+    }
+  }, [isEditingTitle, subtitle, title]);
 
   const handleExport = async (format: 'pdf' | 'png') => {
     if (!exportOptions.filename) return;
@@ -127,6 +147,35 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
     }
   };
 
+  const handleStartEditTitle = () => {
+    setDraftTitle(title);
+    setDraftSubtitle(subtitle ?? '');
+    setIsDropdownOpen(false);
+    setIsEditingTitle(true);
+  };
+
+  const handleSaveTitle = async () => {
+    if (!onEditTitle || isSavingTitle) return;
+
+    const nextTitle = draftTitle.trim();
+    if (!nextTitle) {
+      toast.error('Chart title cannot be empty');
+      return;
+    }
+
+    setIsSavingTitle(true);
+    try {
+      await onEditTitle(nextTitle, draftSubtitle.trim());
+      setIsEditingTitle(false);
+      toast.success('Chart title updated');
+    } catch (error) {
+      console.error('Failed to update chart title:', error);
+      toast.error('Failed to update chart title');
+    } finally {
+      setIsSavingTitle(false);
+    }
+  };
+
   const handleAirQualityStandards = () => {
     posthog?.capture('air_quality_standards_clicked', {
       chart_title: title,
@@ -169,15 +218,63 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   return (
     <Card className={cn('w-full', className)}>
       {(showTitle || showMoreButton) && (
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          {showTitle && (
-            <div className="space-y-1">
-              <CardTitle className="text-lg text-foreground">{title}</CardTitle>
-              {subtitle && (
-                <p className="text-sm text-muted-foreground">{subtitle}</p>
-              )}
-            </div>
-          )}
+        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 gap-3">
+          {showTitle &&
+            (isEditingTitle ? (
+              /* Inline title/subtitle editor */
+              <div className="flex-1 min-w-0 space-y-2">
+                <Input
+                  label="Title"
+                  aria-label="Chart title"
+                  value={draftTitle}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setDraftTitle(event.target.value)
+                  }
+                  maxLength={80}
+                />
+                <Input
+                  label="Subtitle"
+                  aria-label="Chart subtitle"
+                  value={draftSubtitle}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setDraftSubtitle(event.target.value)
+                  }
+                  maxLength={120}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="filled"
+                    size="sm"
+                    Icon={AqCheck}
+                    onClick={() => void handleSaveTitle()}
+                    loading={isSavingTitle}
+                    disabled={isSavingTitle}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    Icon={AqXClose}
+                    onClick={() => setIsEditingTitle(false)}
+                    disabled={isSavingTitle}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="min-w-0 space-y-1 flex-1">
+                <CardTitle className="text-lg text-foreground truncate">
+                  {title}
+                </CardTitle>
+                {subtitle && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+            ))}
 
           {/* More dropdown menu */}
           {showMoreButton && (
@@ -201,7 +298,34 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-56">
-                <div className="py-1">
+                <div
+                  className="py-1"
+                  onClickCapture={() => {
+                    // Close the menu AFTER the clicked item's own onClick has
+                    // run. Closing synchronously here unmounts the item before
+                    // its handler fires, silently swallowing Edit/Delete/etc.
+                    setTimeout(() => setIsDropdownOpen(false), 0);
+                  }}
+                >
+                  {/* Custom actions (edit/delete chart, etc.) */}
+                  {menuItems && (
+                    <>
+                      {menuItems}
+                      <div className="border-t border-border my-1" />
+                    </>
+                  )}
+
+                  {/* Edit title & subtitle */}
+                  {onEditTitle && (
+                    <button
+                      onClick={handleStartEditTitle}
+                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      <AqEdit02 className="h-4 w-4 mr-2" />
+                      Edit title &amp; subtitle
+                    </button>
+                  )}
+
                   {/* Refresh Data */}
                   {onRefresh && (
                     <button
@@ -409,6 +533,11 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             </div>
           )}
         </div>
+
+        {/* Footer hint (e.g. last update time) */}
+        {footerHint && (
+          <div className="px-1 pt-1 pb-0.5">{footerHint}</div>
+        )}
       </CardContent>
 
       {/* Standards Dialog */}

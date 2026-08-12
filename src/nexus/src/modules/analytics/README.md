@@ -244,6 +244,48 @@ The module uses Tailwind CSS classes and is fully responsive. All components sup
 - Historical data comparison
 - Weather data integration
 
+## Air Quality Rankings (`/user/air-quality/rankings`, `/org/[org_slug]/air-quality/rankings`)
+
+The African AQI leaderboard, powered by the device-registry rankings endpoints
+(`GET /devices/readings/rankings` and `GET /devices/readings/rankings/history`).
+
+- **Live rankings** — country or city leaderboard, worst/cleanest first, with
+  configurable entry count. Each row shows rank, flag, average PM2.5, derived
+  AQI index, a color-coded category badge (colored from the live AQI ranges
+  config) and how many sites contributed. Locations only appear once they have
+  a reading from the last 3 days.
+- **Historical comparison** — year-by-year average PM2.5 per location
+  (entities as rows, years as columns, capped at a 5-year span). Years with
+  no usable data come back as `null` from the API and render as a grayed-out
+  dash — never as clean air.
+
+Data flows through `rankingsService` (token-authenticated via the
+`/api/external` proxy — these endpoints reject user JWTs) and the
+`useRankings` / `useRankingsHistory` react-query hooks.
+
+## Air Quality Analytics (`/user/air-quality/analytics`, `/org/[org_slug]/air-quality/analytics`)
+
+A chart explorer for a group's monitoring locations:
+
+- **Chart builder** — add as many charts as needed, each with its own
+  locations, pollutant, frequency, custom date range and series color,
+  persisted to the group's chart configurations
+  (`/users/preferences/groups/:grp_id/charts`). Titles and subtitles are
+  editable inline from the chart header; every chart exports as PDF/PNG and
+  shows its own collapsible forecast via the air-quality map's `useForecast`
+  service (`WeeklyForecastCard`).
+- **Location picker** — multi-select from the group's cached Sites or Devices
+  (`/devices/cohorts/cached-sites`, `/devices/cohorts/cached-devices`) with
+  server-side search and pagination. Devices resolve to the site they are
+  deployed at, since chart data is site-scoped. Display names are always
+  shown — raw ids never surface.
+- **View modes** — grid, full-width, or an unlimited location-comparison
+  table (latest PM2.5/PM10 per site, sortable, threshold-colored, with the
+  shared AQI legend shown once at page level).
+- **AQI legend** — the segmented AQI scale is rendered once per page from the
+  live `/devices/aqi-ranges` config (the single source of truth) instead of
+  being repeated on every chart.
+
 ## Dependencies
 
 - React 18+

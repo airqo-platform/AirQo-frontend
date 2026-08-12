@@ -42,6 +42,10 @@ export interface AnalyticsCardProps {
   selectedPollutant?: PollutantType;
   aqiConfig?: AqiConfig | null;
   onClick?: (site: SiteData) => void;
+  /** Show the trend badge (defaults to true) */
+  showTrend?: boolean;
+  /** Make the card clickable (role/button/cursor, defaults to true) */
+  interactive?: boolean;
 }
 
 // Favorite locations props interface

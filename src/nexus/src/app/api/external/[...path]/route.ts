@@ -17,9 +17,11 @@ const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 //   deviceService: /devices/sites/summary, /devices/grids/summary,
 //                  /devices/grids/countries, /devices/readings/map,
 //                  /predict/daily-forecasting, /predict/hourly-forecasting
+//   rankingsService: /devices/readings/rankings (and .../rankings/history)
 //   userService: /users/preferences/replace
 const ALLOWED_PATH_PREFIXES = [
   'devices/readings/recent',
+  'devices/readings/rankings',
   'devices/sites/summary',
   'devices/grids/summary',
   'devices/grids/countries',
@@ -63,8 +65,7 @@ const buildTargetUrl = (baseUrl: string, normalizedPath: string): string => {
 
 function hasPathTraversal(segments: string[]): boolean {
   return segments.some(
-    segment =>
-      segment === '..' || segment.toLowerCase() === '%2e%2e'
+    segment => segment === '..' || segment.toLowerCase() === '%2e%2e'
   );
 }
 
@@ -72,10 +73,7 @@ function isPathAllowed(normalizedPath: string): boolean {
   const lowerPath = normalizedPath.replace(/\/+$/, '').toLowerCase();
   return ALLOWED_PATH_PREFIXES.some(prefix => {
     const lowerPrefix = prefix.replace(/\/+$/, '').toLowerCase();
-    return (
-      lowerPath === lowerPrefix ||
-      lowerPath.startsWith(`${lowerPrefix}/`)
-    );
+    return lowerPath === lowerPrefix || lowerPath.startsWith(`${lowerPrefix}/`);
   });
 }
 
@@ -117,7 +115,9 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
         {
           status: 429,
           headers: {
-            'Retry-After': Math.ceil(rateLimitResult.retryAfterMs / 1000).toString(),
+            'Retry-After': Math.ceil(
+              rateLimitResult.retryAfterMs / 1000
+            ).toString(),
           },
         }
       );
@@ -133,7 +133,11 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
     }
 
     // 4. Restrict HTTP methods
-    if (!ALLOWED_METHODS.includes(request.method as (typeof ALLOWED_METHODS)[number])) {
+    if (
+      !ALLOWED_METHODS.includes(
+        request.method as (typeof ALLOWED_METHODS)[number]
+      )
+    ) {
       return NextResponse.json(
         { error: 'Method not allowed' },
         { status: 405 }
@@ -149,10 +153,7 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]) {
         path: normalizedPath,
         userId: session?.user?._id,
       });
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const targetUrl = new URL(buildTargetUrl(baseUrl, normalizedPath));

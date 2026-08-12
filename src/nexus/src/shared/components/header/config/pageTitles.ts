@@ -7,6 +7,8 @@ export const PAGE_TITLES: Record<string, string> = {
   '/user/favorites': 'Favorites',
   '/user/data-export': 'Visualization & Data Export',
   '/user/data-visualizer': 'Upload & Visualize Air Quality Data',
+  '/user/air-quality/rankings': 'Air Quality Rankings',
+  '/user/air-quality/analytics': 'Air Quality Analytics',
 
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
@@ -17,6 +19,8 @@ export const PAGE_TITLES: Record<string, string> = {
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',
   '/org/settings': 'Settings',
+  '/org/air-quality/rankings': 'Air Quality Rankings',
+  '/org/air-quality/analytics': 'Air Quality Analytics',
 
   '/request-organization': 'Organization',
 
@@ -44,6 +48,11 @@ export const PAGE_TITLES: Record<string, string> = {
 
 // Function to get page title from pathname
 export const getPageTitle = (pathname: string): string => {
+  // Exact matches take precedence over the dynamic route splitting below
+  if (PAGE_TITLES[pathname]) {
+    return PAGE_TITLES[pathname];
+  }
+
   // Handle dynamic org routes
   if (pathname.startsWith('/org/')) {
     const parts = pathname.split('/');

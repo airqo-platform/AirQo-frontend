@@ -2,6 +2,22 @@
 export { AnalyticsCard } from './components/AnalyticsCard';
 export { QuickAccessCard } from './components/QuickAccessCard';
 export { AnalyticsDashboard } from './components/AnalyticsDashboard';
+export { AirQualityRankingsPage } from './components/AirQualityRankingsPage';
+export { AnalyticsExplorerPage } from './components/AnalyticsExplorerPage';
+
+// Rankings feature components
+export { AqiCategoryBadge } from './components/rankings/AqiCategoryBadge';
+export { RankingsLeaderboard } from './components/rankings/RankingsLeaderboard';
+export { RankingsSummaryCards } from './components/rankings/RankingsSummaryCards';
+export { RankingsHistoryTable } from './components/rankings/RankingsHistoryTable';
+export { RankingsHistoryChart } from './components/rankings/RankingsHistoryChart';
+
+// Analytics explorer components
+export { ChartConfigDialog } from './components/explorer/ChartConfigDialog';
+export { LocationPickerSection } from './components/explorer/LocationPickerSection';
+export { AnalyticsChartTile } from './components/explorer/AnalyticsChartTile';
+export { ComparisonTable } from './components/explorer/ComparisonTable';
+export { AqiLegend } from './components/explorer/AqiLegend';
 
 // Hooks
 export {
@@ -10,6 +26,16 @@ export {
   useAnalyticsSiteCards,
   useDataDownload,
 } from './hooks';
+export { useRankings } from './hooks/useRankings';
+export { useRankingsHistory } from './hooks/useRankingsHistory';
+export {
+  useSitesForSelection,
+  useDevicesForSelection,
+} from './hooks/useCohortSelection';
+export {
+  useComparisonReadings,
+  extractReadingNames,
+} from './hooks/useComparisonReadings';
 
 // Types
 export type {
@@ -21,15 +47,6 @@ export type {
   ChartData,
   AnalyticsPreferences,
 } from './types';
-
-// Constants
-export {
-  AIR_QUALITY_THRESHOLDS,
-  FREQUENCY_OPTIONS,
-  POLLUTANT_OPTIONS,
-  CHART_COLOR_PALETTE,
-  DEFAULT_CHART_CONFIG,
-} from './constants';
 
 // Utilities
 export {
