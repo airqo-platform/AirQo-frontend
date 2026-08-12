@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { rankingsService } from '@/shared/services/rankingsService';
+import { sortRankingEntries } from '../utils/rankings';
 import type {
   RankingsParams,
   RankingsResponse,
@@ -71,7 +72,7 @@ export function useRankings(
   });
 
   return {
-    rankings: query.data ?? [],
+    rankings: sortRankingEntries(query.data ?? [], params.sort ?? 'worst'),
     isLoading: query.isLoading,
     isRefreshing: query.isFetching,
     error: query.error ? (query.error.message ?? null) : null,

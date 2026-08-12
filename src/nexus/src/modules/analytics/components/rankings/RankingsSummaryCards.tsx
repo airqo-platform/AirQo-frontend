@@ -130,10 +130,7 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl" role="img" aria-label="Ranked locations">
-                  📊
-                </span>
-                <div className="text-xs text-gray-600">Last 3 days</div>
+                <span className="text-xs text-gray-600">Last 3 days</span>
               </div>
               <div className="text-3xl font-bold">{rankings.length}</div>
             </div>

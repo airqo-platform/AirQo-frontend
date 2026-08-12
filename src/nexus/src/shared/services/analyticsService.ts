@@ -15,7 +15,7 @@ import type {
   DataDownloadResponse,
 } from '../types/api';
 
-const RECENT_READINGS_BATCH_SIZE = 2;
+const RECENT_READINGS_BATCH_SIZE = 10;
 
 type RecentReadingsPayload =
   | RecentReadingsResponse
@@ -166,6 +166,19 @@ export class AnalyticsService {
       )
       .map(response => response.value);
 
+    const failedBatches = responses.reduce<
+      { batchIndex: number; siteIds: string[]; error: unknown }[]
+    >((acc, response, idx) => {
+      if (response.status === 'rejected' && !isAbortError(response.reason)) {
+        acc.push({
+          batchIndex: idx,
+          siteIds: siteIdBatches[idx] ?? [],
+          error: response.reason,
+        });
+      }
+      return acc;
+    }, []);
+
     if (successfulResponses.length === 0) {
       const failedResponse = responses.find(
         (response): response is PromiseRejectedResult =>
@@ -174,6 +187,15 @@ export class AnalyticsService {
 
       throw (
         failedResponse?.reason || new Error('Failed to fetch recent readings')
+      );
+    }
+
+    // Warn about partial failures but still return successful data
+    if (failedBatches.length > 0) {
+      const failedSiteIds = failedBatches.flatMap(b => b.siteIds).join(', ');
+      console.warn(
+        `Partial forecast data: some readings failed to load (sites: ${failedSiteIds}). ` +
+          `${successfulResponses.length}/${responses.length} batches succeeded.`
       );
     }
 

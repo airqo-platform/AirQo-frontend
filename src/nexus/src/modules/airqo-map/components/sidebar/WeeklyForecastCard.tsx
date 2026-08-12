@@ -18,6 +18,8 @@ import {
 
 interface WeeklyForecastCardProps {
   siteId?: string;
+  /** When true, renders content without Card wrapper for inline embedding */
+  compact?: boolean;
 }
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -351,6 +353,7 @@ const HourlyPill: React.FC<{
 // ── Main component ───────────────────────────────────────────────────────────
 export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   siteId,
+  compact = false,
 }) => {
   const [mode, setMode] = React.useState<ForecastMode>('daily');
   const { config: pm25AqiConfig } = useAqiConfig('pm2_5');
@@ -364,81 +367,94 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   const activeItems = mode === 'daily' ? dailyItems : hourlyItems;
   const showEmpty = !isLoading && !error && activeItems.length === 0;
 
-  return (
-    <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
-      <CardContent className="p-4 space-y-3">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Air Quality Forecast
-          </h3>
+  const content = (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          Air Quality Forecast
+        </h3>
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+          PM₂.₅
+        </span>
+      </div>
+
+      {/* Mode tabs */}
+      <ModeTabs active={mode} onChange={setMode} />
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-6">
+          <LoadingSpinner size={20} />
+          <span className="ml-2 text-sm text-gray-500">
+            Loading forecast...
+          </span>
         </div>
+      )}
 
-        {/* Mode tabs */}
-        <ModeTabs active={mode} onChange={setMode} />
+      {/* Error */}
+      {!isLoading && error && (
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
+          <p className="text-sm text-gray-500">
+            Unable to load forecast data
+          </p>
+        </div>
+      )}
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-6">
-            <LoadingSpinner size={20} />
-            <span className="ml-2 text-sm text-gray-500">
-              Loading forecast...
-            </span>
+      {/* Empty — mode-aware */}
+      {showEmpty && (
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
+          <p className="text-sm text-gray-500">No forecast data available</p>
+        </div>
+      )}
+
+      {/* Daily view */}
+      {!isLoading && !error && mode === 'daily' && dailyItems.length > 0 && (
+        <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
+          <div className="flex gap-2 min-w-max py-1">
+            {dailyItems.slice(0, 7).map((item, idx) => (
+              <DailyPill
+                key={item.date}
+                item={item}
+                isToday={idx === 0}
+                aqiConfig={pm25AqiConfig}
+              />
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Error */}
-        {!isLoading && error && (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
-            <p className="text-sm text-gray-500">
-              Unable to load forecast data
-            </p>
-          </div>
-        )}
-
-        {/* Empty — mode-aware */}
-        {showEmpty && (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
-            <p className="text-sm text-gray-500">No forecast data available</p>
-          </div>
-        )}
-
-        {/* Daily view */}
-        {!isLoading && !error && mode === 'daily' && dailyItems.length > 0 && (
+      {/* Hourly view */}
+      {!isLoading &&
+        !error &&
+        mode === 'hourly' &&
+        hourlyItems.length > 0 && (
           <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
-            <div className="flex gap-2 min-w-max py-1">
-              {dailyItems.slice(0, 7).map((item, idx) => (
-                <DailyPill
-                  key={item.date}
+            <div className="flex gap-1.5 min-w-max py-1">
+              {hourlyItems.slice(0, 24).map((item, idx) => (
+                <HourlyPill
+                  key={item.timestamp}
                   item={item}
-                  isToday={idx === 0}
+                  isFirst={idx === 0}
                   aqiConfig={pm25AqiConfig}
                 />
               ))}
             </div>
           </div>
         )}
+    </>
+  );
 
-        {/* Hourly view */}
-        {!isLoading &&
-          !error &&
-          mode === 'hourly' &&
-          hourlyItems.length > 0 && (
-            <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
-              <div className="flex gap-1.5 min-w-max py-1">
-                {hourlyItems.slice(0, 24).map((item, idx) => (
-                  <HourlyPill
-                    key={item.timestamp}
-                    item={item}
-                    isFirst={idx === 0}
-                    aqiConfig={pm25AqiConfig}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+  if (compact) {
+    return <div className="space-y-3">{content}</div>;
+  }
+
+  return (
+    <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
+      <CardContent className="p-4 space-y-3">
+        {content}
       </CardContent>
     </Card>
   );

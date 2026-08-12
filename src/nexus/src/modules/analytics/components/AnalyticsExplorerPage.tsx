@@ -107,6 +107,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     null
   );
   const [siteNames, setSiteNames] = useState<Map<string, string>>(new Map());
+  const [openForecastId, setOpenForecastId] = useState<string | null>(null);
 
   const normalizedOrganizationSlug = useMemo(
     () => (organizationSlug || '').trim().toLowerCase(),
@@ -177,6 +178,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, []);
 
+  const handleForecastToggle = useCallback((chartId: string) => {
+    setOpenForecastId(prev => (prev === chartId ? null : chartId));
+  }, []);
+
   const allSiteIds = useMemo(
     () => Array.from(new Set(charts.flatMap(chart => chart.siteIds))),
     [charts]
@@ -227,7 +232,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const persistDraft = useCallback(
     async (draft: ExplorerChartDraft, namesSnapshot: Record<string, string>) => {
       if (draft.id) {
-        // Update: flat partial body (verified live â€” the chartConfig
+        // Update: flat partial body (verified live -- the chartConfig
         // wrapper is silently ignored by PUT). Round-trip the persisted
         // fieldId so edits don't reset the chart's slot to 1.
         const nextSidecar = {
@@ -414,7 +419,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const renderChartTiles = (fullWidth: boolean) => (
     <div
       className={cn(
-        'grid grid-cols-1 gap-4',
+        'grid grid-cols-1 gap-4 items-start',
         fullWidth ? 'lg:grid-cols-1' : 'lg:grid-cols-2'
       )}
     >
@@ -423,6 +428,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           key={draft.id}
           draft={draft}
           aqiConfig={aqiConfig}
+          forecastOpen={openForecastId === draft.id}
+          onForecastToggle={() => handleForecastToggle(draft.id)}
           onEdit={handleOpenEdit}
           onRequestDelete={handleRequestDelete}
           onConfirmDelete={handleConfirmDelete}
@@ -567,6 +574,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                       key={draft.id}
                       draft={draft}
                       aqiConfig={aqiConfig}
+                      forecastOpen={openForecastId === draft.id}
+                      onForecastToggle={() => handleForecastToggle(draft.id)}
                       onEdit={handleOpenEdit}
                       onRequestDelete={handleRequestDelete}
                       onConfirmDelete={handleConfirmDelete}

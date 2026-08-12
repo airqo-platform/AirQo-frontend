@@ -349,6 +349,18 @@ html {
   }
 }
 
+.route-loader {
+  opacity: 0;
+  animation: nexus-route-fade-in 0.25s ease 0.15s both, l13 1s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loader {
+    opacity: 1;
+    animation: l13 1s infinite linear;
+  }
+}
+
 /* ==========================================================================
    SCROLLBARS
    ========================================================================== */

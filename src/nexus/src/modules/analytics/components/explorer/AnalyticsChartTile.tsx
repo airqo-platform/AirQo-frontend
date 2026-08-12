@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
@@ -17,6 +17,10 @@ interface AnalyticsChartTileProps {
   draft: ExplorerChartDraft;
   aqiConfig?: AqiConfig | null;
   enabled?: boolean;
+  /** Whether the forecast section is open (controlled by parent for accordion) */
+  forecastOpen?: boolean;
+  /** Callback to toggle the forecast section open/closed */
+  onForecastToggle?: () => void;
   onEdit: (draft: ExplorerChartDraft) => void;
   /** Arms the inline delete confirmation on the tile */
   onRequestDelete: (draft: ExplorerChartDraft) => void;
@@ -40,6 +44,8 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
   draft,
   aqiConfig,
   enabled = true,
+  forecastOpen = false,
+  onForecastToggle,
   onEdit,
   onRequestDelete,
   onConfirmDelete,
@@ -48,8 +54,6 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
   deleteConfirming = false,
   className,
 }) => {
-  const [forecastOpen, setForecastOpen] = useState(false);
-
   const filters = useMemo(
     () => ({
       frequency: draft.frequency,
@@ -173,10 +177,10 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
 
       {/* Collapsible forecast for this chart's first site */}
       {firstSiteId && (
-        <div className="border-t border-border bg-muted/40">
+        <div className="border-t border-border bg-gradient-to-b from-muted/20 to-muted/40">
           <button
             type="button"
-            onClick={() => setForecastOpen(prev => !prev)}
+            onClick={onForecastToggle}
             className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/60 transition-colors"
             aria-expanded={forecastOpen}
           >
@@ -184,7 +188,10 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
               <span role="img" aria-label="Forecast">
                 🌤
               </span>
-              Forecast
+              <span>Forecast</span>
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                PM₂.₅ only
+              </span>
             </span>
             <AqChevronDown
               className={cn(
@@ -196,12 +203,12 @@ export const AnalyticsChartTile: React.FC<AnalyticsChartTileProps> = ({
           <div
             className={cn(
               'overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out motion-reduce:transition-none',
-              forecastOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+              forecastOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
             )}
             aria-hidden={!forecastOpen}
           >
             <div className="px-3 pb-3">
-              <WeeklyForecastCard siteId={firstSiteId} />
+              <WeeklyForecastCard siteId={firstSiteId} compact />
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -24,6 +24,12 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Curve,
+  Customized,
+  useIsTooltipActive,
+  useActiveTooltipCoordinate,
+  useActiveTooltipDataPoints,
+  useYAxisScale,
 } from 'recharts';
 import type { LegendPayload } from 'recharts';
 import {
@@ -94,6 +100,63 @@ const GRAYED_OPACITY = 0.55;
 /** "Skeleton" gray applied to non-focused series when one is focused */
 const GRAYED_SERIES_COLOR = 'rgb(var(--muted-foreground))';
 
+interface HoverFocusControllerProps {
+  seriesKeys: string[];
+  onFocus: (key: string) => void;
+}
+
+/**
+ * Proximity-based series focus (ECharts `emphasis.focus: 'series'` pattern).
+ * Rendered inside the chart via recharts' public hooks: whenever the tooltip
+ * is active (cursor anywhere over the plot — recharts snaps to the nearest
+ * X index), each series' value at that index is mapped to a pixel Y and the
+ * series closest to the cursor is focused. This makes hovering a LINE focus
+ * it even when the pointer isn't exactly on the 2px path — the whole line
+ * becomes the hover target. Only reports a NEW key (no repeated state sets).
+ */
+const HoverFocusController: React.FC<HoverFocusControllerProps> = ({
+  seriesKeys,
+  onFocus,
+}) => {
+  const isActive = useIsTooltipActive();
+  const coordinate = useActiveTooltipCoordinate();
+  const dataPoints = useActiveTooltipDataPoints();
+  const yScale = useYAxisScale();
+  const lastReportedRef = useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (!isActive || !coordinate || !yScale || !dataPoints || dataPoints.length === 0) {
+      return;
+    }
+    const row = dataPoints[0] as Record<string, unknown>;
+    let best: string | null = null;
+    let bestDistance = Infinity;
+
+    seriesKeys.forEach(key => {
+      const value = row[key];
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return;
+      }
+      const y = yScale(value);
+      if (typeof y !== 'number' || !Number.isFinite(y)) {
+        return;
+      }
+      const distance = Math.abs(y - coordinate.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = key;
+      }
+    });
+
+    if (best && best !== lastReportedRef.current) {
+      lastReportedRef.current = best;
+      onFocus(best);
+    }
+  }, [isActive, coordinate, dataPoints, seriesKeys, yScale, onFocus]);
+
+  return null;
+};
+
 export const DynamicChart: React.FC<DynamicChartProps> = ({
   data,
   config = {},
@@ -123,7 +186,44 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     setActiveIndex(index);
   }, []);
 
+  // Series focus is debounced on blur: clearing on every leave makes the
+  // chart flicker while the pointer travels across the line, its dots and
+  // the tooltip box. A short grace window keeps the focus stable and only
+  // releases it once the pointer is truly off the series.
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const focusSeries = useCallback((key: string) => {
+    if (focusTimerRef.current) {
+      clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = null;
+    }
+    setActiveKey(key);
+  }, []);
+
+  const scheduleSeriesBlur = useCallback(() => {
+    if (focusTimerRef.current) {
+      clearTimeout(focusTimerRef.current);
+    }
+    focusTimerRef.current = setTimeout(() => {
+      focusTimerRef.current = null;
+      setActiveKey(null);
+    }, 120);
+  }, []);
+
+  React.useEffect(
+    () => () => {
+      if (focusTimerRef.current) {
+        clearTimeout(focusTimerRef.current);
+      }
+    },
+    []
+  );
+
   const clearHover = useCallback(() => {
+    if (focusTimerRef.current) {
+      clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = null;
+    }
     setActiveIndex(null);
     setActiveKey(null);
   }, []);
@@ -344,7 +444,6 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // Render legend
   const renderLegend = () => {
     if (!chartConfig.showLegend || seriesKeys.length <= 1) return null;
-
     return (
       <Legend
         align="right"
@@ -403,20 +502,43 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           strokeWidth={2}
           className="cursor-pointer"
           style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }}
-          onMouseEnter={() => setActiveKey(dotKey)}
-          onMouseLeave={() => setActiveKey(null)}
+          onMouseEnter={() => focusSeries(dotKey)}
+          onMouseLeave={scheduleSeriesBlur}
         />
       );
     },
-    [activeKey]
+    [activeKey, focusSeries, scheduleSeriesBlur]
+  );
+
+  // Custom line shape: renders a fat transparent hit path UNDER the visible
+  // curve. Recharts attaches the Line's mouse events to the rendered curve,
+  // so the wide invisible stroke makes the WHOLE line hoverable — hovering
+  // anywhere along the line focuses that series (best-practice hit area,
+  // same idea as ECharts' emphasis hit zones).
+  const renderLineShape = useCallback(
+    // Recharts' Line `shape` receives its full curve props (points, stroke,
+    // events...) — typed loosely to match ActiveShape's own contract.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (shapeProps: Record<string, any>) => (
+      <g>
+        <Curve
+          {...shapeProps}
+          stroke="transparent"
+          strokeWidth={14}
+          strokeLinecap="round"
+        />
+        <Curve {...shapeProps} />
+      </g>
+    ),
+    []
   );
 
   // Render series for line/area charts. The best-practice "emphasis focus"
-  // pattern (ECharts `focus: 'series'`, Nivo highlight): hovering anywhere on
-  // the chart reveals per-point dots; moving onto a LINE (its dots) focuses
-  // that series — it stays vivid and slightly thicker while every other
-  // series is grayed out in a skeleton tone. The tooltip then concentrates
-  // on the focused series and you can walk along its points for details.
+  // pattern (ECharts `focus: 'series'`, Nivo highlight): hovering ON A LINE
+  // focuses that series — it stays vivid and slightly thicker while every
+  // other series is grayed out in a skeleton tone. The tooltip then
+  // concentrates on the focused series and you can walk along its points
+  // for details.
   const renderLineSeries = (Component: typeof Line | typeof Area) => {
     return seriesKeys.map((key, index) => {
       const isHidden = hiddenSeries.has(key);
@@ -442,10 +564,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           ? (config.fillOpacity || 0.1) * strokeOpacity
           : undefined;
 
-      // Resting dots double as per-series hover targets: an invisible fat
-      // hit circle makes the whole line hoverable (recharts has no per-line
-      // mouse events, so the dots are the hit area — same trick ECharts uses
-      // with emphasis symbols).
+      // Resting dots appear while the chart is hovered and mark the points
+      // along the line; their invisible fat circles add extra hover targets
+      // near the line and cover single-point series (no curve is drawn).
       const renderSeriesDot = (dotProps: {
         dataKey?: unknown;
         cx?: number;
@@ -464,8 +585,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               r={16}
               fill="transparent"
               className="cursor-pointer"
-              onMouseEnter={() => setActiveKey(key)}
-              onMouseLeave={() => setActiveKey(null)}
+              onMouseEnter={() => focusSeries(key)}
+              onMouseLeave={scheduleSeriesBlur}
             />
             <circle
               cx={dotProps.cx}
@@ -492,6 +613,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           activeDot={renderActiveDot}
           connectNulls={false}
           hide={isHidden}
+          onMouseEnter={() => focusSeries(key)}
+          onMouseLeave={scheduleSeriesBlur}
+          {...(Component === Line ? { shape: renderLineShape } : {})}
         />
       );
     });
@@ -513,12 +637,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           fill={color}
           hide={isHidden}
           onMouseEnter={(_data: unknown, itemIndex: number) => {
-            setActiveKey(key);
+            focusSeries(key);
             setActiveIndex(itemIndex);
           }}
-          onMouseLeave={() => {
-            setActiveKey(null);
-          }}
+          onMouseLeave={scheduleSeriesBlur}
         >
           {chartData.map((_, cellIndex) => {
             const focused = activeKey === key && activeIndex === cellIndex;
@@ -545,6 +667,18 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     });
   };
 
+  // Proximity focus — makes the WHOLE line the hover target (see
+  // HoverFocusController). Line/area charts get it; bars already have
+  // precise per-bar hover targets.
+  const renderHoverFocusController = () =>
+    chartType === 'line' || chartType === 'area' ? (
+      <Customized
+        component={
+          <HoverFocusController seriesKeys={seriesKeys} onFocus={focusSeries} />
+        }
+      />
+    ) : null;
+
   // Render chart based on type
   const renderChart = () => {
     switch (chartType) {
@@ -558,6 +692,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {renderLineSeries(Line)}
             {renderReferenceLines()}
+            {renderHoverFocusController()}
           </LineChart>
         );
 
@@ -571,6 +706,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {renderLineSeries(Area)}
             {renderReferenceLines()}
+            {renderHoverFocusController()}
           </AreaChart>
         );
 
