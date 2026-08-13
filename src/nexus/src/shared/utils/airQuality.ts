@@ -730,3 +730,128 @@ export const POLLUTANT_LABELS = {
 export const getPollutantLabel = (pollutant: PollutantType): string => {
   return POLLUTANT_LABELS[pollutant] || pollutant.toUpperCase();
 };
+
+// ========================================
+// US EPA AQI CATEGORIES (24-HOUR)
+// ========================================
+
+/**
+ * Canonical US EPA AQI categories for 24-hour averaging — the authoritative
+ * breakpoint boundaries for each pollutant, including the AQI index range of
+ * every category. These are fixed public EPA values; they are NOT derived
+ * from the deployed aqi-ranges configuration (which may follow a different
+ * reference standard such as WHO).
+ */
+export interface EpaAqiCategory {
+  key: AqiRangeKey;
+  label: string;
+  /** Concentration band in μg/m³ (null max = open-ended) */
+  concMin: number;
+  concMax: number | null;
+  /** US EPA AQI index band (null max = open-ended) */
+  aqiMin: number;
+  aqiMax: number | null;
+}
+
+export const EPA_AQI_CATEGORIES: Record<'pm2_5' | 'pm10', EpaAqiCategory[]> = {
+  pm2_5: [
+    {
+      key: 'good',
+      label: 'Good',
+      concMin: 0,
+      concMax: 9.0,
+      aqiMin: 0,
+      aqiMax: 50,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      concMin: 9.1,
+      concMax: 35.4,
+      aqiMin: 51,
+      aqiMax: 100,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      concMin: 35.5,
+      concMax: 55.4,
+      aqiMin: 101,
+      aqiMax: 150,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      concMin: 55.5,
+      concMax: 125.4,
+      aqiMin: 151,
+      aqiMax: 200,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      concMin: 125.5,
+      concMax: 225.4,
+      aqiMin: 201,
+      aqiMax: 300,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      concMin: 225.5,
+      concMax: null,
+      aqiMin: 301,
+      aqiMax: null,
+    },
+  ],
+  pm10: [
+    {
+      key: 'good',
+      label: 'Good',
+      concMin: 0,
+      concMax: 54,
+      aqiMin: 0,
+      aqiMax: 50,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      concMin: 55,
+      concMax: 154,
+      aqiMin: 51,
+      aqiMax: 100,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      concMin: 155,
+      concMax: 254,
+      aqiMin: 101,
+      aqiMax: 150,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      concMin: 255,
+      concMax: 354,
+      aqiMin: 151,
+      aqiMax: 200,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      concMin: 355,
+      concMax: 424,
+      aqiMin: 201,
+      aqiMax: 300,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      concMin: 425,
+      concMax: null,
+      aqiMin: 301,
+      aqiMax: null,
+    },
+  ],
+};

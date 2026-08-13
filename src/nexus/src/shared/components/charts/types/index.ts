@@ -183,6 +183,50 @@ export interface DynamicChartProps {
   standards?: StandardsType;
   id?: string;
   onReferenceLinesToggle?: (show: boolean) => void;
+  /**
+   * Controlled hidden series keys. When provided, the internal legend-click
+   * state is overridden and clicks report through `onHiddenSeriesChange`.
+   */
+  hiddenSeries?: string[];
+  /** Called when the legend toggles a series while `hiddenSeries` is controlled */
+  onHiddenSeriesChange?: (hidden: string[]) => void;
+  /**
+   * Controlled series emphasis — while set, only this series stays vivid and
+   * the rest are dimmed (drives the location legend hover-highlight).
+   */
+  focusedSeries?: string | null;
+  /** Series keys rendered with a dashed stroke + connected nulls (forecast) */
+  dashedSeries?: string[];
+  /** Extra reference lines (e.g. the forecast "Now" boundary) */
+  additionalReferenceLines?: AdditionalReferenceLine[];
+  /** Prefer the 24-hour guideline over the annual one for the standards line */
+  referenceLinePeriod?: '24hr' | 'annual';
+  /**
+   * Display-label overrides keyed by series key (e.g. device names for
+   * device-selected charts). Applied to the legend and the tooltip.
+   */
+  seriesLabels?: Record<string, string>;
+  /**
+   * Display-label overrides keyed by site_id (the picker's names) — used by
+   * the tooltip's "Location:" line so it matches what the user selected.
+   */
+  locationLabels?: Record<string, string>;
+  /**
+   * Friendly device names keyed by site_id — surfaces on the tooltip's
+   * "Device:" line instead of the raw device id.
+   */
+  deviceNames?: Record<string, string>;
+}
+
+/** A generic reference line drawn on top of the chart (x or y anchored). */
+export interface AdditionalReferenceLine {
+  x?: number | string;
+  y?: number | string;
+  /** Short label rendered in a chip on the line (e.g. "Now") */
+  label?: string;
+  stroke?: string;
+  strokeDasharray?: string;
+  strokeWidth?: number;
 }
 
 // Air quality standards

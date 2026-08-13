@@ -356,13 +356,38 @@ export const useAnalyticsPreferences = (
 };
 
 // Hook for fetching and managing chart data
+export interface ChartDataFilters {
+  frequency: string;
+  startDate: string;
+  endDate: string;
+  pollutant: string;
+}
+
+/**
+ * The React Query key for a chart-data request. Exported so consumers can
+ * read cached chart data without re-fetching (e.g. saved-chart sparklines).
+ */
+export const buildChartDataQueryKey = (
+  userId: string | undefined,
+  activeGroupId: string | undefined,
+  chartType: 'line' | 'bar',
+  selectedSiteIds: string[],
+  filters: ChartDataFilters
+): unknown[] => [
+  'analytics',
+  'chart-data',
+  userId ?? 'anonymous',
+  activeGroupId ?? 'no-active-group',
+  chartType,
+  selectedSiteIds.join(','),
+  filters.startDate,
+  filters.endDate,
+  filters.frequency,
+  filters.pollutant,
+];
+
 export const useAnalyticsChartData = (
-  filters: {
-    frequency: string;
-    startDate: string;
-    endDate: string;
-    pollutant: string;
-  },
+  filters: ChartDataFilters,
   chartType: 'line' | 'bar' = 'line',
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
@@ -377,35 +402,31 @@ export const useAnalyticsChartData = (
     };
   }, [filters.startDate, filters.endDate]);
 
-  const selectedSiteIdsKey = useMemo(
-    () => selectedSiteIds.join(','),
-    [selectedSiteIds]
-  );
-  const activeGroupKey = activeGroup?.id ?? 'no-active-group';
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
   const chartQueryKey = useMemo(
-    () => [
-      'analytics',
-      'chart-data',
-      user?.id ?? 'anonymous',
-      activeGroupKey,
-      chartType,
-      selectedSiteIdsKey,
-      dateRange.startDate,
-      dateRange.endDate,
-      filters.frequency,
-      filters.pollutant,
-    ],
+    () =>
+      buildChartDataQueryKey(
+        user?.id,
+        activeGroup?.id,
+        chartType,
+        selectedSiteIds,
+        {
+          frequency: filters.frequency,
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          pollutant: filters.pollutant,
+        }
+      ),
     [
       chartType,
-      dateRange.endDate,
-      dateRange.startDate,
-      user?.id,
-      activeGroupKey,
+      filters.endDate,
+      filters.startDate,
       filters.frequency,
       filters.pollutant,
-      selectedSiteIdsKey,
+      selectedSiteIds,
+      user?.id,
+      activeGroup?.id,
     ]
   );
   const currentRequestKey = useMemo(

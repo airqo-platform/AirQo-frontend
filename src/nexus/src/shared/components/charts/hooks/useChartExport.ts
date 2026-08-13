@@ -88,6 +88,17 @@ const applyCloneStyles = (clonedDoc: Document) => {
     });
   });
 
+  // Export-root text (title/subtitle/metadata) renders on a white document
+  // background — pin it to dark so dark-mode themes don't produce
+  // invisible or washed-out headings in the exported image.
+  clonedDoc
+    .querySelectorAll('[data-export-root] h1, [data-export-root] h2, [data-export-root] h3, [data-export-root] p')
+    .forEach(element => {
+      applyStyles(element, {
+        color: '#111827',
+      });
+    });
+
   clonedDoc.querySelectorAll('.recharts-wrapper').forEach(element => {
     applyStyles(element, {
       margin: '0 auto',
@@ -170,23 +181,40 @@ export const useChartExport = () => {
       const element = getExportElement();
       const { default: html2canvas } = await import('html2canvas');
 
+      // Full-size exports: measure the live element and pin the cloned
+      // export root to the same pixel size so fluid containers render at
+      // their real dimensions in the detached clone.
+      const measuredWidth = options.width ?? element.offsetWidth;
+      const measuredHeight = options.height ?? element.offsetHeight;
+
       return html2canvas(element, {
         backgroundColor: '#ffffff',
         scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
-        width: options.width,
-        height: options.height,
+        width: measuredWidth,
+        height: measuredHeight,
         ignoreElements: element => {
           const htmlElement = element as HTMLElement;
           return (
             element.classList.contains('hidden') ||
+            element.hasAttribute('data-export-ignore') ||
             htmlElement.style?.display === 'none' ||
             htmlElement.style?.visibility === 'hidden'
           );
         },
-        onclone: applyCloneStyles,
+        onclone: (clonedDoc: Document) => {
+          applyCloneStyles(clonedDoc);
+          const exportRoot = clonedDoc.querySelector<HTMLElement>(
+            '[data-export-root]'
+          );
+          if (exportRoot) {
+            exportRoot.style.width = `${measuredWidth}px`;
+            exportRoot.style.height = `${measuredHeight}px`;
+            exportRoot.style.overflow = 'hidden';
+          }
+        },
       });
     },
     [getExportElement]

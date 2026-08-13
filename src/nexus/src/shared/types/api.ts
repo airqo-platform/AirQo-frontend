@@ -2641,11 +2641,12 @@ export interface RankingsHistoryResponse {
   data: RankingHistoryEntry[];
 }
 
-// Group chart configuration types (auth-service
-// /users/preferences/groups/:grp_id/charts). Contract verified live against
-// staging: documents store device_ids/site_ids plus a `chartConfigurations`
-// array; the create request wraps chart settings in a `chartConfig` object,
-// while updates are sent as flat partial fields.
+// User chart configuration types (auth-service
+// /users/preferences/charts). Contract verified live against staging: charts
+// are user-scoped flat documents carrying device_ids/site_ids, a chartConfig
+// (fieldId/title/subTitle/chartType/locationColors) and display settings in
+// one object; create wraps settings in a `chartConfig` object, updates are
+// sent as flat partial fields, and /:chartId/copy duplicates a chart.
 export interface GroupChartReferenceLine {
   value: number;
   label?: string;
@@ -2653,10 +2654,18 @@ export interface GroupChartReferenceLine {
   style?: 'solid' | 'dashed' | 'dotted';
 }
 
-export interface GroupChartConfig {
+/** Per-location series color — `id` is a site_id or device_id. */
+export interface ChartLocationColor {
+  id: string;
+  color: string;
+}
+
+export interface UserChartConfig {
   _id?: string;
   fieldId: number;
   title: string;
+  /** Display subtitle (persisted server-side since the v2 charts API) */
+  subTitle?: string;
   chartType: string;
   days?: number;
   results?: number;
@@ -2672,53 +2681,62 @@ export interface GroupChartConfig {
     enabled?: boolean;
     type?: string;
   };
-  /** Scope merged in by the list hook from the parent document */
+  locationColors?: ChartLocationColor[];
+  /** Scope — stored alongside the config on the same document */
   site_ids?: string[];
   device_ids?: string[];
 }
 
-export interface GroupChartDocument {
-  _id: string;
-  group_id: string;
-  device_ids: string[];
-  site_ids: string[];
-  chartConfigurations: GroupChartConfig[];
-  created_by?: string;
-  updated_by?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface GroupChartListResponse {
+export interface ChartListResponse {
   success: boolean;
   message: string;
-  data: GroupChartDocument[];
+  data: UserChartConfig[];
 }
 
-export interface GroupChartDetailResponse {
+export interface ChartDetailResponse {
   success: boolean;
   message: string;
-  data: GroupChartConfig & {
-    device_ids: string[];
-    site_ids: string[];
-  };
+  data: UserChartConfig;
 }
 
-export interface CreateGroupChartRequest {
+export interface CreateChartRequest {
+  group_id?: string;
   tenant?: string;
   device_ids?: string[];
   site_ids?: string[];
-  chartConfig: GroupChartConfig;
+  chartConfig: {
+    fieldId: number;
+    title: string;
+    subTitle?: string;
+    chartType: string;
+    days?: number;
+    color?: string;
+    locationColors?: ChartLocationColor[];
+    showLegend?: boolean;
+    showGrid?: boolean;
+    showTooltip?: boolean;
+    referenceLines?: GroupChartReferenceLine[];
+  };
 }
 
-export interface UpdateGroupChartRequest
-  extends Partial<GroupChartConfig> {
+/** Partial update — fields go top-level (no chartConfig wrapper) */
+export interface UpdateChartRequest {
+  title?: string;
+  subTitle?: string;
+  chartType?: string;
+  days?: number;
+  color?: string;
+  locationColors?: ChartLocationColor[];
+  showLegend?: boolean;
+  showGrid?: boolean;
+  showTooltip?: boolean;
+  referenceLines?: GroupChartReferenceLine[];
   device_ids?: string[];
   site_ids?: string[];
 }
 
-export interface GroupChartMutationResponse {
+export interface ChartMutationResponse {
   success: boolean;
   message: string;
-  data?: GroupChartConfig;
+  data?: UserChartConfig;
 }

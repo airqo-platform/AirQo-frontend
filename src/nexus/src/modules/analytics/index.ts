@@ -15,7 +15,11 @@ export { RankingsHistoryChart } from './components/rankings/RankingsHistoryChart
 // Analytics explorer components
 export { ChartConfigDialog } from './components/explorer/ChartConfigDialog';
 export { LocationPickerSection } from './components/explorer/LocationPickerSection';
-export { AnalyticsChartTile } from './components/explorer/AnalyticsChartTile';
+export { AnalyticsChartCard } from './components/explorer/AnalyticsChartCard';
+export { ChartsOverviewView } from './components/explorer/ChartsOverviewView';
+export { AirQualityReferenceLegend } from './components/explorer/AirQualityReferenceLegend';
+export { ForecastSummaryCard } from './components/explorer/ForecastSummaryCard';
+export { SavedChartsCard } from './components/explorer/SavedChartsCard';
 export { ComparisonTable } from './components/explorer/ComparisonTable';
 export { AqiLegend } from './components/explorer/AqiLegend';
 

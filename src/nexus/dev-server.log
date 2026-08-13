@@ -1,0 +1,213 @@
+yarn run v1.22.22
+$ next dev -p 3210
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3210
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 17.6s
+ ○ Compiling /user/login ...
+ ✓ Compiled /user/login in 20s (3619 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 22916ms
+ ✓ Compiled in 3.1s (1594 modules)
+ GET /user/login 200 in 79ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4.7s (2224 modules)
+ GET /api/auth/session 200 in 9646ms
+ GET /api/auth/session 200 in 71ms
+ GET /api/auth/session 200 in 121ms
+ GET /api/auth/providers 200 in 76ms
+ GET /api/auth/csrf 200 in 17ms
+ POST /api/auth/callback/credentials 200 in 2045ms
+ GET /api/auth/session 200 in 47ms
+ ○ Compiling /user/home ...
+ ✓ Compiled /user/home in 22.4s (5418 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/home 200 in 26589ms
+ GET /api/auth/session 200 in 140ms
+ GET /api/auth/session 200 in 28ms
+ GET /api/auth/session 200 in 27ms
+ ○ Compiling /user/air-quality/analytics ...
+ ✓ Compiled /user/air-quality/analytics in 6.4s (5500 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/analytics 200 in 7176ms
+ GET /api/auth/session 200 in 95ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/auth/session 200 in 20ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 1175ms (3118 modules)
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 4474ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4551ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 7361ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 539ms
+ GET /api/auth/session 200 in 50ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 26ms
+ GET /api/auth/session 200 in 27ms
+ GET /user/home 200 in 403ms
+ GET /api/auth/session 200 in 90ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 29ms
+ GET /user/air-quality/analytics 200 in 174ms
+ GET /api/auth/session 200 in 65ms
+ GET /api/auth/session 200 in 19ms
+ GET /api/auth/session 200 in 23ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 4167ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4172ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 5037ms
+ GET /api/external/predict/daily-forecasting?site_id=6942788509357b00130aef98 200 in 413ms
+ GET /api/external/predict/daily-forecasting?site_id=6a05b8eb0c37890013723774 200 in 481ms
+ GET /api/external/predict/daily-forecasting?site_id=69427772fe657a0013b450a8 200 in 563ms
+ GET /api/external/predict/daily-forecasting?site_id=694275794973ef0013d1ff8c 404 in 671ms
+ GET /api/external/predict/daily-forecasting?site_id=6942741309357b00130aeeeb 200 in 404ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e3d2fe657a0013b429cc 200 in 352ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e13b4973ef0013d1d959 200 in 247ms
+ GET /api/external/predict/daily-forecasting?site_id=6942765f4973ef0013d1ffc1 200 in 1512ms
+ GET /api/external/predict/daily-forecasting?site_id=694274dffe657a0013b45058 200 in 1506ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e1e909357b00130ac7d4 200 in 1039ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e04409357b00130ac786 200 in 783ms
+ GET /api/external/predict/daily-forecasting?site_id=6941df7509357b00130ac75f 200 in 864ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3321ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 4399ms
+ GET /user/login 200 in 103ms
+ GET /api/auth/session 200 in 68ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 29ms
+ GET /user/home 200 in 64ms
+ GET /api/auth/session 200 in 49ms
+ GET /api/auth/session 200 in 33ms
+ GET /api/auth/session 200 in 36ms
+ GET /user/air-quality/analytics 200 in 59ms
+ GET /api/auth/session 200 in 71ms
+ GET /api/auth/session 200 in 23ms
+ GET /api/auth/session 200 in 36ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 583ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 705ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3159ms
+ ✓ Compiled in 2.9s (5539 modules)
+ ✓ Compiled in 1845ms (5315 modules)
+ ✓ Compiled in 2.6s (5315 modules)
+ ✓ Compiled in 1581ms (5315 modules)
+ ✓ Compiled in 6.1s (5315 modules)
+ ✓ Compiled in 2.1s (5315 modules)
+ ✓ Compiled in 1739ms (5315 modules)
+ ✓ Compiled in 1233ms (5315 modules)
+ ✓ Compiled in 1793ms (5315 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 1319ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4s (3093 modules)
+ GET /api/auth/session 200 in 7194ms
+ GET /api/auth/session 200 in 21ms
+ GET /api/auth/session 200 in 21ms
+ GET /api/auth/session 200 in 30ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/home 200 in 1264ms
+ GET /api/auth/session 200 in 48ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 22ms
+ GET /user/air-quality/analytics 200 in 119ms
+ GET /api/auth/session 200 in 46ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 23ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 1201ms (3118 modules)
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4018ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 4026ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 7119ms
+ GET /api/external/predict/daily-forecasting?site_id=6a05b8eb0c37890013723774 200 in 308ms
+ GET /api/external/predict/daily-forecasting?site_id=6942741309357b00130aeeeb 200 in 246ms
+ GET /api/external/predict/daily-forecasting?site_id=694275794973ef0013d1ff8c 404 in 784ms
+ GET /api/external/predict/daily-forecasting?site_id=6942765f4973ef0013d1ffc1 200 in 858ms
+ GET /api/external/predict/daily-forecasting?site_id=694274dffe657a0013b45058 200 in 872ms
+ GET /api/external/predict/daily-forecasting?site_id=6942788509357b00130aef98 200 in 883ms
+ GET /api/external/predict/daily-forecasting?site_id=69427772fe657a0013b450a8 200 in 926ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e3d2fe657a0013b429cc 200 in 466ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e1e909357b00130ac7d4 200 in 390ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e13b4973ef0013d1d959 200 in 357ms
+ GET /api/external/predict/daily-forecasting?site_id=6941df7509357b00130ac75f 200 in 399ms
+ GET /api/external/predict/daily-forecasting?site_id=6941e04409357b00130ac786 200 in 408ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 2987ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 4475ms
+ ✓ Compiled in 6.8s (5535 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 1343ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 858ms (3093 modules)
+ GET /api/auth/session 200 in 3421ms
+ GET /api/auth/session 200 in 22ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/auth/session 200 in 31ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/home 200 in 1033ms
+ GET /api/auth/session 200 in 49ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/auth/session 200 in 28ms
+ GET /user/air-quality/analytics 200 in 173ms
+ GET /api/auth/session 200 in 49ms
+ GET /api/auth/session 200 in 22ms
+ GET /api/auth/session 200 in 26ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 730ms (3118 modules)
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4900ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 4978ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 7364ms
+ ✓ Compiled in 3.7s (5539 modules)
+ ✓ Compiled in 4.2s (5315 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 1326ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 923ms (3093 modules)
+ GET /api/auth/session 200 in 3352ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 34ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/home 200 in 1087ms
+ GET /api/auth/session 200 in 50ms
+ GET /api/auth/session 200 in 28ms
+ GET /api/auth/session 200 in 23ms
+ GET /user/air-quality/analytics 200 in 160ms
+ GET /api/auth/session 200 in 48ms
+ GET /api/auth/session 200 in 20ms
+ GET /api/auth/session 200 in 20ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 767ms (3118 modules)
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 4780ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4854ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 7932ms
+ ✓ Compiled in 1347ms (5539 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/login 200 in 1259ms
+ GET /api/auth/session 200 in 135ms
+ GET /api/auth/session 200 in 21ms
+ GET /api/auth/session 200 in 18ms
+ GET /api/auth/session 200 in 18ms
+ GET /user/home 200 in 438ms
+ GET /api/auth/session 200 in 80ms
+ GET /api/auth/session 200 in 32ms
+ GET /api/auth/session 200 in 58ms
+ GET /user/air-quality/analytics 200 in 225ms
+ GET /api/auth/session 200 in 56ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 1299ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,69ef10e570239d001489848b,69e09ffd4029d1001394d407,6a757c19c5a5da00133ab3d7,6a74347cc5a5da001339fc19,6a6b3e6104bdef0013c3eaac 200 in 1299ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3172ms
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3210
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3s
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3210
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.2s

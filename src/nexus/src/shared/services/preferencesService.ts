@@ -10,11 +10,11 @@ import type {
   UpdateOrganizationGroupThemeRequest,
   UpdateOrganizationGroupThemeResponse,
   GetUserPreferencesListResponse,
-  GroupChartListResponse,
-  GroupChartDetailResponse,
-  CreateGroupChartRequest,
-  UpdateGroupChartRequest,
-  GroupChartMutationResponse,
+  ChartListResponse,
+  ChartDetailResponse,
+  CreateChartRequest,
+  UpdateChartRequest,
+  ChartMutationResponse,
   ApiErrorResponse,
 } from '../types/api';
 import { syncClientSessionToken } from './sessionAuthToken';
@@ -271,49 +271,50 @@ export class PreferencesService {
     }
   }
 
-  // ── Group chart configurations ────────────────────────────────────────────
-  // Contract verified live against staging (auth-service):
-  //   GET    /users/preferences/groups/:grpId/charts           → list documents
-  //   POST   /users/preferences/groups/:grpId/charts           → create (chartConfig wrapper)
-  //   GET    /users/preferences/groups/:grpId/charts/:chartId  → single (flat config + site_ids/device_ids)
-  //   PUT    /users/preferences/groups/:grpId/charts/:chartId  → partial update (FLAT body, no wrapper)
-  //   DELETE /users/preferences/groups/:grpId/charts/:chartId  → delete
+  // ── User chart configurations ──────────────────────────────────────────────
+  // Contract verified live against staging (auth-service v2):
+  //   GET    /users/preferences/charts[?group_id=]      → list flat chart docs
+  //   GET    /users/preferences/charts/:chartId         → single flat chart doc
+  //   POST   /users/preferences/charts                  → create (chartConfig wrapper)
+  //   PUT    /users/preferences/charts/:chartId         → partial update (FLAT body)
+  //   POST   /users/preferences/charts/:chartId/copy    → duplicate (title "(Copy)")
+  //   DELETE /users/preferences/charts/:chartId         → delete
+  // Charts are user-scoped; `group_id` narrows to a group and defaults to the
+  // user's default group when omitted.
 
-  // List all group chart configuration documents
-  async getGroupCharts(groupId: string): Promise<GroupChartListResponse> {
+  // List the user's chart configurations
+  async getCharts(groupId?: string): Promise<ChartListResponse> {
     await this.ensureAuthenticated();
     try {
+      const query = groupId ? `?group_id=${encodeURIComponent(groupId)}` : '';
       const response = await this.authenticatedClient.get<
-        GroupChartListResponse | ApiErrorResponse
-      >(`/users/preferences/groups/${groupId}/charts`);
+        ChartListResponse | ApiErrorResponse
+      >(`/users/preferences/charts${query}`);
       const data = response.data;
 
       if ('success' in data && !data.success) {
         throw this.createEnhancedError(
-          data.message || 'Failed to get group chart configurations',
+          data.message || 'Failed to get chart configurations',
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
 
-      return data as GroupChartListResponse;
+      return data as ChartListResponse;
     } catch (error: unknown) {
       throw this.handleApiError(
         error,
-        'Failed to get group chart configurations'
+        'Failed to get chart configurations'
       );
     }
   }
 
   // Get a single chart configuration with its site/device scope
-  async getGroupChart(
-    groupId: string,
-    chartId: string
-  ): Promise<GroupChartDetailResponse> {
+  async getChart(chartId: string): Promise<ChartDetailResponse> {
     await this.ensureAuthenticated();
     try {
       const response = await this.authenticatedClient.get<
-        GroupChartDetailResponse | ApiErrorResponse
-      >(`/users/preferences/groups/${groupId}/charts/${chartId}`);
+        ChartDetailResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`);
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -323,22 +324,19 @@ export class PreferencesService {
         );
       }
 
-      return data as GroupChartDetailResponse;
+      return data as ChartDetailResponse;
     } catch (error: unknown) {
       throw this.handleApiError(error, 'Failed to get chart configuration');
     }
   }
 
-  // Create a group chart configuration
-  async createGroupChart(
-    groupId: string,
-    request: CreateGroupChartRequest
-  ): Promise<GroupChartMutationResponse> {
+  // Create a chart configuration
+  async createChart(request: CreateChartRequest): Promise<ChartMutationResponse> {
     await this.ensureAuthenticated();
     try {
       const response = await this.authenticatedClient.post<
-        GroupChartMutationResponse | ApiErrorResponse
-      >(`/users/preferences/groups/${groupId}/charts`, request);
+        ChartMutationResponse | ApiErrorResponse
+      >('/users/preferences/charts', request);
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -348,23 +346,22 @@ export class PreferencesService {
         );
       }
 
-      return data as GroupChartMutationResponse;
+      return data as ChartMutationResponse;
     } catch (error: unknown) {
       throw this.handleApiError(error, 'Failed to create chart configuration');
     }
   }
 
-  // Update a group chart configuration (flat partial body — verified live)
-  async updateGroupChart(
-    groupId: string,
+  // Update a chart configuration (flat partial body — verified live)
+  async updateChart(
     chartId: string,
-    request: UpdateGroupChartRequest
-  ): Promise<GroupChartMutationResponse> {
+    request: UpdateChartRequest
+  ): Promise<ChartMutationResponse> {
     await this.ensureAuthenticated();
     try {
       const response = await this.authenticatedClient.put<
-        GroupChartMutationResponse | ApiErrorResponse
-      >(`/users/preferences/groups/${groupId}/charts/${chartId}`, request);
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`, request);
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -374,22 +371,41 @@ export class PreferencesService {
         );
       }
 
-      return data as GroupChartMutationResponse;
+      return data as ChartMutationResponse;
     } catch (error: unknown) {
       throw this.handleApiError(error, 'Failed to update chart configuration');
     }
   }
 
-  // Delete a group chart configuration
-  async deleteGroupChart(
-    groupId: string,
-    chartId: string
-  ): Promise<GroupChartMutationResponse> {
+  // Duplicate a chart configuration (includes device_ids/site_ids/locationColors)
+  async copyChart(chartId: string): Promise<ChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.post<
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}/copy`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to copy chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to copy chart configuration');
+    }
+  }
+
+  // Delete a chart configuration
+  async deleteChart(chartId: string): Promise<ChartMutationResponse> {
     await this.ensureAuthenticated();
     try {
       const response = await this.authenticatedClient.delete<
-        GroupChartMutationResponse | ApiErrorResponse
-      >(`/users/preferences/groups/${groupId}/charts/${chartId}`);
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`);
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -399,7 +415,7 @@ export class PreferencesService {
         );
       }
 
-      return data as GroupChartMutationResponse;
+      return data as ChartMutationResponse;
     } catch (error: unknown) {
       throw this.handleApiError(error, 'Failed to delete chart configuration');
     }

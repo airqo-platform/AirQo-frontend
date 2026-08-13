@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import SelectField from '@/shared/components/ui/select';
@@ -14,11 +14,13 @@ import {
   type ExplorerChartDraft,
   type ExplorerChartType,
 } from '../../utils/chartConfig';
-import type { PollutantType, FrequencyType } from '@/shared/components/charts/types';
+import type {
+  PollutantType,
+  FrequencyType,
+} from '@/shared/components/charts/types';
 
 const CHART_TYPE_OPTIONS: { value: ExplorerChartType; label: string }[] = [
   { value: 'Line', label: 'Line' },
-  { value: 'Area', label: 'Area' },
   { value: 'Bar', label: 'Bar' },
 ];
 
@@ -34,16 +36,6 @@ const FREQUENCY_OPTIONS: { value: FrequencyType; label: string }[] = [
   { value: 'monthly', label: 'Monthly' },
 ];
 
-const COLOR_PRESETS = [
-  '#145DFF',
-  '#10B981',
-  '#ECAA06',
-  '#8B5CF6',
-  '#0891B2',
-  '#EA580C',
-  '#DB2777',
-];
-
 interface ChartConfigDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,15 +45,19 @@ interface ChartConfigDialogProps {
   onSave: (draft: ExplorerChartDraft) => void;
   /** Forwarded from the location picker so the page can label chips/forecast */
   onSelectionNamesChange?: (names: Map<string, string>) => void;
+  /** Forwarded from the location picker: device names for device-resolved sites */
+  onDeviceNamesChange?: (namesBySite: Map<string, string>) => void;
+  /** Resolved site names from the page (used for the selected-items strip) */
+  siteNames?: Map<string, string>;
   isSaving?: boolean;
   saveError?: string | null;
 }
 
 /**
  * Create/edit a chart configuration: display fields (title, subtitle),
- * data shape (pollutant, frequency, chart type, custom date range), styling
- * (series color — default palette when unset — plus legend/grid/tooltip
- * toggles) and the locations the chart covers (sites/devices picker).
+ * per-location colors, data shape (pollutant, frequency, chart type, custom
+ * date range), legend/grid/tooltip toggles and the locations the chart
+ * covers (sites/devices picker).
  */
 export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   isOpen,
@@ -70,6 +66,8 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   draft = null,
   onSave,
   onSelectionNamesChange,
+  onDeviceNamesChange,
+  siteNames,
   isSaving = false,
   saveError = null,
 }) => {
@@ -83,14 +81,15 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   const [startDate, setStartDate] = useState(
     () => deriveRangeFromDays(7).startDate
   );
-  const [endDate, setEndDate] = useState(
-    () => deriveRangeFromDays(7).endDate
-  );
-  const [color, setColor] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState(() => deriveRangeFromDays(7).endDate);
+  const [locationColors, setLocationColors] = useState<
+    { id: string; color: string }[]
+  >([]);
   const [showLegend, setShowLegend] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [showTooltip, setShowTooltip] = useState(true);
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([]);
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
 
   // Seed the form when the dialog opens
   useEffect(() => {
@@ -106,12 +105,44 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
         : deriveRangeFromDays(7);
     setStartDate(range.startDate);
     setEndDate(range.endDate);
-    setColor(draft?.color ?? null);
+    setLocationColors(draft?.locationColors ?? []);
     setShowLegend(draft?.showLegend ?? true);
     setShowGrid(draft?.showGrid ?? true);
     setShowTooltip(draft?.showTooltip ?? true);
     setSelectedSiteIds(draft?.siteIds ?? []);
+    setSelectedDeviceIds(draft?.deviceIds ?? []);
   }, [isOpen, draft]);
+
+  // Colors are strictly opt-in: entries exist only for locations where the
+  // user explicitly picked a color in the picker table. Unset locations fall
+  // back to the app theme palette — nothing is auto-assigned. The previous
+  // array reference is kept when nothing changed (no re-render loops).
+  useEffect(() => {
+    setLocationColors(prev => {
+      const filtered = prev.filter(entry =>
+        selectedSiteIds.includes(entry.id)
+      );
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [selectedSiteIds]);
+
+  const handleSelectionNamesChange = useCallback(
+    (names: Map<string, string>) => {
+      onSelectionNamesChange?.(names);
+    },
+    [onSelectionNamesChange]
+  );
+
+  const setLocationColor = useCallback(
+    (siteId: string, nextColor: string | null) => {
+      setLocationColors(prev => {
+        const rest = prev.filter(entry => entry.id !== siteId);
+        if (!nextColor) return rest;
+        return [...rest, { id: siteId, color: nextColor }];
+      });
+    },
+    []
+  );
 
   const canSave = useMemo(
     () => title.trim().length > 0 && selectedSiteIds.length > 0,
@@ -126,12 +157,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   );
 
   const handleDateRangeChange = (
-    value:
-      | string
-      | Date
-      | DateRange
-      | { from: string; to: string }
-      | undefined
+    value: string | Date | DateRange | { from: string; to: string } | undefined
   ) => {
     if (!value) return;
     if (typeof value === 'object' && 'from' in value && 'to' in value) {
@@ -145,6 +171,11 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
 
   const handleSave = () => {
     if (!canSave || isSaving) return;
+    // Only explicitly-picked colors are persisted (the picker table's color
+    // column). Unset locations fall back to the app theme palette.
+    const savedLocationColors = locationColors.filter(entry =>
+      selectedSiteIds.includes(entry.id)
+    );
     onSave({
       id: draft?.id ?? '',
       fieldId: draft?.fieldId ?? 1,
@@ -156,8 +187,10 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       startDate,
       endDate,
       siteIds: selectedSiteIds,
-      deviceIds: draft?.deviceIds ?? [],
-      color,
+      deviceIds: selectedDeviceIds,
+      color: draft?.color ?? null,
+      locationColors: savedLocationColors,
+      referenceStandard: draft?.referenceStandard ?? 'WHO',
       showLegend,
       showGrid,
       showTooltip,
@@ -173,10 +206,10 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       subtitle={
         draft
           ? 'Update this chart - changes are saved to its configuration.'
-          : "Configure a new chart - it will be added to your saved charts."
+          : 'Configure a new chart - it will be added to your saved charts.'
       }
       icon={AqPresentationChart02}
-      size="2xl"
+      size="3xl"
       maxHeight="max-h-[70vh]"
       primaryAction={{
         label: isSaving ? 'Saving...' : draft ? 'Save changes' : 'Add chart',
@@ -280,74 +313,23 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
           />
         </div>
 
-        {/* Styling */}
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              Series color
-            </span>
-            <button
-              type="button"
-              onClick={() => setColor(null)}
-              aria-pressed={color === null}
-              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-              title="Use the chart component's default palette"
-            >
-              {color === null && (
-                <span className="h-2 w-2 rounded-full bg-primary" />
-              )}
-              Default
-            </button>
-            {COLOR_PRESETS.map(preset => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setColor(preset)}
-                aria-label={`Use color ${preset}`}
-                aria-pressed={color === preset}
-                className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
-                style={{
-                  backgroundColor: preset,
-                  borderColor:
-                    color === preset ? '#0f172a' : 'transparent',
-                }}
-              />
-            ))}
-            <label className="relative ml-1 flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border">
-              <span
-                className="h-4 w-4 rounded-full"
-                style={{
-                  background:
-                    'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
-                }}
-              />
-              <input
-                type="color"
-                value={color ?? '#145DFF'}
-                onChange={event => setColor(event.target.value)}
-                className="absolute inset-0 cursor-pointer opacity-0"
-                aria-label="Custom series color"
-              />
-            </label>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <Checkbox
-              checked={showLegend}
-              onCheckedChange={setShowLegend}
-              label="Show legend"
-            />
-            <Checkbox
-              checked={showGrid}
-              onCheckedChange={setShowGrid}
-              label="Show grid"
-            />
-            <Checkbox
-              checked={showTooltip}
-              onCheckedChange={setShowTooltip}
-              label="Show tooltips"
-            />
-          </div>
+        {/* Chart display toggles */}
+        <div className="flex flex-wrap gap-4">
+          <Checkbox
+            checked={showLegend}
+            onCheckedChange={setShowLegend}
+            label="Show legend"
+          />
+          <Checkbox
+            checked={showGrid}
+            onCheckedChange={setShowGrid}
+            label="Show grid"
+          />
+          <Checkbox
+            checked={showTooltip}
+            onCheckedChange={setShowTooltip}
+            label="Show tooltips"
+          />
         </div>
 
         {/* Locations */}
@@ -358,10 +340,16 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
           <LocationPickerSection
             groupId={groupId}
             selectedSiteIds={selectedSiteIds}
+            selectedDeviceIds={selectedDeviceIds}
             onSelectionChange={(siteIds, names) => {
               setSelectedSiteIds(siteIds);
-              onSelectionNamesChange?.(names);
+              handleSelectionNamesChange(names);
             }}
+            onDeviceSelectionChange={setSelectedDeviceIds}
+            locationColors={locationColors}
+            onLocationColorChange={setLocationColor}
+            namesBySite={siteNames}
+            onDeviceNamesChange={onDeviceNamesChange}
             maxSelection={50}
           />
         </div>

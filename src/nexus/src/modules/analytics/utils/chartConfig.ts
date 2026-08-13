@@ -1,10 +1,12 @@
 import type {
-  GroupChartConfig,
+  UserChartConfig,
   GroupChartReferenceLine,
+  ChartLocationColor,
 } from '@/shared/types/api';
 import type {
   FrequencyType,
   PollutantType,
+  StandardsType,
 } from '@/shared/components/charts/types';
 
 export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
@@ -15,7 +17,7 @@ export interface ExplorerChartDraft {
   /** ThingSpeak field slot (1–8) the backend requires — round-tripped */
   fieldId: number;
   title: string;
-  /** Display subtitle — kept client-side (see sidecar note below) */
+  /** Display subtitle — persisted server-side via `subTitle` (v2 API) */
   subtitle: string;
   chartType: ExplorerChartType;
   /** Pollutant — kept client-side (see sidecar note below) */
@@ -29,6 +31,10 @@ export interface ExplorerChartDraft {
   deviceIds: string[];
   /** Null = use the chart component's default palette */
   color: string | null;
+  /** Per-location series colors (id = site_id or device_id) */
+  locationColors: ChartLocationColor[];
+  /** Reference standard driving the guideline line and summary (WHO default) */
+  referenceStandard: StandardsType;
   showLegend: boolean;
   showGrid: boolean;
   showTooltip: boolean;
@@ -39,6 +45,8 @@ export interface ExplorerChartSidecar {
   subtitle: string;
   pollutant: PollutantType;
   frequency: FrequencyType;
+  /** Reference standard for the guideline line (WHO default) */
+  referenceStandard: StandardsType;
   /**
    * Null = chart component default palette. Absent (no stored entry) = legacy
    * draft that should fall back to the persisted color.
@@ -49,6 +57,11 @@ export interface ExplorerChartSidecar {
   endDate: string;
   /** Display names for the chart's sites (chips, forecast selector) */
   siteNames?: Record<string, string>;
+  /**
+   * Friendly device names for sites resolved from DEVICE selections
+   * (siteId → device name) — used to label chart series with device names.
+   */
+  deviceNames?: Record<string, string>;
 }
 
 /**
@@ -65,6 +78,7 @@ export const DEFAULT_CHART_SIDECAR: ExplorerChartSidecar = {
   subtitle: '',
   pollutant: 'pm2_5',
   frequency: 'daily',
+  referenceStandard: 'WHO',
   color: null,
   startDate: '',
   endDate: '',
@@ -110,6 +124,7 @@ export const readChartSidecar = (
       subtitle: '',
       pollutant: 'pm2_5',
       frequency: 'daily',
+      referenceStandard: 'WHO',
       startDate: '',
       endDate: '',
     };
@@ -144,6 +159,18 @@ const VALID_FREQUENCIES: ReadonlySet<string> = new Set([
   'weekly',
   'monthly',
 ]);
+const VALID_STANDARDS: ReadonlySet<string> = new Set([
+  'WHO',
+  'NEMA_UGANDA',
+  'NEMA_KENYA',
+]);
+
+export const normalizeStandard = (value?: string | null): StandardsType => {
+  const normalized = (value ?? 'WHO').toUpperCase();
+  return VALID_STANDARDS.has(normalized)
+    ? (normalized as StandardsType)
+    : 'WHO';
+};
 
 export const normalizePollutant = (value?: string | null): PollutantType => {
   const normalized = (value ?? '').toLowerCase().replace('.', '_');
@@ -152,9 +179,7 @@ export const normalizePollutant = (value?: string | null): PollutantType => {
     : 'pm2_5';
 };
 
-export const normalizeFrequency = (
-  value?: string | null
-): FrequencyType => {
+export const normalizeFrequency = (value?: string | null): FrequencyType => {
   const normalized = (value ?? '').toLowerCase();
   return VALID_FREQUENCIES.has(normalized)
     ? (normalized as FrequencyType)
@@ -226,17 +251,19 @@ export const formatChartRangeLabel = (
  * explorer works with.
  */
 export const persistedConfigToDraft = (
-  config: GroupChartConfig,
+  config: UserChartConfig,
   sidecar: ExplorerChartSidecar = {
     // Legacy default: no stored sidecar → persisted color/range apply.
     subtitle: '',
     pollutant: 'pm2_5',
     frequency: 'daily',
+    referenceStandard: 'WHO',
     startDate: '',
     endDate: '',
   }
 ): ExplorerChartDraft => {
-  const days = typeof config.days === 'number' && config.days > 0 ? config.days : 7;
+  const days =
+    typeof config.days === 'number' && config.days > 0 ? config.days : 7;
   const hasCustomRange = Boolean(sidecar.startDate && sidecar.endDate);
   const range = hasCustomRange
     ? { startDate: sidecar.startDate, endDate: sidecar.endDate }
@@ -249,7 +276,9 @@ export const persistedConfigToDraft = (
         ? config.fieldId
         : 1,
     title: config.title || 'Untitled chart',
-    subtitle: sidecar.subtitle,
+    // The v2 API persists subTitle server-side; the sidecar remains a
+    // fallback for charts created before that field was supported.
+    subtitle: config.subTitle ?? sidecar.subtitle,
     chartType: normalizeExplorerChartType(config.chartType),
     pollutant: normalizePollutant(sidecar.pollutant),
     frequency: normalizeFrequency(sidecar.frequency),
@@ -258,8 +287,11 @@ export const persistedConfigToDraft = (
     deviceIds: config.device_ids ?? [],
     // Explicit `null` (user picked the chart default) or an explicit color
     // wins; an absent sidecar falls back to the persisted color.
-    color:
-      sidecar.color === undefined ? (config.color ?? null) : sidecar.color,
+    color: sidecar.color === undefined ? (config.color ?? null) : sidecar.color,
+    locationColors: Array.isArray(config.locationColors)
+      ? config.locationColors
+      : [],
+    referenceStandard: normalizeStandard(sidecar.referenceStandard),
     showLegend: config.showLegend !== false,
     showGrid: config.showGrid !== false,
     showTooltip: config.showTooltip !== false,
@@ -270,22 +302,27 @@ export const persistedConfigToDraft = (
 };
 
 /**
- * Convert a draft into the persistable fields of the group-chart contract.
+ * Convert a draft into the persistable fields of the user-chart contract.
  * `fieldId` (1–8) is required by the backend; the caller assigns a stable
  * slot per chart. A null color is omitted so the backend keeps its default.
+ * `subTitle` and `locationColors` are persisted server-side on v2.
  */
 export const draftToPersistedConfig = (
   draft: ExplorerChartDraft,
   fieldId = 1
-): GroupChartConfig => ({
+): UserChartConfig => ({
   fieldId,
   title: draft.title.trim() || 'Untitled chart',
+  subTitle: draft.subtitle.trim() || undefined,
   chartType: draft.chartType,
   days: computeDaysFromRange(draft.startDate, draft.endDate),
   showLegend: draft.showLegend,
   showGrid: draft.showGrid,
   showTooltip: draft.showTooltip,
   ...(draft.color ? { color: draft.color } : {}),
+  ...(draft.locationColors.length > 0
+    ? { locationColors: draft.locationColors }
+    : {}),
   backgroundColor: '#ffffff',
   referenceLines: draft.referenceLines,
 });

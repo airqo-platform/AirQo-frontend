@@ -41,6 +41,7 @@ interface ComparisonRow {
   country: string;
   pm2_5: number | null;
   pm10: number | null;
+  dailyAvg: number | null;
   category: string | null;
   percentageDifference: number | null;
   time: string | null;
@@ -93,6 +94,19 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       ) {
         readingsBySite.set(reading.site_id, reading);
       }
+      // Also index by device_id so device-selected charts resolve correctly —
+      // the API receives device IDs as site_id params but returns the actual
+      // site_id in the response body, so the lookup must cover both keys.
+      if (reading.device_id) {
+        const existingDevice = readingsBySite.get(reading.device_id);
+        if (
+          !existingDevice ||
+          new Date(reading.time).getTime() >
+            new Date(existingDevice.time).getTime()
+        ) {
+          readingsBySite.set(reading.device_id, reading);
+        }
+      }
     });
 
     return siteIds.map(siteId => {
@@ -115,6 +129,10 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         country: reading?.siteDetails?.country ?? '',
         pm2_5: typeof pm25 === 'number' ? pm25 : null,
         pm10: typeof pm10 === 'number' ? pm10 : null,
+        dailyAvg:
+          typeof reading?.averages?.dailyAverage === 'number'
+            ? reading.averages.dailyAverage
+            : null,
         category: reading?.aqi_category ?? null,
         percentageDifference,
         time: reading?.time ?? null,
@@ -259,6 +277,14 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         ...rightAlign,
         render: (value: unknown) =>
           renderValue(typeof value === 'number' ? value : null, 'pm10'),
+      },
+      {
+        key: 'dailyAvg',
+        label: 'Daily Avg',
+        sortable: true,
+        ...rightAlign,
+        render: (value: unknown) =>
+          renderValue(typeof value === 'number' ? value : null, 'pm2_5'),
       },
       {
         key: 'category',

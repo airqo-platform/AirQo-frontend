@@ -1,9 +1,14 @@
 ﻿'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { cn } from '@/shared/lib/utils';
-import PageHeading from '@/shared/components/ui/page-heading';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
@@ -11,24 +16,32 @@ import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui/toast';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
-import { AqPlus } from '@airqo/icons-react';
+import { AqPlus, AqMaximize01, AqLayoutGrid01, AqTable } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
 import {
   useGroupCharts,
   useCreateGroupChart,
   useUpdateGroupChart,
   useDeleteGroupChart,
+  useCopyGroupChart,
 } from '@/shared/hooks/useGroupCharts';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import { AnalyticsChartTile } from './explorer/AnalyticsChartTile';
+import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
+import { AirQualityReferenceLegend } from './explorer/AirQualityReferenceLegend';
+import { ForecastSummaryCard } from './explorer/ForecastSummaryCard';
+import { SavedChartsCard } from './explorer/SavedChartsCard';
+import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
 import { ComparisonTable } from './explorer/ComparisonTable';
 import { ComparisonCards } from './explorer/ComparisonCards';
-import { AqiLegend } from './explorer/AqiLegend';
 import {
   useComparisonReadings,
   extractReadingNames,
 } from '../hooks/useComparisonReadings';
+import {
+  useSiteNamesFallback,
+  useMergeFallbackNames,
+} from '../hooks/useSiteNamesFallback';
 import {
   persistedConfigToDraft,
   draftToPersistedConfig,
@@ -47,13 +60,31 @@ interface AnalyticsExplorerPageProps {
   organizationSlug?: string;
 }
 
-type ViewMode = 'grid' | 'full' | 'table';
+type ViewMode = 'focused' | 'charts' | 'table';
 type CompareMode = 'table' | 'cards';
 
-const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
-  { value: 'grid', label: 'Grid view' },
-  { value: 'full', label: 'Full view' },
-  { value: 'table', label: 'Compare table' },
+const ACTIVE_CHART_STORAGE_KEY = 'nexus:analytics:active-chart';
+
+const VIEW_OPTIONS: {
+  value: ViewMode;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    value: 'focused',
+    label: 'Focused',
+    icon: <AqMaximize01 className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'charts',
+    label: 'Charts',
+    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'table',
+    label: 'Table',
+    icon: <AqTable className="h-3.5 w-3.5" />,
+  },
 ];
 
 const COMPARE_VIEW_OPTIONS: { value: CompareMode; label: string }[] = [
@@ -75,13 +106,20 @@ const isCancellationError = (error: unknown): boolean => {
   );
 };
 
+const readStoredActiveChartId = (): string | null => {
+  try {
+    return window.localStorage.getItem(ACTIVE_CHART_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
 /**
- * Air Quality Analytics - a dashboard of user-configurable charts persisted
- * to the group's chart configurations (auth-service). Each chart carries its
- * own title, pollutant, frequency, custom date range, style and locations.
- * The AQI scale is shown ONCE at page level (IQAir/WAQI pattern), forecasts
- * cover one selected location, and the view switcher offers grid, full-width
- * and an unlimited location-comparison table.
+ * Air Quality Analytics — a workspace built around ONE active chart. The
+ * selected chart is the primary focus; the reference legend, saved charts
+ * and forecast summary are supporting components around it. Chart CRUD is
+ * unchanged (group-chart configs + localStorage sidecars), and the compare
+ * table view still shows every selected location side by side.
  */
 export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   className,
@@ -91,11 +129,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('focused');
   const [compareMode, setCompareMode] = useState<CompareMode>('table');
   const [tablePollutant, setTablePollutant] = useState<PollutantType>('pm2_5');
   const { config: tableAqiConfig } = useAqiConfig(tablePollutant);
-  const { config: aqiConfig } = useAqiConfig('pm2_5');
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDraft, setEditingDraft] = useState<ExplorerChartDraft | null>(
@@ -107,7 +144,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     null
   );
   const [siteNames, setSiteNames] = useState<Map<string, string>>(new Map());
-  const [openForecastId, setOpenForecastId] = useState<string | null>(null);
+  const [deviceNames, setDeviceNames] = useState<Map<string, string>>(
+    () => new Map()
+  );
+  const [activeChartId, setActiveChartId] = useState<string | null>(null);
+  const [forecastChartIds, setForecastChartIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const normalizedOrganizationSlug = useMemo(
     () => (organizationSlug || '').trim().toLowerCase(),
@@ -126,7 +169,9 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   }, [groups, isOrganizationFlow, normalizedOrganizationSlug]);
 
   const organizationGroupId = organizationGroup?.id || '';
-  const groupId = isOrganizationFlow ? organizationGroupId : activeGroup?.id ?? '';
+  const groupId = isOrganizationFlow
+    ? organizationGroupId
+    : (activeGroup?.id ?? '');
 
   const isInitialLoading =
     userContextLoading ||
@@ -139,7 +184,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     isLoading: chartsLoading,
     error: chartsError,
     mutate: refetchCharts,
-  } = useGroupCharts(groupId, !!groupId && !isInitialLoading);
+  } = useGroupCharts(groupId, !isInitialLoading);
 
   // Merge persisted configs with the client-side sidecar into drafts
   const charts = useMemo<ExplorerChartDraft[]>(() => {
@@ -152,7 +197,38 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, [persistedCharts, groupId]);
 
-  // Hydrate the site-names map (chips + forecast selector) from the sidecars
+  // Keep the stored active chart in sync with reality (deleted charts, group
+  // switches, first load) and persist user choices for continuity.
+  useEffect(() => {
+    if (charts.length === 0) return;
+    if (!charts.some(chart => chart.id === activeChartId)) {
+      setActiveChartId(charts[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [charts, groupId]);
+
+  // Restore the last-active chart on the client (deferred so SSR/hydration
+  // render the same initial state).
+  useEffect(() => {
+    const stored = readStoredActiveChartId();
+    if (stored) setActiveChartId(stored);
+  }, []);
+
+  useEffect(() => {
+    if (!activeChartId) return;
+    try {
+      window.localStorage.setItem(ACTIVE_CHART_STORAGE_KEY, activeChartId);
+    } catch {
+      // Storage unavailable — active-chart memory is best-effort.
+    }
+  }, [activeChartId]);
+
+  const activeChart = useMemo(
+    () => charts.find(chart => chart.id === activeChartId) ?? charts[0] ?? null,
+    [charts, activeChartId]
+  );
+
+  // Hydrate the site-names map (chips + location legend) from the sidecars
   // so names survive reloads.
   useEffect(() => {
     if (!persistedCharts) return;
@@ -162,6 +238,29 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         if (!config._id) return;
         const sidecar = readChartSidecar(groupId, config._id);
         Object.entries(sidecar.siteNames ?? {}).forEach(([id, name]) => {
+          // Skip "Unknown location" entries from the sidecar so the
+          // fallback chain (forecast API / fleet summary) can resolve real
+          // names after the page loads.
+          if (name && name !== 'Unknown location' && name !== 'Unknown Location') {
+            next.set(id, name);
+          }
+        });
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistedCharts, groupId]);
+
+  // Hydrate device names (device-resolved sites) from the sidecars so
+  // device-selected charts keep their device labels after reloads.
+  useEffect(() => {
+    if (!persistedCharts) return;
+    setDeviceNames(prev => {
+      const next = new Map(prev);
+      persistedCharts.forEach(config => {
+        if (!config._id) return;
+        const sidecar = readChartSidecar(groupId, config._id);
+        Object.entries(sidecar.deviceNames ?? {}).forEach(([id, name]) => {
           if (name) next.set(id, name);
         });
       });
@@ -173,14 +272,31 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const handleNamesResolved = useCallback((names: Map<string, string>) => {
     setSiteNames(prev => {
       const next = new Map(prev);
-      names.forEach((name, id) => next.set(id, name));
+      names.forEach((name, id) => {
+        // Never let "Unknown location" placeholders overwrite real names —
+        // the picker reports them for off-page rows that haven't loaded yet.
+        if (
+          name &&
+          name !== 'Unknown location' &&
+          name !== 'Unknown Location'
+        ) {
+          next.set(id, name);
+        }
+      });
       return next;
     });
   }, []);
 
-  const handleForecastToggle = useCallback((chartId: string) => {
-    setOpenForecastId(prev => (prev === chartId ? null : chartId));
-  }, []);
+  const handleDeviceNamesResolved = useCallback(
+    (namesBySite: Map<string, string>) => {
+      setDeviceNames(prev => {
+        const next = new Map(prev);
+        namesBySite.forEach((name, siteId) => next.set(siteId, name));
+        return next;
+      });
+    },
+    []
+  );
 
   const allSiteIds = useMemo(
     () => Array.from(new Set(charts.flatMap(chart => chart.siteIds))),
@@ -188,7 +304,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   );
 
   // Resolve display names from the latest readings (shared cache with the
-  // comparison table) so the forecast selector and chips never show raw ids.
+  // comparison table) so the location legend never shows raw ids.
   const { data: readingsForNames } = useComparisonReadings(
     allSiteIds,
     allSiteIds.length > 0
@@ -199,9 +315,18 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     if (names.size > 0) handleNamesResolved(names);
   }, [readingsForNames, handleNamesResolved]);
 
+  // Fleet-wide site-name fallback: fills names the picker sidecar/readings
+  // couldn't provide (e.g. charts built on another browser), so "Unknown
+  // location" and raw ids never surface in the table/summary.
+  const { names: fallbackSiteNames } = useSiteNamesFallback(
+    !isInitialLoading && charts.length > 0
+  );
+  useMergeFallbackNames(siteNames, fallbackSiteNames, handleNamesResolved);
+
   const createMutation = useCreateGroupChart();
   const updateMutation = useUpdateGroupChart();
   const deleteMutation = useDeleteGroupChart();
+  const copyMutation = useCopyGroupChart();
 
   useEffect(() => {
     posthog?.capture('analytics_explorer_viewed', {
@@ -230,7 +355,11 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   }, []);
 
   const persistDraft = useCallback(
-    async (draft: ExplorerChartDraft, namesSnapshot: Record<string, string>) => {
+    async (
+      draft: ExplorerChartDraft,
+      namesSnapshot: Record<string, string>,
+      deviceNamesSnapshot: Record<string, string>
+    ): Promise<string | null> => {
       if (draft.id) {
         // Update: flat partial body (verified live -- the chartConfig
         // wrapper is silently ignored by PUT). Round-trip the persisted
@@ -239,10 +368,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           subtitle: draft.subtitle,
           pollutant: draft.pollutant,
           frequency: draft.frequency,
+          referenceStandard: draft.referenceStandard,
           color: draft.color,
           startDate: draft.startDate,
           endDate: draft.endDate,
           siteNames: namesSnapshot,
+          deviceNames: deviceNamesSnapshot,
         };
         // Write the sidecar FIRST so the optimistic cache update renders the
         // client-side fields (subtitle, pollutant, range, ...) instantly;
@@ -263,10 +394,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           writeChartSidecar(groupId, draft.id, prevSidecar);
           throw error;
         }
+        return draft.id;
       } else {
         // Create: pick the next free slot (1-8), avoiding slots already in use
         const usedFieldIds = new Set(
-          charts.map(chart => chart.fieldId).filter((id): id is number => id >= 1)
+          charts
+            .map(chart => chart.fieldId)
+            .filter((id): id is number => id >= 1)
         );
         let fieldId = 1;
         for (let slot = 1; slot <= 8; slot++) {
@@ -278,6 +412,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         const result = await createMutation.trigger({
           groupId,
           request: {
+            group_id: groupId || undefined,
             site_ids: draft.siteIds,
             device_ids: draft.deviceIds,
             chartConfig: draftToPersistedConfig(draft, fieldId),
@@ -289,12 +424,15 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             subtitle: draft.subtitle,
             pollutant: draft.pollutant,
             frequency: draft.frequency,
+            referenceStandard: draft.referenceStandard,
             color: draft.color,
             startDate: draft.startDate,
             endDate: draft.endDate,
             siteNames: namesSnapshot,
+            deviceNames: deviceNamesSnapshot,
           });
         }
+        return newChartId || null;
       }
     },
     [charts, createMutation, groupId, updateMutation]
@@ -304,8 +442,9 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     async (draft: ExplorerChartDraft) => {
       setSaveError(null);
       const namesSnapshot = Object.fromEntries(siteNames);
+      const deviceNamesSnapshot = Object.fromEntries(deviceNames);
       try {
-        await persistDraft(draft, namesSnapshot);
+        await persistDraft(draft, namesSnapshot, deviceNamesSnapshot);
         toast.success(
           draft.id ? 'Chart updated' : 'Chart added',
           draft.id
@@ -319,7 +458,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         handleCloseDialog();
       } catch (error) {
         if (isCancellationError(error)) return;
-        console.error('Failed to save chart configuration:', error instanceof Error ? error.message : error);
+        console.error(
+          'Failed to save chart configuration:',
+          error instanceof Error ? error.message : error
+        );
         setSaveError(
           getUserFriendlyErrorMessage(error, {
             Default: 'We could not save the chart configuration.',
@@ -327,7 +469,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         );
       }
     },
-    [handleCloseDialog, persistDraft, posthog, siteNames]
+    [handleCloseDialog, persistDraft, posthog, siteNames, deviceNames]
   );
 
   // Inline title/subtitle edit from the chart header
@@ -342,16 +484,65 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         subtitle: subtitle ?? '',
       };
       const namesSnapshot = Object.fromEntries(siteNames);
-      await persistDraft(updated, namesSnapshot);
+      const deviceNamesSnapshot = Object.fromEntries(deviceNames);
+      await persistDraft(updated, namesSnapshot, deviceNamesSnapshot);
       posthog?.capture('analytics_chart_title_updated', {
         chart_id: draftId,
         title,
       });
     },
-    [charts, persistDraft, posthog, siteNames]
+    [charts, persistDraft, posthog, siteNames, deviceNames]
   );
 
-  // Arms the inline delete confirmation on the tile
+  // Duplicates the chart via the server copy endpoint (includes scope +
+  // locationColors; new title ends with "(Copy)"), carries the client-side
+  // sidecar over, and focuses the copy so the user sees it immediately.
+  const handleDuplicate = useCallback(
+    async (draft: ExplorerChartDraft) => {
+      try {
+        const result = await copyMutation.trigger({
+          groupId,
+          chartId: draft.id,
+        });
+        const newChartId = result?.data?._id ?? '';
+        if (newChartId) {
+          // Carry over the client-side fields (pollutant, frequency, range,
+          // color, reference standard, site + device names) to the copy.
+          const sourceSidecar = readChartSidecar(groupId, draft.id);
+          writeChartSidecar(groupId, newChartId, {
+            ...sourceSidecar,
+            subtitle: draft.subtitle,
+            siteNames: Object.fromEntries(siteNames),
+            deviceNames: Object.fromEntries(deviceNames),
+          });
+          setActiveChartId(newChartId);
+        }
+        toast.success(
+          'Chart duplicated',
+          'A copy was added to your saved charts.'
+        );
+        posthog?.capture('analytics_chart_duplicated', {
+          title: result?.data?.title ?? draft.title,
+          site_count: draft.siteIds.length,
+        });
+      } catch (error) {
+        if (isCancellationError(error)) return;
+        console.error(
+          'Failed to duplicate chart configuration:',
+          error instanceof Error ? error.message : error
+        );
+        toast.error(
+          'Duplicate failed',
+          getUserFriendlyErrorMessage(error, {
+            Default: 'We could not duplicate the chart configuration.',
+          })
+        );
+      }
+    },
+    [copyMutation, groupId, posthog, siteNames, deviceNames]
+  );
+
+  // Arms the inline delete confirmation on the card
   const handleRequestDelete = useCallback(
     (draft: ExplorerChartDraft) => {
       if (pendingDeleteId === draft.id) return;
@@ -375,7 +566,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }
   }, []);
 
-  // Executes the delete after the user confirms on the tile
+  // Executes the delete after the user confirms on the card
   const handleConfirmDelete = useCallback(
     (draft: ExplorerChartDraft) => {
       setPendingDeleteId(null);
@@ -394,7 +585,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           posthog?.capture('analytics_chart_deleted', { title: draft.title });
         } catch (error) {
           if (isCancellationError(error)) return;
-          console.error('Failed to delete chart configuration:', error instanceof Error ? error.message : error);
+          console.error(
+            'Failed to delete chart configuration:',
+            error instanceof Error ? error.message : error
+          );
           toast.error(
             'Delete failed',
             getUserFriendlyErrorMessage(error, {
@@ -407,6 +601,37 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     [deleteMutation, groupId, posthog]
   );
 
+  const handleForecastToggle = useCallback((chartId: string) => {
+    setForecastChartIds(prev => {
+      const next = new Set(prev);
+      if (next.has(chartId)) {
+        next.delete(chartId);
+      } else {
+        next.add(chartId);
+      }
+      return next;
+    });
+  }, []);
+
+  // Focus a chart from the overview: make it active and open the focused
+  // workspace.
+  const handleFocusChart = useCallback(
+    (draft: ExplorerChartDraft) => {
+      setActiveChartId(draft.id);
+      setViewMode('focused');
+    },
+    []
+  );
+
+  // Combined labels for the comparison table: device names override site
+  // names for device-picked charts (the readings API is site-scoped, so the
+  // table is per-site — labels reflect what the user actually selected).
+  const tableLabels = useMemo(() => {
+    const labels = new Map(siteNames);
+    deviceNames.forEach((name, siteId) => labels.set(siteId, name));
+    return labels;
+  }, [deviceNames, siteNames]);
+
   useEffect(
     () => () => {
       if (pendingDeleteTimerRef.current) {
@@ -416,65 +641,71 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     []
   );
 
-  const renderChartTiles = (fullWidth: boolean) => (
-    <div
-      className={cn(
-        'grid grid-cols-1 gap-4 items-start',
-        fullWidth ? 'lg:grid-cols-1' : 'lg:grid-cols-2'
-      )}
-    >
-      {charts.map(draft => (
-        <AnalyticsChartTile
-          key={draft.id}
-          draft={draft}
-          aqiConfig={aqiConfig}
-          forecastOpen={openForecastId === draft.id}
-          onForecastToggle={() => handleForecastToggle(draft.id)}
-          onEdit={handleOpenEdit}
-          onRequestDelete={handleRequestDelete}
-          onConfirmDelete={handleConfirmDelete}
-          onCancelDelete={handleCancelDelete}
-          onEditTitle={handleEditTitle}
-          deleteConfirming={pendingDeleteId === draft.id}
-        />
-      ))}
+  const renderWorkspace = () => {
+    if (!activeChart) return null;
+    return (
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Main column: active chart + forecast summary (independent stack) */}
+        <div className="min-w-0 space-y-5">
+          <AnalyticsChartCard
+            key={activeChart.id}
+            draft={activeChart}
+            groupId={groupId}
+            siteNames={siteNames}
+            deviceNames={deviceNames}
+            forecastEnabled={forecastChartIds.has(activeChart.id)}
+            onForecastToggle={() => handleForecastToggle(activeChart.id)}
+            onEdit={handleOpenEdit}
+            onRequestDelete={handleRequestDelete}
+            onConfirmDelete={handleConfirmDelete}
+            onCancelDelete={handleCancelDelete}
+            onEditTitle={handleEditTitle}
+            onDuplicate={handleDuplicate}
+            deleteConfirming={pendingDeleteId === activeChart.id}
+          />
+          <ForecastSummaryCard
+            siteIds={activeChart.siteIds}
+            siteNames={siteNames}
+            deviceNames={deviceNames}
+          />
+        </div>
 
-      {/* Build chart tile */}
-      <button
-        type="button"
-        onClick={handleOpenCreate}
-        aria-label="Build chart"
-        className="flex min-h-[240px] w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/50 dark:border-primary/80 bg-primary/10 text-primary transition-all duration-200 hover:scale-[0.99] hover:bg-primary/15"
-      >
-        <AqPlus className="h-8 w-8" />
-        <span className="text-sm font-medium">Build chart</span>
-        <span className="px-6 text-center text-xs text-muted-foreground">
-          Configure a new chart with its own locations, pollutant and time
-          range.
-        </span>
-      </button>
-    </div>
-  );
+        {/* Sidebar: reference legend + saved charts (independent stack) */}
+        <div className="min-w-0 space-y-5">
+          <AirQualityReferenceLegend
+            pollutant={activeChart.pollutant}
+            averagingPeriod="24-hour"
+          />
+          <SavedChartsCard
+            charts={charts}
+            activeChartId={activeChart.id}
+            onSelect={draft => setActiveChartId(draft.id)}
+          />
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className={cn('space-y-5', className)}>
-      <PageHeading
-        title="Air Quality Analytics"
-        subtitle="Build and save as many charts as you need, each with its own locations, pollutant, time range and style, or compare every selected location side by side."
-        infoLine="Charts are saved when you click Add chart or Save changes."
-        action={
-          charts.length > 0 ? (
-            <Button
-              variant="filled"
-              size="sm"
-              onClick={handleOpenCreate}
-              disabled={isInitialLoading || !groupId}
-            >
-              Build chart
-            </Button>
-          ) : undefined
-        }
-      />
+    <div className={cn('space-y-4', className)}>
+      {/* Compact page header: title, description, primary CTA */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl text-foreground">Air Quality Analytics</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Explore air quality trends across locations and time.
+          </p>
+        </div>
+        <Button
+          variant="filled"
+          size="sm"
+          Icon={AqPlus}
+          onClick={handleOpenCreate}
+          disabled={isInitialLoading || !groupId}
+        >
+          New chart
+        </Button>
+      </div>
 
       {isInitialLoading || (chartsLoading && charts.length === 0) ? (
         <div className="flex items-center justify-center min-h-[300px]">
@@ -486,21 +717,21 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           description={
             chartsError instanceof Error
               ? chartsError.message
-              : "We could not load your saved charts."
+              : 'We could not load your saved charts.'
           }
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       ) : charts.length === 0 ? (
         <EmptyState
           title="No charts yet"
-          description="Add your first chart to start exploring air quality trends."
-          action={{ label: 'Build chart', onClick: handleOpenCreate }}
+          description="Create your first chart to explore air quality across locations and time periods."
+          action={{ label: 'Create chart', onClick: handleOpenCreate }}
         />
       ) : (
         <>
-          {/* View switcher - wrapped in a card, sized to content */}
+          {/* View switcher — wrapped in a card, sized to content */}
           <Card className="w-fit">
-            <CardContent className="p-2">
+            <CardContent className="p-1">
               <SegmentedTabs
                 ariaLabel="Analytics view"
                 options={VIEW_OPTIONS}
@@ -509,11 +740,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               />
             </CardContent>
           </Card>
-
-          {/* AQI scale - shown once at page level for the chart and card
-              views; the comparison table renders its own legend inline so it
-              is not duplicated here */}
-          {viewMode !== 'table' && <AqiLegend aqiConfig={aqiConfig} />}
 
           {viewMode === 'table' ? (
             <>
@@ -549,54 +775,33 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               {compareMode === 'table' ? (
                 <ComparisonTable
                   siteIds={allSiteIds}
-                  siteNames={siteNames}
+                  siteNames={tableLabels}
                   aqiConfig={tableAqiConfig}
                   onNamesResolved={handleNamesResolved}
                 />
               ) : (
-                <>
-                  <AqiLegend aqiConfig={tableAqiConfig} />
-                  <ComparisonCards
-                    siteIds={allSiteIds}
-                    siteNames={siteNames}
-                    aqiConfig={tableAqiConfig}
-                    onNamesResolved={handleNamesResolved}
-                  />
-                </>
+                <ComparisonCards
+                  siteIds={allSiteIds}
+                  siteNames={tableLabels}
+                  aqiConfig={tableAqiConfig}
+                  onNamesResolved={handleNamesResolved}
+                />
               )}
             </>
+          ) : viewMode === 'charts' ? (
+            <ChartsOverviewView
+              charts={charts}
+              siteNames={siteNames}
+              deviceNames={deviceNames}
+              onFocusChart={handleFocusChart}
+              onEdit={handleOpenEdit}
+              onRequestDelete={handleRequestDelete}
+              onConfirmDelete={handleConfirmDelete}
+              onCancelDelete={handleCancelDelete}
+              deleteConfirmingId={pendingDeleteId}
+            />
           ) : (
-            <>
-              {viewMode === 'grid'
-                ? renderChartTiles(false)
-                : charts.map(draft => (
-                    <AnalyticsChartTile
-                      key={draft.id}
-                      draft={draft}
-                      aqiConfig={aqiConfig}
-                      forecastOpen={openForecastId === draft.id}
-                      onForecastToggle={() => handleForecastToggle(draft.id)}
-                      onEdit={handleOpenEdit}
-                      onRequestDelete={handleRequestDelete}
-                      onConfirmDelete={handleConfirmDelete}
-                      onCancelDelete={handleCancelDelete}
-                      onEditTitle={handleEditTitle}
-                      deleteConfirming={pendingDeleteId === draft.id}
-                    />
-                  ))}
-
-              {viewMode === 'full' && (
-                <button
-                  type="button"
-                  onClick={handleOpenCreate}
-                  className="flex min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/50 dark:border-primary/80 bg-primary/10 text-primary transition-all duration-200 hover:bg-primary/15"
-                  aria-label="Build chart"
-                >
-                  <AqPlus className="h-7 w-7" />
-                  <span className="text-sm font-medium">Build chart</span>
-                </button>
-              )}
-            </>
+            renderWorkspace()
           )}
         </>
       )}
@@ -608,6 +813,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         draft={editingDraft}
         onSave={draft => void handleSaveDraft(draft)}
         onSelectionNamesChange={handleNamesResolved}
+        onDeviceNamesChange={handleDeviceNamesResolved}
+        siteNames={siteNames}
         isSaving={createMutation.isMutating || updateMutation.isMutating}
         saveError={saveError}
       />
@@ -616,4 +823,3 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
 };
 
 export default AnalyticsExplorerPage;
-

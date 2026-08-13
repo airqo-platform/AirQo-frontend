@@ -12,9 +12,9 @@ import {
   removeChartSidecar,
   DEFAULT_CHART_SIDECAR,
 } from '../chartConfig';
-import type { GroupChartConfig } from '@/shared/types/api';
+import type { UserChartConfig } from '@/shared/types/api';
 
-const PERSISTED: GroupChartConfig = {
+const PERSISTED: UserChartConfig = {
   _id: 'chart-1',
   fieldId: 1,
   title: 'PM2.5 Levels',
@@ -25,7 +25,9 @@ const PERSISTED: GroupChartConfig = {
   showGrid: false,
   showTooltip: true,
   color: '#d62020',
-  referenceLines: [{ value: 15, label: 'WHO', color: '#FF0000', style: 'dashed' }],
+  referenceLines: [
+    { value: 15, label: 'WHO', color: '#FF0000', style: 'dashed' },
+  ],
   site_ids: ['site-a', 'site-b'],
   device_ids: [],
 };
@@ -75,17 +77,26 @@ describe('chartConfig utils', () => {
 
     it('computes days from a range with a 1-day minimum', () => {
       expect(
-        computeDaysFromRange('2026-08-01T00:00:00.000Z', '2026-08-11T23:59:59.000Z')
+        computeDaysFromRange(
+          '2026-08-01T00:00:00.000Z',
+          '2026-08-11T23:59:59.000Z'
+        )
       ).toBe(11);
       expect(
-        computeDaysFromRange('2026-08-01T00:00:00.000Z', '2026-08-01T12:00:00.000Z')
+        computeDaysFromRange(
+          '2026-08-01T00:00:00.000Z',
+          '2026-08-01T12:00:00.000Z'
+        )
       ).toBe(1);
       expect(computeDaysFromRange('not-a-date', '2026-08-11')).toBe(7);
     });
 
     it('formats a compact range label', () => {
       expect(
-        formatChartRangeLabel('2026-08-04T00:00:00.000Z', '2026-08-11T23:59:59.000Z')
+        formatChartRangeLabel(
+          '2026-08-04T00:00:00.000Z',
+          '2026-08-11T23:59:59.000Z'
+        )
       ).toContain('Aug 4');
       expect(formatChartRangeLabel('', '')).toBe('');
     });
@@ -127,7 +138,8 @@ describe('chartConfig utils', () => {
       expect(draft.startDate).toBeTruthy();
       expect(draft.endDate).toBeTruthy();
       const diffDays =
-        (new Date(draft.endDate).getTime() - new Date(draft.startDate).getTime()) /
+        (new Date(draft.endDate).getTime() -
+          new Date(draft.startDate).getTime()) /
         86400000;
       expect(diffDays).toBeGreaterThanOrEqual(29);
       expect(diffDays).toBeLessThan(31);
@@ -210,6 +222,7 @@ describe('chartConfig utils', () => {
         subtitle: 'My subtitle',
         pollutant: 'pm10',
         frequency: 'daily',
+        referenceStandard: 'WHO',
         color: '#145DFF',
         startDate: RANGE.startDate,
         endDate: RANGE.endDate,
@@ -234,6 +247,7 @@ describe('chartConfig utils', () => {
         subtitle: 'x',
         pollutant: 'pm2_5',
         frequency: 'weekly',
+        referenceStandard: 'WHO',
         color: null,
         startDate: '',
         endDate: '',

@@ -15,6 +15,21 @@ interface CustomTooltipProps extends TooltipData {
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
   /**
+   * Display-label overrides keyed by series dataKey (e.g. device names for
+   * device-selected charts).
+   */
+  seriesLabels?: Record<string, string>;
+  /**
+   * Display-label overrides keyed by site_id (the picker's names) — used on
+   * the "Location:" line so it matches what the user selected.
+   */
+  locationLabels?: Record<string, string>;
+  /**
+   * Friendly device names keyed by site_id — shown on the "Device:" line
+   * instead of the raw device id when a chart was built from device picks.
+   */
+  deviceNames?: Record<string, string>;
+  /**
    * When set, only entries of this series are shown — hover focus mode.
    * The rest of the chart is blurred in DynamicChart to match.
    */
@@ -47,6 +62,9 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   pollutant = 'pm2_5',
   aqiConfig = null,
   focusedDataKey = null,
+  seriesLabels,
+  locationLabels,
+  deviceNames,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -63,7 +81,9 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const primaryData = visiblePayload[0];
   const value = primaryData.value as number;
   const airQualityLevel = getAirQualityInfo(value, pollutant, 'WHO', aqiConfig);
-  const locationName = getChartLocationDisplayName(primaryData.payload);
+  const locationName =
+    locationLabels?.[String(primaryData.payload.site_id)] ??
+    getChartLocationDisplayName(primaryData.payload);
 
   return (
     <div
@@ -89,7 +109,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-sm font-medium text-foreground truncate max-w-[220px] block">
-                {String(entry.name || entry.dataKey || '').trim()}
+                {seriesLabels?.[String(entry.dataKey)] ??
+                  String(entry.name || entry.dataKey || '').trim()}
               </span>
             </div>
             <div className="text-right ml-2 flex-shrink-0">
@@ -131,7 +152,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
           {primaryData.payload?.device_id && (
             <div className="text-xs text-muted-foreground">
               <span className="font-medium">Device:</span>{' '}
-              {primaryData.payload.device_id}
+              {deviceNames?.[String(primaryData.payload.site_id)] ??
+                primaryData.payload.device_id}
             </div>
           )}
         </div>

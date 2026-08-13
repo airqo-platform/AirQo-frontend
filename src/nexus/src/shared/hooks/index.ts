@@ -41,12 +41,13 @@ export {
   useUpdateOrganizationGroupTheme,
 } from './usePreferences';
 
-// Group chart configuration hooks
+// Chart configuration hooks
 export {
   useGroupCharts,
   useCreateGroupChart,
   useUpdateGroupChart,
   useDeleteGroupChart,
+  useCopyGroupChart,
 } from './useGroupCharts';
 
 // Checklist hooks

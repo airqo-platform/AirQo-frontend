@@ -26,6 +26,7 @@ import {
   ResponsiveContainer,
   Curve,
   Customized,
+  ReferenceLine,
   useIsTooltipActive,
   useActiveTooltipCoordinate,
   useActiveTooltipDataPoints,
@@ -72,7 +73,45 @@ interface HoverAwareTooltipProps extends TooltipData {
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
+  seriesLabels?: Record<string, string>;
+  locationLabels?: Record<string, string>;
+  deviceNames?: Record<string, string>;
 }
+
+/** Small label chip for generic reference lines (e.g. the forecast "Now" mark). */
+const ExtraReferenceLineLabel: React.FC<{
+  value: string;
+  viewBox?: { x?: number; y?: number; width?: number; height?: number };
+}> = ({ value, viewBox }) => {
+  if (!viewBox) return null;
+  const { x = 0, y = 0, width = 0 } = viewBox;
+  const isVertical = width === 0;
+  const chipX = isVertical ? x + 6 : x + 8;
+  const chipY = isVertical ? y + 4 : y - 22;
+  return (
+    <g>
+      <rect
+        x={chipX}
+        y={chipY}
+        width={34}
+        height={16}
+        rx={4}
+        fill="rgb(71, 85, 105)"
+      />
+      <text
+        x={chipX + 17}
+        y={chipY + 11}
+        textAnchor="middle"
+        fill="#ffffff"
+        fontSize="9"
+        fontWeight="600"
+        style={{ textTransform: 'uppercase' }}
+      >
+        {value}
+      </text>
+    </g>
+  );
+};
 
 const HoverAwareTooltip: React.FC<HoverAwareTooltipProps> = ({
   onHoverChange,
@@ -87,9 +126,7 @@ const HoverAwareTooltip: React.FC<HoverAwareTooltipProps> = ({
     );
   }, [active, activeIndex, onHoverChange]);
 
-  return (
-    <CustomTooltip {...tooltipProps} focusedDataKey={focusedDataKey} />
-  );
+  return <CustomTooltip {...tooltipProps} focusedDataKey={focusedDataKey} />;
 };
 
 /** Dimming rules: 1 = full, lower = blurred (see the focus/blur design below) */
@@ -102,7 +139,7 @@ const GRAYED_SERIES_COLOR = 'rgb(var(--muted-foreground))';
 
 interface HoverFocusControllerProps {
   seriesKeys: string[];
-  onFocus: (key: string) => void;
+  onFocus: (key: string | null) => void;
 }
 
 /**
@@ -125,7 +162,13 @@ const HoverFocusController: React.FC<HoverFocusControllerProps> = ({
   const lastReportedRef = useRef<string | null>(null);
 
   React.useEffect(() => {
-    if (!isActive || !coordinate || !yScale || !dataPoints || dataPoints.length === 0) {
+    if (
+      !isActive ||
+      !coordinate ||
+      !yScale ||
+      !dataPoints ||
+      dataPoints.length === 0
+    ) {
       return;
     }
     const row = dataPoints[0] as Record<string, unknown>;
@@ -151,6 +194,11 @@ const HoverFocusController: React.FC<HoverFocusControllerProps> = ({
     if (best && best !== lastReportedRef.current) {
       lastReportedRef.current = best;
       onFocus(best);
+    } else if (!best && lastReportedRef.current !== null) {
+      // No series has a value at the hovered row — release the stale focus
+      // instead of leaving the chart dimmed on the previous key.
+      lastReportedRef.current = null;
+      onFocus(null);
     }
   }, [isActive, coordinate, dataPoints, seriesKeys, yScale, onFocus]);
 
@@ -170,17 +218,31 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   standards = 'WHO',
   id,
   onReferenceLinesToggle,
+  hiddenSeries: controlledHiddenSeries,
+  onHiddenSeriesChange,
+  focusedSeries = null,
+  dashedSeries,
+  additionalReferenceLines,
+  referenceLinePeriod,
+  seriesLabels,
+  locationLabels,
+  deviceNames,
 }) => {
-  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
+  const [internalHiddenSeries, setInternalHiddenSeries] = useState<Set<string>>(
+    new Set()
+  );
+  const hiddenSeriesControlled = controlledHiddenSeries !== undefined;
   const [localShowReferenceLines, setLocalShowReferenceLines] = useState(
     controlledShowReferenceLines ?? false
   );
 
   // Hover focus state: `activeIndex` is the hovered data point (any series);
   // `activeKey` narrows the focus to ONE series (its line/bar under the
-  // cursor). Everything else is blurred while either is set.
+  // cursor). Everything else is blurred while either is set. A controlled
+  // `focusedSeries` (location legend hover) overrides the hover-driven key.
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const effectiveActiveKey = focusedSeries ?? activeKey;
 
   const handleHoverIndexChange = useCallback((index: number | null) => {
     setActiveIndex(index);
@@ -192,7 +254,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // releases it once the pointer is truly off the series.
   const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const focusSeries = useCallback((key: string) => {
+  const focusSeries = useCallback((key: string | null) => {
     if (focusTimerRef.current) {
       clearTimeout(focusTimerRef.current);
       focusTimerRef.current = null;
@@ -290,27 +352,51 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     clearHover();
   }, [chartData, clearHover]);
 
-  // Handle legend toggle using native Recharts legend events
-  const handleLegendClick = useCallback((entry: LegendPayload) => {
-    const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
-    if (!seriesKey) return;
+  // Handle legend toggle using native Recharts legend events. When the
+  // `hiddenSeries` prop is controlled (location legend in the analytics
+  // workspace), the click reports outward instead of mutating internal state.
+  const handleLegendClick = useCallback(
+    (entry: LegendPayload) => {
+      const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
+      if (!seriesKey) return;
 
-    setHiddenSeries(prev => {
-      const next = new Set(prev);
-      if (next.has(seriesKey)) {
-        next.delete(seriesKey);
-      } else {
-        next.add(seriesKey);
+      if (hiddenSeriesControlled) {
+        const current = new Set(controlledHiddenSeries ?? []);
+        if (current.has(seriesKey)) {
+          current.delete(seriesKey);
+        } else {
+          current.add(seriesKey);
+        }
+        onHiddenSeriesChange?.(Array.from(current));
+        return;
       }
-      return next;
-    });
-  }, []);
+
+      setInternalHiddenSeries(prev => {
+        const next = new Set(prev);
+        if (next.has(seriesKey)) {
+          next.delete(seriesKey);
+        } else {
+          next.add(seriesKey);
+        }
+        return next;
+      });
+    },
+    [controlledHiddenSeries, hiddenSeriesControlled, onHiddenSeriesChange]
+  );
+
+  const isSeriesHidden = useCallback(
+    (seriesKey: string) =>
+      hiddenSeriesControlled
+        ? (controlledHiddenSeries ?? []).includes(seriesKey)
+        : internalHiddenSeries.has(seriesKey),
+    [controlledHiddenSeries, hiddenSeriesControlled, internalHiddenSeries]
+  );
 
   const formatLegendLabel = useCallback(
     (value: string | number | undefined, entry: LegendPayload) => {
       const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
-      const isHidden = seriesKey ? hiddenSeries.has(seriesKey) : false;
-      const formattedValue = String(value ?? '').trim();
+      const isHidden = seriesKey ? isSeriesHidden(seriesKey) : false;
+      const formattedValue = seriesLabels?.[seriesKey] ?? String(value ?? '').trim();
 
       return (
         <span
@@ -323,7 +409,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         </span>
       );
     },
-    [hiddenSeries]
+    [isSeriesHidden, seriesLabels]
   );
 
   // Chart configuration
@@ -433,6 +519,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             pollutant={pollutant}
             frequency={frequency}
             aqiConfig={aqiConfig}
+            seriesLabels={seriesLabels}
+            locationLabels={locationLabels}
+            deviceNames={deviceNames}
           />
         }
         wrapperStyle={{ zIndex: 9999 }}
@@ -472,8 +561,32 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         pollutant={pollutant}
         standards={standards}
         showReferenceLine={localShowReferenceLines}
+        preferPeriod={referenceLinePeriod}
       />
     );
+  };
+
+  // Generic extra reference lines (e.g. the forecast "Now" boundary) — a
+  // thin line with a small label chip above it.
+  const renderAdditionalReferenceLines = () => {
+    if (!additionalReferenceLines || additionalReferenceLines.length === 0) {
+      return null;
+    }
+    return additionalReferenceLines.map((line, index) => (
+      <ReferenceLine
+        key={`extra-ref-line-${index}`}
+        x={line.x}
+        y={line.y}
+        stroke={line.stroke ?? 'rgb(100, 116, 139)'}
+        strokeDasharray={line.strokeDasharray ?? '4 4'}
+        strokeWidth={line.strokeWidth ?? 1.5}
+        label={
+          line.label ? (
+            <ExtraReferenceLineLabel value={line.label} />
+          ) : undefined
+        }
+      />
+    ));
   };
 
   // Active dot rendered at the hovered point. Hovering a dot narrows the
@@ -490,8 +603,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         return null;
       }
       const dotKey = String(dotProps.dataKey ?? '');
-      const isFocused = activeKey === dotKey;
-      const isDimmed = activeKey !== null && !isFocused;
+      const isFocused = effectiveActiveKey === dotKey;
+      const isDimmed = effectiveActiveKey !== null && !isFocused;
       return (
         <circle
           cx={dotProps.cx}
@@ -507,7 +620,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         />
       );
     },
-    [activeKey, focusSeries, scheduleSeriesBlur]
+    [effectiveActiveKey, focusSeries, scheduleSeriesBlur]
   );
 
   // Custom line shape: renders a fat transparent hit path UNDER the visible
@@ -541,22 +654,31 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // for details.
   const renderLineSeries = (Component: typeof Line | typeof Area) => {
     return seriesKeys.map((key, index) => {
-      const isHidden = hiddenSeries.has(key);
+      const isHidden = isSeriesHidden(key);
       const color =
         config.seriesColors?.[key] || config.color || getPrimaryColor(index);
-      const isFocused = activeKey === key;
+      const isDashed = dashedSeries?.includes(key) ?? false;
+      const isFocused = effectiveActiveKey === key;
+      // The controlled focus (location legend hover) is authoritative: it
+      // dims non-focused series even before the pointer enters the chart.
+      // The hover-driven key only narrows the dimming while the tooltip is
+      // active ('band' = hovered but no series focused yet).
       const state =
-        activeIndex === null
-          ? 'idle'
-          : activeKey === null
-            ? 'band'
-            : isFocused
-              ? 'focused'
-              : 'dimmed';
+        effectiveActiveKey === null
+          ? activeIndex === null
+            ? 'idle'
+            : 'band'
+          : isFocused
+            ? 'focused'
+            : 'dimmed';
 
       const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
       const strokeOpacity =
-        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+        state === 'dimmed'
+          ? GRAYED_OPACITY
+          : state === 'band'
+            ? SOFT_BLUR
+            : FULL_OPACITY;
       const strokeWidth =
         (config.strokeWidth || 2) + (state === 'focused' ? 1 : 0);
       const areaFillOpacity =
@@ -573,10 +695,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         cy?: number;
         index?: number;
       }) => {
-        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+        if (
+          activeIndex === null ||
+          dotProps.cx == null ||
+          dotProps.cy == null
+        ) {
           return null;
         }
-        const isDimmed = activeKey !== null && !isFocused;
+        const isDimmed = effectiveActiveKey !== null && !isFocused;
         return (
           <g>
             <circle
@@ -609,9 +735,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           fillOpacity={areaFillOpacity}
           strokeOpacity={strokeOpacity}
           strokeWidth={strokeWidth}
+          strokeDasharray={isDashed ? '6 4' : undefined}
           dot={renderSeriesDot}
           activeDot={renderActiveDot}
-          connectNulls={false}
+          // Forecast series are sparse (one point per forecast day) — connect
+          // their gaps so the projection reads as a continuous line.
+          connectNulls={isDashed}
           hide={isHidden}
           onMouseEnter={() => focusSeries(key)}
           onMouseLeave={scheduleSeriesBlur}
@@ -626,7 +755,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // other time slots) is grayed out in a skeleton tone.
   const renderBarSeries = () => {
     return seriesKeys.map((key, index) => {
-      const isHidden = hiddenSeries.has(key);
+      const isHidden = isSeriesHidden(key);
       const color =
         config.seriesColors?.[key] || config.color || getPrimaryColor(index);
 
@@ -643,8 +772,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           onMouseLeave={scheduleSeriesBlur}
         >
           {chartData.map((_, cellIndex) => {
-            const focused = activeKey === key && activeIndex === cellIndex;
-            const dimmed = activeKey !== null && !focused;
+            // A controlled focus (location legend hover) keeps every cell of
+            // the focused series vivid even while the chart is not hovered;
+            // the per-cell narrowing to the hovered index only applies to
+            // the hover-driven key.
+            const focused =
+              effectiveActiveKey === key &&
+              (activeIndex === null || activeIndex === cellIndex);
+            const dimmed = effectiveActiveKey !== null && !focused;
             return (
               <Cell
                 key={`cell-${key}-${cellIndex}`}
@@ -654,7 +789,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
                 // valid at runtime (rounded top corners on the focused bar).
                 radius={
                   focused
-                    ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                    ? ([6, 6, 0, 0] as [
+                        number,
+                        number,
+                        number,
+                        number,
+                      ] as unknown as number)
                     : 0
                 }
                 stroke={focused ? color : 'none'}
@@ -692,6 +832,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {renderLineSeries(Line)}
             {renderReferenceLines()}
+            {renderAdditionalReferenceLines()}
             {renderHoverFocusController()}
           </LineChart>
         );
@@ -706,6 +847,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {renderLineSeries(Area)}
             {renderReferenceLines()}
+            {renderAdditionalReferenceLines()}
             {renderHoverFocusController()}
           </AreaChart>
         );
@@ -727,6 +869,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderLegend()}
             {renderBarSeries()}
             {renderReferenceLines()}
+            {renderAdditionalReferenceLines()}
           </BarChart>
         );
 
@@ -739,7 +882,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderTooltip()}
             {renderLegend()}
             {seriesKeys.map((key, index) => {
-              const isHidden = hiddenSeries.has(key);
+              const isHidden = isSeriesHidden(key);
               const color =
                 config.seriesColors?.[key] ||
                 config.color ||
@@ -748,8 +891,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               return (
                 <Scatter key={key} dataKey={key} fill={color} hide={isHidden}>
                   {chartData.map((_, pointIndex) => {
+                    // Controlled focus dims whole non-focused series; the
+                    // hover-driven focus dims other points of the same row.
                     const dimmed =
-                      activeIndex !== null && activeIndex !== pointIndex;
+                      effectiveActiveKey !== null
+                        ? key !== effectiveActiveKey
+                        : activeIndex !== null && activeIndex !== pointIndex;
                     return (
                       <Cell
                         key={`scatter-cell-${key}-${pointIndex}`}
@@ -762,6 +909,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               );
             })}
             {renderReferenceLines()}
+            {renderAdditionalReferenceLines()}
           </ScatterChart>
         );
 
@@ -779,7 +927,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderTooltip()}
             {renderLegend()}
             {seriesKeys.map((key, index) => {
-              const isHidden = hiddenSeries.has(key);
+              const isHidden = isSeriesHidden(key);
               const color =
                 config.seriesColors?.[key] ||
                 config.color ||
