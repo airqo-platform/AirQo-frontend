@@ -8,8 +8,7 @@ const config: Config = {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
-        tsconfig: 'tsconfig.json',
-        jsx: 'react-jsx',
+        tsconfig: 'tsconfig.test.json',
       },
     ],
   },

@@ -41,6 +41,8 @@ import {
 } from '../../types';
 import { CustomTooltip } from '../ui/CustomTooltip';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
+import { ChartZoomControls } from '../ui/ChartZoomControls';
+import { useChartZoom } from '../../hooks/useChartZoom';
 import type { AqiConfig } from '@/shared/types/aqi';
 import {
   autoSelectChartType,
@@ -57,6 +59,7 @@ import {
   GRID_CONFIG,
   AXIS_CONFIG,
   CHART_ANIMATIONS,
+  ZOOM_CONFIG,
 } from '../../constants';
 import { cn } from '@/shared/lib/utils';
 
@@ -225,6 +228,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   referenceLinePeriod,
   seriesLabels,
   locationLabels,
+  zoomable,
 }) => {
   const [internalHiddenSeries, setInternalHiddenSeries] = useState<Set<string>>(
     new Set()
@@ -344,11 +348,44 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return { chartData: converted, seriesKeys: keys };
   }, [data, chartType, config.dataKey]);
 
-  // Reset the emphasis when the dataset changes so stale hover state can't
-  // leave the chart blurred after a data refresh.
+  // Zoom: ordered charts get a top-right zoom pill; the zoomed window slices
+  // the rendered rows so recharts only draws the visible points (which also
+  // lightens very heavy datasets).
+  const zoomEnabled =
+    (chartType === 'line' ||
+      chartType === 'area' ||
+      chartType === 'bar' ||
+      chartType === 'scatter') &&
+    chartData.length >= ZOOM_CONFIG.threshold;
+  const {
+    zoomRange,
+    isZoomed,
+    canZoomIn,
+    canZoomOut,
+    zoomIn,
+    zoomOut,
+    reset: resetZoom,
+  } = useChartZoom(
+    chartData as unknown as Record<string, unknown>[],
+    config.xAxisKey || 'time'
+  );
+  const showZoomControls =
+    (zoomable ?? zoomEnabled) &&
+    (chartType === 'line' ||
+      chartType === 'area' ||
+      chartType === 'bar' ||
+      chartType === 'scatter');
+
+  const visibleChartData = useMemo(() => {
+    if (!zoomRange || zoomRange.endIndex >= chartData.length) return chartData;
+    return chartData.slice(zoomRange.startIndex, zoomRange.endIndex + 1);
+  }, [chartData, zoomRange]);
+
+  // Reset the emphasis when the dataset (or the zoom window) changes so stale
+  // hover state can't leave the chart blurred after a refresh or a zoom step.
   React.useEffect(() => {
     clearHover();
-  }, [chartData, clearHover]);
+  }, [visibleChartData, clearHover]);
 
   // Handle legend toggle using native Recharts legend events. When the
   // `hiddenSeries` prop is controlled (location legend in the analytics
@@ -446,16 +483,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   }, [chartType]);
 
   const xAxisInterval = useMemo(() => {
-    if (chartData.length <= 6) {
+    if (visibleChartData.length <= 6) {
       return 0;
     }
 
-    return Math.max(Math.ceil(chartData.length / 6) - 1, 0);
-  }, [chartData.length]);
+    return Math.max(Math.ceil(visibleChartData.length / 6) - 1, 0);
+  }, [visibleChartData.length]);
 
   // Common props for all charts
   const commonProps = {
-    data: chartData as unknown as NormalizedChartData[],
+    data: visibleChartData as unknown as NormalizedChartData[],
     margin: resolvedMargin,
     ...CHART_ANIMATIONS[chartType as keyof typeof CHART_ANIMATIONS],
   };
@@ -736,6 +773,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           strokeDasharray={isDashed ? '6 4' : undefined}
           dot={renderSeriesDot}
           activeDot={renderActiveDot}
+          // Animation stays for the initial draw but is disabled while
+          // zoomed — replaying the curve on every zoom step would thrash
+          // the very datasets this feature exists for.
+          isAnimationActive={!isZoomed}
           // Forecast series are sparse (one point per forecast day) — connect
           // their gaps so the projection reads as a continuous line.
           connectNulls={isDashed}
@@ -762,6 +803,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           key={key}
           dataKey={key}
           fill={color}
+          isAnimationActive={!isZoomed}
           hide={isHidden}
           onMouseEnter={(_data: unknown, itemIndex: number) => {
             focusSeries(key);
@@ -769,7 +811,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           }}
           onMouseLeave={scheduleSeriesBlur}
         >
-          {chartData.map((_, cellIndex) => {
+          {visibleChartData.map((_, cellIndex) => {
             // A controlled focus (location legend hover) keeps every cell of
             // the focused series vivid even while the chart is not hovered;
             // the per-cell narrowing to the hovered index only applies to
@@ -804,7 +846,6 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       );
     });
   };
-
   // Proximity focus — makes the WHOLE line the hover target (see
   // HoverFocusController). Line/area charts get it; bars already have
   // precise per-bar hover targets.
@@ -887,8 +928,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
                 getPrimaryColor(index);
 
               return (
-                <Scatter key={key} dataKey={key} fill={color} hide={isHidden}>
-                  {chartData.map((_, pointIndex) => {
+                <Scatter
+                  key={key}
+                  dataKey={key}
+                  fill={color}
+                  isAnimationActive={!isZoomed}
+                  hide={isHidden}
+                >
+                  {visibleChartData.map((_, pointIndex) => {
                     // Controlled focus dims whole non-focused series; the
                     // hover-driven focus dims other points of the same row.
                     const dimmed =
@@ -1037,7 +1084,17 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   if (!chart) return null;
 
   return (
-    <div className={cn('w-full min-h-[300px] min-w-0', className)}>
+    <div className={cn('relative w-full min-h-[300px] min-w-0', className)}>
+      {showZoomControls && (
+        <ChartZoomControls
+          canZoomIn={canZoomIn}
+          canZoomOut={canZoomOut}
+          isZoomed={isZoomed}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetZoom}
+        />
+      )}
       <Container {...containerProps}>{chart}</Container>
     </div>
   );

@@ -135,6 +135,18 @@ export const CHART_TYPE_THRESHOLDS = {
   maxCategoriesForPie: 8,
 } as const;
 
+// Zoom configuration for time-series charts
+export const ZOOM_CONFIG = {
+  // Minimum data points before the zoom controls appear (auto mode).
+  // Analytics defaults are 7 days at daily frequency (~7-8 points), so the
+  // threshold must sit at or below that for the feature to be discoverable.
+  threshold: 7,
+  // Smallest allowed zoom window (in points) — below this zoom-in is disabled
+  minPoints: 4,
+  // Fraction of the current window kept when zooming in (0.5 = half)
+  step: 0.5,
+} as const;
+
 // Animation configurations
 export const CHART_ANIMATIONS = {
   line: {

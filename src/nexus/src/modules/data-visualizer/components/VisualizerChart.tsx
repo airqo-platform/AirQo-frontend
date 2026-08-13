@@ -45,6 +45,9 @@ import {
 } from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
 import { REFERENCE_LINES } from '@/shared/utils/airQuality';
+import { ChartZoomControls } from '@/shared/components/charts/components/ui/ChartZoomControls';
+import { useChartZoom } from '@/shared/components/charts/hooks/useChartZoom';
+import { ZOOM_CONFIG } from '@/shared/components/charts/constants';
 
 interface VisualizerChartProps {
   model: ChartSeriesModel;
@@ -303,7 +306,13 @@ const HoverFocusController: React.FC<HoverFocusControllerProps> = ({
   const lastReportedRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    if (!isActive || !coordinate || !yScale || !dataPoints || dataPoints.length === 0) {
+    if (
+      !isActive ||
+      !coordinate ||
+      !yScale ||
+      !dataPoints ||
+      dataPoints.length === 0
+    ) {
       return;
     }
     const row = dataPoints[0] as Record<string, unknown>;
@@ -545,11 +554,42 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     setActiveKey(null);
   }, []);
 
-  // Reset the emphasis when the dataset changes so stale hover state can't
-  // leave the chart blurred after a data refresh.
+  // Zoom: dense ordered charts get a top-right zoom pill; the zoomed window
+  // slices the rendered rows so recharts only draws the visible points
+  // (which also lightens very heavy datasets).
+  const zoomableType =
+    config.type === 'line' ||
+    config.type === 'area' ||
+    config.type === 'bar' ||
+    config.type === 'histogram' ||
+    config.type === 'composed' ||
+    config.type === 'scatter';
+  const zoomEnabled =
+    zoomableType && model.data.length >= ZOOM_CONFIG.threshold;
+  const {
+    zoomRange,
+    isZoomed,
+    canZoomIn,
+    canZoomOut,
+    zoomIn,
+    zoomOut,
+    reset: resetZoom,
+  } = useChartZoom(
+    model.data as unknown as Record<string, unknown>[],
+    model.xKey
+  );
+  const visibleData = React.useMemo(() => {
+    if (!zoomRange || zoomRange.endIndex >= model.data.length) {
+      return model.data;
+    }
+    return model.data.slice(zoomRange.startIndex, zoomRange.endIndex + 1);
+  }, [model.data, zoomRange]);
+
+  // Reset the emphasis when the dataset (or the zoom window) changes so stale
+  // hover state can't leave the chart blurred after a refresh or a zoom step.
   React.useEffect(() => {
     clearHover();
-  }, [model.data, clearHover]);
+  }, [visibleData, clearHover]);
 
   React.useEffect(() => {
     setHiddenSeries(current => {
@@ -775,7 +815,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
       const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
       const strokeOpacity =
-        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+        state === 'dimmed'
+          ? GRAYED_OPACITY
+          : state === 'band'
+            ? SOFT_BLUR
+            : FULL_OPACITY;
       const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
 
       // Resting dots appear while the chart is hovered and mark the points
@@ -787,7 +831,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         cy?: number;
         index?: number;
       }) => {
-        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+        if (
+          activeIndex === null ||
+          dotProps.cx == null ||
+          dotProps.cy == null
+        ) {
           return null;
         }
         const isDimmed = activeKey !== null && !isFocused;
@@ -822,6 +870,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeOpacity={strokeOpacity}
+          isAnimationActive={!isZoomed}
           dot={renderSeriesDot}
           activeDot={renderActiveDot}
           shape={renderLineShape}
@@ -848,7 +897,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
       const strokeColor = state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
       const strokeOpacity =
-        state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+        state === 'dimmed'
+          ? GRAYED_OPACITY
+          : state === 'band'
+            ? SOFT_BLUR
+            : FULL_OPACITY;
       const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
 
       const renderSeriesDot = (dotProps: {
@@ -857,7 +910,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         cy?: number;
         index?: number;
       }) => {
-        if (activeIndex === null || dotProps.cx == null || dotProps.cy == null) {
+        if (
+          activeIndex === null ||
+          dotProps.cx == null ||
+          dotProps.cy == null
+        ) {
           return null;
         }
         const isDimmed = activeKey !== null && !isFocused;
@@ -894,6 +951,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           fillOpacity={0.16 * strokeOpacity}
           strokeOpacity={strokeOpacity}
           strokeWidth={strokeWidth}
+          isAnimationActive={!isZoomed}
           dot={renderSeriesDot}
           activeDot={renderActiveDot}
           connectNulls={false}
@@ -918,6 +976,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           name={model.seriesLabels[key] ?? key}
           fill={color}
           maxBarSize={72}
+          isAnimationActive={!isZoomed}
           hide={hiddenSeries.has(key)}
           onMouseEnter={(_data: unknown, itemIndex: number) => {
             focusSeries(key);
@@ -925,7 +984,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           }}
           onMouseLeave={scheduleSeriesBlur}
         >
-          {model.data.map((_, cellIndex) => {
+          {visibleData.map((_, cellIndex) => {
             const focused = activeKey === key && activeIndex === cellIndex;
             const dimmed = activeKey !== null && !focused;
             return (
@@ -937,7 +996,12 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 // valid at runtime (rounded top corners on the focused bar).
                 radius={
                   focused
-                    ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                    ? ([6, 6, 0, 0] as [
+                        number,
+                        number,
+                        number,
+                        number,
+                      ] as unknown as number)
                     : 0
                 }
                 stroke={focused ? color : 'none'}
@@ -1003,7 +1067,8 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   );
 
   const renderChart = () => {
-    if (config.type === 'pie') {      const valueKey = model.seriesKeys[0];
+    if (config.type === 'pie') {
+      const valueKey = model.seriesKeys[0];
 
       return (
         <PieChart>
@@ -1066,25 +1131,35 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'scatter') {
       return (
-        <ScatterChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
+        <ScatterChart
+          data={visibleData}
+          margin={cartesianMargin}
+          onMouseLeave={clearHover}
+        >
           {grid}
           {renderCartesianAxes(true)}
           {tooltip}
           {legend}
           {renderReferenceLines()}
           {model.seriesKeys.map((key, index) => {
-            const seriesData = model.data.filter(point => point[key] !== null);
+            // Null filtering drops rows, so pair each kept point with its
+            // chart-level index — otherwise the hover dimming (which uses the
+            // chart's `activeIndex`) would compare against shifted indices.
+            const seriesData = visibleData
+              .map((point, pointIndex) => ({ point, pointIndex }))
+              .filter(({ point }) => point[key] !== null);
             const color = getChartSeriesColor(key, index);
             return (
               <Scatter
                 key={key}
-                data={seriesData}
+                data={seriesData.map(({ point }) => point)}
                 dataKey={key}
                 name={model.seriesLabels[key] ?? key}
                 fill={color}
+                isAnimationActive={!isZoomed}
                 hide={hiddenSeries.has(key)}
               >
-                {seriesData.map((_, pointIndex) => {
+                {seriesData.map(({ pointIndex }) => {
                   const dimmed =
                     activeIndex !== null && activeIndex !== pointIndex;
                   return (
@@ -1104,7 +1179,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'area') {
       return (
-        <AreaChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
+        <AreaChart
+          data={visibleData}
+          margin={cartesianMargin}
+          onMouseLeave={clearHover}
+        >
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -1125,7 +1204,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'bar' || config.type === 'histogram') {
       return (
-        <BarChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
+        <BarChart
+          data={visibleData}
+          margin={cartesianMargin}
+          onMouseLeave={clearHover}
+        >
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -1138,7 +1221,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
     if (config.type === 'composed') {
       return (
-        <ComposedChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
+        <ComposedChart
+          data={visibleData}
+          margin={cartesianMargin}
+          onMouseLeave={clearHover}
+        >
           {grid}
           {renderCartesianAxes()}
           {tooltip}
@@ -1157,14 +1244,15 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                   fill={color}
                   fillOpacity={0.72}
                   maxBarSize={64}
+                  isAnimationActive={!isZoomed}
                   hide={hiddenSeries.has(key)}
                   onMouseEnter={(_data: unknown, itemIndex: number) => {
-            focusSeries(key);
-            setActiveIndex(itemIndex);
-          }}
+                    focusSeries(key);
+                    setActiveIndex(itemIndex);
+                  }}
                   onMouseLeave={scheduleSeriesBlur}
                 >
-                  {model.data.map((_, cellIndex) => {
+                  {visibleData.map((_, cellIndex) => {
                     const focusedCell =
                       activeKey === key && activeIndex === cellIndex;
                     const dimmed = activeKey !== null && !focusedCell;
@@ -1172,10 +1260,17 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                       <Cell
                         key={`cell-${key}-${cellIndex}`}
                         fill={dimmed ? GRAYED_SERIES_COLOR : color}
-                        fillOpacity={dimmed ? GRAYED_OPACITY * 0.72 : FULL_OPACITY * 0.72}
+                        fillOpacity={
+                          dimmed ? GRAYED_OPACITY * 0.72 : FULL_OPACITY * 0.72
+                        }
                         radius={
                           focusedCell
-                            ? ([6, 6, 0, 0] as [number, number, number, number] as unknown as number)
+                            ? ([6, 6, 0, 0] as [
+                                number,
+                                number,
+                                number,
+                                number,
+                              ] as unknown as number)
                             : 0
                         }
                         stroke={focusedCell ? color : 'none'}
@@ -1199,7 +1294,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             const strokeColor =
               state === 'dimmed' ? GRAYED_SERIES_COLOR : color;
             const strokeOpacity =
-              state === 'dimmed' ? GRAYED_OPACITY : state === 'band' ? SOFT_BLUR : FULL_OPACITY;
+              state === 'dimmed'
+                ? GRAYED_OPACITY
+                : state === 'band'
+                  ? SOFT_BLUR
+                  : FULL_OPACITY;
             const strokeWidth = 2 + (state === 'focused' ? 1 : 0);
 
             const renderSeriesDot = (dotProps: {
@@ -1247,6 +1346,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
                 strokeOpacity={strokeOpacity}
+                isAnimationActive={!isZoomed}
                 dot={renderSeriesDot}
                 activeDot={renderActiveDot}
                 shape={renderLineShape}
@@ -1269,7 +1369,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     }
 
     return (
-      <LineChart data={model.data} margin={cartesianMargin} onMouseLeave={clearHover}>
+      <LineChart
+        data={visibleData}
+        margin={cartesianMargin}
+        onMouseLeave={clearHover}
+      >
         {grid}
         {renderCartesianAxes()}
         {tooltip}
@@ -1289,7 +1393,20 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   };
 
   return (
-    <div className={cn('min-w-0', className)} style={{ height: config.height }}>
+    <div
+      className={cn('relative min-w-0', className)}
+      style={{ height: config.height }}
+    >
+      {zoomEnabled && (
+        <ChartZoomControls
+          canZoomIn={canZoomIn}
+          canZoomOut={canZoomOut}
+          isZoomed={isZoomed}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetZoom}
+        />
+      )}
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         {renderChart()}
       </ResponsiveContainer>

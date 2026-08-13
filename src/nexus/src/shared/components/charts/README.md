@@ -134,6 +134,40 @@ const AdvancedChart = () => {
 };
 ```
 
+## 🔍 Zooming Into Charts
+
+Dense time-series charts (line, area, bar, scatter) come with a floating
+zoom control pill in the **top-right corner of the chart plot** — a small
+round button group with **+ / −** icons (and a labeled **Reset** while
+zoomed in).
+
+### How to use it
+
+1. **Zoom in (+)** — halves the visible time window around the current
+   view's center. Keep clicking to drill down further (minimum window:
+   4 data points).
+2. **Zoom out (−)** — doubles the window back toward the full range.
+3. **Reset** — appears only while zoomed; returns to the full dataset.
+4. **Hover** either icon for a tooltip explaining the action.
+
+### When it appears
+
+- **Automatically** on line/area/bar/scatter charts with **7 or more data
+  points** (the analytics default — 7 days at daily frequency — qualifies).
+- Never on pie/radar charts, and never on charts with fewer than 7 points
+  (there is nothing to zoom).
+- `zoomable={false}` forces it off; `zoomable={true}` forces it on (still
+  only on the zoom-capable types above).
+
+### What it does under the hood
+
+Zooming **slices the rendered data client-side** — no refetch, no cache
+impact, no API call. The chart only draws the visible window, which also
+makes very heavy datasets (thousands of points) lighter to render while
+zoomed. Animation is suspended during zoom steps to avoid re-animating the
+whole curve on every click. Exported PNG/PDF images never include the zoom
+controls.
+
 ## 🎨 Component API
 
 ### ChartContainer

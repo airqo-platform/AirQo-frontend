@@ -225,6 +225,15 @@ export interface DynamicChartProps {
    * the tooltip's "Location:" line so it matches what the user selected.
    */
   locationLabels?: Record<string, string>;
+  /**
+   * Enables the top-right zoom controls (zoom in / out / reset) that window
+   * the rendered data. Defaults to auto — controls appear only on dense
+   * ordered charts (line/area/bar/scatter) above the zoom threshold.
+   * Pass `false` to force-disable, `true` to force-enable (still only on
+   * the zoom-capable chart types above — never on pie/radar, which don't
+   * support windowing).
+   */
+  zoomable?: boolean;
 }
 
 /** A generic reference line drawn on top of the chart (x or y anchored). */
