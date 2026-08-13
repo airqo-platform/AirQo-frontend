@@ -37,7 +37,7 @@ A comprehensive, dynamic chart component system built with React, Recharts, and 
 The chart components are already installed as part of the project. Required dependencies:
 
 ```bash
-yarn add recharts@^3.2.1 react-icons@^5.5.0 html2canvas@^1.4.1 jspdf@^3.0.3
+yarn add recharts@^3.2.1 react-icons@^5.5.0 html-to-image@^1.11.13 jspdf@^3.0.3
 ```
 
 ## 🚀 Quick Start

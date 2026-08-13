@@ -5,45 +5,33 @@ import { ExportOptions, ExportOptionsPartial } from '../types';
 
 const PAINT_ATTRIBUTES = ['fill', 'stroke', 'stop-color'] as const;
 
-/**
- * Resolves CSS-var / color-mix paint values (fill, stroke, stop-color) on
- * SVG elements to their concrete computed colors.
- *
- * Recharts writes series colors as SVG presentation attributes. html2canvas
- * serializes the chart SVG into a standalone `data:image/svg+xml` image (and
- * exported .svg files are viewed outside the page) — neither context can
- * resolve `rgb(var(--primary))` or `color-mix(... var(--primary) ...)`
- * against the page's stylesheet, so those paints would rasterize black.
- * The live page (and html2canvas' cloned iframe document, which copies the
- * page's stylesheets) CAN compute them, so we replace the attribute values
- * with their computed colors before rendering/serializing.
- */
-const resolveSvgPaintAttributes = (svgRoot: Element, win: Window): void => {
-  const svg =
-    svgRoot.tagName.toLowerCase() === 'svg'
-      ? svgRoot
-      : svgRoot.querySelector('svg');
-  if (!svg) return;
+/** Export canvas background — charts are shared as light documents. */
+const EXPORT_BACKGROUND_COLOR = '#ffffff';
 
-  svg
-    .querySelectorAll<SVGElement>('[fill], [stroke], [stop-color]')
-    .forEach(element => {
-      PAINT_ATTRIBUTES.forEach(attribute => {
-        const raw = element.getAttribute(attribute);
-        if (
-          !raw ||
-          (!raw.includes('var(') && !raw.includes('color-mix('))
-        ) {
-          return;
-        }
-        const computed = win.getComputedStyle(element).getPropertyValue(
-          attribute
-        );
-        if (computed && computed.trim()) {
-          element.setAttribute(attribute, computed.trim());
-        }
-      });
-    });
+/**
+ * Transient marker pinned on the export root while a PNG/PDF capture runs.
+ * With html-to-image the capture is rendered by the BROWSER (SVG
+ * `<foreignObject>`), so the clone inherits the live computed styles —
+ * including dark-mode `text-foreground` colors, which would be invisible on
+ * the white export canvas. globals.css scopes `[data-export-light]` rules
+ * that pin export typography (headings, legend) to dark while the marker is
+ * present; it is removed as soon as the capture resolves.
+ */
+export const EXPORT_LIGHT_ATTR = 'data-export-light';
+
+/**
+ * Elements excluded from PNG/PDF exports: interactive chrome (More menu,
+ * filters, inline title editor, footer actions, zoom controls) and loading
+ * overlays. html-to-image clones the element's own box — unlike html2canvas
+ * it never captures surrounding page content — so the exported image is
+ * exactly the card the user sees (title, chart, legend included).
+ */
+const isExportIgnored = (node: unknown): boolean => {
+  if (!(node instanceof HTMLElement)) return false;
+  return (
+    node.hasAttribute('data-export-ignore') ||
+    node.hasAttribute('data-html2canvas-ignore')
+  );
 };
 
 /**
@@ -57,7 +45,9 @@ const resolvePaintsOnDetachedClone = (
   cloneSvg: SVGElement
 ): void => {
   const selector = '[fill], [stroke], [stop-color]';
-  const liveElements = Array.from(liveSvg.querySelectorAll<SVGElement>(selector));
+  const liveElements = Array.from(
+    liveSvg.querySelectorAll<SVGElement>(selector)
+  );
   const cloneElements = Array.from(
     cloneSvg.querySelectorAll<SVGElement>(selector)
   );
@@ -78,168 +68,6 @@ const resolvePaintsOnDetachedClone = (
       }
     });
   });
-};
-
-const applyCloneStyles = (clonedDoc: Document) => {
-  const view = clonedDoc.defaultView;
-  const HTMLElementCtor = view?.HTMLElement;
-  const SVGElementCtor = view?.SVGElement;
-
-  const applyStyles = (
-    element: Element | null,
-    styles: Partial<CSSStyleDeclaration>
-  ) => {
-    if (!element) {
-      return;
-    }
-    const hasRealmCtors = Boolean(HTMLElementCtor || SVGElementCtor);
-
-    if (hasRealmCtors) {
-      const isHTMLElement = HTMLElementCtor
-        ? element instanceof HTMLElementCtor
-        : false;
-      const isSVGElement = SVGElementCtor
-        ? element instanceof SVGElementCtor
-        : false;
-
-      // If the cloned document provides realm-specific constructors, use them
-      // to verify element instances. If the element does not belong to the
-      // cloned realm, skip styling it.
-      if (!isHTMLElement && !isSVGElement) return;
-    } else {
-      // Fallback: if we can't access realm constructors, ensure the element
-      // exposes a style object we can mutate (safely skip otherwise).
-      try {
-        const candidate = element as unknown as {
-          style?: { setProperty?: unknown };
-        };
-        if (
-          !candidate.style ||
-          typeof candidate.style.setProperty !== 'function'
-        )
-          return;
-      } catch {
-        return;
-      }
-    }
-
-    let styleObj: CSSStyleDeclaration | undefined;
-    const maybeHTMLElement = element as HTMLElement;
-    const maybeSVGElement = element as SVGElement;
-
-    if (
-      maybeHTMLElement &&
-      maybeHTMLElement.style &&
-      typeof (maybeHTMLElement.style as unknown as { setProperty?: unknown })
-        .setProperty === 'function'
-    ) {
-      styleObj = maybeHTMLElement.style as unknown as CSSStyleDeclaration;
-    } else if (
-      maybeSVGElement &&
-      maybeSVGElement.style &&
-      typeof (maybeSVGElement.style as unknown as { setProperty?: unknown })
-        .setProperty === 'function'
-    ) {
-      styleObj = maybeSVGElement.style as unknown as CSSStyleDeclaration;
-    } else {
-      return;
-    }
-
-    if (!styleObj || typeof styleObj.setProperty !== 'function') return;
-
-    Object.entries(styles).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        styleObj.setProperty(
-          key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`),
-          String(value)
-        );
-      }
-    });
-  };
-
-  clonedDoc.querySelectorAll('*').forEach(element => {
-    applyStyles(element, {
-      color: 'inherit',
-      backgroundColor: 'transparent',
-      borderColor: 'inherit',
-    });
-  });
-
-  // Export-root text (title/subtitle/metadata) renders on a white document
-  // background — pin it to dark so dark-mode themes don't produce
-  // invisible or washed-out headings in the exported image.
-  clonedDoc
-    .querySelectorAll('[data-export-root] h1, [data-export-root] h2, [data-export-root] h3, [data-export-root] p')
-    .forEach(element => {
-      applyStyles(element, {
-        color: '#111827',
-      });
-    });
-
-  clonedDoc.querySelectorAll('.recharts-wrapper').forEach(element => {
-    applyStyles(element, {
-      margin: '0 auto',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    });
-  });
-
-  clonedDoc.querySelectorAll('.recharts-legend-wrapper').forEach(element => {
-    applyStyles(element, {
-      backgroundColor: 'transparent',
-      fontSize: '12px',
-      fontFamily: 'inherit',
-    });
-  });
-
-  clonedDoc
-    .querySelectorAll(
-      '.recharts-legend-item, .recharts-legend-item-text, .recharts-legend-item text'
-    )
-    .forEach(element => {
-      applyStyles(element, {
-        fill: '#000000',
-        color: '#000000',
-        fontSize: '12px',
-        fontFamily: 'inherit',
-      });
-    });
-
-  clonedDoc
-    .querySelectorAll(
-      '.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line, .recharts-cartesian-grid-line'
-    )
-    .forEach(element => {
-      applyStyles(element, {
-        stroke: '#e5e7eb',
-      });
-    });
-
-  clonedDoc
-    .querySelectorAll('.recharts-tooltip, .recharts-tooltip *')
-    .forEach(element => {
-      applyStyles(element, {
-        color: '#000000',
-        fill: '#000000',
-        backgroundColor: '#ffffff',
-      });
-    });
-
-  // Resolve CSS-var / color-mix paints to concrete colors: html2canvas
-  // rasterizes the chart SVG as an isolated image where the page's CSS
-  // custom properties don't exist (theme-shade series, palette index 0 and
-  // legend swatches would otherwise export black).
-  const clonedWindow = clonedDoc.defaultView;
-  if (clonedWindow) {
-    // Recharts renders one SVG per chart (plot + per-item legend swatches) —
-    // resolve paints on every one of them.
-    clonedDoc
-      .querySelectorAll('.recharts-wrapper svg')
-      .forEach(svg => {
-        resolveSvgPaintAttributes(svg, clonedWindow);
-      });
-  }
 };
 
 const ensureFilenameExtension = (filename: string, extension: string) => {
@@ -268,54 +96,44 @@ export const useChartExport = () => {
     return element;
   }, []);
 
-  const renderChartToCanvas = useCallback(
-    async (options: ExportOptionsPartial = {}) => {
-      const element = getExportElement();
-      const { default: html2canvas } = await import('html2canvas');
+  /**
+   * Renders the export root to a canvas via html-to-image (SVG
+   * foreignObject). The capture covers the element's OWN bounding box, so
+   * the title/subtitle, chart and legend are all included exactly as laid
+   * out on screen — no page-level cropping, no clone re-layout.
+   */
+  const renderChartToCanvas = useCallback(async () => {
+    const element = getExportElement();
+    const { width, height } = element.getBoundingClientRect();
+    if (width === 0 || height === 0) {
+      throw new Error('Chart container has no visible content');
+    }
 
-      // Full-size exports: measure the live element and pin the cloned
-      // export root to the same pixel size so fluid containers render at
-      // their real dimensions in the detached clone.
-      const measuredWidth = options.width ?? element.offsetWidth;
-      const measuredHeight = options.height ?? element.offsetHeight;
+    // Wait for webfonts so the captured text is complete and crisp.
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
 
-      return html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        width: measuredWidth,
-        height: measuredHeight,
-        ignoreElements: element => {
-          const htmlElement = element as HTMLElement;
-          return (
-            element.classList.contains('hidden') ||
-            element.hasAttribute('data-export-ignore') ||
-            htmlElement.style?.display === 'none' ||
-            htmlElement.style?.visibility === 'hidden'
-          );
-        },
-        onclone: (clonedDoc: Document) => {
-          applyCloneStyles(clonedDoc);
-          const exportRoot = clonedDoc.querySelector<HTMLElement>(
-            '[data-export-root]'
-          );
-          if (exportRoot) {
-            exportRoot.style.width = `${measuredWidth}px`;
-            exportRoot.style.height = `${measuredHeight}px`;
-            exportRoot.style.overflow = 'hidden';
-          }
-        },
+    const { toCanvas } = await import('html-to-image');
+
+    element.setAttribute(EXPORT_LIGHT_ATTR, 'true');
+    try {
+      return await toCanvas(element, {
+        backgroundColor: EXPORT_BACKGROUND_COLOR,
+        // 2x supersampling keeps lines/text crisp in PNG and PDF.
+        pixelRatio: 2,
+        cacheBust: true,
+        filter: node => !isExportIgnored(node),
       });
-    },
-    [getExportElement]
-  );
+    } finally {
+      element.removeAttribute(EXPORT_LIGHT_ATTR);
+    }
+  }, [getExportElement]);
 
   const exportToPNG = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
-        const canvas = await renderChartToCanvas(options);
+        const canvas = await renderChartToCanvas();
         const filename = ensureFilenameExtension(
           options.filename || `air-quality-chart-${Date.now()}`,
           'png'
@@ -341,7 +159,7 @@ export const useChartExport = () => {
   const exportToPDF = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
-        const canvas = await renderChartToCanvas(options);
+        const canvas = await renderChartToCanvas();
         const filename = ensureFilenameExtension(
           options.filename || `air-quality-chart-${Date.now()}`,
           'pdf'

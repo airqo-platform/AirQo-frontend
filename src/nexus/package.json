@@ -47,7 +47,7 @@
     "flowbite-react": "0.12.17",
     "framer-motion": "12.38.0",
     "fuse.js": "^7.3.0",
-    "html2canvas": "^1.4.1",
+    "html-to-image": "^1.11.13",
     "jspdf": "3.0.4",
     "jspdf-autotable": "5.0.7",
     "libphonenumber-js": "^1.12.41",

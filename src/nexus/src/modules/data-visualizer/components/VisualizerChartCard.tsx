@@ -29,6 +29,7 @@ import {
   formatMeasurementLabel,
   formatSelectOptionLabel,
 } from '../utils/measurementLabels';
+import { EXPORT_LIGHT_ATTR } from '@/shared/components/charts/hooks/useChartExport';
 import {
   Button,
   Card,
@@ -82,9 +83,6 @@ const MAP_LAYER_LABELS: Record<
   grid: 'Grid choropleth',
 };
 
-const EXPORT_TEXT_COLOR = '#1c1d20';
-const EXPORT_MUTED_COLOR = '#64748b';
-const EXPORT_BORDER_COLOR = '#e2e8f0';
 const EXPORT_BACKGROUND_COLOR = '#ffffff';
 const EMPTY_MAP_MODEL: ChartSeriesModel = {
   data: [],
@@ -132,211 +130,6 @@ const getColorInputValue = (
   index: number
 ) =>
   colors[key] || COLOR_PICKER_FALLBACKS[index % COLOR_PICKER_FALLBACKS.length];
-
-const isTransparentColor = (value: string) =>
-  !value ||
-  value === 'transparent' ||
-  value === 'rgba(0, 0, 0, 0)' ||
-  value === 'rgb(0 0 0 / 0)';
-
-const parseColorComponent = (value: string) => {
-  const normalized = value.trim();
-
-  if (normalized.endsWith('%')) {
-    return (Number(normalized.slice(0, -1)) / 100) * 255;
-  }
-
-  const numericValue = Number(normalized);
-  return numericValue <= 1 ? numericValue * 255 : numericValue;
-};
-
-const normalizeCssColor = (value: string, fallback: string) => {
-  const color = value.trim();
-
-  if (!color || color === 'currentColor') {
-    return fallback;
-  }
-
-  if (color === 'transparent' || color === 'none') {
-    return color;
-  }
-
-  const rgbMatch = color.match(/^rgba?\((.+)\)$/i);
-  if (rgbMatch) {
-    const [channelsPart, alphaPart] = rgbMatch[1].split('/');
-    const channels = channelsPart
-      .trim()
-      .split(/[\s,]+/)
-      .filter(Boolean)
-      .slice(0, 3)
-      .map(parseColorComponent);
-    const alpha = alphaPart ? Number(alphaPart.trim()) : undefined;
-
-    if (channels.length === 3 && channels.every(Number.isFinite)) {
-      const [red, green, blue] = channels.map(channel =>
-        Math.max(0, Math.min(255, Math.round(channel)))
-      );
-
-      return Number.isFinite(alpha)
-        ? `rgba(${red}, ${green}, ${blue}, ${alpha})`
-        : `rgb(${red}, ${green}, ${blue})`;
-    }
-  }
-
-  const srgbMatch = color.match(/^color\(\s*srgb\s+(.+)\)$/i);
-  if (srgbMatch) {
-    const [channelsPart, alphaPart] = srgbMatch[1].split('/');
-    const channels = channelsPart
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 3)
-      .map(parseColorComponent);
-    const alpha = alphaPart ? Number(alphaPart.trim()) : undefined;
-
-    if (channels.length === 3 && channels.every(Number.isFinite)) {
-      const [red, green, blue] = channels.map(channel =>
-        Math.max(0, Math.min(255, Math.round(channel)))
-      );
-
-      return Number.isFinite(alpha)
-        ? `rgba(${red}, ${green}, ${blue}, ${alpha})`
-        : `rgb(${red}, ${green}, ${blue})`;
-    }
-  }
-
-  if (typeof document !== 'undefined') {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    if (context) {
-      context.fillStyle = '#010203';
-      context.fillStyle = color;
-
-      if (context.fillStyle !== '#010203') {
-        return context.fillStyle;
-      }
-    }
-  }
-
-  return fallback;
-};
-
-const applyExportCloneStyles = (
-  documentClone: Document,
-  chartId: string,
-  originalRoot: HTMLElement
-) => {
-  const clonedRoot = documentClone.querySelector(
-    `[data-chart-export-id="${chartId}"]`
-  );
-  const cloneView = documentClone.defaultView;
-
-  if (!cloneView || !(clonedRoot instanceof cloneView.HTMLElement)) {
-    return;
-  }
-
-  const originalElements = [
-    originalRoot,
-    ...Array.from(originalRoot.querySelectorAll('*')),
-  ];
-  const clonedElements = [
-    clonedRoot,
-    ...Array.from(clonedRoot.querySelectorAll('*')),
-  ];
-  const SVGElementCtor = cloneView.SVGElement;
-
-  clonedRoot.style.boxShadow = 'none';
-  clonedRoot.style.overflow = 'visible';
-  clonedRoot.style.paddingTop = '24px';
-  clonedRoot.style.paddingBottom = '24px';
-  clonedRoot.style.backgroundColor = EXPORT_BACKGROUND_COLOR;
-  clonedRoot.style.color = EXPORT_TEXT_COLOR;
-
-  clonedElements.forEach((clonedElement, index) => {
-    const originalElement = originalElements[index];
-
-    if (!originalElement) {
-      return;
-    }
-
-    const computedStyles = window.getComputedStyle(originalElement);
-    const clonedStyle = (clonedElement as HTMLElement | SVGElement).style;
-
-    if (clonedStyle) {
-      clonedStyle.color = normalizeCssColor(
-        computedStyles.color,
-        EXPORT_TEXT_COLOR
-      );
-      clonedStyle.borderColor = normalizeCssColor(
-        computedStyles.borderTopColor,
-        EXPORT_BORDER_COLOR
-      );
-
-      if (!isTransparentColor(computedStyles.backgroundColor)) {
-        clonedStyle.backgroundColor = normalizeCssColor(
-          computedStyles.backgroundColor,
-          EXPORT_BACKGROUND_COLOR
-        );
-      }
-    }
-
-    const isSvgElement = SVGElementCtor
-      ? clonedElement instanceof SVGElementCtor
-      : clonedElement.namespaceURI === 'http://www.w3.org/2000/svg';
-
-    if (!isSvgElement) {
-      return;
-    }
-
-    const originalSvgElement = originalElement as SVGElement;
-    const clonedSvgElement = clonedElement as SVGElement;
-    const fillAttribute = originalSvgElement.getAttribute('fill');
-    const strokeAttribute = originalSvgElement.getAttribute('stroke');
-
-    if (fillAttribute && fillAttribute !== 'none') {
-      clonedSvgElement.setAttribute(
-        'fill',
-        normalizeCssColor(computedStyles.fill, EXPORT_TEXT_COLOR)
-      );
-    }
-
-    if (strokeAttribute && strokeAttribute !== 'none') {
-      clonedSvgElement.setAttribute(
-        'stroke',
-        normalizeCssColor(computedStyles.stroke, EXPORT_BORDER_COLOR)
-      );
-    }
-  });
-
-  documentClone
-    .querySelectorAll('.recharts-legend-wrapper')
-    .forEach(element => {
-      if (element instanceof cloneView.HTMLElement) {
-        element.style.color = EXPORT_TEXT_COLOR;
-        element.style.backgroundColor = 'transparent';
-      }
-    });
-
-  documentClone
-    .querySelectorAll('.recharts-legend-item-text, .recharts-text')
-    .forEach(element => {
-      const style = (element as HTMLElement | SVGElement).style;
-      style.color = EXPORT_MUTED_COLOR;
-      style.fill = EXPORT_MUTED_COLOR;
-    });
-
-  const clonedTitle = documentClone.querySelector(
-    `[data-chart-export-title="${chartId}"]`
-  );
-
-  if (clonedTitle instanceof cloneView.HTMLElement) {
-    clonedTitle.style.whiteSpace = 'normal';
-    clonedTitle.style.overflow = 'visible';
-    clonedTitle.style.textOverflow = 'clip';
-    clonedTitle.style.color = EXPORT_TEXT_COLOR;
-  }
-};
 
 export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   datasets,
@@ -485,42 +278,68 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
     setIsExporting(true);
     try {
       await document.fonts?.ready;
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
+      const [{ toCanvas }, { jsPDF }] = await Promise.all([
+        import('html-to-image'),
         import('jspdf'),
       ]);
       const exportElement = captureRef.current;
-      const exportRect = exportElement.getBoundingClientRect();
-      const canvas = await html2canvas(exportElement, {
-        backgroundColor: EXPORT_BACKGROUND_COLOR,
-        scale: Math.min(3, window.devicePixelRatio || 2),
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        width: Math.ceil(exportRect.width),
-        height: Math.ceil(exportRect.height),
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: Math.max(
-          document.documentElement.scrollWidth,
-          Math.ceil(exportRect.width)
-        ),
-        windowHeight: Math.max(
-          document.documentElement.scrollHeight,
-          Math.ceil(exportRect.height)
-        ),
-        ignoreElements: element => {
-          const htmlElement = element as HTMLElement;
-          return (
-            element.hasAttribute('data-html2canvas-ignore') ||
-            htmlElement.style?.display === 'none' ||
-            htmlElement.style?.visibility === 'hidden'
-          );
-        },
-        onclone: documentClone => {
-          applyExportCloneStyles(documentClone, chart.id, exportElement);
-        },
-      });
+
+      // The on-screen title truncates with an ellipsis — the export shows
+      // the full title instead (styles are saved/restored so the live card
+      // is untouched).
+      const titleElement = exportElement.querySelector<HTMLElement>(
+        `[data-chart-export-title="${chart.id}"]`
+      );
+      const savedTitleStyles = new Map<string, string>();
+      if (titleElement) {
+        (['whiteSpace', 'overflow', 'textOverflow'] as const).forEach(
+          property => {
+            savedTitleStyles.set(
+              property,
+              titleElement.style.getPropertyValue(property)
+            );
+            titleElement.style.setProperty(
+              property,
+              property === 'whiteSpace'
+                ? 'normal'
+                : property === 'overflow'
+                  ? 'visible'
+                  : 'clip'
+            );
+          }
+        );
+      }
+
+      // html-to-image renders the export root's OWN box via the browser
+      // (SVG foreignObject) — no page-level cropping, real computed styles,
+      // so the captured image matches the card on screen (title, subtitle,
+      // legend, colors included).
+      let canvas: HTMLCanvasElement;
+      try {
+        exportElement.setAttribute(EXPORT_LIGHT_ATTR, 'true');
+        canvas = await toCanvas(exportElement, {
+          backgroundColor: EXPORT_BACKGROUND_COLOR,
+          pixelRatio: Math.min(3, window.devicePixelRatio || 2),
+          cacheBust: true,
+          filter: node =>
+            !(
+              node instanceof HTMLElement &&
+              (node.hasAttribute('data-export-ignore') ||
+                node.hasAttribute('data-html2canvas-ignore'))
+            ),
+        });
+      } finally {
+        exportElement.removeAttribute(EXPORT_LIGHT_ATTR);
+        if (titleElement) {
+          savedTitleStyles.forEach((value, property) => {
+            if (value) {
+              titleElement.style.setProperty(property, value);
+            } else {
+              titleElement.style.removeProperty(property);
+            }
+          });
+        }
+      }
       const filename = sanitizeFilename(title);
 
       if (format === 'png') {
