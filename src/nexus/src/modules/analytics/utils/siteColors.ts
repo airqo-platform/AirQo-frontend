@@ -2,19 +2,27 @@ import {
   getPrimaryColor,
   PRIMARY_COLOR_PALETTE,
 } from '@/shared/components/charts/constants';
+import { getThemeShade } from '@/shared/components/charts/colors';
 import type { ExplorerChartDraft } from './chartConfig';
 
 /**
  * Theme-default series color for a site at `index` within the selected list.
  *
- * Sites are assigned distinct palette shades by their position in the
- * selection, so creating a chart with multiple sites always yields
- * distinguishable series without any manual picking. The palette has 20
- * distinct hues; once it repeats (more selections than palette entries) each
- * successive cycle is lightened via white mix so repeated shades remain
- * visually distinct without becoming transparent.
+ * In palette mode (default), sites are assigned distinct palette shades by
+ * their position in the selection, so creating a chart with multiple sites
+ * always yields distinguishable series without any manual picking. The
+ * palette has 20 distinct hues; once it repeats (more selections than
+ * palette entries) each successive cycle is lightened via white mix so
+ * repeated shades remain visually distinct without becoming transparent.
+ *
+ * In theme mode (`themeColors`), sites get shades of the ACTIVE theme
+ * primary instead (see `getThemeShade`).
  */
-export const getDefaultSiteColor = (index: number): string => {
+export const getDefaultSiteColor = (
+  index: number,
+  themeColors = false
+): string => {
+  if (themeColors) return getThemeShade(index);
   const base = getPrimaryColor(index);
   const cycle = Math.floor(index / PRIMARY_COLOR_PALETTE.length);
   if (cycle === 0) return base;
@@ -74,7 +82,7 @@ export const resolveSiteColor = (
   index: number
 ): string =>
   draft.locationColors.find(entry => entry.id === siteId)?.color ??
-  getDefaultSiteColor(index);
+  getDefaultSiteColor(index, draft.themeColors);
 
 /**
  * Materializes one explicit color entry per selected site — unset sites get
@@ -84,11 +92,22 @@ export const resolveSiteColor = (
  * chart color). Collisions with already-used colors (including a pick that
  * duplicates another site's default) roll forward to the next free palette
  * shade so no two sites ever share a color.
+ *
+ * In theme mode (`themeColors`), defaults are theme-primary shades resolved
+ * at RENDER time (they can't be frozen into storage — `color-mix(...)` strings
+ * are meaningless off-app), so only explicit picks are persisted here.
  */
 export const materializeSiteColors = (
   siteIds: string[],
-  locationColors: { id: string; color: string }[]
+  locationColors: { id: string; color: string }[],
+  themeColors = false
 ): { id: string; color: string }[] => {
+  if (themeColors) {
+    return siteIds
+      .map(siteId => locationColors.find(entry => entry.id === siteId))
+      .filter((entry): entry is { id: string; color: string } => !!entry);
+  }
+
   const used = new Set<string>();
   return siteIds.map((siteId, index) => {
     const picked = locationColors.find(entry => entry.id === siteId)?.color;

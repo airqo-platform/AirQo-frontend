@@ -11,6 +11,7 @@ import {
   AqEdit02,
   AqCheck,
   AqXClose,
+  AqPalette,
 } from '@airqo/icons-react';
 
 import {
@@ -63,6 +64,8 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   currentFilters,
   showReferenceLines: initialShowReferenceLines = true,
   onReferenceLinesToggle,
+  themeColors = false,
+  onThemeColorsToggle,
   onStandardsChange,
   selectedStandards,
   currentSites,
@@ -427,6 +430,17 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           >
             Reference Lines: {showReferenceLines ? 'On' : 'Off'}
           </button>
+
+          {/* Theme Colors Toggle — shades of the active theme vs fixed palette */}
+          {onThemeColorsToggle && (
+            <button
+              onClick={onThemeColorsToggle}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <AqPalette className="h-4 w-4 mr-2" />
+              Theme colors: {themeColors ? 'On' : 'Off'}
+            </button>
+          )}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

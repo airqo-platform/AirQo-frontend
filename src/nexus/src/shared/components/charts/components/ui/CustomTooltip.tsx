@@ -28,6 +28,11 @@ interface CustomTooltipProps extends TooltipData {
    * The rest of the chart is blurred in DynamicChart to match.
    */
   focusedDataKey?: string | null;
+  /**
+   * Overrides the header date rendering (used when the x values are not ISO
+   * timestamps, e.g. year buckets in the rankings history chart).
+   */
+  tooltipDateFormatter?: (label: string | number) => string;
 }
 
 const formatTooltipDate = (
@@ -36,9 +41,16 @@ const formatTooltipDate = (
 ): string => {
   try {
     const date = parseISO(String(label));
-    // Show time only for hourly/raw frequencies
     if (frequency === 'raw' || frequency === 'hourly') {
       return format(date, 'MMM dd, yyyy HH:mm');
+    }
+    if (frequency === 'monthly') {
+      // Month buckets parse to the 1st — the day is meaningless for a month
+      // average, so drop it (mirrors the axis label).
+      return format(date, 'MMM yyyy');
+    }
+    if (frequency === 'weekly') {
+      return format(date, 'MMM dd, yyyy');
     }
     return format(date, 'MMM dd, yyyy');
   } catch {
@@ -58,6 +70,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   focusedDataKey = null,
   seriesLabels,
   locationLabels,
+  tooltipDateFormatter,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -88,7 +101,9 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     >
       {/* Header with timestamp */}
       <div className="text-sm font-medium text-muted-foreground mb-2">
-        {formatTooltipDate(label || '', frequency)}
+        {tooltipDateFormatter
+          ? tooltipDateFormatter(label || '')
+          : formatTooltipDate(label || '', frequency)}
       </div>
 
       {/* Data entries */}

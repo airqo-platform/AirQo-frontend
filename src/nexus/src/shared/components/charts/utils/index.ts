@@ -206,8 +206,15 @@ export const decimateRows = <T extends Record<string, unknown>>(
 
 /**
  * Automatically selects the best chart type based on data characteristics
+ *
+ * The scatter branch is gated on raw/hourly frequencies: small daily/weekly/
+ * monthly trend datasets (e.g. 7 daily points) must stay connected trend
+ * lines, not float as unlinked dots.
  */
-export const autoSelectChartType = (data: NormalizedChartData[]): ChartType => {
+export const autoSelectChartType = (
+  data: NormalizedChartData[],
+  frequency: FrequencyType = 'daily'
+): ChartType => {
   if (!data || data.length === 0) return 'line';
 
   const dataLength = data.length;
@@ -218,7 +225,8 @@ export const autoSelectChartType = (data: NormalizedChartData[]): ChartType => {
   if (hasTimeData) {
     if (
       dataLength <= CHART_TYPE_THRESHOLDS.maxPointsForScatter &&
-      uniqueSites === 1
+      uniqueSites === 1 &&
+      (frequency === 'raw' || frequency === 'hourly')
     ) {
       return 'scatter';
     }
@@ -304,7 +312,12 @@ export const aggregateDataByInterval = (
   const formatMap = {
     hour: 'yyyy-MM-dd HH:00',
     day: 'yyyy-MM-dd',
-    week: "yyyy-'W'II",
+    // ISO week-year token: pairing the calendar year (`yyyy`) with the ISO
+    // week number (`II`) mis-parses days in early January (e.g. `2027-W53`),
+    // which then round-trip one year off. `YYYY` keeps the ISO week-year in
+    // sync with the week number (date-fns requires the additional-token
+    // opt-in for `YYYY` since it's a protected token).
+    week: "YYYY-'W'II",
     month: 'yyyy-MM',
   };
 
@@ -316,7 +329,9 @@ export const aggregateDataByInterval = (
         const rawTime = (point as NormalizedChartData & { rawTime?: string })
           .rawTime;
         const date = parseISO(rawTime || timeStr);
-        const key = format(date, formatMap[interval]);
+        const key = format(date, formatMap[interval], {
+          useAdditionalWeekYearTokens: interval === 'week',
+        });
 
         if (!acc[key]) {
           acc[key] = [];
@@ -409,11 +424,15 @@ export const formatTimestampByFrequency = (
     switch (frequency) {
       case 'raw':
       case 'hourly':
-        return format(date, 'HH:mm');
+        // Include the day: hourly/raw data spanning multiple days must not
+        // collapse into repeated clock times with no date context.
+        return format(date, 'MMM dd, HH:mm');
       case 'daily':
         return format(date, 'MMM dd');
       case 'weekly':
-        return format(date, 'MMM dd');
+        // Weekly buckets anchor on the week's start day — include the year so
+        // ranges crossing a year boundary stay distinguishable.
+        return format(date, 'MMM dd, yyyy');
       case 'monthly':
         return format(date, 'MMM yyyy');
       default:

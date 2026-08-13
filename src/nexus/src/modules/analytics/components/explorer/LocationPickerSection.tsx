@@ -21,6 +21,13 @@ interface LocationPickerSectionProps {
    * `resolveSiteColor` — so unset sites never look identical.
    */
   locationColors?: { id: string; color: string }[];
+  /**
+   * When the chart is in theme-shade mode, unset sites resolve to shades of
+   * the ACTIVE theme primary. Those can't be represented in a `<input
+   * type="color">` (only hex is usable), so the picker hides the input for
+   * unset sites and shows the resolved shade preview instead.
+   */
+  themeColors?: boolean;
   /** Sets or clears (null) a location's explicit series color */
   onLocationColorChange?: (siteId: string, color: string | null) => void;
   /**
@@ -63,6 +70,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
   selectedSiteIds,
   onSelectionChange,
   locationColors,
+  themeColors = false,
   onLocationColorChange,
   namesBySite,
   className,
@@ -118,10 +126,10 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
     (siteId: string, index: number): string => {
       return (
         locationColors?.find(entry => entry.id === siteId)?.color ??
-        getDefaultSiteColor(index)
+        getDefaultSiteColor(index, themeColors)
       );
     },
-    [locationColors]
+    [locationColors, themeColors]
   );
 
   const renderColorCell = useCallback(
@@ -131,27 +139,44 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
       }
       const entry = locationColors?.find(location => location.id === id);
       const color = previewColor(id, index);
+      const hasExplicitPick = !!entry;
+      // In theme mode an unset site resolves to a theme-primary shade, which
+      // can't be represented in a color input — show the preview dot only so
+      // the picker never displays a color that doesn't match the chart.
+      const canEditColor = hasExplicitPick || !themeColors;
       return (
         <span className="flex items-center gap-1.5">
-          <label
-            className="relative flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border"
-            title={`Pick a color for ${label}`}
-          >
+          {canEditColor ? (
+            <label
+              className="relative flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border"
+              title={`Pick a color for ${label}`}
+            >
+              <span
+                className="h-4 w-4 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <input
+                type="color"
+                value={toHexInputValue(color)}
+                onChange={event =>
+                  onLocationColorChange?.(id, event.target.value)
+                }
+                className="absolute inset-0 cursor-pointer opacity-0"
+                aria-label={`Color for ${label}`}
+              />
+            </label>
+          ) : (
             <span
-              className="h-4 w-4 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            <input
-              type="color"
-              value={toHexInputValue(color)}
-              onChange={event =>
-                onLocationColorChange?.(id, event.target.value)
-              }
-              className="absolute inset-0 cursor-pointer opacity-0"
-              aria-label={`Color for ${label}`}
-            />
-          </label>
-          {entry && (
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-border"
+              title={`Theme shade for ${label} — switch off theme colors to pick a custom color`}
+            >
+              <span
+                className="h-4 w-4 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+            </span>
+          )}
+          {hasExplicitPick && (
             <button
               type="button"
               onClick={() => onLocationColorChange?.(id, null)}
@@ -164,7 +189,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
         </span>
       );
     },
-    [locationColors, onLocationColorChange, previewColor]
+    [locationColors, onLocationColorChange, previewColor, themeColors]
   );
 
   const siteColumns = useMemo(

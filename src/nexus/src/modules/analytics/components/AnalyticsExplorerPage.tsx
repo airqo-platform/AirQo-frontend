@@ -20,6 +20,7 @@ import {
   AqPlus,
   AqMaximize01,
   AqLayoutGrid01,
+  AqLineChartUp01,
   AqTable,
 } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
@@ -65,11 +66,13 @@ interface AnalyticsExplorerPageProps {
   organizationSlug?: string;
 }
 
-type ViewMode = 'focused' | 'charts' | 'table';
+type ViewMode = 'trends' | 'table';
+type WorkspaceMode = 'focus' | 'overview';
 type CompareMode = 'table' | 'cards';
 
 const ACTIVE_CHART_STORAGE_KEY = 'nexus:analytics:active-chart';
 const VIEW_MODE_STORAGE_KEY = 'nexus:analytics:view-mode';
+const WORKSPACE_MODE_STORAGE_KEY = 'nexus:analytics:workspace-mode';
 const COMPARE_MODE_STORAGE_KEY = 'nexus:analytics:compare-mode';
 
 const VIEW_OPTIONS: {
@@ -78,19 +81,31 @@ const VIEW_OPTIONS: {
   icon: React.ReactNode;
 }[] = [
   {
-    value: 'focused',
-    label: 'Focused',
-    icon: <AqMaximize01 className="h-3.5 w-3.5" />,
-  },
-  {
-    value: 'charts',
-    label: 'Charts',
-    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
+    value: 'trends',
+    label: 'Trends',
+    icon: <AqLineChartUp01 className="h-3.5 w-3.5" />,
   },
   {
     value: 'table',
     label: 'Table',
     icon: <AqTable className="h-3.5 w-3.5" />,
+  },
+];
+
+const WORKSPACE_VIEW_OPTIONS: {
+  value: WorkspaceMode;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    value: 'focus',
+    label: 'Focus',
+    icon: <AqMaximize01 className="h-3.5 w-3.5" />,
+  },
+  {
+    value: 'overview',
+    label: 'All charts',
+    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
   },
 ];
 
@@ -122,16 +137,31 @@ const readStoredActiveChartId = (): string | null => {
 };
 
 // The active view survives reloads: read it lazily (guarded for SSR) and
-// persist on change so a refreshed page returns to the same tab.
+// persist on change so a refreshed page returns to the same tab. Legacy
+// 'focused'/'charts' values map to the merged Trends view.
 const readStoredViewMode = (): ViewMode => {
-  if (typeof window === 'undefined') return 'focused';
+  if (typeof window === 'undefined') return 'trends';
   try {
-    const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-    return stored === 'focused' || stored === 'charts' || stored === 'table'
-      ? stored
-      : 'focused';
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'table'
+      ? 'table'
+      : 'trends';
   } catch {
-    return 'focused';
+    return 'trends';
+  }
+};
+
+// The workspace layout (single-chart focus vs. all-charts overview) survives
+// reloads too. Users on the old Charts tab migrate to the overview layout.
+const readStoredWorkspaceMode = (): WorkspaceMode => {
+  if (typeof window === 'undefined') return 'focus';
+  try {
+    const stored = window.localStorage.getItem(WORKSPACE_MODE_STORAGE_KEY);
+    if (stored === 'focus' || stored === 'overview') return stored;
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'charts'
+      ? 'overview'
+      : 'focus';
+  } catch {
+    return 'focus';
   }
 };
 
@@ -146,11 +176,12 @@ const readStoredCompareMode = (): CompareMode => {
 };
 
 /**
- * Air Quality Analytics — a workspace built around ONE active chart. The
- * selected chart is the primary focus; the reference legend, saved charts
- * and forecast summary are supporting components around it. Chart CRUD is
- * unchanged (group-chart configs + localStorage sidecars), and the compare
- * table view still shows every selected location side by side.
+ * Air Quality Analytics — two top-level views. "Trends" hosts the chart
+ * workspace: a single active chart with its supporting reference legend,
+ * saved-charts list and forecast summary, or an all-charts overview (the
+ * same data, list/grid). "Table" compares the latest readings for every
+ * selected location side by side. Chart CRUD is unchanged (group-chart
+ * configs + localStorage sidecars).
  */
 export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   className,
@@ -161,6 +192,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
 
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
+  const [workspaceMode, setWorkspaceMode] =
+    useState<WorkspaceMode>(readStoredWorkspaceMode);
   const [compareMode, setCompareMode] =
     useState<CompareMode>(readStoredCompareMode);
   const [tablePollutant, setTablePollutant] = useState<PollutantType>('pm2_5');
@@ -261,6 +294,15 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }
   }, [viewMode]);
 
+  // Persist the workspace layout so a refresh returns to the same view.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(WORKSPACE_MODE_STORAGE_KEY, workspaceMode);
+    } catch {
+      // Storage unavailable — view memory is best-effort.
+    }
+  }, [workspaceMode]);
+
   useEffect(() => {
     try {
       window.localStorage.setItem(COMPARE_MODE_STORAGE_KEY, compareMode);
@@ -352,10 +394,11 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   useEffect(() => {
     posthog?.capture('analytics_explorer_viewed', {
       view: viewMode,
+      layout: workspaceMode,
       chart_count: charts.length,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, workspaceMode]);
 
   const handleOpenCreate = useCallback(() => {
     setEditingDraft(null);
@@ -390,6 +433,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           frequency: draft.frequency,
           referenceStandard: draft.referenceStandard,
           color: draft.color,
+          themeColors: draft.themeColors,
           startDate: draft.startDate,
           endDate: draft.endDate,
           siteNames: namesSnapshot,
@@ -443,6 +487,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             frequency: draft.frequency,
             referenceStandard: draft.referenceStandard,
             color: draft.color,
+            themeColors: draft.themeColors,
             startDate: draft.startDate,
             endDate: draft.endDate,
             siteNames: namesSnapshot,
@@ -626,11 +671,11 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, []);
 
-  // Focus a chart from the overview: make it active and open the focused
-  // workspace.
+  // Focus a chart from the overview: make it active and open the single-chart
+  // workspace (stays within the Trends view).
   const handleFocusChart = useCallback((draft: ExplorerChartDraft) => {
     setActiveChartId(draft.id);
-    setViewMode('focused');
+    setWorkspaceMode('focus');
   }, []);
 
   useEffect(
@@ -789,19 +834,37 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                 />
               )}
             </>
-          ) : viewMode === 'charts' ? (
-            <ChartsOverviewView
-              charts={charts}
-              siteNames={siteNames}
-              onFocusChart={handleFocusChart}
-              onEdit={handleOpenEdit}
-              onRequestDelete={handleRequestDelete}
-              onConfirmDelete={handleConfirmDelete}
-              onCancelDelete={handleCancelDelete}
-              deleteConfirmingId={pendingDeleteId}
-            />
           ) : (
-            renderWorkspace()
+            <>
+              <div className="flex flex-wrap items-center gap-3">
+                <Card className="w-fit">
+                  <CardContent className="p-1">
+                    <SegmentedTabs
+                      ariaLabel="Charts workspace layout"
+                      options={WORKSPACE_VIEW_OPTIONS}
+                      value={workspaceMode}
+                      onChange={setWorkspaceMode}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {workspaceMode === 'overview' ? (
+                <ChartsOverviewView
+                  charts={charts}
+                  siteNames={siteNames}
+                  groupId={groupId}
+                  onFocusChart={handleFocusChart}
+                  onEdit={handleOpenEdit}
+                  onRequestDelete={handleRequestDelete}
+                  onConfirmDelete={handleConfirmDelete}
+                  onCancelDelete={handleCancelDelete}
+                  deleteConfirmingId={pendingDeleteId}
+                />
+              ) : (
+                renderWorkspace()
+              )}
+            </>
           )}
         </>
       )}

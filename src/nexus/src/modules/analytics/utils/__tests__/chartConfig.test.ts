@@ -223,6 +223,7 @@ describe('chartConfig utils', () => {
         frequency: 'daily',
         referenceStandard: 'WHO',
         color: '#145DFF',
+        themeColors: false,
         startDate: RANGE.startDate,
         endDate: RANGE.endDate,
       });
@@ -248,6 +249,7 @@ describe('chartConfig utils', () => {
         frequency: 'weekly',
         referenceStandard: 'WHO',
         color: null,
+        themeColors: false,
         startDate: '',
         endDate: '',
       });

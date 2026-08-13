@@ -34,6 +34,11 @@ export interface ExplorerChartDraft {
   color: string | null;
   /** Per-location series colors (id = site_id or device_id) */
   locationColors: ChartLocationColor[];
+  /**
+   * When true, unset series render in shades of the ACTIVE theme primary
+   * instead of the fixed multi-hue palette (see `getThemeShade`).
+   */
+  themeColors: boolean;
   /** Reference standard driving the guideline line and summary (WHO default) */
   referenceStandard: StandardsType;
   showLegend: boolean;
@@ -53,6 +58,11 @@ export interface ExplorerChartSidecar {
    * draft that should fall back to the persisted color.
    */
   color?: string | null;
+  /**
+   * When true, unset series render in shades of the ACTIVE theme primary
+   * instead of the fixed multi-hue palette. Absent (no stored entry) = false.
+   */
+  themeColors?: boolean;
   /** Custom range picked in the dialog (fallback: derive from `days`) */
   startDate: string;
   endDate: string;
@@ -76,6 +86,7 @@ export const DEFAULT_CHART_SIDECAR: ExplorerChartSidecar = {
   frequency: 'daily',
   referenceStandard: 'WHO',
   color: null,
+  themeColors: false,
   startDate: '',
   endDate: '',
 };
@@ -121,6 +132,7 @@ export const readChartSidecar = (
       pollutant: 'pm2_5',
       frequency: 'daily',
       referenceStandard: 'WHO',
+      themeColors: false,
       startDate: '',
       endDate: '',
     };
@@ -309,6 +321,7 @@ export const persistedConfigToDraft = (
     // Explicit `null` (user picked the chart default) or an explicit color
     // wins; an absent sidecar falls back to the persisted color.
     color: sidecar.color === undefined ? (config.color ?? null) : sidecar.color,
+    themeColors: sidecar.themeColors ?? false,
     locationColors: Array.isArray(config.locationColors)
       ? config.locationColors
       : [],

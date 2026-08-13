@@ -64,6 +64,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
+  const [lineChartThemeColors, setLineChartThemeColors] = useState(false);
+  const [barChartThemeColors, setBarChartThemeColors] = useState(false);
   const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasTrackedDashboardViewRef = useRef(false);
@@ -510,6 +512,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
           loading={lineChartLoading || lineChartRefreshing || pollutantConfigLoading}
+          themeColors={lineChartThemeColors}
+          onThemeColorsToggle={() =>
+            setLineChartThemeColors(prev => !prev)
+          }
         >
           <DynamicChart
             data={lineChartData}
@@ -519,6 +525,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               showTooltip: true,
               showLegend: true,
               height: 400,
+              themeColors: lineChartThemeColors,
             }}
             pollutant={filters.pollutant}
             aqiConfig={selectedAqiConfig}
@@ -541,6 +548,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
           loading={barChartLoading || barChartRefreshing || pollutantConfigLoading}
+          themeColors={barChartThemeColors}
+          onThemeColorsToggle={() =>
+            setBarChartThemeColors(prev => !prev)
+          }
         >
           <DynamicChart
             data={barChartData}
@@ -550,6 +561,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               showTooltip: true,
               showLegend: true,
               height: 400,
+              themeColors: barChartThemeColors,
             }}
             pollutant={filters.pollutant}
             aqiConfig={selectedAqiConfig}

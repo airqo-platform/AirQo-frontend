@@ -51,6 +51,12 @@ export const RankingsHistoryChart: React.FC<RankingsHistoryChartProps> = ({
           showTooltip: true,
           showLegend: true,
           height: 360,
+          // The x values are year labels ("2024"), not ISO timestamps — the
+          // default frequency formatter would render every tick as
+          // "Jan 01". Pass them through untouched on the axis and in the
+          // tooltip.
+          xAxisTickFormatter: value => value,
+          tooltipDateFormatter: label => String(label),
         }}
         pollutant="pm2_5"
         aqiConfig={aqiConfig ?? null}

@@ -423,6 +423,9 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  tickFormatter={value =>
+                    formatWithPattern(String(value), 'MMM yyyy')
+                  }
                 />
                 <YAxis
                   allowDecimals={false}

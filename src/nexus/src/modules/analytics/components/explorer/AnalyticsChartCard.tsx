@@ -31,12 +31,13 @@ import {
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import { resolveParsedNumber } from '@/shared/types/api';
+import { parseISO, format, addDays, addWeeks, addMonths } from 'date-fns';
 import {
   buildDataKeyBySiteId,
   buildSiteLabels,
   buildSeriesLabels,
 } from '../../utils/chartLabels';
-import { resolveSiteColor } from '../../utils/siteColors';
+import { getDefaultSiteColor } from '../../utils/siteColors';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import type { StandardsType } from '@/shared/components/charts/types';
 
@@ -132,6 +133,26 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => readChartSidecar(groupId, draft.id).referenceStandard ?? 'WHO'
   );
 
+  // Theme-shade coloring preference — persisted in the sidecar (the backend
+  // whitelist doesn't carry it), same pattern as referenceStandard. The
+  // dialog path updates `draft.themeColors`; the More-menu toggle updates
+  // local state + sidecar. Both feed the series resolution below.
+  const [themeColors, setThemeColors] = useState<boolean>(
+    () => readChartSidecar(groupId, draft.id).themeColors ?? false
+  );
+
+  React.useEffect(() => {
+    setThemeColors(draft.themeColors ?? false);
+  }, [draft.themeColors]);
+
+  const handleThemeColorsToggle = useCallback(() => {
+    setThemeColors(prev => {
+      const next = !prev;
+      writeChartSidecar(groupId, draft.id, { themeColors: next });
+      return next;
+    });
+  }, [groupId, draft.id]);
+
   const filters = useMemo(
     () => ({
       frequency: draft.frequency,
@@ -205,12 +226,15 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   // Per-location series color — shared resolution: explicit locationColors
-  // entry wins, then the chart color, then a theme-default shade per position
-  // (same as the picker preview, strip and overview cards).
+  // entry wins, then a theme-default shade per position (same as the picker
+  // preview, strip and overview cards). The mode comes from the LIVE toggle
+  // state (not the memoized draft) so the More-menu toggle repaints the
+  // chart instantly.
   const siteColorFor = useCallback(
     (siteId: string, index: number): string =>
-      resolveSiteColor(draft, siteId, index),
-    [draft]
+      draft.locationColors.find(entry => entry.id === siteId)?.color ??
+      getDefaultSiteColor(index, themeColors),
+    [draft.locationColors, themeColors]
   );
 
   // Series display name: the picker's site name, falling back to the
@@ -244,7 +268,24 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     const lastObservedTime = observedTimes[observedTimes.length - 1];
     if (!lastObservedTime) return [];
 
-    const lastObservedDay = lastObservedTime.slice(0, 10);
+    // The projection starts strictly AFTER the last observed bucket. For
+    // hourly/raw/daily data the last observed time IS a day; weekly/monthly
+    // buckets anchor the bucket START, so the cutoff moves one full bucket
+    // ahead — comparing raw day strings against week/month keys would
+    // silently skip every forecast day at weekly frequency.
+    const lastObservedDate = parseISO(lastObservedTime);
+    if (Number.isNaN(lastObservedDate.getTime())) {
+      // Unparseable observed time — there's no anchor for the projection.
+      return [];
+    }
+    const forecastCutoff = format(
+      draft.frequency === 'weekly'
+        ? addWeeks(lastObservedDate, 1)
+        : draft.frequency === 'monthly'
+          ? addMonths(lastObservedDate, 1)
+          : addDays(lastObservedDate, 1),
+      'yyyy-MM-dd'
+    );
     const dayToObservedTime = new Map<string, string>();
     observedTimes.forEach(time => {
       const day = time.slice(0, 10);
@@ -258,8 +299,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
       const points: NormalizedChartData[] = [];
       items.forEach(item => {
         const day = String(item.date ?? '').slice(0, 10);
-        // Skip the current (observed) day — the projection starts after NOW.
-        if (!day || day <= lastObservedDay) return;
+        // Skip everything at or before the cutoff — the projection starts
+        // after the last observed bucket.
+        if (!day || day < forecastCutoff) return;
         const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
         if (pm25 === undefined || !Number.isFinite(pm25)) return;
         points.push({
@@ -281,6 +323,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     return series;
   }, [
     chartData,
+    draft.frequency,
     forecastEnabled,
     forecastItemsBySite,
     forecastUsable,
@@ -404,6 +447,8 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         onEditTitle={handleContainerTitleEdit}
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
+        themeColors={themeColors}
+        onThemeColorsToggle={handleThemeColorsToggle}
         className="w-full"
         footerHint={
           <div className="flex items-center justify-between gap-3">
@@ -542,6 +587,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
             showTooltip: draft.showTooltip,
             showLegend: draft.showLegend,
             height: 380,
+            // Unset series render in theme-primary shades when the user
+            // toggles "Theme colors" on (explicit picks still win).
+            themeColors,
             // Single-series charts render under recharts' generic 'value' key,
             // which the site-keyed seriesColors map can't cover — pin the
             // resolved site color so a picked color actually renders.

@@ -6,6 +6,7 @@ import {
   resolveSiteColor,
   toHexInputValue,
 } from '../siteColors';
+import { getThemeShade } from '@/shared/components/charts/colors';
 import type { ExplorerChartDraft } from '../chartConfig';
 
 const draft = (
@@ -23,6 +24,7 @@ const draft = (
   siteIds: ['a', 'b', 'c'],
   color: null,
   locationColors: [],
+  themeColors: false,
   referenceStandard: 'WHO',
   showLegend: true,
   showGrid: true,
@@ -33,7 +35,7 @@ const draft = (
 
 describe('getDefaultSiteColor', () => {
   it('returns distinct colors for consecutive sites', () => {
-    const colors = new Set([0, 1, 2, 3, 4].map(getDefaultSiteColor));
+    const colors = new Set([0, 1, 2, 3, 4].map(index => getDefaultSiteColor(index)));
     expect(colors.size).toBe(5);
   });
 
@@ -42,6 +44,14 @@ describe('getDefaultSiteColor', () => {
     const repeated = getDefaultSiteColor(PRIMARY_CYCLE + 0);
     expect(repeated).toContain('color-mix');
     expect(repeated).not.toBe(first);
+  });
+
+  it('renders theme-primary shades when themeColors is on', () => {
+    const first = getDefaultSiteColor(0, true);
+    const second = getDefaultSiteColor(1, true);
+    expect(first).toBe('rgb(var(--primary))');
+    expect(second).toContain('rgb(var(--primary))');
+    expect(second).not.toBe(first);
   });
 });
 
@@ -94,6 +104,21 @@ describe('resolveSiteColor', () => {
     expect(resolveSiteColor(d, 'a', 0)).toBe(getDefaultSiteColor(0));
     expect(resolveSiteColor(d, 'b', 1)).toBe(getDefaultSiteColor(1));
   });
+
+  it('uses theme-primary shades for unset sites when the chart toggles themeColors', () => {
+    const d = draft({ themeColors: true });
+    expect(resolveSiteColor(d, 'a', 0)).toBe(getThemeShade(0));
+    expect(resolveSiteColor(d, 'b', 1)).toBe(getThemeShade(1));
+  });
+
+  it('keeps explicit picks when themeColors is on', () => {
+    const d = draft({
+      themeColors: true,
+      locationColors: [{ id: 'b', color: '#ff0000' }],
+    });
+    expect(resolveSiteColor(d, 'b', 1)).toBe('#ff0000');
+    expect(resolveSiteColor(d, 'a', 0)).toBe(getThemeShade(0));
+  });
 });
 
 describe('materializeSiteColors', () => {
@@ -124,6 +149,27 @@ describe('materializeSiteColors', () => {
     const colors = out.map(entry => entry.color);
     expect(colors[1]).not.toBe(colors[0]);
     expect(new Set(colors).size).toBe(2);
+  });
+
+  it('persists only explicit picks in theme mode (defaults resolve at render)', () => {
+    const out = materializeSiteColors(
+      ['a', 'b', 'c'],
+      [{ id: 'b', color: '#ff0000' }],
+      true
+    );
+    expect(out).toEqual([{ id: 'b', color: '#ff0000' }]);
+  });
+
+  it('drops stale picks for deselected sites in theme mode', () => {
+    const out = materializeSiteColors(
+      ['a'],
+      [
+        { id: 'a', color: '#ff0000' },
+        { id: 'b', color: '#00ff00' },
+      ],
+      true
+    );
+    expect(out).toEqual([{ id: 'a', color: '#ff0000' }]);
   });
 });
 

@@ -66,6 +66,25 @@ export interface ChartConfig {
   height?: number;
   width?: number | string;
   seriesColors?: Record<string, string>;
+  /**
+   * When true, series WITHOUT an explicit color render in shades of the
+   * ACTIVE theme primary (see `getThemeShade`) instead of the fixed
+   * multi-hue palette. Toggled per chart from the More menu / config
+   * dialog. Explicit picks (color / seriesColors) always win.
+   */
+  themeColors?: boolean;
+  /**
+   * Overrides the x-axis tick label rendering (defaults to
+   * `formatTimestampByFrequency`). Used for non-time x values (e.g. year
+   * buckets in the rankings history chart) so they pass through untouched.
+   */
+  xAxisTickFormatter?: (value: string) => string;
+  /**
+   * Overrides the tooltip header label rendering (defaults to the
+   * frequency-aware date formatting). Used together with
+   * `xAxisTickFormatter` when the x values are not ISO timestamps.
+   */
+  tooltipDateFormatter?: (label: string | number) => string;
   pollutant?: PollutantType;
   standards?: StandardsType;
   margin?: {
@@ -148,6 +167,14 @@ export interface ChartContainerProps {
   onAutoSelectToggle?: () => void;
   showReferenceLines?: boolean;
   onReferenceLinesToggle?: (show: boolean) => void;
+  /**
+   * When true, series without an explicit color render in shades of the
+   * ACTIVE theme primary instead of the fixed multi-hue palette. The More
+   * menu gains a "Theme colors" toggle when `onThemeColorsToggle` is set.
+   */
+  themeColors?: boolean;
+  /** Toggle handler for the "Theme colors" entry in the More menu */
+  onThemeColorsToggle?: () => void;
   currentFilters?: Partial<ChartFilters>;
   currentSites?: Array<{
     _id: string;

@@ -57,7 +57,6 @@ import {
   getPollutantUnits,
 } from '../../utils';
 import {
-  getPrimaryColor,
   DEFAULT_CHART_CONFIG,
   BAR_CHART_CONFIG,
   GRID_CONFIG,
@@ -66,6 +65,7 @@ import {
   ZOOM_CONFIG,
   MAX_RENDER_POINTS,
 } from '../../constants';
+import { resolveDefaultSeriesColor } from '../../colors';
 import { cn } from '@/shared/lib/utils';
 
 /**
@@ -83,6 +83,7 @@ interface HoverAwareTooltipProps extends TooltipData {
   aqiConfig?: AqiConfig | null;
   seriesLabels?: Record<string, string>;
   locationLabels?: Record<string, string>;
+  tooltipDateFormatter?: (label: string | number) => string;
 }
 
 /** Small label chip for generic reference lines (e.g. the forecast "Now" mark). */
@@ -135,7 +136,6 @@ const HoverAwareTooltip: React.FC<HoverAwareTooltipProps> = ({
 
   return <CustomTooltip {...tooltipProps} focusedDataKey={focusedDataKey} />;
 };
-
 /** Dimming rules: 1 = full, lower = blurred (see the focus/blur design below) */
 const FULL_OPACITY = 1;
 const SOFT_BLUR = 0.6;
@@ -329,9 +329,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // Determine chart type
   const chartType: ChartType = useMemo(() => {
     if (config.type) return config.type;
-    if (autoSelectType) return autoSelectChartType(data);
+    if (autoSelectType) return autoSelectChartType(data, frequency);
     return 'line';
-  }, [config.type, autoSelectType, data]);
+  }, [config.type, autoSelectType, data, frequency]);
 
   // Prepare data for multi-series charts
   const { chartData, seriesKeys } = useMemo(() => {
@@ -516,8 +516,11 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       return 0;
     }
 
-    return Math.max(Math.ceil(renderData.length / 6) - 1, 0);
-  }, [renderData.length]);
+    const base = Math.max(Math.ceil(renderData.length / 6) - 1, 0);
+    // Hourly/raw labels are wider ("MMM dd, HH:mm") — skip an extra tick so
+    // they don't collide on narrow cards.
+    return frequency === 'raw' || frequency === 'hourly' ? base + 1 : base;
+  }, [frequency, renderData.length]);
 
   // Common props for all charts
   const commonProps = {
@@ -546,8 +549,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       tick={AXIS_CONFIG.tick}
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
-      tickFormatter={value =>
-        formatTimestampByFrequency(String(value), frequency)
+      tickFormatter={
+        chartConfig.xAxisTickFormatter ??
+        (value => formatTimestampByFrequency(String(value), frequency))
       }
     />
   );
@@ -586,6 +590,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             aqiConfig={aqiConfig}
             seriesLabels={seriesLabels}
             locationLabels={locationLabels}
+            tooltipDateFormatter={chartConfig.tooltipDateFormatter}
           />
         }
         wrapperStyle={{ zIndex: 9999 }}
@@ -720,7 +725,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return seriesKeys.map((key, index) => {
       const isHidden = isSeriesHidden(key);
       const color =
-        config.seriesColors?.[key] || config.color || getPrimaryColor(index);
+        config.seriesColors?.[key] ||
+        config.color ||
+        resolveDefaultSeriesColor(index, chartConfig.themeColors);
       const isDashed = dashedSeries?.includes(key) ?? false;
       const isFocused = effectiveActiveKey === key;
       // The controlled focus (location legend hover) is authoritative: it
@@ -825,7 +832,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return seriesKeys.map((key, index) => {
       const isHidden = isSeriesHidden(key);
       const color =
-        config.seriesColors?.[key] || config.color || getPrimaryColor(index);
+        config.seriesColors?.[key] ||
+        config.color ||
+        resolveDefaultSeriesColor(index, chartConfig.themeColors);
 
       return (
         <Bar
@@ -974,7 +983,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               const color =
                 config.seriesColors?.[key] ||
                 config.color ||
-                getPrimaryColor(index);
+                resolveDefaultSeriesColor(index, chartConfig.themeColors);
 
               return (
                 <Scatter
@@ -1026,7 +1035,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
               const color =
                 config.seriesColors?.[key] ||
                 config.color ||
-                getPrimaryColor(index);
+                resolveDefaultSeriesColor(index, chartConfig.themeColors);
 
               return (
                 <Radar
@@ -1066,7 +1075,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
                   key={`cell-${index}`}
                   fill={
                     config.seriesColors?.[`cell-${index}`] ||
-                    getPrimaryColor(index)
+                    config.color ||
+                    resolveDefaultSeriesColor(index, chartConfig.themeColors)
                   }
                 />
               ))}

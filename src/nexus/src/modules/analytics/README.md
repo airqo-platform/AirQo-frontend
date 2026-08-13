@@ -279,9 +279,13 @@ A chart explorer for a group's monitoring locations:
   Each site row shows the device(s) deployed there (the payload embeds them),
   so the device name rides along with the site. Display names are always
   shown — raw ids never surface.
-- **View modes** — grid, full-width, or an unlimited location-comparison
-  table (latest PM2.5/PM10 per site, sortable, threshold-colored, with the
-  shared AQI legend shown once at page level).
+- **Trends view** — one tab hosting the chart workspace: a single active
+  chart with its reference legend, saved-charts list and forecast summary
+  ("Focus"), or every chart at once as a list/grid ("All charts") — the two
+  are the same data in different layouts, toggled without leaving the tab.
+- **Table view** — an unlimited location-comparison table (latest PM2.5/PM10
+  per site, sortable, threshold-colored, with the shared AQI legend shown
+  once at page level).
 - **AQI legend** — the segmented AQI scale is rendered once per page from the
   live `/devices/aqi-ranges` config (the single source of truth) instead of
   being repeated on every chart.

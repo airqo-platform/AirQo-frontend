@@ -90,6 +90,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   const [showLegend, setShowLegend] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [showTooltip, setShowTooltip] = useState(true);
+  const [themeColors, setThemeColors] = useState(false);
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([]);
 
   // Seed the form when the dialog opens
@@ -110,6 +111,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
     setShowLegend(draft?.showLegend ?? true);
     setShowGrid(draft?.showGrid ?? true);
     setShowTooltip(draft?.showTooltip ?? true);
+    setThemeColors(draft?.themeColors ?? false);
     setSelectedSiteIds(draft?.siteIds ?? []);
   }, [isOpen, draft]);
 
@@ -178,7 +180,12 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       endDate,
       siteIds: selectedSiteIds,
       color: null,
-      locationColors: materializeSiteColors(selectedSiteIds, locationColors),
+      locationColors: materializeSiteColors(
+        selectedSiteIds,
+        locationColors,
+        themeColors
+      ),
+      themeColors,
       referenceStandard: draft?.referenceStandard ?? 'WHO',
       showLegend,
       showGrid,
@@ -319,7 +326,17 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
             onCheckedChange={setShowTooltip}
             label="Show tooltips"
           />
+          <Checkbox
+            checked={themeColors}
+            onCheckedChange={setThemeColors}
+            label="Use theme color shades"
+          />
         </div>
+        <p className="-mt-3 text-xs text-muted-foreground">
+          Theme color shades: series use shades of the active theme color
+          instead of the fixed multi-color palette. Off for default palette
+          colors.
+        </p>
 
         {/* Locations */}
         <div>
@@ -334,6 +351,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
               onSelectionNamesChange?.(names);
             }}
             locationColors={locationColors}
+            themeColors={themeColors}
             onLocationColorChange={setLocationColor}
             namesBySite={siteNames}
           />

@@ -21,6 +21,8 @@ import { useAnalyticsChartData } from '../../hooks';
 import {
   buildChartMetadata,
   getGuidelinePeriod,
+  readChartSidecar,
+  writeChartSidecar,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import {
@@ -28,21 +30,13 @@ import {
   buildSiteLabels,
   buildSeriesLabels,
 } from '../../utils/chartLabels';
-
-/**
- * Generate a shade of the primary theme color for a given index.
- * Index 0 is the full primary, subsequent indices get progressively
- * lighter shades via color-mix with white.
- */
-const getPrimaryShade = (index: number): string => {
-  if (index === 0) return 'rgb(var(--primary))';
-  const lightness = Math.min(15 + index * 12, 60);
-  return `color-mix(in srgb, rgb(var(--primary)) ${100 - lightness}%, white)`;
-};
+import { getDefaultSiteColor } from '../../utils/siteColors';
 
 interface ChartsOverviewViewProps {
   charts: ExplorerChartDraft[];
   siteNames: Map<string, string>;
+  /** Organization group id (empty in the user flow) — used for the sidecar */
+  groupId: string;
   /** Focus a chart: make it active and switch to the focused workspace */
   onFocusChart: (draft: ExplorerChartDraft) => void;
   onEdit: (draft: ExplorerChartDraft) => void;
@@ -96,6 +90,7 @@ const LAYOUT_OPTIONS: {
 const OverviewChartCard: React.FC<{
   draft: ExplorerChartDraft;
   siteNames: Map<string, string>;
+  groupId: string;
   onFocus: () => void;
   onEdit: () => void;
   onRequestDelete: () => void;
@@ -105,6 +100,7 @@ const OverviewChartCard: React.FC<{
 }> = ({
   draft,
   siteNames,
+  groupId,
   onFocus,
   onEdit,
   onRequestDelete,
@@ -113,6 +109,25 @@ const OverviewChartCard: React.FC<{
   deleteConfirming,
 }) => {
   const { config: aqiConfig } = useAqiConfig(draft.pollutant);
+
+  // Theme-shade coloring preference — same sidecar + toggle as the focused
+  // workspace so both surfaces can never disagree. The mode feeds the series
+  // resolution from LIVE state so the More-menu toggle repaints instantly.
+  const [themeColors, setThemeColors] = React.useState<boolean>(
+    () => readChartSidecar(groupId, draft.id).themeColors ?? false
+  );
+
+  React.useEffect(() => {
+    setThemeColors(draft.themeColors ?? false);
+  }, [draft.themeColors]);
+
+  const handleThemeColorsToggle = React.useCallback(() => {
+    setThemeColors(prev => {
+      const next = !prev;
+      writeChartSidecar(groupId, draft.id, { themeColors: next });
+      return next;
+    });
+  }, [groupId, draft.id]);
 
   const filters = useMemo(
     () => ({
@@ -147,20 +162,22 @@ const OverviewChartCard: React.FC<{
     [chartData, siteLabels]
   );
 
-  // Use shades of the primary theme color for series — keeps the overview
-  // visually cohesive while still distinguishing multiple sites.
+  // Series colors resolve EXACTLY like the focused workspace: explicit picks
+  // win, unset sites get a distinct default for their position — theme
+  // shades when the chart's toggle is on, palette hues otherwise. One shared
+  // resolution pattern so the two surfaces never disagree.
   const seriesColors = useMemo(() => {
     const colors: Record<string, string> = {};
     draft.siteIds.forEach((siteId, index) => {
       const seriesKey = dataKeyBySiteId.get(siteId) ?? siteNames.get(siteId);
       if (seriesKey) {
         colors[seriesKey] =
-          draft.locationColors.find(c => c.id === siteId)?.color ??
-          getPrimaryShade(index);
+          draft.locationColors.find(entry => entry.id === siteId)?.color ??
+          getDefaultSiteColor(index, themeColors);
       }
     });
     return Object.keys(colors).length > 0 ? colors : undefined;
-  }, [draft.siteIds, draft.locationColors, dataKeyBySiteId, siteNames]);
+  }, [draft.siteIds, draft.locationColors, themeColors, dataKeyBySiteId, siteNames]);
 
   const metadata = useMemo(() => buildChartMetadata(draft), [draft]);
 
@@ -176,6 +193,8 @@ const OverviewChartCard: React.FC<{
         error={error ?? null}
         onRefresh={refresh}
         exportOptions={{ enablePDF: false, enablePNG: false }}
+        themeColors={themeColors}
+        onThemeColorsToggle={handleThemeColorsToggle}
         className="w-full"
         footerHint={
           <span className="block truncate text-xs text-muted-foreground">
@@ -186,7 +205,7 @@ const OverviewChartCard: React.FC<{
           <>
             <DropdownMenuItem onClick={onFocus}>
               <AqMaximize01 className="mr-2 h-4 w-4" />
-              Open in workspace
+              Focus chart
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onEdit}>
@@ -215,6 +234,7 @@ const OverviewChartCard: React.FC<{
               showTooltip: draft.showTooltip,
               showLegend: draft.showLegend,
               height: 380,
+              themeColors,
               // Single-series charts render under recharts' generic 'value'
               // key — pin the resolved site color so a picked color renders.
               ...(draft.siteIds.length === 1
@@ -222,7 +242,7 @@ const OverviewChartCard: React.FC<{
                     color:
                       draft.locationColors.find(
                         c => c.id === draft.siteIds[0]
-                      )?.color ?? getPrimaryShade(0),
+                      )?.color ?? getDefaultSiteColor(0, themeColors),
                   }
                 : {}),
               seriesColors,
@@ -271,14 +291,17 @@ const OverviewChartCard: React.FC<{
 
 /**
  * All configured charts at once, as a list (default) or a grid (toggle below
- * the page tabs). Each card renders the chart's REAL data (same hooks + query
- * keys as the focused workspace, so results are shared and cached) inside the
- * shared ChartContainer, with the correct site/device labels and colors.
- * Clicking a card focuses it.
+ * the page tabs) — the "All charts" layout of the Trends view. Each card
+ * renders the chart's REAL data (same hooks + query keys as the focused
+ * workspace, so results are shared and cached) inside the shared
+ * ChartContainer, with the correct site/device labels and colors. Choosing
+ * "Focus chart" from a card's menu switches to the single-chart workspace
+ * with that chart active.
  */
 export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   charts,
   siteNames,
+  groupId,
   onFocusChart,
   onEdit,
   onRequestDelete,
@@ -336,6 +359,7 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
               key={draft.id}
               draft={draft}
               siteNames={siteNames}
+              groupId={groupId}
               onFocus={() => handleFocus(draft)}
               onEdit={() => onEdit(draft)}
               onRequestDelete={() => onRequestDelete(draft)}

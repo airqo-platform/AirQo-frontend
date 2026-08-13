@@ -3,6 +3,83 @@
 import { useCallback, useRef } from 'react';
 import { ExportOptions, ExportOptionsPartial } from '../types';
 
+const PAINT_ATTRIBUTES = ['fill', 'stroke', 'stop-color'] as const;
+
+/**
+ * Resolves CSS-var / color-mix paint values (fill, stroke, stop-color) on
+ * SVG elements to their concrete computed colors.
+ *
+ * Recharts writes series colors as SVG presentation attributes. html2canvas
+ * serializes the chart SVG into a standalone `data:image/svg+xml` image (and
+ * exported .svg files are viewed outside the page) — neither context can
+ * resolve `rgb(var(--primary))` or `color-mix(... var(--primary) ...)`
+ * against the page's stylesheet, so those paints would rasterize black.
+ * The live page (and html2canvas' cloned iframe document, which copies the
+ * page's stylesheets) CAN compute them, so we replace the attribute values
+ * with their computed colors before rendering/serializing.
+ */
+const resolveSvgPaintAttributes = (svgRoot: Element, win: Window): void => {
+  const svg =
+    svgRoot.tagName.toLowerCase() === 'svg'
+      ? svgRoot
+      : svgRoot.querySelector('svg');
+  if (!svg) return;
+
+  svg
+    .querySelectorAll<SVGElement>('[fill], [stroke], [stop-color]')
+    .forEach(element => {
+      PAINT_ATTRIBUTES.forEach(attribute => {
+        const raw = element.getAttribute(attribute);
+        if (
+          !raw ||
+          (!raw.includes('var(') && !raw.includes('color-mix('))
+        ) {
+          return;
+        }
+        const computed = win.getComputedStyle(element).getPropertyValue(
+          attribute
+        );
+        if (computed && computed.trim()) {
+          element.setAttribute(attribute, computed.trim());
+        }
+      });
+    });
+};
+
+/**
+ * Copies computed paint values from the LIVE svg onto a detached clone.
+ * The clone shares the live tree's structure 1:1 (same selectors, same
+ * order), so elements are matched by index. Used by the standalone .svg
+ * export where the clone is not attached to any document.
+ */
+const resolvePaintsOnDetachedClone = (
+  liveSvg: SVGElement,
+  cloneSvg: SVGElement
+): void => {
+  const selector = '[fill], [stroke], [stop-color]';
+  const liveElements = Array.from(liveSvg.querySelectorAll<SVGElement>(selector));
+  const cloneElements = Array.from(
+    cloneSvg.querySelectorAll<SVGElement>(selector)
+  );
+
+  cloneElements.forEach((cloneElement, index) => {
+    const liveElement = liveElements[index];
+    if (!liveElement) return;
+    PAINT_ATTRIBUTES.forEach(attribute => {
+      const raw = cloneElement.getAttribute(attribute);
+      if (!raw || (!raw.includes('var(') && !raw.includes('color-mix('))) {
+        return;
+      }
+      const computed = window.getComputedStyle(liveElement).getPropertyValue(
+        attribute
+      );
+      if (computed && computed.trim()) {
+        cloneElement.setAttribute(attribute, computed.trim());
+      }
+    });
+  });
+};
+
 const applyCloneStyles = (clonedDoc: Document) => {
   const view = clonedDoc.defaultView;
   const HTMLElementCtor = view?.HTMLElement;
@@ -148,6 +225,21 @@ const applyCloneStyles = (clonedDoc: Document) => {
         backgroundColor: '#ffffff',
       });
     });
+
+  // Resolve CSS-var / color-mix paints to concrete colors: html2canvas
+  // rasterizes the chart SVG as an isolated image where the page's CSS
+  // custom properties don't exist (theme-shade series, palette index 0 and
+  // legend swatches would otherwise export black).
+  const clonedWindow = clonedDoc.defaultView;
+  if (clonedWindow) {
+    // Recharts renders one SVG per chart (plot + per-item legend swatches) —
+    // resolve paints on every one of them.
+    clonedDoc
+      .querySelectorAll('.recharts-wrapper svg')
+      .forEach(svg => {
+        resolveSvgPaintAttributes(svg, clonedWindow);
+      });
+  }
 };
 
 const ensureFilenameExtension = (filename: string, extension: string) => {
@@ -327,6 +419,11 @@ export const useChartExport = () => {
 
         // Clone the SVG
         const svgClone = svgElement.cloneNode(true) as SVGElement;
+
+        // The clone is detached — resolve CSS-var / color-mix paints to
+        // their computed colors (from the live tree) so the standalone .svg
+        // renders series colors in any external viewer.
+        resolvePaintsOnDetachedClone(svgElement, svgClone);
 
         // Set proper dimensions
         if (options.width)
