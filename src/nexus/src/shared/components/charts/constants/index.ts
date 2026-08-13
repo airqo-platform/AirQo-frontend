@@ -27,18 +27,30 @@ export {
   type AirQualityStandard,
 } from '@/shared/utils/airQuality';
 
-// Primary color palette - using theme primary with high contrast variations for better accessibility
+// Primary color palette — diverse, perceptually distinct hues for chart series.
+// Ordered so adjacent colors never share a similar hue. Sufficient for up to
+// 20 simultaneous series before the opacity-cycle fallback kicks in.
 export const PRIMARY_COLOR_PALETTE = [
-  'rgb(var(--primary))', // Base primary color
-  'color-mix(in srgb, rgb(var(--primary)), black 30%)', // Darker variation with good contrast
-  'color-mix(in srgb, rgb(var(--primary)), black 50%)', // Much darker for strong distinction
-  'color-mix(in srgb, rgb(var(--primary)), black 70%)', // Very dark for maximum contrast
-  'color-mix(in srgb, rgb(var(--primary)), white 20%)', // Lighter but still distinct
-  'color-mix(in srgb, rgb(var(--primary)), white 40%)', // Moderately light with good contrast
-  'color-mix(in srgb, rgb(var(--primary)), white 65%)', // Light but visible
-  'color-mix(in srgb, rgb(var(--primary)) 80%, orange 20%)', // Primary with subtle warm tint
-  'color-mix(in srgb, rgb(var(--primary)) 80%, purple 20%)', // Primary with subtle cool tint
-  'color-mix(in srgb, rgb(var(--primary)) 85%, teal 15%)', // Primary with subtle blue-green tint
+  'rgb(var(--primary))', // 1. Base primary (blue)
+  '#E8634A', // 2. Soft red
+  '#F5A623', // 3. Amber / orange
+  '#50B86C', // 4. Green
+  '#9B6FD4', // 5. Purple
+  '#4ABFD4', // 6. Teal / cyan
+  '#E06090', // 7. Pink
+  '#6B8AE6', // 8. Soft indigo
+  '#D4943A', // 9. Golden brown
+  '#45B89E', // 10. Sea green
+  '#C76DDB', // 11. Magenta
+  '#5DA4E6', // 12. Sky blue
+  '#E87843', // 13. Burnt orange
+  '#7BC77E', // 14. Lime green
+  '#B072D9', // 15. Lavender
+  '#4ECDC4', // 16. Mint / turquoise
+  '#E85D75', // 17. Rose
+  '#7A9BD4', // 18. Steel blue
+  '#D4A76A', // 19. Sand
+  '#68C9A3', // 20. Aquamarine
 ];
 
 /**

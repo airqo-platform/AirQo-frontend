@@ -3,13 +3,19 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
+import { Tooltip } from 'flowbite-react';
 import {
   AqEdit02,
   AqCopy01,
   AqTrash01,
-  AqCheck,
+  AqInfoCircle,
 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
+import {
+  getPollutantLabel,
+  getPollutantUnits,
+} from '@/shared/components/charts/utils';
+import { REFERENCE_LINES } from '@/shared/utils/airQuality';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -60,6 +66,31 @@ interface AnalyticsChartCardProps {
 /** Forecast series prefix — each site's projection gets its own dashed line */
 const FORECAST_SERIES_PREFIX = 'Forecast · ';
 
+const STANDARDS_OPTIONS: { value: StandardsType; label: string }[] = [
+  { value: 'WHO', label: 'WHO 2021' },
+  { value: 'NEMA_UGANDA', label: 'NEMA (Uganda)' },
+  { value: 'NEMA_KENYA', label: 'NEMA (Kenya)' },
+  { value: 'SOUTH_AFRICA', label: 'South Africa (NEM:AQA)' },
+  { value: 'NIGERIA', label: 'Nigeria (NESREA)' },
+];
+
+const STANDARDS_TITLES: Record<StandardsType, string> = {
+  WHO: 'WHO (World Health Organization) 2021 air quality guidelines',
+  NEMA_UGANDA: 'National Environment Management Authority (Uganda) limits',
+  NEMA_KENYA: 'NEMA Kenya — Legal Notice 180 of 2024',
+  SOUTH_AFRICA: 'South Africa National Ambient Air Quality Standards',
+  NIGERIA:
+    'Nigeria National Environmental (Air Quality Control) Regulations 2021',
+};
+
+const PERIOD_KEYS: Record<
+  string,
+  { '24hr': string | undefined; annual: string | undefined }
+> = {
+  pm2_5: { '24hr': 'PM25_24HR', annual: 'PM25_ANNUAL' },
+  pm10: { '24hr': 'PM10_24HR', annual: 'PM10_ANNUAL' },
+};
+
 interface ForecastSeries {
   siteId: string;
   siteIndex: number;
@@ -71,11 +102,14 @@ interface ForecastSeries {
  * The active chart workspace — the primary focus of the analytics page.
  *
  * Built on the SAME shared ChartContainer used by the favorites dashboard so
- * every chart looks and behaves alike: one header with a single "More" menu
- * holding every action (edit, duplicate, rename, refresh, exports, forecast,
- * standards, reference lines) instead of a row of buttons. The chart itself
- * carries the per-site forecast overlay (dashed projections + "Now" marker)
- * and per-location colors. Deleting arms the inline confirmation bar.
+ * every chart looks and behaves alike: a header with the title, then a
+ * toolbar section above the chart holding the reference standard selector
+ * (left) and the forecast toggle + "More" menu (right), with separator
+ * lines above and below the chart body. The More menu keeps the chart
+ * actions (edit, duplicate, rename, refresh, exports, standards, reference
+ * lines). The chart itself carries the per-site forecast overlay (dashed
+ * projections + "Now" marker) and per-location colors. Deleting arms the
+ * inline confirmation bar.
  */
 export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   draft,
@@ -122,6 +156,16 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   // The guideline the chart compares against: annual for monthly data,
   // 24-hour for every other frequency (same rule as the overview cards).
   const guidelinePeriod = getGuidelinePeriod(draft.frequency);
+
+  // The reference line value for the selected standard + averaging period,
+  // shown in the toolbar next to the standard selector.
+  const guidelineValue = useMemo(() => {
+    const keys = PERIOD_KEYS[draft.pollutant];
+    const table = REFERENCE_LINES[referenceStandard];
+    if (!keys || !table) return null;
+    const value = table[keys[guidelinePeriod] as keyof typeof table];
+    return typeof value === 'number' ? value : null;
+  }, [draft.pollutant, guidelinePeriod, referenceStandard]);
 
   // Persist the standards selection (chosen via the shared standards dialog
   // in the More menu) so it survives reloads.
@@ -335,6 +379,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     void onDuplicate(draft);
   }, [draft, onDuplicate]);
 
+  // The toolbar select must not collide across chart cards on the same page.
+  const standardSelectId = `reference-standard-${draft.id.replace(
+    /[^a-zA-Z0-9_-]/g,
+    '-'
+  )}`;
+
   return (
     <div className={cn('w-full min-w-0 space-y-2', className)}>
       <ChartContainer
@@ -343,11 +393,108 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         loading={isLoading || isRefreshing}
         error={error ?? null}
         onRefresh={refresh}
-        exportOptions={{ enablePDF: true, enablePNG: true, filename: exportFilename }}
+        exportOptions={{
+          enablePDF: true,
+          enablePNG: true,
+          filename: exportFilename,
+        }}
         onEditTitle={handleContainerTitleEdit}
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         className="w-full"
+        toolbar={
+          <>
+            {/* Reference standard selector */}
+            <div>
+              <label
+                htmlFor={standardSelectId}
+                className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+              >
+                Reference standard
+              </label>
+              <select
+                id={standardSelectId}
+                value={referenceStandard}
+                onChange={event =>
+                  handleStandardsChange(event.target.value as StandardsType)
+                }
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+              >
+                {STANDARDS_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Guideline value for the selected standard */}
+            <div>
+              <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                {guidelinePeriod === '24hr'
+                  ? '24-hour guideline'
+                  : 'Annual guideline'}
+              </span>
+              <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                {guidelineValue !== null
+                  ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
+                  : '—'}
+                <Tooltip
+                  content={
+                    <div className="max-w-[240px] space-y-0.5 text-left">
+                      <p className="text-xs font-semibold text-white">
+                        {STANDARDS_TITLES[referenceStandard]}
+                      </p>
+                      <p className="text-xs text-gray-200">
+                        {guidelinePeriod === '24hr' ? '24-hour' : 'Annual'}{' '}
+                        {getPollutantLabel(draft.pollutant)} guideline:{' '}
+                        <span className="font-semibold text-white">
+                          {guidelineValue !== null
+                            ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
+                            : 'not available'}
+                        </span>
+                      </p>
+                    </div>
+                  }
+                  placement="top"
+                >
+                  <span className="inline-flex cursor-help">
+                    <AqInfoCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                </Tooltip>
+              </span>
+            </div>
+          </>
+        }
+        toolbarActions={
+          forecastUsable ? (
+            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground">
+              Forecast
+              <button
+                type="button"
+                role="switch"
+                aria-checked={forecastEnabled}
+                aria-label="Forecast"
+                onClick={onForecastToggle}
+                className={cn(
+                  'relative h-5 w-9 rounded-full transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
+                  forecastEnabled ? 'bg-primary' : 'bg-muted'
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 motion-reduce:transition-none',
+                    forecastEnabled && 'translate-x-4'
+                  )}
+                />
+              </button>
+            </label>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              Forecast is available for PM₂.₅ charts
+            </span>
+          )
+        }
         menuItems={
           <>
             <DropdownMenuItem onClick={() => onEdit(draft)}>
@@ -358,23 +505,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
               <AqCopy01 className="mr-2 h-4 w-4" />
               Duplicate
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {forecastUsable ? (
-              <DropdownMenuItem onClick={onForecastToggle}>
-                <span className="flex w-full items-center justify-between gap-3">
-                  <span>Forecast</span>
-                  {forecastEnabled ? (
-                    <AqCheck className="h-4 w-4 text-primary" />
-                  ) : null}
-                </span>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem disabled>
-                <span className="text-xs text-muted-foreground">
-                  Forecast is available for PM₂.₅ charts
-                </span>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onRequestDelete(draft)}

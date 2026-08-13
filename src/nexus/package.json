@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",
@@ -19,8 +20,7 @@
     "test:e2e:org": "cd e2e && npm run test:org",
     "test:e2e:admin": "cd e2e && npm run test:admin",
     "test:e2e:data": "cd e2e && npm run test:data",
-    "test:e2e:headed": "cd e2e && npm run test:headed",
-    "type-check": "tsc --noEmit"
+    "test:e2e:headed": "cd e2e && npm run test:headed"
   },
   "dependencies": {
     "@airqo/icons-react": "0.2.9",

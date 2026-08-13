@@ -8,17 +8,19 @@ import type { ExplorerChartDraft } from './chartConfig';
  * Theme-default series color for a site at `index` within the selected list.
  *
  * Colors are strictly opt-in (only explicit picks are persisted), so unset
- * sites fall back to the app's theme palette. The palette is ordered from the
- * base primary through darker/lighter mixes; once it repeats (more selections
- * than palette entries) the opacity drops per cycle so repeats still read as
- * distinct shades. Nothing here is written to the saved configuration.
+ * sites fall back to the app's theme palette. The palette now has 20 distinct
+ * hues; once it repeats (more selections than palette entries) each successive
+ * cycle is lightened via white mix so repeated shades remain visually distinct
+ * without becoming transparent. Nothing here is written to the saved config.
  */
 export const getDefaultSiteColor = (index: number): string => {
   const base = getPrimaryColor(index);
   const cycle = Math.floor(index / PRIMARY_COLOR_PALETTE.length);
   if (cycle === 0) return base;
-  const alpha = Math.max(0.4, 1 - cycle * 0.2);
-  return `color-mix(in srgb, ${base} ${Math.round(alpha * 100)}%, transparent)`;
+  // Gentle lightening per cycle: 20% white, 35%, 50%, … — keeps colors
+  // opaque and visible while still distinguishing repeat shades.
+  const whitePct = Math.min(20 + (cycle - 1) * 15, 65);
+  return `color-mix(in srgb, ${base} ${100 - whitePct}%, white)`;
 };
 
 /**

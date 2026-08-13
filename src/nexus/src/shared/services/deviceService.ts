@@ -614,14 +614,16 @@ export class DeviceService {
     return data as MapReadingsResponse;
   }
 
-  // Get daily forecast data - new v2 endpoint (proxied to avoid CORS)
+  // Get daily forecast data - new v2 endpoint (proxied to avoid CORS).
+  // NOTE: the backend 404s this route WITH a trailing slash — keep the path
+  // slash-free so direct (non-proxy) calls also work.
   async getDailyForecast(
     siteId: string,
     signal?: AbortSignal
   ): Promise<DailyForecastResponse> {
     const response = await this.serverClient.get<
       DailyForecastResponse | ApiErrorResponse
-    >(`/predict/daily-forecasting/?site_id=${siteId}`, { signal });
+    >(`/predict/daily-forecasting?site_id=${siteId}`, { signal });
     const data = response.data;
 
     if (
@@ -636,7 +638,9 @@ export class DeviceService {
     return data as DailyForecastResponse;
   }
 
-  // Get hourly forecast data - new v2 endpoint (proxied to avoid CORS)
+  // Get hourly forecast data - new v2 endpoint (proxied to avoid CORS).
+  // Slash-free path — the backend 404s the trailing-slash form (same as
+  // daily-forecasting).
   async getHourlyForecast(
     siteId: string,
     page = 1,
@@ -646,7 +650,7 @@ export class DeviceService {
     const response = await this.serverClient.get<
       HourlyForecastResponse | ApiErrorResponse
     >(
-      `/predict/hourly-forecasting/?site_id=${siteId}&page=${page}&limit=${limit}`,
+      `/predict/hourly-forecasting?site_id=${siteId}&page=${page}&limit=${limit}`,
       { signal }
     );
     const data = response.data;

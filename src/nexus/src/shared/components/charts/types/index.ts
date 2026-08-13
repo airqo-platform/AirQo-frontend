@@ -172,6 +172,15 @@ export interface ChartContainerProps {
    * for trust signaling (IQAir/AirGradient pattern).
    */
   footerHint?: React.ReactNode;
+  /**
+   * Optional toolbar row rendered between the header and the chart. When
+   * provided, the More menu moves out of the header into the right side of
+   * this row (with `toolbarActions` just before it), and a matching
+   * separator line is drawn under the chart to close the section.
+   */
+  toolbar?: React.ReactNode;
+  /** Right-aligned actions inside the toolbar row, before the More menu */
+  toolbarActions?: React.ReactNode;
 }
 
 // Dynamic chart props

@@ -74,20 +74,23 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   onEditTitle,
   menuItems,
   footerHint,
+  toolbar,
+  toolbarActions,
 }) => {
   const posthog = usePostHog();
   const [isExporting, setIsExporting] = useState(false);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
-  const [currentStandards, setCurrentStandards] =
-    useState<AirQualityStandardsConfig | undefined>(() =>
-      selectedStandards
-        ? {
-            organization: selectedStandards,
-            pollutant: 'PM2.5',
-            showReferenceLine: initialShowReferenceLines,
-          }
-        : undefined
-    );
+  const [currentStandards, setCurrentStandards] = useState<
+    AirQualityStandardsConfig | undefined
+  >(() =>
+    selectedStandards
+      ? {
+          organization: selectedStandards,
+          pollutant: 'PM2.5',
+          showReferenceLine: initialShowReferenceLines,
+        }
+      : undefined
+  );
   const [showReferenceLines, setShowReferenceLines] = useState(
     initialShowReferenceLines
   );
@@ -136,7 +139,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       });
       toast.success(`Chart exported as ${format.toUpperCase()} successfully`);
     } catch (error) {
-      console.error('Export failed:', error instanceof Error ? error.message : error);
+      console.error(
+        'Export failed:',
+        error instanceof Error ? error.message : error
+      );
       toast.error(`Failed to export chart as ${format.toUpperCase()}`);
     } finally {
       setIsExporting(false);
@@ -151,7 +157,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         toast.success('Data refreshed');
       } catch (error) {
         toast.error('Failed to refresh data');
-        console.error('Refresh error:', error instanceof Error ? error.message : error);
+        console.error(
+          'Refresh error:',
+          error instanceof Error ? error.message : error
+        );
       } finally {
         setIsRefreshing(false);
       }
@@ -180,7 +189,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       setIsEditingTitle(false);
       toast.success('Chart title updated');
     } catch (error) {
-      console.error('Failed to update chart title:', error instanceof Error ? error.message : error);
+      console.error(
+        'Failed to update chart title:',
+        error instanceof Error ? error.message : error
+      );
       toast.error('Failed to update chart title');
     } finally {
       setIsSavingTitle(false);
@@ -243,9 +255,198 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   const currentStandardsOrg: StandardsType =
     (currentStandards?.organization as StandardsType) || 'WHO';
 
+  // The full "More" menu. Rendered in the header by default; when a toolbar
+  // is provided it moves to the right side of the toolbar row instead.
+  const renderMoreDropdown = () => (
+    <DropdownMenu
+      key={showStandardsDialog ? 'closed' : 'open'}
+      open={isDropdownOpen}
+      onOpenChange={setIsDropdownOpen}
+    >
+      <DropdownMenuTrigger asChild>
+        <button
+          className={cn(
+            'flex items-center border shadow-sm space-x-1 px-3 py-2 text-sm font-medium text-muted-foreground',
+            'hover:text-foreground hover:bg-muted rounded-md transition-colors',
+            'focus:outline-none focus:ring-2 focus:ring-primary/20'
+          )}
+          disabled={isExporting}
+        >
+          <span>More</span>
+          <HiChevronDown className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-56">
+        <div
+          className="py-1"
+          onClickCapture={() => {
+            // Close the menu AFTER the clicked item's own onClick has
+            // run. Closing synchronously here unmounts the item before
+            // its handler fires, silently swallowing Edit/Delete/etc.
+            setTimeout(() => setIsDropdownOpen(false), 0);
+          }}
+        >
+          {/* Custom actions (edit/delete chart, etc.) */}
+          {menuItems && (
+            <>
+              {menuItems}
+              <div className="border-t border-border my-1" />
+            </>
+          )}
+
+          {/* Edit title & subtitle */}
+          {onEditTitle && (
+            <button
+              onClick={handleStartEditTitle}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <AqEdit02 className="h-4 w-4 mr-2" />
+              Edit title &amp; subtitle
+            </button>
+          )}
+
+          {/* Refresh Data */}
+          {onRefresh && (
+            <button
+              onClick={handleRefresh}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <AqRefreshCcw01 className="h-4 w-4 mr-2" />
+              Refresh Data
+            </button>
+          )}
+
+          {/* Export Options */}
+          {exportOptions.enablePDF && (
+            <button
+              onClick={() => handleExport('pdf')}
+              disabled={isExporting}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              type="button"
+            >
+              <AqDownload01 className="h-4 w-4 mr-2" />
+              Export as PDF
+            </button>
+          )}
+
+          {exportOptions.enablePNG && (
+            <button
+              onClick={() => handleExport('png')}
+              disabled={isExporting}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              type="button"
+            >
+              <AqDownload01 className="h-4 w-4 mr-2" />
+              Export as PNG
+            </button>
+          )}
+
+          {/* Separator */}
+          {(exportOptions.enablePDF || exportOptions.enablePNG) &&
+            (onMoreInsights || onAirQualityStandards) && (
+              <div className="border-t border-border my-1" />
+            )}
+
+          {/* More Insights */}
+          {onMoreInsights && (
+            <button
+              onClick={() => onMoreInsights(currentSites)}
+              className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+            >
+              <AqBarChartSquareUp className="h-4 w-4 mr-2" />
+              More Insights
+            </button>
+          )}
+
+          {/* Chart Type Selection */}
+          {onChartTypeChange && (
+            <>
+              <div className="px-3 py-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Chart Type
+                </p>
+              </div>
+
+              {/* Auto Select Toggle */}
+              <button
+                onClick={onAutoSelectToggle}
+                className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                <AqAtom02 className="h-4 w-4 mr-2" />
+                Auto Select: {autoSelectChart ? 'On' : 'Off'}
+              </button>
+
+              {/* Chart Type Options */}
+              {!autoSelectChart && (
+                <div className="px-3 py-1">
+                  <div className="space-y-1">
+                    {Object.entries(CHART_TYPE_LABELS).map(([type, label]) => (
+                      <button
+                        key={type}
+                        onClick={() => onChartTypeChange(type as ChartType)}
+                        className={cn(
+                          'flex items-center w-full px-2 py-1 text-xs rounded transition-colors',
+                          currentChartType === type
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-muted'
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="border-t border-border my-1" />
+            </>
+          )}
+
+          {/* Air Quality Standards */}
+          <button
+            onClick={handleAirQualityStandards}
+            className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            <AqFileShield02 className="h-4 w-4 mr-2" />
+            Air Quality Standards
+          </button>
+
+          {/* Reference Lines Toggle */}
+          <button
+            onClick={() => {
+              setShowReferenceLines(prev => {
+                const next = !prev;
+                onReferenceLinesToggle?.(next);
+                return next;
+              });
+            }}
+            className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+          >
+            Reference Lines: {showReferenceLines ? 'On' : 'Off'}
+          </button>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <Card className={cn('w-full', className)}>
-      {(showTitle || showMoreButton) && (
+      {/* Toolbar section at the TOP of the card: custom content left, actions
+          + More right, separator line below (before the title/subtitle) */}
+      {toolbar && (
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 border-b border-border px-4 py-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
+            {toolbar}
+          </div>
+          <div className="flex items-center gap-4">
+            {toolbarActions}
+            {showMoreButton && renderMoreDropdown()}
+          </div>
+        </div>
+      )}
+
+      {(showTitle || (showMoreButton && !toolbar)) && (
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 gap-3">
           {showTitle &&
             (isEditingTitle ? (
@@ -304,183 +505,8 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               </div>
             ))}
 
-          {/* More dropdown menu */}
-          {showMoreButton && (
-            <DropdownMenu
-              key={showStandardsDialog ? 'closed' : 'open'}
-              open={isDropdownOpen}
-              onOpenChange={setIsDropdownOpen}
-            >
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={cn(
-                    'flex items-center border shadow-sm space-x-1 px-3 py-2 text-sm font-medium text-muted-foreground',
-                    'hover:text-foreground hover:bg-muted rounded-md transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-primary/20'
-                  )}
-                  disabled={isExporting}
-                >
-                  <span>More</span>
-                  <HiChevronDown className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-56">
-                <div
-                  className="py-1"
-                  onClickCapture={() => {
-                    // Close the menu AFTER the clicked item's own onClick has
-                    // run. Closing synchronously here unmounts the item before
-                    // its handler fires, silently swallowing Edit/Delete/etc.
-                    setTimeout(() => setIsDropdownOpen(false), 0);
-                  }}
-                >
-                  {/* Custom actions (edit/delete chart, etc.) */}
-                  {menuItems && (
-                    <>
-                      {menuItems}
-                      <div className="border-t border-border my-1" />
-                    </>
-                  )}
-
-                  {/* Edit title & subtitle */}
-                  {onEditTitle && (
-                    <button
-                      onClick={handleStartEditTitle}
-                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      <AqEdit02 className="h-4 w-4 mr-2" />
-                      Edit title &amp; subtitle
-                    </button>
-                  )}
-
-                  {/* Refresh Data */}
-                  {onRefresh && (
-                    <button
-                      onClick={handleRefresh}
-                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      <AqRefreshCcw01 className="h-4 w-4 mr-2" />
-                      Refresh Data
-                    </button>
-                  )}
-
-                  {/* Export Options */}
-                  {exportOptions.enablePDF && (
-                    <button
-                      onClick={() => handleExport('pdf')}
-                      disabled={isExporting}
-                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                      type="button"
-                    >
-                      <AqDownload01 className="h-4 w-4 mr-2" />
-                      Export as PDF
-                    </button>
-                  )}
-
-                  {exportOptions.enablePNG && (
-                    <button
-                      onClick={() => handleExport('png')}
-                      disabled={isExporting}
-                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                      type="button"
-                    >
-                      <AqDownload01 className="h-4 w-4 mr-2" />
-                      Export as PNG
-                    </button>
-                  )}
-
-                  {/* Separator */}
-                  {(exportOptions.enablePDF || exportOptions.enablePNG) &&
-                    (onMoreInsights || onAirQualityStandards) && (
-                      <div className="border-t border-border my-1" />
-                    )}
-
-                  {/* More Insights */}
-                  {onMoreInsights && (
-                    <button
-                      onClick={() => onMoreInsights(currentSites)}
-                      className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
-                      <AqBarChartSquareUp className="h-4 w-4 mr-2" />
-                      More Insights
-                    </button>
-                  )}
-
-                  {/* Chart Type Selection */}
-                  {onChartTypeChange && (
-                    <>
-                      <div className="px-3 py-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Chart Type
-                        </p>
-                      </div>
-
-                      {/* Auto Select Toggle */}
-                      <button
-                        onClick={onAutoSelectToggle}
-                        className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      >
-                        <AqAtom02 className="h-4 w-4 mr-2" />
-                        Auto Select: {autoSelectChart ? 'On' : 'Off'}
-                      </button>
-
-                      {/* Chart Type Options */}
-                      {!autoSelectChart && (
-                        <div className="px-3 py-1">
-                          <div className="space-y-1">
-                            {Object.entries(CHART_TYPE_LABELS).map(
-                              ([type, label]) => (
-                                <button
-                                  key={type}
-                                  onClick={() =>
-                                    onChartTypeChange(type as ChartType)
-                                  }
-                                  className={cn(
-                                    'flex items-center w-full px-2 py-1 text-xs rounded transition-colors',
-                                    currentChartType === type
-                                      ? 'bg-primary text-primary-foreground'
-                                      : 'text-foreground hover:bg-muted'
-                                  )}
-                                >
-                                  {label}
-                                </button>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="border-t border-border my-1" />
-                    </>
-                  )}
-
-                  {/* Air Quality Standards */}
-                  <button
-                    onClick={handleAirQualityStandards}
-                    className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                  >
-                    <AqFileShield02 className="h-4 w-4 mr-2" />
-                    Air Quality Standards
-                  </button>
-
-                  {/* Reference Lines Toggle */}
-                  <button
-                    onClick={() => {
-                      setShowReferenceLines(prev => {
-                        const next = !prev;
-                        onReferenceLinesToggle?.(next);
-                        return next;
-                      });
-                    }}
-                    className="flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                  >
-                    Reference Lines: {showReferenceLines ? 'On' : 'Off'}
-                  </button>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* More dropdown menu — in the header unless a toolbar is present */}
+          {showMoreButton && !toolbar && renderMoreDropdown()}
         </CardHeader>
       )}
 
@@ -539,6 +565,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-40"
               role="status"
               aria-live="polite"
+              data-export-ignore
             >
               <div className="flex flex-col items-center space-y-3">
                 <LoadingSpinner />
@@ -551,7 +578,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
           {/* Export loading overlay */}
           {isExporting && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50"
+              data-export-ignore
+            >
               <div className="flex flex-col items-center space-y-3">
                 <LoadingSpinner />
                 <p className="text-sm text-muted-foreground">
@@ -562,10 +592,12 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           )}
         </div>
 
+        {/* Separator line after the chart — closes the toolbar section (not
+            part of the exported image) */}
+        {toolbar && <div className="border-t border-border" data-export-ignore />}
+
         {/* Footer hint (e.g. last update time) */}
-        {footerHint && (
-          <div className="px-1 pt-1 pb-0.5">{footerHint}</div>
-        )}
+        {footerHint && <div className="px-1 pt-1 pb-0.5">{footerHint}</div>}
       </CardContent>
 
       {/* Standards Dialog */}
@@ -579,4 +611,3 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
     </Card>
   );
 };
-
