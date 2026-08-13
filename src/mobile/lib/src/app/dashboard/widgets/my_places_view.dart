@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/unmatched_site_card.dart';
 import 'package:flutter/material.dart';
@@ -18,10 +19,14 @@ import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
+  final MeasurementCardTourKeys? tourKeys;
+  final VoidCallback? onTourTargetReady;
 
   const MyPlacesView({
     super.key,
     this.userPreferences,
+    this.tourKeys,
+    this.onTourTargetReady,
   });
 
   @override
@@ -396,7 +401,9 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                       unmatchedSites.isEmpty)
                     (_prefsAuthError ? _buildSessionExpiredState() : _buildEmptyState())
                   else ...[
-                    ...selectedMeasurements.map((measurement) {
+                    ...selectedMeasurements.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final measurement = entry.value;
                       String? preferenceLocationName;
                       if (widget.userPreferences != null) {
                         for (var site in widget.userPreferences!.selectedSites) {
@@ -413,6 +420,9 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                           measurement: measurement,
                           onRemove: _removeLocation,
                           fallbackLocationName: preferenceLocationName,
+                          tourKeys: index == 0 ? widget.tourKeys : null,
+                          onTourTargetReady:
+                              index == 0 ? widget.onTourTargetReady : null,
                         ),
                       );
                     }),

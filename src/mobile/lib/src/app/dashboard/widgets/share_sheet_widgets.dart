@@ -187,7 +187,7 @@ class ShareTabChip extends StatelessWidget {
           color: selected
               ? AppColors.primaryColor
               : (isDark
-                  ? AppColors.darkHighlight
+                  ? AppSurfaceColors.nested(context)
                   : AppColors.dividerColorlight),
           borderRadius: BorderRadius.circular(30),
         ),
@@ -200,7 +200,7 @@ class ShareTabChip extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: selected
                 ? Colors.white
-                : (isDark ? Colors.white : Colors.black87),
+                : (isDark ? Colors.white : AppColors.boldHeadlineColor4),
           ),
         ),
       ),
