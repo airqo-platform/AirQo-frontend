@@ -27,7 +27,12 @@ export interface NormalizedChartData {
 // Chart filter types
 export type FrequencyType = 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly';
 export type PollutantType = 'pm2_5' | 'pm10';
-export type StandardsType = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+export type StandardsType =
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -226,12 +231,17 @@ export interface AdditionalReferenceLine {
 
 // Air quality standards
 export interface AirQualityStandardsConfig {
-  organization: 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+  organization: StandardsType;
   pollutant: 'PM2.5' | 'PM10';
   showReferenceLine?: boolean;
 }
 
-export type ChartStandardsType = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+export type ChartStandardsType =
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;

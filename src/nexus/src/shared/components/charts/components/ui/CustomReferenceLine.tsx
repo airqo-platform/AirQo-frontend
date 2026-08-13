@@ -77,6 +77,8 @@ const STANDARDS_SHORT_LABELS: Record<StandardsType, string> = {
   WHO: 'WHO 2021',
   NEMA_UGANDA: 'NEMA (UG)',
   NEMA_KENYA: 'NEMA (KE)',
+  SOUTH_AFRICA: 'NEM:AQA (ZA)',
+  NIGERIA: 'NESREA (NG)',
 };
 
 export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({

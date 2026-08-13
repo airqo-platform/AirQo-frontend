@@ -17,6 +17,7 @@ import {
   ChartContainerProps,
   ChartType,
   AirQualityStandardsConfig,
+  StandardsType,
 } from '../types';
 import { useChartExport } from '../hooks/useChartExport';
 import { StandardsDialog } from './ui/StandardsDialog';
@@ -62,6 +63,8 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   currentFilters,
   showReferenceLines: initialShowReferenceLines = true,
   onReferenceLinesToggle,
+  onStandardsChange,
+  selectedStandards,
   currentSites,
   className,
   loading = false,
@@ -76,7 +79,15 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [currentStandards, setCurrentStandards] =
-    useState<AirQualityStandardsConfig>();
+    useState<AirQualityStandardsConfig | undefined>(() =>
+      selectedStandards
+        ? {
+            organization: selectedStandards,
+            pollutant: 'PM2.5',
+            showReferenceLine: initialShowReferenceLines,
+          }
+        : undefined
+    );
   const [showReferenceLines, setShowReferenceLines] = useState(
     initialShowReferenceLines
   );
@@ -205,15 +216,32 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
     setCurrentStandards(config);
     setShowReferenceLines(config.showReferenceLine ?? true);
+    onStandardsChange?.(config.organization);
     toast.success(
       `Applied ${STANDARDS_ORGANIZATIONS[config.organization]} standards for ${config.pollutant}`
     );
   };
 
+  // Keep the standards state in sync when the parent changes the selection
+  // (e.g. switching charts) — the dialog only re-seeds itself from
+  // `currentStandards`, which lives here.
+  React.useEffect(() => {
+    if (!selectedStandards) return;
+    setCurrentStandards(prev =>
+      prev?.organization === selectedStandards
+        ? prev
+        : {
+            organization: selectedStandards,
+            pollutant: prev?.pollutant ?? 'PM2.5',
+            showReferenceLine:
+              prev?.showReferenceLine ?? initialShowReferenceLines,
+          }
+    );
+  }, [initialShowReferenceLines, selectedStandards]);
+
   // Typed standards organization for child props
-  const currentStandardsOrg: 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' =
-    (currentStandards?.organization as 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA') ||
-    'WHO';
+  const currentStandardsOrg: StandardsType =
+    (currentStandards?.organization as StandardsType) || 'WHO';
 
   return (
     <Card className={cn('w-full', className)}>

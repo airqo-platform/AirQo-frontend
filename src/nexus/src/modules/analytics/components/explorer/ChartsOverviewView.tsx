@@ -20,6 +20,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useAnalyticsChartData } from '../../hooks';
 import {
   buildChartMetadata,
+  getGuidelinePeriod,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import {
@@ -195,6 +196,9 @@ const OverviewChartCard: React.FC<{
             aqiConfig={aqiConfig}
             frequency={draft.frequency}
             autoSelectType={false}
+            // Same guideline period as the focused workspace — the reference
+            // line must never disagree with the chart's frequency.
+            referenceLinePeriod={getGuidelinePeriod(draft.frequency)}
             seriesLabels={seriesLabels}
           />
         )}

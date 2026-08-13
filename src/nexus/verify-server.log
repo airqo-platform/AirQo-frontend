@@ -5,21 +5,437 @@ $ next dev -p 3000
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 2s
+ ✓ Ready in 1850ms
  ○ Compiling /user/air-quality/analytics ...
- ✓ Compiled /user/air-quality/analytics in 18.5s (5314 modules)
+ ✓ Compiled /user/air-quality/analytics in 42.9s (5314 modules)
 redux-persist failed to create sync storage. falling back to noop storage.
- GET /user/air-quality/analytics 200 in 19777ms
- ✓ Compiled in 1440ms (2399 modules)
- GET /user/air-quality/analytics 200 in 227ms
+ GET /user/air-quality/analytics 200 in 45942ms
+ ✓ Compiled in 3.4s (2399 modules)
+ GET /user/air-quality/analytics 200 in 255ms
  ○ Compiling /api/auth/[...nextauth] ...
  ✓ Compiled /api/auth/[...nextauth] in 3.8s (3066 modules)
- GET /api/auth/session 200 in 7217ms
- GET /api/auth/session 200 in 51ms
- GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 8478ms
+ GET /api/auth/session 200 in 68ms
+ GET /api/auth/session 200 in 40ms
  ○ Compiling /api/external/[...path] ...
- ✓ Compiled /api/external/[...path] in 613ms (3091 modules)
- GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,6a6b3ebc14dfbc00135f40af,6a6b3e6104bdef0013c3eaac,6a05c0ee0bea770012b658a4,6a05c0b10c37890013723f71 200 in 4082ms
- GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 4278ms
- POST /api/external/analytics/dashboard/chart/d3/data 200 in 12068ms
- POST /api/external/analytics/dashboard/chart/d3/data 200 in 15019ms
+ ✓ Compiled /api/external/[...path] in 1260ms (3091 modules)
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 5682ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,6a6b3ebc14dfbc00135f40af,6a6b3e6104bdef0013c3eaac,6a05c0ee0bea770012b658a4,6a05c0b10c37890013723f71 200 in 5739ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3246ms
+ POST /api/external/analytics/dashboard/chart/d3/data 500 in 591ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3846ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/analytics 200 in 2590ms
+ GET /api/auth/session 200 in 162ms
+ GET /api/auth/session 200 in 98ms
+ GET /api/auth/session 200 in 82ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 2.6s (3096 modules)
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 2.7s (3120 modules)
+ GET /favicon.ico 200 in 8426ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 7925ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,6a6b3ebc14dfbc00135f40af,6a6b3e6104bdef0013c3eaac,6a05c0ee0bea770012b658a4,6a05c0b10c37890013723f71 200 in 7243ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 9842ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 9844ms
+ ○ Compiling /user/air-quality/rankings ...
+ ✓ Compiled /user/air-quality/rankings in 6.8s (5547 modules)
+ GET /api/external/devices/readings/rankings/history?level=country&start_year=2024&end_year=2026 200 in 831ms
+ ○ Compiling /user/favorites ...
+ ✓ Compiled /user/favorites in 4.5s (5556 modules)
+ GET /api/external/devices/readings/recent?site_id=69a409d428904b0013aede11,69ef10511c06c00014ab6ed2,69e0a3d26a235a00126abffa 200 in 1010ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3503ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 5820ms
+ ✓ Compiled in 12.9s (5350 modules)
+ ⨯ Error: Cannot find module './8948.js'
+Require stack:
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\(dashboard)\(individual)\user\(pages)\(layout1)\air-quality\rankings\page.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-middleware.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:198:28)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:162:22)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\(dashboard)\(individual)\user\(pages)\(layout1)\air-quality\analytics\page.js:1:4894
+    at Object.<anonymous> (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\(dashboard)\(individual)\user\(pages)\(layout1)\air-quality\analytics\page.js:1:5001)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js:109:84)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:818:17)
+    at async D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\webpack-runtime.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\app\\(dashboard)\\(individual)\\user\\(pages)\\(layout1)\\air-quality\\rankings\\page.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\require.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\load-components.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\build\\utils.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ],
+  page: '/user/air-quality/analytics'
+}
+ ○ Compiling /_error ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\server-development\5.pack.gz_' -> 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\server-development\5.pack.gz'
+ ✓ Compiled /_error in 57.8s (5576 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/analytics 200 in 2494ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.4s (5561 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /_next/static/css/app/layout.css?v=1786627598647 404 in 3292ms
+ GET /_next/static/css/app/(dashboard)/(individual)/user/(pages)/(layout1)/layout.css?v=1786627598647 404 in 3291ms
+ GET /_next/static/chunks/main-app.js?v=1786627598647 404 in 46ms
+ GET /_next/static/chunks/app/error.js 404 in 41ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 45ms
+ GET /_next/static/chunks/app/global-error.js 404 in 32ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/react-phone-number-input' in D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\react-phone-number-input.js', but to 'Error: Can't resolve './vendor-chunks/react-phone-number-input' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/react-phone-number-input (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\react-phone-number-input.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/es-object-atoms' in D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\es-object-atoms.js', but to 'Error: Can't resolve './vendor-chunks/es-object-atoms' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/es-object-atoms (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\es-object-atoms.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/has-tostringtag' in D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\has-tostringtag.js', but to 'Error: Can't resolve './vendor-chunks/has-tostringtag' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/has-tostringtag (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\has-tostringtag.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving './vendor-chunks/hasown' in D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\hasown.js', but to 'Error: Can't resolve './vendor-chunks/hasown' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ./vendor-chunks/hasown (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\vendor-chunks\hasown.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+[Error: ENOENT: no such file or directory, stat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\3.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\cache\\webpack\\client-development\\3.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\3.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\cache\\webpack\\client-development\\3.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\3.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\cache\\webpack\\client-development\\3.pack.gz'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\3.pack.gz'
+ ○ Compiling / ...
+ ✓ Compiled / in 4.5s (5581 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET / 200 in 5146ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/api/external/[...path]/route' in D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js', but to 'Error: Can't resolve '../../../../.next/server/app/api/external/[...path]/route' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/api/external/[...path]/route (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\handle-externals.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/api/external/[...path]/route' in D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js', but to 'Error: Can't resolve '../../../../.next/server/app/api/external/[...path]/route' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/api/external/[...path]/route (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\handle-externals.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ GET / 200 in 82ms
+ GET / 200 in 85ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 12.8s (3156 modules)
+ GET /api/auth/session 200 in 16488ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/rankings 200 in 9229ms
+ POST /api/auth/_log 200 in 127ms
+ GET /api/auth/session 200 in 85ms
+ GET /api/auth/session 200 in 289ms
+ GET /api/auth/session 200 in 831ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 1969ms (3181 modules)
+ GET /api/external/devices/readings/rankings/history?level=country&start_year=2024&end_year=2026 200 in 3704ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\_not-found\page.js)
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+<w>  at file dependencies D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+ GET /api/external/devices/readings/rankings?level=country&sort=worst&limit=20 200 in 556ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.9s (3178 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /_next/static/chunks/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.js 404 in 4975ms
+ GET /user/air-quality/analytics 200 in 745ms
+ GET /_next/static/chunks/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.js 404 in 97ms
+ GET /user/air-quality/analytics 200 in 94ms
+ GET /_next/static/chunks/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.js 404 in 85ms
+ GET /user/air-quality/rankings 200 in 279ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 3.1s (3157 modules)
+ GET /api/auth/session 200 in 4293ms
+ GET /api/auth/session 200 in 42ms
+ GET /api/auth/session 200 in 51ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 1490ms (3182 modules)
+ GET /api/external/devices/readings/rankings?level=country&sort=worst&limit=20 200 in 3568ms
+ GET /api/external/devices/readings/rankings/history?level=country&start_year=2024&end_year=2026 200 in 712ms
+ ⨯ Error: Cannot find module './8948.js'
+Require stack:
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\api\external\[...path]\route.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-middleware.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:203:28)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:116:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:115:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:167:22)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\page.js:1:6798
+    at Object.<anonymous> (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\app\page.js:1:6861)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js:109:84)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\base-server.js:818:17)
+    at async D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\webpack-runtime.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\app\\api\\external\\[...path]\\route.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\require.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\load-components.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\build\\utils.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ],
+  page: '/'
+}
+ ○ Compiling /_error ...
+ GET / 500 in 3942ms
+ ✓ Compiled /_error in 3.9s (5583 modules)
+ ⨯ Error: Cannot find module './1682.js'
+Require stack:
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\pages\_document.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\utils.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-middleware.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\router-server.js
+- D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1456:15)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+    at Module._load (node:internal/modules/cjs/loader:1242:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:198:28)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\webpack-runtime.js:162:22)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\pages\_document.js:1:340
+    at Object.<anonymous> (D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\server\pages\_document.js:1:383)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1556:12)
+    at mod.require (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\require.js:109:84)
+    at D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\server\next-server.js:714:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\webpack-runtime.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\.next\\server\\pages\\_document.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\require.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\load-components.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\build\\utils.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'D:\\projects\\AirQo project\\AirQo-frontend\\src\\nexus\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ]
+}
+[?25h
+Done in 2808.79s.

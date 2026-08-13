@@ -159,6 +159,8 @@ const VALID_STANDARDS: ReadonlySet<string> = new Set([
   'WHO',
   'NEMA_UGANDA',
   'NEMA_KENYA',
+  'SOUTH_AFRICA',
+  'NIGERIA',
 ]);
 
 export const normalizeStandard = (value?: string | null): StandardsType => {
@@ -255,6 +257,16 @@ export const buildChartMetadata = (draft: ExplorerChartDraft): string => {
   ].filter(Boolean);
   return parts.join(' • ');
 };
+
+/**
+ * The guideline averaging period a chart compares against: annual for monthly
+ * data, 24-hour for every other frequency. Shared by the reference line, the
+ * guideline value display and the standards dialog so the chart and the
+ * summary can never disagree.
+ */
+export const getGuidelinePeriod = (
+  frequency: FrequencyType
+): '24hr' | 'annual' => (frequency === 'monthly' ? 'annual' : '24hr');
 
 /**
  * Convert a persisted chart config (+ sidecar) into the runtime draft the

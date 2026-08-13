@@ -1114,7 +1114,7 @@ const MultiSelectTable = <T extends TableItem>({
 
       <div className="relative">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-          <div className="min-w-full inline-block align-top">
+          <div className="min-w-full">
             {error ? (
               (errorComponent ?? (
                 <ErrorState
@@ -1178,7 +1178,9 @@ const MultiSelectTable = <T extends TableItem>({
                             : undefined
                         }
                       >
-                        <div className="flex items-center space-x-1 min-w-0">
+                        <div
+                          className={`flex items-center space-x-1 min-w-0${column.headerClassName?.includes('text-right') ? ' justify-end' : ''}`}
+                        >
                           <span
                             className={`truncate ${
                               sortable && column.sortable !== false

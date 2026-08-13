@@ -736,3 +736,782 @@ Require stack:
 <w>  at resolve commonjs D:\projects\AirQo project\AirQo-frontend\src\nexus\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz_' -> 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz'
  ✓ Compiled in 16.5s (5751 modules)
+ ✓ Compiled in 3.5s (2833 modules)
+ ✓ Compiled in 23.7s (5751 modules)
+ ✓ Compiled in 3.3s (5751 modules)
+ ✓ Compiled in 3.6s (5751 modules)
+ ✓ Compiled in 3.6s (5753 modules)
+ ✓ Compiled in 4s (5753 modules)
+ ✓ Compiled in 3.3s (5753 modules)
+ ✓ Compiled in 3.5s (5753 modules)
+ ✓ Compiled in 3.4s (5753 modules)
+ ✓ Compiled in 3.2s (5753 modules)
+ ✓ Compiled in 3.1s (5753 modules)
+ ✓ Compiled in 20.2s (5753 modules)
+ ✓ Compiled in 3.4s (5753 modules)
+ ✓ Compiled in 3.3s (5753 modules)
+ ✓ Compiled in 5s (5753 modules)
+ ✓ Compiled in 3.4s (5753 modules)
+ ✓ Compiled in 3.6s (5753 modules)
+ ✓ Compiled in 3.3s (5753 modules)
+ ✓ Compiled in 2.4s (2834 modules)
+ ✓ Compiled in 2.3s (2834 modules)
+ ✓ Compiled in 3.2s (5753 modules)
+ ✓ Compiled in 3.3s (5753 modules)
+ ✓ Compiled in 4.2s (5753 modules)
+ ✓ Compiled in 3.2s (5753 modules)
+ ✓ Compiled in 2.8s (5753 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\1.pack.gz_' -> 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\1.pack.gz'
+ ⨯ ./src/modules/analytics/components/explorer/ComparisonTable.tsx
+Error: 
+  [31mx[0m the name `formatRelativeTime` is defined multiple times
+    ,-[[36;1;4mD:\projects\AirQo project\AirQo-frontend\src\nexus\src\modules\analytics\components\explorer\ComparisonTable.tsx[0m:11:1]
+ [2m11[0m |   extractReadingNames,
+ [2m12[0m |   resolveSiteName,
+ [2m13[0m | } from '../../hooks/useComparisonReadings';
+ [2m14[0m | import { formatRelativeTime } from '../../utils';
+    : [31;1m         ^^^^^^^^^|^^^^^^^^[0m
+    :                   [31;1m`-- [31;1mprevious definition of `formatRelativeTime` here[0m[0m
+ [2m15[0m | import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+ [2m16[0m | import { AqiLegend } from './AqiLegend';
+ [2m17[0m | import {
+ [2m18[0m |   getAirQualityColor,
+ [2m19[0m |   getAirQualityIcon,
+ [2m20[0m |   getAirQualityLabel,
+ [2m21[0m |   getAirQualityLevel,
+ [2m22[0m |   mapAqiCategoryToLevel,
+ [2m23[0m | } from '@/shared/utils/airQuality';
+ [2m24[0m | import type { AqiConfig } from '@/shared/types/aqi';
+ [2m25[0m | import type { RecentReading } from '@/shared/types/api';
+ [2m26[0m | 
+ [2m27[0m | interface ComparisonTableProps {
+ [2m28[0m |   siteIds: string[];
+ [2m29[0m |   siteNames: Map<string, string>;
+ [2m30[0m |   aqiConfig?: AqiConfig | null;
+ [2m31[0m |   /** Hydrates the page-level names map from readings (no raw ids shown) */
+ [2m32[0m |   onNamesResolved?: (names: Map<string, string>) => void;
+ [2m33[0m |   className?: string;
+ [2m34[0m | }
+ [2m35[0m | 
+ [2m36[0m | interface ComparisonRow {
+ [2m37[0m |   id: string;
+ [2m38[0m |   siteId: string;
+ [2m39[0m |   name: string;
+ [2m40[0m |   city: string;
+ [2m41[0m |   country: string;
+ [2m42[0m |   pm2_5: number | null;
+ [2m43[0m |   pm10: number | null;
+ [2m44[0m |   dailyAvg: number | null;
+ [2m45[0m |   category: string | null;
+ [2m46[0m |   percentageDifference: number | null;
+ [2m47[0m |   time: string | null;
+ [2m48[0m |   [key: string]: unknown;
+ [2m49[0m | }
+ [2m50[0m | 
+ [2m51[0m | const formatValue = (value: number | null): string => {
+ [2m52[0m |   if (value === null || typeof value !== 'number' || !Number.isFinite(value)) {
+ [2m53[0m |     return '—';
+ [2m54[0m |   }
+ [2m55[0m |   return value.toFixed(1);
+ [2m56[0m | };
+ [2m57[0m | 
+ [2m58[0m | const formatRelativeTime = (value: string | null): string => {
+    : [33;1m      ^^^^^^^^^|^^^^^^^^[0m
+    :                [33;1m`-- [33;1m`formatRelativeTime` redefined here[0m[0m
+ [2m59[0m |   if (!value) return '—';
+ [2m60[0m |   try {
+ [2m60[0m |     const parsed = parseISO(value);
+    `----
+
+Import trace for requested module:
+./src/modules/analytics/components/explorer/ComparisonTable.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ✓ Compiled in 5.2s (5753 modules)
+ ✓ Compiled in 1868ms (5753 modules)
+ ✓ Compiled in 2.3s (5753 modules)
+ ✓ Compiled in 16s (5753 modules)
+ ✓ Compiled in 10.5s (5753 modules)
+ ✓ Compiled in 3.4s (5753 modules)
+ ✓ Compiled in 4.5s (5753 modules)
+ ✓ Compiled in 3.7s (5753 modules)
+ ✓ Compiled in 3.9s (5753 modules)
+ ✓ Compiled in 3.9s (5753 modules)
+ ✓ Compiled in 4s (5753 modules)
+ ✓ Compiled in 3.3s (5753 modules)
+ ✓ Compiled in 3.1s (5753 modules)
+ ✓ Compiled in 4.2s (5753 modules)
+ ✓ Compiled in 4.1s (5753 modules)
+ ✓ Compiled in 4.1s (5753 modules)
+ ✓ Compiled in 4.5s (5753 modules)
+ ✓ Compiled in 3.8s (5753 modules)
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/ChartsOverviewView.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/ChartsOverviewView.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/ChartsOverviewView.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/ChartsOverviewView.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ⚠ ./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/airqo-map/components/sidebar/SiteInsightsChart.tsx
+./src/modules/airqo-map/components/sidebar/index.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'SOUTH_AFRICA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'SOUTH_AFRICA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM25_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM25_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+Attempted import error: 'NIGERIA_PM10_STANDARDS' is not exported from '../../constants' (imported as 'NIGERIA_PM10_STANDARDS').
+
+Import trace for requested module:
+./src/shared/components/charts/components/ui/StandardsDialog.tsx
+./src/shared/components/charts/components/ChartContainer.tsx
+./src/shared/components/charts/index.ts
+./src/modules/analytics/components/explorer/AnalyticsChartCard.tsx
+./src/modules/analytics/components/AnalyticsExplorerPage.tsx
+./src/app/(dashboard)/(individual)/user/(pages)/(layout1)/air-quality/analytics/page.tsx
+ ✓ Compiled in 4.4s (5753 modules)
+ ✓ Compiled in 4.1s (5753 modules)
+ ✓ Compiled in 1343ms (2834 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz_' -> 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 25.8s (5753 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz_' -> 'D:\projects\AirQo project\AirQo-frontend\src\nexus\.next\cache\webpack\client-development\0.pack.gz'
