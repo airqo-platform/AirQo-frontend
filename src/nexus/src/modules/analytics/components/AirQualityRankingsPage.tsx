@@ -23,6 +23,20 @@ import type { RankingsLevel, RankingsSort } from '@/shared/types/api';
 
 type RankingsTab = 'live' | 'history';
 
+const RANKINGS_TAB_STORAGE_KEY = 'nexus:rankings:tab';
+
+// The active tab survives reloads: read lazily (guarded for SSR) and persist
+// on change so a refreshed page returns to the same tab.
+const readStoredRankingsTab = (): RankingsTab => {
+  if (typeof window === 'undefined') return 'live';
+  try {
+    const stored = window.localStorage.getItem(RANKINGS_TAB_STORAGE_KEY);
+    return stored === 'live' || stored === 'history' ? stored : 'live';
+  } catch {
+    return 'live';
+  }
+};
+
 const TAB_OPTIONS: { value: RankingsTab; label: string }[] = [
   { value: 'live', label: 'Live rankings' },
   { value: 'history', label: 'Historical comparison' },
@@ -58,10 +72,19 @@ export const AirQualityRankingsPage: React.FC<
   const { config: aqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig('pm2_5');
 
-  const [tab, setTab] = useState<RankingsTab>('live');
+  const [tab, setTab] = useState<RankingsTab>(readStoredRankingsTab);
   const [level, setLevel] = useState<RankingsLevel>('country');
   const [sort, setSort] = useState<RankingsSort>('worst');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
+
+  // Persist the active tab so a refresh returns to the same view.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(RANKINGS_TAB_STORAGE_KEY, tab);
+    } catch {
+      // Storage unavailable — tab memory is best-effort.
+    }
+  }, [tab]);
 
   const [historyLevel, setHistoryLevel] = useState<RankingsLevel>('country');
   const currentYear = new Date().getFullYear();

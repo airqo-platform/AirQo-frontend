@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { Button } from '@/shared/components/ui/button';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
@@ -12,6 +11,7 @@ import {
   extractReadingNames,
   resolveSiteName,
 } from '../../hooks/useComparisonReadings';
+import { formatRelativeTime } from '../../utils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AqiLegend } from './AqiLegend';
 import {
@@ -53,17 +53,6 @@ const formatValue = (value: number | null): string => {
     return '—';
   }
   return value.toFixed(1);
-};
-
-const formatRelativeTime = (value: string | null): string => {
-  if (!value) return '—';
-  try {
-    const parsed = parseISO(value);
-    if (Number.isNaN(parsed.getTime())) return '—';
-    return formatDistanceToNow(parsed, { addSuffix: true });
-  } catch {
-    return '—';
-  }
 };
 
 /**
@@ -315,7 +304,9 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
         ...rightAlign,
         render: (value: unknown) => (
           <span className="text-xs text-muted-foreground">
-            {formatRelativeTime(typeof value === 'string' ? value : null)}
+            {typeof value === 'string' && value.trim()
+              ? formatRelativeTime(value)
+              : '—'}
           </span>
         ),
       },

@@ -18,8 +18,6 @@ import {
 } from '@airqo/icons-react';
 import { DynamicChart } from '@/shared/components/charts';
 import { useChartExport } from '@/shared/components/charts';
-import { getPrimaryColor } from '@/shared/components/charts/constants';
-import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 import {
   getPollutantLabel,
   getPollutantUnits,
@@ -41,7 +39,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { deviceService } from '@/shared/services/deviceService';
 import { useAnalyticsChartData } from '../../hooks';
 import {
-  formatChartRangeLabel,
+  buildChartMetadata,
   readChartSidecar,
   writeChartSidecar,
   type ExplorerChartDraft,
@@ -53,6 +51,7 @@ import {
   buildSiteLabels,
   buildSeriesLabels,
 } from '../../utils/chartLabels';
+import { resolveSiteColor } from '../../utils/siteColors';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import type { StandardsType } from '@/shared/components/charts/types';
 
@@ -217,14 +216,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     [draft.siteIds, forecastQueries]
   );
 
-  // Per-location series color: explicit locationColors entry wins, then the
-  // chart color, then the shared palette (matches DynamicChart's resolution).
+  // Per-location series color — shared resolution: explicit locationColors
+  // entry wins, then the chart color, then a theme-default shade per position
+  // (same as the picker preview, strip and overview cards).
   const siteColorFor = useCallback(
     (siteId: string, index: number): string =>
-      draft.locationColors.find(location => location.id === siteId)?.color ??
-      draft.color ??
-      getPrimaryColor(index),
-    [draft.color, draft.locationColors]
+      resolveSiteColor(draft, siteId, index),
+    [draft]
   );
 
   // Series display name: the picker's site name, falling back to the
@@ -464,12 +462,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     void onDuplicate(draft);
   }, [draft, onDuplicate]);
 
-  const metadataParts = [
-    getPollutantLabel(draft.pollutant),
-    `${FREQUENCY_LABELS[draft.frequency] ?? draft.frequency} average`,
-    formatChartRangeLabel(draft.startDate, draft.endDate),
-    `${draft.siteIds.length} location${draft.siteIds.length === 1 ? '' : 's'}`,
-  ].filter(Boolean);
+  const metadata = buildChartMetadata(draft);
 
   return (
     <Card className={cn('w-full min-w-0', className)}>
@@ -536,7 +529,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
                       </p>
                     ) : (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {metadataParts.join(' • ')}
+                        {metadata}
                       </p>
                     )}
                   </>

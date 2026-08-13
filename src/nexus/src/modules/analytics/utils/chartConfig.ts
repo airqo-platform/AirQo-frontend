@@ -8,6 +8,8 @@ import type {
   PollutantType,
   StandardsType,
 } from '@/shared/components/charts/types';
+import { getPollutantLabel } from '@/shared/utils/airQuality';
+import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 
 export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
 
@@ -238,6 +240,20 @@ export const formatChartRangeLabel = (
     return `${format(start, false)} - ${format(end, true)}`;
   }
   return `${format(start, true)} - ${format(end, true)}`;
+};
+
+/**
+ * The one-line subtitle shown on every chart card (focused workspace and
+ * overview): pollutant, frequency, date range and selection count.
+ */
+export const buildChartMetadata = (draft: ExplorerChartDraft): string => {
+  const parts = [
+    getPollutantLabel(draft.pollutant),
+    `${FREQUENCY_LABELS[draft.frequency] ?? draft.frequency} average`,
+    formatChartRangeLabel(draft.startDate, draft.endDate),
+    `${draft.siteIds.length} location${draft.siteIds.length === 1 ? '' : 's'}`,
+  ].filter(Boolean);
+  return parts.join(' • ');
 };
 
 /**

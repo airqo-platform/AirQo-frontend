@@ -69,6 +69,8 @@ type ViewMode = 'focused' | 'charts' | 'table';
 type CompareMode = 'table' | 'cards';
 
 const ACTIVE_CHART_STORAGE_KEY = 'nexus:analytics:active-chart';
+const VIEW_MODE_STORAGE_KEY = 'nexus:analytics:view-mode';
+const COMPARE_MODE_STORAGE_KEY = 'nexus:analytics:compare-mode';
 
 const VIEW_OPTIONS: {
   value: ViewMode;
@@ -119,6 +121,30 @@ const readStoredActiveChartId = (): string | null => {
   }
 };
 
+// The active view survives reloads: read it lazily (guarded for SSR) and
+// persist on change so a refreshed page returns to the same tab.
+const readStoredViewMode = (): ViewMode => {
+  if (typeof window === 'undefined') return 'focused';
+  try {
+    const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    return stored === 'focused' || stored === 'charts' || stored === 'table'
+      ? stored
+      : 'focused';
+  } catch {
+    return 'focused';
+  }
+};
+
+const readStoredCompareMode = (): CompareMode => {
+  if (typeof window === 'undefined') return 'table';
+  try {
+    const stored = window.localStorage.getItem(COMPARE_MODE_STORAGE_KEY);
+    return stored === 'table' || stored === 'cards' ? stored : 'table';
+  } catch {
+    return 'table';
+  }
+};
+
 /**
  * Air Quality Analytics — a workspace built around ONE active chart. The
  * selected chart is the primary focus; the reference legend, saved charts
@@ -134,8 +160,9 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('focused');
-  const [compareMode, setCompareMode] = useState<CompareMode>('table');
+  const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
+  const [compareMode, setCompareMode] =
+    useState<CompareMode>(readStoredCompareMode);
   const [tablePollutant, setTablePollutant] = useState<PollutantType>('pm2_5');
   const { config: tableAqiConfig } = useAqiConfig(tablePollutant);
 
@@ -224,6 +251,23 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       // Storage unavailable — active-chart memory is best-effort.
     }
   }, [activeChartId]);
+
+  // Persist the active view so a refresh returns to the same tab.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+    } catch {
+      // Storage unavailable — view memory is best-effort.
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(COMPARE_MODE_STORAGE_KEY, compareMode);
+    } catch {
+      // Storage unavailable — view memory is best-effort.
+    }
+  }, [compareMode]);
 
   const activeChart = useMemo(
     () => charts.find(chart => chart.id === activeChartId) ?? charts[0] ?? null,

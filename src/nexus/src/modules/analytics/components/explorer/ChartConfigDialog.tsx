@@ -330,6 +330,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
             }}
             locationColors={locationColors}
             onLocationColorChange={setLocationColor}
+            chartColor={draft?.color ?? null}
             namesBySite={siteNames}
             maxSelection={50}
           />

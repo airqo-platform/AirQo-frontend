@@ -6,6 +6,7 @@ import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqXClose } from '@airqo/icons-react';
 import { useSitesForSelection } from '../../hooks/useCohortSelection';
+import { getDefaultSiteColor } from '../../utils/siteColors';
 import type { NormalizedSiteData } from '@/shared/utils/siteUtils';
 
 interface LocationPickerSectionProps {
@@ -21,6 +22,11 @@ interface LocationPickerSectionProps {
   locationColors?: { id: string; color: string }[];
   /** Sets or clears (null) a location's explicit series color */
   onLocationColorChange?: (siteId: string, color: string | null) => void;
+  /**
+   * The chart's single color (draft.color). Unset sites preview with this
+   * (falling back to theme-default shades), matching the rendered chart.
+   */
+  chartColor?: string | null;
   /**
    * Resolved display names (siteId → name) from the page — used by the
    * selected-items strip so off-page selections always show real names.
@@ -65,6 +71,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
   onSelectionChange,
   locationColors,
   onLocationColorChange,
+  chartColor = null,
   namesBySite,
   maxSelection = MAX_SELECTION_DEFAULT,
   className,
@@ -113,13 +120,27 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
     [namesBySite, sitesData.sites]
   );
 
+  // Preview color for a selected site: explicit pick, else the chart color,
+  // else a theme-default shade for the site's position in the selection (so
+  // unset sites never look identical — matches the rendered chart exactly).
+  const previewColor = useCallback(
+    (siteId: string, index: number): string => {
+      return (
+        locationColors?.find(entry => entry.id === siteId)?.color ??
+        chartColor ??
+        getDefaultSiteColor(index)
+      );
+    },
+    [chartColor, locationColors]
+  );
+
   const renderColorCell = useCallback(
-    (id: string, label: string, isSelected: boolean) => {
+    (id: string, label: string, isSelected: boolean, index: number) => {
       if (!isSelected) {
         return <span className="text-muted-foreground/50">—</span>;
       }
       const entry = locationColors?.find(location => location.id === id);
-      const color = entry?.color ?? '#145DFF';
+      const color = previewColor(id, index);
       return (
         <span className="flex items-center gap-1.5">
           <label
@@ -153,7 +174,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
         </span>
       );
     },
-    [locationColors, onLocationColorChange]
+    [locationColors, onLocationColorChange, previewColor]
   );
 
   const siteColumns = useMemo(
@@ -162,16 +183,6 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
         key: 'location',
         label: 'Location',
         sortable: true,
-        cellClassName: 'whitespace-nowrap',
-      },
-      {
-        key: 'devices',
-        label: 'Device',
-        // Rendered from the site payload's embedded devices — no sortable
-        // field on the row itself.
-        sortable: false,
-        render: (_value: unknown, site: NormalizedSiteData) =>
-          getSiteDeviceNames(site),
         cellClassName: 'whitespace-nowrap',
       },
       ...(hasSelection
@@ -186,13 +197,24 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
                 renderColorCell(
                   String(site.id),
                   site.location,
-                  selectedSiteIds.includes(String(site.id))
+                  selectedSiteIds.includes(String(site.id)),
+                  selectedSiteIds.indexOf(String(site.id))
                 ),
               width: '76px',
               cellClassName: 'whitespace-nowrap',
             },
           ]
         : []),
+      {
+        key: 'devices',
+        label: 'Device',
+        // Rendered from the site payload's embedded devices — no sortable
+        // field on the row itself.
+        sortable: false,
+        render: (_value: unknown, site: NormalizedSiteData) =>
+          getSiteDeviceNames(site),
+        cellClassName: 'whitespace-nowrap',
+      },
       {
         key: 'city',
         label: 'City',
@@ -239,11 +261,9 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {selectedSiteIds.map(siteId => {
+            {selectedSiteIds.map((siteId, index) => {
               const label = selectedSiteLabel(siteId);
-              const color =
-                locationColors?.find(location => location.id === siteId)
-                  ?.color ?? 'rgb(var(--primary))';
+              const color = previewColor(siteId, index);
               return (
                 <span
                   key={siteId}

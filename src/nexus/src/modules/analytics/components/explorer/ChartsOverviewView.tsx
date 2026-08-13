@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import {
@@ -16,12 +16,10 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
-import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
-import { getPollutantLabel } from '@/shared/utils/airQuality';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useAnalyticsChartData } from '../../hooks';
 import {
-  formatChartRangeLabel,
+  buildChartMetadata,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import {
@@ -29,6 +27,7 @@ import {
   buildSiteLabels,
   buildSeriesLabels,
 } from '../../utils/chartLabels';
+import { buildSeriesColors } from '../../utils/siteColors';
 
 interface ChartsOverviewViewProps {
   charts: ExplorerChartDraft[];
@@ -44,6 +43,20 @@ interface ChartsOverviewViewProps {
 }
 
 type OverviewLayout = 'list' | 'grid';
+
+const OVERVIEW_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
+
+// The chosen layout survives reloads: read lazily (guarded for SSR) and
+// persist on change so a refreshed page returns to the same layout.
+const readStoredOverviewLayout = (): OverviewLayout => {
+  if (typeof window === 'undefined') return 'list';
+  try {
+    const stored = window.localStorage.getItem(OVERVIEW_LAYOUT_STORAGE_KEY);
+    return stored === 'list' || stored === 'grid' ? stored : 'list';
+  } catch {
+    return 'list';
+  }
+};
 
 const LAYOUT_OPTIONS: {
   value: OverviewLayout;
@@ -122,30 +135,15 @@ const OverviewChartCard: React.FC<{
     () => buildSeriesLabels(chartData, siteLabels),
     [chartData, siteLabels]
   );
-  const locationColors = useMemo(
-    () => Object.fromEntries(draft.locationColors.map(c => [c.id, c.color])),
-    [draft.locationColors]
+
+  // Same resolution as the focused workspace: explicit picks, the chart
+  // color, or theme-default shades per selected site.
+  const seriesColors = useMemo(
+    () => buildSeriesColors(draft, dataKeyBySiteId, siteNames),
+    [draft, dataKeyBySiteId, siteNames]
   );
 
-  const seriesColors = useMemo(() => {
-    const colors: Record<string, string> = {};
-    draft.siteIds.forEach(siteId => {
-      const seriesKey = dataKeyBySiteId.get(siteId) ?? siteNames.get(siteId);
-      if (!seriesKey) return;
-      const color = locationColors[siteId] ?? draft.color ?? undefined;
-      if (color) colors[seriesKey] = color;
-    });
-    return Object.keys(colors).length > 0 ? colors : undefined;
-  }, [dataKeyBySiteId, draft.color, draft.siteIds, locationColors, siteNames]);
-
-  const metadata = [
-    getPollutantLabel(draft.pollutant),
-    FREQUENCY_LABELS[draft.frequency] ?? draft.frequency,
-    formatChartRangeLabel(draft.startDate, draft.endDate),
-    `${draft.siteIds.length} location${draft.siteIds.length === 1 ? '' : 's'}`,
-  ]
-    .filter(Boolean)
-    .join(' • ');
+  const metadata = useMemo(() => buildChartMetadata(draft), [draft]);
 
   return (
     <div className="w-full min-w-0 space-y-2">
@@ -250,7 +248,16 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   deleteConfirmingId,
   className,
 }) => {
-  const [layout, setLayout] = useState<OverviewLayout>('list');
+  const [layout, setLayout] = useState<OverviewLayout>(readStoredOverviewLayout);
+
+  // Persist the layout so a refresh returns to the same view.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(OVERVIEW_LAYOUT_STORAGE_KEY, layout);
+    } catch {
+      // Storage unavailable — layout memory is best-effort.
+    }
+  }, [layout]);
 
   const handleFocus = useCallback(
     (draft: ExplorerChartDraft) => onFocusChart(draft),
