@@ -85,7 +85,7 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
   pollutant,
   standards,
   showReferenceLine = true,
-  preferPeriod = 'annual',
+  preferPeriod = '24hr',
 }) => {
   if (!showReferenceLine) return null;
   // Normalize inputs to be resilient to different formats (e.g. 'PM2.5', 'pm25', 'pm2_5')

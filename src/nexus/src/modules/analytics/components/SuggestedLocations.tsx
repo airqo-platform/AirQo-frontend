@@ -36,7 +36,7 @@ interface SuggestedLocationsProps {
  * 1. Fetches organization-specific sites (via active group)
  * 2. Filters out already favorited sites
  * 3. Shows up to 12 suggestions in a grid
- * 4. Allows users to select up to 4 locations at once
+ * 4. Allows users to select locations to add to favorites
  * 5. Updates preferences and reloads to show dashboard
  */
 export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
@@ -97,10 +97,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
       if (newSet.has(siteId)) {
         newSet.delete(siteId);
       } else {
-        if (newSet.size >= 4) {
-          toast.error('You can only select up to 4 locations at a time');
-          return prev;
-        }
         newSet.add(siteId);
       }
       return newSet;
@@ -121,16 +117,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
 
     if (selectedIds.size === 0) {
       toast.error('Please select at least one location');
-      return;
-    }
-
-    // Check if total would exceed limit (current favorites + new selections)
-    const currentFavoriteCount = favoritedSiteIds.size;
-    const totalAfterAdd = currentFavoriteCount + selectedIds.size;
-    if (totalAfterAdd > 4) {
-      toast.error(
-        `Cannot add ${selectedIds.size} location(s). You have ${currentFavoriteCount} favorite(s) and the maximum is 4.`
-      );
       return;
     }
 
@@ -243,7 +229,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     user?.id,
     activeGroup?.id,
     selectedIds,
-    favoritedSiteIds.size,
     favoriteSites,
     suggestedSites,
     updatePreferences,
@@ -304,8 +289,8 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
             Add Favorite Locations
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Select up to 4 monitoring locations to add to your favorites and
-            start tracking air quality data.
+            Select monitoring locations to add to your favorites and start
+            tracking air quality data.
           </p>
         </div>
         {selectedIds.size > 0 && (

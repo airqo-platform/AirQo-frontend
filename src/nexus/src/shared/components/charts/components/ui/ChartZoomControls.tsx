@@ -17,11 +17,12 @@ interface ChartZoomControlsProps {
 /**
  * Floating zoom control pill pinned to the top-right of the chart plot.
  *
- * Renders recharts itself stays untouched — the pill only reports intent
- * up to the owning chart, which slices its data window. Marked
- * `data-export-ignore` (shared chart export) and `data-html2canvas-ignore`
- * (data-visualizer export) so exported PNG/PDF images never include the
- * controls.
+ * Hidden by default; revealed when the owning chart wrapper is hovered
+ * (`group` class on the wrapper) or when one of its buttons receives
+ * keyboard focus. On coarse-pointer (touch) devices it stays visible since
+ * there is no hover state. Marked `data-export-ignore` (shared chart
+ * export) and `data-html2canvas-ignore` (data-visualizer export) so
+ * exported PNG/PDF images never include the controls.
  */
 export const ChartZoomControls: React.FC<ChartZoomControlsProps> = ({
   canZoomIn,
@@ -40,7 +41,10 @@ export const ChartZoomControls: React.FC<ChartZoomControlsProps> = ({
     data-html2canvas-ignore="true"
     className={cn(
       'absolute top-2 right-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-background/90 p-0.5 shadow-sm backdrop-blur-sm',
-      'opacity-90 hover:opacity-100 transition-opacity',
+      'opacity-0 pointer-events-none transition-opacity duration-150',
+      'group-hover:opacity-100 group-hover:pointer-events-auto',
+      'group-focus-within:opacity-100 group-focus-within:pointer-events-auto',
+      'pointer-coarse:opacity-100 pointer-coarse:pointer-events-auto',
       className
     )}
   >

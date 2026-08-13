@@ -1441,7 +1441,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       ref={wrapperRef}
       {...pointerHandlers}
       className={cn(
-        'relative min-w-0',
+        'group relative min-w-0',
         // Grabbing affordance only while a zoom window is active.
         isZoomed && (isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'),
         className

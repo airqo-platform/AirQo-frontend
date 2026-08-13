@@ -110,7 +110,7 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     isRefreshing,
     className,
     title = 'Favorite Locations',
-    subtitle = 'Add up to 4 frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads.',
+    subtitle = 'Add frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads.',
     infoLine,
     warningBanner,
     showIcon = true,
@@ -130,7 +130,7 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     const shouldShowErrorState =
       !isLoading && !hasUsableSites && Boolean(displayErrorMessage);
     const shouldShowAddFavorite =
-      !shouldShowSkeleton && !shouldShowErrorState && sites.length < 4;
+      !shouldShowSkeleton && !shouldShowErrorState;
 
     return (
       <div className={cn('w-full space-y-4', className)}>
@@ -205,19 +205,17 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
               </div>
             ))
           ) : (
-            sites
-              .slice(0, 4)
-              .map(site => (
-                <AnalyticsCard
-                  key={site._id}
-                  siteData={site}
-                  className="w-full"
-                  showIcon={showIcon}
-                  selectedPollutant={selectedPollutant}
-                  aqiConfig={aqiConfig}
-                  onClick={onCardClick || (() => {})}
-                />
-              ))
+            sites.map(site => (
+              <AnalyticsCard
+                key={site._id}
+                siteData={site}
+                className="w-full"
+                showIcon={showIcon}
+                selectedPollutant={selectedPollutant}
+                aqiConfig={aqiConfig}
+                onClick={onCardClick || (() => {})}
+              />
+            ))
           )}
 
           {shouldShowAddFavorite && (

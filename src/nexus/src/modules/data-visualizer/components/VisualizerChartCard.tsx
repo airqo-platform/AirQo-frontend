@@ -409,9 +409,27 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   };
 
   const updateSeriesColor = (key: string, color: string) => {
+    const current = chart.seriesColors ?? {};
+    // Picking a color another series already uses swaps the two so every
+    // series stays visually distinct (never two identical series).
+    const conflict = Object.entries(current).find(
+      ([otherKey, otherColor]) =>
+        otherKey !== key && otherColor.toLowerCase() === color.toLowerCase()
+    );
+    if (conflict) {
+      const [conflictKey] = conflict;
+      updateChart({
+        seriesColors: {
+          ...current,
+          [conflictKey]: current[key],
+          [key]: color,
+        },
+      });
+      return;
+    }
     updateChart({
       seriesColors: {
-        ...chart.seriesColors,
+        ...current,
         [key]: color,
       },
     });

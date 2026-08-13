@@ -695,15 +695,17 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             Explore air quality trends across locations and time.
           </p>
         </div>
-        <Button
-          variant="filled"
-          size="sm"
-          Icon={AqPlus}
-          onClick={handleOpenCreate}
-          disabled={isInitialLoading || !groupId}
-        >
-          New chart
-        </Button>
+        {charts.length > 0 && (
+          <Button
+            variant="filled"
+            size="sm"
+            Icon={AqPlus}
+            onClick={handleOpenCreate}
+            disabled={isInitialLoading || !groupId}
+          >
+            New chart
+          </Button>
+        )}
       </div>
 
       {isInitialLoading || (chartsLoading && charts.length === 0) ? (

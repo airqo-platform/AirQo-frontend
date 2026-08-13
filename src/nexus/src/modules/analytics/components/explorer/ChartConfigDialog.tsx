@@ -10,6 +10,10 @@ import type { DateRange } from '@/shared/components/calendar';
 import { AqPresentationChart02 } from '@airqo/icons-react';
 import { LocationPickerSection } from './LocationPickerSection';
 import {
+  applySiteColorPick,
+  materializeSiteColors,
+} from '../../utils/siteColors';
+import {
   deriveRangeFromDays,
   type ExplorerChartDraft,
   type ExplorerChartType,
@@ -21,6 +25,7 @@ import type {
 
 const CHART_TYPE_OPTIONS: { value: ExplorerChartType; label: string }[] = [
   { value: 'Line', label: 'Line' },
+  { value: 'Area', label: 'Area' },
   { value: 'Bar', label: 'Bar' },
 ];
 
@@ -108,10 +113,11 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
     setSelectedSiteIds(draft?.siteIds ?? []);
   }, [isOpen, draft]);
 
-  // Colors are strictly opt-in: entries exist only for locations where the
-  // user explicitly picked a color in the picker table. Unset locations fall
-  // back to the app theme palette — nothing is auto-assigned. The previous
-  // array reference is kept when nothing changed (no re-render loops).
+  // Colors are materialized on save (one entry per selected site, de-duplicated
+  // against theme-default shades) — stale entries for deselected sites are
+  // pruned here while the form is open so the preview never shows a color for
+  // a location that was removed. The previous array reference is kept when
+  // nothing changed (no re-render loops).
   useEffect(() => {
     setLocationColors(prev => {
       const filtered = prev.filter(entry => selectedSiteIds.includes(entry.id));
@@ -119,13 +125,11 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
     });
   }, [selectedSiteIds]);
 
+  // Picking a color another site already uses swaps the two so every site
+  // stays visually distinct (never two identical series).
   const setLocationColor = useCallback(
     (siteId: string, nextColor: string | null) => {
-      setLocationColors(prev => {
-        const rest = prev.filter(entry => entry.id !== siteId);
-        if (!nextColor) return rest;
-        return [...rest, { id: siteId, color: nextColor }];
-      });
+      setLocationColors(prev => applySiteColorPick(prev, siteId, nextColor));
     },
     []
   );
@@ -157,8 +161,9 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
 
   const handleSave = () => {
     if (!canSave || isSaving) return;
-    // Only explicitly-picked colors are persisted (the picker table's color
-    // column). Unset locations fall back to the app theme palette. The
+    // Every selected site gets an explicit, distinct color (unset sites take
+    // a theme-default shade; manual picks are de-duplicated) so a chart with
+    // multiple locations never renders two series in the same color. The
     // locationColors state is already pruned when sites are deselected (see
     // the effect above), so no second filter is needed here.
     onSave({
@@ -172,8 +177,8 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       startDate,
       endDate,
       siteIds: selectedSiteIds,
-      color: draft?.color ?? null,
-      locationColors,
+      color: null,
+      locationColors: materializeSiteColors(selectedSiteIds, locationColors),
       referenceStandard: draft?.referenceStandard ?? 'WHO',
       showLegend,
       showGrid,
@@ -330,9 +335,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
             }}
             locationColors={locationColors}
             onLocationColorChange={setLocationColor}
-            chartColor={draft?.color ?? null}
             namesBySite={siteNames}
-            maxSelection={50}
           />
         </div>
       </div>

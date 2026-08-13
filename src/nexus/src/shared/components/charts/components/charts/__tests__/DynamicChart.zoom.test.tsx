@@ -170,6 +170,21 @@ describe('DynamicChart zoom controls', () => {
     expect(pill).toHaveAttribute('data-html2canvas-ignore', 'true');
   });
 
+  it('hides the pill by default and reveals it on container hover', () => {
+    renderChart(buildSeries(100));
+
+    const pill = screen.getByRole('group', { name: 'Chart zoom controls' });
+    expect(pill.className).toContain('opacity-0');
+    expect(pill.className).toContain('pointer-events-none');
+    expect(pill.className).toContain('group-hover:opacity-100');
+    expect(pill.className).toContain('group-focus-within:opacity-100');
+    expect(pill.className).toContain('pointer-coarse:opacity-100');
+
+    // The wrapper carries the `group` class that drives the reveal.
+    const wrapper = document.querySelector('.group');
+    expect(wrapper).not.toBeNull();
+  });
+
   it('shows the scrubber only while zoomed', () => {
     renderChart(buildSeries(100));
 

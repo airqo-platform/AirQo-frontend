@@ -389,7 +389,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     <div className={cn('w-full min-w-0 space-y-2', className)}>
       <ChartContainer
         title={draft.title}
-        subtitle={draft.subtitle || metadata}
+        // Only the user-set subtitle lives in the header — the auto-generated
+        // metadata line renders in the footer instead, so the inline editor
+        // can never bake derived text into the saved subtitle.
+        subtitle={draft.subtitle}
         loading={isLoading || isRefreshing}
         error={error ?? null}
         onRefresh={refresh}
@@ -402,6 +405,21 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         className="w-full"
+        footerHint={
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate text-xs text-muted-foreground">
+              {metadata}
+            </span>
+            <button
+              type="button"
+              onClick={() => onEdit(draft)}
+              className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              <AqEdit02 className="h-3.5 w-3.5" />
+              Manage locations
+            </button>
+          </div>
+        }
         toolbar={
           <>
             {/* Reference standard selector */}
@@ -524,7 +542,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
             showTooltip: draft.showTooltip,
             showLegend: draft.showLegend,
             height: 380,
-            ...(draft.color ? { color: draft.color } : {}),
+            // Single-series charts render under recharts' generic 'value' key,
+            // which the site-keyed seriesColors map can't cover — pin the
+            // resolved site color so a picked color actually renders.
+            ...(draft.siteIds.length === 1
+              ? { color: siteColorFor(draft.siteIds[0], 0) }
+              : {}),
             seriesColors,
           }}
           pollutant={draft.pollutant}
@@ -540,18 +563,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           }
         />
       </ChartContainer>
-
-      {/* Manage locations — opens the location picker for this chart */}
-      <div className="flex items-center justify-end px-4 pt-1.5 pb-2">
-        <button
-          type="button"
-          onClick={() => onEdit(draft)}
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-        >
-          <AqEdit02 className="h-3.5 w-3.5" />
-          Manage locations
-        </button>
-      </div>
 
       {/* Inline delete confirmation — visible on the card, not hidden in a menu */}
       {deleteConfirming && (

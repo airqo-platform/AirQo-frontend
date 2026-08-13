@@ -140,7 +140,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
       isOpen={open}
       onClose={onClose}
       title={`Air Quality Standards - ${displayPollutant}`}
-      size="lg"
+      size="xl"
       contentClassName="overflow-y-auto max-h-[75vh]"
       primaryAction={{
         label: 'Apply Standards',

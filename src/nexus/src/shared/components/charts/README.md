@@ -143,19 +143,22 @@ zoomed in).
 
 ### How to use it
 
-1. **Zoom in (+)** — halves the visible time window around the current
+1. **Hover the chart** (or focus the controls with the keyboard — Tab) to
+   reveal the zoom pill; it stays hidden otherwise. On touch devices it is
+   always visible.
+2. **Zoom in (+)** — halves the visible time window around the current
    view's center. Keep clicking to drill down further (minimum window:
    4 data points).
-2. **Zoom out (−)** — doubles the window back toward the full range.
-3. **Reset** — appears only while zoomed; returns to the full dataset.
-4. **Pan / scroll** once zoomed in, to move the window along the x-axis:
+3. **Zoom out (−)** — doubles the window back toward the full range.
+4. **Reset** — appears only while zoomed; returns to the full dataset.
+5. **Pan / scroll** once zoomed in, to move the window along the x-axis:
    - **Drag the chart plot** left/right (the cursor becomes a grab hand),
    - **Scroll horizontally** (trackpad swipe, or shift + mouse wheel),
    - **Use the scrubber bar** that appears under the chart: drag its
      thumb, press anywhere on the track to jump the window's center
      there, or scroll over it. It's a real slider — focus it and use
      **← / →** (10% of the window), **Home**, or **End**.
-5. **Hover** any control for a tooltip explaining the action.
+6. **Hover** any control for a tooltip explaining the action.
 
 ### When it appears
 
@@ -176,8 +179,17 @@ render while zoomed. Above 2,000 visible points the chart renders the
 stride sampling), so multi-thousand-point series stay smooth; zoom in
 below that budget and full fidelity returns automatically. Animation is
 suspended during zoom steps to avoid re-animating the whole curve on
-every click. Exported PNG/PDF images never include the zoom controls or
-the scrubber.
+every click.
+
+### Chart exports (PNG / PDF)
+
+Exports capture the **full shareable view**: the chart's title and
+subtitle, the chart itself with its legend, grid and axis labels, and the
+footer metadata line. The following are **never** included: the zoom
+controls, the scrubber, the More menu, toolbar/filter controls, the inline
+title editor, and footer action buttons. Text is pinned to dark-on-white
+so exports stay readable in dark mode, at 2× resolution (PNG) with an
+A4-fitted layout (PDF).
 
 ## 🎨 Component API
 

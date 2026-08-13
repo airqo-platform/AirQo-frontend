@@ -28,7 +28,17 @@ import {
   buildSiteLabels,
   buildSeriesLabels,
 } from '../../utils/chartLabels';
-import { buildSeriesColors } from '../../utils/siteColors';
+
+/**
+ * Generate a shade of the primary theme color for a given index.
+ * Index 0 is the full primary, subsequent indices get progressively
+ * lighter shades via color-mix with white.
+ */
+const getPrimaryShade = (index: number): string => {
+  if (index === 0) return 'rgb(var(--primary))';
+  const lightness = Math.min(15 + index * 12, 60);
+  return `color-mix(in srgb, rgb(var(--primary)) ${100 - lightness}%, white)`;
+};
 
 interface ChartsOverviewViewProps {
   charts: ExplorerChartDraft[];
@@ -137,12 +147,20 @@ const OverviewChartCard: React.FC<{
     [chartData, siteLabels]
   );
 
-  // Same resolution as the focused workspace: explicit picks, the chart
-  // color, or theme-default shades per selected site.
-  const seriesColors = useMemo(
-    () => buildSeriesColors(draft, dataKeyBySiteId, siteNames),
-    [draft, dataKeyBySiteId, siteNames]
-  );
+  // Use shades of the primary theme color for series — keeps the overview
+  // visually cohesive while still distinguishing multiple sites.
+  const seriesColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    draft.siteIds.forEach((siteId, index) => {
+      const seriesKey = dataKeyBySiteId.get(siteId) ?? siteNames.get(siteId);
+      if (seriesKey) {
+        colors[seriesKey] =
+          draft.locationColors.find(c => c.id === siteId)?.color ??
+          getPrimaryShade(index);
+      }
+    });
+    return Object.keys(colors).length > 0 ? colors : undefined;
+  }, [draft.siteIds, draft.locationColors, dataKeyBySiteId, siteNames]);
 
   const metadata = useMemo(() => buildChartMetadata(draft), [draft]);
 
@@ -150,12 +168,20 @@ const OverviewChartCard: React.FC<{
     <div className="w-full min-w-0 space-y-2">
       <ChartContainer
         title={draft.title}
-        subtitle={metadata}
+        // Only the user-set subtitle lives in the header — the auto-generated
+        // metadata line renders in the footer instead, matching the focused
+        // workspace (and keeping the inline editor from baking it in).
+        subtitle={draft.subtitle}
         loading={isLoading}
         error={error ?? null}
         onRefresh={refresh}
         exportOptions={{ enablePDF: false, enablePNG: false }}
         className="w-full"
+        footerHint={
+          <span className="block truncate text-xs text-muted-foreground">
+            {metadata}
+          </span>
+        }
         menuItems={
           <>
             <DropdownMenuItem onClick={onFocus}>
@@ -189,7 +215,16 @@ const OverviewChartCard: React.FC<{
               showTooltip: draft.showTooltip,
               showLegend: draft.showLegend,
               height: 380,
-              ...(draft.color ? { color: draft.color } : {}),
+              // Single-series charts render under recharts' generic 'value'
+              // key — pin the resolved site color so a picked color renders.
+              ...(draft.siteIds.length === 1
+                ? {
+                    color:
+                      draft.locationColors.find(
+                        c => c.id === draft.siteIds[0]
+                      )?.color ?? getPrimaryShade(0),
+                  }
+                : {}),
               seriesColors,
             }}
             pollutant={draft.pollutant}
@@ -252,7 +287,9 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   deleteConfirmingId,
   className,
 }) => {
-  const [layout, setLayout] = useState<OverviewLayout>(readStoredOverviewLayout);
+  const [layout, setLayout] = useState<OverviewLayout>(
+    readStoredOverviewLayout
+  );
 
   // Persist the layout so a refresh returns to the same view.
   useEffect(() => {

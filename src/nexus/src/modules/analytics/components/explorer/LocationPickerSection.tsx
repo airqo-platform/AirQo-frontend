@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useCallback, useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
@@ -6,7 +6,7 @@ import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqXClose } from '@airqo/icons-react';
 import { useSitesForSelection } from '../../hooks/useCohortSelection';
-import { getDefaultSiteColor } from '../../utils/siteColors';
+import { getDefaultSiteColor, toHexInputValue } from '../../utils/siteColors';
 import type { NormalizedSiteData } from '@/shared/utils/siteUtils';
 
 interface LocationPickerSectionProps {
@@ -16,27 +16,20 @@ interface LocationPickerSectionProps {
   selectedSiteIds: string[];
   onSelectionChange: (siteIds: string[], names: Map<string, string>) => void;
   /**
-   * Explicitly-picked per-location colors (opt-in — unset locations fall
-   * back to the app theme palette; nothing is auto-assigned).
+   * Explicitly-picked per-location colors. Every selected site resolves to a
+   * distinct shade (explicit pick or theme-default by position) — see
+   * `resolveSiteColor` — so unset sites never look identical.
    */
   locationColors?: { id: string; color: string }[];
   /** Sets or clears (null) a location's explicit series color */
   onLocationColorChange?: (siteId: string, color: string | null) => void;
   /**
-   * The chart's single color (draft.color). Unset sites preview with this
-   * (falling back to theme-default shades), matching the rendered chart.
-   */
-  chartColor?: string | null;
-  /**
    * Resolved display names (siteId → name) from the page — used by the
    * selected-items strip so off-page selections always show real names.
    */
   namesBySite?: Map<string, string>;
-  maxSelection?: number;
   className?: string;
 }
-
-const MAX_SELECTION_DEFAULT = 100;
 
 const UNKNOWN_LABEL = 'Unknown location';
 
@@ -71,9 +64,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
   onSelectionChange,
   locationColors,
   onLocationColorChange,
-  chartColor = null,
   namesBySite,
-  maxSelection = MAX_SELECTION_DEFAULT,
   className,
 }) => {
   const sitesData = useSitesForSelection({
@@ -120,18 +111,17 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
     [namesBySite, sitesData.sites]
   );
 
-  // Preview color for a selected site: explicit pick, else the chart color,
-  // else a theme-default shade for the site's position in the selection (so
-  // unset sites never look identical — matches the rendered chart exactly).
+  // Preview color for a selected site: explicit pick, else a theme-default
+  // shade for the site's position in the selection (distinct per site —
+  // matches the rendered chart exactly).
   const previewColor = useCallback(
     (siteId: string, index: number): string => {
       return (
         locationColors?.find(entry => entry.id === siteId)?.color ??
-        chartColor ??
         getDefaultSiteColor(index)
       );
     },
-    [chartColor, locationColors]
+    [locationColors]
   );
 
   const renderColorCell = useCallback(
@@ -153,7 +143,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
             />
             <input
               type="color"
-              value={/^#[0-9a-fA-F]{6}$/.test(color) ? color : '#145DFF'}
+              value={toHexInputValue(color)}
               onChange={event =>
                 onLocationColorChange?.(id, event.target.value)
               }
@@ -246,11 +236,6 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-muted-foreground">
               Selected ({selectedSiteIds.length})
-              {selectedSiteIds.length > maxSelection && (
-                <span className="ml-2 text-destructive">
-                  — max {maxSelection}
-                </span>
-              )}
             </span>
             <button
               type="button"

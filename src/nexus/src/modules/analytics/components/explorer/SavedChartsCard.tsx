@@ -2,18 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  ResponsiveContainer,
-} from 'recharts';
+import { LineChart, Line, BarChart, Bar, ResponsiveContainer } from 'recharts';
 import { cn } from '@/shared/lib/utils';
 import { useUser } from '@/shared/hooks/useUser';
 import { buildChartDataQueryKey } from '../../hooks';
 import { getPollutantLabel } from '@/shared/utils/airQuality';
 import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
+import { resolveSiteColor } from '../../utils/siteColors';
 import type { ExplorerChartDraft } from '../../utils/chartConfig';
 import type { ChartData } from '../../types';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -104,8 +99,10 @@ const Sparkline: React.FC<{ draft: ExplorerChartDraft }> = ({ draft }) => {
     );
   }
 
-  const color =
-    draft.locationColors?.[0]?.color ?? draft.color ?? 'rgb(var(--primary))';
+  // The sparkline reflects the FIRST selected site's resolved color (not the
+  // first color-pick entry, whose insertion order can differ from the site
+  // order the chart renders in).
+  const color = resolveSiteColor(draft, draft.siteIds[0] ?? '', 0);
   const isBar = draft.chartType === 'Bar';
 
   return (
@@ -232,6 +229,11 @@ export const SavedChartsCard: React.FC<SavedChartsCardProps> = ({
                     <span className="block truncate text-sm font-medium text-foreground group-hover:text-primary">
                       {draft.title}
                     </span>
+                    {draft.subtitle && (
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground/80">
+                        {draft.subtitle}
+                      </span>
+                    )}
                     <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                       {getPollutantLabel(draft.pollutant)} •{' '}
                       {FREQUENCY_LABELS[draft.frequency] ?? draft.frequency} •{' '}

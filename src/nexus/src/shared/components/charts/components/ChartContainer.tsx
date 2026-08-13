@@ -381,7 +381,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               {!autoSelectChart && (
                 <div className="px-3 py-1">
                   <div className="space-y-1">
-                    {Object.entries(CHART_TYPE_LABELS).map(([type, label]) => (
+                    {Object.entries(CHART_TYPE_LABELS)
+                      .filter(([type]) => type !== 'area')
+                      .map(([type, label]) => (
                       <button
                         key={type}
                         onClick={() => onChartTypeChange(type as ChartType)}
@@ -433,9 +435,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   return (
     <Card className={cn('w-full', className)}>
       {/* Toolbar section at the TOP of the card: custom content left, actions
-          + More right, separator line below (before the title/subtitle) */}
+          + More right, separator line below (before the title/subtitle).
+          Interactive chrome — excluded from chart exports. */}
       {toolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 border-b border-border px-4 py-2.5">
+        <div
+          className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 border-b border-border px-4 py-2.5"
+          data-export-ignore
+          data-html2canvas-ignore="true"
+        >
           <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
             {toolbar}
           </div>
@@ -446,12 +453,25 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         </div>
       )}
 
-      {(showTitle || (showMoreButton && !toolbar)) && (
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 gap-3">
-          {showTitle &&
-            (isEditingTitle ? (
-              /* Inline title/subtitle editor */
-              <div className="flex-1 min-w-0 space-y-2">
+      {/* Export root: the shareable image is the header (title/subtitle) plus
+          the chart itself (legend included). Everything interactive inside
+          here — More menu, filters, edit form, footer actions — is marked
+          export-ignored. */}
+      <div
+        ref={exportRef}
+        data-export-root
+        className="flex min-w-0 flex-col"
+      >
+        {(showTitle || (showMoreButton && !toolbar)) && (
+          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 gap-3">
+            {showTitle &&
+              (isEditingTitle ? (
+                /* Inline title/subtitle editor */
+                <div
+                  className="flex-1 min-w-0 space-y-2"
+                  data-export-ignore
+                  data-html2canvas-ignore="true"
+                >
                 <Input
                   label="Title"
                   aria-label="Chart title"
@@ -505,21 +525,27 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               </div>
             ))}
 
-          {/* More dropdown menu — in the header unless a toolbar is present */}
-          {showMoreButton && !toolbar && renderMoreDropdown()}
+          {/* More dropdown menu — in the header unless a toolbar is present.
+              Interactive chrome — excluded from chart exports. */}
+          {showMoreButton && !toolbar && (
+            <div data-export-ignore data-html2canvas-ignore="true">
+              {renderMoreDropdown()}
+            </div>
+          )}
         </CardHeader>
       )}
 
-      {/* Filters Section */}
+      {/* Filters Section — interactive chrome, excluded from chart exports */}
       {onFiltersChange && currentFilters && (
-        <ChartFiltersComponent
-          filters={currentFilters}
-          onFiltersChange={onFiltersChange}
-        />
+        <div data-export-ignore data-html2canvas-ignore="true">
+          <ChartFiltersComponent
+            filters={currentFilters}
+            onFiltersChange={onFiltersChange}
+          />
+        </div>
       )}
 
       <CardContent
-        ref={exportRef}
         className={cn(
           'px-1 pb-2 flex-1',
           !showTitle && !showMoreButton && 'pt-3'
@@ -592,9 +618,19 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           )}
         </div>
 
-        {/* Footer hint (e.g. last update time) */}
-        {footerHint && <div className="px-1 pt-1 pb-0.5">{footerHint}</div>}
+        {/* Footer hint (e.g. last update time) — interactive footer actions
+            excluded from chart exports */}
+        {footerHint && (
+          <div
+            className="px-1 pt-1 pb-0.5"
+            data-export-ignore
+            data-html2canvas-ignore="true"
+          >
+            {footerHint}
+          </div>
+        )}
       </CardContent>
+      </div>
 
       {/* Standards Dialog */}
       <StandardsDialog

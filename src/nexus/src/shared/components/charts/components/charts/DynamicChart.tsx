@@ -1138,7 +1138,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       ref={wrapperRef}
       {...pointerHandlers}
       className={cn(
-        'relative w-full min-h-[300px] min-w-0',
+        'group relative w-full min-h-[300px] min-w-0',
         // Grabbing affordance only while a zoom window is active.
         isZoomed && (isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'),
         className
