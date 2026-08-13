@@ -17,24 +17,20 @@ export const buildDataKeyBySiteId = (
 };
 
 /**
- * siteId → display name as the USER selected it: the device name when the
- * site was picked via the Devices tab, otherwise the picker's site name
- * (search_name || location_name || name || formatted_name). Falls back to
+ * siteId → display name as the USER selected it (the picker's site name:
+ * search_name || location_name || name || formatted_name). Falls back to
  * the chart-data name so a fresh browser (empty sidecar) never leaks ids.
  */
 export const buildSiteLabels = (
   chartData: NormalizedChartData[],
-  siteNames: Map<string, string>,
-  deviceNames?: Map<string, string>
+  siteNames: Map<string, string>
 ): Record<string, string> => {
   const labels: Record<string, string> = {};
   chartData.forEach(point => {
     const siteId = String(point.site_id ?? '');
     if (!siteId) return;
     const name =
-      deviceNames?.get(siteId) ??
-      siteNames.get(siteId) ??
-      (point.site ? String(point.site) : undefined);
+      siteNames.get(siteId) ?? (point.site ? String(point.site) : undefined);
     if (name) labels[siteId] = name;
   });
   return labels;
@@ -72,5 +68,5 @@ export const buildSeriesLabels = (
       (first ? String(first.site) : undefined);
     if (label) labels['value'] = label;
   }
-  return Object.keys(labels).length > 0 ? labels : labels;
+  return labels;
 };

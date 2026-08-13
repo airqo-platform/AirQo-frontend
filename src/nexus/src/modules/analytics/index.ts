@@ -32,10 +32,7 @@ export {
 } from './hooks';
 export { useRankings } from './hooks/useRankings';
 export { useRankingsHistory } from './hooks/useRankingsHistory';
-export {
-  useSitesForSelection,
-  useDevicesForSelection,
-} from './hooks/useCohortSelection';
+export { useSitesForSelection } from './hooks/useCohortSelection';
 export {
   useComparisonReadings,
   extractReadingNames,

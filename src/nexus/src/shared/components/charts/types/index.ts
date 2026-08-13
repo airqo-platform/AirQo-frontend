@@ -202,8 +202,8 @@ export interface DynamicChartProps {
   /** Prefer the 24-hour guideline over the annual one for the standards line */
   referenceLinePeriod?: '24hr' | 'annual';
   /**
-   * Display-label overrides keyed by series key (e.g. device names for
-   * device-selected charts). Applied to the legend and the tooltip.
+   * Display-label overrides keyed by series key (the picker's names).
+   * Applied to the legend and the tooltip.
    */
   seriesLabels?: Record<string, string>;
   /**
@@ -211,11 +211,6 @@ export interface DynamicChartProps {
    * the tooltip's "Location:" line so it matches what the user selected.
    */
   locationLabels?: Record<string, string>;
-  /**
-   * Friendly device names keyed by site_id — surfaces on the tooltip's
-   * "Device:" line instead of the raw device id.
-   */
-  deviceNames?: Record<string, string>;
 }
 
 /** A generic reference line drawn on top of the chart (x or y anchored). */

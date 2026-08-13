@@ -15,8 +15,7 @@ interface CustomTooltipProps extends TooltipData {
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
   /**
-   * Display-label overrides keyed by series dataKey (e.g. device names for
-   * device-selected charts).
+   * Display-label overrides keyed by series dataKey (the picker's names).
    */
   seriesLabels?: Record<string, string>;
   /**
@@ -24,11 +23,6 @@ interface CustomTooltipProps extends TooltipData {
    * the "Location:" line so it matches what the user selected.
    */
   locationLabels?: Record<string, string>;
-  /**
-   * Friendly device names keyed by site_id — shown on the "Device:" line
-   * instead of the raw device id when a chart was built from device picks.
-   */
-  deviceNames?: Record<string, string>;
   /**
    * When set, only entries of this series are shown — hover focus mode.
    * The rest of the chart is blurred in DynamicChart to match.
@@ -64,7 +58,6 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   focusedDataKey = null,
   seriesLabels,
   locationLabels,
-  deviceNames,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -152,8 +145,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
           {primaryData.payload?.device_id && (
             <div className="text-xs text-muted-foreground">
               <span className="font-medium">Device:</span>{' '}
-              {deviceNames?.[String(primaryData.payload.site_id)] ??
-                primaryData.payload.device_id}
+              {primaryData.payload.device_id}
             </div>
           )}
         </div>

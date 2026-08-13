@@ -61,8 +61,6 @@ interface AnalyticsChartCardProps {
   groupId: string;
   /** Display names for sites (forecast series labels, location colors) */
   siteNames: Map<string, string>;
-  /** Device names for device-resolved sites (siteId → device name) */
-  deviceNames?: Map<string, string>;
   forecastEnabled: boolean;
   onForecastToggle: () => void;
   onEdit: (draft: ExplorerChartDraft) => void;
@@ -123,7 +121,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   draft,
   groupId,
   siteNames,
-  deviceNames,
   forecastEnabled,
   onForecastToggle,
   onEdit,
@@ -230,10 +227,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     [draft.color, draft.locationColors]
   );
 
-  // Device-selected charts label their series with the DEVICE name (the
-  // underlying series is still keyed by site, which the data API returns).
-  // Falls back to the forecast API's own site name so raw ids never leak
-  // into forecast series labels.
+  // Series display name: the picker's site name, falling back to the
+  // forecast API's own site name so raw ids never leak into forecast
+  // series labels.
   const forecastSiteNames = useMemo(() => {
     const names = new Map<string, string>();
     draft.siteIds.forEach((siteId, index) => {
@@ -247,11 +243,8 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
 
   const seriesDisplayName = useCallback(
     (siteId: string) =>
-      deviceNames?.get(siteId) ??
-      siteNames.get(siteId) ??
-      forecastSiteNames.get(siteId) ??
-      siteId,
-    [deviceNames, siteNames, forecastSiteNames]
+      siteNames.get(siteId) ?? forecastSiteNames.get(siteId) ?? siteId,
+    [siteNames, forecastSiteNames]
   );
 
   const forecastSeries = useMemo<ForecastSeries[]>(() => {
@@ -363,13 +356,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     [forecastSeries]
   );
 
-  // siteId → display name as the USER selected it: the device name when the
-  // site was picked via the Devices tab, otherwise the picker's site name
+  // siteId → display name as the USER selected it: the picker's site name
   // (search_name || location_name || name || formatted_name), falling back
   // to the chart-data name so raw ids never leak.
   const siteLabels = useMemo(
-    () => buildSiteLabels(chartData, siteNames, deviceNames),
-    [chartData, deviceNames, siteNames]
+    () => buildSiteLabels(chartData, siteNames),
+    [chartData, siteNames]
   );
 
   // Legend/tooltip label overrides keyed by series key (single-series charts
@@ -551,7 +543,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
                 )}
               </div>
 
-              <div className="flex shrink-0 items-center gap-2" data-export-ignore>
+              <div
+                className="flex shrink-0 items-center gap-2"
+                data-export-ignore
+              >
                 <Button
                   variant="outlined"
                   size="sm"
@@ -618,7 +613,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
                 <DynamicChart
                   data={mergedData}
                   config={{
-                    type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
+                    type: draft.chartType.toLowerCase() as
+                      | 'line'
+                      | 'area'
+                      | 'bar',
                     showGrid: draft.showGrid,
                     showTooltip: draft.showTooltip,
                     showLegend: draft.showLegend,
@@ -633,16 +631,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
                   showReferenceLines
                   standards={referenceStandard}
                   referenceLinePeriod={guidelinePeriod}
-                  dashedSeries={dashedSeries.length > 0 ? dashedSeries : undefined}
+                  dashedSeries={
+                    dashedSeries.length > 0 ? dashedSeries : undefined
+                  }
                   additionalReferenceLines={nowLine}
                   seriesLabels={seriesLabels}
                   locationLabels={
                     Object.keys(siteLabels).length > 0 ? siteLabels : undefined
-                  }
-                  deviceNames={
-                    deviceNames && deviceNames.size > 0
-                      ? Object.fromEntries(deviceNames)
-                      : undefined
                   }
                 />
               )}
@@ -672,125 +667,125 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         {/* Chart controls — visually above the chart (flex-col-reverse) */}
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 border-b border-border px-4 py-2.5">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <div>
-            <label
-              htmlFor="reference-standard"
-              className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
-            >
-              Reference standard
-            </label>
-            <select
-              id="reference-standard"
-              value={referenceStandard}
-              onChange={event =>
-                handleStandardChange(event.target.value as StandardsType)
-              }
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-            >
-              {STANDARDS_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              {guidelinePeriod === '24hr'
-                ? '24-hour guideline'
-                : 'Annual guideline'}
-            </span>
-            <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
-              {guidelineValue !== null
-                ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
-                : '—'}
-              <Tooltip
-                content={
-                  <div className="max-w-[240px] space-y-0.5 text-left">
-                    <p className="text-xs font-semibold text-white">
-                      {STANDARDS_TITLES[referenceStandard]}
-                    </p>
-                    <p className="text-xs text-gray-200">
-                      {guidelinePeriod === '24hr' ? '24-hour' : 'Annual'}{' '}
-                      {getPollutantLabel(draft.pollutant)} guideline:{' '}
-                      <span className="font-semibold text-white">
-                        {guidelineValue !== null
-                          ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
-                          : 'not available'}
-                      </span>
-                    </p>
-                  </div>
+            <div>
+              <label
+                htmlFor="reference-standard"
+                className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+              >
+                Reference standard
+              </label>
+              <select
+                id="reference-standard"
+                value={referenceStandard}
+                onChange={event =>
+                  handleStandardChange(event.target.value as StandardsType)
                 }
-                placement="top"
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               >
-                <span className="inline-flex cursor-help">
-                  <AqInfoCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                </span>
-              </Tooltip>
-            </span>
+                {STANDARDS_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                {guidelinePeriod === '24hr'
+                  ? '24-hour guideline'
+                  : 'Annual guideline'}
+              </span>
+              <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                {guidelineValue !== null
+                  ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
+                  : '—'}
+                <Tooltip
+                  content={
+                    <div className="max-w-[240px] space-y-0.5 text-left">
+                      <p className="text-xs font-semibold text-white">
+                        {STANDARDS_TITLES[referenceStandard]}
+                      </p>
+                      <p className="text-xs text-gray-200">
+                        {guidelinePeriod === '24hr' ? '24-hour' : 'Annual'}{' '}
+                        {getPollutantLabel(draft.pollutant)} guideline:{' '}
+                        <span className="font-semibold text-white">
+                          {guidelineValue !== null
+                            ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
+                            : 'not available'}
+                        </span>
+                      </p>
+                    </div>
+                  }
+                  placement="top"
+                >
+                  <span className="inline-flex cursor-help">
+                    <AqInfoCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                </Tooltip>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {forecastUsable ? (
+              <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground">
+                Forecast
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={forecastEnabled}
+                  aria-label="Forecast"
+                  onClick={onForecastToggle}
+                  className={cn(
+                    'relative h-5 w-9 rounded-full transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
+                    forecastEnabled ? 'bg-primary' : 'bg-muted'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 motion-reduce:transition-none',
+                      forecastEnabled && 'translate-x-4'
+                    )}
+                  />
+                </button>
+              </label>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Forecast is available for PM₂.₅ charts
+              </span>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  disabled={isExporting}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-primary px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <AqDownload01 className="h-4 w-4" />
+                  Export
+                  <HiChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onClick={() => void handleExport('pdf')}
+                  disabled={isExporting}
+                >
+                  <AqDownload01 className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => void handleExport('png')}
+                  disabled={isExporting}
+                >
+                  <AqDownload01 className="mr-2 h-4 w-4" />
+                  Export as PNG
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-
-        <div className="flex items-center gap-4">
-          {forecastUsable ? (
-            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground">
-              Forecast
-              <button
-                type="button"
-                role="switch"
-                aria-checked={forecastEnabled}
-                aria-label="Forecast"
-                onClick={onForecastToggle}
-                className={cn(
-                  'relative h-5 w-9 rounded-full transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-                  forecastEnabled ? 'bg-primary' : 'bg-muted'
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 motion-reduce:transition-none',
-                    forecastEnabled && 'translate-x-4'
-                  )}
-                />
-              </button>
-            </label>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              Forecast is available for PM₂.₅ charts
-            </span>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                disabled={isExporting}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary px-3 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <AqDownload01 className="h-4 w-4" />
-                Export
-                <HiChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                onClick={() => void handleExport('pdf')}
-                disabled={isExporting}
-              >
-                <AqDownload01 className="mr-2 h-4 w-4" />
-                Export as PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => void handleExport('png')}
-                disabled={isExporting}
-              >
-                <AqDownload01 className="mr-2 h-4 w-4" />
-                Export as PNG
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
       </div>
 
       {/* Manage locations — the chart's own legend (below the graph) handles

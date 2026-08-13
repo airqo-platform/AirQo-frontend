@@ -75,7 +75,6 @@ interface HoverAwareTooltipProps extends TooltipData {
   aqiConfig?: AqiConfig | null;
   seriesLabels?: Record<string, string>;
   locationLabels?: Record<string, string>;
-  deviceNames?: Record<string, string>;
 }
 
 /** Small label chip for generic reference lines (e.g. the forecast "Now" mark). */
@@ -226,7 +225,6 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   referenceLinePeriod,
   seriesLabels,
   locationLabels,
-  deviceNames,
 }) => {
   const [internalHiddenSeries, setInternalHiddenSeries] = useState<Set<string>>(
     new Set()
@@ -396,7 +394,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     (value: string | number | undefined, entry: LegendPayload) => {
       const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
       const isHidden = seriesKey ? isSeriesHidden(seriesKey) : false;
-      const formattedValue = seriesLabels?.[seriesKey] ?? String(value ?? '').trim();
+      const formattedValue =
+        seriesLabels?.[seriesKey] ?? String(value ?? '').trim();
 
       return (
         <span
@@ -521,7 +520,6 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             aqiConfig={aqiConfig}
             seriesLabels={seriesLabels}
             locationLabels={locationLabels}
-            deviceNames={deviceNames}
           />
         }
         wrapperStyle={{ zIndex: 9999 }}

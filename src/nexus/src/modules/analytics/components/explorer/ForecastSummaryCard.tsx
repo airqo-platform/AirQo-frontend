@@ -20,8 +20,6 @@ interface ForecastSummaryCardProps {
   siteIds: string[];
   /** Display names for sites (picker names) */
   siteNames?: Map<string, string>;
-  /** Device names for device-resolved sites (siteId → device name) */
-  deviceNames?: Map<string, string>;
   className?: string;
 }
 
@@ -77,7 +75,6 @@ interface DaySummary {
 export const ForecastSummaryCard: React.FC<ForecastSummaryCardProps> = ({
   siteIds,
   siteNames,
-  deviceNames,
   className,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -105,23 +102,19 @@ export const ForecastSummaryCard: React.FC<ForecastSummaryCardProps> = ({
     () =>
       siteIds.map((siteId, index) => {
         const query = forecastQueries[index];
-        // Name resolution: device name when the site was picked via Devices,
-        // else the picker's site name, else the forecast API's OWN site name
-        // (site_details.site_name) — raw ids must never surface.
+        // Name resolution: the picker's site name, else the forecast API's
+        // OWN site name (site_details.site_name) — raw ids must never
+        // surface.
         const apiSiteName =
           query?.data?.data?.forecasts?.[0]?.site_details?.site_name ?? '';
         return {
           siteId,
-          name:
-            deviceNames?.get(siteId) ??
-            siteNames?.get(siteId) ??
-            apiSiteName ??
-            siteId,
+          name: siteNames?.get(siteId) ?? apiSiteName ?? siteId,
           items: query?.data?.data?.forecasts?.[0]?.forecasts ?? [],
           failed: Boolean(query?.error),
         };
       }),
-    [siteIds, siteNames, deviceNames, forecastQueries]
+    [siteIds, siteNames, forecastQueries]
   );
 
   // A single failing site must never blank the whole summary — aggregate
@@ -148,7 +141,11 @@ export const ForecastSummaryCard: React.FC<ForecastSummaryCardProps> = ({
         if (pm25 === undefined || !Number.isFinite(pm25)) return;
         const day = String(item.date ?? '').slice(0, 10);
         if (!day) return;
-        const summary = byDate.get(day) ?? { date: day, values: [], average: 0 };
+        const summary = byDate.get(day) ?? {
+          date: day,
+          values: [],
+          average: 0,
+        };
         summary.values.push({
           siteId,
           name,
@@ -280,7 +277,8 @@ export const ForecastSummaryCard: React.FC<ForecastSummaryCardProps> = ({
                     pm25AqiConfig
                   );
                   const aqiColor =
-                    apiColor || getAirQualityColor(computedInfo.level, pm25AqiConfig);
+                    apiColor ||
+                    getAirQualityColor(computedInfo.level, pm25AqiConfig);
                   const aqiCategoryLabel =
                     day.worstAqiCategory || computedInfo.label;
                   const highestLocation = day.values.reduce((worst, value) =>

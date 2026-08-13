@@ -45,8 +45,6 @@ interface ChartConfigDialogProps {
   onSave: (draft: ExplorerChartDraft) => void;
   /** Forwarded from the location picker so the page can label chips/forecast */
   onSelectionNamesChange?: (names: Map<string, string>) => void;
-  /** Forwarded from the location picker: device names for device-resolved sites */
-  onDeviceNamesChange?: (namesBySite: Map<string, string>) => void;
   /** Resolved site names from the page (used for the selected-items strip) */
   siteNames?: Map<string, string>;
   isSaving?: boolean;
@@ -66,7 +64,6 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   draft = null,
   onSave,
   onSelectionNamesChange,
-  onDeviceNamesChange,
   siteNames,
   isSaving = false,
   saveError = null,
@@ -89,7 +86,6 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   const [showGrid, setShowGrid] = useState(true);
   const [showTooltip, setShowTooltip] = useState(true);
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([]);
-  const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
 
   // Seed the form when the dialog opens
   useEffect(() => {
@@ -110,7 +106,6 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
     setShowGrid(draft?.showGrid ?? true);
     setShowTooltip(draft?.showTooltip ?? true);
     setSelectedSiteIds(draft?.siteIds ?? []);
-    setSelectedDeviceIds(draft?.deviceIds ?? []);
   }, [isOpen, draft]);
 
   // Colors are strictly opt-in: entries exist only for locations where the
@@ -119,19 +114,10 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   // array reference is kept when nothing changed (no re-render loops).
   useEffect(() => {
     setLocationColors(prev => {
-      const filtered = prev.filter(entry =>
-        selectedSiteIds.includes(entry.id)
-      );
+      const filtered = prev.filter(entry => selectedSiteIds.includes(entry.id));
       return filtered.length === prev.length ? prev : filtered;
     });
   }, [selectedSiteIds]);
-
-  const handleSelectionNamesChange = useCallback(
-    (names: Map<string, string>) => {
-      onSelectionNamesChange?.(names);
-    },
-    [onSelectionNamesChange]
-  );
 
   const setLocationColor = useCallback(
     (siteId: string, nextColor: string | null) => {
@@ -172,10 +158,9 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   const handleSave = () => {
     if (!canSave || isSaving) return;
     // Only explicitly-picked colors are persisted (the picker table's color
-    // column). Unset locations fall back to the app theme palette.
-    const savedLocationColors = locationColors.filter(entry =>
-      selectedSiteIds.includes(entry.id)
-    );
+    // column). Unset locations fall back to the app theme palette. The
+    // locationColors state is already pruned when sites are deselected (see
+    // the effect above), so no second filter is needed here.
     onSave({
       id: draft?.id ?? '',
       fieldId: draft?.fieldId ?? 1,
@@ -187,9 +172,8 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       startDate,
       endDate,
       siteIds: selectedSiteIds,
-      deviceIds: selectedDeviceIds,
       color: draft?.color ?? null,
-      locationColors: savedLocationColors,
+      locationColors,
       referenceStandard: draft?.referenceStandard ?? 'WHO',
       showLegend,
       showGrid,
@@ -340,16 +324,13 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
           <LocationPickerSection
             groupId={groupId}
             selectedSiteIds={selectedSiteIds}
-            selectedDeviceIds={selectedDeviceIds}
             onSelectionChange={(siteIds, names) => {
               setSelectedSiteIds(siteIds);
-              handleSelectionNamesChange(names);
+              onSelectionNamesChange?.(names);
             }}
-            onDeviceSelectionChange={setSelectedDeviceIds}
             locationColors={locationColors}
             onLocationColorChange={setLocationColor}
             namesBySite={siteNames}
-            onDeviceNamesChange={onDeviceNamesChange}
             maxSelection={50}
           />
         </div>

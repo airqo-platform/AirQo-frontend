@@ -3,22 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { deviceService } from '@/shared/services/deviceService';
-import { useActiveGroupCohorts, useGroupCohorts } from '@/shared/hooks/useDevice';
+import {
+  useActiveGroupCohorts,
+  useGroupCohorts,
+} from '@/shared/hooks/useDevice';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 import { normalizeSitesData } from '@/shared/utils/siteUtils';
-import { normalizeDevicesData } from '@/shared/utils/deviceUtils';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import type { NormalizedSiteData, RawSiteData } from '@/shared/utils/siteUtils';
-import type {
-  NormalizedDeviceData,
-  RawDeviceData,
-} from '@/shared/utils/deviceUtils';
-import type {
-  CohortSitesParams,
-  CohortSitesMeta,
-  CohortDevicesParams,
-  CohortDevicesMeta,
-} from '@/shared/types/api';
+import type { CohortSitesParams, CohortSitesMeta } from '@/shared/types/api';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
@@ -150,14 +143,16 @@ export const useSitesForSelection = ({
     ? ['selection/sites', groupId || 'active-group', cohortIds, params]
     : null;
 
-  const { data, error, isLoading, isValidating, mutate: mutateData } = useSWR(
-    key,
-    fetchSites,
-    {
-      ...SWR_STABLE_REQUEST_OPTIONS,
-      isPaused: () => cohortsLoading,
-    }
-  );
+  const {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate: mutateData,
+  } = useSWR(key, fetchSites, {
+    ...SWR_STABLE_REQUEST_OPTIONS,
+    isPaused: () => cohortsLoading,
+  });
 
   const resolvedError = isAbortError(error) ? null : error;
   const hasData = typeof data !== 'undefined';
@@ -209,138 +204,5 @@ export const useSitesForSelection = ({
     setSearchTerm: handleSetSearchTerm,
     retry: () => mutateData(),
     meta: data?.meta as CohortSitesMeta | undefined,
-  };
-};
-
-/**
- * Server-side paginated + searchable device list scoped to a group's cohorts
- * (via /devices/cohorts/cached-devices).
- */
-export const useDevicesForSelection = ({
-  groupId = '',
-  enabled = true,
-  initialPageSize = 6,
-  maxLimit = 80,
-}: CohortSelectionOptions = {}) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(Math.min(initialPageSize, maxLimit));
-  const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  const { cohortIds, isLoading: cohortsLoading } = useResolvedCohortIds(
-    groupId,
-    enabled
-  );
-
-  const shouldFetch = enabled && cohortIds.length > 0 && !cohortsLoading;
-
-  // Reset pagination when the dataset changes (e.g. a group switch while the
-  // picker is open) so `skip` never overshoots the new cohort's pages.
-  const cohortIdsKey = cohortIds.join(',');
-  useEffect(() => {
-    setCurrentPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohortIdsKey]);
-
-  const params = useMemo((): CohortDevicesParams => {
-    const effectivePageSize = Math.min(pageSize, maxLimit);
-    const nextParams: CohortDevicesParams = {
-      limit: effectivePageSize,
-      skip: (currentPage - 1) * effectivePageSize,
-    };
-    if (debouncedSearchTerm.trim()) {
-      nextParams.search = debouncedSearchTerm.trim();
-    }
-    return nextParams;
-  }, [currentPage, pageSize, debouncedSearchTerm, maxLimit]);
-
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(
-    () => () => {
-      abortRef.current?.abort();
-    },
-    []
-  );
-
-  const fetchDevices = useCallback(async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      return await deviceService.getCohortDevices(
-        { cohort_ids: cohortIds },
-        params,
-        controller.signal
-      );
-    } finally {
-      if (abortRef.current === controller) {
-        abortRef.current = null;
-      }
-    }
-  }, [cohortIds, params]);
-
-  const key = shouldFetch
-    ? ['selection/devices', groupId || 'active-group', cohortIds, params]
-    : null;
-
-  const { data, error, isLoading, isValidating, mutate: mutateData } = useSWR(
-    key,
-    fetchDevices,
-    {
-      ...SWR_STABLE_REQUEST_OPTIONS,
-      isPaused: () => cohortsLoading,
-    }
-  );
-
-  const resolvedError = isAbortError(error) ? null : error;
-  const hasData = typeof data !== 'undefined';
-
-  // StrictMode double-mount abort recovery (same as the sites hook)
-  const recoveredAbortRef = useRef(false);
-  useEffect(() => {
-    if (error && isAbortError(error) && !recoveredAbortRef.current) {
-      recoveredAbortRef.current = true;
-      void mutateData();
-    }
-  }, [error, mutateData]);
-
-  const devices = useMemo<NormalizedDeviceData[]>(() => {
-    if (!data?.devices || !Array.isArray(data.devices)) return [];
-    return normalizeDevicesData(data.devices as RawDeviceData[]);
-  }, [data?.devices]);
-
-  const handleSetSearchTerm = useCallback((term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
-  }, []);
-
-  const handleSetPageSize = useCallback(
-    (size: number) => {
-      setPageSize(Math.min(size, maxLimit));
-      setCurrentPage(1);
-    },
-    [maxLimit]
-  );
-
-  return {
-    devices,
-    totalDevices: data?.meta?.total ?? 0,
-    totalPages: data?.meta?.totalPages ?? 1,
-    currentPage,
-    pageSize: Math.min(pageSize, maxLimit),
-    searchTerm,
-    // True while data exists and a revalidation (search/page change) is in
-    // flight — the picker table shows an in-place refreshing overlay instead
-    // of swapping the whole table for a loading state.
-    isRefreshing: hasData && isValidating,
-    isLoading: !hasData && (isLoading || cohortsLoading),
-    error: resolvedError ? (resolvedError.message ?? null) : null,
-    setCurrentPage,
-    setPageSize: handleSetPageSize,
-    setSearchTerm: handleSetSearchTerm,
-    retry: () => mutateData(),
-    meta: data?.meta as CohortDevicesMeta | undefined,
   };
 };

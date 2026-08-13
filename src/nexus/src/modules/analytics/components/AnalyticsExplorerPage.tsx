@@ -16,7 +16,12 @@ import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui/toast';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
-import { AqPlus, AqMaximize01, AqLayoutGrid01, AqTable } from '@airqo/icons-react';
+import {
+  AqPlus,
+  AqMaximize01,
+  AqLayoutGrid01,
+  AqTable,
+} from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
 import {
   useGroupCharts,
@@ -144,9 +149,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     null
   );
   const [siteNames, setSiteNames] = useState<Map<string, string>>(new Map());
-  const [deviceNames, setDeviceNames] = useState<Map<string, string>>(
-    () => new Map()
-  );
   const [activeChartId, setActiveChartId] = useState<string | null>(null);
   const [forecastChartIds, setForecastChartIds] = useState<Set<string>>(
     () => new Set()
@@ -241,27 +243,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           // Skip "Unknown location" entries from the sidecar so the
           // fallback chain (forecast API / fleet summary) can resolve real
           // names after the page loads.
-          if (name && name !== 'Unknown location' && name !== 'Unknown Location') {
+          if (
+            name &&
+            name !== 'Unknown location' &&
+            name !== 'Unknown Location'
+          ) {
             next.set(id, name);
           }
-        });
-      });
-      return next;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persistedCharts, groupId]);
-
-  // Hydrate device names (device-resolved sites) from the sidecars so
-  // device-selected charts keep their device labels after reloads.
-  useEffect(() => {
-    if (!persistedCharts) return;
-    setDeviceNames(prev => {
-      const next = new Map(prev);
-      persistedCharts.forEach(config => {
-        if (!config._id) return;
-        const sidecar = readChartSidecar(groupId, config._id);
-        Object.entries(sidecar.deviceNames ?? {}).forEach(([id, name]) => {
-          if (name) next.set(id, name);
         });
       });
       return next;
@@ -286,17 +274,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       return next;
     });
   }, []);
-
-  const handleDeviceNamesResolved = useCallback(
-    (namesBySite: Map<string, string>) => {
-      setDeviceNames(prev => {
-        const next = new Map(prev);
-        namesBySite.forEach((name, siteId) => next.set(siteId, name));
-        return next;
-      });
-    },
-    []
-  );
 
   const allSiteIds = useMemo(
     () => Array.from(new Set(charts.flatMap(chart => chart.siteIds))),
@@ -357,8 +334,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const persistDraft = useCallback(
     async (
       draft: ExplorerChartDraft,
-      namesSnapshot: Record<string, string>,
-      deviceNamesSnapshot: Record<string, string>
+      namesSnapshot: Record<string, string>
     ): Promise<string | null> => {
       if (draft.id) {
         // Update: flat partial body (verified live -- the chartConfig
@@ -373,7 +349,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           startDate: draft.startDate,
           endDate: draft.endDate,
           siteNames: namesSnapshot,
-          deviceNames: deviceNamesSnapshot,
         };
         // Write the sidecar FIRST so the optimistic cache update renders the
         // client-side fields (subtitle, pollutant, range, ...) instantly;
@@ -387,7 +362,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             request: {
               ...draftToPersistedConfig(draft, draft.fieldId),
               site_ids: draft.siteIds,
-              device_ids: draft.deviceIds,
             },
           });
         } catch (error) {
@@ -414,7 +388,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           request: {
             group_id: groupId || undefined,
             site_ids: draft.siteIds,
-            device_ids: draft.deviceIds,
             chartConfig: draftToPersistedConfig(draft, fieldId),
           },
         });
@@ -429,7 +402,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             startDate: draft.startDate,
             endDate: draft.endDate,
             siteNames: namesSnapshot,
-            deviceNames: deviceNamesSnapshot,
           });
         }
         return newChartId || null;
@@ -442,9 +414,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     async (draft: ExplorerChartDraft) => {
       setSaveError(null);
       const namesSnapshot = Object.fromEntries(siteNames);
-      const deviceNamesSnapshot = Object.fromEntries(deviceNames);
       try {
-        await persistDraft(draft, namesSnapshot, deviceNamesSnapshot);
+        await persistDraft(draft, namesSnapshot);
         toast.success(
           draft.id ? 'Chart updated' : 'Chart added',
           draft.id
@@ -469,7 +440,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         );
       }
     },
-    [handleCloseDialog, persistDraft, posthog, siteNames, deviceNames]
+    [handleCloseDialog, persistDraft, posthog, siteNames]
   );
 
   // Inline title/subtitle edit from the chart header
@@ -484,14 +455,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         subtitle: subtitle ?? '',
       };
       const namesSnapshot = Object.fromEntries(siteNames);
-      const deviceNamesSnapshot = Object.fromEntries(deviceNames);
-      await persistDraft(updated, namesSnapshot, deviceNamesSnapshot);
+      await persistDraft(updated, namesSnapshot);
       posthog?.capture('analytics_chart_title_updated', {
         chart_id: draftId,
         title,
       });
     },
-    [charts, persistDraft, posthog, siteNames, deviceNames]
+    [charts, persistDraft, posthog, siteNames]
   );
 
   // Duplicates the chart via the server copy endpoint (includes scope +
@@ -507,13 +477,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         const newChartId = result?.data?._id ?? '';
         if (newChartId) {
           // Carry over the client-side fields (pollutant, frequency, range,
-          // color, reference standard, site + device names) to the copy.
+          // color, reference standard, site names) to the copy.
           const sourceSidecar = readChartSidecar(groupId, draft.id);
           writeChartSidecar(groupId, newChartId, {
             ...sourceSidecar,
             subtitle: draft.subtitle,
             siteNames: Object.fromEntries(siteNames),
-            deviceNames: Object.fromEntries(deviceNames),
           });
           setActiveChartId(newChartId);
         }
@@ -539,7 +508,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         );
       }
     },
-    [copyMutation, groupId, posthog, siteNames, deviceNames]
+    [copyMutation, groupId, posthog, siteNames]
   );
 
   // Arms the inline delete confirmation on the card
@@ -615,22 +584,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
 
   // Focus a chart from the overview: make it active and open the focused
   // workspace.
-  const handleFocusChart = useCallback(
-    (draft: ExplorerChartDraft) => {
-      setActiveChartId(draft.id);
-      setViewMode('focused');
-    },
-    []
-  );
-
-  // Combined labels for the comparison table: device names override site
-  // names for device-picked charts (the readings API is site-scoped, so the
-  // table is per-site — labels reflect what the user actually selected).
-  const tableLabels = useMemo(() => {
-    const labels = new Map(siteNames);
-    deviceNames.forEach((name, siteId) => labels.set(siteId, name));
-    return labels;
-  }, [deviceNames, siteNames]);
+  const handleFocusChart = useCallback((draft: ExplorerChartDraft) => {
+    setActiveChartId(draft.id);
+    setViewMode('focused');
+  }, []);
 
   useEffect(
     () => () => {
@@ -652,7 +609,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             draft={activeChart}
             groupId={groupId}
             siteNames={siteNames}
-            deviceNames={deviceNames}
             forecastEnabled={forecastChartIds.has(activeChart.id)}
             onForecastToggle={() => handleForecastToggle(activeChart.id)}
             onEdit={handleOpenEdit}
@@ -666,7 +622,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           <ForecastSummaryCard
             siteIds={activeChart.siteIds}
             siteNames={siteNames}
-            deviceNames={deviceNames}
           />
         </div>
 
@@ -775,14 +730,14 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               {compareMode === 'table' ? (
                 <ComparisonTable
                   siteIds={allSiteIds}
-                  siteNames={tableLabels}
+                  siteNames={siteNames}
                   aqiConfig={tableAqiConfig}
                   onNamesResolved={handleNamesResolved}
                 />
               ) : (
                 <ComparisonCards
                   siteIds={allSiteIds}
-                  siteNames={tableLabels}
+                  siteNames={siteNames}
                   aqiConfig={tableAqiConfig}
                   onNamesResolved={handleNamesResolved}
                 />
@@ -792,7 +747,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             <ChartsOverviewView
               charts={charts}
               siteNames={siteNames}
-              deviceNames={deviceNames}
               onFocusChart={handleFocusChart}
               onEdit={handleOpenEdit}
               onRequestDelete={handleRequestDelete}
@@ -813,7 +767,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         draft={editingDraft}
         onSave={draft => void handleSaveDraft(draft)}
         onSelectionNamesChange={handleNamesResolved}
-        onDeviceNamesChange={handleDeviceNamesResolved}
         siteNames={siteNames}
         isSaving={createMutation.isMutating || updateMutation.isMutating}
         saveError={saveError}

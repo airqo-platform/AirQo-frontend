@@ -123,7 +123,6 @@ describe('chartConfig utils', () => {
         startDate: RANGE.startDate,
         endDate: RANGE.endDate,
         siteIds: ['site-a', 'site-b'],
-        deviceIds: [],
         color: null,
         showLegend: true,
         showGrid: false,

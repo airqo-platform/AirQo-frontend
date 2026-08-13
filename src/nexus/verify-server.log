@@ -1,0 +1,31 @@
+yarn run v1.22.22
+$ next dev -p 3000
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3s
+ ○ Compiling /user/login ...
+ ✓ Compiled /user/air-quality/analytics in 105.8s (5287 modules)
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/analytics 200 in 61335ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1151ms (3078 modules)
+ GET /api/auth/session 200 in 5402ms
+ GET /api/auth/session 200 in 38ms
+ GET /api/auth/session 200 in 18ms
+ ○ Compiling /api/external/[...path] ...
+ ✓ Compiled /api/external/[...path] in 712ms (3103 modules)
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,6a6b3ebc14dfbc00135f40af,6a6b3e6104bdef0013c3eaac,6a05c0ee0bea770012b658a4,6a05c0b10c37890013723f71 200 in 5593ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 5683ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 8190ms
+redux-persist failed to create sync storage. falling back to noop storage.
+ GET /user/air-quality/analytics 200 in 815ms
+ GET /api/auth/session 200 in 44ms
+ GET /api/auth/session 200 in 17ms
+ GET /api/auth/session 200 in 16ms
+ GET /api/external/devices/readings/recent?site_id=6941e04409357b00130ac786,6941df7509357b00130ac75f,6a6b3ebc14dfbc00135f40af,6a6b3e6104bdef0013c3eaac,6a05c0ee0bea770012b658a4,6a05c0b10c37890013723f71 200 in 631ms
+ GET /api/external/devices/readings/recent?site_id=6a05b8eb0c37890013723774,6942788509357b00130aef98,69427772fe657a0013b450a8,6942765f4973ef0013d1ffc1,694275794973ef0013d1ff8c,694274dffe657a0013b45058,6942741309357b00130aeeeb,6941e3d2fe657a0013b429cc,6941e1e909357b00130ac7d4,6941e13b4973ef0013d1d959 200 in 717ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 3334ms
+ POST /api/external/analytics/dashboard/chart/d3/data 200 in 4193ms

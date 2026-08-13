@@ -28,7 +28,6 @@ export interface ExplorerChartDraft {
   startDate: string;
   endDate: string;
   siteIds: string[];
-  deviceIds: string[];
   /** Null = use the chart component's default palette */
   color: string | null;
   /** Per-location series colors (id = site_id or device_id) */
@@ -57,11 +56,6 @@ export interface ExplorerChartSidecar {
   endDate: string;
   /** Display names for the chart's sites (chips, forecast selector) */
   siteNames?: Record<string, string>;
-  /**
-   * Friendly device names for sites resolved from DEVICE selections
-   * (siteId → device name) — used to label chart series with device names.
-   */
-  deviceNames?: Record<string, string>;
 }
 
 /**
@@ -284,7 +278,6 @@ export const persistedConfigToDraft = (
     frequency: normalizeFrequency(sidecar.frequency),
     ...range,
     siteIds: config.site_ids ?? [],
-    deviceIds: config.device_ids ?? [],
     // Explicit `null` (user picked the chart default) or an explicit color
     // wins; an absent sidecar falls back to the persisted color.
     color: sidecar.color === undefined ? (config.color ?? null) : sidecar.color,

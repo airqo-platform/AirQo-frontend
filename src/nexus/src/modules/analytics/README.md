@@ -274,10 +274,10 @@ A chart explorer for a group's monitoring locations:
   editable inline from the chart header; every chart exports as PDF/PNG and
   shows its own collapsible forecast via the air-quality map's `useForecast`
   service (`WeeklyForecastCard`).
-- **Location picker** — multi-select from the group's cached Sites or Devices
-  (`/devices/cohorts/cached-sites`, `/devices/cohorts/cached-devices`) with
-  server-side search and pagination. Devices resolve to the site they are
-  deployed at, since chart data is site-scoped. Display names are always
+- **Location picker** — multi-select from the group's cached Sites
+  (`/devices/cohorts/cached-sites`) with server-side search and pagination.
+  Each site row shows the device(s) deployed there (the payload embeds them),
+  so the device name rides along with the site. Display names are always
   shown — raw ids never surface.
 - **View modes** — grid, full-width, or an unlimited location-comparison
   table (latest PM2.5/PM10 per site, sortable, threshold-colored, with the

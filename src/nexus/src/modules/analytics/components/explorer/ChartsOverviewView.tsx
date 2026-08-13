@@ -6,19 +6,16 @@ import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import {
   AqLayoutGrid01,
   AqList,
-  AqDotsVertical,
+  AqMaximize01,
   AqEdit02,
   AqTrash01,
 } from '@airqo/icons-react';
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/shared/components/ui/dropdown-menu';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { DynamicChart } from '@/shared/components/charts';
+import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 import { getPollutantLabel } from '@/shared/utils/airQuality';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
@@ -36,7 +33,6 @@ import {
 interface ChartsOverviewViewProps {
   charts: ExplorerChartDraft[];
   siteNames: Map<string, string>;
-  deviceNames?: Map<string, string>;
   /** Focus a chart: make it active and switch to the focused workspace */
   onFocusChart: (draft: ExplorerChartDraft) => void;
   onEdit: (draft: ExplorerChartDraft) => void;
@@ -47,7 +43,7 @@ interface ChartsOverviewViewProps {
   className?: string;
 }
 
-type OverviewLayout = 'grid' | 'list';
+type OverviewLayout = 'list' | 'grid';
 
 const LAYOUT_OPTIONS: {
   value: OverviewLayout;
@@ -55,22 +51,27 @@ const LAYOUT_OPTIONS: {
   icon: React.ReactNode;
 }[] = [
   {
-    value: 'grid',
-    label: 'Grid',
-    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
-  },
-  {
     value: 'list',
     label: 'List',
     icon: <AqList className="h-3.5 w-3.5" />,
   },
+  {
+    value: 'grid',
+    label: 'Grid',
+    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
+  },
 ];
 
+/**
+ * One chart in the overview: the SAME shared ChartContainer used by the
+ * favorites dashboard, so every chart in the app looks and behaves the same
+ * (header, More menu, loading/error states, interactive tooltip + legend).
+ * Data is fetched with the same hook + query keys as the focused workspace,
+ * so results are shared and cached.
+ */
 const OverviewChartCard: React.FC<{
   draft: ExplorerChartDraft;
   siteNames: Map<string, string>;
-  deviceNames?: Map<string, string>;
-  layout: OverviewLayout;
   onFocus: () => void;
   onEdit: () => void;
   onRequestDelete: () => void;
@@ -80,8 +81,6 @@ const OverviewChartCard: React.FC<{
 }> = ({
   draft,
   siteNames,
-  deviceNames,
-  layout,
   onFocus,
   onEdit,
   onRequestDelete,
@@ -104,17 +103,20 @@ const OverviewChartCard: React.FC<{
   // One request per chart while this view is mounted (React Query caches it,
   // so revisiting the overview never re-fires). Same hook + keys as the
   // focused workspace, so data is shared.
-  const { chartData, isLoading, error } = useAnalyticsChartData(
+  const { chartData, isLoading, error, refresh } = useAnalyticsChartData(
     filters,
     draft.chartType === 'Bar' ? 'bar' : 'line',
     draft.siteIds,
     draft.siteIds.length > 0
   );
 
-  const dataKeyBySiteId = useMemo(() => buildDataKeyBySiteId(chartData), [chartData]);
+  const dataKeyBySiteId = useMemo(
+    () => buildDataKeyBySiteId(chartData),
+    [chartData]
+  );
   const siteLabels = useMemo(
-    () => buildSiteLabels(chartData, siteNames, deviceNames),
-    [chartData, siteNames, deviceNames]
+    () => buildSiteLabels(chartData, siteNames),
+    [chartData, siteNames]
   );
   const seriesLabels = useMemo(
     () => buildSeriesLabels(chartData, siteLabels),
@@ -146,97 +148,63 @@ const OverviewChartCard: React.FC<{
     .join(' • ');
 
   return (
-    <Card
-      className={cn(
-        'w-full min-w-0',
-        layout === 'grid' ? '' : 'flex flex-row items-stretch'
-      )}
-    >
-      <CardContent className={cn('p-3', layout === 'list' && 'flex-1')}>
-        <div className="flex items-start justify-between gap-2">
-          <button
-            type="button"
-            onClick={onFocus}
-            className="min-w-0 flex-1 text-left focus:outline-none"
-            title="Open this chart in the focused workspace"
-          >
-            <span className="block truncate text-sm font-semibold text-foreground hover:text-primary transition-colors">
-              {draft.title}
-            </span>
-            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-              {metadata}
-            </span>
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label={`Actions for ${draft.title}`}
-                className="rounded-md border border-border p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-              >
-                <AqDotsVertical className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={onEdit}>
-                <AqEdit02 className="mr-2 h-4 w-4" />
-                Edit chart
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onRequestDelete}
-                className="text-destructive hover:bg-destructive/10"
-              >
-                <AqTrash01 className="mr-2 h-4 w-4" />
-                Delete chart
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <button
-          type="button"
-          onClick={onFocus}
-          className={cn(
-            'mt-2 block w-full min-w-0 text-left focus:outline-none',
-            layout === 'list' ? 'h-[380px]' : 'h-44'
-          )}
-          title="Open this chart in the focused workspace"
-        >
-          {error ? (
-            <div className="flex h-full items-center justify-center text-xs text-destructive">
-              Unable to load chart data
-            </div>
-          ) : (
-            <DynamicChart
-              data={chartData}
-              config={{
-                type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
-                showGrid: draft.showGrid,
-                showTooltip: false,
-                showLegend: false,
-                height: layout === 'list' ? 380 : 170,
-                ...(draft.color ? { color: draft.color } : {}),
-                seriesColors,
-              }}
-              pollutant={draft.pollutant}
-              aqiConfig={aqiConfig}
-              frequency={draft.frequency}
-              autoSelectType={false}
-              seriesLabels={seriesLabels}
-            />
-          )}
-          {isLoading && (
-            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              Loading...
-            </div>
-          )}
-        </button>
-      </CardContent>
+    <div className="w-full min-w-0 space-y-2">
+      <ChartContainer
+        title={draft.title}
+        subtitle={metadata}
+        loading={isLoading}
+        error={error ?? null}
+        onRefresh={refresh}
+        exportOptions={{ enablePDF: false, enablePNG: false }}
+        className="w-full"
+        menuItems={
+          <>
+            <DropdownMenuItem onClick={onFocus}>
+              <AqMaximize01 className="mr-2 h-4 w-4" />
+              Open in workspace
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onEdit}>
+              <AqEdit02 className="mr-2 h-4 w-4" />
+              Edit chart
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onRequestDelete}
+              className="text-destructive hover:bg-destructive/10"
+            >
+              <AqTrash01 className="mr-2 h-4 w-4" />
+              Delete chart
+            </DropdownMenuItem>
+          </>
+        }
+      >
+        {/* Skip the chart itself while its first load is in flight — the
+            container's loading overlay covers the empty area instead of the
+            "No data available" placeholder flashing underneath. */}
+        {isLoading ? null : (
+          <DynamicChart
+            data={chartData}
+            config={{
+              type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
+              showGrid: draft.showGrid,
+              showTooltip: draft.showTooltip,
+              showLegend: draft.showLegend,
+              height: 380,
+              ...(draft.color ? { color: draft.color } : {}),
+              seriesColors,
+            }}
+            pollutant={draft.pollutant}
+            aqiConfig={aqiConfig}
+            frequency={draft.frequency}
+            autoSelectType={false}
+            seriesLabels={seriesLabels}
+          />
+        )}
+      </ChartContainer>
 
       {deleteConfirming && (
         <div
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-destructive/30 bg-destructive/10 px-3 py-2"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2"
           role="alert"
         >
           <span className="text-xs font-medium text-destructive">
@@ -260,20 +228,20 @@ const OverviewChartCard: React.FC<{
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 
 /**
- * All configured charts at once, as a grid or a list (toggle below the page
- * tabs). Each card renders the chart's REAL data (same hooks + query keys as
- * the focused workspace, so results are shared and cached) with the correct
- * site/device labels and colors. Clicking a card focuses it.
+ * All configured charts at once, as a list (default) or a grid (toggle below
+ * the page tabs). Each card renders the chart's REAL data (same hooks + query
+ * keys as the focused workspace, so results are shared and cached) inside the
+ * shared ChartContainer, with the correct site/device labels and colors.
+ * Clicking a card focuses it.
  */
 export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   charts,
   siteNames,
-  deviceNames,
   onFocusChart,
   onEdit,
   onRequestDelete,
@@ -282,7 +250,7 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   deleteConfirmingId,
   className,
 }) => {
-  const [layout, setLayout] = useState<OverviewLayout>('grid');
+  const [layout, setLayout] = useState<OverviewLayout>('list');
 
   const handleFocus = useCallback(
     (draft: ExplorerChartDraft) => onFocusChart(draft),
@@ -310,10 +278,9 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
       ) : (
         <div
           className={cn(
-            'items-start',
             layout === 'grid'
-              ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3'
-              : 'flex flex-col gap-3'
+              ? 'grid grid-cols-1 items-start gap-4 md:grid-cols-2'
+              : 'flex flex-col gap-4'
           )}
         >
           {charts.map(draft => (
@@ -321,8 +288,6 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
               key={draft.id}
               draft={draft}
               siteNames={siteNames}
-              deviceNames={deviceNames}
-              layout={layout}
               onFocus={() => handleFocus(draft)}
               onEdit={() => onEdit(draft)}
               onRequestDelete={() => onRequestDelete(draft)}
