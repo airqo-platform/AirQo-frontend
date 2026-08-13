@@ -46,7 +46,7 @@ const CustomLabel: React.FC<CustomLabelProps> = ({
   const labelY = y - CUSTOM_LABEL_HEIGHT - 6;
 
   return (
-    <g>
+    <g style={{ isolation: 'isolate', zIndex: 10 }}>
       <title>{details ?? value}</title>
       <rect
         x={labelX}

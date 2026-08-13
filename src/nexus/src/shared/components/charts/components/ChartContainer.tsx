@@ -592,10 +592,6 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           )}
         </div>
 
-        {/* Separator line after the chart — closes the toolbar section (not
-            part of the exported image) */}
-        {toolbar && <div className="border-t border-border" data-export-ignore />}
-
         {/* Footer hint (e.g. last update time) */}
         {footerHint && <div className="px-1 pt-1 pb-0.5">{footerHint}</div>}
       </CardContent>

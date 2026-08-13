@@ -541,6 +541,18 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         />
       </ChartContainer>
 
+      {/* Manage locations — opens the location picker for this chart */}
+      <div className="flex items-center justify-end px-4 pt-1.5 pb-2">
+        <button
+          type="button"
+          onClick={() => onEdit(draft)}
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        >
+          <AqEdit02 className="h-3.5 w-3.5" />
+          Manage locations
+        </button>
+      </div>
+
       {/* Inline delete confirmation — visible on the card, not hidden in a menu */}
       {deleteConfirming && (
         <div

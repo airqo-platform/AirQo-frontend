@@ -169,4 +169,67 @@ describe('DynamicChart zoom controls', () => {
     expect(pill).toHaveAttribute('data-export-ignore');
     expect(pill).toHaveAttribute('data-html2canvas-ignore', 'true');
   });
+
+  it('shows the scrubber only while zoomed', () => {
+    renderChart(buildSeries(100));
+
+    expect(
+      screen.queryByRole('slider', { name: 'Scroll chart window' })
+    ).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+
+    const slider = screen.getByRole('slider', { name: 'Scroll chart window' });
+    expect(slider).toHaveAttribute('aria-valuenow', '25');
+    expect(slider).toHaveAttribute('aria-valuemax', '50');
+  });
+
+  it('scrubber panning shifts the rendered window', () => {
+    renderChart(buildSeries(100));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    expect(lastChartData('LineChart')).toBe(50);
+
+    const slider = screen.getByRole('slider', { name: 'Scroll chart window' });
+    fireEvent.keyDown(slider, { key: 'ArrowRight' }); // pan +5 (10% of 50)
+    expect(lastChartData('LineChart')).toBe(50);
+    expect(slider).toHaveAttribute('aria-valuenow', '30');
+
+    fireEvent.keyDown(slider, { key: 'End' });
+    expect(slider).toHaveAttribute('aria-valuenow', '50');
+  });
+
+  it('decimates extreme datasets above the render budget, preserving the window domain', () => {
+    const data = buildSeries(10_000);
+    renderChart(data);
+
+    // 10k points render as the min/max envelope (≤ 2002 rows).
+    expect(lastChartData('LineChart')).toBeLessThanOrEqual(2002);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    // Window is 1250 points (4375..5624) — below the budget, full fidelity.
+    expect(lastChartData('LineChart')).toBe(1250);
+
+    const rendered = (mockChartCalls.LineChart.at(-1)?.data as unknown[]) ?? [];
+    expect((rendered[0] as { time: string }).time).toBe(data[4375].time);
+    expect((rendered[rendered.length - 1] as { time: string }).time).toBe(
+      data[5624].time
+    );
+  });
+
+  it('pan clamps the window at the dataset edge', () => {
+    renderChart(buildSeries(100));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' })); // 25..74
+    const slider = screen.getByRole('slider', { name: 'Scroll chart window' });
+
+    fireEvent.keyDown(slider, { key: 'Home' });
+    expect(slider).toHaveAttribute('aria-valuenow', '0');
+
+    fireEvent.keyDown(slider, { key: 'End' });
+    expect(slider).toHaveAttribute('aria-valuenow', '50');
+    expect(lastChartData('LineChart')).toBe(50);
+  });
 });

@@ -46,8 +46,15 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { REFERENCE_LINES } from '@/shared/utils/airQuality';
 import { ChartZoomControls } from '@/shared/components/charts/components/ui/ChartZoomControls';
+import { ChartZoomScrubber } from '@/shared/components/charts/components/ui/ChartZoomScrubber';
+import { PanScaleReporter } from '@/shared/components/charts/components/ui/PanScaleReporter';
 import { useChartZoom } from '@/shared/components/charts/hooks/useChartZoom';
-import { ZOOM_CONFIG } from '@/shared/components/charts/constants';
+import { useChartPan } from '@/shared/components/charts/hooks/useChartPan';
+import { decimateRows } from '@/shared/components/charts/utils';
+import {
+  ZOOM_CONFIG,
+  MAX_RENDER_POINTS,
+} from '@/shared/components/charts/constants';
 
 interface VisualizerChartProps {
   model: ChartSeriesModel;
@@ -573,17 +580,36 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     canZoomOut,
     zoomIn,
     zoomOut,
+    pan,
+    panToCenter,
     reset: resetZoom,
   } = useChartZoom(
     model.data as unknown as Record<string, unknown>[],
     model.xKey
   );
+
+  // Plot-level panning: drag the chart or scroll horizontally to slide the
+  // zoom window along the x-axis (index-exact via PanScaleReporter).
+  const { wrapperRef, panScaleRef, isPanning, pointerHandlers } = useChartPan({
+    enabled: zoomEnabled,
+    isZoomed,
+    pan,
+  });
   const visibleData = React.useMemo(() => {
     if (!zoomRange || zoomRange.endIndex >= model.data.length) {
       return model.data;
     }
     return model.data.slice(zoomRange.startIndex, zoomRange.endIndex + 1);
   }, [model.data, zoomRange]);
+
+  // Envelope decimation for extremely large datasets: above the render
+  // budget the chart draws the min/max envelope (peaks preserved) instead
+  // of every row. Runs AFTER the zoom slice, so the zoom window itself is
+  // always index-exact — zooming in below the budget restores full fidelity.
+  const renderData = React.useMemo(
+    () => decimateRows(visibleData, MAX_RENDER_POINTS, model.xKey),
+    [visibleData, model.xKey]
+  );
 
   // Reset the emphasis when the dataset (or the zoom window) changes so stale
   // hover state can't leave the chart blurred after a refresh or a zoom step.
@@ -775,6 +801,19 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         : 16,
     left: showYAxisLabel ? 10 : 6,
   };
+  const panScaleReporter =
+    zoomEnabled && renderData.length > 0 ? (
+      <Customized
+        component={
+          <PanScaleReporter
+            firstXValue={renderData[0]?.[model.xKey]}
+            lastXValue={renderData[renderData.length - 1]?.[model.xKey]}
+            visibleCount={renderData.length}
+            reporterRef={panScaleRef}
+          />
+        }
+      />
+    ) : null;
   const renderReferenceLines = () =>
     referenceLines.map((line, index) => (
       <ReferenceLine
@@ -984,7 +1023,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           }}
           onMouseLeave={scheduleSeriesBlur}
         >
-          {visibleData.map((_, cellIndex) => {
+          {renderData.map((_, cellIndex) => {
             const focused = activeKey === key && activeIndex === cellIndex;
             const dimmed = activeKey !== null && !focused;
             return (
@@ -1132,7 +1171,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     if (config.type === 'scatter') {
       return (
         <ScatterChart
-          data={visibleData}
+          data={renderData}
           margin={cartesianMargin}
           onMouseLeave={clearHover}
         >
@@ -1145,7 +1184,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             // Null filtering drops rows, so pair each kept point with its
             // chart-level index — otherwise the hover dimming (which uses the
             // chart's `activeIndex`) would compare against shifted indices.
-            const seriesData = visibleData
+            const seriesData = renderData
               .map((point, pointIndex) => ({ point, pointIndex }))
               .filter(({ point }) => point[key] !== null);
             const color = getChartSeriesColor(key, index);
@@ -1173,6 +1212,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
               </Scatter>
             );
           })}
+          {panScaleReporter}
         </ScatterChart>
       );
     }
@@ -1180,7 +1220,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     if (config.type === 'area') {
       return (
         <AreaChart
-          data={visibleData}
+          data={renderData}
           margin={cartesianMargin}
           onMouseLeave={clearHover}
         >
@@ -1198,6 +1238,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
               />
             }
           />
+          {panScaleReporter}
         </AreaChart>
       );
     }
@@ -1205,7 +1246,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     if (config.type === 'bar' || config.type === 'histogram') {
       return (
         <BarChart
-          data={visibleData}
+          data={renderData}
           margin={cartesianMargin}
           onMouseLeave={clearHover}
         >
@@ -1215,6 +1256,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           {legend}
           {renderBarSeries()}
           {renderReferenceLines()}
+          {panScaleReporter}
         </BarChart>
       );
     }
@@ -1222,7 +1264,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     if (config.type === 'composed') {
       return (
         <ComposedChart
-          data={visibleData}
+          data={renderData}
           margin={cartesianMargin}
           onMouseLeave={clearHover}
         >
@@ -1252,7 +1294,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
                   }}
                   onMouseLeave={scheduleSeriesBlur}
                 >
-                  {visibleData.map((_, cellIndex) => {
+                  {renderData.map((_, cellIndex) => {
                     const focusedCell =
                       activeKey === key && activeIndex === cellIndex;
                     const dimmed = activeKey !== null && !focusedCell;
@@ -1364,13 +1406,14 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
               />
             }
           />
+          {panScaleReporter}
         </ComposedChart>
       );
     }
 
     return (
       <LineChart
-        data={visibleData}
+        data={renderData}
         margin={cartesianMargin}
         onMouseLeave={clearHover}
       >
@@ -1388,13 +1431,21 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             />
           }
         />
+        {panScaleReporter}
       </LineChart>
     );
   };
 
   return (
     <div
-      className={cn('relative min-w-0', className)}
+      ref={wrapperRef}
+      {...pointerHandlers}
+      className={cn(
+        'relative min-w-0',
+        // Grabbing affordance only while a zoom window is active.
+        isZoomed && (isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'),
+        className
+      )}
       style={{ height: config.height }}
     >
       {zoomEnabled && (
@@ -1410,6 +1461,14 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         {renderChart()}
       </ResponsiveContainer>
+      {isZoomed && (
+        <ChartZoomScrubber
+          totalPoints={model.data.length}
+          zoomRange={zoomRange}
+          onPan={pan}
+          onPanToCenter={panToCenter}
+        />
+      )}
     </div>
   );
 };

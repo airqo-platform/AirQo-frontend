@@ -98,6 +98,52 @@ export const useChartZoom = (
 
   const reset = useCallback(() => setZoomRange(null), []);
 
+  /**
+   * Shifts the visible window by `offsetIndices` along the x-axis (negative
+   * = toward earlier data). Clamped to the dataset bounds; no-op when the
+   * full dataset is visible or the offset is zero.
+   */
+  const pan = useCallback(
+    (offsetIndices: number) => {
+      if (offsetIndices === 0 || !isZoomed) return;
+      setZoomRange(prev => {
+        if (!prev) return prev;
+        const span = prev.endIndex - prev.startIndex + 1;
+        const nextStart = Math.max(
+          0,
+          Math.min(
+            totalPoints - span,
+            prev.startIndex + Math.round(offsetIndices)
+          )
+        );
+        if (nextStart === prev.startIndex) return prev;
+        return { startIndex: nextStart, endIndex: nextStart + span - 1 };
+      });
+    },
+    [isZoomed, totalPoints]
+  );
+
+  /**
+   * Centers the visible window on `centerIndex` (e.g. a scrubber track
+   * click). Clamped to the dataset bounds; no-op when not zoomed.
+   */
+  const panToCenter = useCallback(
+    (centerIndex: number) => {
+      if (!isZoomed) return;
+      setZoomRange(prev => {
+        if (!prev) return prev;
+        const span = prev.endIndex - prev.startIndex + 1;
+        const nextStart = Math.max(
+          0,
+          Math.min(totalPoints - span, Math.round(centerIndex - span / 2))
+        );
+        if (nextStart === prev.startIndex) return prev;
+        return { startIndex: nextStart, endIndex: nextStart + span - 1 };
+      });
+    },
+    [isZoomed, totalPoints]
+  );
+
   const canZoomIn = useMemo(() => {
     const span = zoomRange
       ? zoomRange.endIndex - zoomRange.startIndex + 1
@@ -114,6 +160,8 @@ export const useChartZoom = (
     canZoomOut,
     zoomIn,
     zoomOut,
+    pan,
+    panToCenter,
     reset,
   };
 };

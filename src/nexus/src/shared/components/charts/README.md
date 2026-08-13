@@ -148,7 +148,14 @@ zoomed in).
    4 data points).
 2. **Zoom out (−)** — doubles the window back toward the full range.
 3. **Reset** — appears only while zoomed; returns to the full dataset.
-4. **Hover** either icon for a tooltip explaining the action.
+4. **Pan / scroll** once zoomed in, to move the window along the x-axis:
+   - **Drag the chart plot** left/right (the cursor becomes a grab hand),
+   - **Scroll horizontally** (trackpad swipe, or shift + mouse wheel),
+   - **Use the scrubber bar** that appears under the chart: drag its
+     thumb, press anywhere on the track to jump the window's center
+     there, or scroll over it. It's a real slider — focus it and use
+     **← / →** (10% of the window), **Home**, or **End**.
+5. **Hover** any control for a tooltip explaining the action.
 
 ### When it appears
 
@@ -161,12 +168,16 @@ zoomed in).
 
 ### What it does under the hood
 
-Zooming **slices the rendered data client-side** — no refetch, no cache
-impact, no API call. The chart only draws the visible window, which also
-makes very heavy datasets (thousands of points) lighter to render while
-zoomed. Animation is suspended during zoom steps to avoid re-animating the
-whole curve on every click. Exported PNG/PDF images never include the zoom
-controls.
+Zooming and panning **slice the rendered data client-side** — no refetch,
+no cache impact, no API call. The chart only draws the visible window,
+which also makes very heavy datasets (thousands of points) lighter to
+render while zoomed. Above 2,000 visible points the chart renders the
+**min/max envelope** (peaks and valleys preserved, never dropped like
+stride sampling), so multi-thousand-point series stay smooth; zoom in
+below that budget and full fidelity returns automatically. Animation is
+suspended during zoom steps to avoid re-animating the whole curve on
+every click. Exported PNG/PDF images never include the zoom controls or
+the scrubber.
 
 ## 🎨 Component API
 

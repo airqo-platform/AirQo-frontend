@@ -98,6 +98,16 @@ export const groupDataBySite = (
 export const convertToMultiSeriesFormat = (
   groupedData: Record<string, NormalizedChartData[]>
 ): Array<Record<string, string | number | null>> => {
+  // Index every site's points by timestamp ONCE so the pivot below is
+  // O(points × sites) instead of O(points² × sites) on large datasets.
+  const siteIndexes = Object.fromEntries(
+    Object.entries(groupedData).map(([siteName, siteData]) => {
+      const byTime = new Map<string, NormalizedChartData>();
+      siteData.forEach(point => byTime.set(point.time, point));
+      return [siteName, byTime];
+    })
+  ) as Record<string, Map<string, NormalizedChartData>>;
+
   const timePoints = new Set<string>();
 
   // Collect all time points
@@ -122,13 +132,76 @@ export const convertToMultiSeriesFormat = (
     .map(time => {
       const dataPoint: Record<string, string | number | null> = { time };
 
-      Object.entries(groupedData).forEach(([siteName, siteData]) => {
-        const point = siteData.find(p => p.time === time);
+      Object.entries(siteIndexes).forEach(([siteName, byTime]) => {
+        const point = byTime.get(time);
         dataPoint[siteName] = point ? point.value : null;
       });
 
       return dataPoint;
     });
+};
+
+/**
+ * Envelope decimation for extremely large datasets.
+ *
+ * Buckets consecutive rows and emits TWO rows per bucket carrying the per
+ * series-column MIN and MAX of the bucket. Unlike stride sampling (which
+ * drops peaks), this preserves the full data envelope, so huge time series
+ * keep their spikes and valleys while the DOM stays within `maxRows`.
+ *
+ * The first row of a bucket keeps the bucket's start x value, the second
+ * keeps the bucket's end x value, so the visible domain always covers the
+ * exact original range. Rows whose numeric columns are all null (data gaps)
+ * are emitted as nulls — never as the first row's stale value.
+ */
+export const decimateRows = <T extends Record<string, unknown>>(
+  rows: T[],
+  maxRows: number,
+  xKey = 'time'
+): T[] => {
+  if (rows.length <= maxRows) return rows;
+  if (rows.length === 0) return rows;
+
+  const bucketCount = Math.max(1, Math.ceil(maxRows / 2));
+  const bucketSize = Math.ceil(rows.length / bucketCount);
+  const out: T[] = [];
+
+  for (let start = 0; start < rows.length; start += bucketSize) {
+    const bucket = rows.slice(start, Math.min(rows.length, start + bucketSize));
+    const first = bucket[0] as Record<string, unknown>;
+    const last = bucket[bucket.length - 1] as Record<string, unknown>;
+    const numericKeys = Object.keys(first).filter(k => k !== xKey);
+    const minRow: Record<string, unknown> = { ...first };
+    const maxRow: Record<string, unknown> = { ...first };
+
+    numericKeys.forEach(k => {
+      let min = Number.POSITIVE_INFINITY;
+      let max = Number.NEGATIVE_INFINITY;
+      let hasValue = false;
+
+      for (const row of bucket) {
+        const v = row[k];
+        if (typeof v !== 'number' || Number.isNaN(v)) continue;
+        hasValue = true;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+
+      if (hasValue) {
+        minRow[k] = min;
+        maxRow[k] = max;
+      } else {
+        // Data gap — emit nulls instead of leaking the first row's value.
+        minRow[k] = null;
+        maxRow[k] = null;
+      }
+    });
+
+    maxRow[xKey] = last[xKey];
+    out.push(minRow as T, maxRow as T);
+  }
+
+  return out;
 };
 
 /**

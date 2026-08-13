@@ -42,12 +42,16 @@ import {
 import { CustomTooltip } from '../ui/CustomTooltip';
 import { CustomReferenceLine } from '../ui/CustomReferenceLine';
 import { ChartZoomControls } from '../ui/ChartZoomControls';
+import { ChartZoomScrubber } from '../ui/ChartZoomScrubber';
+import { PanScaleReporter } from '../ui/PanScaleReporter';
 import { useChartZoom } from '../../hooks/useChartZoom';
+import { useChartPan } from '../../hooks/useChartPan';
 import type { AqiConfig } from '@/shared/types/aqi';
 import {
   autoSelectChartType,
   groupDataBySite,
   convertToMultiSeriesFormat,
+  decimateRows,
   formatTimestampByFrequency,
   getPollutantLabel,
   getPollutantUnits,
@@ -60,6 +64,7 @@ import {
   AXIS_CONFIG,
   CHART_ANIMATIONS,
   ZOOM_CONFIG,
+  MAX_RENDER_POINTS,
 } from '../../constants';
 import { cn } from '@/shared/lib/utils';
 
@@ -91,7 +96,7 @@ const ExtraReferenceLineLabel: React.FC<{
   const chipX = isVertical ? x + 6 : x + 8;
   const chipY = isVertical ? y + 4 : y - 22;
   return (
-    <g>
+    <g style={{ isolation: 'isolate', zIndex: 10 }}>
       <rect
         x={chipX}
         y={chipY}
@@ -364,6 +369,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     canZoomOut,
     zoomIn,
     zoomOut,
+    pan,
+    panToCenter,
     reset: resetZoom,
   } = useChartZoom(
     chartData as unknown as Record<string, unknown>[],
@@ -376,10 +383,32 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       chartType === 'bar' ||
       chartType === 'scatter');
 
+  // Plot-level panning: drag the chart or scroll horizontally to slide the
+  // zoom window along the x-axis (index-exact via PanScaleReporter).
+  const { wrapperRef, panScaleRef, isPanning, pointerHandlers } = useChartPan({
+    enabled: showZoomControls,
+    isZoomed,
+    pan,
+  });
+
   const visibleChartData = useMemo(() => {
     if (!zoomRange || zoomRange.endIndex >= chartData.length) return chartData;
     return chartData.slice(zoomRange.startIndex, zoomRange.endIndex + 1);
   }, [chartData, zoomRange]);
+
+  // Envelope decimation for extremely large datasets: above the render
+  // budget the chart draws the min/max envelope (peaks preserved) instead
+  // of every row. Runs AFTER the zoom slice, so the zoom window itself is
+  // always index-exact — zooming in below the budget restores full fidelity.
+  const renderData = useMemo(
+    () =>
+      decimateRows(
+        visibleChartData as unknown as Record<string, unknown>[],
+        MAX_RENDER_POINTS,
+        config.xAxisKey || 'time'
+      ),
+    [config.xAxisKey, visibleChartData]
+  );
 
   // Reset the emphasis when the dataset (or the zoom window) changes so stale
   // hover state can't leave the chart blurred after a refresh or a zoom step.
@@ -483,16 +512,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   }, [chartType]);
 
   const xAxisInterval = useMemo(() => {
-    if (visibleChartData.length <= 6) {
+    if (renderData.length <= 6) {
       return 0;
     }
 
-    return Math.max(Math.ceil(visibleChartData.length / 6) - 1, 0);
-  }, [visibleChartData.length]);
+    return Math.max(Math.ceil(renderData.length / 6) - 1, 0);
+  }, [renderData.length]);
 
   // Common props for all charts
   const commonProps = {
-    data: visibleChartData as unknown as NormalizedChartData[],
+    data: renderData as unknown as NormalizedChartData[],
     margin: resolvedMargin,
     ...CHART_ANIMATIONS[chartType as keyof typeof CHART_ANIMATIONS],
   };
@@ -811,7 +840,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           }}
           onMouseLeave={scheduleSeriesBlur}
         >
-          {visibleChartData.map((_, cellIndex) => {
+          {renderData.map((_, cellIndex) => {
             // A controlled focus (location legend hover) keeps every cell of
             // the focused series vivid even while the chart is not hovered;
             // the per-cell narrowing to the hovered index only applies to
@@ -858,6 +887,23 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       />
     ) : null;
 
+  // Bridges the axis scale to the wrapper's pan handlers (drag / wheel).
+  const renderPanScaleReporter = () =>
+    showZoomControls && renderData.length > 0 ? (
+      <Customized
+        component={
+          <PanScaleReporter
+            firstXValue={renderData[0]?.[config.xAxisKey || 'time']}
+            lastXValue={
+              renderData[renderData.length - 1]?.[config.xAxisKey || 'time']
+            }
+            visibleCount={renderData.length}
+            reporterRef={panScaleRef}
+          />
+        }
+      />
+    ) : null;
+
   // Render chart based on type
   const renderChart = () => {
     switch (chartType) {
@@ -873,6 +919,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderReferenceLines()}
             {renderAdditionalReferenceLines()}
             {renderHoverFocusController()}
+            {renderPanScaleReporter()}
           </LineChart>
         );
 
@@ -888,6 +935,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderReferenceLines()}
             {renderAdditionalReferenceLines()}
             {renderHoverFocusController()}
+            {renderPanScaleReporter()}
           </AreaChart>
         );
 
@@ -909,6 +957,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             {renderBarSeries()}
             {renderReferenceLines()}
             {renderAdditionalReferenceLines()}
+            {renderPanScaleReporter()}
           </BarChart>
         );
 
@@ -935,7 +984,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
                   isAnimationActive={!isZoomed}
                   hide={isHidden}
                 >
-                  {visibleChartData.map((_, pointIndex) => {
+                  {renderData.map((_, pointIndex) => {
                     // Controlled focus dims whole non-focused series; the
                     // hover-driven focus dims other points of the same row.
                     const dimmed =
@@ -955,6 +1004,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             })}
             {renderReferenceLines()}
             {renderAdditionalReferenceLines()}
+            {renderPanScaleReporter()}
           </ScatterChart>
         );
 
@@ -1084,7 +1134,16 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   if (!chart) return null;
 
   return (
-    <div className={cn('relative w-full min-h-[300px] min-w-0', className)}>
+    <div
+      ref={wrapperRef}
+      {...pointerHandlers}
+      className={cn(
+        'relative w-full min-h-[300px] min-w-0',
+        // Grabbing affordance only while a zoom window is active.
+        isZoomed && (isPanning ? 'cursor-grabbing select-none' : 'cursor-grab'),
+        className
+      )}
+    >
       {showZoomControls && (
         <ChartZoomControls
           canZoomIn={canZoomIn}
@@ -1096,6 +1155,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         />
       )}
       <Container {...containerProps}>{chart}</Container>
+      {isZoomed && (
+        <ChartZoomScrubber
+          totalPoints={chartData.length}
+          zoomRange={zoomRange}
+          onPan={pan}
+          onPanToCenter={panToCenter}
+        />
+      )}
     </div>
   );
 };

@@ -147,6 +147,11 @@ export const ZOOM_CONFIG = {
   step: 0.5,
 } as const;
 
+// Render budget for extremely large datasets: above this many visible points
+// the chart renders the min/max envelope (see `decimateRows`) instead of
+// every row, so multi-thousand-point series stay smooth and keep their peaks.
+export const MAX_RENDER_POINTS = 2000;
+
 // Animation configurations
 export const CHART_ANIMATIONS = {
   line: {
