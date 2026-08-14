@@ -32,6 +32,8 @@ interface CustomTooltipProps {
   showZoomHint?: boolean;
   /** When true, renders a pinned bubble above the node (post-click) */
   forceOpen?: boolean;
+  /** When false (mobile), hover tooltips are disabled — see MapNodes. */
+  enableHoverTooltip?: boolean;
 }
 
 // ─── Pure helpers (defined at module scope — never recreated) ─────────────────
@@ -303,6 +305,105 @@ const ReadingTooltipContent: React.FC<{
   );
 };
 
+// ─── Compact (mobile) tooltip content ────────────────────────────────────────
+// On small screens the pinned tooltip must stay small so it never covers the
+// top-left filter controls. It shows the essentials; the details panel below
+// the map carries the full information.
+
+const CompactReadingTooltipContent: React.FC<{
+  reading: AirQualityReading;
+  selectedPollutant: PollutantType;
+  aqiConfig?: AqiConfig | null;
+}> = ({ reading, selectedPollutant, aqiConfig }) => {
+  const pollutantValue =
+    selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
+
+  const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
+  const IconComponent = getAirQualityIcon(level);
+  const color = getAirQualityColor(level, aqiConfig);
+
+  return (
+    <div className="px-3 py-2 min-w-[180px] max-w-[240px]">
+      <div className="flex items-center gap-2">
+        <div style={{ color }} className="flex-none">
+          <IconComponent className="w-6 h-6" />
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium text-gray-900 text-sm leading-tight truncate">
+            {reading.locationName ?? 'Air Quality Station'}
+          </div>
+          <div className="text-sm" style={{ color }}>
+            AQI {formatAqiIndex(reading.aqiIndex)}
+            {pollutantValue !== undefined && !isNaN(pollutantValue)
+              ? ` · ${formatValue(pollutantValue)} µg/m³`
+              : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CompactClusterTooltipContent: React.FC<{
+  cluster: ClusterData;
+  selectedPollutant: PollutantType;
+  aqiConfig?: AqiConfig | null;
+}> = ({ cluster, selectedPollutant, aqiConfig }) => {
+  const validReadings = cluster.readings.filter(r => {
+    const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+    return val !== undefined && !isNaN(val);
+  });
+
+  const avgValue = validReadings.length
+    ? validReadings.reduce((sum, r) => {
+        const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+        return sum + (val as number);
+      }, 0) / validReadings.length
+    : 0;
+
+  const aqiValues = cluster.readings
+    .map(r => r.aqiIndex)
+    .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+  const avgAqiIndex = aqiValues.length
+    ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
+    : undefined;
+
+  const hasData = validReadings.length > 0;
+
+  const level = getReadingAqiLevel(
+    {
+      pm25Value: avgValue,
+      pm10Value: avgValue,
+      aqiCategory: getClusterCategoryFallback(cluster.readings),
+    },
+    selectedPollutant,
+    aqiConfig
+  );
+  const IconComponent = getAirQualityIcon(level);
+  const color = getAirQualityColor(level, aqiConfig);
+
+  return (
+    <div className="px-3 py-2 min-w-[180px] max-w-[240px]">
+      <div className="flex items-center gap-2">
+        <div style={{ color }} className="flex-none">
+          <IconComponent className="w-6 h-6" />
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium text-gray-900 text-sm leading-tight truncate">
+            Cluster ({cluster.pointCount} stations)
+          </div>
+          <div className="text-sm" style={{ color }}>
+            AQI {formatAqiIndex(hasData ? avgAqiIndex : undefined)}
+            {hasData && avgValue > 0
+              ? ` · ${formatValue(avgValue)} µg/m³`
+              : ' · No data for selected pollutant'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
@@ -332,6 +433,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   onTooltipHoverChange,
   showZoomHint = false,
   forceOpen = false,
+  enableHoverTooltip = true,
 }) => {
   if (!data) return children;
 
@@ -360,6 +462,20 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
   // ── Pinned (post-click) mode ────────────────────────────────────────────────
   if (forceOpen) {
+    const compactContent = isCluster ? (
+      <CompactClusterTooltipContent
+        cluster={data as ClusterData}
+        selectedPollutant={selectedPollutant}
+        aqiConfig={aqiConfig}
+      />
+    ) : (
+      <CompactReadingTooltipContent
+        reading={data as AirQualityReading}
+        selectedPollutant={selectedPollutant}
+        aqiConfig={aqiConfig}
+      />
+    );
+
     return (
       <div
         className={cn(
@@ -371,19 +487,23 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       >
         {children}
 
-        {/*
-         * FIX (CodeRabbit review):
-         * Both the outer container AND the inner content div use pointer-events-none.
-         * Only explicit <button> elements inside tooltipContent re-enable pointer-events-auto.
-         * This ensures the non-interactive bubble area never blocks map/node clicks.
-         */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-[9999] pointer-events-none"
+          className="absolute left-1/2 -translate-x-1/2 top-full mt-2 md:top-auto md:bottom-full md:mb-2 z-[9999] pointer-events-none max-w-[calc(100vw-2rem)]"
           role="tooltip"
         >
           {/* Inner content — also pointer-events-none; buttons re-enable individually */}
           <div className="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-lg pointer-events-none">
-            {tooltipContent}
+            {/*
+             * CSS-only responsive switch (no JS media query — CustomTooltip is
+             * rendered once per map marker and hook-driven subscriptions would
+             * trigger setState-during-render):
+             *   - < 768px (md down): compact bubble below the node — never
+             *     covers the top filter/control clusters; full details live
+             *     in the panel below the map.
+             *   - ≥ 768px: full tooltip with PM/source/category breakdown.
+             */}
+            <div className="md:hidden">{compactContent}</div>
+            <div className="hidden md:block">{tooltipContent}</div>
           </div>
         </div>
       </div>
@@ -391,6 +511,20 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   }
 
   // ── Hover mode ──────────────────────────────────────────────────────────────
+  // Disabled on mobile: on touch, a tap fires mouseenter first and the
+  // Flowbite hover tooltip (full-size content) would open over the filter
+  // controls. Mobile users get the compact pinned bubble + details panel.
+  if (!enableHoverTooltip) {
+    return (
+      <span
+        onMouseEnter={() => onTooltipHoverChange?.(true)}
+        onMouseLeave={() => onTooltipHoverChange?.(false)}
+      >
+        {children}
+      </span>
+    );
+  }
+
   return (
     <Tooltip
       content={tooltipContent}

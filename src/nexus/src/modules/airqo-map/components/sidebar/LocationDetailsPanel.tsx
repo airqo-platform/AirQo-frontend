@@ -69,6 +69,7 @@ export const LocationDetailsHeader: React.FC<{
         size="sm"
         onClick={onBack}
         className="flex-none p-1 h-8 w-8"
+        aria-label="Close location details"
       >
         <AqXClose className="h-4 w-4" />
       </Button>
@@ -205,16 +206,16 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div className="p-4 space-y-4 pb-8">
-          <WeeklyForecastCard
-            siteId={currentLocationData._id}
-            selectedPollutant={selectedPollutant}
-          />
-
           <CurrentAirQualityCard
             locationData={currentLocationData}
             mapReading={mapReading}
             selectedPollutant={selectedPollutant}
             aqiConfig={aqiConfig}
+          />
+
+          <WeeklyForecastCard
+            siteId={currentLocationData._id}
+            selectedPollutant={selectedPollutant}
           />
 
           <CollapsibleCard title="Health Alerts" defaultExpanded={false}>

@@ -33,7 +33,8 @@ export const DataProviderFilter: React.FC<DataProviderFilterProps> = ({
       <Select
         value={selectedProvider}
         onChange={handleChange}
-        className="w-36 h-8 text-sm shadow"
+        containerClassName="!mb-0"
+        className="w-36 h-[44px] text-sm shadow md:h-8"
         aria-label="Filter by data provider"
       >
         <option value={DATA_PROVIDER_ALL}>All Providers</option>

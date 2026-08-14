@@ -92,6 +92,13 @@ interface MapNodesProps {
    */
   zoomLevel?: number;
   isTooltipOpen?: boolean;
+  /**
+   * When false (mobile), the Flowbite hover tooltip is disabled entirely —
+   * on touch a tap fires mouseenter first, which would open the full-size
+   * hover tooltip and cover the filter controls. Tap users get the compact
+   * pinned bubble + the details panel instead.
+   */
+  enableHoverTooltip?: boolean;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -120,6 +127,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   aqiConfig = null,
   zoomLevel = 10,
   isTooltipOpen = false,
+  enableHoverTooltip = true,
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
   const data = (cluster ?? reading) as
@@ -188,6 +196,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         aqiConfig={aqiConfig}
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
+        enableHoverTooltip={enableHoverTooltip}
       >
         <div
           role="button"
@@ -290,6 +299,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
         forceOpen={isTooltipOpen}
+        enableHoverTooltip={enableHoverTooltip}
       >
         <div
           role="button"

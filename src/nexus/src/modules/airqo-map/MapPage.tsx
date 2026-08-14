@@ -48,7 +48,9 @@ interface MapPageProps {
 // ─── Private org banner ───────────────────────────────────────────────────────
 
 const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="Map data unavailable"
       message={
@@ -72,7 +74,9 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="No data available"
       message={<>This cohort contains no deployed devices yet.</>}
@@ -85,7 +89,9 @@ const NoPollutantDataBanner: React.FC<{
   pollutant: PollutantType;
   className?: string;
 }> = ({ pollutant, className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="No readings for this pollutant"
       message={
@@ -103,7 +109,9 @@ const NoProviderDataBanner: React.FC<{
   provider: string;
   className?: string;
 }> = ({ provider, className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="No stations from this provider"
       message={
@@ -473,6 +481,7 @@ const MapPage: React.FC<MapPageProps> = ({
     selectedDataProvider,
     onDataProviderChange: handleDataProviderChange,
     selectionContextKey,
+    enableHoverTooltip: isMdUp,
   };
 
   const sidebarProps = {
@@ -512,10 +521,14 @@ const MapPage: React.FC<MapPageProps> = ({
    *
    * MOBILE
    * ──────
-   * Map pane:     height = 40dvh  (explicit, not relative to anything)
-   * Sidebar pane: height = 60dvh  (explicit, not relative to anything)
+   * The overall layout container: height = 100dvh - navHeight (matches desktop)
+   * Map pane:     height = 55%  of the container (majority for map usability)
+   * Sidebar pane: height = 45%  of the container (scrollable location list)
    *               overflow: hidden (containment wall — nothing leaks out)
-   *               MapSidebar reads var(--sidebar-height) = 60dvh
+   *               MapSidebar reads var(--sidebar-height) = 100% of the pane
+   *
+   * Using percentages (not dvh) on mobile keeps map + sidebar + nav exactly
+   * viewport-height — no 64px overflow below the fold.
    *
    * CSS Custom Property approach:
    * We set --sidebar-height on the wrapper div that contains MapSidebar.
@@ -569,24 +582,17 @@ const MapPage: React.FC<MapPageProps> = ({
 
       {/* ── Mobile layout (< md) ─────────────────────────────────────────
        *
-       *  Both panes use explicit dvh heights — independent of any parent.
-       *  No wrapper needs a height. No h-full chains anywhere.
-       *
-       *  Map pane:  40dvh, overflow-hidden
-       *    — map tiles/controls can't push the pane taller
-       *
-       *  Sidebar pane:  60dvh, overflow-hidden
-       *    — this is the CONTAINMENT WALL
-       *    — country list toggle: display change only, no height leak
-       *    — accordion expansion: scrolls inside MapSidebar, can't escape
-       *    — detail panel expansion: same
-       *    — sets --sidebar-height: 60dvh so MapSidebar fills it exactly
+       *  Map pane:  55% of viewport minus nav (majority for map usability)
+       *  Sidebar pane:  45% of viewport minus nav (scrollable location list)
        ──────────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:hidden">
-        {/* Map pane — 40dvh, absolutely fixed */}
+      <div
+        className="flex flex-col md:hidden"
+        style={{ height: contentHeight }}
+      >
+        {/* Map pane — 55% of remaining viewport space, explicitly fixed */}
         <div
-          className="relative overflow-hidden flex-none"
-          style={{ height: '40dvh' }}
+          className="relative overflow-hidden flex-none min-w-0"
+          style={{ height: '55%' }}
         >
           {hasNoMapData ? (
             <PrivateOrgBanner className="text-sm" />
@@ -606,13 +612,13 @@ const MapPage: React.FC<MapPageProps> = ({
           {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>
 
-        {/* Sidebar pane — 60dvh, containment wall */}
+        {/* Sidebar pane — 45% of remaining viewport space, containment wall */}
         <div
-          className="flex-none overflow-hidden"
+          className="flex-none overflow-hidden min-w-0"
           style={
             {
-              height: '60dvh',
-              '--sidebar-height': '60dvh',
+              height: '45%',
+              '--sidebar-height': '100%',
             } as React.CSSProperties
           }
         >

@@ -7,7 +7,6 @@ import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { FeedbackLauncher } from '@/modules/feedback';
-import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
@@ -56,7 +55,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           {/* Main Content Area - Full Height for Map */}
           <div
             className={cn(
-              'flex flex-col flex-1 min-h-0',
+              'flex flex-col flex-1 min-h-0 min-w-0',
               showBottomNav && 'pb-[65px] md:pb-0'
             )}
           >
@@ -72,7 +71,12 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 
       {/* Global Sidebar */}
       <GlobalSidebar />
-      {showSidebar && <MobileSidebar />}
+      {/*
+       * MobileSidebar intentionally NOT rendered on map pages: the map's own
+       * mobile layout already provides a dedicated 60dvh sidebar pane below
+       * the map, and the full-screen MobileSidebar overlay would cover and
+       * block the entire map on small screens.
+       */}
     </>
   );
 };

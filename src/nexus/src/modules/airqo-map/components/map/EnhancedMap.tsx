@@ -115,6 +115,11 @@ interface EnhancedMapProps {
   selectedDataProvider?: string;
   onDataProviderChange?: (provider: string) => void;
   selectionContextKey?: string;
+  /**
+   * When false (mobile), Flowbite hover tooltips on nodes are disabled —
+   * on touch a tap would open them over the filter controls.
+   */
+  enableHoverTooltip?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -137,6 +142,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   selectedDataProvider = DATA_PROVIDER_ALL,
   onDataProviderChange,
   selectionContextKey,
+  enableHoverTooltip = true,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -622,6 +628,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               selectedPollutant={selectedPollutant}
               aqiConfig={aqiConfig}
               zoomLevel={viewState.zoom}
+              enableHoverTooltip={enableHoverTooltip}
             />
           </Marker>
         ))}
@@ -647,6 +654,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               aqiConfig={aqiConfig}
               isTooltipOpen={pinnedTooltipId === reading.id}
               zoomLevel={viewState.zoom}
+              enableHoverTooltip={enableHoverTooltip}
             />
           </Marker>
         ))}
@@ -672,7 +680,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       </div>
 
       {(onPollutantChange || onDataProviderChange) && (
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+        <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2 md:flex-row md:items-center">
           {onPollutantChange && (
             <PollutantSelector
               selectedPollutant={selectedPollutant}
