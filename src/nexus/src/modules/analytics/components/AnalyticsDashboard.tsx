@@ -7,7 +7,6 @@ import { QuickAccessCard, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { LoadingState } from '@/shared/components/ui/loading-state';
-import { EmptyState } from '@/shared/components/ui/empty-state';
 import { toast } from '@/shared/components/ui/toast';
 import {
   useAnalyticsSiteCards,
@@ -16,7 +15,6 @@ import {
 } from '../hooks';
 import { getPollutantLabel } from '@/shared/components/charts/utils';
 import { useAnalytics } from '../hooks/useAnalytics';
-import AddFavorites from '@/modules/location-insights/add-favorites';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import AddLocation from '@/modules/location-insights/add-location';
 import type { SiteData } from '../types';
@@ -24,11 +22,7 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
-import {
-  useActiveGroupCohorts,
-  useCohort,
-  useGroupCohorts,
-} from '@/shared/hooks';
+import { useCohort, useGroupCohorts } from '@/shared/hooks';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
 import { AccessDenied } from '@/shared/components/AccessDenied';
@@ -42,13 +36,11 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 
 interface AnalyticsDashboardProps {
   className?: string;
-  isOrganizationFlow: boolean;
-  organizationSlug?: string;
+  organizationSlug: string;
 }
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
-  isOrganizationFlow,
   organizationSlug,
 }) => {
   const dispatch = useDispatch();
@@ -66,7 +58,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const [showIcons, setShowIcons] = useState(true);
   const [lineChartThemeColors, setLineChartThemeColors] = useState(true);
   const [barChartThemeColors, setBarChartThemeColors] = useState(true);
-  const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasTrackedDashboardViewRef = useRef(false);
   const isMountedRef = useRef(true);
@@ -85,10 +76,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   );
 
   const organizationGroup = React.useMemo(() => {
-    if (!isOrganizationFlow || !normalizedOrganizationSlug) {
-      return null;
-    }
-
     return (
       groups?.find(
         group =>
@@ -96,20 +83,19 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           normalizedOrganizationSlug
       ) || null
     );
-  }, [groups, isOrganizationFlow, normalizedOrganizationSlug]);
+  }, [groups, normalizedOrganizationSlug]);
 
   const organizationGroupId = organizationGroup?.id || '';
 
   const isOrgContextReady =
-    !isOrganizationFlow ||
-    (!!organizationGroupId && activeGroup?.id === organizationGroupId);
+    !!organizationGroupId && activeGroup?.id === organizationGroupId;
 
   const {
     selectedSiteIds,
     selectedSites,
     isLoading: preferencesLoading,
   } = useAnalyticsPreferences({
-    groupId: isOrganizationFlow ? organizationGroupId || undefined : undefined,
+    groupId: organizationGroupId || undefined,
     enabled: isOrgContextReady,
   });
 
@@ -151,31 +137,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   } = useAnalyticsChartData(filters, 'bar', selectedSiteIds, isOrgContextReady);
 
   const unresolvedOrganizationSlug =
-    isOrganizationFlow &&
-    !!normalizedOrganizationSlug &&
-    !userContextLoading &&
-    !organizationGroupId;
+    !!normalizedOrganizationSlug && !userContextLoading && !organizationGroupId;
 
-  // Get active group cohorts to check visibility in user flow.
-  const { cohortIds: activeGroupCohortIds } = useActiveGroupCohorts();
-
-  // In organization flow, fetch cohorts by org slug resolved group to avoid stale active-group lookups.
+  // Fetch cohorts by the org slug resolved group to avoid stale active-group lookups.
   const { data: organizationGroupCohorts } = useGroupCohorts(
     organizationGroupId,
-    isOrganizationFlow && !!organizationGroupId
+    !!organizationGroupId
   );
 
   const cohortIds = React.useMemo(() => {
-    const rawCohortIds = isOrganizationFlow
-      ? organizationGroupCohorts?.data
-      : activeGroupCohortIds;
-
-    return normalizeCohortIds(rawCohortIds ?? []);
-  }, [
-    isOrganizationFlow,
-    organizationGroupCohorts?.data,
-    activeGroupCohortIds,
-  ]);
+    return normalizeCohortIds(organizationGroupCohorts?.data ?? []);
+  }, [organizationGroupCohorts?.data]);
 
   // Get cohort details for the first cohort to check visibility
   const firstCohortId = React.useMemo(
@@ -213,18 +185,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         };
       })
       .filter(site => site._id); // Remove any invalid entries
-  };
-
-  // Handle manage favorites
-  const handleManageFavorites = () => {
-    posthog?.capture('manage_favorites_clicked');
-    trackEvent('manage_favorites_clicked');
-    setIsFavoritesDialogOpen(true);
-  };
-
-  // Handle close favorites dialog
-  const handleCloseFavoritesDialog = () => {
-    setIsFavoritesDialogOpen(false);
   };
 
   // Handle refresh data for charts
@@ -310,10 +270,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // (because preferencesLoading=false when enabled=false), which causes
   // SuggestedLocations to render prematurely against the wrong group's cohorts.
   const isOrgSyncing =
-    isOrganizationFlow &&
-    !userContextLoading &&
-    !unresolvedOrganizationSlug &&
-    !isOrgContextReady;
+    !userContextLoading && !unresolvedOrganizationSlug && !isOrgContextReady;
 
   const isInitialLoading =
     userContextLoading || preferencesLoading || isOrgSyncing;
@@ -408,39 +365,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  // Case 1: User has NO selected sites - check if sites are available for their organization
+  // Case 1: Organization has NO selected sites - show onboarding suggestions
   if (!hasSelectedSites) {
-    let emptyStateContent: React.ReactNode = null;
-
-    if (isOrganizationFlow) {
-      // Show suggestions immediately for org flow and let that component
-      // handle its own loading/error states.
-      emptyStateContent = <SuggestedLocations favoriteSites={selectedSites} />;
-    } else {
-      // User flow should never show organization onboarding notice
-      emptyStateContent = (
-        <EmptyState
-          title="No favorite locations yet"
-          description={
-            'Add locations to favorites to track trends and insights.'
-          }
-          action={{
-            label: 'Add favorite',
-            onClick: handleManageFavorites,
-          }}
-        />
-      );
-    }
-
     return (
       <div className={`space-y-8 ${className}`}>
-        {emptyStateContent}
-
-        {/* Add Favorites Dialog */}
-        <AddFavorites
-          isOpen={isFavoritesDialogOpen}
-          onClose={handleCloseFavoritesDialog}
-        />
+        {/* Show suggestions immediately and let that component
+            handle its own loading/error states. */}
+        <SuggestedLocations favoriteSites={selectedSites} />
 
         {/* More Insights Dialog */}
         <MoreInsights />
@@ -457,7 +388,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={pollutantConfigLoading ? [] : siteCards}
-        onManageFavorites={handleManageFavorites}
         onRefresh={handleRefreshDashboard}
         isRefreshing={siteCardsRefreshing || isRefreshing}
         selectedPollutant={filters.pollutant}
@@ -511,11 +441,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshLineChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(lineChartData)}
-          loading={lineChartLoading || lineChartRefreshing || pollutantConfigLoading}
-          themeColors={lineChartThemeColors}
-          onThemeColorsToggle={() =>
-            setLineChartThemeColors(prev => !prev)
+          loading={
+            lineChartLoading || lineChartRefreshing || pollutantConfigLoading
           }
+          themeColors={lineChartThemeColors}
+          onThemeColorsToggle={() => setLineChartThemeColors(prev => !prev)}
         >
           <DynamicChart
             data={lineChartData}
@@ -547,11 +477,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           onRefresh={handleRefreshBarChart}
           onMoreInsights={handleMoreInsights}
           currentSites={extractSitesFromChartData(barChartData)}
-          loading={barChartLoading || barChartRefreshing || pollutantConfigLoading}
-          themeColors={barChartThemeColors}
-          onThemeColorsToggle={() =>
-            setBarChartThemeColors(prev => !prev)
+          loading={
+            barChartLoading || barChartRefreshing || pollutantConfigLoading
           }
+          themeColors={barChartThemeColors}
+          onThemeColorsToggle={() => setBarChartThemeColors(prev => !prev)}
         >
           <DynamicChart
             data={barChartData}
@@ -570,12 +500,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           />
         </ChartContainer>
       </div>
-
-      {/* Add Favorites Dialog */}
-      <AddFavorites
-        isOpen={isFavoritesDialogOpen}
-        onClose={handleCloseFavoritesDialog}
-      />
 
       {/* More Insights Dialog */}
       <MoreInsights />

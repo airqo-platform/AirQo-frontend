@@ -1,14 +1,12 @@
 import {
   AqHomeSmile,
   AqUser03,
-  AqStar06,
   AqGlobe05,
   AqDownload01,
   AqUsers01,
   AqUserPlus01,
   AqShield02,
   AqSettings01,
-  AqData,
   AqKey01,
   AqPresentationChart02,
   AqServer03,
@@ -75,12 +73,6 @@ const userSidebarConfig: NavGroup[] = [
         href: '/user/map',
         icon: AqGlobe05,
         disabled: false,
-      },
-      {
-        id: 'favorites',
-        label: 'My Favorites',
-        href: '/user/favorites',
-        icon: AqStar06,
       },
       {
         id: 'air-quality-rankings',
@@ -462,12 +454,6 @@ const globalSidebarConfig: NavGroup[] = [
           },
         ],
       },
-      {
-        id: 'data-access',
-        label: 'Data Access',
-        href: '/data-access',
-        icon: AqData,
-      },
     ],
   },
 ];
@@ -549,4 +535,3 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
   ],
 };
-

@@ -4,7 +4,6 @@ export const PAGE_TITLES: Record<string, string> = {
   '/user/home': 'Home',
   '/user/map': 'Map',
   '/user/profile': 'Profile',
-  '/user/favorites': 'Favorites',
   '/user/data-export': 'Visualization & Data Export',
   '/user/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/user/air-quality/rankings': 'Air Quality Rankings',
@@ -13,7 +12,6 @@ export const PAGE_TITLES: Record<string, string> = {
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
   '/org/data-export': 'Visualization & Data Export',
-  '/org/favorites': 'Favorites',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',

@@ -105,7 +105,6 @@ const getDisplayErrorMessage = (
 export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
   ({
     sites,
-    onManageFavorites,
     onRefresh,
     isRefreshing,
     className,
@@ -129,8 +128,6 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
       visiblePlaceholderCount > 0 && isLoading && !hasUsableSites;
     const shouldShowErrorState =
       !isLoading && !hasUsableSites && Boolean(displayErrorMessage);
-    const shouldShowAddFavorite =
-      !shouldShowSkeleton && !shouldShowErrorState;
 
     return (
       <div className={cn('w-full space-y-4', className)}>
@@ -145,7 +142,6 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
 
         {/* External filter bar - matches the design in the image (pill style) */}
         <FilterBar
-          onManageFavorites={onManageFavorites}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
           showIcons={showIcon}
@@ -216,20 +212,6 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
                 onClick={onCardClick || (() => {})}
               />
             ))
-          )}
-
-          {shouldShowAddFavorite && (
-            <button
-              onClick={() => {
-                if (onManageFavorites) onManageFavorites();
-              }}
-              className="w-full h-[185px] border-2 border-dashed border-primary/50 dark:border-primary/80 rounded-md flex items-center justify-center text-primary bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:scale-95 transition-all duration-200 focus:outline-none"
-              aria-label="Add Location"
-            >
-              <div className="text-center">
-                <div className="text-lg font-medium">+ Add Favorite</div>
-              </div>
-            </button>
           )}
         </div>
       </div>

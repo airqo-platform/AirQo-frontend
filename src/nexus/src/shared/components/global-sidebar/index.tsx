@@ -30,7 +30,6 @@ export const GlobalSidebar: React.FC = () => {
   const { status: sessionStatus } = useSession();
   const { activeGroup, isLoading: userLoading } = useUserActions();
   const {
-    hasPermission,
     hasAnyPermissionInActiveGroup,
     hasEmailDomain,
     isLoading: rbacLoading,
@@ -114,63 +113,33 @@ export const GlobalSidebar: React.FC = () => {
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
-    let basePath = '/user';
-    let homePath = '/home';
-    let dataAccessPath = '/favorites';
 
-    if (flow === 'organization' && orgSlug) {
-      basePath = `/org/${orgSlug}`;
-      homePath = '/dashboard';
-      dataAccessPath = '/data-export';
-    }
-
-    return config.flatMap(group =>
-      group.items
-        .filter(item => {
-          // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
-          if (item.id === 'system-management') {
-            return (
-              hasEmailDomain('@airqo.net') &&
-              hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
-            );
-          }
-          // Only show admin-panel if user has GROUP_MANAGEMENT permission
-          if (item.id === 'admin-panel') {
-            return hasPermission('GROUP_MANAGEMENT');
-          }
-          return true;
-        })
-        .map(item => {
-          let href = item.href;
-          // Keep system management href as is
-          if (item.id === 'system-management') {
-            href = item.href;
-          } else if (item.id === 'admin-panel') {
-            // Change Organization Panel href based on permissions
-            href = '/admin/members';
-          } else if (item.id === 'home') {
-            // Home redirects to appropriate dashboard/home based on flow
-            href = `${basePath}${homePath}`;
-          } else if (item.id === 'data-access') {
-            // Data Access redirects to appropriate data access page based on flow
-            href = `${basePath}${dataAccessPath}`;
-          } else {
-            // For other items, replace base path if needed
-            href = href.replace('/data-access', `${basePath}${dataAccessPath}`);
-          }
+    return config
+      .flatMap(group => group.items)
+      .map(item => {
+        if (item.id === 'home') {
+          // Home redirects to the appropriate home/dashboard based on flow
           return {
             ...item,
-            href,
+            href:
+              flow === 'organization' && orgSlug
+                ? `/org/${orgSlug}/dashboard`
+                : '/user/home',
           };
-        })
-    );
-  }, [
-    flow,
-    orgSlug,
-    hasPermission,
-    hasAnyPermissionInActiveGroup,
-    hasEmailDomain,
-  ]);
+        }
+        return item;
+      })
+      .filter(item => {
+        // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
+        if (item.id === 'system-management') {
+          return (
+            hasEmailDomain('@airqo.net') &&
+            hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
+          );
+        }
+        return true;
+      });
+  }, [flow, orgSlug, hasAnyPermissionInActiveGroup, hasEmailDomain]);
   const isProtectedSidebarRoute =
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||
@@ -282,10 +251,7 @@ export const GlobalSidebar: React.FC = () => {
                       key={item.id}
                       item={item}
                       onClick={handleNavItemClick}
-                      enableSubroutes={
-                        item.id === 'admin-panel' ||
-                        item.id === 'system-management'
-                      }
+                      enableSubroutes={item.id === 'system-management'}
                     />
                   ))}
                 </div>

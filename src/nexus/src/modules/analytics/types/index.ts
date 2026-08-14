@@ -65,7 +65,6 @@ export interface QuickAccessLocationsProps {
     filter: string,
     value: string | { startDate: string; endDate: string }
   ) => void;
-  onManageFavorites: () => void;
   className?: string;
   title?: string;
   subtitle?: string;

@@ -41,7 +41,7 @@ const MyAnalyticsPage = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Air Quality Analytics</h1>
-      <AnalyticsDashboard />
+      <AnalyticsDashboard organizationSlug="my-organization" />
     </div>
   );
 };
@@ -75,8 +75,7 @@ const CustomDashboard = () => {
         onFilterChange={(filter, value) =>
           setFilters(prev => ({ ...prev, [filter]: value }))
         }
-        onManageFavorites={() => console.log('Manage favorites')}
-        onDownloadData={() => console.log('Download data')}
+        onRefresh={() => console.log('Refresh data')}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
