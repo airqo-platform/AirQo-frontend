@@ -13,14 +13,11 @@ export const PAGE_TITLES: Record<string, string> = {
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
   '/org/data-export': 'Visualization & Data Export',
-  '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/org/favorites': 'Favorites',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',
   '/org/settings': 'Settings',
-  '/org/air-quality/rankings': 'Air Quality Rankings',
-  '/org/air-quality/analytics': 'Air Quality Analytics',
 
   '/request-organization': 'Organization',
 

@@ -244,7 +244,7 @@ The module uses Tailwind CSS classes and is fully responsive. All components sup
 - Historical data comparison
 - Weather data integration
 
-## Air Quality Rankings (`/user/air-quality/rankings`, `/org/[org_slug]/air-quality/rankings`)
+## Air Quality Rankings (`/user/air-quality/rankings`)
 
 The African AQI leaderboard, powered by the device-registry rankings endpoints
 (`GET /devices/readings/rankings` and `GET /devices/readings/rankings/history`).
@@ -263,7 +263,7 @@ Data flows through `rankingsService` (token-authenticated via the
 `/api/external` proxy — these endpoints reject user JWTs) and the
 `useRankings` / `useRankingsHistory` react-query hooks.
 
-## Air Quality Analytics (`/user/air-quality/analytics`, `/org/[org_slug]/air-quality/analytics`)
+## Air Quality Analytics (`/user/air-quality/analytics`)
 
 A chart explorer for a group's monitoring locations:
 

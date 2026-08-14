@@ -51,16 +51,12 @@ interface AnalyticsChartCardProps {
   onEdit: (draft: ExplorerChartDraft) => void;
   /** Opens the delete-confirmation dialog for this chart */
   onRequestDelete: (draft: ExplorerChartDraft) => void;
-  /** Executes the delete after the user confirms on the card */
-  onConfirmDelete: (draft: ExplorerChartDraft) => void;
-  onCancelDelete: () => void;
   onEditTitle: (
     draftId: string,
     title: string,
     subtitle?: string
   ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
-  deleteConfirming?: boolean;
   className?: string;
 }
 
@@ -120,11 +116,8 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onForecastToggle,
   onEdit,
   onRequestDelete,
-  onConfirmDelete,
-  onCancelDelete,
   onEditTitle,
   onDuplicate,
-  deleteConfirming = false,
   className,
 }) => {
   const { config: aqiConfig } = useAqiConfig(draft.pollutant);
@@ -602,34 +595,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           }
         />
       </ChartContainer>
-
-      {/* Inline delete confirmation — visible on the card, not hidden in a menu */}
-      {deleteConfirming && (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2"
-          role="alert"
-        >
-          <span className="text-sm font-medium text-destructive">
-            Delete this chart?
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onConfirmDelete(draft)}
-              className="rounded-md bg-destructive px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-destructive/90"
-            >
-              Yes, delete
-            </button>
-            <button
-              type="button"
-              onClick={onCancelDelete}
-              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              Keep chart
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

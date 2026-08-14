@@ -148,28 +148,10 @@ const orgSidebarConfig: NavGroup[] = [
         icon: AqDownload01,
       },
       {
-        id: 'data-visualizer',
-        label: 'Dataset Visualizer',
-        href: '/org/data-visualizer',
-        icon: AqPresentationChart02,
-      },
-      {
         id: 'map',
         label: 'Map',
         href: '/org/map',
         icon: AqGlobe05,
-      },
-      {
-        id: 'air-quality-rankings',
-        label: 'Air Quality Rankings',
-        href: '/org/air-quality/rankings',
-        icon: AqTrophy01,
-      },
-      {
-        id: 'air-quality-analytics',
-        label: 'Air Quality Analytics',
-        href: '/org/air-quality/analytics',
-        icon: AqPresentationChart02,
       },
     ],
   },

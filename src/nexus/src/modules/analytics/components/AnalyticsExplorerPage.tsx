@@ -751,9 +751,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                 groupId={groupId}
                 onEdit={handleOpenEdit}
                 onRequestDelete={handleRequestDelete}
-                onConfirmDelete={handleConfirmDelete}
-                onCancelDelete={handleCancelDelete}
-                deleteConfirmingId={deleteDraft?.id ?? null}
               />
             ) : (
               /* List view — chart cards span the full width */
@@ -768,8 +765,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                     onForecastToggle={() => handleForecastToggle(draft.id)}
                     onEdit={handleOpenEdit}
                     onRequestDelete={handleRequestDelete}
-                    onConfirmDelete={handleConfirmDelete}
-                    onCancelDelete={handleCancelDelete}
                     onEditTitle={handleEditTitle}
                     onDuplicate={handleDuplicate}
                   />

@@ -20,11 +20,8 @@ export class DataVisualizerPage extends BasePage {
     super(driver);
   }
 
-  async navigateToVisualizer(orgSlug?: string): Promise<void> {
-    const path = orgSlug
-      ? `/org/${orgSlug}/data-visualizer`
-      : '/user/data-visualizer';
-    await this.navigateTo(path);
+  async navigateToVisualizer(): Promise<void> {
+    await this.navigateTo('/user/data-visualizer');
   }
 
   async hasWorkspace(): Promise<boolean> {

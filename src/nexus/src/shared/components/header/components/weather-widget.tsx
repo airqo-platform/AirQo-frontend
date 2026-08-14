@@ -32,25 +32,52 @@ interface Coordinates {
   longitude: number;
 }
 
-/** Fallback coordinates used when the browser cannot resolve the user's position. */
-const DEFAULT_LOCATION = {
-  lat: 0.3476,
-  lon: 32.5825,
-  city: 'Kampala',
-  country: 'Uganda',
+/**
+ * Cached, previously GRANTED coordinates. Reusing them on later page loads
+ * avoids re-prompting the user for permission every visit (permissions UX
+ * best practice — prompt once, then reuse until it becomes unreliable).
+ * Expired entries are discarded and the prompt is shown again.
+ */
+const COORDS_CACHE_KEY = 'nexus:weather-coords';
+const COORDS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+
+const readCachedCoords = (): Coordinates | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(COORDS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      latitude?: number;
+      longitude?: number;
+      ts?: number;
+    };
+    if (
+      typeof parsed.latitude === 'number' &&
+      Number.isFinite(parsed.latitude) &&
+      typeof parsed.longitude === 'number' &&
+      Number.isFinite(parsed.longitude) &&
+      typeof parsed.ts === 'number' &&
+      Date.now() - parsed.ts < COORDS_CACHE_TTL_MS
+    ) {
+      return { latitude: parsed.latitude, longitude: parsed.longitude };
+    }
+    window.localStorage.removeItem(COORDS_CACHE_KEY);
+  } catch {
+    // Storage unavailable — the widget just requests the position again.
+  }
+  return null;
 };
 
-const FALLBACK_WEATHER: WeatherData = {
-  temperature: 25,
-  feelsLike: 27,
-  humidity: 65,
-  windSpeed: 12,
-  description: 'Partly cloudy',
-  icon: 'cloud-sun',
-  pressure: 1013,
-  visibility: 10,
-  country: DEFAULT_LOCATION.country,
-  city: DEFAULT_LOCATION.city,
+const cacheCoords = (coords: Coordinates): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      COORDS_CACHE_KEY,
+      JSON.stringify({ ...coords, ts: Date.now() })
+    );
+  } catch {
+    // Best-effort — the widget still works for this page load.
+  }
 };
 
 /**
@@ -166,8 +193,8 @@ const fetchPlaceName = async (
     countryCode?: string;
   };
   return {
-    city: data.city || data.locality || DEFAULT_LOCATION.city,
-    country: data.countryName || data.countryCode || DEFAULT_LOCATION.country,
+    city: data.city || data.locality || 'Your location',
+    country: data.countryName || data.countryCode || '',
   };
 };
 
@@ -187,16 +214,16 @@ const mapWeatherData = (
     typeof current.visibility === 'number' ? current.visibility : 10000;
 
   return {
-    temperature: Math.round(current.temperature_2m ?? FALLBACK_WEATHER.temperature),
+    temperature: Math.round(current.temperature_2m ?? 0),
     feelsLike: Math.round(
-      current.apparent_temperature ?? current.temperature_2m ?? FALLBACK_WEATHER.feelsLike
+      current.apparent_temperature ?? current.temperature_2m ?? 0
     ),
-    humidity: Math.round(current.relative_humidity_2m ?? FALLBACK_WEATHER.humidity),
+    humidity: Math.round(current.relative_humidity_2m ?? 0),
     // Open-Meteo reports wind speed in km/h by default — no conversion needed.
-    windSpeed: Math.round(current.wind_speed_10m ?? FALLBACK_WEATHER.windSpeed),
+    windSpeed: Math.round(current.wind_speed_10m ?? 0),
     description: condition.label,
     icon: condition.icon,
-    pressure: Math.round(current.surface_pressure ?? FALLBACK_WEATHER.pressure),
+    pressure: Math.round(current.surface_pressure ?? 0),
     // Open-Meteo reports visibility in meters — convert to km.
     visibility: Math.max(1, Math.round(visibilityMeters / 1000)),
     country,
@@ -228,27 +255,45 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
 
     const loadWeather = async () => {
       try {
-        let lat = DEFAULT_LOCATION.lat;
-        let lon = DEFAULT_LOCATION.lon;
-        let city = DEFAULT_LOCATION.city;
-        let country = DEFAULT_LOCATION.country;
+        // 1. Resolve coordinates — reuse a previously granted position to
+        // avoid re-prompting; otherwise ask once.
+        let lat: number;
+        let lon: number;
+        let city: string;
+        let country: string;
 
-        try {
+        const cached = readCachedCoords();
+        if (cached) {
+          lat = cached.latitude;
+          lon = cached.longitude;
+        } else {
           const coords = await getCurrentPosition();
           lat = coords.latitude;
           lon = coords.longitude;
+          cacheCoords(coords);
+        }
+
+        // 2. Reverse-geocode the place name. A failure here is non-fatal —
+        // the widget can still show weather without a city label.
+        try {
           const place = await fetchPlaceName(lat, lon, controller.signal);
           city = place.city;
           country = place.country;
         } catch {
-          // Geolocation denied/unavailable — keep the default city.
+          city = 'Your location';
+          country = '';
         }
 
+        // 3. Fetch the weather. If this fails, hide the widget entirely —
+        // never show fabricated values as if they were real conditions.
         const data = await fetchOpenMeteoWeather(lat, lon, controller.signal);
         setWeather(mapWeatherData(data, city, country));
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
-        setWeather(FALLBACK_WEATHER);
+        // Geolocation denied/unavailable/timed out or the weather API failed:
+        // there is no accurate weather for this user, so the widget stays
+        // hidden rather than presenting a different city's data.
+        setWeather(null);
       }
     };
 
@@ -257,9 +302,12 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
     return () => controller.abort();
   }, []);
 
-  const WeatherIcon = weather
-    ? (WEATHER_ICONS[weather.icon] ?? WEATHER_ICONS['cloud-sun'])
-    : WEATHER_ICONS['cloud-sun'];
+  // The widget only renders real weather for the user's actual location. When
+  // the location can't be resolved accurately or the weather API fails, it
+  // stays hidden — no placeholder values, no another-city's conditions.
+  if (!weather) return null;
+
+  const WeatherIcon = WEATHER_ICONS[weather.icon] ?? WEATHER_ICONS['cloud-sun'];
 
   return (
     <div
@@ -271,7 +319,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
       <div className="flex items-center gap-2 px-3 py-1.5 bg-card border border-t-0 border-primary/30 rounded-b-md cursor-default shadow-sm">
         <WeatherIcon className="w-5 h-5 text-orange-500" />
         <span className="text-sm font-semibold text-foreground">
-          {weather !== null ? `${weather.temperature}°C` : '--°C'}
+          {weather.temperature}°C
         </span>
         <div className="w-px h-3 bg-primary/30" />
         <span className="text-sm font-medium text-muted-foreground">

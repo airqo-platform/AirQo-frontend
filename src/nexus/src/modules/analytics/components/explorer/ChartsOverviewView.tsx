@@ -33,9 +33,6 @@ interface ChartsOverviewViewProps {
   groupId: string;
   onEdit: (draft: ExplorerChartDraft) => void;
   onRequestDelete: (draft: ExplorerChartDraft) => void;
-  onConfirmDelete: (draft: ExplorerChartDraft) => void;
-  onCancelDelete: () => void;
-  deleteConfirmingId: string | null;
   className?: string;
 }
 
@@ -52,18 +49,12 @@ const OverviewChartCard: React.FC<{
   groupId: string;
   onEdit: () => void;
   onRequestDelete: () => void;
-  onConfirmDelete: () => void;
-  onCancelDelete: () => void;
-  deleteConfirming: boolean;
 }> = ({
   draft,
   siteNames,
   groupId,
   onEdit,
   onRequestDelete,
-  onConfirmDelete,
-  onCancelDelete,
-  deleteConfirming,
 }) => {
   const { config: aqiConfig } = useAqiConfig(draft.pollutant);
 
@@ -219,33 +210,6 @@ const OverviewChartCard: React.FC<{
           />
         )}
       </ChartContainer>
-
-      {deleteConfirming && (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2"
-          role="alert"
-        >
-          <span className="text-xs font-medium text-destructive">
-            Delete this chart?
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onConfirmDelete}
-              className="rounded-md bg-destructive px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-destructive/90"
-            >
-              Yes, delete
-            </button>
-            <button
-              type="button"
-              onClick={onCancelDelete}
-              className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              Keep chart
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -263,9 +227,6 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   groupId,
   onEdit,
   onRequestDelete,
-  onConfirmDelete,
-  onCancelDelete,
-  deleteConfirmingId,
   className,
 }) => {
   if (charts.length === 0) {
@@ -291,9 +252,6 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
           groupId={groupId}
           onEdit={() => onEdit(draft)}
           onRequestDelete={() => onRequestDelete(draft)}
-          onConfirmDelete={() => onConfirmDelete(draft)}
-          onCancelDelete={onCancelDelete}
-          deleteConfirming={deleteConfirmingId === draft.id}
         />
       ))}
     </div>
