@@ -64,8 +64,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
-  const [lineChartThemeColors, setLineChartThemeColors] = useState(false);
-  const [barChartThemeColors, setBarChartThemeColors] = useState(false);
+  const [lineChartThemeColors, setLineChartThemeColors] = useState(true);
+  const [barChartThemeColors, setBarChartThemeColors] = useState(true);
   const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasTrackedDashboardViewRef = useRef(false);

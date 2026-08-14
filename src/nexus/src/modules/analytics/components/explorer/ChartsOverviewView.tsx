@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import {
   AqEdit02,
@@ -17,7 +17,6 @@ import {
   buildChartMetadata,
   getGuidelinePeriod,
   readChartSidecar,
-  writeChartSidecar,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import {
@@ -79,14 +78,6 @@ const OverviewChartCard: React.FC<{
     setThemeColors(draft.themeColors ?? false);
   }, [draft.themeColors]);
 
-  const handleThemeColorsToggle = useCallback(() => {
-    setThemeColors(prev => {
-      const next = !prev;
-      writeChartSidecar(groupId, draft.id, { themeColors: next });
-      return next;
-    });
-  }, [groupId, draft.id]);
-
   const filters = useMemo(
     () => ({
       frequency: draft.frequency,
@@ -139,6 +130,19 @@ const OverviewChartCard: React.FC<{
 
   const metadata = useMemo(() => buildChartMetadata(draft), [draft]);
 
+  // Same slugged export filename as the list view, so grid downloads are
+  // consistent with list downloads for the same chart.
+  const exportFilename = useMemo(
+    () =>
+      `air-quality-${
+        draft.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') || 'chart'
+      }`,
+    [draft.title]
+  );
+
   return (
     <div className="w-full min-w-0 space-y-2">
       <ChartContainer
@@ -150,9 +154,12 @@ const OverviewChartCard: React.FC<{
         loading={isLoading}
         error={error ?? null}
         onRefresh={refresh}
-        exportOptions={{ enablePDF: false, enablePNG: false }}
+        exportOptions={{
+          enablePDF: true,
+          enablePNG: true,
+          filename: exportFilename,
+        }}
         themeColors={themeColors}
-        onThemeColorsToggle={handleThemeColorsToggle}
         className="w-full"
         footerHint={
           <span className="block truncate text-xs text-muted-foreground">

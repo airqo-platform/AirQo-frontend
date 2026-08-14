@@ -641,17 +641,29 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           />
         ) : (
           <>
-            {/* Layout switcher — wrapped in a card, sized to content */}
-            <Card className="w-fit">
-              <CardContent className="p-1">
-                <SegmentedTabs
-                  ariaLabel="Charts layout"
-                  options={TRENDS_LAYOUT_OPTIONS}
-                  value={trendsLayout}
-                  onChange={setTrendsLayout}
-                />
-              </CardContent>
-            </Card>
+            {/* Layout switcher and New chart button — right-aligned */}
+            <div className="flex items-center justify-end gap-2">
+              <Card className="w-fit">
+                <CardContent className="p-1">
+                  <SegmentedTabs
+                    ariaLabel="Charts layout"
+                    options={TRENDS_LAYOUT_OPTIONS}
+                    value={trendsLayout}
+                    onChange={setTrendsLayout}
+                  />
+                </CardContent>
+              </Card>
+              <Button
+                variant="filled"
+                size="md"
+                Icon={AqPlus}
+                onClick={handleOpenCreate}
+                disabled={isInitialLoading || !groupId}
+                showTextOnMobile
+              >
+                New chart
+              </Button>
+            </div>
 
             {trendsLayout === 'grid' ? (
               <ChartsOverviewView
@@ -666,9 +678,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               />
             ) : (
               /* List view — the original focused workspace layout:
-                 chart cards on the left, AQI legend sidebar on the right. */
-              <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="min-w-0 space-y-4">
+                 chart cards on the left, AQI legend sidebar on the right.
+                 On smaller screens, AQI legend moves below the charts. */
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
+                <div className="flex-1 min-w-0 space-y-4">
                   {charts.map(draft => (
                     <AnalyticsChartCard
                       key={draft.id}
@@ -687,8 +700,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                     />
                   ))}
                 </div>
-                {/* Sidebar: AQI reference legend */}
-                <div className="min-w-0 space-y-5 lg:sticky lg:top-24">
+                {/* Sidebar: AQI reference legend — below charts on small/medium, sticky on large */}
+                <div className="w-full shrink-0 space-y-5 xl:w-[280px] xl:sticky xl:top-24">
                   <AqiLegend aqiConfig={aqiConfig ?? null} />
                 </div>
               </div>
@@ -701,7 +714,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Compact page header: title, description, primary CTA */}
+      {/* Compact page header: title, description */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl text-foreground">Air Quality Analytics</h1>
@@ -710,17 +723,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             monitored locations — or explore every location in your network.
           </p>
         </div>
-        {charts.length > 0 && (
-          <Button
-            variant="filled"
-            size="sm"
-            Icon={AqPlus}
-            onClick={handleOpenCreate}
-            disabled={isInitialLoading || !groupId}
-          >
-            New chart
-          </Button>
-        )}
       </div>
 
       {/* View switcher — always available, independent of chart setup */}

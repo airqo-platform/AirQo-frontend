@@ -145,14 +145,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     setThemeColors(draft.themeColors ?? false);
   }, [draft.themeColors]);
 
-  const handleThemeColorsToggle = useCallback(() => {
-    setThemeColors(prev => {
-      const next = !prev;
-      writeChartSidecar(groupId, draft.id, { themeColors: next });
-      return next;
-    });
-  }, [groupId, draft.id]);
-
   const filters = useMemo(
     () => ({
       frequency: draft.frequency,

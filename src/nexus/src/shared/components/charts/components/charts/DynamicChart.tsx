@@ -599,9 +599,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     );
   };
 
-  // Render legend
+  // Render legend — always show when `showLegend` is enabled, even for
+  // single-series charts (useful for exports and documentations).
   const renderLegend = () => {
-    if (!chartConfig.showLegend || seriesKeys.length <= 1) return null;
+    if (!chartConfig.showLegend) return null;
     return (
       <Legend
         align="right"
@@ -680,8 +681,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           cy={dotProps.cy}
           r={isFocused ? 6 : 4.5}
           fill={isDimmed ? GRAYED_SERIES_COLOR : dotProps.fill || '#145DFF'}
-          stroke="hsl(var(--background))"
-          strokeWidth={2}
+          stroke="none"
+          strokeWidth={0}
           className="cursor-pointer"
           style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }}
           onMouseEnter={() => focusSeries(dotKey)}

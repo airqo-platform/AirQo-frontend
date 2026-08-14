@@ -8,6 +8,41 @@ const PAINT_ATTRIBUTES = ['fill', 'stroke', 'stop-color'] as const;
 /** Export canvas background — charts are shared as light documents. */
 const EXPORT_BACKGROUND_COLOR = '#ffffff';
 
+/** Brand watermark pinned to the bottom-right of PNG and PDF exports. */
+const EXPORT_WATERMARK_TEXT = 'From AirQo Nexus';
+const EXPORT_WATERMARK_COLOR = 'rgba(100, 116, 139, 0.9)'; // slate-500
+const EXPORT_WATERMARK_BACKDROP = 'rgba(255, 255, 255, 0.85)';
+
+/**
+ * Paints the brand watermark on an export canvas (PNG) at the bottom-right.
+ * A subtle white backdrop keeps the label legible over chart content.
+ * `pixelRatio` scales the label with the canvas (html-to-image captures at
+ * 2x), keeping the watermark the same visual size as the PDF's.
+ */
+const drawExportWatermark = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  pixelRatio: number
+): void => {
+  const padding = 12 * pixelRatio;
+  const fontSize = 13 * pixelRatio;
+  ctx.save();
+  ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+  ctx.textBaseline = 'middle';
+  const textWidth = ctx.measureText(EXPORT_WATERMARK_TEXT).width;
+  const textHeight = fontSize + 4 * pixelRatio;
+  const x = width - textWidth - padding;
+  const y = height - textHeight - 6 * pixelRatio;
+
+  ctx.fillStyle = EXPORT_WATERMARK_BACKDROP;
+  ctx.fillRect(x - 6 * pixelRatio, y - 3 * pixelRatio, textWidth + 12 * pixelRatio, textHeight + 6 * pixelRatio);
+  ctx.fillStyle = EXPORT_WATERMARK_COLOR;
+  ctx.textAlign = 'left';
+  ctx.fillText(EXPORT_WATERMARK_TEXT, x, y + textHeight / 2 + 1 * pixelRatio);
+  ctx.restore();
+};
+
 /**
  * Transient marker pinned on the export root while a PNG/PDF capture runs.
  * With html-to-image the capture is rendered by the BROWSER (SVG
@@ -98,9 +133,11 @@ export const useChartExport = () => {
 
   /**
    * Renders the export root to a canvas via html-to-image (SVG
-   * foreignObject). The capture covers the element's OWN bounding box, so
-   * the title/subtitle, chart and legend are all included exactly as laid
-   * out on screen — no page-level cropping, no clone re-layout.
+   * foreignObject). The capture uses the element's on-screen layout at a
+   * high pixel ratio (4×) so the resulting PNG is document-quality
+   * (A4/A3 ready) regardless of the current card size — no resizing
+   * needed, which avoids the html-to-image rendering issues that come
+   * with live element mutation (legend dropouts, animation timing).
    */
   const renderChartToCanvas = useCallback(async () => {
     const element = getExportElement();
@@ -118,13 +155,15 @@ export const useChartExport = () => {
 
     element.setAttribute(EXPORT_LIGHT_ATTR, 'true');
     try {
-      return await toCanvas(element, {
+      const canvas = await toCanvas(element, {
         backgroundColor: EXPORT_BACKGROUND_COLOR,
-        // 2x supersampling keeps lines/text crisp in PNG and PDF.
-        pixelRatio: 2,
+        // 4× supersampling — the chart at ~600px CSS renders to
+        // 2400+ px, which is print-ready for A4/A3 documents.
+        pixelRatio: 4,
         cacheBust: true,
         filter: node => !isExportIgnored(node),
       });
+      return { canvas, cssWidth: width };
     } finally {
       element.removeAttribute(EXPORT_LIGHT_ATTR);
     }
@@ -133,10 +172,17 @@ export const useChartExport = () => {
   const exportToPNG = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
-        const canvas = await renderChartToCanvas();
+        const { canvas, cssWidth } = await renderChartToCanvas();
         const filename = ensureFilenameExtension(
           options.filename || `air-quality-chart-${Date.now()}`,
           'png'
+        );
+
+        drawExportWatermark(
+          canvas.getContext('2d') as CanvasRenderingContext2D,
+          canvas.width,
+          canvas.height,
+          canvas.width / cssWidth
         );
 
         // Create download link
@@ -159,7 +205,7 @@ export const useChartExport = () => {
   const exportToPDF = useCallback(
     async (options: ExportOptionsPartial = {}): Promise<void> => {
       try {
-        const canvas = await renderChartToCanvas();
+        const { canvas } = await renderChartToCanvas();
         const filename = ensureFilenameExtension(
           options.filename || `air-quality-chart-${Date.now()}`,
           'pdf'
@@ -171,7 +217,8 @@ export const useChartExport = () => {
         // Fit the rendered chart into the printable page area while preserving
         // aspect ratio. This avoids cropped PDFs when the chart is wide or tall.
         const margin = 20;
-        const titleSpace = 20;
+        // Bottom strip reserved for the brand watermark.
+        const watermarkReserve = 14;
 
         // Create PDF
         const pdf = new jsPDF({
@@ -183,7 +230,8 @@ export const useChartExport = () => {
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const maxWidth = pageWidth - margin * 2;
-        const maxHeight = pageHeight - margin * 2 - titleSpace;
+        const maxHeight =
+          pageHeight - margin * 2 - watermarkReserve;
         const scale = Math.min(
           maxWidth / canvas.width,
           maxHeight / canvas.height
@@ -191,28 +239,34 @@ export const useChartExport = () => {
         const finalWidth = canvas.width * scale;
         const finalHeight = canvas.height * scale;
 
-        // Add title
-        const title = options.filename || 'Air Quality Chart';
-        pdf.setFontSize(16);
-        pdf.text(title, margin, margin);
-
-        // Add timestamp
-        pdf.setFontSize(10);
-        pdf.text(
-          `Generated on: ${new Date().toLocaleString()}`,
-          margin,
-          margin + 10
-        );
-
         // Add chart image
         pdf.addImage(
           imgData,
           'PNG',
           margin,
-          margin + titleSpace,
+          margin,
           finalWidth,
           finalHeight
         );
+
+        // Brand watermark — bottom-right, white backdrop for legibility.
+        const watermarkText = EXPORT_WATERMARK_TEXT;
+        pdf.setFontSize(9);
+        const watermarkTextWidth = pdf.getTextWidth(watermarkText);
+        const watermarkX = pageWidth - margin - watermarkTextWidth;
+        const watermarkY = pageHeight - margin;
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(
+          watermarkX - 3,
+          watermarkY - 7,
+          watermarkTextWidth + 6,
+          9,
+          'F'
+        );
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(watermarkText, pageWidth - margin, watermarkY, {
+          align: 'right',
+        });
 
         // Save PDF
         pdf.save(filename);
