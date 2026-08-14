@@ -15,6 +15,12 @@ import type { RootState } from '../../shared/store';
 import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
 import { normalizeMapReadings } from './utils/dataNormalization';
+import {
+  DATA_PROVIDER_ALL,
+  extractDataProviders,
+  getDataProviderDisplayLabel,
+  readingMatchesDataProvider,
+} from './utils/dataProviders';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 import {
@@ -93,6 +99,24 @@ const NoPollutantDataBanner: React.FC<{
   </div>
 );
 
+const NoProviderDataBanner: React.FC<{
+  provider: string;
+  className?: string;
+}> = ({ provider, className }) => (
+  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+    <InfoBanner
+      title="No stations from this provider"
+      message={
+        <>
+          No monitored stations report {getDataProviderDisplayLabel(provider)}{' '}
+          data on this map.
+        </>
+      }
+      className="shadow-lg bg-white/95 backdrop-blur-sm border-amber-200"
+    />
+  </div>
+);
+
 // ─── MapPage ──────────────────────────────────────────────────────────────────
 
 const MapPage: React.FC<MapPageProps> = ({
@@ -136,6 +160,8 @@ const MapPage: React.FC<MapPageProps> = ({
   >(null);
   const [selectedPollutant, setSelectedPollutant] =
     React.useState<PollutantType>('pm2_5');
+  const [selectedDataProvider, setSelectedDataProvider] =
+    React.useState<string>(DATA_PROVIDER_ALL);
   const {
     config: selectedAqiConfig,
     isLoading: pollutantConfigLoading,
@@ -173,6 +199,7 @@ const MapPage: React.FC<MapPageProps> = ({
     setSelectedLocationId(null);
     setFlyToLocation(undefined);
     setSelectedCountry(undefined);
+    setSelectedDataProvider(DATA_PROVIDER_ALL);
     setLocationDetailsLoading(false);
 
     return () => {
@@ -262,6 +289,22 @@ const MapPage: React.FC<MapPageProps> = ({
     return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
+  // Data-provider filter options are derived from the loaded readings (never
+  // hard-coded), and filtering happens client-side — no extra API requests.
+  const dataProviders = React.useMemo(
+    () => extractDataProviders(normalizedReadings),
+    [normalizedReadings]
+  );
+
+  const providerFilteredReadings = React.useMemo(() => {
+    if (selectedDataProvider === DATA_PROVIDER_ALL) {
+      return normalizedReadings;
+    }
+    return normalizedReadings.filter(reading =>
+      readingMatchesDataProvider(reading, selectedDataProvider)
+    );
+  }, [normalizedReadings, selectedDataProvider]);
+
   const hasCohortError = Boolean(cohortError && !isCohortFetchCanceled);
 
   const hasNoMapData =
@@ -285,6 +328,12 @@ const MapPage: React.FC<MapPageProps> = ({
     !pollutantConfigLoading &&
     readings.length > 0 &&
     normalizedReadings.length === 0;
+
+  const showNoProviderDataState =
+    !mapDataLoading &&
+    selectedDataProvider !== DATA_PROVIDER_ALL &&
+    normalizedReadings.length > 0 &&
+    providerFilteredReadings.length === 0;
 
   const contentHeight = `calc(100dvh - ${navHeight}px)`;
   const isMdUp = useMediaQuery({ minWidth: 768 });
@@ -323,6 +372,15 @@ const MapPage: React.FC<MapPageProps> = ({
       action: 'filter_apply',
       filterType: 'pollutant',
       filterValue: pollutant,
+    });
+  };
+
+  const handleDataProviderChange = (provider: string) => {
+    setSelectedDataProvider(provider);
+    trackMapInteraction(posthog, {
+      action: 'filter_apply',
+      filterType: 'data_provider',
+      filterValue: provider,
     });
   };
 
@@ -400,7 +458,7 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Shared props ───────────────────────────────────────────────────────────
   const mapProps = {
-    airQualityData: normalizedReadings,
+    airQualityData: providerFilteredReadings,
     onNodeClick: handleNodeClick,
     onClusterClick: handleClusterClick,
     isLoading: mapDataLoading,
@@ -411,6 +469,9 @@ const MapPage: React.FC<MapPageProps> = ({
     isAqiConfigLoading: pollutantConfigLoading,
     aqiConfigError: pollutantConfigError,
     onPollutantChange: handlePollutantChange,
+    dataProviders,
+    selectedDataProvider,
+    onDataProviderChange: handleDataProviderChange,
     selectionContextKey,
   };
 
@@ -499,6 +560,8 @@ const MapPage: React.FC<MapPageProps> = ({
             <EmptyCohortBanner />
           ) : showNoPollutantDataState ? (
             <NoPollutantDataBanner pollutant={selectedPollutant} />
+          ) : showNoProviderDataState ? (
+            <NoProviderDataBanner provider={selectedDataProvider} />
           ) : null}
           {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
@@ -533,6 +596,11 @@ const MapPage: React.FC<MapPageProps> = ({
             <NoPollutantDataBanner
               className="text-sm"
               pollutant={selectedPollutant}
+            />
+          ) : showNoProviderDataState ? (
+            <NoProviderDataBanner
+              className="text-sm"
+              provider={selectedDataProvider}
             />
           ) : null}
           {!isMdUp && <EnhancedMap {...mapProps} />}

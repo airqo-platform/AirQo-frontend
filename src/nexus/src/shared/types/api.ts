@@ -1152,6 +1152,7 @@ export interface MapReading {
   aqi_category: string;
   aqi_color: string;
   aqi_color_name: string;
+  aqi_index: number;
   aqi_ranges: AQIRanges;
   averages: Averages;
   createdAt: string;

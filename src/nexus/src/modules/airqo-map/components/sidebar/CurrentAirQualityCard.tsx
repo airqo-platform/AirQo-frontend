@@ -7,6 +7,7 @@ import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { AqWind01 } from '@airqo/icons-react';
 import {
   getAirQualityInfo,
+  getAirQualityColor,
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
 import { formatRoundedNumber } from '@/shared/lib/utils';
@@ -58,6 +59,12 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
     return null;
   }, [aqiConfig, pollutantValue, selectedPollutant]);
   const AirQualityIcon = airQualityInfo?.icon;
+  const aqiIndex =
+    (mapReading as MapReading)?.aqi_index ??
+    (mapReading as AirQualityReading)?.fullReadingData?.aqi_index;
+  const aqiColor = airQualityInfo
+    ? getAirQualityColor(airQualityInfo.level, aqiConfig)
+    : undefined;
 
   // Helper function to extract city and country from location name
   const parseLocationDetails = (locationName?: string) => {
@@ -166,6 +173,15 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pollutantValue !== null && pollutantValue !== undefined
                 ? `${formatRoundedNumber(pollutantValue, 1)}µg/m³`
+                : '--'}
+            </div>
+            <div
+              className="mt-1 text-sm font-semibold"
+              style={aqiColor ? { color: aqiColor } : undefined}
+            >
+              AQI{' '}
+              {aqiIndex !== undefined && !isNaN(aqiIndex)
+                ? Math.round(aqiIndex)
                 : '--'}
             </div>
           </div>

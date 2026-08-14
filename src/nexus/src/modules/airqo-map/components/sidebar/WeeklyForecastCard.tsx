@@ -2,7 +2,10 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { getAirQualityInfo, getAirQualityColor } from '@/shared/utils/airQuality';
+import {
+  getAirQualityInfo,
+  getAirQualityColor,
+} from '@/shared/utils/airQuality';
 import { useForecast, type ForecastMode } from '../../hooks/useForecast';
 import { AqCloudOff } from '@airqo/icons-react';
 import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
@@ -10,6 +13,7 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { Tooltip } from 'flowbite-react';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import type { AqiConfig } from '@/shared/types/aqi';
+import type { PollutantType } from '@/shared/utils/airQuality';
 import {
   resolveParsedNumber,
   type DailyForecastItem,
@@ -20,6 +24,12 @@ interface WeeklyForecastCardProps {
   siteId?: string;
   /** When true, renders content without Card wrapper for inline embedding */
   compact?: boolean;
+  /**
+   * Map's selected pollutant. The forecast API only returns PM2.5 values,
+   * so when PM10 is selected the card explains the limitation instead of
+   * silently showing PM2.5 data under a PM10 context.
+   */
+  selectedPollutant?: PollutantType;
 }
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -152,9 +162,7 @@ const DailyPill: React.FC<{
       <div
         className={cn(
           'flex flex-col items-center rounded-xl py-2.5 px-2.5 min-w-[64px] border transition-all duration-200 flex-shrink-0 cursor-default',
-          isToday
-            ? 'bg-blue-600 border-blue-600 shadow-md'
-            : 'hover:shadow-sm'
+          isToday ? 'bg-blue-600 border-blue-600 shadow-md' : 'hover:shadow-sm'
         )}
         style={
           isToday
@@ -270,9 +278,7 @@ const HourlyPill: React.FC<{
       <div
         className={cn(
           'flex flex-col items-center rounded-xl py-2 px-1.5 min-w-[52px] border transition-all duration-200 flex-shrink-0 cursor-default',
-          isFirst
-            ? 'bg-blue-600 border-blue-600 shadow-md'
-            : 'hover:shadow-sm'
+          isFirst ? 'bg-blue-600 border-blue-600 shadow-md' : 'hover:shadow-sm'
         )}
         style={
           isFirst
@@ -354,9 +360,11 @@ const HourlyPill: React.FC<{
 export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   siteId,
   compact = false,
+  selectedPollutant = 'pm2_5',
 }) => {
   const [mode, setMode] = React.useState<ForecastMode>('daily');
   const { config: pm25AqiConfig } = useAqiConfig('pm2_5');
+  const isForecastPollutant = selectedPollutant === 'pm2_5';
 
   const { dailyItems, hourlyItems, isLoading, error } = useForecast({
     siteId,
@@ -379,6 +387,14 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
         </span>
       </div>
 
+      {/* PM10 note — the forecast API only provides PM2.5 values */}
+      {!isForecastPollutant && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
+          Air quality forecasts are currently available for PM₂.₅ only. The
+          forecast below shows PM₂.₅ data.
+        </div>
+      )}
+
       {/* Mode tabs */}
       <ModeTabs active={mode} onChange={setMode} />
 
@@ -396,9 +412,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
       {!isLoading && error && (
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <AqCloudOff className="w-8 h-8 text-gray-400 mb-2" />
-          <p className="text-sm text-gray-500">
-            Unable to load forecast data
-          </p>
+          <p className="text-sm text-gray-500">Unable to load forecast data</p>
         </div>
       )}
 
@@ -427,23 +441,20 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
       )}
 
       {/* Hourly view */}
-      {!isLoading &&
-        !error &&
-        mode === 'hourly' &&
-        hourlyItems.length > 0 && (
-          <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
-            <div className="flex gap-1.5 min-w-max py-1">
-              {hourlyItems.slice(0, 24).map((item, idx) => (
-                <HourlyPill
-                  key={item.timestamp}
-                  item={item}
-                  isFirst={idx === 0}
-                  aqiConfig={pm25AqiConfig}
-                />
-              ))}
-            </div>
+      {!isLoading && !error && mode === 'hourly' && hourlyItems.length > 0 && (
+        <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
+          <div className="flex gap-1.5 min-w-max py-1">
+            {hourlyItems.slice(0, 24).map((item, idx) => (
+              <HourlyPill
+                key={item.timestamp}
+                item={item}
+                isFirst={idx === 0}
+                aqiConfig={pm25AqiConfig}
+              />
+            ))}
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 
@@ -453,9 +464,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
-      <CardContent className="p-4 space-y-3">
-        {content}
-      </CardContent>
+      <CardContent className="p-4 space-y-3">{content}</CardContent>
     </Card>
   );
 };

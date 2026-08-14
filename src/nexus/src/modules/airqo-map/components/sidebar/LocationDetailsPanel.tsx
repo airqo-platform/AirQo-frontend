@@ -205,7 +205,10 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div className="p-4 space-y-4 pb-8">
-          <WeeklyForecastCard siteId={currentLocationData._id} />
+          <WeeklyForecastCard
+            siteId={currentLocationData._id}
+            selectedPollutant={selectedPollutant}
+          />
 
           <CurrentAirQualityCard
             locationData={currentLocationData}

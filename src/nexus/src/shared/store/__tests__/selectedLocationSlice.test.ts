@@ -45,6 +45,7 @@ const mockMapReading: MapReading = {
   aqi_category: 'GoodAir',
   aqi_color: '#34C759',
   aqi_color_name: 'green',
+  aqi_index: 42,
   aqi_ranges: {} as AQIRanges,
   averages: {} as Averages,
   createdAt: '2024-01-15T10:00:00Z',

@@ -6,6 +6,8 @@ import {
   limitLocationsForDisplay,
   calculateMapBounds,
   normalizeMapReadings,
+  getReadingAqiLevel,
+  getClusterCategoryFallback,
   POLLUTANT_CONFIGS,
   DEFAULT_POLLUTANT,
 } from '../dataNormalization';
@@ -313,5 +315,57 @@ describe('normalizeMapReadings', () => {
   it('exposes POLLUTANT_CONFIGS', () => {
     expect(POLLUTANT_CONFIGS.pm2_5.label).toBe('PM2.5');
     expect(POLLUTANT_CONFIGS.pm10.unit).toBe('µg/m³');
+  });
+});
+
+describe('getReadingAqiLevel', () => {
+  it('falls back to the API category when the config is unavailable', () => {
+    const reading = makeMapReading({ aqi_category: 'Moderate' });
+    const normalized = normalizeMapReadings([reading])[0];
+    const level = getReadingAqiLevel(normalized, 'pm2_5', null);
+    expect(level).toBe('moderate');
+  });
+
+  it('maps API category variants to levels', () => {
+    const level = getReadingAqiLevel(
+      {
+        pm25Value: NaN,
+        pm10Value: NaN,
+        aqiCategory: 'Unhealthy for Sensitive Groups',
+      },
+      'pm2_5',
+      null
+    );
+    expect(level).toBe('unhealthy-sensitive-groups');
+  });
+
+  it('returns no-value when neither config nor category resolves', () => {
+    const level = getReadingAqiLevel(
+      { pm25Value: NaN, pm10Value: NaN, aqiCategory: undefined },
+      'pm2_5',
+      null
+    );
+    expect(level).toBe('no-value');
+  });
+});
+
+describe('getClusterCategoryFallback', () => {
+  it('returns the most common category', () => {
+    const fallback = getClusterCategoryFallback([
+      { aqiCategory: 'Moderate' },
+      { aqiCategory: 'Good' },
+      { aqiCategory: 'Moderate' },
+    ]);
+    expect(fallback).toBe('Moderate');
+  });
+
+  it('returns undefined when no member has a category', () => {
+    expect(
+      getClusterCategoryFallback([{ aqiCategory: undefined }])
+    ).toBeUndefined();
+  });
+
+  it('returns undefined for empty clusters', () => {
+    expect(getClusterCategoryFallback([])).toBeUndefined();
   });
 });

@@ -4,12 +4,15 @@ import React from 'react';
 import { Tooltip } from 'flowbite-react';
 import { cn, formatRoundedNumber } from '@/shared/lib/utils';
 import {
-  getAirQualityLevel,
   getAirQualityIcon,
   getAirQualityColor,
   getAirQualityLabel,
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
+import {
+  getReadingAqiLevel,
+  getClusterCategoryFallback,
+} from '@/modules/airqo-map/utils/dataNormalization';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
@@ -33,7 +36,15 @@ interface CustomTooltipProps {
 
 // ─── Pure helpers (defined at module scope — never recreated) ─────────────────
 
-const formatValue = (value: number): string => formatRoundedNumber(value, 1);
+const formatValue = (value: number | undefined | null): string => {
+  if (value === undefined || value === null || isNaN(value)) return '--';
+  return formatRoundedNumber(value, 1);
+};
+
+const formatAqiIndex = (value: number | undefined | null): string => {
+  if (value === undefined || value === null || isNaN(value)) return '--';
+  return String(Math.round(value));
+};
 
 const formatDate = (date: Date | string): string => {
   try {
@@ -49,6 +60,10 @@ const formatDate = (date: Date | string): string => {
     return 'Invalid date';
   }
 };
+
+const getPollutantDisplayType = (
+  selectedPollutant: PollutantType
+): 'PM2.5' | 'PM10' => (selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5');
 
 // ─── Tooltip content builders ─────────────────────────────────────────────────
 
@@ -85,13 +100,28 @@ const ClusterTooltipContent: React.FC<{
       return sum + val;
     }, 0) / validReadings.length;
 
-  const level = getAirQualityLevel(avgValue, selectedPollutant, aqiConfig);
+  const aqiValues = cluster.readings
+    .map(r => r.aqiIndex)
+    .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+  const avgAqiIndex = aqiValues.length
+    ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
+    : undefined;
+
+  const level = getReadingAqiLevel(
+    {
+      pm25Value: avgValue,
+      pm10Value: avgValue,
+      aqiCategory: getClusterCategoryFallback(cluster.readings),
+    },
+    selectedPollutant,
+    aqiConfig
+  );
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
   const label = getAirQualityLabel(
     level,
     'WHO',
-    selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+    getPollutantDisplayType(selectedPollutant),
     aqiConfig
   );
 
@@ -105,6 +135,9 @@ const ClusterTooltipContent: React.FC<{
         <div>
           <div className="text-sm font-medium" style={{ color }}>
             {label}
+          </div>
+          <div className="text-2xl font-bold" style={{ color }}>
+            AQI {formatAqiIndex(avgAqiIndex)}
           </div>
           <div className="text-sm text-gray-900">
             {formatValue(avgValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
@@ -165,17 +198,13 @@ const ReadingTooltipContent: React.FC<{
     );
   }
 
-  const level = getAirQualityLevel(
-    pollutantValue,
-    selectedPollutant,
-    aqiConfig
-  );
+  const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
   const label = getAirQualityLabel(
     level,
     'WHO',
-    selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+    getPollutantDisplayType(selectedPollutant),
     aqiConfig
   );
   const meta = getMonitorMetadata(reading);
@@ -194,6 +223,9 @@ const ReadingTooltipContent: React.FC<{
           <div className="text-sm font-medium" style={{ color }}>
             {label}
           </div>
+          <div className="text-2xl font-bold leading-tight" style={{ color }}>
+            AQI {formatAqiIndex(reading.aqiIndex)}
+          </div>
           <div className="text-sm text-gray-900">
             {formatValue(pollutantValue)} µg/m³{' '}
             {getPollutantLabel(selectedPollutant)}
@@ -201,6 +233,25 @@ const ReadingTooltipContent: React.FC<{
         </div>
         <div style={{ color }}>
           <IconComponent className="w-9 h-9" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
+          <div className="text-[10px] uppercase tracking-wide text-gray-500">
+            PM2.5
+          </div>
+          <div className="text-xs font-semibold text-gray-800">
+            {formatValue(reading.pm25Value)} µg/m³
+          </div>
+        </div>
+        <div className="rounded-md border border-gray-100 bg-gray-50 px-2 py-1">
+          <div className="text-[10px] uppercase tracking-wide text-gray-500">
+            PM10
+          </div>
+          <div className="text-xs font-semibold text-gray-800">
+            {formatValue(reading.pm10Value)} µg/m³
+          </div>
         </div>
       </div>
 

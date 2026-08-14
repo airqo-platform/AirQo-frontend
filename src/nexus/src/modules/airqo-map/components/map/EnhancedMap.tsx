@@ -18,6 +18,8 @@ import { MapLegend } from './MapLegend';
 import { MapNodes } from './MapNodes';
 import { MapLoadingOverlay } from './MapLoadingOverlay';
 import { PollutantSelector } from './PollutantSelector';
+import { DataProviderFilter } from './DataProviderFilter';
+import { DATA_PROVIDER_ALL } from '@/modules/airqo-map/utils/dataProviders';
 import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
@@ -108,6 +110,10 @@ interface EnhancedMapProps {
   isAqiConfigLoading?: boolean;
   aqiConfigError?: unknown;
   onPollutantChange?: (pollutant: PollutantType) => void;
+  /** Canonical data-provider keys present in the loaded readings */
+  dataProviders?: string[];
+  selectedDataProvider?: string;
+  onDataProviderChange?: (provider: string) => void;
   selectionContextKey?: string;
 }
 
@@ -127,6 +133,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   isAqiConfigLoading = false,
   aqiConfigError,
   onPollutantChange,
+  dataProviders = [],
+  selectedDataProvider = DATA_PROVIDER_ALL,
+  onDataProviderChange,
   selectionContextKey,
 }) => {
   const dispatch = useDispatch();
@@ -205,9 +214,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   // with URL coordinates, the map instance may not be mounted yet while the
   // request is in flight — dropping it here would leave the map at the
   // default view. The pending target is replayed once the map reports ready.
-  const pendingFlyToRef = useRef<
-    { longitude: number; latitude: number; zoom?: number } | null
-  >(null);
+  const pendingFlyToRef = useRef<{
+    longitude: number;
+    latitude: number;
+    zoom?: number;
+  } | null>(null);
 
   const applyFlyTo = useCallback(() => {
     if (!mapRef.current) return;
@@ -660,12 +671,21 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         />
       </div>
 
-      {onPollutantChange && (
-        <div className="absolute top-4 left-4 z-20">
-          <PollutantSelector
-            selectedPollutant={selectedPollutant}
-            onPollutantChange={onPollutantChange}
-          />
+      {(onPollutantChange || onDataProviderChange) && (
+        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+          {onPollutantChange && (
+            <PollutantSelector
+              selectedPollutant={selectedPollutant}
+              onPollutantChange={onPollutantChange}
+            />
+          )}
+          {onDataProviderChange && dataProviders.length > 1 && (
+            <DataProviderFilter
+              providers={dataProviders}
+              selectedProvider={selectedDataProvider}
+              onProviderChange={onDataProviderChange}
+            />
+          )}
         </div>
       )}
 
