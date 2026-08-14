@@ -12,6 +12,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import {
   getAirQualityInfo,
   getAirQualityColor,
+  getAirQualityIcon,
 } from '@/shared/utils/airQuality';
 import { resolveParsedNumber } from '@/shared/types/api';
 import type { DailyForecastItem, HourlyForecastItem } from '@/shared/types/api';
@@ -45,18 +46,6 @@ const dateLabel = (value: string | undefined | null): string => {
 const hourLabel = (value: string | undefined | null): string => {
   const d = parseDate(value);
   return d ? `${String(d.getHours()).padStart(2, '0')}:00` : '--:--';
-};
-
-/**
- * Weather emoji based on cloud area fraction (0-1 scale).
- * Matches IQAir's weather condition display.
- */
-const weatherEmoji = (cloudFraction: number | undefined | null): string => {
-  if (cloudFraction == null) return '🌤';
-  if (cloudFraction >= 0.85) return '☁️';
-  if (cloudFraction >= 0.5) return '⛅';
-  if (cloudFraction >= 0.2) return '🌤';
-  return '☀️';
 };
 
 /**
@@ -234,11 +223,11 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
   const windSpeed = resolveParsedNumber(item.met?.wind_speed);
   const windDir = resolveParsedNumber(item.met?.wind_from_direction);
-  const cloudFrac = resolveParsedNumber(item.met?.cloud_area_fraction);
   const aqiLabel = item.aqi?.label ?? '';
 
   const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig ?? null);
   const color = getAirQualityColor(airInfo.level, aqiConfig ?? null);
+  const AqiIcon = getAirQualityIcon(airInfo.level);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1 text-left">
@@ -306,9 +295,9 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
         >
           {pm25 != null ? pm25.toFixed(0) : '--'}
         </span>
-        {/* Weather emoji */}
+        {/* AQI level icon */}
         <span className="text-base mb-0.5" title={aqiLabel}>
-          {weatherEmoji(cloudFrac)}
+          {React.createElement(AqiIcon, { className: 'w-5 h-5' })}
         </span>
         {/* Temperature */}
         {temp != null && (
@@ -369,11 +358,11 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
   const windSpeed = resolveParsedNumber(item.met?.wind_speed);
   const windDir = resolveParsedNumber(item.met?.wind_from_direction);
-  const cloudFrac = resolveParsedNumber(item.met?.cloud_area_fraction);
   const aqiLabel = item.aqi?.label ?? '';
 
   const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig ?? null);
   const color = getAirQualityColor(airInfo.level, aqiConfig ?? null);
+  const AqiIcon = getAirQualityIcon(airInfo.level);
 
   return (
     <Tooltip
@@ -444,9 +433,9 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
         >
           {pm25 != null ? pm25.toFixed(0) : '--'}
         </span>
-        {/* Weather emoji */}
+        {/* AQI level icon */}
         <span className="text-base mb-0.5" title={aqiLabel}>
-          {weatherEmoji(cloudFrac)}
+          {React.createElement(AqiIcon, { className: 'w-5 h-5' })}
         </span>
         {/* Temp high/low */}
         <div

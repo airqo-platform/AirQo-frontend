@@ -16,7 +16,7 @@ interface WeatherData {
   humidity: number;
   windSpeed: number;
   description: string;
-  icon: string;
+  icon: WeatherIconKey;
   pressure: number;
   visibility: number;
   country: string;
@@ -27,14 +27,181 @@ interface WeatherWidgetProps {
   className?: string;
 }
 
-const getWeatherIcon = (iconCode: string) => {
-  if (iconCode.includes('01')) return AqSun;
-  if (iconCode.includes('02') || iconCode.includes('03') || iconCode.includes('04'))
-    return AqCloudSun01;
-  if (iconCode.includes('09') || iconCode.includes('10')) return AqCloudRaining01;
-  if (iconCode.includes('11')) return AqCloudLightning;
-  if (iconCode.includes('13')) return AqCloudSnowing01;
-  return AqCloud01;
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/** Fallback coordinates used when the browser cannot resolve the user's position. */
+const DEFAULT_LOCATION = {
+  lat: 0.3476,
+  lon: 32.5825,
+  city: 'Kampala',
+  country: 'Uganda',
+};
+
+const FALLBACK_WEATHER: WeatherData = {
+  temperature: 25,
+  feelsLike: 27,
+  humidity: 65,
+  windSpeed: 12,
+  description: 'Partly cloudy',
+  icon: 'cloud-sun',
+  pressure: 1013,
+  visibility: 10,
+  country: DEFAULT_LOCATION.country,
+  city: DEFAULT_LOCATION.city,
+};
+
+/**
+ * Maps WMO weather codes (as returned by Open-Meteo) to an icon key + readable
+ * label. See https://open-meteo.com/en/docs for the code table.
+ */
+const getWeatherCondition = (
+  code: number
+): { icon: WeatherIconKey; label: string } => {
+  if (code === 0) return { icon: 'sun', label: 'Clear sky' };
+  if (code === 1) return { icon: 'sun', label: 'Mainly clear' };
+  if (code === 2) return { icon: 'cloud-sun', label: 'Partly cloudy' };
+  if (code === 3) return { icon: 'cloud', label: 'Overcast' };
+  if (code === 45 || code === 48) return { icon: 'cloud', label: 'Fog' };
+  if (code >= 51 && code <= 57) return { icon: 'rain', label: 'Drizzle' };
+  if (code >= 61 && code <= 67) return { icon: 'rain', label: 'Rain' };
+  if (code >= 71 && code <= 77) return { icon: 'snow', label: 'Snow' };
+  if (code >= 80 && code <= 82) return { icon: 'rain', label: 'Rain showers' };
+  if (code === 85 || code === 86) return { icon: 'snow', label: 'Snow showers' };
+  if (code >= 95) return { icon: 'lightning', label: 'Thunderstorm' };
+  return { icon: 'cloud', label: 'Unknown' };
+};
+
+/** Stable icon keys so the mapping never breaks under minification. */
+type WeatherIconKey =
+  | 'sun'
+  | 'cloud-sun'
+  | 'cloud'
+  | 'rain'
+  | 'snow'
+  | 'lightning';
+
+const WEATHER_ICONS: Record<WeatherIconKey, React.ComponentType<{ className?: string }>> = {
+  sun: AqSun,
+  'cloud-sun': AqCloudSun01,
+  cloud: AqCloud01,
+  rain: AqCloudRaining01,
+  snow: AqCloudSnowing01,
+  lightning: AqCloudLightning,
+};
+
+/**
+ * Resolves the user's current position once. Rejects on denial, timeout, or
+ * when geolocation is unsupported so callers can fall back to a default city.
+ */
+const getCurrentPosition = (): Promise<Coordinates> =>
+  new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Geolocation not supported'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      position =>
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }),
+      reject,
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+    );
+  });
+
+/**
+ * Fetches current weather from Open-Meteo — free, open-source, no API key.
+ * Docs: https://open-meteo.com/en/docs
+ */
+const fetchOpenMeteoWeather = async (
+  lat: number,
+  lon: number,
+  signal: AbortSignal
+): Promise<Record<string, unknown>> => {
+  const params = new URLSearchParams({
+    latitude: lat.toString(),
+    longitude: lon.toString(),
+    current:
+      'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure,visibility',
+  });
+  const response = await fetch(
+    `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+    { signal }
+  );
+  if (!response.ok) {
+    throw new Error(`Weather request failed with status ${response.status}`);
+  }
+  return (await response.json()) as Record<string, unknown>;
+};
+
+/**
+ * Resolves the nearest place name for a coordinate — free, no API key.
+ * Docs: https://www.bigdatacloud.com/free-api/free-reverse-geocode-to-city-api
+ */
+const fetchPlaceName = async (
+  lat: number,
+  lon: number,
+  signal: AbortSignal
+): Promise<{ city: string; country: string }> => {
+  const params = new URLSearchParams({
+    latitude: lat.toString(),
+    longitude: lon.toString(),
+    localityLanguage: 'en',
+  });
+  const response = await fetch(
+    `https://api.bigdatacloud.net/data/reverse-geocode-client?${params.toString()}`,
+    { signal }
+  );
+  if (!response.ok) {
+    throw new Error(`Reverse geocode request failed with status ${response.status}`);
+  }
+  const data = (await response.json()) as {
+    city?: string;
+    locality?: string;
+    countryName?: string;
+    countryCode?: string;
+  };
+  return {
+    city: data.city || data.locality || DEFAULT_LOCATION.city,
+    country: data.countryName || data.countryCode || DEFAULT_LOCATION.country,
+  };
+};
+
+/**
+ * Maps the Open-Meteo "current weather" JSON payload into the widget's shape.
+ * Guards every field so a partial/odd response degrades gracefully.
+ */
+const mapWeatherData = (
+  data: Record<string, unknown>,
+  city: string,
+  country: string
+): WeatherData => {
+  const current = (data.current ?? {}) as Record<string, number>;
+  const code = typeof current.weather_code === 'number' ? current.weather_code : 2;
+  const condition = getWeatherCondition(code);
+  const visibilityMeters =
+    typeof current.visibility === 'number' ? current.visibility : 10000;
+
+  return {
+    temperature: Math.round(current.temperature_2m ?? FALLBACK_WEATHER.temperature),
+    feelsLike: Math.round(
+      current.apparent_temperature ?? current.temperature_2m ?? FALLBACK_WEATHER.feelsLike
+    ),
+    humidity: Math.round(current.relative_humidity_2m ?? FALLBACK_WEATHER.humidity),
+    // Open-Meteo reports wind speed in km/h by default — no conversion needed.
+    windSpeed: Math.round(current.wind_speed_10m ?? FALLBACK_WEATHER.windSpeed),
+    description: condition.label,
+    icon: condition.icon,
+    pressure: Math.round(current.surface_pressure ?? FALLBACK_WEATHER.pressure),
+    // Open-Meteo reports visibility in meters — convert to km.
+    visibility: Math.max(1, Math.round(visibilityMeters / 1000)),
+    country,
+    city,
+  };
 };
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
@@ -57,59 +224,42 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
   }, []);
 
   useEffect(() => {
-    const fetchWeather = async () => {
+    const controller = new AbortController();
+
+    const loadWeather = async () => {
       try {
-        const response = await fetch(
-          'https://api.openweathermap.org/data/2.5/weather?q=Kampala&units=metric&appid=demo'
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setWeather({
-            temperature: Math.round(data.main.temp),
-            feelsLike: Math.round(data.main.feels_like),
-            humidity: data.main.humidity,
-            windSpeed: Math.round(data.wind.speed * 3.6),
-            description: data.weather[0].description,
-            icon: data.weather[0].icon,
-            pressure: data.main.pressure,
-            visibility: Math.round(data.visibility / 1000),
-            country: data.sys.country,
-            city: data.name,
-          });
-        } else {
-          setWeather({
-            temperature: 25,
-            feelsLike: 27,
-            humidity: 65,
-            windSpeed: 12,
-            description: 'partly cloudy',
-            icon: '02d',
-            pressure: 1013,
-            visibility: 10,
-            country: 'UG',
-            city: 'Kampala',
-          });
+        let lat = DEFAULT_LOCATION.lat;
+        let lon = DEFAULT_LOCATION.lon;
+        let city = DEFAULT_LOCATION.city;
+        let country = DEFAULT_LOCATION.country;
+
+        try {
+          const coords = await getCurrentPosition();
+          lat = coords.latitude;
+          lon = coords.longitude;
+          const place = await fetchPlaceName(lat, lon, controller.signal);
+          city = place.city;
+          country = place.country;
+        } catch {
+          // Geolocation denied/unavailable — keep the default city.
         }
-      } catch {
-        setWeather({
-          temperature: 25,
-          feelsLike: 27,
-          humidity: 65,
-          windSpeed: 12,
-          description: 'partly cloudy',
-          icon: '02d',
-          pressure: 1013,
-          visibility: 10,
-          country: 'UG',
-          city: 'Kampala',
-        });
+
+        const data = await fetchOpenMeteoWeather(lat, lon, controller.signal);
+        setWeather(mapWeatherData(data, city, country));
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
+        setWeather(FALLBACK_WEATHER);
       }
     };
 
-    fetchWeather();
+    void loadWeather();
+
+    return () => controller.abort();
   }, []);
 
-  const WeatherIcon = weather ? getWeatherIcon(weather.icon) : AqCloudSun01;
+  const WeatherIcon = weather
+    ? (WEATHER_ICONS[weather.icon] ?? WEATHER_ICONS['cloud-sun'])
+    : WEATHER_ICONS['cloud-sun'];
 
   return (
     <div

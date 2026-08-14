@@ -49,7 +49,7 @@ interface AnalyticsChartCardProps {
   forecastEnabled: boolean;
   onForecastToggle: () => void;
   onEdit: (draft: ExplorerChartDraft) => void;
-  /** Arms the inline delete confirmation on the card */
+  /** Opens the delete-confirmation dialog for this chart */
   onRequestDelete: (draft: ExplorerChartDraft) => void;
   /** Executes the delete after the user confirms on the card */
   onConfirmDelete: (draft: ExplorerChartDraft) => void;

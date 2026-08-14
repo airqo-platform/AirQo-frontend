@@ -199,14 +199,14 @@ The `src/shared/` directory provides cross-cutting concerns:
 
 The header includes several interactive components:
 
-- **Weather Widget** (`src/shared/components/header/components/weather-widget.tsx`) — Displays current weather for Kampala with temperature, time, and weather conditions. On hover, shows detailed weather information including:
+- **Weather Widget** (`src/shared/components/header/components/weather-widget.tsx`) — Displays current weather for the user's location with temperature, time, and weather conditions. On hover, shows detailed weather information including:
   - City and country
   - Weather description
   - Current and "feels like" temperature
   - Humidity, wind speed, pressure, and visibility
   - Dynamic weather icon based on conditions (sun, clouds, rain, snow, lightning)
-  
-  The widget fetches data from the OpenWeatherMap API and falls back to default values if the API is unavailable.
+
+  The widget resolves the user's position via the browser geolocation API (falling back to Kampala when permission is denied or unavailable) and fetches conditions from [Open-Meteo](https://open-meteo.com/en/docs) — a free, open-source weather API that requires no API key. The nearest place name is resolved via [BigDataCloud's reverse geocoding](https://www.bigdatacloud.com/free-api/free-reverse-geocode-to-city-api), also free and keyless. If both services are unavailable, sensible default values are shown.
 
 ### Data Flow
 

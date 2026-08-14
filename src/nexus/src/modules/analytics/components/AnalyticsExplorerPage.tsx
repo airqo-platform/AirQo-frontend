@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { useQueries } from '@tanstack/react-query';
@@ -17,7 +16,9 @@ import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { Banner } from '@/shared/components/ui/banner';
 import { toast } from '@/shared/components/ui/toast';
+import ReusableDialog from '@/shared/components/ui/dialog';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
+import { AqTrash01 } from '@airqo/icons-react';
 import {
   AqPlus,
   AqLayoutGrid01,
@@ -174,8 +175,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     null
   );
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const pendingDeleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+  const [deleteDraft, setDeleteDraft] = useState<ExplorerChartDraft | null>(
     null
   );
   const [siteNames, setSiteNames] = useState<Map<string, string>>(new Map());
@@ -217,6 +217,16 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     mutate: refetchCharts,
   } = useGroupCharts(groupId, !isInitialLoading);
 
+  // The sidecar lives in localStorage, which React can't observe. Whenever a
+  // sidecar is written (create/update/duplicate/delete), this version bumps
+  // so the charts memo below re-reads the fresh sidecar — otherwise a just-
+  // created chart renders with the DEFAULT sidecar (e.g. always PM2.5) until
+  // the next page load.
+  const [sidecarVersion, setSidecarVersion] = useState(0);
+  const bumpSidecarVersion = useCallback(() => {
+    setSidecarVersion(version => version + 1);
+  }, []);
+
   // Merge persisted configs with the client-side sidecar into drafts
   const charts = useMemo<ExplorerChartDraft[]>(() => {
     if (!persistedCharts) return [];
@@ -226,7 +236,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         : DEFAULT_CHART_SIDECAR;
       return persistedConfigToDraft(config, sidecar);
     });
-  }, [persistedCharts, groupId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistedCharts, groupId, sidecarVersion]);
 
   // Persist the active view so a refresh returns to the same tab.
   useEffect(() => {
@@ -445,6 +456,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         // roll it back if the PUT fails.
         const prevSidecar = readChartSidecar(groupId, draft.id);
         writeChartSidecar(groupId, draft.id, nextSidecar);
+        bumpSidecarVersion();
         try {
           await updateMutation.trigger({
             groupId,
@@ -456,6 +468,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           });
         } catch (error) {
           writeChartSidecar(groupId, draft.id, prevSidecar);
+          bumpSidecarVersion();
           throw error;
         }
         return draft.id;
@@ -494,11 +507,15 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             endDate: draft.endDate,
             siteNames: namesSnapshot,
           });
+          // Recompute the charts memo now that the sidecar exists — without
+          // this the optimistic cache entry renders with the DEFAULT sidecar
+          // (e.g. always PM2.5) until the next reload.
+          bumpSidecarVersion();
         }
         return newChartId || null;
       }
     },
-    [charts, createMutation, groupId, updateMutation]
+    [bumpSidecarVersion, charts, createMutation, groupId, updateMutation]
   );
 
   const handleSaveDraft = useCallback(
@@ -575,6 +592,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             subtitle: draft.subtitle,
             siteNames: Object.fromEntries(siteNames),
           });
+          bumpSidecarVersion();
         }
         toast.success(
           'Chart duplicated',
@@ -598,67 +616,48 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         );
       }
     },
-    [copyMutation, groupId, posthog, siteNames]
+    [bumpSidecarVersion, copyMutation, groupId, posthog, siteNames]
   );
 
-  // Arms the inline delete confirmation on the card
-  const handleRequestDelete = useCallback(
-    (draft: ExplorerChartDraft) => {
-      if (pendingDeleteId === draft.id) return;
-      setPendingDeleteId(draft.id);
-      if (pendingDeleteTimerRef.current) {
-        clearTimeout(pendingDeleteTimerRef.current);
-      }
-      pendingDeleteTimerRef.current = setTimeout(() => {
-        setPendingDeleteId(null);
-        pendingDeleteTimerRef.current = null;
-      }, 15000);
-    },
-    [pendingDeleteId]
-  );
-
-  const handleCancelDelete = useCallback(() => {
-    setPendingDeleteId(null);
-    if (pendingDeleteTimerRef.current) {
-      clearTimeout(pendingDeleteTimerRef.current);
-      pendingDeleteTimerRef.current = null;
-    }
+  // Opens the delete-confirmation dialog for the chart
+  const handleRequestDelete = useCallback((draft: ExplorerChartDraft) => {
+    setDeleteDraft(draft);
   }, []);
 
-  // Executes the delete after the user confirms on the card
-  const handleConfirmDelete = useCallback(
-    (draft: ExplorerChartDraft) => {
-      setPendingDeleteId(null);
-      if (pendingDeleteTimerRef.current) {
-        clearTimeout(pendingDeleteTimerRef.current);
-        pendingDeleteTimerRef.current = null;
+  const handleCancelDelete = useCallback(() => {
+    setDeleteDraft(null);
+  }, []);
+
+  // Executes the delete after the user confirms in the dialog
+  const handleConfirmDelete = useCallback(() => {
+    const draft = deleteDraft;
+    if (!draft) return;
+    setDeleteDraft(null);
+    void (async () => {
+      try {
+        await deleteMutation.trigger({ groupId, chartId: draft.id });
+        removeChartSidecar(groupId, draft.id);
+        bumpSidecarVersion();
+        toast.success(
+          'Chart deleted',
+          'The chart was removed from the dashboard.'
+        );
+        posthog?.capture('analytics_chart_deleted', { title: draft.title });
+      } catch (error) {
+        if (isCancellationError(error)) return;
+        console.error(
+          'Failed to delete chart configuration:',
+          error instanceof Error ? error.message : error
+        );
+        toast.error(
+          'Delete failed',
+          getUserFriendlyErrorMessage(error, {
+            Default: 'We could not delete the chart configuration.',
+          })
+        );
       }
-      void (async () => {
-        try {
-          await deleteMutation.trigger({ groupId, chartId: draft.id });
-          removeChartSidecar(groupId, draft.id);
-          toast.success(
-            'Chart deleted',
-            'The chart was removed from the dashboard.'
-          );
-          posthog?.capture('analytics_chart_deleted', { title: draft.title });
-        } catch (error) {
-          if (isCancellationError(error)) return;
-          console.error(
-            'Failed to delete chart configuration:',
-            error instanceof Error ? error.message : error
-          );
-          toast.error(
-            'Delete failed',
-            getUserFriendlyErrorMessage(error, {
-              Default: 'We could not delete the chart configuration.',
-            })
-          );
-        }
-      })();
-    },
-    [deleteMutation, groupId, posthog]
-  );
+    })();
+  }, [bumpSidecarVersion, deleteDraft, deleteMutation, groupId, posthog]);
 
   const handleForecastToggle = useCallback((chartId: string) => {
     setForecastChartIds(prev => {
@@ -671,15 +670,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       return next;
     });
   }, []);
-
-  useEffect(
-    () => () => {
-      if (pendingDeleteTimerRef.current) {
-        clearTimeout(pendingDeleteTimerRef.current);
-      }
-    },
-    []
-  );
 
   const baseHref = isOrganizationFlow
     ? `/org/${normalizedOrganizationSlug}/air-quality/analytics`
@@ -763,7 +753,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                 onRequestDelete={handleRequestDelete}
                 onConfirmDelete={handleConfirmDelete}
                 onCancelDelete={handleCancelDelete}
-                deleteConfirmingId={pendingDeleteId}
+                deleteConfirmingId={deleteDraft?.id ?? null}
               />
             ) : (
               /* List view — chart cards span the full width */
@@ -782,7 +772,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                     onCancelDelete={handleCancelDelete}
                     onEditTitle={handleEditTitle}
                     onDuplicate={handleDuplicate}
-                    deleteConfirming={pendingDeleteId === draft.id}
                   />
                 ))}
               </div>
@@ -841,6 +830,33 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         isSaving={createMutation.isMutating || updateMutation.isMutating}
         saveError={saveError}
       />
+
+      {/* Delete chart confirmation */}
+      <ReusableDialog
+        isOpen={!!deleteDraft}
+        onClose={handleCancelDelete}
+        title="Delete chart?"
+        subtitle={
+          deleteDraft
+            ? `"${deleteDraft.title}" will be permanently removed from your saved charts. This action cannot be undone.`
+            : undefined
+        }
+        icon={AqTrash01}
+        iconColor="text-destructive"
+        iconBgColor="bg-destructive/10"
+        size="sm"
+        primaryAction={{
+          label: 'Delete chart',
+          onClick: handleConfirmDelete,
+          variant: 'danger',
+        }}
+        secondaryAction={{ label: 'Cancel', onClick: handleCancelDelete }}
+      >
+        <p className="text-sm text-muted-foreground">
+          Are you sure you want to continue? The chart configuration and its
+          saved settings will be removed.
+        </p>
+      </ReusableDialog>
     </div>
   );
 };
