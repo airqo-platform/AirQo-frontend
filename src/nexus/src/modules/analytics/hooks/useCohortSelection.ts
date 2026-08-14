@@ -114,14 +114,12 @@ export const useSitesForSelection = ({
 
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(
-    () => () => {
-      abortRef.current?.abort();
-    },
-    []
-  );
-
   const fetchSites = useCallback(async () => {
+    // Abort this instance's previous in-flight request when a new fetch
+    // supersedes it (search/page change, revalidation). No abort on unmount:
+    // SWR shares one in-flight request between deduped subscribers (e.g.
+    // StrictMode remount) and aborting it strands the remount on a canceled
+    // error — the recovery effect below re-fires the fetch instead.
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -149,10 +147,7 @@ export const useSitesForSelection = ({
     isLoading,
     isValidating,
     mutate: mutateData,
-  } = useSWR(key, fetchSites, {
-    ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoading,
-  });
+  } = useSWR(key, fetchSites, SWR_STABLE_REQUEST_OPTIONS);
 
   const resolvedError = isAbortError(error) ? null : error;
   const hasData = typeof data !== 'undefined';

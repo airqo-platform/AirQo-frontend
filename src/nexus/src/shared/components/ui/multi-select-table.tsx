@@ -120,6 +120,8 @@ interface MultiSelectTableProps<T = TableItem> {
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
   enableColumnFilters?: boolean;
   compactRows?: boolean;
+  /** When provided, the entire row becomes clickable with cursor-pointer + hover highlight */
+  onRowClick?: (item: T) => void;
   // Server-side search props
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
@@ -531,6 +533,7 @@ const MultiSelectTable = <T extends TableItem>({
   onSelectedItemsChange,
   enableColumnFilters = false,
   compactRows = false,
+  onRowClick,
   // Server-side search props
   searchTerm: controlledSearchTerm,
   onSearchChange,
@@ -1233,7 +1236,12 @@ const MultiSelectTable = <T extends TableItem>({
                   {paginatedData.map((item, index) => (
                     <tr
                       key={item.id ?? index}
-                      className="transition-colors hover:bg-muted/50"
+                      className={
+                        onRowClick
+                          ? 'transition-colors hover:bg-muted/50 cursor-pointer'
+                          : 'transition-colors hover:bg-muted/50'
+                      }
+                      onClick={onRowClick ? () => onRowClick(item) : undefined}
                     >
                       {displayColumns.map(column => (
                         <td

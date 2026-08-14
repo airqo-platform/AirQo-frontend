@@ -2,11 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
-import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import {
-  AqLayoutGrid01,
-  AqList,
-  AqMaximize01,
   AqEdit02,
   AqTrash01,
 } from '@airqo/icons-react';
@@ -14,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/shared/components/ui/dropdown-menu';
-import { Card, CardContent } from '@/shared/components/ui/card';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useAnalyticsChartData } from '../../hooks';
@@ -37,8 +32,6 @@ interface ChartsOverviewViewProps {
   siteNames: Map<string, string>;
   /** Organization group id (empty in the user flow) — used for the sidecar */
   groupId: string;
-  /** Focus a chart: make it active and switch to the focused workspace */
-  onFocusChart: (draft: ExplorerChartDraft) => void;
   onEdit: (draft: ExplorerChartDraft) => void;
   onRequestDelete: (draft: ExplorerChartDraft) => void;
   onConfirmDelete: (draft: ExplorerChartDraft) => void;
@@ -47,51 +40,17 @@ interface ChartsOverviewViewProps {
   className?: string;
 }
 
-type OverviewLayout = 'list' | 'grid';
-
-const OVERVIEW_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
-
-// The chosen layout survives reloads: read lazily (guarded for SSR) and
-// persist on change so a refreshed page returns to the same layout.
-const readStoredOverviewLayout = (): OverviewLayout => {
-  if (typeof window === 'undefined') return 'list';
-  try {
-    const stored = window.localStorage.getItem(OVERVIEW_LAYOUT_STORAGE_KEY);
-    return stored === 'list' || stored === 'grid' ? stored : 'list';
-  } catch {
-    return 'list';
-  }
-};
-
-const LAYOUT_OPTIONS: {
-  value: OverviewLayout;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    value: 'list',
-    label: 'List',
-    icon: <AqList className="h-3.5 w-3.5" />,
-  },
-  {
-    value: 'grid',
-    label: 'Grid',
-    icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
-  },
-];
-
 /**
- * One chart in the overview: the SAME shared ChartContainer used by the
+ * One chart in the grid view: the SAME shared ChartContainer used by the
  * favorites dashboard, so every chart in the app looks and behaves the same
  * (header, More menu, loading/error states, interactive tooltip + legend).
- * Data is fetched with the same hook + query keys as the focused workspace,
- * so results are shared and cached.
+ * Data is fetched with the same hook + query keys as the list view, so
+ * results are shared and cached.
  */
 const OverviewChartCard: React.FC<{
   draft: ExplorerChartDraft;
   siteNames: Map<string, string>;
   groupId: string;
-  onFocus: () => void;
   onEdit: () => void;
   onRequestDelete: () => void;
   onConfirmDelete: () => void;
@@ -101,7 +60,6 @@ const OverviewChartCard: React.FC<{
   draft,
   siteNames,
   groupId,
-  onFocus,
   onEdit,
   onRequestDelete,
   onConfirmDelete,
@@ -110,18 +68,18 @@ const OverviewChartCard: React.FC<{
 }) => {
   const { config: aqiConfig } = useAqiConfig(draft.pollutant);
 
-  // Theme-shade coloring preference — same sidecar + toggle as the focused
-  // workspace so both surfaces can never disagree. The mode feeds the series
+  // Theme-shade coloring preference — same sidecar + toggle as the list
+  // view so both surfaces can never disagree. The mode feeds the series
   // resolution from LIVE state so the More-menu toggle repaints instantly.
-  const [themeColors, setThemeColors] = React.useState<boolean>(
+  const [themeColors, setThemeColors] = useState<boolean>(
     () => readChartSidecar(groupId, draft.id).themeColors ?? false
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setThemeColors(draft.themeColors ?? false);
   }, [draft.themeColors]);
 
-  const handleThemeColorsToggle = React.useCallback(() => {
+  const handleThemeColorsToggle = useCallback(() => {
     setThemeColors(prev => {
       const next = !prev;
       writeChartSidecar(groupId, draft.id, { themeColors: next });
@@ -141,7 +99,7 @@ const OverviewChartCard: React.FC<{
 
   // One request per chart while this view is mounted (React Query caches it,
   // so revisiting the overview never re-fires). Same hook + keys as the
-  // focused workspace, so data is shared.
+  // list view, so data is shared.
   const { chartData, isLoading, error, refresh } = useAnalyticsChartData(
     filters,
     draft.chartType === 'Bar' ? 'bar' : 'line',
@@ -162,9 +120,9 @@ const OverviewChartCard: React.FC<{
     [chartData, siteLabels]
   );
 
-  // Series colors resolve EXACTLY like the focused workspace: explicit picks
-  // win, unset sites get a distinct default for their position — theme
-  // shades when the chart's toggle is on, palette hues otherwise. One shared
+  // Series colors resolve EXACTLY like the list view: explicit picks win,
+  // unset sites get a distinct default for their position — theme shades
+  // when the chart's toggle is on, palette hues otherwise. One shared
   // resolution pattern so the two surfaces never disagree.
   const seriesColors = useMemo(() => {
     const colors: Record<string, string> = {};
@@ -186,8 +144,8 @@ const OverviewChartCard: React.FC<{
       <ChartContainer
         title={draft.title}
         // Only the user-set subtitle lives in the header — the auto-generated
-        // metadata line renders in the footer instead, matching the focused
-        // workspace (and keeping the inline editor from baking it in).
+        // metadata line renders in the footer instead, matching the list view
+        // (and keeping the inline editor from baking it in).
         subtitle={draft.subtitle}
         loading={isLoading}
         error={error ?? null}
@@ -203,15 +161,11 @@ const OverviewChartCard: React.FC<{
         }
         menuItems={
           <>
-            <DropdownMenuItem onClick={onFocus}>
-              <AqMaximize01 className="mr-2 h-4 w-4" />
-              Focus chart
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onEdit}>
               <AqEdit02 className="mr-2 h-4 w-4" />
               Edit chart
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onRequestDelete}
               className="text-destructive hover:bg-destructive/10"
@@ -251,8 +205,8 @@ const OverviewChartCard: React.FC<{
             aqiConfig={aqiConfig}
             frequency={draft.frequency}
             autoSelectType={false}
-            // Same guideline period as the focused workspace — the reference
-            // line must never disagree with the chart's frequency.
+            // Same guideline period as the list view — the reference line
+            // must never disagree with the chart's frequency.
             referenceLinePeriod={getGuidelinePeriod(draft.frequency)}
             seriesLabels={seriesLabels}
           />
@@ -290,19 +244,16 @@ const OverviewChartCard: React.FC<{
 };
 
 /**
- * All configured charts at once, as a list (default) or a grid (toggle below
- * the page tabs) — the "All charts" layout of the Trends view. Each card
- * renders the chart's REAL data (same hooks + query keys as the focused
- * workspace, so results are shared and cached) inside the shared
- * ChartContainer, with the correct site/device labels and colors. Choosing
- * "Focus chart" from a card's menu switches to the single-chart workspace
- * with that chart active.
+ * All configured charts at once as a 2-column grid — the "Grid" layout of the
+ * Trends view. Each card renders the chart's REAL data (same hooks + query
+ * keys as the list view, so results are shared and cached) inside the shared
+ * ChartContainer, with the correct site/device labels and colors. The "List"
+ * layout is rendered by the page itself (each chart as a full AnalyticsChartCard).
  */
 export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   charts,
   siteNames,
   groupId,
-  onFocusChart,
   onEdit,
   onRequestDelete,
   onConfirmDelete,
@@ -310,66 +261,29 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   deleteConfirmingId,
   className,
 }) => {
-  const [layout, setLayout] = useState<OverviewLayout>(
-    readStoredOverviewLayout
-  );
-
-  // Persist the layout so a refresh returns to the same view.
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(OVERVIEW_LAYOUT_STORAGE_KEY, layout);
-    } catch {
-      // Storage unavailable — layout memory is best-effort.
-    }
-  }, [layout]);
-
-  const handleFocus = useCallback(
-    (draft: ExplorerChartDraft) => onFocusChart(draft),
-    [onFocusChart]
-  );
+  if (charts.length === 0) {
+    return (
+      <p className="rounded-md bg-muted/50 px-4 py-10 text-center text-sm text-muted-foreground">
+        No charts yet — create one with “New chart”.
+      </p>
+    );
+  }
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* Layout toggle — wrapped in a card, sized to content */}
-      <Card className="w-fit">
-        <CardContent className="p-1">
-          <SegmentedTabs
-            ariaLabel="Charts overview layout"
-            options={LAYOUT_OPTIONS}
-            value={layout}
-            onChange={setLayout}
-          />
-        </CardContent>
-      </Card>
-
-      {charts.length === 0 ? (
-        <p className="rounded-md bg-muted/50 px-4 py-10 text-center text-sm text-muted-foreground">
-          No charts yet — create one with “New chart”.
-        </p>
-      ) : (
-        <div
-          className={cn(
-            layout === 'grid'
-              ? 'grid grid-cols-1 items-start gap-4 md:grid-cols-2'
-              : 'flex flex-col gap-4'
-          )}
-        >
-          {charts.map(draft => (
-            <OverviewChartCard
-              key={draft.id}
-              draft={draft}
-              siteNames={siteNames}
-              groupId={groupId}
-              onFocus={() => handleFocus(draft)}
-              onEdit={() => onEdit(draft)}
-              onRequestDelete={() => onRequestDelete(draft)}
-              onConfirmDelete={() => onConfirmDelete(draft)}
-              onCancelDelete={onCancelDelete}
-              deleteConfirming={deleteConfirmingId === draft.id}
-            />
-          ))}
-        </div>
-      )}
+    <div className={cn('grid grid-cols-1 items-start gap-4 md:grid-cols-2', className)}>
+      {charts.map(draft => (
+        <OverviewChartCard
+          key={draft.id}
+          draft={draft}
+          siteNames={siteNames}
+          groupId={groupId}
+          onEdit={() => onEdit(draft)}
+          onRequestDelete={() => onRequestDelete(draft)}
+          onConfirmDelete={() => onConfirmDelete(draft)}
+          onCancelDelete={onCancelDelete}
+          deleteConfirming={deleteConfirmingId === draft.id}
+        />
+      ))}
     </div>
   );
 };

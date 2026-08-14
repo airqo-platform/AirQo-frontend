@@ -208,6 +208,17 @@ export interface ChartContainerProps {
   toolbar?: React.ReactNode;
   /** Right-aligned actions inside the toolbar row, before the More menu */
   toolbarActions?: React.ReactNode;
+  /**
+   * Optional time-range presets rendered as a segmented control between the
+   * header and the chart (e.g. "24H / 7D / 30D"). When provided together
+   * with `toolbar`, the presets render on the left side of the toolbar row;
+   * on their own they render in a compact toolbar row of their own.
+   */
+  periodPresets?: { value: string; label: string }[];
+  /** The currently active period preset value */
+  activePeriod?: string;
+  /** Called when the user selects a different period preset */
+  onPeriodChange?: (period: string) => void;
 }
 
 // Dynamic chart props

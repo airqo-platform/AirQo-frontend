@@ -58,6 +58,13 @@ export interface ServerSideTableProps<T = TableItem> {
 
   // Whether to show client-side pagination from MultiSelectTable
   showClientPagination?: boolean;
+
+  /** Page-size choices in the server-side pagination footer (defaults to the
+   *  built-in [6, 10, 20, 40, 80]) */
+  pageSizeOptions?: number[];
+
+  /** When provided, the entire row becomes clickable */
+  onRowClick?: (item: T) => void;
 }
 
 /**
@@ -95,6 +102,10 @@ export function ServerSideTable<T extends TableItem>({
   compactRows = false,
 
   showClientPagination = false,
+
+  pageSizeOptions = [6, 10, 20, 40, 80],
+
+  onRowClick,
 }: ServerSideTableProps<T>) {
   // Pagination controls (only when pagination props are provided)
   const handlePreviousPage = useCallback(() => {
@@ -146,7 +157,7 @@ export function ServerSideTable<T extends TableItem>({
                 aria-label="Rows per page"
                 className="px-2 py-1 border border-input rounded text-xs sm:text-sm focus:ring-2 focus:ring-ring focus:border-primary bg-background text-foreground"
               >
-                {[6, 10, 20, 40, 80].map(size => (
+                {pageSizeOptions.map(size => (
                   <option key={size} value={size}>
                     {size}
                   </option>
@@ -203,6 +214,7 @@ export function ServerSideTable<T extends TableItem>({
         sortable={true}
         headerComponent={customHeader}
         compactRows={compactRows}
+        onRowClick={onRowClick}
         {...(searchTerm !== undefined && onSearchChange !== undefined
           ? { searchTerm, onSearchChange }
           : {})}

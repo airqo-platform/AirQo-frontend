@@ -13,6 +13,7 @@ import {
   OrganizationSelector,
   LogoComponent,
   InfoDropdown,
+  WeatherWidget,
 } from './components';
 import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
@@ -68,6 +69,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Weather Widget positioned below header */}
+      <div className="absolute right-4 top-full">
+        <WeatherWidget />
+      </div>
     </motion.header>
   );
 };

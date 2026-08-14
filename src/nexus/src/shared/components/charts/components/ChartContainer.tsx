@@ -30,6 +30,7 @@ import {
   CardTitle,
   CardContent,
 } from '@/shared/components/ui/card';
+import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -79,6 +80,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   footerHint,
   toolbar,
   toolbarActions,
+  periodPresets,
+  activePeriod,
+  onPeriodChange,
 }) => {
   const posthog = usePostHog();
   const [isExporting, setIsExporting] = useState(false);
@@ -458,12 +462,44 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           data-html2canvas-ignore="true"
         >
           <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
+            {periodPresets && onPeriodChange && (
+              <SegmentedTabs
+                ariaLabel="Chart time range"
+                size="sm"
+                options={periodPresets.map(preset => ({
+                  value: preset.value,
+                  label: preset.label,
+                }))}
+                value={activePeriod ?? periodPresets[0]?.value ?? ''}
+                onChange={onPeriodChange}
+              />
+            )}
             {toolbar}
           </div>
           <div className="flex items-center gap-4">
             {toolbarActions}
             {showMoreButton && renderMoreDropdown()}
           </div>
+        </div>
+      )}
+
+      {/* Period presets without a custom toolbar — their own compact row. */}
+      {!toolbar && periodPresets && periodPresets.length > 0 && onPeriodChange && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2"
+          data-export-ignore
+          data-html2canvas-ignore="true"
+        >
+          <SegmentedTabs
+            ariaLabel="Chart time range"
+            size="sm"
+            options={periodPresets.map(preset => ({
+              value: preset.value,
+              label: preset.label,
+            }))}
+            value={activePeriod ?? periodPresets[0]?.value ?? ''}
+            onChange={onPeriodChange}
+          />
         </div>
       )}
 

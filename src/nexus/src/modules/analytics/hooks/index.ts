@@ -726,7 +726,12 @@ export const useDataDownload = () => {
 
         return { success: true };
       } catch (err) {
-        console.error('Download failed:', err);
+        // Log the message only — the raw error object can carry the
+        // Authorization header (AGENTS.md: tokens never reach logs).
+        console.error(
+          'Download failed:',
+          err instanceof Error ? err.message : err
+        );
         throw err; // Re-throw the error so it can be caught by the caller
       }
     },

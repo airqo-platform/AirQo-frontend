@@ -18,10 +18,10 @@ import { toast } from '@/shared/components/ui/toast';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import {
   AqPlus,
-  AqMaximize01,
   AqLayoutGrid01,
   AqLineChartUp01,
-  AqTable,
+  AqList,
+  AqCompass01,
 } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
 import {
@@ -33,13 +33,10 @@ import {
 } from '@/shared/hooks/useGroupCharts';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
-import { AirQualityReferenceLegend } from './explorer/AirQualityReferenceLegend';
-import { ForecastSummaryCard } from './explorer/ForecastSummaryCard';
-import { SavedChartsCard } from './explorer/SavedChartsCard';
 import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
-import { ComparisonTable } from './explorer/ComparisonTable';
-import { ComparisonCards } from './explorer/ComparisonCards';
+import { ExploreSitesView } from './explorer/ExploreSitesView';
+import { AqiLegend } from './explorer/AqiLegend';
 import {
   useComparisonReadings,
   extractReadingNames,
@@ -58,7 +55,6 @@ import {
   type ExplorerChartDraft,
 } from '../utils/chartConfig';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import type { PollutantType } from '@/shared/components/charts/types';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -66,14 +62,11 @@ interface AnalyticsExplorerPageProps {
   organizationSlug?: string;
 }
 
-type ViewMode = 'trends' | 'table';
-type WorkspaceMode = 'focus' | 'overview';
-type CompareMode = 'table' | 'cards';
+type ViewMode = 'trends' | 'explore';
+type TrendsLayout = 'list' | 'grid';
 
-const ACTIVE_CHART_STORAGE_KEY = 'nexus:analytics:active-chart';
 const VIEW_MODE_STORAGE_KEY = 'nexus:analytics:view-mode';
-const WORKSPACE_MODE_STORAGE_KEY = 'nexus:analytics:workspace-mode';
-const COMPARE_MODE_STORAGE_KEY = 'nexus:analytics:compare-mode';
+const TRENDS_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
 
 const VIEW_OPTIONS: {
   value: ViewMode;
@@ -86,32 +79,27 @@ const VIEW_OPTIONS: {
     icon: <AqLineChartUp01 className="h-3.5 w-3.5" />,
   },
   {
-    value: 'table',
-    label: 'Table',
-    icon: <AqTable className="h-3.5 w-3.5" />,
+    value: 'explore',
+    label: 'Explore',
+    icon: <AqCompass01 className="h-3.5 w-3.5" />,
   },
 ];
 
-const WORKSPACE_VIEW_OPTIONS: {
-  value: WorkspaceMode;
+const TRENDS_LAYOUT_OPTIONS: {
+  value: TrendsLayout;
   label: string;
   icon: React.ReactNode;
 }[] = [
   {
-    value: 'focus',
-    label: 'Focus',
-    icon: <AqMaximize01 className="h-3.5 w-3.5" />,
+    value: 'list',
+    label: 'List',
+    icon: <AqList className="h-3.5 w-3.5" />,
   },
   {
-    value: 'overview',
-    label: 'All charts',
+    value: 'grid',
+    label: 'Grid',
     icon: <AqLayoutGrid01 className="h-3.5 w-3.5" />,
   },
-];
-
-const COMPARE_VIEW_OPTIONS: { value: CompareMode; label: string }[] = [
-  { value: 'table', label: 'Table' },
-  { value: 'cards', label: 'Cards' },
 ];
 
 const isCancellationError = (error: unknown): boolean => {
@@ -128,60 +116,39 @@ const isCancellationError = (error: unknown): boolean => {
   );
 };
 
-const readStoredActiveChartId = (): string | null => {
-  try {
-    return window.localStorage.getItem(ACTIVE_CHART_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-};
-
 // The active view survives reloads: read it lazily (guarded for SSR) and
 // persist on change so a refreshed page returns to the same tab. Legacy
-// 'focused'/'charts' values map to the merged Trends view.
+// 'table' values map to the Trends view.
 const readStoredViewMode = (): ViewMode => {
   if (typeof window === 'undefined') return 'trends';
   try {
-    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'table'
-      ? 'table'
+    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'explore'
+      ? 'explore'
       : 'trends';
   } catch {
     return 'trends';
   }
 };
 
-// The workspace layout (single-chart focus vs. all-charts overview) survives
-// reloads too. Users on the old Charts tab migrate to the overview layout.
-const readStoredWorkspaceMode = (): WorkspaceMode => {
-  if (typeof window === 'undefined') return 'focus';
+// The Trends layout (list vs grid) survives reloads too.
+const readStoredTrendsLayout = (): TrendsLayout => {
+  if (typeof window === 'undefined') return 'list';
   try {
-    const stored = window.localStorage.getItem(WORKSPACE_MODE_STORAGE_KEY);
-    if (stored === 'focus' || stored === 'overview') return stored;
-    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'charts'
-      ? 'overview'
-      : 'focus';
+    const stored = window.localStorage.getItem(TRENDS_LAYOUT_STORAGE_KEY);
+    return stored === 'list' || stored === 'grid' ? stored : 'list';
   } catch {
-    return 'focus';
-  }
-};
-
-const readStoredCompareMode = (): CompareMode => {
-  if (typeof window === 'undefined') return 'table';
-  try {
-    const stored = window.localStorage.getItem(COMPARE_MODE_STORAGE_KEY);
-    return stored === 'table' || stored === 'cards' ? stored : 'table';
-  } catch {
-    return 'table';
+    return 'list';
   }
 };
 
 /**
  * Air Quality Analytics — two top-level views. "Trends" hosts the chart
- * workspace: a single active chart with its supporting reference legend,
- * saved-charts list and forecast summary, or an all-charts overview (the
- * same data, list/grid). "Table" compares the latest readings for every
- * selected location side by side. Chart CRUD is unchanged (group-chart
- * configs + localStorage sidecars).
+ * workspace: every configured chart in a list (each rendered as the full
+ * focused workspace) or a grid, plus the page-level AQI legend. "Explore"
+ * lists the fleet's monitored locations (cached-sites, server-side
+ * pagination) and links through to each location's detail page. The page
+ * itself never depends on chart configuration — the empty state and the
+ * "New chart" action live inside the Trends tab.
  */
 export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   className,
@@ -192,12 +159,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
 
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
-  const [workspaceMode, setWorkspaceMode] =
-    useState<WorkspaceMode>(readStoredWorkspaceMode);
-  const [compareMode, setCompareMode] =
-    useState<CompareMode>(readStoredCompareMode);
-  const [tablePollutant, setTablePollutant] = useState<PollutantType>('pm2_5');
-  const { config: tableAqiConfig } = useAqiConfig(tablePollutant);
+  const [trendsLayout, setTrendsLayout] =
+    useState<TrendsLayout>(readStoredTrendsLayout);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDraft, setEditingDraft] = useState<ExplorerChartDraft | null>(
@@ -209,7 +172,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     null
   );
   const [siteNames, setSiteNames] = useState<Map<string, string>>(new Map());
-  const [activeChartId, setActiveChartId] = useState<string | null>(null);
   const [forecastChartIds, setForecastChartIds] = useState<Set<string>>(
     () => new Set()
   );
@@ -259,32 +221,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, [persistedCharts, groupId]);
 
-  // Keep the stored active chart in sync with reality (deleted charts, group
-  // switches, first load) and persist user choices for continuity.
-  useEffect(() => {
-    if (charts.length === 0) return;
-    if (!charts.some(chart => chart.id === activeChartId)) {
-      setActiveChartId(charts[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charts, groupId]);
-
-  // Restore the last-active chart on the client (deferred so SSR/hydration
-  // render the same initial state).
-  useEffect(() => {
-    const stored = readStoredActiveChartId();
-    if (stored) setActiveChartId(stored);
-  }, []);
-
-  useEffect(() => {
-    if (!activeChartId) return;
-    try {
-      window.localStorage.setItem(ACTIVE_CHART_STORAGE_KEY, activeChartId);
-    } catch {
-      // Storage unavailable — active-chart memory is best-effort.
-    }
-  }, [activeChartId]);
-
   // Persist the active view so a refresh returns to the same tab.
   useEffect(() => {
     try {
@@ -294,27 +230,14 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }
   }, [viewMode]);
 
-  // Persist the workspace layout so a refresh returns to the same view.
+  // Persist the Trends layout so a refresh returns to the same view.
   useEffect(() => {
     try {
-      window.localStorage.setItem(WORKSPACE_MODE_STORAGE_KEY, workspaceMode);
+      window.localStorage.setItem(TRENDS_LAYOUT_STORAGE_KEY, trendsLayout);
     } catch {
-      // Storage unavailable — view memory is best-effort.
+      // Storage unavailable — layout memory is best-effort.
     }
-  }, [workspaceMode]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(COMPARE_MODE_STORAGE_KEY, compareMode);
-    } catch {
-      // Storage unavailable — view memory is best-effort.
-    }
-  }, [compareMode]);
-
-  const activeChart = useMemo(
-    () => charts.find(chart => chart.id === activeChartId) ?? charts[0] ?? null,
-    [charts, activeChartId]
-  );
+  }, [trendsLayout]);
 
   // Hydrate the site-names map (chips + location legend) from the sidecars
   // so names survive reloads.
@@ -367,7 +290,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   );
 
   // Resolve display names from the latest readings (shared cache with the
-  // comparison table) so the location legend never shows raw ids.
+  // location detail page) so chart legends never show raw ids.
   const { data: readingsForNames } = useComparisonReadings(
     allSiteIds,
     allSiteIds.length > 0
@@ -394,11 +317,11 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   useEffect(() => {
     posthog?.capture('analytics_explorer_viewed', {
       view: viewMode,
-      layout: workspaceMode,
+      layout: trendsLayout,
       chart_count: charts.length,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, workspaceMode]);
+  }, [viewMode, trendsLayout]);
 
   const handleOpenCreate = useCallback(() => {
     setEditingDraft(null);
@@ -555,7 +478,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
 
   // Duplicates the chart via the server copy endpoint (includes scope +
   // locationColors; new title ends with "(Copy)"), carries the client-side
-  // sidecar over, and focuses the copy so the user sees it immediately.
+  // sidecar over.
   const handleDuplicate = useCallback(
     async (draft: ExplorerChartDraft) => {
       try {
@@ -573,7 +496,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             subtitle: draft.subtitle,
             siteNames: Object.fromEntries(siteNames),
           });
-          setActiveChartId(newChartId);
         }
         toast.success(
           'Chart duplicated',
@@ -671,13 +593,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, []);
 
-  // Focus a chart from the overview: make it active and open the single-chart
-  // workspace (stays within the Trends view).
-  const handleFocusChart = useCallback((draft: ExplorerChartDraft) => {
-    setActiveChartId(draft.id);
-    setWorkspaceMode('focus');
-  }, []);
-
   useEffect(
     () => () => {
       if (pendingDeleteTimerRef.current) {
@@ -687,45 +602,102 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     []
   );
 
-  const renderWorkspace = () => {
-    if (!activeChart) return null;
-    return (
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Main column: active chart + forecast summary (independent stack) */}
-        <div className="min-w-0 space-y-5">
-          <AnalyticsChartCard
-            key={activeChart.id}
-            draft={activeChart}
-            groupId={groupId}
-            siteNames={siteNames}
-            forecastEnabled={forecastChartIds.has(activeChart.id)}
-            onForecastToggle={() => handleForecastToggle(activeChart.id)}
-            onEdit={handleOpenEdit}
-            onRequestDelete={handleRequestDelete}
-            onConfirmDelete={handleConfirmDelete}
-            onCancelDelete={handleCancelDelete}
-            onEditTitle={handleEditTitle}
-            onDuplicate={handleDuplicate}
-            deleteConfirming={pendingDeleteId === activeChart.id}
-          />
-          <ForecastSummaryCard
-            siteIds={activeChart.siteIds}
-            siteNames={siteNames}
-          />
-        </div>
+  const { config: aqiConfig } = useAqiConfig('pm2_5');
 
-        {/* Sidebar: reference legend + saved charts (independent stack) */}
-        <div className="min-w-0 space-y-5">
-          <AirQualityReferenceLegend
-            pollutant={activeChart.pollutant}
-            averagingPeriod="24-hour"
-          />
-          <SavedChartsCard
-            charts={charts}
-            activeChartId={activeChart.id}
-            onSelect={draft => setActiveChartId(draft.id)}
-          />
+  const baseHref = isOrganizationFlow
+    ? `/org/${normalizedOrganizationSlug}/air-quality/analytics`
+    : '/user/air-quality/analytics';
+
+  const renderTrendsView = () => {
+    if (isInitialLoading || (chartsLoading && charts.length === 0)) {
+      return (
+        <div className="flex items-center justify-center min-h-[300px]">
+          <LoadingState text="Loading analytics..." />
         </div>
+      );
+    }
+
+    if (chartsError && charts.length === 0) {
+      return (
+        <ErrorState
+          title="Unable to load chart configurations"
+          description={
+            chartsError instanceof Error
+              ? chartsError.message
+              : 'We could not load your saved charts.'
+          }
+          retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
+        />
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {charts.length === 0 ? (
+          <EmptyState
+            title="No charts yet"
+            description="Create your first chart to explore air quality across locations and time periods."
+            action={{ label: 'Create chart', onClick: handleOpenCreate }}
+          />
+        ) : (
+          <>
+            {/* AQI legend — only when charts exist */}
+            <AqiLegend aqiConfig={aqiConfig ?? null} />
+
+            {/* Layout switcher — wrapped in a card, sized to content */}
+            <Card className="w-fit">
+              <CardContent className="p-1">
+                <SegmentedTabs
+                  ariaLabel="Charts layout"
+                  options={TRENDS_LAYOUT_OPTIONS}
+                  value={trendsLayout}
+                  onChange={setTrendsLayout}
+                />
+              </CardContent>
+            </Card>
+
+            {trendsLayout === 'grid' ? (
+              <ChartsOverviewView
+                charts={charts}
+                siteNames={siteNames}
+                groupId={groupId}
+                onEdit={handleOpenEdit}
+                onRequestDelete={handleRequestDelete}
+                onConfirmDelete={handleConfirmDelete}
+                onCancelDelete={handleCancelDelete}
+                deleteConfirmingId={pendingDeleteId}
+              />
+            ) : (
+              /* List view — the original focused workspace layout:
+                 chart cards on the left, AQI legend sidebar on the right. */
+              <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="min-w-0 space-y-4">
+                  {charts.map(draft => (
+                    <AnalyticsChartCard
+                      key={draft.id}
+                      draft={draft}
+                      groupId={groupId}
+                      siteNames={siteNames}
+                      forecastEnabled={forecastChartIds.has(draft.id)}
+                      onForecastToggle={() => handleForecastToggle(draft.id)}
+                      onEdit={handleOpenEdit}
+                      onRequestDelete={handleRequestDelete}
+                      onConfirmDelete={handleConfirmDelete}
+                      onCancelDelete={handleCancelDelete}
+                      onEditTitle={handleEditTitle}
+                      onDuplicate={handleDuplicate}
+                      deleteConfirming={pendingDeleteId === draft.id}
+                    />
+                  ))}
+                </div>
+                {/* Sidebar: AQI reference legend */}
+                <div className="min-w-0 space-y-5 lg:sticky lg:top-24">
+                  <AqiLegend aqiConfig={aqiConfig ?? null} />
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     );
   };
@@ -737,7 +709,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         <div className="min-w-0">
           <h1 className="text-2xl text-foreground">Air Quality Analytics</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Explore air quality trends across locations and time.
+            Monitor current conditions, trends and forecasts for your
+            monitored locations — or explore every location in your network.
           </p>
         </div>
         {charts.length > 0 && (
@@ -753,120 +726,28 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         )}
       </div>
 
-      {isInitialLoading || (chartsLoading && charts.length === 0) ? (
-        <div className="flex items-center justify-center min-h-[300px]">
-          <LoadingState text="Loading analytics..." />
-        </div>
-      ) : chartsError && charts.length === 0 ? (
-        <ErrorState
-          title="Unable to load chart configurations"
-          description={
-            chartsError instanceof Error
-              ? chartsError.message
-              : 'We could not load your saved charts.'
-          }
-          retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
-        />
-      ) : charts.length === 0 ? (
-        <EmptyState
-          title="No charts yet"
-          description="Create your first chart to explore air quality across locations and time periods."
-          action={{ label: 'Create chart', onClick: handleOpenCreate }}
-        />
+      {/* View switcher — always available, independent of chart setup */}
+      <Card className="w-fit">
+        <CardContent className="p-1">
+          <SegmentedTabs
+            ariaLabel="Analytics view"
+            options={VIEW_OPTIONS}
+            value={viewMode}
+            onChange={setViewMode}
+          />
+        </CardContent>
+      </Card>
+
+      {viewMode === 'explore' ? (
+        isInitialLoading ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <LoadingState text="Loading locations..." />
+          </div>
+        ) : (
+          <ExploreSitesView groupId={groupId} baseHref={baseHref} />
+        )
       ) : (
-        <>
-          {/* View switcher — wrapped in a card, sized to content */}
-          <Card className="w-fit">
-            <CardContent className="p-1">
-              <SegmentedTabs
-                ariaLabel="Analytics view"
-                options={VIEW_OPTIONS}
-                value={viewMode}
-                onChange={setViewMode}
-              />
-            </CardContent>
-          </Card>
-
-          {viewMode === 'table' ? (
-            <>
-              <div className="flex flex-wrap items-center gap-3">
-                <Card className="w-fit">
-                  <CardContent className="p-1">
-                    <SegmentedTabs
-                      ariaLabel="Comparison layout"
-                      options={COMPARE_VIEW_OPTIONS}
-                      value={compareMode}
-                      onChange={setCompareMode}
-                    />
-                  </CardContent>
-                </Card>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    Legend pollutant
-                  </span>
-                  <select
-                    aria-label="Comparison pollutant"
-                    value={tablePollutant}
-                    onChange={event =>
-                      setTablePollutant(event.target.value as PollutantType)
-                    }
-                    className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-3 py-1.5 text-sm"
-                  >
-                    <option value="pm2_5">PM2.5</option>
-                    <option value="pm10">PM10</option>
-                  </select>
-                </div>
-              </div>
-
-              {compareMode === 'table' ? (
-                <ComparisonTable
-                  siteIds={allSiteIds}
-                  siteNames={siteNames}
-                  aqiConfig={tableAqiConfig}
-                  onNamesResolved={handleNamesResolved}
-                />
-              ) : (
-                <ComparisonCards
-                  siteIds={allSiteIds}
-                  siteNames={siteNames}
-                  aqiConfig={tableAqiConfig}
-                  onNamesResolved={handleNamesResolved}
-                />
-              )}
-            </>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-3">
-                <Card className="w-fit">
-                  <CardContent className="p-1">
-                    <SegmentedTabs
-                      ariaLabel="Charts workspace layout"
-                      options={WORKSPACE_VIEW_OPTIONS}
-                      value={workspaceMode}
-                      onChange={setWorkspaceMode}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {workspaceMode === 'overview' ? (
-                <ChartsOverviewView
-                  charts={charts}
-                  siteNames={siteNames}
-                  groupId={groupId}
-                  onFocusChart={handleFocusChart}
-                  onEdit={handleOpenEdit}
-                  onRequestDelete={handleRequestDelete}
-                  onConfirmDelete={handleConfirmDelete}
-                  onCancelDelete={handleCancelDelete}
-                  deleteConfirmingId={pendingDeleteId}
-                />
-              ) : (
-                renderWorkspace()
-              )}
-            </>
-          )}
-        </>
+        renderTrendsView()
       )}
 
       <ChartConfigDialog

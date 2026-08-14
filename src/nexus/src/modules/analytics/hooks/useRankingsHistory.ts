@@ -2,32 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { rankingsService } from '@/shared/services/rankingsService';
+import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import type {
   RankingsHistoryParams,
   RankingsHistoryResponse,
 } from '@/shared/types/api';
-
-/** Never retry aborts, network failures, or server errors (AGENTS.md retry policy) */
-const RETRY_CONFIG = {
-  retry: (failureCount: number, error: Error) => {
-    if (
-      error.name === 'CanceledError' ||
-      error.name === 'AbortError' ||
-      error.message === 'canceled' ||
-      (error as { code?: string }).code === 'ERR_NETWORK'
-    ) {
-      return false;
-    }
-    const status =
-      (error as { response?: { status?: number } }).response?.status ??
-      (error as { status?: number }).status;
-    if (typeof status === 'number' && status >= 500 && status < 600) {
-      return false;
-    }
-    return failureCount < 1;
-  },
-  retryDelay: 1000,
-} as const;
 
 const HISTORY_STALE_TIME_MS = 1000 * 60 * 10;
 const HISTORY_GC_TIME_MS = 1000 * 60 * 60 * 12;
@@ -69,7 +48,7 @@ export function useRankingsHistory(
     gcTime: HISTORY_GC_TIME_MS,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    ...RETRY_CONFIG,
+    ...boundedRetryPolicy,
   });
 
   return {

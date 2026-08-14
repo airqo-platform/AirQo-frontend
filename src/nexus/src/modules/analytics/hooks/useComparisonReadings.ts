@@ -2,29 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '@/shared/services/analyticsService';
+import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import type { RecentReading } from '@/shared/types/api';
-
-/** Never retry aborts, network failures, or server errors (AGENTS.md retry policy) */
-const RETRY_CONFIG = {
-  retry: (failureCount: number, error: Error) => {
-    if (
-      error.name === 'CanceledError' ||
-      error.name === 'AbortError' ||
-      error.message === 'canceled' ||
-      (error as { code?: string }).code === 'ERR_NETWORK'
-    ) {
-      return false;
-    }
-    const status =
-      (error as { response?: { status?: number } }).response?.status ??
-      (error as { status?: number }).status;
-    if (typeof status === 'number' && status >= 500 && status < 600) {
-      return false;
-    }
-    return failureCount < 1;
-  },
-  retryDelay: 1000,
-} as const;
 
 const READINGS_STALE_TIME_MS = 1000 * 60 * 5;
 
@@ -56,7 +35,7 @@ export const useComparisonReadings = (
     staleTime: READINGS_STALE_TIME_MS,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    ...RETRY_CONFIG,
+    ...boundedRetryPolicy,
   });
 };
 
