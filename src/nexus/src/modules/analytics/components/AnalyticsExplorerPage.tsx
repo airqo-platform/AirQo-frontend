@@ -641,9 +641,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           />
         ) : (
           <>
-            {/* AQI legend — only when charts exist */}
-            <AqiLegend aqiConfig={aqiConfig ?? null} />
-
             {/* Layout switcher — wrapped in a card, sized to content */}
             <Card className="w-fit">
               <CardContent className="p-1">

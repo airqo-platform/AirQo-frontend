@@ -37,6 +37,7 @@ const PERIOD_CONFIG: Record<TrendPeriod, TrendPeriodConfig> = {
 };
 
 const TREND_STALE_TIME_MS = 1000 * 60 * 10;
+const TREND_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
 interface UseSiteTrendDataOptions {
   siteId?: string;
@@ -106,6 +107,7 @@ export const useSiteTrendData = ({
     enabled: shouldFetch,
     networkMode: 'online',
     staleTime: TREND_STALE_TIME_MS,
+    gcTime: TREND_GC_TIME_MS,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     ...boundedRetryPolicy,

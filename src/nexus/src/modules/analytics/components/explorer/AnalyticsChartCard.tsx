@@ -448,7 +448,6 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         themeColors={themeColors}
-        onThemeColorsToggle={handleThemeColorsToggle}
         className="w-full"
         footerHint={
           <div className="flex items-center justify-between gap-3">

@@ -6,6 +6,7 @@ import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import type { RecentReading } from '@/shared/types/api';
 
 const READING_STALE_TIME_MS = 1000 * 60 * 5;
+const READING_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
 /**
  * The most recent reading for a single site (current AQI, pollutant values,
@@ -28,6 +29,7 @@ export const useSiteRecentReading = (siteId: string, enabled = true) => {
     enabled: shouldFetch,
     networkMode: 'online',
     staleTime: READING_STALE_TIME_MS,
+    gcTime: READING_GC_TIME_MS,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     ...boundedRetryPolicy,

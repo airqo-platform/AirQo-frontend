@@ -6,6 +6,7 @@ import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import type { RecentReading } from '@/shared/types/api';
 
 const READINGS_STALE_TIME_MS = 1000 * 60 * 5;
+const READINGS_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
 /**
  * Latest readings for a set of sites, shared between the comparison table
@@ -33,6 +34,7 @@ export const useComparisonReadings = (
     enabled: shouldFetch,
     networkMode: 'online',
     staleTime: READINGS_STALE_TIME_MS,
+    gcTime: READINGS_GC_TIME_MS,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     ...boundedRetryPolicy,

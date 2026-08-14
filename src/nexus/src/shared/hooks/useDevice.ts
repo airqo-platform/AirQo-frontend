@@ -31,6 +31,11 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
   shouldRetryOnError: false,
+  // The auth tree mounts more than once per page load; a remount must reuse
+  // the cached response instead of re-firing the request. Freshness is
+  // handled by key changes (group switch), explicit mutations and the
+  // group-switch invalidation.
+  revalidateIfStale: false,
   dedupingInterval: 5000,
 } as const;
 
@@ -433,7 +438,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
   }, [groupId, dispatch]);
 
   // Fetch cohorts for active group
-  const { error: swrError, isLoading: swrIsLoading } =
+  const { data, error: swrError, isLoading: swrIsLoading } =
     useSWR<GroupCohortsResponse>(
       shouldFetch ? ['group/cohorts', groupId] : null,
       fetchGroupCohorts,
@@ -467,6 +472,30 @@ export const useActiveGroupCohorts = (enabled = true) => {
         },
       }
     );
+
+  // With revalidateIfStale: false a remount serves the cached response
+  // WITHOUT firing a fetch, so onSuccess never runs and the Redux store
+  // would stay empty (lastFetchedGroupId unset → resolvedCohortIds []).
+  // Hydrate Redux from the cached response instead of issuing a duplicate
+  // request. Idempotent: once lastFetchedGroupId matches, shouldFetch flips
+  // false and this effect stops running.
+  useEffect(() => {
+    if (
+      enabled &&
+      groupId &&
+      lastFetchedGroupId !== groupId &&
+      data?.success &&
+      !swrIsLoading
+    ) {
+      dispatch(
+        setActiveGroupCohorts({
+          groupId,
+          cohortIds: normalizeCohortIds(data.data),
+        })
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, groupId, data, swrIsLoading, dispatch, lastFetchedGroupId]);
 
   const resolvedCohortIds =
     enabled && groupId && lastFetchedGroupId === groupId

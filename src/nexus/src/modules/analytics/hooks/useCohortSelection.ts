@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
+import { useSelector } from 'react-redux';
 import { deviceService } from '@/shared/services/deviceService';
 import {
   useActiveGroupCohorts,
   useGroupCohorts,
 } from '@/shared/hooks/useDevice';
+import { selectActiveGroup } from '@/shared/store/selectors';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 import { normalizeSitesData } from '@/shared/utils/siteUtils';
 import { useDebounce } from '@/shared/hooks/useDebounce';
@@ -17,7 +19,9 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
   shouldRetryOnError: false,
-  dedupingInterval: 5000,
+  // Bounded dedupe window: concurrent consumers of the same key (explore
+  // table, location picker) share one in-flight request.
+  dedupingInterval: 10000,
 } as const;
 
 const isAbortError = (error: unknown): boolean => {
@@ -36,28 +40,63 @@ const isAbortError = (error: unknown): boolean => {
 };
 
 /**
- * Resolves the cohort IDs for the given group. When `groupId` is empty the
- * active group's cohorts are used; when set, the group's cohorts are fetched
- * directly so organization-flow pages don't depend on a group switch.
+ * Resolves the cohort IDs for the given group.
+ *
+ * - `groupId` empty → the active group's cohorts (Redux, fetched by
+ *   UserDataFetcher — one request, shared app-wide).
+ * - `groupId` === the active group → reuses those same Redux cohorts instead
+ *   of issuing a second `GET /users/groups/:id/cohorts` for the same group
+ *   (the previous implementation fetched the same endpoint twice per load).
+ * - any other group (organization flow) → fetched directly.
+ *
+ * Falls back to a direct fetch when the Redux path resolved empty (failed
+ * fetch), so the table never gets stuck on a missing cohort list.
  */
 const useResolvedCohortIds = (groupId: string, enabled: boolean) => {
+  const activeGroup = useSelector(selectActiveGroup);
+  const isActiveGroupRequest =
+    enabled && !!groupId && !!activeGroup?.id && groupId === activeGroup.id;
+
   const {
     cohortIds: activeGroupCohortIds,
     isLoading: activeGroupCohortsLoading,
-  } = useActiveGroupCohorts(enabled && !groupId);
+  } = useActiveGroupCohorts(enabled && (!groupId || isActiveGroupRequest));
+
+  const activeGroupCohortsUnavailable =
+    isActiveGroupRequest &&
+    !activeGroupCohortsLoading &&
+    activeGroupCohortIds.length === 0;
 
   const { data: groupCohorts, isLoading: groupCohortsLoading } =
-    useGroupCohorts(groupId, enabled && !!groupId);
+    useGroupCohorts(
+      groupId,
+      enabled &&
+        !!groupId &&
+        (!isActiveGroupRequest || activeGroupCohortsUnavailable)
+    );
 
   const cohortIds = useMemo(
     () =>
-      groupId
-        ? normalizeCohortIds(groupCohorts?.data ?? [])
-        : activeGroupCohortIds,
-    [groupId, groupCohorts?.data, activeGroupCohortIds]
+      isActiveGroupRequest && !activeGroupCohortsUnavailable
+        ? activeGroupCohortIds
+        : groupId
+          ? normalizeCohortIds(groupCohorts?.data ?? [])
+          : activeGroupCohortIds,
+    [
+      isActiveGroupRequest,
+      activeGroupCohortsUnavailable,
+      groupId,
+      groupCohorts?.data,
+      activeGroupCohortIds,
+    ]
   );
 
-  const isLoading = groupId ? groupCohortsLoading : activeGroupCohortsLoading;
+  const isLoading =
+    isActiveGroupRequest && !activeGroupCohortsUnavailable
+      ? activeGroupCohortsLoading
+      : groupId
+        ? groupCohortsLoading
+        : activeGroupCohortsLoading;
 
   return { cohortIds, isLoading };
 };

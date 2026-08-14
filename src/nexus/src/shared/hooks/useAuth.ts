@@ -147,6 +147,9 @@ export const useUserDetails = (userId: string | null) => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      // The auth tree mounts more than once per load; reuse the cached
+      // profile instead of re-firing the request on each remount.
+      revalidateIfStale: false,
       dedupingInterval: 5000,
     }
   );
@@ -158,6 +161,7 @@ export const useUserRoles = () => {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
+    revalidateIfStale: false,
     dedupingInterval: 10000,
   });
 };
@@ -171,6 +175,7 @@ export const useUserRolesById = (userId: string | null) => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      revalidateIfStale: false,
       dedupingInterval: 10000,
     }
   );
