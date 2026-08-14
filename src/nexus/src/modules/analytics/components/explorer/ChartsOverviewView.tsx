@@ -277,7 +277,12 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   }
 
   return (
-    <div className={cn('grid grid-cols-1 items-start gap-4 md:grid-cols-2', className)}>
+    <div
+      className={cn(
+        'grid grid-cols-1 items-start gap-4 sm:grid-cols-2',
+        className
+      )}
+    >
       {charts.map(draft => (
         <OverviewChartCard
           key={draft.id}

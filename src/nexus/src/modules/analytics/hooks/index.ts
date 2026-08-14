@@ -746,7 +746,7 @@ export const useDataDownload = () => {
 };
 
 // Helper function to transform API data to chart format
-const transformChartData = (apiData: ChartDataPoint[]): ChartData[] => {
+export const transformChartData = (apiData: ChartDataPoint[]): ChartData[] => {
   if (!apiData || !Array.isArray(apiData)) {
     return [];
   }

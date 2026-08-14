@@ -201,15 +201,36 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   // ── Fly-to (programmatic) ────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!flyToLocation || !mapRef.current) return;
+  // The target survives until the map can apply it. When the map page opens
+  // with URL coordinates, the map instance may not be mounted yet while the
+  // request is in flight — dropping it here would leave the map at the
+  // default view. The pending target is replayed once the map reports ready.
+  const pendingFlyToRef = useRef<
+    { longitude: number; latitude: number; zoom?: number } | null
+  >(null);
+
+  const applyFlyTo = useCallback(() => {
+    if (!mapRef.current) return;
+    const target = pendingFlyToRef.current;
+    if (!target) return;
+    pendingFlyToRef.current = null;
     mapRef.current.flyTo({
-      center: [flyToLocation.longitude, flyToLocation.latitude],
-      zoom: flyToLocation.zoom ?? 14,
+      center: [target.longitude, target.latitude],
+      zoom: target.zoom ?? 14,
       duration: 1000,
       easing: t => t * (2 - t),
     });
-  }, [flyToLocation]);
+  }, []);
+
+  useEffect(() => {
+    if (!flyToLocation) return;
+    pendingFlyToRef.current = flyToLocation;
+    applyFlyTo();
+  }, [flyToLocation, applyFlyTo]);
+
+  const handleMapLoad = useCallback(() => {
+    applyFlyTo();
+  }, [applyFlyTo]);
 
   // ── Clustering ───────────────────────────────────────────────────────────────
 
@@ -570,6 +591,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         dragPan
         doubleClickZoom
         onClick={handleMapClick}
+        onLoad={handleMapLoad}
       >
         {/* ── Cluster markers ──────────────────────────────────────────────── */}
         {clusters.map(cluster => (

@@ -9,6 +9,7 @@ import { ErrorState } from '@/shared/components/ui/error-state';
 import { AqChevronRight } from '@airqo/icons-react';
 import { useSitesForSelection } from '../../hooks/useCohortSelection';
 import { toSiteSlug } from '../../utils/siteDetails';
+import { rememberSiteSlug } from '../../hooks/useResolveSiteByName';
 import type { NormalizedSiteData } from '@/shared/utils/siteUtils';
 
 interface ExploreSitesViewProps {
@@ -59,7 +60,22 @@ export const ExploreSitesView: React.FC<ExploreSitesViewProps> = ({
     (item: NormalizedSiteData) => {
       // URL carries the location's display name (search_name || location_name)
       // as a slug — the raw site id is resolved on the detail page instead.
-      const href = `${baseHref.replace(/\/+$/, '')}/sites/${toSiteSlug(item.location)}`;
+      // Remember the exact id/name/coords at click time so the detail page
+      // resolves instantly and never fails on names the API search can't
+      // match (accents, diacritics, long names).
+      const slug = toSiteSlug(item.location);
+      const raw = item._raw;
+      const asNum = (v: unknown): number | null =>
+        typeof v === 'number' && Number.isFinite(v) ? v : null;
+      // Map nodes render at the approximate coordinates — prefer them so the
+      // map centers on the node, not hundreds of metres away.
+      rememberSiteSlug(slug, {
+        siteId: item.id,
+        displayName: item.location,
+        latitude: asNum(raw?.approximate_latitude) ?? asNum(raw?.latitude),
+        longitude: asNum(raw?.approximate_longitude) ?? asNum(raw?.longitude),
+      });
+      const href = `${baseHref.replace(/\/+$/, '')}/sites/${slug}`;
       router.push(href);
     },
     [baseHref, router]
@@ -161,7 +177,7 @@ export const ExploreSitesView: React.FC<ExploreSitesViewProps> = ({
               description={
                 searchTerm
                   ? `No monitored locations match “${searchTerm}”. Try a different search.`
-                  : 'There are no monitored locations available for this network yet.'
+                  : 'There are no monitored locations available yet.'
               }
               className="min-h-[300px] border-0 bg-transparent"
             />

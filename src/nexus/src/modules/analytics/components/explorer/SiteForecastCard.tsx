@@ -47,6 +47,29 @@ const hourLabel = (value: string | undefined | null): string => {
   return d ? `${String(d.getHours()).padStart(2, '0')}:00` : '--:--';
 };
 
+/**
+ * Weather emoji based on cloud area fraction (0-1 scale).
+ * Matches IQAir's weather condition display.
+ */
+const weatherEmoji = (cloudFraction: number | undefined | null): string => {
+  if (cloudFraction == null) return '🌤';
+  if (cloudFraction >= 0.85) return '☁️';
+  if (cloudFraction >= 0.5) return '⛅';
+  if (cloudFraction >= 0.2) return '🌤';
+  return '☀️';
+};
+
+/**
+ * Wind direction as a simple arrow character from degrees.
+ * 0°=N, 90°=E, 180°=S, 270°=W
+ */
+const windArrow = (degrees: number | undefined | null): string => {
+  if (degrees == null) return '↑';
+  const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+  const idx = Math.round(((degrees % 360 + 360) % 360) / 45) % 8;
+  return arrows[idx];
+};
+
 const MODE_OPTIONS: { value: ForecastMode; label: string }[] = [
   { value: 'hourly', label: 'Hourly' },
   { value: 'daily', label: 'Daily' },
@@ -54,10 +77,10 @@ const MODE_OPTIONS: { value: ForecastMode; label: string }[] = [
 
 /**
  * Air quality forecast — IQAir-inspired design with:
- * - Hourly: horizontally scrollable card row, "Now" highlighted, each card
- *   shows time + AQI value + category color + temp
- * - Daily: 7-day horizontal card row with day name, AQI value, category color,
- *   temp range, and weather indicator
+ * - Hourly: scrollable card row, "Now" highlighted, each card shows
+ *   time + AQI value badge + weather emoji + temp + wind + humidity
+ * - Daily: card row with day name, AQI value badge, weather emoji,
+ *   temp range, wind speed, humidity
  * - Trust signals: "Issued at" timestamp, dominant pollutant label
  */
 export const SiteForecastCard: React.FC<SiteForecastCardProps> = ({
@@ -110,7 +133,7 @@ export const SiteForecastCard: React.FC<SiteForecastCardProps> = ({
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {siteName
-                ? `Predictions for ${siteName}`
+                ? `${siteName} air quality index (AQI) forecast`
                 : 'Predicted air quality levels'}
             </p>
           </div>
@@ -197,6 +220,7 @@ export const SiteForecastCard: React.FC<SiteForecastCardProps> = ({
 };
 
 // ── Hourly card ──────────────────────────────────────────────────────────────
+// IQAir-inspired: time + AQI badge + weather emoji + temp + wind + humidity
 
 interface HourlyCardProps {
   item: HourlyForecastItem;
@@ -207,14 +231,17 @@ interface HourlyCardProps {
 const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
   const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
   const temp = resolveParsedNumber(item.met?.air_temperature);
+  const humidity = resolveParsedNumber(item.met?.relative_humidity);
+  const windSpeed = resolveParsedNumber(item.met?.wind_speed);
+  const windDir = resolveParsedNumber(item.met?.wind_from_direction);
+  const cloudFrac = resolveParsedNumber(item.met?.cloud_area_fraction);
   const aqiLabel = item.aqi?.label ?? '';
 
   const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig ?? null);
   const color = getAirQualityColor(airInfo.level, aqiConfig ?? null);
-  const ForecastIcon = airInfo.icon;
 
   const tooltipContent = (
-    <div className="max-w-[200px] space-y-1 text-left">
+    <div className="max-w-[220px] space-y-1 text-left">
       <p className="font-semibold text-white">
         {isNow ? 'Now' : hourLabel(item.timestamp)}
       </p>
@@ -225,6 +252,14 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
       {temp != null && (
         <p className="text-xs text-white">Temp: {temp.toFixed(0)}°C</p>
       )}
+      {humidity != null && (
+        <p className="text-xs text-white">Humidity: {humidity.toFixed(0)}%</p>
+      )}
+      {windSpeed != null && (
+        <p className="text-xs text-white">
+          Wind: {windSpeed.toFixed(0)} km/h {windArrow(windDir)}
+        </p>
+      )}
     </div>
   );
 
@@ -232,7 +267,7 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
     <Tooltip content={tooltipContent} placement="top">
       <div
         className={cn(
-          'flex flex-col items-center rounded-xl py-3 px-3 min-w-[72px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
+          'flex flex-col items-center rounded-xl py-3 px-3 min-w-[80px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
           isNow
             ? 'bg-blue-600 border-blue-600 shadow-md'
             : 'hover:shadow-sm'
@@ -246,6 +281,7 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
               }
         }
       >
+        {/* Time */}
         <span
           className={cn(
             'text-[11px] font-medium mb-1',
@@ -254,37 +290,61 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
         >
           {isNow ? 'Now' : hourLabel(item.timestamp)}
         </span>
-        <ForecastIcon
-          className={cn(
-            'h-5 w-5 mb-1',
-            isNow ? 'text-blue-100' : 'text-foreground'
-          )}
-        />
+        {/* AQI value badge */}
         <span
           className={cn(
-            'text-base font-bold tabular-nums',
-            isNow ? 'text-white' : 'text-foreground'
+            'inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums mb-1',
+            isNow
+              ? 'bg-white/20 text-white'
+              : 'text-foreground'
           )}
+          style={
+            isNow
+              ? undefined
+              : { backgroundColor: color ? `${color}20` : undefined }
+          }
         >
           {pm25 != null ? pm25.toFixed(0) : '--'}
         </span>
-        <span
-          className={cn(
-            'text-[10px]',
-            isNow ? 'text-blue-100' : 'text-muted-foreground'
-          )}
-        >
-          µg/m³
+        {/* Weather emoji */}
+        <span className="text-base mb-0.5" title={aqiLabel}>
+          {weatherEmoji(cloudFrac)}
         </span>
+        {/* Temperature */}
         {temp != null && (
           <span
             className={cn(
-              'text-[10px] mt-0.5',
+              'text-[11px] font-medium',
+              isNow ? 'text-blue-100' : 'text-foreground'
+            )}
+          >
+            {temp.toFixed(0)}°
+          </span>
+        )}
+        {/* Wind */}
+        {windSpeed != null && (
+          <div
+            className={cn(
+              'flex items-center gap-0.5 text-[10px]',
               isNow ? 'text-blue-100' : 'text-muted-foreground'
             )}
           >
-            {temp.toFixed(0)}°C
-          </span>
+            <span className="text-xs">{windArrow(windDir)}</span>
+            <span>{windSpeed.toFixed(0)}</span>
+            <span className="text-[8px]">km/h</span>
+          </div>
+        )}
+        {/* Humidity */}
+        {humidity != null && (
+          <div
+            className={cn(
+              'flex items-center gap-0.5 text-[10px]',
+              isNow ? 'text-blue-100' : 'text-muted-foreground'
+            )}
+          >
+            <span className="text-blue-400">💧</span>
+            <span>{humidity.toFixed(0)}%</span>
+          </div>
         )}
       </div>
     </Tooltip>
@@ -292,6 +352,7 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
 };
 
 // ── Daily card ───────────────────────────────────────────────────────────────
+// IQAir-inspired: day + AQI badge + weather emoji + temp range + wind + humidity
 
 interface DailyCardProps {
   item: DailyForecastItem;
@@ -301,23 +362,42 @@ interface DailyCardProps {
 
 const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
   const pm25 = resolveParsedNumber(item.forecast?.pm2_5_mean);
-  const temp = resolveParsedNumber(item.met?.air_temperature);
+  const tempHigh = resolveParsedNumber(
+    item.forecast?.pm2_5_high ?? item.met?.air_temperature
+  );
+  const tempLow = resolveParsedNumber(item.forecast?.pm2_5_min);
+  const humidity = resolveParsedNumber(item.met?.relative_humidity);
+  const windSpeed = resolveParsedNumber(item.met?.wind_speed);
+  const windDir = resolveParsedNumber(item.met?.wind_from_direction);
+  const cloudFrac = resolveParsedNumber(item.met?.cloud_area_fraction);
   const aqiLabel = item.aqi?.label ?? '';
 
   const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig ?? null);
   const color = getAirQualityColor(airInfo.level, aqiConfig ?? null);
-  const ForecastIcon = airInfo.icon;
 
   return (
     <Tooltip
       content={
-        <div className="max-w-[200px] space-y-1 text-left">
+        <div className="max-w-[220px] space-y-1 text-left">
           <p className="font-semibold text-white">
             {dayLabel(item.date)}, {dateLabel(item.date)}
           </p>
           {aqiLabel && <p className="text-xs text-gray-200">{aqiLabel}</p>}
-          {temp != null && (
-            <p className="text-xs text-white">Temp: {temp.toFixed(0)}°C</p>
+          {tempHigh != null && (
+            <p className="text-xs text-white">High: {tempHigh.toFixed(0)}°C</p>
+          )}
+          {tempLow != null && (
+            <p className="text-xs text-white">Low: {tempLow.toFixed(0)}°C</p>
+          )}
+          {humidity != null && (
+            <p className="text-xs text-white">
+              Humidity: {humidity.toFixed(0)}%
+            </p>
+          )}
+          {windSpeed != null && (
+            <p className="text-xs text-white">
+              Wind: {windSpeed.toFixed(0)} km/h {windArrow(windDir)}
+            </p>
           )}
         </div>
       }
@@ -325,7 +405,7 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
     >
       <div
         className={cn(
-          'flex flex-col items-center rounded-xl py-3 px-3 min-w-[72px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
+          'flex flex-col items-center rounded-xl py-3 px-3 min-w-[80px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
           isToday
             ? 'bg-blue-600 border-blue-600 shadow-md'
             : 'hover:shadow-sm'
@@ -339,6 +419,7 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
               }
         }
       >
+        {/* Day name */}
         <span
           className={cn(
             'text-[11px] font-medium mb-1',
@@ -347,37 +428,68 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
         >
           {isToday ? 'Today' : dayLabel(item.date)}
         </span>
-        <ForecastIcon
-          className={cn(
-            'h-5 w-5 mb-1',
-            isToday ? 'text-blue-100' : 'text-foreground'
-          )}
-        />
+        {/* AQI value badge */}
         <span
           className={cn(
-            'text-base font-bold tabular-nums',
-            isToday ? 'text-white' : 'text-foreground'
+            'inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums mb-1',
+            isToday
+              ? 'bg-white/20 text-white'
+              : 'text-foreground'
           )}
+          style={
+            isToday
+              ? undefined
+              : { backgroundColor: color ? `${color}20` : undefined }
+          }
         >
           {pm25 != null ? pm25.toFixed(0) : '--'}
         </span>
-        <span
+        {/* Weather emoji */}
+        <span className="text-base mb-0.5" title={aqiLabel}>
+          {weatherEmoji(cloudFrac)}
+        </span>
+        {/* Temp high/low */}
+        <div
           className={cn(
-            'text-[10px] mt-0.5',
-            isToday ? 'text-blue-100' : 'text-muted-foreground'
+            'flex items-center gap-1 text-[11px] font-medium',
+            isToday ? 'text-blue-100' : 'text-foreground'
           )}
         >
-          µg/m³
-        </span>
-        {temp != null && (
-          <span
+          {tempHigh != null && <span>{tempHigh.toFixed(0)}°</span>}
+          {tempLow != null && (
+            <span
+              className={cn(
+                isToday ? 'text-blue-200' : 'text-muted-foreground'
+              )}
+            >
+              {tempLow.toFixed(0)}°
+            </span>
+          )}
+        </div>
+        {/* Wind */}
+        {windSpeed != null && (
+          <div
             className={cn(
-              'text-[10px] mt-0.5',
+              'flex items-center gap-0.5 text-[10px]',
               isToday ? 'text-blue-100' : 'text-muted-foreground'
             )}
           >
-            {temp.toFixed(0)}°C
-          </span>
+            <span className="text-xs">{windArrow(windDir)}</span>
+            <span>{windSpeed.toFixed(0)}</span>
+            <span className="text-[8px]">km/h</span>
+          </div>
+        )}
+        {/* Humidity */}
+        {humidity != null && (
+          <div
+            className={cn(
+              'flex items-center gap-0.5 text-[10px]',
+              isToday ? 'text-blue-100' : 'text-muted-foreground'
+            )}
+          >
+            <span className="text-blue-400">💧</span>
+            <span>{humidity.toFixed(0)}%</span>
+          </div>
         )}
       </div>
     </Tooltip>

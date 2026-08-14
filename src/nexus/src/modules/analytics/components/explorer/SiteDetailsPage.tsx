@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { cn } from '@/shared/lib/utils';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
-import { AqChevronRight } from '@airqo/icons-react';
+import { Button } from '@/shared/components/ui/button';
+import { AqChevronRight, AqCompass } from '@airqo/icons-react';
 import { useForecast } from '@/modules/airqo-map/hooks';
 import { useSiteRecentReading } from '../../hooks/useSiteRecentReading';
 import { useResolveSiteByName } from '../../hooks/useResolveSiteByName';
@@ -54,12 +55,35 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
     refetch,
   } = useSiteRecentReading(siteId, !!siteId);
 
-  // Forecast provides the site name even when readings are empty
-  const { siteName: forecastSiteName } = useForecast({
+  // Forecast provides the site name and coordinates
+  const forecast = useForecast({
     siteId,
     mode: 'daily',
     enabled: !!siteId,
   });
+
+  const forecastSiteName = forecast.siteName;
+
+  // Extract coordinates for the map link — resolved site first (from the
+  // explore click or fleet summary), then forecast site_details.
+  const siteLatLng = useMemo(() => {
+    if (resolved?.latitude != null && resolved?.longitude != null) {
+      return { lat: resolved.latitude, lng: resolved.longitude };
+    }
+    const details = forecast.dailyForecasts?.[0]?.site_details;
+    const lat = details?.site_latitude;
+    const lng = details?.site_longitude;
+    if (lat != null && lng != null) {
+      const latNum = typeof lat === 'number' ? lat : (lat as { parsedValue: number }).parsedValue;
+      const lngNum = typeof lng === 'number' ? lng : (lng as { parsedValue: number }).parsedValue;
+      if (latNum && lngNum) return { lat: latNum, lng: lngNum };
+    }
+    return null;
+  }, [resolved, forecast.dailyForecasts]);
+
+  const mapUrl = siteLatLng
+    ? `/user/map?lat=${siteLatLng.lat}&lng=${siteLatLng.lng}&zoom=14`
+    : '/user/map';
 
   const readingSiteName = useMemo(() => resolveReadingSiteName(reading), [reading]);
 
@@ -85,7 +109,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
           title="Unable to find this location"
           description={
             resolveError?.message ??
-            'This location could not be found in your network. It may have been renamed or removed.'
+            'This location could not be found. It may have been renamed or removed.'
           }
           retryAction={{ label: 'Retry', onClick: () => void retryResolve() }}
         />
@@ -115,12 +139,22 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
         </ol>
       </nav>
 
-      {/* Location heading */}
-      <div>
-        <h1 className="truncate text-2xl text-foreground">{displayName}</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Live air quality, trends and forecast for this location.
-        </p>
+      {/* Location heading + View on Map */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl text-foreground">{displayName}</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Live air quality, trends and forecast for this location.
+          </p>
+        </div>
+        <Button
+          variant="outlined"
+          size="md"
+          Icon={AqCompass}
+          path={mapUrl}
+        >
+          View on Map
+        </Button>
       </div>
 
       {readingLoading ? (

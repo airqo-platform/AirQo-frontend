@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { usePostHog } from 'posthog-js/react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
@@ -14,6 +15,7 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
+import { Banner } from '@/shared/components/ui/banner';
 import { toast } from '@/shared/components/ui/toast';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import {
@@ -31,12 +33,16 @@ import {
   useDeleteGroupChart,
   useCopyGroupChart,
 } from '@/shared/hooks/useGroupCharts';
-import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { analyticsService } from '@/shared/services/analyticsService';
+import {
+  buildChartDataQueryKey,
+  transformChartData,
+  type ChartDataFilters,
+} from '../hooks';
 import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
 import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
 import { ExploreSitesView } from './explorer/ExploreSitesView';
-import { AqiLegend } from './explorer/AqiLegend';
 import {
   useComparisonReadings,
   extractReadingNames,
@@ -156,7 +162,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   organizationSlug,
 }) => {
   const posthog = usePostHog();
-  const { activeGroup, groups, isLoading: userContextLoading } = useUser();
+  const { user, activeGroup, groups, isLoading: userContextLoading } =
+    useUser();
 
   const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
   const [trendsLayout, setTrendsLayout] =
@@ -300,6 +307,78 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     const names = extractReadingNames(readingsForNames);
     if (names.size > 0) handleNamesResolved(names);
   }, [readingsForNames, handleNamesResolved]);
+
+  // Data-coverage warning: users can select many locations, but the chart
+  // API only returns series for locations that actually have data. These
+  // queries share the exact query keys the chart cards use, so no extra
+  // requests fire — the coverage reads the same cached chart data. Gated to
+  // the Trends view (where charts render).
+  const coverageQueries = useQueries({
+    queries: charts.map(draft => {
+      const filters: ChartDataFilters = {
+        frequency: draft.frequency,
+        pollutant: draft.pollutant,
+        startDate: draft.startDate,
+        endDate: draft.endDate,
+      };
+      const chartType = draft.chartType === 'Bar' ? 'bar' : 'line';
+      return {
+        queryKey: buildChartDataQueryKey(
+          user?.id,
+          activeGroup?.id,
+          chartType,
+          draft.siteIds,
+          filters
+        ),
+        queryFn: async ({ signal }) => {
+          const response = await analyticsService.getChartData(
+            {
+              sites: draft.siteIds,
+              startDate: filters.startDate,
+              endDate: filters.endDate,
+              chartType,
+              frequency: filters.frequency,
+              pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
+              organisation_name: '',
+            },
+            signal
+          );
+          return response?.data && response.data.length > 0
+            ? transformChartData(response.data)
+            : [];
+        },
+        enabled:
+          viewMode === 'trends' &&
+          !isInitialLoading &&
+          charts.length > 0 &&
+          draft.siteIds.length > 0,
+        networkMode: 'online',
+        retry: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 60 * 12,
+      };
+    }),
+  });
+
+  // Distinct locations that actually returned chart data across all charts.
+  const coveredSiteIds = useMemo(() => {
+    const withData = new Set<string>();
+    coverageQueries.forEach(query => {
+      (query.data ?? []).forEach(point => {
+        if (point.site_id) withData.add(point.site_id);
+      });
+    });
+    return withData;
+  }, [coverageQueries]);
+
+  const dataCoverage = useMemo(() => {
+    if (allSiteIds.length === 0) return null;
+    const withData = allSiteIds.filter(id => coveredSiteIds.has(id)).length;
+    if (withData >= allSiteIds.length) return null;
+    return { selected: allSiteIds.length, withData };
+  }, [allSiteIds, coveredSiteIds]);
 
   // Fleet-wide site-name fallback: fills names the picker sidecar/readings
   // couldn't provide (e.g. charts built on another browser), so "Unknown
@@ -602,8 +681,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     []
   );
 
-  const { config: aqiConfig } = useAqiConfig('pm2_5');
-
   const baseHref = isOrganizationFlow
     ? `/org/${normalizedOrganizationSlug}/air-quality/analytics`
     : '/user/air-quality/analytics';
@@ -641,6 +718,18 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           />
         ) : (
           <>
+            {/* Data-coverage warning — some selected locations have no
+                readings for the current time period / frequency, so charts
+                silently omit them. */}
+            {dataCoverage && (
+              <Banner
+                severity="warning"
+                dense
+                title="Some locations have no data for the selected time period"
+                message="A few of your selected locations don't have readings available for the current time period and frequency, so some charts may not show every location. Try adjusting the time period or frequency, or remove locations without data from your charts."
+              />
+            )}
+
             {/* Layout switcher and New chart button — right-aligned */}
             <div className="flex items-center justify-end gap-2">
               <Card className="w-fit">
@@ -677,33 +766,25 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                 deleteConfirmingId={pendingDeleteId}
               />
             ) : (
-              /* List view — the original focused workspace layout:
-                 chart cards on the left, AQI legend sidebar on the right.
-                 On smaller screens, AQI legend moves below the charts. */
-              <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
-                <div className="flex-1 min-w-0 space-y-4">
-                  {charts.map(draft => (
-                    <AnalyticsChartCard
-                      key={draft.id}
-                      draft={draft}
-                      groupId={groupId}
-                      siteNames={siteNames}
-                      forecastEnabled={forecastChartIds.has(draft.id)}
-                      onForecastToggle={() => handleForecastToggle(draft.id)}
-                      onEdit={handleOpenEdit}
-                      onRequestDelete={handleRequestDelete}
-                      onConfirmDelete={handleConfirmDelete}
-                      onCancelDelete={handleCancelDelete}
-                      onEditTitle={handleEditTitle}
-                      onDuplicate={handleDuplicate}
-                      deleteConfirming={pendingDeleteId === draft.id}
-                    />
-                  ))}
-                </div>
-                {/* Sidebar: AQI reference legend — below charts on small/medium, sticky on large */}
-                <div className="w-full shrink-0 space-y-5 xl:w-[280px] xl:sticky xl:top-24">
-                  <AqiLegend aqiConfig={aqiConfig ?? null} />
-                </div>
+              /* List view — chart cards span the full width */
+              <div className="space-y-4">
+                {charts.map(draft => (
+                  <AnalyticsChartCard
+                    key={draft.id}
+                    draft={draft}
+                    groupId={groupId}
+                    siteNames={siteNames}
+                    forecastEnabled={forecastChartIds.has(draft.id)}
+                    onForecastToggle={() => handleForecastToggle(draft.id)}
+                    onEdit={handleOpenEdit}
+                    onRequestDelete={handleRequestDelete}
+                    onConfirmDelete={handleConfirmDelete}
+                    onCancelDelete={handleCancelDelete}
+                    onEditTitle={handleEditTitle}
+                    onDuplicate={handleDuplicate}
+                    deleteConfirming={pendingDeleteId === draft.id}
+                  />
+                ))}
               </div>
             )}
           </>
@@ -720,7 +801,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           <h1 className="text-2xl text-foreground">Air Quality Analytics</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Monitor current conditions, trends and forecasts for your
-            monitored locations — or explore every location in your network.
+            locations — or explore every monitored location.
           </p>
         </div>
       </div>

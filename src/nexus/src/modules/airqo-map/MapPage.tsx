@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useMediaQuery } from 'react-responsive';
+import { useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
 import { useMapReadings } from './hooks';
@@ -178,6 +179,26 @@ const MapPage: React.FC<MapPageProps> = ({
       dispatch(clearSelectedLocation());
     };
   }, [dispatch, selectionContextKey]);
+
+  // Read lat/lng/zoom from URL search params (e.g. analytics site details →
+  // map). Declared AFTER the reset effect above so the reset runs first —
+  // effects run in declaration order, and the reset would otherwise wipe the
+  // URL target before the map ever sees it.
+  const searchParams = useSearchParams();
+  React.useEffect(() => {
+    const lat = parseFloat(searchParams.get('lat') ?? '');
+    const lng = parseFloat(searchParams.get('lng') ?? '');
+    const zoom = parseFloat(searchParams.get('zoom') ?? '');
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setFlyToLocation({
+        latitude: lat,
+        longitude: lng,
+        zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : undefined,
+      });
+      scheduleFlyToClear();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {

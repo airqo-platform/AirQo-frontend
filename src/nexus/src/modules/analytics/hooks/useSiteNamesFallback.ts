@@ -18,39 +18,46 @@ const SITES_SUMMARY_STALE_MS = 1000 * 60 * 30;
 const SITES_SUMMARY_GC_MS = 1000 * 60 * 60 * 12;
 const SITES_SUMMARY_PAGE_SIZE = 80;
 
+/**
+ * Walks every page of /devices/sites/summary ONCE and returns the complete
+ * fleet site list. Shared between the name-fallback hook and the site
+ * resolution hook (same react-query key, so the 30-minute cache is shared
+ * app-wide). Sequential with a small gap to avoid tripping endpoint rate
+ * limits; one failed page never discards the rest.
+ */
+export const fetchAllSitesSummary = async (
+  signal?: AbortSignal
+): Promise<Record<string, unknown>[]> => {
+  const first = await deviceService.getSitesSummaryAuthenticated(
+    { skip: 0, limit: SITES_SUMMARY_PAGE_SIZE },
+    signal
+  );
+  const totalPages = Math.max(1, first.meta?.totalPages ?? 1);
+  const sites = [...(first.sites ?? [])];
+  for (let page = 1; page < totalPages; page++) {
+    if (signal?.aborted) break;
+    try {
+      const response = await deviceService.getSitesSummaryAuthenticated(
+        {
+          skip: page * SITES_SUMMARY_PAGE_SIZE,
+          limit: SITES_SUMMARY_PAGE_SIZE,
+        },
+        signal
+      );
+      sites.push(...(response.sites ?? []));
+    } catch {
+      // A failed page is fine — the partial map still resolves names
+      // for the pages that did load.
+    }
+    await new Promise(resolve => setTimeout(resolve, 120));
+  }
+  return sites;
+};
+
 export const useSiteNamesFallback = (enabled = true) => {
   const { data, isLoading } = useQuery({
     queryKey: ['analytics', 'site-names-fallback'],
-    queryFn: async ({ signal }) => {
-      // The summary endpoint caps at 80/page — walk every page ONCE (the
-      // result is cached for 30 minutes) so the fleet names are complete.
-      // Sequential with a small gap avoids tripping endpoint rate limits,
-      // and one failed page never discards the rest.
-      const first = await deviceService.getSitesSummaryAuthenticated(
-        { skip: 0, limit: SITES_SUMMARY_PAGE_SIZE },
-        signal
-      );
-      const totalPages = Math.max(1, first.meta?.totalPages ?? 1);
-      const sites = [...(first.sites ?? [])];
-      for (let page = 1; page < totalPages; page++) {
-        if (signal?.aborted) break;
-        try {
-          const response = await deviceService.getSitesSummaryAuthenticated(
-            {
-              skip: page * SITES_SUMMARY_PAGE_SIZE,
-              limit: SITES_SUMMARY_PAGE_SIZE,
-            },
-            signal
-          );
-          sites.push(...(response.sites ?? []));
-        } catch {
-          // A failed page is fine — the partial map still resolves names
-          // for the pages that did load.
-        }
-        await new Promise(resolve => setTimeout(resolve, 120));
-      }
-      return sites;
-    },
+    queryFn: ({ signal }) => fetchAllSitesSummary(signal),
     enabled,
     networkMode: 'online',
     retry: false,
