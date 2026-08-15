@@ -2,9 +2,10 @@ import type { Page } from "@playwright/test";
 import type { CapturedCall } from "./device-mocks";
 
 /**
- * Route interceptions for the Add AirQo Device (claim) wizard's cohort-import
- * path — the only method-select option currently live in the UI (manual/QR/
- * bulk entries are commented out of MethodSelectStep pending completion).
+ * Route interceptions for the Claim AirQo Device wizard's cohort-import path,
+ * and only that path. MethodSelectStep also offers single-device (QR/manual)
+ * and bulk claiming; neither goes through these helpers, and neither has e2e
+ * coverage yet — `POST /devices/claim` is intercepted nowhere in `e2e/`.
  * Verify stays a GET so real cohort-ID validation is exercised; only the
  * assignment mutation is intercepted so runs never mutate real user/cohort
  * state.

@@ -40,7 +40,7 @@ const ConfirmationStep = dynamic(() => import('./steps/ConfirmationSteps').then(
 const MethodSelectStep = dynamic(() => import('./steps/MethodSelectStep'), { loading: StepLoader });
 const BulkInputStep = dynamic(() => import('./steps/BulkInputStep'), { loading: StepLoader });
 
-import { parseQRCode } from './utils';
+import { getClaimErrorMessage, parseQRCode } from './utils';
 
 // ============================================================
 // MODES
@@ -333,7 +333,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // Single claim: error
   useEffect(() => {
     if (claimError) {
-      setError(getApiErrorMessage(claimError));
+      setError(getClaimErrorMessage(claimError));
       setStep('manual-input');
     }
   }, [claimError]);
@@ -367,9 +367,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // Bulk claim: error
   useEffect(() => {
     if (bulkClaimError) {
-      setError(
-        bulkClaimError.message || 'Failed to add airqo devices. Please try again.',
-      );
+      // Deliberately not getClaimErrorMessage: the not-found copy is singular
+      // ("this device") and a bulk failure can span many devices.
+      setError(getApiErrorMessage(bulkClaimError));
       setStep('bulk-input');
     }
   }, [bulkClaimError]);
@@ -639,7 +639,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
   const getDialogConfig = () => {
     const base = {
-      title: 'Add AirQo Device',
+      title: 'Claim AirQo Device',
       showFooter: false,
       showCloseButton: true,
       preventBackdropClose: false,
@@ -670,7 +670,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
           ...base,
           showFooter: true,
           primaryAction: {
-            label: isPending ? 'Adding...' : 'Add AirQo Device',
+            label: isPending ? 'Claiming...' : 'Claim AirQo Device',
             onClick: formMethods.handleSubmit(onManualSubmit),
             disabled: isPending,
           },
@@ -773,7 +773,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       case 'bulk-input':
         return {
           ...base,
-          title: 'Add Multiple Devices',
+          title: 'Claim Multiple Devices',
           showFooter: true,
           primaryAction: {
             label: 'Review & Claim',
