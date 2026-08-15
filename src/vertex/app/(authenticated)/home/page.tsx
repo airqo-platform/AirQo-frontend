@@ -348,11 +348,11 @@ const WelcomePage = () => {
             </div>
             <div>
               <span className="text-lg font-medium text-gray-900 dark:text-white">
-                Import Different Sensor Manufacturer
+                Register Non-AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
-                Import a device from a different manufacturer using a CSV
-                template.
+                Register a sensor from a different manufacturer, singly or from
+                a CSV template.
               </span>
             </div>
           </button>
@@ -448,7 +448,7 @@ const WelcomePage = () => {
                 onClick={() => setIsImportModalOpen(true)}
                 Icon={Upload}
               >
-                Import External Device
+                Register Non-AirQo Device
               </ReusableButton>
             </div>
           </div>

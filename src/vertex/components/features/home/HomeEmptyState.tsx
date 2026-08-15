@@ -49,7 +49,7 @@ const HomeEmptyState = () => {
                         onClick={() => setIsImportModalOpen(true)}
                         Icon={Upload}
                     >
-                        Import External Device
+                        Register Non-AirQo Device
                     </ReusableButton>
                 </div>
 

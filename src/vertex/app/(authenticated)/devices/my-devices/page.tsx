@@ -121,7 +121,7 @@ const MyDevicesPage = () => {
                 Icon={Upload}
                 permission={PERMISSIONS.DEVICE.UPDATE}
               >
-                Import External Device
+                Register Non-AirQo Device
               </ReusableButton>
             </div>
           </div>
@@ -185,7 +185,7 @@ const MyDevicesPage = () => {
               Icon={Upload}
               permission={PERMISSIONS.DEVICE.UPDATE}
             >
-              Import External Device
+              Register Non-AirQo Device
             </ReusableButton>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>

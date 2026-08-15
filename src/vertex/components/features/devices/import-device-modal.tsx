@@ -734,7 +734,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       <ReusableDialog
         isOpen={open}
         onClose={() => onOpenChange(false)}
-        title="Import External Device"
+        title="Register Non-AirQo Device"
         subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
         size="3xl"
         maxHeight="max-h-[55vh]"
