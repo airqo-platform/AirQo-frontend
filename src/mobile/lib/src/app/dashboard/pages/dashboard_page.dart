@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
@@ -6,6 +7,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../auth/bloc/auth_bloc.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
@@ -31,6 +33,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   String? selectedCountry;
   String? userCountry;
   Timer? _backgroundRefreshTimer;
+  final MeasurementCardTourKeys _cardTourKeys = MeasurementCardTourKeys();
+  bool _showCardGesturesTour = false;
 
   @override
   void initState() {
@@ -84,6 +88,32 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     });
   }
 
+  Future<void> _dismissCardGesturesTour() async {
+    setState(() => _showCardGesturesTour = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(measurementCardGesturesTourSeenKey, true);
+  }
+
+  void _maybeShowCardGesturesTour() {
+    if (!kMeasurementCardGesturesTourEnabled || _showCardGesturesTour) return;
+    SharedPreferences.getInstance().then((prefs) {
+      final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
+      if (!seen && mounted) setState(() => _showCardGesturesTour = true);
+    });
+  }
+
+  void _scheduleCardGesturesTourCheck() {
+    if (!kMeasurementCardGesturesTourEnabled) return;
+    scheduleMeasurementCardTourReady(
+      keys: _cardTourKeys,
+      onReady: _maybeShowCardGesturesTour,
+      isActive: () => mounted && !_showCardGesturesTour,
+    );
+  }
+
+  MeasurementCardTourKeys? get _activeCardTourKeys =>
+      kMeasurementCardGesturesTourEnabled ? _cardTourKeys : null;
+
   Future<void> _refreshDashboard() async {
     final completer = Completer<void>();
 
@@ -111,9 +141,12 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
     return Scaffold(
       appBar: DashboardAppBar(),
-      body: Stack(
-        children: [
-          RefreshIndicator(
+      body: BlocListener<DashboardBloc, DashboardState>(
+        listenWhen: (previous, current) => current is DashboardLoaded,
+        listener: (context, state) => _scheduleCardGesturesTourCheck(),
+        child: Stack(
+          children: [
+            RefreshIndicator(
             onRefresh: _refreshDashboard,
             color: AppColors.primaryColor,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -170,7 +203,14 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 child: const Icon(Icons.add, color: Colors.white),
               ),
             ),
+          if (kMeasurementCardGesturesTourEnabled && _showCardGesturesTour)
+            MeasurementCardGesturesTour(
+              tourKeys: _cardTourKeys,
+              steps: buildMeasurementCardGesturesTourSteps(),
+              onDismiss: _dismissCardGesturesTour,
+            ),
         ],
+        ),
       ),
     );
   }
@@ -248,6 +288,11 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               return SliverToBoxAdapter(
                 child: MyPlacesView(
                   userPreferences: state.userPreferences,
+                  tourKeys: _activeCardTourKeys,
+                  onTourTargetReady:
+                      kMeasurementCardGesturesTourEnabled
+                          ? _maybeShowCardGesturesTour
+                          : null,
                 ),
               );
 
@@ -259,6 +304,11 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   onExploreCities: isGuest
                       ? () => setView(DashboardView.explore)
                       : null,
+                  tourKeys: _activeCardTourKeys,
+                  onTourTargetReady:
+                      kMeasurementCardGesturesTourEnabled
+                          ? _maybeShowCardGesturesTour
+                          : null,
                 ),
               );
 
@@ -268,7 +318,14 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                       .where((m) => m.siteDetails?.country == selectedCountry)
                       .toList();
 
-              return MeasurementsList(measurements: countryMeasurements);
+              return MeasurementsList(
+                measurements: countryMeasurements,
+                tourKeys: _activeCardTourKeys,
+                onTourTargetReady:
+                    kMeasurementCardGesturesTourEnabled
+                        ? _maybeShowCardGesturesTour
+                        : null,
+              );
 
             case DashboardView.explore:
               return SliverToBoxAdapter(
@@ -281,6 +338,11 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               return MeasurementsList(
                 measurements:
                     (state.response.measurements ?? []).take(5).toList(),
+                tourKeys: _activeCardTourKeys,
+                onTourTargetReady:
+                    kMeasurementCardGesturesTourEnabled
+                        ? _maybeShowCardGesturesTour
+                        : null,
               );
           }
         }

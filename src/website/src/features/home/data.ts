@@ -12,6 +12,7 @@ import {
   FiStar,
   FiUsers,
 } from 'react-icons/fi';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 /* eslint-enable simple-import-sort/imports */
 
 interface StatItem {
@@ -24,7 +25,10 @@ interface StatItem {
 export const partnerLogos = [
   Google,
   UsMission,
-  'http://res.cloudinary.com/dbibjvyhm/image/upload/v1757926788/website/uploads/partners/logos/CleanAirFund-Logo-ORANGE-CMYK_1_cabye7.png',
+  optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757926788/website/uploads/partners/logos/CleanAirFund-Logo-ORANGE-CMYK_1_cabye7.png',
+    { width: 440 },
+  ),
   WorldBank,
   UN,
 ];

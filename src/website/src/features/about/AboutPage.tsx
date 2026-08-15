@@ -16,8 +16,28 @@ import {
   useExternalTeamMembers,
   usePartners,
 } from '@/hooks/useApiHooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 import { teamService } from '@/services/website';
 import { openModal } from '@/store/slices/modalSlice';
+
+const images = {
+  team: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
+    { width: 1024 },
+  ),
+  frame: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295909/website/photos/about/Frame_ugwgqr.png',
+    { width: 1024 },
+  ),
+  vector3: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728294910/website/photos/about/about_us_vector_3_wiw2ie.png',
+    { width: 800 },
+  ),
+  vector2: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728294910/website/photos/about/about-us-vector-2_mioxcy.png',
+    { width: 800 },
+  ),
+};
 
 // Helper to normalize paginated responses to arrays
 const normalizeList = (data: any) => {
@@ -493,7 +513,7 @@ const AboutPage: React.FC = () => {
         >
           <div className="flex flex-col-reverse relative transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer">
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp"
+              src={images.team}
               alt="Abstract Outline"
               width={1024}
               height={480}
@@ -501,7 +521,7 @@ const AboutPage: React.FC = () => {
               loading="eager"
             />
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295909/website/photos/about/Frame_ugwgqr.png"
+              src={images.frame}
               alt="Abstract Outline"
               width={1024}
               height={49}
@@ -513,7 +533,7 @@ const AboutPage: React.FC = () => {
             <div className="relative w-full h-[400px] flex items-center justify-center">
               {/* Background Abstract Shape Image */}
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728294910/website/photos/about/about_us_vector_3_wiw2ie.png"
+                src={images.vector3}
                 alt="Abstract Background"
                 width={800}
                 height={400}
@@ -523,7 +543,7 @@ const AboutPage: React.FC = () => {
 
               {/* Outline Abstract Shape Image */}
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728294910/website/photos/about/about-us-vector-2_mioxcy.png"
+                src={images.vector2}
                 alt="Abstract Outline"
                 width={800}
                 height={400}

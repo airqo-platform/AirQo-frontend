@@ -102,6 +102,64 @@ const nextConfig = {
       },
     ];
   },
+
+  // Caching + security headers
+  async headers() {
+    const immutableAssets = {
+      key: 'Cache-Control',
+      value: 'public, max-age=31536000, immutable',
+    };
+
+    // Stable, non-fingerprinted URLs must be revalidatable so release
+    // updates to these files are not retained by caches for a year.
+    const revalidatableAssets = {
+      key: 'Cache-Control',
+      value: 'public, max-age=0, must-revalidate',
+    };
+
+    return [
+      {
+        source: '/assets/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/fonts/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/QR/:path*',
+        headers: [immutableAssets],
+      },
+      {
+        source: '/clean-air-forum-2026/:path*',
+        headers: [revalidatableAssets],
+      },
+      {
+        source: '/favicon.ico',
+        headers: [revalidatableAssets],
+      },
+      {
+        source: '/web-app-manifest-192x192.png',
+        headers: [revalidatableAssets],
+      },
+      {
+        source: '/web-app-manifest-512x512.png',
+        headers: [revalidatableAssets],
+      },
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), payment=(), usb=()',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

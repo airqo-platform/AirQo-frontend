@@ -20,11 +20,13 @@ import 'package:permission_handler/permission_handler.dart';
 class CleanAirForumCameraScreen extends StatefulWidget {
   final Measurement measurement;
   final String? fallbackLocationName;
+  final FilterScrimColor scrimColor;
 
   const CleanAirForumCameraScreen({
     super.key,
     required this.measurement,
     this.fallbackLocationName,
+    this.scrimColor = FilterScrimColor.teal,
   });
 
   @override
@@ -256,6 +258,7 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
                     child: _FilterGuideOverlay(
                       measurement: widget.measurement,
                       fallbackLocationName: widget.fallbackLocationName,
+                      scrimColor: widget.scrimColor,
                     ),
                   ),
                 ),
@@ -324,10 +327,12 @@ class _CleanAirForumCameraScreenState extends State<CleanAirForumCameraScreen>
 class _FilterGuideOverlay extends StatelessWidget {
   final Measurement measurement;
   final String? fallbackLocationName;
+  final FilterScrimColor scrimColor;
 
   const _FilterGuideOverlay({
     required this.measurement,
     this.fallbackLocationName,
+    required this.scrimColor,
   });
 
   @override
@@ -347,6 +352,7 @@ class _FilterGuideOverlay extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final scale = constraints.maxWidth / kCafReferenceWidth;
+        final scrim = scrimColor.color;
 
         return IgnorePointer(
           child: Stack(
@@ -363,8 +369,8 @@ class _FilterGuideOverlay extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        CleanAirForumBrand.scrimTeal.withValues(alpha: 0),
-                        CleanAirForumBrand.scrimTeal.withValues(alpha: 0.75),
+                        scrim.withValues(alpha: 0),
+                        scrim.withValues(alpha: 0.75),
                       ],
                     ),
                   ),
@@ -390,7 +396,7 @@ class _FilterGuideOverlay extends StatelessWidget {
                 top: 53 * scale,
                 left: 44 * scale,
                 right: 44 * scale,
-                child: CleanAirForumBrandHeader(scale: scale),
+                child: AirQoFilterHeader(scale: scale),
               ),
               Positioned(
                 left: 44 * scale,

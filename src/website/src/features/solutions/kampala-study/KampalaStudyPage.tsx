@@ -15,6 +15,12 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const communityResearchImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1770218714/website/photos/Solutions/AQ_Research_2_e4hkuj.webp',
+  { width: 1200 },
+);
 
 // Animation variants
 const animations = {
@@ -334,7 +340,7 @@ const KampalaStudyPage = () => {
             <motion.div variants={animations.item} className="relative">
               <div className="relative rounded-xl overflow-hidden shadow-lg">
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1770218714/website/photos/Solutions/AQ_Research_2_e4hkuj.webp"
+                  src={communityResearchImage}
                   alt="Community members discussing and using mobile devices"
                   width={1200}
                   height={800}
