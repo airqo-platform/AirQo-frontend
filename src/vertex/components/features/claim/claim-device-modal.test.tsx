@@ -13,8 +13,7 @@ import {
 import { useUserContext } from "@/core/hooks/useUserContext";
 
 /**
- * Only cohort-import is reachable from the UI (manual/QR/bulk are commented
- * out of MethodSelectStep). Covers what device-lifecycle.spec.ts doesn't:
+ * Covers what device-lifecycle.spec.ts doesn't: method-select wording,
  * back/cancel nav, both confirm-step variants, and both failure shapes.
  */
 
@@ -129,14 +128,17 @@ describe("ClaimDeviceModal — cohort import", () => {
     mockPersonalContext();
   });
 
-  it("only offers Import from Cohort — manual/QR/bulk entry points are not reachable", async () => {
+  it("offers all three claim methods, worded as claiming rather than creating", async () => {
     render(<ClaimDeviceModal isOpen onClose={vi.fn()} />);
 
     expect(
       await screen.findByRole("button", { name: /Import from Cohort/ })
     ).toBeInTheDocument();
-    expect(screen.queryByText("Add Single Device")).not.toBeInTheDocument();
-    expect(screen.queryByText("Add Multiple Devices")).not.toBeInTheDocument();
+    // "Add …" wording is reserved for create-device-modal (admin-only device
+    // creation); every entry point here claims a device AirQo already shipped.
+    expect(screen.getByText("Claim Single Device")).toBeInTheDocument();
+    expect(screen.getByText("Claim Multiple Devices")).toBeInTheDocument();
+    expect(screen.queryByText(/^Add /)).not.toBeInTheDocument();
   });
 
   it("Back from the cohort-import step returns to method-select", async () => {

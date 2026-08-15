@@ -67,7 +67,7 @@ test("denies device actions in an org where the role lacks DEVICE_UPDATE, despit
     page.getByRole("button", { name: "Register Non-AirQo Device" })
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Add AirQo Device" })
+    page.getByRole("button", { name: "Claim AirQo Device" })
   ).toBeDisabled();
 });
 
@@ -84,7 +84,7 @@ test("allows the same device actions in the personal scope that holds DEVICE_UPD
     page.getByRole("button", { name: "Register Non-AirQo Device" })
   ).toBeEnabled({ timeout: 60_000 });
   await expect(
-    page.getByRole("button", { name: "Add AirQo Device" })
+    page.getByRole("button", { name: "Claim AirQo Device" })
   ).toBeEnabled();
 });
 
