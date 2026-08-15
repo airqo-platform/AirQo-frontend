@@ -7,7 +7,6 @@ import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronRight, AqCompass } from '@airqo/icons-react';
-import { useForecast } from '@/modules/airqo-map/hooks';
 import { useSiteRecentReading } from '../../hooks/useSiteRecentReading';
 import { useResolveSiteByName } from '../../hooks/useResolveSiteByName';
 import { resolveReadingSiteName } from '../../utils/siteDetails';
@@ -27,7 +26,7 @@ interface SiteDetailsPageProps {
 
 /**
  * Location detail page (`analytics/sites/[siteSlug]`): breadcrumb nav, AQI
- * gauge hero with pollutant strip, 24H/7D/30D trend, hourly/daily forecast,
+ * gauge hero with pollutant strip, 7D/30D/90D trend, hourly/daily forecast,
  * and health recommendations. The URL only carries the site's display-name
  * slug; the real id is resolved via the fleet sites summary and then handed
  * to the data hooks.
@@ -48,6 +47,11 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   const siteId = resolved?.siteId ?? '';
   const resolvedName = resolved?.displayName ?? null;
 
+  const mapUrl =
+    resolved?.latitude != null && resolved?.longitude != null
+      ? `/user/map?lat=${resolved.latitude}&lng=${resolved.longitude}&zoom=14`
+      : '/user/map';
+
   const {
     data: reading,
     isLoading: readingLoading,
@@ -55,42 +59,18 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
     refetch,
   } = useSiteRecentReading(siteId, !!siteId);
 
-  // Forecast provides the site name and coordinates
-  const forecast = useForecast({
-    siteId,
-    mode: 'daily',
-    enabled: !!siteId,
-  });
+  // Forecast is NOT prefetched here — SiteForecastCard below fetches only
+  // the mode the user has selected (hourly by default), so loading the page
+  // fires exactly one forecast request instead of hourly + daily.
 
-  const forecastSiteName = forecast.siteName;
-
-  // Extract coordinates for the map link — resolved site first (from the
-  // explore click or fleet summary), then forecast site_details.
-  const siteLatLng = useMemo(() => {
-    if (resolved?.latitude != null && resolved?.longitude != null) {
-      return { lat: resolved.latitude, lng: resolved.longitude };
-    }
-    const details = forecast.dailyForecasts?.[0]?.site_details;
-    const lat = details?.site_latitude;
-    const lng = details?.site_longitude;
-    if (lat != null && lng != null) {
-      const latNum = typeof lat === 'number' ? lat : (lat as { parsedValue: number }).parsedValue;
-      const lngNum = typeof lng === 'number' ? lng : (lng as { parsedValue: number }).parsedValue;
-      if (latNum && lngNum) return { lat: latNum, lng: lngNum };
-    }
-    return null;
-  }, [resolved, forecast.dailyForecasts]);
-
-  const mapUrl = siteLatLng
-    ? `/user/map?lat=${siteLatLng.lat}&lng=${siteLatLng.lng}&zoom=14`
-    : '/user/map';
-
-  const readingSiteName = useMemo(() => resolveReadingSiteName(reading), [reading]);
+  const readingSiteName = useMemo(
+    () => resolveReadingSiteName(reading),
+    [reading]
+  );
 
   // Priority: resolved site name (what was clicked in explore) > reading
-  // siteDetails > forecast site_details > raw slug fallback
-  const displayName =
-    resolvedName || readingSiteName || forecastSiteName || siteSlug;
+  // siteDetails > raw slug fallback
+  const displayName = resolvedName || readingSiteName || siteSlug;
 
   if (resolving) {
     return (
@@ -132,7 +112,10 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
           </li>
           <li className="flex items-center gap-1.5" aria-hidden="true">
             <AqChevronRight className="h-3.5 w-3.5" />
-            <span className="truncate font-medium text-foreground" title={displayName}>
+            <span
+              className="truncate font-medium text-foreground"
+              title={displayName}
+            >
               {displayName}
             </span>
           </li>
@@ -147,12 +130,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
             Live air quality, trends and forecast for this location.
           </p>
         </div>
-        <Button
-          variant="outlined"
-          size="md"
-          Icon={AqCompass}
-          path={mapUrl}
-        >
+        <Button variant="outlined" size="md" Icon={AqCompass} path={mapUrl}>
           View on Map
         </Button>
       </div>
@@ -172,7 +150,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
           {/* AQI Hero: gauge + AQI ranges (left) | what this means + pollutants (right) */}
           <SiteCurrentReadingCard reading={reading} />
 
-          {/* Historical trend — 24H / 7D / 30D with PM2.5/PM10 toggle */}
+          {/* Historical trend — 7D / 30D / 90D with PM2.5/PM10 toggle */}
           <SiteTrendChartCard siteId={siteId} siteName={displayName} />
 
           {/* Forecast — full width, before health */}

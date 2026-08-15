@@ -12,11 +12,11 @@ import type {
 } from '@/shared/components/charts/types';
 import type { ChartDataPoint } from '@/shared/types/api';
 
-/** Time-range presets for the location trend chart (24H / 7D / 30D). */
+/** Time-range presets for the location trend chart (7D / 30D / 90D). */
 export const TREND_PERIOD_PRESETS = [
-  { value: '24H', label: '24H' },
   { value: '7D', label: '7D' },
   { value: '30D', label: '30D' },
+  { value: '90D', label: '90D' },
 ] as const;
 
 export type TrendPeriod = (typeof TREND_PERIOD_PRESETS)[number]['value'];
@@ -27,13 +27,13 @@ interface TrendPeriodConfig {
 }
 
 /**
- * Hourly buckets for 24H, daily averages for 7D/30D — matches the D3 chart
- * API's aggregation ladder and keeps the y-axis honest at every preset.
+ * Daily averages for 7D/30D/90D — matches the D3 chart API's aggregation
+ * ladder and keeps the y-axis honest at every preset.
  */
 const PERIOD_CONFIG: Record<TrendPeriod, TrendPeriodConfig> = {
-  '24H': { frequency: 'hourly', days: 1 },
   '7D': { frequency: 'daily', days: 7 },
   '30D': { frequency: 'daily', days: 30 },
+  '90D': { frequency: 'daily', days: 90 },
 };
 
 const TREND_STALE_TIME_MS = 1000 * 60 * 10;
@@ -58,7 +58,7 @@ const toDateKey = (date: Date): string => date.toISOString().split('T')[0];
  */
 export const useSiteTrendData = ({
   siteId,
-  period = '24H',
+  period = '7D',
   pollutant = 'pm2_5',
   enabled = true,
 }: UseSiteTrendDataOptions = {}) => {

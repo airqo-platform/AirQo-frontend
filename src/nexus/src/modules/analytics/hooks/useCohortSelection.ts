@@ -22,6 +22,10 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   // Bounded dedupe window: concurrent consumers of the same key (explore
   // table, location picker) share one in-flight request.
   dedupingInterval: 10000,
+  // Serve cached rows for 10 minutes instead of refetching on every remount
+  // (e.g. navigating explore → site detail → back). The table's manual
+  // refresh button revalidates on demand.
+  staleTime: 10 * 60 * 1000,
 } as const;
 
 const isAbortError = (error: unknown): boolean => {

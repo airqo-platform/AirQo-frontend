@@ -101,6 +101,8 @@ export const useSiteChartData = ({
     retry: false,
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 12,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Refresh data function

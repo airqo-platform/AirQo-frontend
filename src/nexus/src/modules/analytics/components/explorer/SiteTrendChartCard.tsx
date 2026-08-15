@@ -40,12 +40,15 @@ export const SiteTrendChartCard: React.FC<SiteTrendChartCardProps> = ({
   siteName,
   className,
 }) => {
-  const [period, setPeriod] = useState<TrendPeriod>('24H');
+  const [period, setPeriod] = useState<TrendPeriod>('7D');
   const [pollutant, setPollutant] = useState<PollutantType>('pm2_5');
   const { config: aqiConfig } = useAqiConfig(pollutant);
 
-  const { chartData, isLoading, error, hasData } =
-    useSiteTrendData({ siteId, period, pollutant });
+  const { chartData, isLoading, error, hasData } = useSiteTrendData({
+    siteId,
+    period,
+    pollutant,
+  });
 
   const lastUpdated = useMemo(() => {
     if (chartData.length === 0) return null;
@@ -105,7 +108,7 @@ export const SiteTrendChartCard: React.FC<SiteTrendChartCardProps> = ({
           }}
           pollutant={pollutant}
           aqiConfig={aqiConfig}
-          frequency={period === '24H' ? 'hourly' : 'daily'}
+          frequency="daily"
           autoSelectType={false}
           referenceLinePeriod="24hr"
         />
