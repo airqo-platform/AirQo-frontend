@@ -12,10 +12,22 @@ Two modals shared the identical label **"Add AirQo Device"** while performing in
 <details>
 <summary><strong>Fix: every claim entry point now says "Claim", not "Add"</strong></summary>
 
-- **Trigger buttons** renamed to "Claim AirQo Device" on `home` (both the header button and the quick-action card), `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `HomeEmptyState`, and `cohorts-empty-state`.
+- **Trigger buttons** renamed to "Claim AirQo Device" on `home` (both the header button and the claim card inside the "Add a device" chooser dialog), `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `HomeEmptyState`, and `cohorts-empty-state`.
 - **The modal itself** was the other half of the problem: its own dialog title was also "Add AirQo Device", so even a user who clicked through from a corrected button landed on a header still reading "Add". Base title → "Claim AirQo Device"; the manual-input primary action → "Claim AirQo Device" / "Claiming…"; the bulk step title → "Claim Multiple Devices".
 - **`MethodSelectStep`'s cards** carried the same create-implication one screen deeper — "Add Single Device" / "Add Multiple Devices" → "Claim …", and the intro copy now states the devices must already have been shipped to you.
 - **Admin → Networks is unchanged.** It keeps "Add AirQo Device" because it is genuine creation. Audited rather than assumed: the button renders only inside `RouteGuard permission={PERMISSIONS.NETWORK.VIEW}`, only in the `isAirQoNetwork` branch, and gates on `DEVICE.UPDATE`.
+
+</details>
+
+<details>
+<summary><strong>Fix: the home claim button was gated on <code>DEVICE_UPDATE</code>, not <code>DEVICE_CLAIM</code></strong></summary>
+
+- Renaming the button to "Claim" exposed that `home` authorizes it against the wrong permission. `canClaimDevice` was `permissionsMap[PERMISSIONS.DEVICE.UPDATE]` — named for claiming, holding update. The button drives `setIsClaimModalOpen` → `ClaimDeviceModal` → `useClaimDevice` → `POST /devices/claim`, so `DEVICE_CLAIM` is what the backend actually enforces.
+- **Consequences both ways:** a user with `DEVICE_UPDATE` but not `DEVICE_CLAIM` got an *enabled* button leading to a request the backend rejects; a user with `DEVICE_CLAIM` but not `DEVICE_UPDATE` got it *disabled* despite being permitted — and could reach the identical flow anyway via My Devices or Overview.
+- The tooltip compounded it: `usePermissionDescription(PERMISSIONS.DEVICE.UPDATE)` told a blocked user to obtain the permission that would not have unblocked them.
+- **The two `OnboardingChecklistWrapper` call sites had to move too.** `canClaimDevice` feeds `isReadOnly` in `components/onboarding-checklist/index.tsx`, while `missingPermission` was independently hardcoded to `DEVICE.UPDATE` at both call sites. Switching only the derivation would have left the checklist disabled by `CLAIM` while naming `UPDATE` as the missing permission — the same check/tooltip mismatch corrected for `overview` in 2.0.28.
+- Restores the policy that entry stated: **claim → `DEVICE_CLAIM`, import → `DEVICE_UPDATE`**. `home` was missed at the time; `my-devices` and `devices/overview` were already correct and are untouched here.
+- **Still inconsistent, deliberately out of scope:** the chooser card (`home`), `HomeEmptyState`, and `cohorts-empty-state` gate on nothing at all, and the home import button is likewise ungated. Those change who sees an enabled button and warrant their own review — as does the fact that `rbac/action-visibility.spec.ts` covers the claim button on `my-devices` and `devices/overview` but not `home`, which is why this divergence went unnoticed.
 
 </details>
 
@@ -60,7 +72,7 @@ Two modals shared the identical label **"Add AirQo Device"** while performing in
 - `components/features/claim/steps/MethodSelectStep.tsx` — method cards and intro copy reworded to claiming
 - `components/features/claim/steps/ManualInputStep.tsx` — expanded helper text, support mailto, import pointer
 - `components/features/claim/claim-device-modal.test.tsx` — method-select case rewritten; stale header comment corrected
-- `app/(authenticated)/home/page.tsx` — header button + quick-action card
+- `app/(authenticated)/home/page.tsx` — header button + chooser-dialog card; claim gating moved from `DEVICE.UPDATE` to `DEVICE.CLAIM` (derivation, tooltip description, both `OnboardingChecklistWrapper` `missingPermission` props, and the button's `permission` prop)
 - `app/(authenticated)/devices/my-devices/page.tsx` — header button in both the loaded and error states
 - `app/(authenticated)/devices/overview/page.tsx` — header button
 - `components/features/home/HomeEmptyState.tsx` — button + empty-state copy
