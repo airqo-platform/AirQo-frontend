@@ -56,7 +56,7 @@ const ManualInputStep = ({
         >
           Contact AirQo support
         </a>
-        , or close this dialog and use <span className="font-medium">Import External Device</span> to add a sensor you already own.
+        , or close this dialog and use <span className="font-medium">Register Non-AirQo Device</span> to add a sensor you already own.
       </p>
     </div>
   </Form>
