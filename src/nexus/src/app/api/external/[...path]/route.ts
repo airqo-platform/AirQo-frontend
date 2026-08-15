@@ -16,6 +16,7 @@ const DEFAULT_PROXY_TIMEOUT_MS = 30000;
 //                     /analytics/dashboard/chart/d3/data
 //   deviceService: /devices/sites/summary, /devices/grids/summary,
 //                  /devices/grids/countries, /devices/readings/map,
+//                  /devices/measurements/{cohorts,sites,devices}/...,
 //                  /predict/daily-forecasting, /predict/hourly-forecasting
 //   rankingsService: /devices/readings/rankings (and .../rankings/history)
 //   userService: /users/preferences/replace
@@ -26,6 +27,7 @@ const ALLOWED_PATH_PREFIXES = [
   'devices/grids/summary',
   'devices/grids/countries',
   'devices/readings/map',
+  'devices/measurements',
   'analytics/data-download',
   'analytics/dashboard/chart/d3/data',
   'predict/daily-forecasting',

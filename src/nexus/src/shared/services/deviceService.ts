@@ -23,6 +23,9 @@ import type {
   DailyForecastResponse,
   HourlyForecastResponse,
   CohortResponse,
+  MeasurementsResponse,
+  MeasurementsQueryParams,
+  SiteAveragesResponse,
 } from '../types/api';
 
 type LegacyCohortPagination = {
@@ -612,6 +615,112 @@ export class DeviceService {
     }
 
     return data as MapReadingsResponse;
+  }
+
+  // ---- Measurements v2 endpoints (API token, proxied via /api/external) ----
+
+  private async getMeasurements<T extends MeasurementsResponse>(
+    path: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<T> {
+    const response = await this.serverClient.get<T | ApiErrorResponse>(path, {
+      params,
+      signal,
+    });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get measurements');
+    }
+
+    return data as T;
+  }
+
+  // Recent measurements for a cohort (organization fleet live snapshot)
+  async getRecentCohortMeasurements(
+    cohortId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<MeasurementsResponse> {
+    return this.getMeasurements(
+      `/devices/measurements/cohorts/${cohortId}/recent`,
+      params,
+      signal
+    );
+  }
+
+  // Historical measurements for a cohort (fleet trend series)
+  async getHistoricalCohortMeasurements(
+    cohortId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<MeasurementsResponse> {
+    return this.getMeasurements(
+      `/devices/measurements/cohorts/${cohortId}/historical`,
+      params,
+      signal
+    );
+  }
+
+  // Historical measurements for a single site
+  async getHistoricalSiteMeasurements(
+    siteId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<MeasurementsResponse> {
+    return this.getMeasurements(
+      `/devices/measurements/sites/${siteId}/historical`,
+      params,
+      signal
+    );
+  }
+
+  // Air quality averages for a single site (daily + week-over-week delta)
+  async getSiteAverages(
+    siteId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<SiteAveragesResponse> {
+    const response = await this.serverClient.get<
+      SiteAveragesResponse | ApiErrorResponse
+    >(`/devices/measurements/sites/${siteId}/averages`, {
+      params,
+      signal,
+    });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get site averages');
+    }
+
+    return data as SiteAveragesResponse;
+  }
+
+  // Recent measurements for a single device
+  async getRecentDeviceMeasurements(
+    deviceId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<MeasurementsResponse> {
+    return this.getMeasurements(
+      `/devices/measurements/devices/${deviceId}/recent`,
+      params,
+      signal
+    );
+  }
+
+  // Historical measurements for a single device
+  async getHistoricalDeviceMeasurements(
+    deviceId: string,
+    params: MeasurementsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<MeasurementsResponse> {
+    return this.getMeasurements(
+      `/devices/measurements/devices/${deviceId}/historical`,
+      params,
+      signal
+    );
   }
 
   // Get daily forecast data - new v2 endpoint (proxied to avoid CORS).

@@ -1,6 +1,11 @@
-// Intentionally empty — the organization dashboard is being rebuilt.
-// The previous favorites-based analytics dashboard was removed; a new
-// dashboard will replace this placeholder.
+'use client';
+
+import { useParams } from 'next/navigation';
+import { OrgDashboard } from '@/modules/org-dashboard';
+
 export default function OrgDashboardPage() {
-  return <div />;
+  const params = useParams();
+  const org_slug = (params.org_slug as string) ?? '';
+
+  return <OrgDashboard organizationSlug={org_slug} />;
 }

@@ -40,7 +40,11 @@ function makeRequest(
   headers?: Record<string, string>
 ): NextRequest {
   const url = `http://localhost:3000/api/external/${path}`;
-  const init: { method: string; headers: Record<string, string>; body?: string } = {
+  const init: {
+    method: string;
+    headers: Record<string, string>;
+    body?: string;
+  } = {
     method,
     headers: {
       'content-type': 'application/json',
@@ -70,8 +74,10 @@ describe('/api/external/[...path] - Security', () => {
     it('returns 401 when no session exists', async () => {
       mockGetServerSession.mockResolvedValue(null);
 
-      const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const req = makeRequest('GET', 'devices/readings/recent');
+      const res = await GET(req, {
+        params: { path: ['devices', 'readings', 'recent'] },
+      });
 
       expect(res.status).toBe(401);
       const body = await res.json();
@@ -82,8 +88,10 @@ describe('/api/external/[...path] - Security', () => {
     it('returns 401 when session has no user', async () => {
       mockGetServerSession.mockResolvedValue({ user: null });
 
-      const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const req = makeRequest('GET', 'devices/readings/recent');
+      const res = await GET(req, {
+        params: { path: ['devices', 'readings', 'recent'] },
+      });
 
       expect(res.status).toBe(401);
       expect(mockFetch).not.toHaveBeenCalled();
@@ -99,6 +107,18 @@ describe('/api/external/[...path] - Security', () => {
 
       expect(mockFetch).toHaveBeenCalled();
     });
+
+    it('allows session-free paths without a session', async () => {
+      mockGetServerSession.mockResolvedValue(null);
+
+      const req = makeRequest('GET', 'devices/sites/summary');
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
+
+      expect(res.status).toBe(200);
+      expect(mockFetch).toHaveBeenCalled();
+    });
   });
 
   describe('Path traversal protection', () => {
@@ -110,7 +130,9 @@ describe('/api/external/[...path] - Security', () => {
 
     it('rejects paths containing .. segments', async () => {
       const req = makeRequest('GET', '../../admin/config');
-      const res = await GET(req, { params: { path: ['..', '..', 'admin', 'config'] } });
+      const res = await GET(req, {
+        params: { path: ['..', '..', 'admin', 'config'] },
+      });
 
       expect(res.status).toBe(400);
       const body = await res.json();
@@ -136,7 +158,9 @@ describe('/api/external/[...path] - Security', () => {
 
     it('allows GET to devices/ prefix', async () => {
       const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
 
       expect(res.status).toBe(200);
       expect(mockFetch).toHaveBeenCalled();
@@ -144,7 +168,9 @@ describe('/api/external/[...path] - Security', () => {
 
     it('allows GET to analytics/ prefix', async () => {
       const req = makeRequest('GET', 'analytics/data-download');
-      const res = await GET(req, { params: { path: ['analytics', 'data-download'] } });
+      const res = await GET(req, {
+        params: { path: ['analytics', 'data-download'] },
+      });
 
       expect(res.status).toBe(200);
       expect(mockFetch).toHaveBeenCalled();
@@ -152,7 +178,9 @@ describe('/api/external/[...path] - Security', () => {
 
     it('allows GET to predict/ prefix', async () => {
       const req = makeRequest('GET', 'predict/daily-forecasting/');
-      const res = await GET(req, { params: { path: ['predict', 'daily-forecasting/'] } });
+      const res = await GET(req, {
+        params: { path: ['predict', 'daily-forecasting/'] },
+      });
 
       expect(res.status).toBe(200);
       expect(mockFetch).toHaveBeenCalled();
@@ -160,7 +188,9 @@ describe('/api/external/[...path] - Security', () => {
 
     it('allows GET to users/ prefix', async () => {
       const req = makeRequest('GET', 'users/preferences/replace');
-      const res = await GET(req, { params: { path: ['users', 'preferences', 'replace'] } });
+      const res = await GET(req, {
+        params: { path: ['users', 'preferences', 'replace'] },
+      });
 
       expect(res.status).toBe(200);
       expect(mockFetch).toHaveBeenCalled();
@@ -194,21 +224,35 @@ describe('/api/external/[...path] - Security', () => {
 
     it('allows GET requests', async () => {
       const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
 
       expect(res.status).toBe(200);
     });
 
     it('allows POST requests', async () => {
-      const req = makeRequest('POST', 'analytics/data-download', '{"key":"value"}');
-      const res = await POST(req, { params: { path: ['analytics', 'data-download'] } });
+      const req = makeRequest(
+        'POST',
+        'analytics/data-download',
+        '{"key":"value"}'
+      );
+      const res = await POST(req, {
+        params: { path: ['analytics', 'data-download'] },
+      });
 
       expect(res.status).toBe(200);
     });
 
     it('allows PATCH requests', async () => {
-      const req = makeRequest('PATCH', 'users/preferences/replace', '{"key":"value"}');
-      const res = await PATCH(req, { params: { path: ['users', 'preferences', 'replace'] } });
+      const req = makeRequest(
+        'PATCH',
+        'users/preferences/replace',
+        '{"key":"value"}'
+      );
+      const res = await PATCH(req, {
+        params: { path: ['users', 'preferences', 'replace'] },
+      });
 
       expect(res.status).toBe(200);
     });
@@ -254,7 +298,9 @@ describe('/api/external/[...path] - Security', () => {
     it('returns 500 when API_TOKEN is not configured', async () => {
       process.env.API_TOKEN = '';
       const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
 
       expect(res.status).toBe(500);
       const body = await res.json();
@@ -275,7 +321,9 @@ describe('/api/external/[...path] - Security', () => {
       );
 
       const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
 
       expect(res.status).toBe(504);
       const body = await res.json();
@@ -286,7 +334,9 @@ describe('/api/external/[...path] - Security', () => {
       mockFetch.mockRejectedValue(new Error('network error'));
 
       const req = makeRequest('GET', 'devices/sites/summary');
-      const res = await GET(req, { params: { path: ['devices', 'sites', 'summary'] } });
+      const res = await GET(req, {
+        params: { path: ['devices', 'sites', 'summary'] },
+      });
 
       expect(res.status).toBe(500);
       const body = await res.json();

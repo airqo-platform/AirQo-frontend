@@ -1182,6 +1182,109 @@ export interface MapReadingsResponse {
   measurements: MapReading[];
 }
 
+// Measurements v2 endpoints — /devices/measurements/{cohorts,sites,devices}/...
+// Response envelope is shared across recent / historical / averages routes:
+//   { success, isCache?, message, meta?, measurements }
+// `meta` is present on list-style responses (recent/historical) and absent on
+// the site-averages route (which returns an averages object instead).
+
+export interface MeasurementValue {
+  value: number | null;
+}
+
+export interface MeasurementPollutants {
+  pm2_5?: MeasurementValue;
+  pm10?: MeasurementValue;
+  no2?: MeasurementValue;
+}
+
+export interface MeasurementDeviceDetails {
+  _id: string;
+  name: string;
+  latitude?: number;
+  longitude?: number;
+  isOnline?: boolean;
+  lastRawData?: string;
+  rawOnlineStatus?: boolean;
+  latest_pm2_5?: {
+    raw?: { value?: number; time?: string };
+    calibrated?: {
+      value?: number;
+      time?: string;
+      uncertainty?: number | null;
+      standardDeviation?: number | null;
+    };
+  };
+  deployment_type?: string;
+  dateValidStatus?: string;
+}
+
+export interface MeasurementMeta {
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+  skip: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startTime?: string;
+  endTime?: string;
+  optimized?: boolean;
+}
+
+export interface Measurement extends MeasurementPollutants {
+  device: string;
+  device_id: string;
+  site_id: string;
+  time: string;
+  frequency: string;
+  deviceDetails?: MeasurementDeviceDetails;
+  is_reading_primary?: boolean;
+  health_tips?: HealthTip[];
+  averages?: Averages;
+  siteDetails?: Partial<MapSiteDetails>;
+  [key: string]: unknown;
+}
+
+export interface MeasurementsResponse {
+  success: boolean;
+  isCache?: boolean;
+  message: string;
+  meta?: MeasurementMeta;
+  measurements: Measurement[] | null;
+}
+
+export interface SiteAverages {
+  dailyAverage: number | null;
+  overallAverage?: number | null;
+  percentageDifference?: number | null;
+  hasSufficientData?: boolean;
+  weeklyAverages?: {
+    currentWeek: number;
+    previousWeek: number;
+  };
+  isHistorical?: boolean;
+}
+
+export interface SiteAveragesResponse {
+  success: boolean;
+  isCache?: boolean;
+  message: string;
+  measurements: SiteAverages | SiteAverages[] | null;
+}
+
+export interface MeasurementsQueryParams {
+  startTime?: string;
+  endTime?: string;
+  frequency?: 'hourly' | 'daily' | 'raw' | 'minute';
+  format?: 'json' | 'csv';
+  limit?: number;
+  skip?: number;
+  metadata?: 'site' | 'site_id' | 'device' | 'device_id';
+  primary?: 'yes' | 'no';
+  recent?: 'yes' | 'no';
+}
+
 // Forecast types – Daily Forecasting API v2
 
 export interface DailyForecastMet {
