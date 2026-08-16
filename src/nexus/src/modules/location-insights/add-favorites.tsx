@@ -192,16 +192,28 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           if (!newCache.has(id)) {
             const site = sites.find(s => s.id === id);
             if (site) {
+              const toNumber = (value: unknown): number | undefined =>
+                typeof value === 'number' && Number.isFinite(value)
+                  ? value
+                  : undefined;
               newCache.set(id, {
                 _id: site.id,
                 name: site.location,
                 search_name: site.location,
                 city: site.city,
                 country: site.country,
-                latitude: 0,
-                longitude: 0,
-                approximate_latitude: 0,
-                approximate_longitude: 0,
+                latitude:
+                  toNumber(site._raw?.latitude) ??
+                  toNumber(site._raw?.lat) ??
+                  toNumber(site._raw?.approximate_latitude),
+                longitude:
+                  toNumber(site._raw?.longitude) ??
+                  toNumber(site._raw?.lng) ??
+                  toNumber(site._raw?.approximate_longitude),
+                approximate_latitude: toNumber(site._raw?.approximate_latitude),
+                approximate_longitude: toNumber(
+                  site._raw?.approximate_longitude
+                ),
                 generated_name: site.location,
                 createdAt: new Date().toISOString(),
               });
@@ -211,15 +223,6 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
 
         return newCache;
       });
-
-      // Show warning if over limit, but allow the selection
-      if (newSelectedIds.length > 4) {
-        setErrorMessage(
-          `You have selected ${newSelectedIds.length} locations. Maximum allowed is 4. Please deselect ${newSelectedIds.length - 4} location(s) before saving.`
-        );
-      } else {
-        setErrorMessage('');
-      }
     },
     [sites]
   );
@@ -242,17 +245,13 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Check if we exceed the limit
-    if (selectedIds.length > 4) {
-      setErrorMessage(
-        `Cannot save ${selectedIds.length} locations. Maximum allowed is 4. Please deselect ${selectedIds.length - 4} location(s) first.`
-      );
-      return;
-    }
-
+    setErrorMessage('');
     try {
-      // Get selected sites data from cache
-      const sitesToSave: Site[] = Array.from(siteDataCache.values());
+      // Save exactly what is selected — never the whole cache (the cache is
+      // usually a mirror of the selection, but must not be trusted for it).
+      const sitesToSave: Site[] = selectedIds
+        .map(id => siteDataCache.get(id))
+        .filter((site): site is Site => site !== undefined);
 
       // Update user preferences
       await updatePreferences({
@@ -285,13 +284,18 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       // Close dialog on success
       onClose();
     } catch (error) {
-      console.error('Failed to save favorites:', error);
+      // Log only the status/message — axios errors carry Authorization headers
+      console.error('Failed to save favorites:', {
+        status: (error as { response?: { status?: unknown } })?.response
+          ?.status,
+        message: (error as { message?: unknown })?.message,
+      });
       setErrorMessage('Failed to save favorites. Please try again.');
     }
   }, [
     user?.id,
     activeGroup?.id,
-    selectedIds.length,
+    selectedIds,
     siteDataCache,
     updatePreferences,
     markLocationStepCompleted,
@@ -328,7 +332,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           ) : (
             <div className="space-y-2">
               <h3 className="text-sm font-medium dark:text-gray-100 mb-3">
-                Selected Favorites ({selectedIds.length}/4)
+                Selected Favorites ({selectedIds.length})
               </h3>
               <AnimatePresence>
                 {allSelectedLocations.map(location => (
@@ -362,8 +366,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           ? 'Saving...'
           : `Save Favorites (${selectedIds.length})`,
         onClick: handleAddLocation,
-        disabled:
-          selectedIds.length === 0 || selectedIds.length > 4 || isUpdating,
+        disabled: selectedIds.length === 0 || isUpdating,
       }}
       onClear={handleClearAll}
       showClear={selectedIds.length > 0}

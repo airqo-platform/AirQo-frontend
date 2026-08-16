@@ -2,12 +2,7 @@
 
 import * as React from 'react';
 import { Button } from '@/shared/components/ui/button';
-import {
-  AqRefreshCcw01,
-  AqCompass,
-  AqSettings01,
-  AqMarkerPin01,
-} from '@airqo/icons-react';
+import { AqRefreshCcw01, AqCompass, AqSettings01 } from '@airqo/icons-react';
 
 interface DashboardHeaderProps {
   organizationTitle: string;
@@ -19,6 +14,15 @@ interface DashboardHeaderProps {
   mapHref?: string;
   onManageLocations?: () => void;
 }
+
+const formatOrgName = (name: string, maxLen = 30): string => {
+  const cleaned = name.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const titled = cleaned
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+  return titled.length > maxLen ? `${titled.slice(0, maxLen - 1)}…` : titled;
+};
 
 const formatLastUpdated = (iso: string): string => {
   const date = new Date(iso);
@@ -53,12 +57,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <AqMarkerPin01 className="h-5 w-5 text-primary" />
-          <h1 className="truncate text-2xl text-foreground">
-            {organizationTitle}
-          </h1>
-        </div>
+        <h1 className="truncate text-2xl text-foreground">
+          {formatOrgName(organizationTitle)}
+        </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           {subtitle ?? locationContext}
         </p>
@@ -68,7 +69,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </p>
         )}
       </div>
-      <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-shrink-0 sm:flex-wrap sm:items-center">
         {onRefresh && (
           <Button
             variant="outlined"
@@ -76,6 +77,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             Icon={AqRefreshCcw01}
             onClick={onRefresh}
             disabled={isRefreshing}
+            className="w-full sm:w-auto"
           >
             {isRefreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
@@ -86,12 +88,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             size="md"
             Icon={AqSettings01}
             onClick={onManageLocations}
+            className="w-full sm:w-auto"
           >
             Manage Locations
           </Button>
         )}
         {mapHref && (
-          <Button variant="outlined" size="md" Icon={AqCompass} path={mapHref}>
+          <Button
+            variant="outlined"
+            size="md"
+            Icon={AqCompass}
+            path={mapHref}
+            className="w-full sm:w-auto"
+          >
             View on Map
           </Button>
         )}

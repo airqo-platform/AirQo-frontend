@@ -1,13 +1,10 @@
-import type { Measurement, Site, SiteAverages } from '@/shared/types/api';
 import type { AqiConfig } from '@/shared/types/aqi';
+import type { SiteData } from '@/modules/analytics';
 import {
-  buildFleetDailySeries,
-  buildLocationCardData,
-  buildSiteDailySeriesMap,
+  buildFleetAverageSeries,
   countLevelDistribution,
-  getMeasurementValue,
-  latestMeasurementPerSite,
-  summarizeFleetMeasurements,
+  getFriendlyErrorMessage,
+  summarizeSiteCards,
 } from '../measurements';
 
 const mockAqiConfig: AqiConfig = {
@@ -68,99 +65,61 @@ const mockAqiConfig: AqiConfig = {
   ],
 };
 
-const makeMeasurement = (
-  overrides: Partial<Measurement> & { site_id: string }
-): Measurement => ({
-  device: 'aq_g1',
-  device_id: 'dev-1',
-  time: '2026-08-15T06:00:00.000Z',
-  pm2_5: { value: 12.5 },
-  pm10: { value: 20.1 },
-  no2: { value: null },
-  frequency: 'hourly',
-  is_reading_primary: true,
-  deviceDetails: { _id: 'dev-1', name: 'aq_g1', isOnline: true },
+const makeCard = (
+  overrides: Partial<SiteData> & { _id: string }
+): SiteData => ({
+  name: 'Site',
+  location: 'Kampala, Uganda',
+  value: 12.5,
+  status: 'moderate',
+  pollutant: 'pm2_5',
+  unit: 'µg/m³',
+  trend: 'stable',
   ...overrides,
 });
 
-describe('getMeasurementValue', () => {
-  it('returns the numeric value for the selected pollutant', () => {
-    const measurement = makeMeasurement({
-      site_id: 's1',
-      pm2_5: { value: 9.5 },
-    });
-    expect(getMeasurementValue(measurement, 'pm2_5')).toBe(9.5);
-    expect(getMeasurementValue(measurement, 'pm10')).toBe(20.1);
-  });
-
-  it('returns null for null / non-finite values', () => {
-    const measurement = makeMeasurement({
-      site_id: 's1',
-      pm2_5: { value: null },
-    });
-    expect(getMeasurementValue(measurement, 'pm2_5')).toBeNull();
-  });
-});
-
-describe('latestMeasurementPerSite', () => {
-  it('dedupes multiple devices per site, preferring primary and newest', () => {
-    const older = makeMeasurement({
-      site_id: 's1',
-      device_id: 'dev-1',
-      time: '2026-08-15T05:00:00.000Z',
-      pm2_5: { value: 10 },
-      is_reading_primary: false,
-    });
-    const newer = makeMeasurement({
-      site_id: 's1',
-      device_id: 'dev-2',
-      time: '2026-08-15T06:00:00.000Z',
-      pm2_5: { value: 22 },
-      is_reading_primary: true,
-    });
-    const map = latestMeasurementPerSite([older, newer]);
-    expect(map.size).toBe(1);
-    expect(map.get('s1')?.pm2_5?.value).toBe(22);
-  });
-
-  it('returns an empty map for null/undefined input', () => {
-    expect(latestMeasurementPerSite(null).size).toBe(0);
-    expect(latestMeasurementPerSite(undefined).size).toBe(0);
-  });
-});
-
-describe('summarizeFleetMeasurements', () => {
-  it('averages concentrations and classifies with the config', () => {
-    const latest = latestMeasurementPerSite([
-      makeMeasurement({ site_id: 's1', pm2_5: { value: 10 } }),
-      makeMeasurement({ site_id: 's2', pm2_5: { value: 20 } }),
-    ]);
-    const summary = summarizeFleetMeasurements(latest, 'pm2_5', null);
+describe('summarizeSiteCards', () => {
+  it('averages reporting cards and classifies with the config', () => {
+    const cards = [
+      makeCard({ _id: 's1', name: 'Kisumu', value: 10, status: 'good' }),
+      makeCard({ _id: 's2', name: 'Kampala', value: 20, status: 'moderate' }),
+    ];
+    const summary = summarizeSiteCards(cards, 'pm2_5', mockAqiConfig);
+    expect(summary.totalSiteCount).toBe(2);
     expect(summary.monitoredSiteCount).toBe(2);
     expect(summary.averageConcentration).toBe(15);
-    expect(summary.worstSite?.siteId).toBe('s2');
-    expect(summary.cleanestSite?.siteId).toBe('s1');
+    expect(summary.worstSite?.name).toBe('Kampala');
+    expect(summary.cleanestSite?.name).toBe('Kisumu');
   });
 
-  it('reports no-value when no site has data', () => {
-    const latest = latestMeasurementPerSite([
-      makeMeasurement({ site_id: 's1', pm2_5: { value: null } }),
-    ]);
-    const summary = summarizeFleetMeasurements(latest, 'pm2_5', null);
+  it('ignores no-value cards and reports no average when none report', () => {
+    const cards = [
+      makeCard({ _id: 's1', value: 0, status: 'no-value' }),
+      makeCard({ _id: 's2', value: 0, status: 'no-value' }),
+    ];
+    const summary = summarizeSiteCards(cards, 'pm2_5', null);
+    expect(summary.totalSiteCount).toBe(2);
+    expect(summary.monitoredSiteCount).toBe(0);
     expect(summary.averageConcentration).toBeNull();
     expect(summary.averageLevel).toBe('no-value');
     expect(summary.worstSite).toBeNull();
   });
+
+  it('handles null/undefined input', () => {
+    const summary = summarizeSiteCards(null, 'pm2_5', null);
+    expect(summary.totalSiteCount).toBe(0);
+    expect(summary.monitoredSiteCount).toBe(0);
+  });
 });
 
 describe('countLevelDistribution', () => {
-  it('counts sites per AQI level', () => {
-    const latest = latestMeasurementPerSite([
-      makeMeasurement({ site_id: 's1', pm2_5: { value: 4 } }), // good
-      makeMeasurement({ site_id: 's2', pm2_5: { value: 20 } }), // moderate
-      makeMeasurement({ site_id: 's3', pm2_5: { value: null } }), // no value
-    ]);
-    const distribution = countLevelDistribution(latest, 'pm2_5', mockAqiConfig);
+  it('counts cards per AQI level including no-value', () => {
+    const cards = [
+      makeCard({ _id: 's1', value: 4, status: 'good' }),
+      makeCard({ _id: 's2', value: 20, status: 'moderate' }),
+      makeCard({ _id: 's3', value: 0, status: 'no-value' }),
+    ];
+    const distribution = countLevelDistribution(cards, mockAqiConfig);
     const good = distribution.find(entry => entry.level === 'good');
     const moderate = distribution.find(entry => entry.level === 'moderate');
     const noValue = distribution.find(entry => entry.level === 'no-value');
@@ -170,123 +129,105 @@ describe('countLevelDistribution', () => {
     expect(distribution.reduce((sum, entry) => sum + entry.count, 0)).toBe(3);
   });
 
-  it('classifies sites as no-value when no config is available', () => {
-    const latest = latestMeasurementPerSite([
-      makeMeasurement({ site_id: 's1', pm2_5: { value: 4 } }),
-    ]);
-    const distribution = countLevelDistribution(latest, 'pm2_5', null);
+  it('maps very-unhealthy to the very_unhealthy range color', () => {
+    const cards = [
+      makeCard({ _id: 's1', value: 150, status: 'very-unhealthy' }),
+    ];
+    const distribution = countLevelDistribution(cards, mockAqiConfig);
+    const veryUnhealthy = distribution.find(
+      entry => entry.level === 'very-unhealthy'
+    );
+    expect(veryUnhealthy?.count).toBe(1);
+    expect(veryUnhealthy?.color).toBe('#8B5CF6');
+  });
+
+  it('counts everything as no-value without a config', () => {
+    const cards = [makeCard({ _id: 's1', value: 4, status: 'no-value' })];
+    const distribution = countLevelDistribution(cards, null);
     const noValue = distribution.find(entry => entry.level === 'no-value');
     expect(noValue?.count).toBe(1);
-    expect(distribution.reduce((sum, entry) => sum + entry.count, 0)).toBe(1);
   });
 });
 
-describe('buildFleetDailySeries', () => {
-  it('averages measurements per day and sorts chronologically', () => {
-    const measurements = [
-      makeMeasurement({
-        site_id: 's1',
-        time: '2026-08-10T06:00:00.000Z',
-        pm2_5: { value: 10 },
-      }),
-      makeMeasurement({
-        site_id: 's2',
-        time: '2026-08-10T12:00:00.000Z',
-        pm2_5: { value: 20 },
-      }),
-      makeMeasurement({
-        site_id: 's1',
-        time: '2026-08-11T06:00:00.000Z',
-        pm2_5: { value: 30 },
-      }),
-    ];
-    const series = buildFleetDailySeries(measurements, 'pm2_5');
-    expect(series).toHaveLength(2);
-    expect(series[0]).toEqual({ date: '2026-08-10', value: 15 });
-    expect(series[1]).toEqual({ date: '2026-08-11', value: 30 });
-  });
-});
-
-describe('buildSiteDailySeriesMap', () => {
-  it('groups daily averages by site', () => {
-    const measurements = [
-      makeMeasurement({
-        site_id: 's1',
-        time: '2026-08-10T06:00:00.000Z',
-        pm2_5: { value: 10 },
-      }),
-      makeMeasurement({
-        site_id: 's1',
-        time: '2026-08-10T12:00:00.000Z',
-        pm2_5: { value: 20 },
-      }),
-      makeMeasurement({
-        site_id: 's2',
-        time: '2026-08-10T06:00:00.000Z',
-        pm2_5: { value: 40 },
-      }),
-    ];
-    const map = buildSiteDailySeriesMap(measurements, 'pm2_5');
-    expect(map.get('s1')).toEqual([{ date: '2026-08-10', value: 15 }]);
-    expect(map.get('s2')).toEqual([{ date: '2026-08-10', value: 40 }]);
-  });
-});
-
-describe('buildLocationCardData', () => {
-  const site: Site = {
-    _id: 's1',
-    search_name: 'Kisumu Airport',
-    city: 'Kisumu',
-    country: 'Kenya',
-  };
-
-  it('derives status from the live measurement value', () => {
-    const measurement = makeMeasurement({
-      site_id: 's1',
-      pm2_5: { value: 6 },
-    });
-    const card = buildLocationCardData({
-      site,
-      measurement,
-      averages: null,
-      pollutant: 'pm2_5',
-      aqiConfig: null,
-    });
-    expect(card.name).toContain('Kisumu');
-    expect(card.value).toBe(6);
-    expect(card.trend).toBe('stable');
-  });
-
-  it('maps the weekly percentage difference to a trend badge', () => {
-    const averages: SiteAverages = {
-      dailyAverage: 12,
-      percentageDifference: 25.4,
-      weeklyAverages: { currentWeek: 12, previousWeek: 9.6 },
+describe('getFriendlyErrorMessage', () => {
+  it('returns an actionable message for 429 rate limits', () => {
+    const error = {
+      response: { status: 429, headers: { 'retry-after': '30' } },
+      message: 'Request failed with status code 429',
     };
-    const measurement = makeMeasurement({
-      site_id: 's1',
-      pm2_5: { value: 12 },
-    });
-    const card = buildLocationCardData({
-      site,
-      measurement,
-      averages,
-      pollutant: 'pm2_5',
-      aqiConfig: null,
-    });
-    expect(card.trend).toBe('up');
-    expect(card.percentageDifference).toBe(25.4);
+    expect(getFriendlyErrorMessage(error)).toContain('wait a moment');
   });
 
-  it('renders no-value when the measurement is missing', () => {
-    const card = buildLocationCardData({
-      site,
-      measurement: null,
-      averages: null,
-      pollutant: 'pm2_5',
-      aqiConfig: null,
-    });
-    expect(card.status).toBe('no-value');
-    expect(card.value).toBe(0);
+  it('detects status codes embedded in string messages', () => {
+    expect(
+      getFriendlyErrorMessage('Request failed with status code 429')
+    ).toContain('wait a moment');
+    expect(
+      getFriendlyErrorMessage('Request failed with status code 500')
+    ).toContain('temporarily unavailable');
+  });
+
+  it('reads the backend message from response.data for axios-style errors', () => {
+    const error = {
+      message: 'Request failed with status code 400',
+      response: {
+        status: 400,
+        data: {
+          message: 'Unable to process measurements for the provided Cohort ID',
+        },
+      },
+    };
+    expect(getFriendlyErrorMessage(error)).toContain(
+      'No active devices with measurements'
+    );
+  });
+
+  it('returns null for aborted requests', () => {
+    const error = new Error('canceled');
+    Object.assign(error, { code: 'ERR_CANCELED' });
+    expect(getFriendlyErrorMessage(error)).toBeNull();
+  });
+
+  it('falls back to the raw message for other errors', () => {
+    expect(getFriendlyErrorMessage(new Error('something broke'))).toBe(
+      'something broke'
+    );
+  });
+});
+
+describe('buildFleetAverageSeries', () => {
+  it('averages chart-data points per day and sorts chronologically', () => {
+    const chartData = [
+      {
+        time: '2026-08-10',
+        value: 10,
+        site: 'Kisumu',
+        site_id: 's1',
+        device_id: '',
+      },
+      {
+        time: '2026-08-10',
+        value: 20,
+        site: 'Kampala',
+        site_id: 's2',
+        device_id: '',
+      },
+      {
+        time: '2026-08-11',
+        value: 30,
+        site: 'Kisumu',
+        site_id: 's1',
+        device_id: '',
+      },
+    ];
+    const series = buildFleetAverageSeries(chartData);
+    expect(series).toHaveLength(2);
+    expect(series[0]).toMatchObject({ time: '2026-08-10', value: 15 });
+    expect(series[1]).toMatchObject({ time: '2026-08-11', value: 30 });
+  });
+
+  it('returns an empty array for empty input', () => {
+    expect(buildFleetAverageSeries(null)).toEqual([]);
+    expect(buildFleetAverageSeries([])).toEqual([]);
   });
 });

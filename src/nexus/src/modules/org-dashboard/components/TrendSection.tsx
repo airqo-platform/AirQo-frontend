@@ -1,26 +1,27 @@
 'use client';
 
 import * as React from 'react';
+import { format } from 'date-fns';
 import { cn } from '@/shared/lib/utils';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
+import { DatePicker } from '@/shared/components/ui';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui';
-import { TREND_PERIOD_PRESETS, type TrendPeriod } from '@/modules/analytics';
+import { useAnalyticsChartData } from '@/modules/analytics';
 import { getPollutantLabel } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
 import type { Site } from '@/shared/types/api';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
-import type { NormalizedChartData } from '@/shared/components/charts/types';
-import { useCohortHistoricalMeasurements } from '../hooks/useOrgMeasurements';
+import type { ChartType } from '@/shared/components/charts/types';
 import {
-  buildFleetDailySeries,
-  buildSiteDailySeriesMap,
+  FLEET_AVERAGE_SERIES_KEY,
+  buildFleetAverageSeries,
 } from '../utils/measurements';
-import type { Measurement, PollutantType } from '../types';
+import type { PollutantType } from '../types';
 
 interface TrendSectionProps {
-  cohortId?: string | null;
+  siteIds: string[];
   selectedSites: Site[];
   pollutant: PollutantType;
   onPollutantChange?: (pollutant: PollutantType) => void;
@@ -34,95 +35,24 @@ const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
   { value: 'pm10', label: 'PM10' },
 ];
 
-const PERIOD_OPTIONS: { value: string; label: string }[] =
-  TREND_PERIOD_PRESETS.map(period => ({
-    value: period.value,
-    label: period.label,
-  }));
+const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+  { value: 'line', label: 'Line' },
+  { value: 'area', label: 'Area' },
+  { value: 'bar', label: 'Bar' },
+];
 
-const PERIOD_DAYS: Record<TrendPeriod, number> = {
-  '7D': 7,
-  '30D': 30,
-  '90D': 90,
-};
-
-const FLEET_SERIES_KEY = 'Fleet average';
-
-const buildSeriesData = (
-  measurements: Measurement[],
-  pollutant: PollutantType,
-  selectedSites: Site[]
-): {
-  chartData: NormalizedChartData[];
-  seriesNames: string[];
-} => {
-  const fleetSeries = buildFleetDailySeries(measurements, pollutant);
-  const siteSeries = buildSiteDailySeriesMap(measurements, pollutant);
-
-  const siteNameById = new Map<string, string>();
-  selectedSites.forEach(site => {
-    siteNameById.set(site._id, getSiteDisplayName(site));
-  });
-
-  const allDays = Array.from(
-    new Set([
-      ...fleetSeries.map(point => point.date),
-      ...Array.from(siteSeries.values()).flatMap(series =>
-        series.map(point => point.date)
-      ),
-    ])
-  ).sort();
-
-  const siteSeriesByDay = new Map<string, Map<string, number>>();
-  siteSeries.forEach((series, siteId) => {
-    const byDay = new Map<string, number>();
-    series.forEach(point => byDay.set(point.date, point.value as number));
-    siteSeriesByDay.set(siteId, byDay);
-  });
-  const fleetByDay = new Map<string, number>();
-  fleetSeries.forEach(point => {
-    if (point.value !== null) fleetByDay.set(point.date, point.value);
-  });
-
-  const chartData: NormalizedChartData[] = [];
-  const seriesNames: string[] = [];
-
-  siteSeriesByDay.forEach((byDay, siteId) => {
-    const siteName = siteNameById.get(siteId) ?? `Site ${siteId.slice(-4)}`;
-    seriesNames.push(siteName);
-    allDays.forEach(day => {
-      chartData.push({
-        time: day,
-        value: byDay.get(day) as number,
-        site: siteName,
-        site_id: siteId,
-        device_id: '',
-      });
-    });
-  });
-
-  if (fleetSeries.length > 0) {
-    seriesNames.push(FLEET_SERIES_KEY);
-    allDays.forEach(day => {
-      chartData.push({
-        time: day,
-        value: fleetByDay.get(day) as number,
-        site: FLEET_SERIES_KEY,
-        site_id: '',
-        device_id: '',
-      });
-    });
-  }
-
-  return { chartData, seriesNames };
-};
+const toDateInput = (date: Date): string => format(date, 'yyyy-MM-dd');
 
 /**
- * Fleet historical trend — one line per saved location plus the fleet
- * average, backed by GET /devices/measurements/cohorts/{id}/historical.
+ * Fleet historical trend for any user-selected date range (DatePicker),
+ * powered by the aggregated D3 chart service — the same service the
+ * favorites module uses to visualize saved locations
+ * (POST /analytics/dashboard/chart/d3/data), so any range resolves in a
+ * single server-side aggregated request. One line per saved location plus
+ * the fleet average; the user picks line / area / bar.
  */
 export const TrendSection: React.FC<TrendSectionProps> = ({
-  cohortId,
+  siteIds,
   selectedSites,
   pollutant,
   onPollutantChange,
@@ -130,72 +60,142 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
   enabled = true,
   className,
 }) => {
-  const [period, setPeriod] = React.useState<TrendPeriod>('7D');
+  const [dateRange, setDateRange] = React.useState<{
+    from: Date;
+    to: Date;
+  }>(() => {
+    const to = new Date();
+    const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return { from, to };
+  });
+  const [chartType, setChartType] = React.useState<ChartType>('line');
 
-  const { measurements, isLoading, isRefreshing, error, refetch } =
-    useCohortHistoricalMeasurements({
-      cohortId,
-      days: PERIOD_DAYS[period] ?? 7,
-      frequency: 'daily',
-      pollutant,
-      enabled: enabled && !!cohortId,
-    });
-
-  const { chartData, seriesNames } = React.useMemo(
-    () => buildSeriesData(measurements, pollutant, selectedSites),
-    [measurements, pollutant, selectedSites]
+  const startDate = React.useMemo(
+    () => toDateInput(dateRange.from),
+    [dateRange.from]
+  );
+  const endDate = React.useMemo(
+    () => toDateInput(dateRange.to),
+    [dateRange.to]
   );
 
-  const latestAverage = React.useMemo(() => {
-    const fleetSeries = buildFleetDailySeries(measurements, pollutant);
-    if (fleetSeries.length === 0) return null;
-    const last = fleetSeries[fleetSeries.length - 1];
-    return last.value;
-  }, [measurements, pollutant]);
+  // The chart endpoint accepts line/bar only — area renders client-side
+  // from the line series.
+  const requestChartType = chartType === 'bar' ? 'bar' : 'line';
+
+  const { chartData, isLoading, isRefreshing, error, refetch } =
+    useAnalyticsChartData(
+      {
+        frequency: 'daily',
+        startDate,
+        endDate,
+        pollutant,
+      },
+      requestChartType,
+      siteIds,
+      enabled && siteIds.length > 0
+    );
+
+  const fleetSeries = React.useMemo(
+    () => buildFleetAverageSeries(chartData),
+    [chartData]
+  );
+
+  const chartDataWithFleet = React.useMemo(() => {
+    if (fleetSeries.length === 0) return chartData;
+    return [...chartData, ...fleetSeries];
+  }, [chartData, fleetSeries]);
+
+  const locationLabels = React.useMemo(() => {
+    const map = new Map<string, string>();
+    selectedSites.forEach(site => {
+      map.set(site._id, getSiteDisplayName(site));
+    });
+    return Object.fromEntries(map);
+  }, [selectedSites]);
+
+  const hasData = chartData.length > 0;
 
   return (
     <Card className={cn('w-full', className)}>
       <CardContent className="p-0">
         <ChartContainer
           title="Air Pollution Trends"
-          subtitle={
-            latestAverage !== null
-              ? `Fleet average ${getPollutantLabel(pollutant)}: ${latestAverage.toFixed(1)} µg/m³ for the selected period`
-              : `${getPollutantLabel(pollutant)} levels over time`
-          }
+          subtitle={`${getPollutantLabel(pollutant)} daily averages across your saved locations`}
           exportOptions={{
             enablePDF: true,
             enablePNG: true,
             filename: 'organization-air-pollution-trends',
           }}
-          periodPresets={PERIOD_OPTIONS}
-          activePeriod={period}
-          onPeriodChange={value => setPeriod(value as TrendPeriod)}
           onRefresh={refetch}
           loading={isLoading || isRefreshing}
           error={error}
+          currentChartType={chartType}
+          onChartTypeChange={setChartType}
+          autoSelectChart={false}
+          onAutoSelectToggle={() => setChartType('line')}
+          currentSites={selectedSites.map(site => ({
+            _id: site._id,
+            name: getSiteDisplayName(site),
+            search_name: getSiteDisplayName(site),
+            country: site.country,
+          }))}
           toolbar={
-            <SegmentedTabs
-              ariaLabel="Pollutant"
-              size="sm"
-              options={POLLUTANT_OPTIONS}
-              value={pollutant}
-              onChange={value => onPollutantChange?.(value as PollutantType)}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <DatePicker
+                mode="range"
+                value={dateRange}
+                onChange={value => {
+                  if (
+                    value &&
+                    typeof value === 'object' &&
+                    'from' in value &&
+                    value.from instanceof Date
+                  ) {
+                    setDateRange({
+                      from: value.from,
+                      to: value.to instanceof Date ? value.to : value.from,
+                    });
+                  }
+                }}
+                showPresets
+                className="w-auto"
+              />
+              <SegmentedTabs
+                ariaLabel="Chart type"
+                size="sm"
+                options={CHART_TYPE_OPTIONS}
+                value={chartType}
+                onChange={value => setChartType(value as ChartType)}
+              />
+              <SegmentedTabs
+                ariaLabel="Pollutant"
+                size="sm"
+                options={POLLUTANT_OPTIONS}
+                value={pollutant}
+                onChange={value => onPollutantChange?.(value as PollutantType)}
+              />
+            </div>
           }
-          footerHint={`Showing ${period} of daily averages across ${Math.max(seriesNames.length - (fleetSeriesExists(seriesNames) ? 1 : 0), 0)} monitored location${Math.max(seriesNames.length - (fleetSeriesExists(seriesNames) ? 1 : 0), 0) === 1 ? '' : 's'}.`}
+          footerHint={
+            <span>
+              {format(dateRange.from, 'MMM d, yyyy')} –{' '}
+              {format(dateRange.to, 'MMM d, yyyy')} · {siteIds.length} saved{' '}
+              {siteIds.length === 1 ? 'location' : 'locations'}
+            </span>
+          }
         >
-          {!isLoading && !error && chartData.length === 0 ? (
+          {!isLoading && !error && !hasData ? (
             <EmptyState
               compact
-              title="No historical measurements"
-              description="There is no measurement data for the selected period yet. Try a different period or check back later."
+              title="No measurements for this period"
+              description="There is no measurement data for the selected dates yet. Pick a different range or check back later."
             />
           ) : (
             <DynamicChart
-              data={chartData}
+              data={chartDataWithFleet}
               config={{
-                type: 'line',
+                type: chartType,
                 showGrid: true,
                 showTooltip: true,
                 showLegend: true,
@@ -206,6 +206,10 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
               frequency="daily"
               autoSelectType={false}
               referenceLinePeriod="24hr"
+              seriesLabels={{
+                [FLEET_AVERAGE_SERIES_KEY]: FLEET_AVERAGE_SERIES_KEY,
+              }}
+              locationLabels={locationLabels}
             />
           )}
         </ChartContainer>
@@ -213,6 +217,3 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
     </Card>
   );
 };
-
-const fleetSeriesExists = (seriesNames: string[]): boolean =>
-  seriesNames.includes(FLEET_SERIES_KEY);

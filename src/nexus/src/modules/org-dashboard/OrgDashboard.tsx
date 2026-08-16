@@ -2,29 +2,38 @@
 
 import * as React from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { useUser } from '@/shared/hooks/useUser';
-import { useGroupCohorts, useCohort } from '@/shared/hooks';
-import { useAnalyticsPreferences } from '@/modules/analytics';
+import { useQueryClient, useIsFetching } from '@tanstack/react-query';
+import {
+  useUser,
+  useGroupCohorts,
+  useCohort,
+  useAppDispatch,
+} from '@/shared/hooks';
+import {
+  useAnalyticsPreferences,
+  useAnalyticsSiteCards,
+} from '@/modules/analytics';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { AccessDenied } from '@/shared/components/AccessDenied';
-import { WarningBanner } from '@/shared/components/ui';
+import { WarningBanner, toast } from '@/shared/components/ui';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { SuggestedLocations } from '@/modules/analytics/components/SuggestedLocations';
+import { AqiLegend } from '@/modules/analytics';
 import AddFavorites from '@/modules/location-insights/add-favorites';
+import AddLocation from '@/modules/location-insights/add-location';
+import MoreInsights from '@/modules/location-insights/more-insights';
+import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { DashboardHeader } from './components/DashboardHeader';
 import { FleetSummary } from './components/FleetSummary';
 import { SavedLocationsGrid } from './components/SavedLocationsGrid';
 import { TrendSection } from './components/TrendSection';
-import { AqiScaleLegend } from './components/AqiScaleLegend';
 import { OrgDashboardSkeleton } from './components/OrgDashboardSkeleton';
-import {
-  useCohortRecentMeasurements,
-  useSitesAverages,
-} from './hooks/useOrgMeasurements';
-import { isAbortError, latestMeasurementPerSite } from './utils/measurements';
+import { getFriendlyErrorMessage } from './utils/measurements';
+import type { SiteData } from '@/modules/analytics';
 import type { PollutantType } from './types';
+import { getAirQualityLevel } from '@/shared/utils/airQuality';
 
 interface OrgDashboardProps {
   organizationSlug: string;
@@ -32,37 +41,38 @@ interface OrgDashboardProps {
 }
 
 /**
- * Organization dashboard — fleet air-quality overview driven by the user's
- * saved locations (analytics preferences), powered by the measurements v2
- * endpoints:
+ * Organization dashboard — air-quality overview for the user's saved
+ * locations (analytics preferences), reusing the exact same data services
+ * and components the favorites/analytics module uses for the selected sites:
  *
- *   - Live fleet snapshot  → GET /devices/measurements/cohorts/{id}/recent
- *   - Fleet trend series   → GET /devices/measurements/cohorts/{id}/historical
- *   - Location trend badge → GET /devices/measurements/sites/{id}/averages
+ *   - Saved-location cards → GET /devices/readings/recent (useAnalyticsSiteCards)
+ *   - Trend chart          → POST /analytics/dashboard/chart/d3/data (useAnalyticsChartData)
+ *   - Fleet summary        → derived from the same site cards
  *
  * Data flow:
  *  1. Resolve the organization group from the URL slug (same pattern as the
- *     org map page) and its cohort ids; the primary cohort drives the
- *     measurements endpoints (they accept a single cohort id in the path).
+ *     org map page); the primary cohort id is used only for the private-data
+ *     visibility banner.
  *  2. Load the group-scoped user preferences. If the organization has saved
- *     sites → render the full dashboard (fleet summary, saved-location cards,
- *     trend) for exactly those locations.
+ *     sites → render the full dashboard (fleet summary, saved-location
+ *     carousel, trend) for exactly those locations.
  *  3. No preferences yet → show SuggestedLocations so the organization can
- *     pick their sites (selection is saved as a group preference and the
- *     dashboard then renders for those locations).
+ *     pick their sites (selection is saved as a group preference).
  *
- * All measurement requests go through the token-authenticated server proxy
- * (createServerClient → /api/external), never the browser JWT, because the
- * backend rejects the Authorization header for these endpoints. Keys are
- * group-scoped and AbortController-backed; abort errors never surface.
+ * All requests go through the token-authenticated server proxy
+ * (createServerClient → /api/external). Keys are group-scoped and
+ * AbortController-backed; the analytics hooks use a bounded retry policy.
  */
 export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   organizationSlug,
   className = '',
 }) => {
   const posthog = usePostHog();
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
   const hasTrackedViewRef = React.useRef(false);
+  const isRefreshingRef = React.useRef(false);
 
   const [pollutant, setPollutant] = React.useState<PollutantType>('pm2_5');
   const [isManageLocationsOpen, setIsManageLocationsOpen] =
@@ -102,50 +112,52 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
   const hasSelectedSites = selectedSiteIds.length > 0;
 
-  // Cohort resolution — AbortController-backed hook, shared SWR key with
-  // the org map page (['group/cohorts', groupId]).
+  // Saved-location cards — GET /devices/readings/recent, the same service
+  // the favorites module uses. Group-scoped, partial-failure tolerant, and
+  // independent of the cohort endpoints.
+  const {
+    siteCards,
+    isLoading: siteCardsLoading,
+    isRefreshing: siteCardsRefreshing,
+    error: siteCardsError,
+  } = useAnalyticsSiteCards({
+    selectedSiteIds,
+    selectedSites,
+    enabled: isOrgContextReady,
+    aqiConfig: selectedAqiConfig,
+  });
+
+  // Re-classify each card's AQI status with the loaded config. The hooks
+  // may have processed readings while aqiConfig was still null, which
+  // classifies every value as 'no-value'. This step ensures the cards
+  // always reflect the live config once it loads.
+  const classifiedCards = React.useMemo(() => {
+    if (!selectedAqiConfig || siteCards.length === 0) return siteCards;
+    return siteCards.map(card => ({
+      ...card,
+      status: getAirQualityLevel(
+        card.value,
+        card.pollutant as 'pm2_5' | 'pm10',
+        selectedAqiConfig
+      ),
+    }));
+  }, [siteCards, selectedAqiConfig]);
+
+  // Visibility check for the private-cohort warning banner (primary cohort).
   const { data: organizationGroupCohorts } = useGroupCohorts(
     organizationGroupId,
     !!organizationGroupId && isOrgContextReady
   );
-
   const cohortIds = React.useMemo(
     () => normalizeCohortIds(organizationGroupCohorts?.data ?? []),
     [organizationGroupCohorts?.data]
   );
-
-  // The measurements cohort endpoints take a single cohort id in the path —
-  // use the primary cohort, matching the org map page's primaryCohortId.
   const primaryCohortId = React.useMemo(
-    () => cohortIds.find(Boolean) || null,
+    () => cohortIds.find(Boolean) || '',
     [cohortIds]
   );
-
-  // Live fleet snapshot — recent by cohort id.
-  const {
-    measurements: recentMeasurements,
-    isLoading: recentLoading,
-    error: recentError,
-    refetch: refreshRecent,
-  } = useCohortRecentMeasurements({
-    cohortId: primaryCohortId,
-    enabled: isOrgContextReady && hasSelectedSites && !!primaryCohortId,
-  });
-
-  const latestBySite = React.useMemo(
-    () => latestMeasurementPerSite(recentMeasurements),
-    [recentMeasurements]
-  );
-
-  // Per-location week-over-week averages for the saved-location cards.
-  const { averagesBySite, isLoading: averagesLoading } = useSitesAverages({
-    siteIds: selectedSiteIds,
-    enabled: isOrgContextReady && hasSelectedSites,
-  });
-
-  // Visibility check for the private-cohort warning banner.
   const { data: cohortData } = useCohort(
-    primaryCohortId || '',
+    primaryCohortId,
     !!primaryCohortId && isOrgContextReady
   );
   const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
@@ -161,23 +173,58 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
   const mapHref = `/org/${encodeURIComponent(normalizedSlug)}/map`;
 
-  const readingsLoading = recentLoading || averagesLoading;
-  const readingsError =
-    !isAbortError(recentError) && recentError ? recentError : null;
+  // The dashboard data lives under the analytics query cache (site-cards,
+  // chart-data) plus the org-dashboard keys.
+  const isFetchingAny = useIsFetching({ queryKey: ['org-dashboard'] });
+  const isFetchingAnalytics = useIsFetching({ queryKey: ['analytics'] });
+  const isRefreshing =
+    (isFetchingAny > 0 || isFetchingAnalytics > 0) && !isInitialLoading;
 
-  const handleRefresh = async () => {
-    await refreshRecent();
-  };
+  const readingsError = React.useMemo(
+    () => getFriendlyErrorMessage(siteCardsError),
+    [siteCardsError]
+  );
 
-  const lastUpdatedAt = React.useMemo(() => {
-    let latest: string | null = null;
-    latestBySite.forEach(measurement => {
-      if (measurement.time && (!latest || measurement.time > latest)) {
-        latest = measurement.time;
-      }
-    });
-    return latest;
-  }, [latestBySite]);
+  const handleRefresh = React.useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: ['analytics'],
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['org-dashboard'],
+        refetchType: 'active',
+      });
+      toast.success('Data refreshed', 'The dashboard has been updated.');
+    } catch {
+      toast.error('Refresh failed', 'We could not refresh the dashboard.');
+    } finally {
+      isRefreshingRef.current = false;
+    }
+  }, [queryClient]);
+
+  const handleCardClick = React.useCallback(
+    (siteData: SiteData) => {
+      const displayName = siteData.name || siteData.location || 'Location';
+      dispatch(
+        openMoreInsights({
+          sites: [
+            {
+              _id: siteData._id,
+              name: displayName,
+              search_name: displayName,
+              country: siteData.country,
+              city: siteData.city,
+              region: siteData.region,
+            },
+          ],
+        })
+      );
+    },
+    [dispatch]
+  );
 
   React.useEffect(() => {
     if (isInitialLoading || hasTrackedViewRef.current) return;
@@ -186,9 +233,9 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
       organization_group_id: organizationGroup?.id,
       organization_group_name: organizationGroup?.title,
       selected_site_count: selectedSites.length,
-      cohort_id: primaryCohortId,
+      cohort_id: primaryCohortId || null,
       pollutant,
-      fleet_site_count: latestBySite.size,
+      fleet_site_count: siteCards.length,
     });
   }, [
     isInitialLoading,
@@ -197,7 +244,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
     selectedSites.length,
     primaryCohortId,
     pollutant,
-    latestBySite.size,
+    siteCards.length,
     posthog,
   ]);
 
@@ -236,8 +283,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
       <DashboardHeader
         organizationTitle={organizationGroup?.title ?? 'Organization'}
         selectedSiteCount={selectedSites.length}
-        isRefreshing={readingsLoading}
-        lastUpdatedAt={lastUpdatedAt}
+        isRefreshing={isRefreshing}
         onRefresh={handleRefresh}
         mapHref={mapHref}
         onManageLocations={() => setIsManageLocationsOpen(true)}
@@ -275,28 +321,27 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
         />
       ) : (
         <FleetSummary
-          latestBySite={latestBySite}
-          selectedSites={selectedSites}
+          siteCards={classifiedCards}
           pollutant={pollutant}
           aqiConfig={selectedAqiConfig}
-          isLoading={readingsLoading}
+          isLoading={siteCardsLoading}
+          onRetry={handleRefresh}
         />
       )}
 
       <SavedLocationsGrid
-        selectedSites={selectedSites}
-        latestBySite={latestBySite}
-        averagesBySite={averagesBySite}
+        siteCards={classifiedCards}
         pollutant={pollutant}
         aqiConfig={selectedAqiConfig}
-        isLoading={readingsLoading}
-        isRefreshing={recentLoading}
+        isLoading={siteCardsLoading}
+        isRefreshing={siteCardsRefreshing || isRefreshing}
         errorMessage={readingsError}
         onRefresh={handleRefresh}
+        onCardClick={handleCardClick}
       />
 
       <TrendSection
-        cohortId={primaryCohortId}
+        siteIds={selectedSiteIds}
         selectedSites={selectedSites}
         pollutant={pollutant}
         onPollutantChange={setPollutant}
@@ -304,16 +349,14 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
         enabled={isOrgContextReady && !pollutantConfigLoading}
       />
 
-      <AqiScaleLegend
-        pollutant={pollutant}
-        aqiConfig={selectedAqiConfig}
-        className="pt-2"
-      />
+      <AqiLegend aqiConfig={selectedAqiConfig} className="pt-2" />
 
       <AddFavorites
         isOpen={isManageLocationsOpen}
         onClose={() => setIsManageLocationsOpen(false)}
       />
+      <AddLocation />
+      <MoreInsights />
     </div>
   );
 };

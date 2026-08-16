@@ -48,12 +48,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Maximum number of favorite locations allowed per group
-  const maxLocations = 4;
-
-  // Remaining slots after accounting for already favorited sites
-  const remainingSlots = Math.max(0, maxLocations - favoriteSites.length);
-
   // Ref to track if component is mounted (prevent memory leaks)
   const isMountedRef = useRef(true);
 
@@ -96,27 +90,18 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     return sites.filter(site => !favoritedSiteIds.has(site.id));
   }, [sites, favoritedSiteIds]);
 
-  // Handle site selection toggle (enforce max favorites limit)
-  const handleToggleSelection = useCallback(
-    (siteId: string) => {
-      if (!selectedIds.has(siteId) && selectedIds.size >= remainingSlots) {
-        toast.warning(
-          `Maximum allowed is ${maxLocations} locations. Please deselect a location before adding another.`
-        );
-        return;
+  // Handle site selection toggle
+  const handleToggleSelection = useCallback((siteId: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(siteId)) {
+        newSet.delete(siteId);
+      } else {
+        newSet.add(siteId);
       }
-      setSelectedIds(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(siteId)) {
-          newSet.delete(siteId);
-        } else {
-          newSet.add(siteId);
-        }
-        return newSet;
-      });
-    },
-    [selectedIds, remainingSlots, maxLocations]
-  );
+      return newSet;
+    });
+  }, []);
 
   // Handle clear all selections
   const handleClearAll = useCallback(() => {
@@ -132,14 +117,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
 
     if (selectedIds.size === 0) {
       toast.error('Please select at least one location');
-      return;
-    }
-
-    // Check if we exceed the limit
-    if (selectedIds.size > remainingSlots) {
-      toast.error(
-        `Cannot add ${selectedIds.size} location${selectedIds.size > 1 ? 's' : ''}. Maximum allowed is ${maxLocations} in total. Please deselect ${selectedIds.size - remainingSlots} location${selectedIds.size - remainingSlots > 1 ? 's' : ''} first.`
-      );
       return;
     }
 
@@ -254,8 +231,6 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     selectedIds,
     favoriteSites,
     suggestedSites,
-    remainingSlots,
-    maxLocations,
     updatePreferences,
     markLocationStepCompleted,
     posthog,
@@ -331,7 +306,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
             <Button
               onClick={handleAddToFavorites}
               size="sm"
-              disabled={isSubmitting || selectedIds.size > remainingSlots}
+              disabled={isSubmitting || selectedIds.size === 0}
               loading={isSubmitting}
             >
               Add {selectedIds.size} to favorites

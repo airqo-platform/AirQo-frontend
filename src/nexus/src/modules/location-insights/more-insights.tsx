@@ -78,7 +78,8 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     getDefaultDateRange()
   );
   const [dataType, setDataType] = useState<'calibrated' | 'raw'>('calibrated');
-  const { config: selectedAqiConfig, isLoading: aqiConfigLoading } = useAqiConfig(pollutant);
+  const { config: selectedAqiConfig, isLoading: aqiConfigLoading } =
+    useAqiConfig(pollutant);
 
   // State for tracking which sites are visible on chart (checked)
   const [visibleSites, setVisibleSites] = useState<Set<string>>(new Set());
@@ -225,7 +226,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           return;
         }
 
-        console.error('Error fetching chart data:', error);
+        // Log only the message — axios errors carry Authorization headers
+        console.error(
+          'Error fetching chart data:',
+          (error as { message?: unknown })?.message ?? error
+        );
         setChartData([]);
       }
     };

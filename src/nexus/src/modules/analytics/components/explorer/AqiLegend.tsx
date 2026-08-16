@@ -15,45 +15,25 @@ interface AqiLegendProps {
   className?: string;
 }
 
-const formatRange = (min: number | null, max: number | null): string => {
-  if (min === null) return '—';
+const formatBoundary = (value: number): string => String(value);
+
+const buildRangeLabel = (min: number, max: number | null): string => {
   if (max === null) return `${formatBoundary(min)}+`;
   return `${formatBoundary(min)}–${formatBoundary(max)}`;
 };
 
-const formatBoundary = (value: number): string =>
-  Number.isInteger(value) ? String(value) : value.toFixed(1);
-
-const markerPositionForValue = (
-  value: number,
-  range: { min_value: number | null; max_value: number | null }
-): number => {
-  const min = range.min_value ?? 0;
-  const max = range.max_value ?? min + 1;
-  const span = max - min;
-  if (span <= 0) return 50;
-  const clamped = Math.min(Math.max(value, min), max);
-  return (clamped - min) / span;
-};
-
 /**
- * Keep the 6px marker fully inside its segment: 5% at the low end, 95% at
- * the high end (values at a segment's max would otherwise bleed into the
- * neighbor / be clipped by the container's overflow-hidden).
- */
-const clampMarkerPercent = (percent: number): number =>
-  Math.min(Math.max(percent, 5), 95);
-
-/**
- * Segmented AQI scale legend rendered from the live AQI ranges config
+ * Continuous AQI scale legend rendered from the live AQI ranges config
  * (`/devices/aqi-ranges`) — the same single source of truth used for badges,
  * chart tooltips and site cards, so colors always mean the same thing.
- * Always visible (no collapse), centered, and wraps gracefully on small
- * screens.
  *
- * With `markerValue` set it doubles as a gauge: a marker sits on the segment
- * containing the value, and the value is exposed as real text below it
- * (WCAG 1.4.1 — the color never carries the information alone).
+ * Design: one continuous gradient bar (IQAir / AirNow pattern) with a label
+ * row below — coloured dot + level name + numeric range for every band.
+ * Always visible, centered, wraps gracefully on small screens.
+ *
+ * With `markerValue` set it doubles as a gauge: a marker sits on the bar at
+ * the value's proportional position, and the value is exposed as real text
+ * below it (WCAG 1.4.1 — the color never carries the information alone).
  */
 export const AqiLegend: React.FC<AqiLegendProps> = ({
   aqiConfig,
@@ -62,9 +42,80 @@ export const AqiLegend: React.FC<AqiLegendProps> = ({
   ariaLabel = 'Air quality index scale',
   className,
 }) => {
-  const ranges = aqiConfig?.ranges
-    ? [...aqiConfig.ranges].sort((a, b) => a.display_order - b.display_order)
-    : [];
+  const ranges = React.useMemo(() => {
+    if (!aqiConfig?.ranges) return [];
+    return [...aqiConfig.ranges].sort(
+      (a, b) => a.display_order - b.display_order
+    );
+  }, [aqiConfig?.ranges]);
+
+  // Continuous bar layout: every band occupies its proportional slice of the
+  // scale (first range min → open-ended band). The open-ended band gets a
+  // visible extension so e.g. "Hazardous 301+" is never a zero-width sliver.
+  const scale = React.useMemo(() => {
+    if (ranges.length === 0) return null;
+
+    const globalMin = ranges[0]?.min_value ?? 0;
+    const openMin = ranges.find(range => range.max_value === null)?.min_value;
+    const lastClosedMax =
+      ranges[ranges.length - 1]?.max_value ?? openMin ?? globalMin + 1;
+    const boundedSpan = (openMin ?? lastClosedMax) - globalMin;
+    const extension =
+      openMin != null
+        ? Math.max(
+            lastClosedMax - (ranges[ranges.length - 2]?.min_value ?? globalMin),
+            boundedSpan * 0.1
+          )
+        : 0;
+    const totalSpan = boundedSpan + extension;
+
+    const segments = ranges.map(range => {
+      const start = range.min_value - globalMin;
+      const end = range.max_value ?? globalMin + totalSpan;
+      return {
+        ...range,
+        startPct: (start / totalSpan) * 100,
+        pct: ((end - range.min_value) / totalSpan) * 100,
+      };
+    });
+
+    return { globalMin, totalSpan, segments };
+  }, [ranges]);
+
+  const markerPercent = React.useMemo(() => {
+    if (!scale || markerValue == null || !Number.isFinite(markerValue)) {
+      return null;
+    }
+    const span = scale.totalSpan;
+    if (span <= 0) return null;
+    const clamped = Math.min(
+      Math.max(markerValue, scale.globalMin),
+      scale.globalMin + span
+    );
+    return Math.min(
+      Math.max(((clamped - scale.globalMin) / span) * 100, 2),
+      98
+    );
+  }, [markerValue, scale]);
+
+  if (!scale) {
+    return (
+      <div className={cn('flex justify-center', className)}>
+        <div className="flex w-full max-w-3xl items-center justify-center rounded-md border border-border bg-gray-100 px-3 py-2 text-xs text-muted-foreground dark:bg-gray-800">
+          AQI scale unavailable
+        </div>
+      </div>
+    );
+  }
+
+  const gradient = scale.segments
+    .map(
+      segment =>
+        `${segment.color || '#9CA3AF'} ${segment.startPct.toFixed(2)}% ${(
+          segment.startPct + segment.pct
+        ).toFixed(2)}%`
+    )
+    .join(', ');
 
   const activeRange =
     markerValue != null && Number.isFinite(markerValue)
@@ -75,67 +126,51 @@ export const AqiLegend: React.FC<AqiLegendProps> = ({
         )
       : undefined;
 
-  const markerPercent =
-    markerValue != null &&
-    Number.isFinite(markerValue) &&
-    activeRange &&
-    activeRange.min_value != null
-      ? clampMarkerPercent(markerPositionForValue(markerValue, activeRange) * 100)
-      : null;
-
   return (
     <div className={cn('flex justify-center', className)}>
-      <div className="flex w-full max-w-3xl flex-wrap justify-center overflow-hidden rounded-md border border-border">
-        {ranges.length === 0 ? (
-          <div className="flex h-9 flex-1 items-center justify-center bg-gray-100 dark:bg-gray-800 px-3 text-xs text-muted-foreground">
-            AQI scale unavailable
-          </div>
-        ) : (
-          ranges.map(range => (
-            <div
+      <div className="flex w-full max-w-3xl flex-col items-center gap-3">
+        <div
+          role="img"
+          aria-label={ariaLabel}
+          className="relative h-3 w-full rounded-full"
+          style={{ background: `linear-gradient(to right, ${gradient})` }}
+        >
+          {markerPercent !== null && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-gray-900 shadow-[0_1px_4px_rgba(0,0,0,0.4)]"
+              style={{ left: `${markerPercent}%` }}
+            />
+          )}
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+          {ranges.map(range => (
+            <span
               key={range.key}
-              role="img"
-              aria-label={`${range.label}: ${formatRange(range.min_value, range.max_value)}`}
-              className={cn(
-                'relative flex min-w-[96px] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-center',
-                compact && 'min-w-[72px] py-1'
-              )}
-              style={{ backgroundColor: range.color }}
-              title={`${range.label} (${formatRange(range.min_value, range.max_value)})`}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground"
             >
               <span
-                className={cn(
-                  'font-semibold leading-tight text-white',
-                  compact ? 'text-[10px]' : 'text-[11px]'
-                )}
-              >
-                {range.label}
-              </span>
+                aria-hidden="true"
+                className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: range.color || '#9CA3AF' }}
+              />
+              <span className="font-medium text-foreground">{range.label}</span>
               {!compact && (
-                <span className="text-[9px] leading-tight text-white/90">
-                  {formatRange(range.min_value, range.max_value)}
+                <span className="font-normal text-muted-foreground/80">
+                  {buildRangeLabel(range.min_value, range.max_value)}
                 </span>
               )}
-              {/* Gauge marker: white dot on the active segment */}
-              {activeRange?.key === range.key && markerPercent !== null && (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute bottom-0.5 top-0.5 w-1.5 rounded-full bg-white shadow-[0_0_0_2px_rgba(0,0,0,0.35)]"
-                  style={{
-                    left: `calc(${markerPercent}% - 3px)`,
-                  }}
-                />
-              )}
-            </div>
-          ))
+            </span>
+          ))}
+        </div>
+
+        {activeRange && markerValue != null && Number.isFinite(markerValue) && (
+          <p className="sr-only" aria-label={ariaLabel}>
+            Current value {markerValue} — {activeRange.label}
+          </p>
         )}
       </div>
-      {markerValue != null && Number.isFinite(markerValue) && (
-        <p className="sr-only" aria-label={ariaLabel}>
-          Current value {markerValue} —{' '}
-          {activeRange?.label ?? 'outside the configured scale'}
-        </p>
-      )}
     </div>
   );
 };

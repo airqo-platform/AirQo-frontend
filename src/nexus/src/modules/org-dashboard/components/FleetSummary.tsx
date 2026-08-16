@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { EmptyState } from '@/shared/components/ui';
 import {
   getAirQualityColor,
   getAirQualityIcon,
@@ -10,28 +11,26 @@ import {
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
-import type { Site } from '@/shared/types/api';
-import { getSiteDisplayName } from '@/shared/utils/siteUtils';
+import type { SiteData } from '@/modules/analytics';
 import {
   AqTrendUp01,
   AqTrendDown01,
-  AqUsers01,
-  AqSignal02,
   AqMarkerPin01,
+  AqSignal02,
 } from '@airqo/icons-react';
-import type { Measurement, PollutantType } from '../types';
+import type { PollutantType } from '../types';
 import {
   countLevelDistribution,
-  summarizeFleetMeasurements,
+  summarizeSiteCards,
 } from '../utils/measurements';
 import { cn } from '@/shared/lib/utils';
 
 interface FleetSummaryProps {
-  latestBySite: Map<string, Measurement>;
-  selectedSites: Site[];
+  siteCards: SiteData[];
   pollutant: PollutantType;
   aqiConfig?: AqiConfig | null;
   isLoading?: boolean;
+  onRetry?: () => void;
   className?: string;
 }
 
@@ -53,43 +52,30 @@ const SkeletonStat: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
- * Fleet hero — average concentration + AQI category, per-level site
- * distribution, and fleet health stats (monitored sites, online devices,
- * worst and cleanest locations).
+ * Fleet hero — average concentration + AQI category, per-level distribution,
+ * and fleet health stats for the organization's saved locations. Data comes
+ * from the same recent-readings cards the favorites module uses, so every
+ * number on the page tells one consistent story.
  */
 export const FleetSummary: React.FC<FleetSummaryProps> = ({
-  latestBySite,
-  selectedSites,
+  siteCards,
   pollutant,
   aqiConfig = null,
   isLoading = false,
+  onRetry,
   className,
 }) => {
   const summary = React.useMemo(
-    () => summarizeFleetMeasurements(latestBySite, pollutant, aqiConfig),
-    [latestBySite, pollutant, aqiConfig]
+    () => summarizeSiteCards(siteCards, pollutant, aqiConfig),
+    [siteCards, pollutant, aqiConfig]
   );
   const distribution = React.useMemo(
-    () => countLevelDistribution(latestBySite, pollutant, aqiConfig),
-    [latestBySite, pollutant, aqiConfig]
+    () => countLevelDistribution(siteCards, aqiConfig),
+    [siteCards, aqiConfig]
   );
 
-  const siteNameById = React.useMemo(() => {
-    const map = new Map<string, string>();
-    selectedSites.forEach(site => {
-      map.set(site._id, getSiteDisplayName(site));
-    });
-    return map;
-  }, [selectedSites]);
-
-  const worstName = summary.worstSite
-    ? (siteNameById.get(summary.worstSite.siteId) ??
-      `Site ${summary.worstSite.siteId.slice(-4)}`)
-    : null;
-  const cleanestName = summary.cleanestSite
-    ? (siteNameById.get(summary.cleanestSite.siteId) ??
-      `Site ${summary.cleanestSite.siteId.slice(-4)}`)
-    : null;
+  const worstName = summary.worstSite?.name ?? null;
+  const cleanestName = summary.cleanestSite?.name ?? null;
 
   const averageLevel = summary.averageLevel;
   const averageColor = getAirQualityColor(averageLevel, aqiConfig);
@@ -102,6 +88,31 @@ export const FleetSummary: React.FC<FleetSummaryProps> = ({
   );
 
   const maxCount = Math.max(1, ...distribution.map(entry => entry.count));
+
+  const hasNoReadings = !isLoading && summary.monitoredSiteCount === 0;
+
+  if (hasNoReadings) {
+    return (
+      <Card className={cn('w-full', className)}>
+        <CardContent className="p-5">
+          <EmptyState
+            compact
+            title="No live readings yet"
+            description="Your saved locations have not reported measurements recently. Refresh to try again."
+            action={
+              onRetry
+                ? {
+                    label: 'Refresh',
+                    onClick: onRetry,
+                    variant: 'outlined',
+                  }
+                : undefined
+            }
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={cn('w-full', className)}>
@@ -188,25 +199,25 @@ export const FleetSummary: React.FC<FleetSummaryProps> = ({
           <div className="flex flex-col justify-center gap-3">
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <AqMarkerPin01 className="h-4 w-4" /> Monitored sites
+                <AqMarkerPin01 className="h-4 w-4" /> Saved locations
+              </span>
+              {isLoading ? (
+                <SkeletonStat className="h-6 w-10" />
+              ) : (
+                <span className="text-lg font-semibold text-foreground">
+                  {summary.totalSiteCount}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                <AqSignal02 className="h-4 w-4" /> Reporting now
               </span>
               {isLoading ? (
                 <SkeletonStat className="h-6 w-10" />
               ) : (
                 <span className="text-lg font-semibold text-foreground">
                   {summary.monitoredSiteCount}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <AqSignal02 className="h-4 w-4" /> Devices online
-              </span>
-              {isLoading ? (
-                <SkeletonStat className="h-6 w-10" />
-              ) : (
-                <span className="text-lg font-semibold text-foreground">
-                  {summary.onlineDeviceCount}
                 </span>
               )}
             </div>
@@ -234,15 +245,6 @@ export const FleetSummary: React.FC<FleetSummaryProps> = ({
                   {cleanestName ?? '—'}
                 </span>
               )}
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <AqUsers01 className="h-4 w-4" /> Organization
-              </span>
-              <span className="truncate text-sm font-medium text-foreground">
-                {selectedSites.length} saved{' '}
-                {selectedSites.length === 1 ? 'location' : 'locations'}
-              </span>
             </div>
           </div>
         </div>
