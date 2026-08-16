@@ -55,7 +55,7 @@ describe('AuthService', () => {
       expect(result).toEqual(responseData);
     });
 
-    it('returns an existing-account response without auth methods', async () => {
+    it('returns a not-found response without auth methods', async () => {
       const responseData = { success: true as const, exists: false };
       mockPost.mockResolvedValueOnce({ data: responseData, status: 200 });
 

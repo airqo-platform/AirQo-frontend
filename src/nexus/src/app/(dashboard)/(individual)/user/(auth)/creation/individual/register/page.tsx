@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import Link from 'next/link';
@@ -23,8 +23,9 @@ import {
 } from '@/shared/lib/validation-limits';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { LoadingState } from '@/shared/components/ui/loading-state';
+import { consumePendingRegistrationEmail } from '@/shared/lib/registration-handoff';
 
 const GENERATED_PASSWORD_LENGTH = 20;
 const PASSWORD_CHARACTERS = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789${PASSWORD_SPECIAL_CHARS}`;
@@ -79,8 +80,6 @@ export default function RegisterPage() {
 }
 
 function RegisterPageContent() {
-  const searchParams = useSearchParams();
-  const emailFromLogin = searchParams.get('email') || '';
   const {
     register,
     handleSubmit,
@@ -92,7 +91,7 @@ function RegisterPageContent() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: emailFromLogin,
+      email: '',
       password: '',
     },
     mode: 'onChange',
@@ -100,15 +99,21 @@ function RegisterPageContent() {
 
   const passwordValue = watch('password');
   const [passwordCopied, setPasswordCopied] = useState(false);
+  const hasConsumedRegistrationEmail = useRef(false);
 
   const { trigger: registerUser, isMutating } = useRegister();
   const router = useRouter();
 
   useEffect(() => {
-    if (emailFromLogin) {
-      setValue('email', emailFromLogin, { shouldValidate: true });
+    if (hasConsumedRegistrationEmail.current) {
+      return;
     }
-  }, [emailFromLogin, setValue]);
+
+    hasConsumedRegistrationEmail.current = true;
+    setValue('email', consumePendingRegistrationEmail(), {
+      shouldValidate: true,
+    });
+  }, [setValue]);
 
   const handleGeneratePassword = () => {
     try {

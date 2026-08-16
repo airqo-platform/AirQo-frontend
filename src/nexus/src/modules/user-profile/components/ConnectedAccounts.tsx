@@ -49,7 +49,7 @@ const ConnectedAccounts: React.FC<ConnectedAccountsProps> = ({
         </div>
 
         {loading ? (
-          <div className="h-24 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+          <div className="h-24 animate-pulse rounded-md bg-gray-100 motion-reduce:animate-none dark:bg-gray-800" />
         ) : !authMethods ? (
           <Banner
             severity="info"

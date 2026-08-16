@@ -20,7 +20,7 @@ import ConnectedAccounts from './ConnectedAccounts';
 const SecurityTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { user, activeGroup, isLoading: isUserLoading } = useUser();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { trigger: updatePassword } = useUpdatePassword();
 
   // Check if user is in an organization context (not AirQo default)
@@ -140,7 +140,10 @@ const SecurityTab: React.FC = () => {
         </div>
       </SettingsLayout>
 
-      <ConnectedAccounts authMethods={authMethods} loading={isUserLoading} />
+      <ConnectedAccounts
+        authMethods={authMethods}
+        loading={isUserLoading || sessionStatus === 'loading'}
+      />
 
       {/* Account Deletion Section */}
       <AccountDeletionCard />

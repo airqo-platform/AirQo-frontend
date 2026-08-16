@@ -1,6 +1,13 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import SelectedEmailCard from '@/shared/components/auth/SelectedEmailCard';
@@ -26,6 +33,7 @@ import {
   SUPPORTED_SOCIAL_AUTH_PROVIDERS,
   type SupportedSocialAuthProvider,
 } from '@/shared/lib/oauth-session';
+import { setPendingRegistrationEmail } from '@/shared/lib/registration-handoff';
 
 export default function LoginPage() {
   return (
@@ -39,6 +47,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
   const [authMethods, setAuthMethods] = useState<AuthMethods | undefined>();
+  const stepContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { trigger: checkEmail, isMutating: isCheckingEmail } = useCheckEmail();
@@ -73,8 +82,12 @@ function LoginPageContent() {
   );
 
   useEffect(() => {
-    if (step === 'email' || showPassword) {
-      setFocus(step === 'email' ? 'email' : 'password');
+    if (step === 'email') {
+      setFocus('email');
+    } else if (showPassword) {
+      setFocus('password');
+    } else {
+      stepContainerRef.current?.focus();
     }
   }, [setFocus, showPassword, step]);
 
@@ -94,9 +107,8 @@ function LoginPageContent() {
           'Account not found',
           'We could not find an account for this email. Redirecting you to registration.'
         );
-        router.push(
-          `/user/creation/individual/register?email=${encodeURIComponent(emailValue)}`
-        );
+        setPendingRegistrationEmail(emailValue);
+        router.push('/user/creation/individual/register');
         return;
       }
 
@@ -226,7 +238,11 @@ function LoginPageContent() {
           </div>
         </form>
       ) : (
-        <div className="w-full space-y-4">
+        <div
+          ref={stepContainerRef}
+          tabIndex={-1}
+          className="w-full space-y-4 focus:outline-none"
+        >
           <SelectedEmailCard email={emailValue} onChangeEmail={handleGoBack} />
 
           {showPassword ? (
