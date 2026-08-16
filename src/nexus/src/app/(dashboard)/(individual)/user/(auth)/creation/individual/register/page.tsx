@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import Link from 'next/link';
@@ -23,7 +23,7 @@ import {
 } from '@/shared/lib/validation-limits';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 
 const GENERATED_PASSWORD_LENGTH = 20;
@@ -79,6 +79,8 @@ export default function RegisterPage() {
 }
 
 function RegisterPageContent() {
+  const searchParams = useSearchParams();
+  const emailFromLogin = searchParams.get('email') || '';
   const {
     register,
     handleSubmit,
@@ -90,7 +92,7 @@ function RegisterPageContent() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: emailFromLogin,
       password: '',
     },
     mode: 'onChange',
@@ -101,6 +103,12 @@ function RegisterPageContent() {
 
   const { trigger: registerUser, isMutating } = useRegister();
   const router = useRouter();
+
+  useEffect(() => {
+    if (emailFromLogin) {
+      setValue('email', emailFromLogin, { shouldValidate: true });
+    }
+  }, [emailFromLogin, setValue]);
 
   const handleGeneratePassword = () => {
     try {

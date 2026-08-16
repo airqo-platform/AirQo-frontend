@@ -9,6 +9,7 @@ import { trackAuthEvent } from '../utils/enhancedAnalytics';
 import { trackEvent } from '../utils/analytics';
 import type {
   LoginRequest,
+  CheckEmailRequest,
   RegisterRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -56,6 +57,16 @@ export const useLogin = () => {
           organization: data?.long_organization,
         });
       },
+    }
+  );
+};
+
+// Check whether an account exists before continuing to credentials.
+export const useCheckEmail = () => {
+  return useSWRMutation(
+    'auth/check-email',
+    async (key, { arg }: { arg: CheckEmailRequest }) => {
+      return await authService.checkEmail(arg);
     }
   );
 };

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import SocialAuthSection from '@/shared/components/auth/SocialAuthSection';
 import SelectedEmailCard from '@/shared/components/auth/SelectedEmailCard';
@@ -19,12 +19,22 @@ import {
   redirectWithReload,
 } from '@/shared/lib/auth-redirect';
 import { CROSS_TAB_LOGIN_KEY } from '@/shared/hooks/useLogout';
+import { useCheckEmail } from '@/shared/hooks/useAuth';
+import { Banner } from '@/shared/components/ui';
+import type { AuthMethods } from '@/shared/types/api';
+import {
+  SUPPORTED_SOCIAL_AUTH_PROVIDERS,
+  type SupportedSocialAuthProvider,
+} from '@/shared/lib/oauth-session';
 
 export default function OrgLoginPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
+  const [authMethods, setAuthMethods] = useState<AuthMethods | undefined>();
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { trigger: checkEmail, isMutating: isCheckingEmail } = useCheckEmail();
   const orgSlug = params.org_slug as string;
   const callbackUrl = normalizeCallbackUrl(searchParams.get('callbackUrl'));
 
@@ -46,22 +56,62 @@ export default function OrgLoginPage() {
   });
 
   const emailValue = (watch('email') || '').trim();
+  const showPassword = authMethods?.password !== false;
+  const linkedOAuthProviders = useMemo(
+    () =>
+      SUPPORTED_SOCIAL_AUTH_PROVIDERS.filter(
+        provider => authMethods?.[provider] === true
+      ) as SupportedSocialAuthProvider[],
+    [authMethods]
+  );
 
   useEffect(() => {
-    setFocus(step === 'email' ? 'email' : 'password');
-  }, [setFocus, step]);
+    if (step === 'email' || showPassword) {
+      setFocus(step === 'email' ? 'email' : 'password');
+    }
+  }, [setFocus, showPassword, step]);
 
   const handleContinue = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const isEmailValid = await trigger('email');
-    if (isEmailValid) {
+    if (!isEmailValid || isCheckingEmail) {
+      return;
+    }
+
+    try {
+      const result = await checkEmail({ email: emailValue });
+
+      if (!result.exists) {
+        toast.info(
+          'Account not found',
+          'We could not find an account for this email. Redirecting you to registration.'
+        );
+        router.push(
+          `/user/creation/individual/register?email=${encodeURIComponent(emailValue)}`
+        );
+        return;
+      }
+
+      setAuthMethods(result.authMethods);
       setStep('password');
+    } catch (error) {
+      const status =
+        typeof error === 'object' && error !== null && 'status' in error
+          ? (error as { status?: number }).status
+          : undefined;
+      toast.error(
+        status === 429 ? 'Please try again shortly' : 'Unable to continue',
+        status === 429
+          ? 'We are temporarily limiting sign-in checks. Please wait a moment and try again.'
+          : 'We could not check this email. Please try again.'
+      );
     }
   };
 
   const handleGoBack = () => {
     resetField('password');
+    setAuthMethods(undefined);
     setStep('email');
   };
 
@@ -141,8 +191,13 @@ export default function OrgLoginPage() {
             maxLength={EMAIL_MAX}
           />
 
-          <Button type="submit" fullWidth disabled={loading}>
-            Continue
+          <Button
+            type="submit"
+            fullWidth
+            loading={isCheckingEmail}
+            disabled={loading || isCheckingEmail}
+          >
+            {isCheckingEmail ? 'Checking...' : 'Continue'}
           </Button>
 
           <SocialAuthSection
@@ -164,36 +219,59 @@ export default function OrgLoginPage() {
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-4">
+        <div className="w-full space-y-4">
           <SelectedEmailCard email={emailValue} onChangeEmail={handleGoBack} />
 
-          <Input
-            label="Password"
-            type="password"
-            {...register('password')}
-            error={errors.password?.message}
-            placeholder="Enter your password"
-            showPasswordToggle
-            maxLength={PASSWORD_MAX}
-          />
+          {showPassword ? (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <Input
+                label="Password"
+                type="password"
+                {...register('password')}
+                error={errors.password?.message}
+                placeholder="Enter your password"
+                showPasswordToggle
+                maxLength={PASSWORD_MAX}
+              />
 
-          <div className="flex items-center justify-end gap-3">
-            <Link
-              href={`/org/${orgSlug}/forgot-password`}
-              className="text-sm text-primary hover:text-primary/80"
-            >
-              Forgot password?
-            </Link>
-          </div>
+              <div className="flex items-center justify-end gap-3">
+                <Link
+                  href={`/org/${orgSlug}/forgot-password`}
+                  className="text-sm text-primary hover:text-primary/80"
+                >
+                  Forgot password?
+                </Link>
+              </div>
 
-          <Button
-            type="submit"
-            loading={loading}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? 'Signing in...' : 'Login'}
-          </Button>
+              <Button
+                type="submit"
+                loading={loading}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? 'Signing in...' : 'Login'}
+              </Button>
+            </form>
+          ) : linkedOAuthProviders.length ? (
+            <>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                This account uses a connected provider. Choose one below to
+                continue.
+              </p>
+              <SocialAuthSection
+                mode="login"
+                disabled={loading}
+                callbackUrl={callbackUrl || `/org/${orgSlug}/dashboard`}
+                providers={linkedOAuthProviders}
+              />
+            </>
+          ) : (
+            <Banner
+              severity="error"
+              title="No sign-in method available"
+              message="Please contact AirQo support to recover access to this account."
+            />
+          )}
 
           <div className="text-center">
             <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -206,7 +284,7 @@ export default function OrgLoginPage() {
               </Link>
             </span>
           </div>
-        </form>
+        </div>
       )}
     </AuthLayout>
   );
