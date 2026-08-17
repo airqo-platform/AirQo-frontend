@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?token=LsBcFL42rz&flag=nexus)](https://codecov.io/gh/airqo-platform/AirQo-frontend/flags/nexus)
 ![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-brightgreen?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat-square).
 
 **AirQo Nexus** is the AirQo analytics application for air quality monitoring, data visualization, device management, and analytics. Built with Next.js 14 (App Router), React 18, and TypeScript.
 
@@ -158,10 +158,10 @@ yarn test:e2e:data      # Data flow tests only
 
 ### GitHub Actions
 
-| Workflow         | Trigger                      | Description                                   |
-| ---------------- | ---------------------------- | --------------------------------------------- |
-| `nexus-ci`       | PR/push to `src/nexus/**`    | Lint, type check, unit tests, coverage upload |
-| `nexus-codecov`  | Reusable workflow            | Coverage upload for other pipelines           |
+| Workflow        | Trigger                   | Description                                   |
+| --------------- | ------------------------- | --------------------------------------------- |
+| `nexus-ci`      | PR/push to `src/nexus/**` | Lint, type check, unit tests, coverage upload |
+| `nexus-codecov` | Reusable workflow         | Coverage upload for other pipelines           |
 
 ### Coverage
 

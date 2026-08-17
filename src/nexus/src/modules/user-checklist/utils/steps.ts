@@ -20,7 +20,7 @@ export const createSteps = (): Step[] => [
     id: 2,
     title: 'Choose location you are most interested in',
     description: 'Set up your preferred locations for air quality monitoring',
-    link: '/user/favorites',
+    link: '/user/map',
     time: '5 min',
     isExternal: false,
   },

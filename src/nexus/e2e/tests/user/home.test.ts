@@ -61,20 +61,12 @@ describe('Home Page @user', function () {
     expect(url).to.include('/data-export');
   });
 
-  it('should navigate to favorites on My Favorites click', async function () {
-    await homePage.navigateToHome();
-    await homePage.clickMyFavorites();
-    await homePage.waitForUrlContains('/favorites');
-    const url = await homePage.getCurrentUrl();
-    expect(url).to.include('/favorites');
-  });
-
-  it('should navigate to favorites on Start Here click', async function () {
+  it('should navigate to the map on Start Here click', async function () {
     await homePage.navigateToHome();
     await homePage.clickStartHere();
-    await homePage.waitForUrlContains('/favorites');
+    await homePage.waitForUrlContains('/user/map');
     const url = await homePage.getCurrentUrl();
-    expect(url).to.include('/favorites');
+    expect(url).to.include('/user/map');
   });
 
   it('should show video thumbnail', async function () {
