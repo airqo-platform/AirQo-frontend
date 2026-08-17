@@ -37,7 +37,7 @@ class ForecastDaySelector extends StatelessWidget {
         final isToday = DateFormat('yyyy-MM-dd').format(f.time) == todayStr;
         final useLiveReading = isToday && hasLiveReading(liveReading);
         final pm25Label = useLiveReading
-            ? liveReading!.pm25!.value!.round().toString()
+            ? liveReading!.pm25!.value!.toStringAsFixed(1)
             : '${f.pm25.round()}';
         final iconPath = useLiveReading
             ? getAirQualityIcon(liveReading!, liveReading!.pm25!.value!)

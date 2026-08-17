@@ -232,7 +232,7 @@ class _HourlyChip extends StatelessWidget {
 
     final useLiveReading = hasLiveReading(liveReading);
     final pm25Label = useLiveReading
-        ? liveReading!.pm25!.value!.round().toString()
+        ? liveReading!.pm25!.value!.toStringAsFixed(1)
         : '${entry.pm25Mean.round()}';
     final iconPath = useLiveReading
         ? getAirQualityIcon(liveReading!, liveReading!.pm25!.value!)
