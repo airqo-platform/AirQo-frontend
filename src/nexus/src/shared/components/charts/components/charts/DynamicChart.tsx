@@ -724,6 +724,13 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // for details.
   const renderLineSeries = (Component: typeof Line | typeof Area) => {
     return seriesKeys.map((key, index) => {
+      const seriesPointCount = renderData.reduce((count, row) => {
+        const value = row[key];
+        return (
+          count + (typeof value === 'number' && Number.isFinite(value) ? 1 : 0)
+        );
+      }, 0);
+      const showRestingPoint = seriesPointCount === 1;
       const isHidden = isSeriesHidden(key);
       const color =
         config.seriesColors?.[key] ||
@@ -759,8 +766,8 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           : undefined;
 
       // Resting dots appear while the chart is hovered and mark the points
-      // along the line; their invisible fat circles add extra hover targets
-      // near the line and cover single-point series (no curve is drawn).
+      // along the line. A single-point series keeps one visible dot even
+      // while idle because no curve can be drawn for it.
       const renderSeriesDot = (dotProps: {
         dataKey?: unknown;
         cx?: number;
@@ -768,9 +775,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         index?: number;
       }) => {
         if (
-          activeIndex === null ||
           dotProps.cx == null ||
-          dotProps.cy == null
+          dotProps.cy == null ||
+          (activeIndex === null && !showRestingPoint)
         ) {
           return null;
         }
@@ -816,7 +823,12 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
           isAnimationActive={!isZoomed}
           // Forecast series are sparse (one point per forecast day) — connect
           // their gaps so the projection reads as a continuous line.
-          connectNulls={isDashed}
+          // Sensor series can have valid readings separated by missing days.
+          // Keep those readings connected for trend charts; otherwise a
+          // sparse but successful response can appear completely blank.
+          connectNulls={
+            isDashed || chartType === 'line' || chartType === 'area'
+          }
           hide={isHidden}
           onMouseEnter={() => focusSeries(key)}
           onMouseLeave={scheduleSeriesBlur}

@@ -12,6 +12,7 @@ import {
   writeChartSidecar,
   removeChartSidecar,
   DEFAULT_CHART_SIDECAR,
+  getGuidelinePeriod,
 } from '../chartConfig';
 import type { UserChartConfig } from '@/shared/types/api';
 
@@ -65,6 +66,15 @@ describe('chartConfig utils', () => {
   });
 
   describe('range helpers', () => {
+    it('uses the 24-hour guideline for daily and hourly charts', () => {
+      expect(getGuidelinePeriod('daily')).toBe('24hr');
+      expect(getGuidelinePeriod('hourly')).toBe('24hr');
+    });
+
+    it('uses the annual guideline only for monthly charts', () => {
+      expect(getGuidelinePeriod('monthly')).toBe('annual');
+    });
+
     it('derives a range of the configured number of days', () => {
       const { startDate, endDate } = deriveRangeFromDays(7);
       const start = new Date(startDate);

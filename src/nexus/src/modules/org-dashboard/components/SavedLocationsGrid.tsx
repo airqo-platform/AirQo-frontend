@@ -16,6 +16,7 @@ import type { AqiConfig } from '@/shared/types/aqi';
 import type { SiteData } from '@/modules/analytics';
 import type { PollutantType } from '../types';
 import { cn } from '@/shared/lib/utils';
+import { isReportableSiteCard } from '../utils/measurements';
 
 interface SavedLocationsGridProps {
   siteCards: SiteData[];
@@ -52,14 +53,17 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
   const [visibleStart, setVisibleStart] = React.useState(0);
   const [visibleEnd, setVisibleEnd] = React.useState(0);
 
-  const hasUsableSites = siteCards.length > 0;
+  // Never display a placeholder no-value card as a healthy zero reading.
+  const reportableSiteCards = React.useMemo(
+    () => siteCards.filter(isReportableSiteCard),
+    [siteCards]
+  );
+  const hasUsableSites = reportableSiteCards.length > 0;
   const shouldShowSkeleton = isLoading && !hasUsableSites;
   const shouldShowErrorState =
     !isLoading && !hasUsableSites && Boolean(errorMessage);
-  const hasNoReadings =
-    !isLoading &&
-    hasUsableSites &&
-    !siteCards.some(card => card.status !== 'no-value');
+  const shouldShowNoReadingsState =
+    !isLoading && !hasUsableSites && !errorMessage;
 
   const updateScrollState = React.useCallback(() => {
     const container = scrollRef.current;
@@ -74,15 +78,17 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
       const first = Math.max(0, Math.floor(scrollLeft / cardWidth));
       const visibleCount = Math.max(1, Math.round(clientWidth / cardWidth));
       setVisibleStart(first);
-      setVisibleEnd(Math.min(siteCards.length, first + visibleCount));
+      setVisibleEnd(
+        Math.min(reportableSiteCards.length, first + visibleCount)
+      );
     } else {
-      setVisibleEnd(Math.min(siteCards.length, 1));
+      setVisibleEnd(Math.min(reportableSiteCards.length, 1));
     }
-  }, [siteCards.length]);
+  }, [reportableSiteCards.length]);
 
   React.useEffect(() => {
     updateScrollState();
-  }, [siteCards.length, updateScrollState]);
+  }, [reportableSiteCards.length, updateScrollState]);
 
   React.useEffect(() => {
     const container = scrollRef.current;
@@ -116,10 +122,11 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
           </CardDescription>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          {hasUsableSites && siteCards.length > 1 && (
+          {hasUsableSites && reportableSiteCards.length > 1 && (
             <span className="text-xs text-muted-foreground">
-              {Math.min(visibleStart + 1, siteCards.length)}–{visibleEnd} of{' '}
-              {siteCards.length}
+              {Math.min(visibleStart + 1, reportableSiteCards.length)}–
+              {visibleEnd} of{' '}
+              {reportableSiteCards.length}
             </span>
           )}
           <button
@@ -150,7 +157,7 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
           </div>
         )}
 
-        {shouldShowErrorState || hasNoReadings ? (
+        {shouldShowErrorState || shouldShowNoReadingsState ? (
           <EmptyState
             compact
             title={
@@ -161,7 +168,7 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
             description={
               shouldShowErrorState && errorMessage
                 ? errorMessage
-                : 'Your saved locations have not reported measurements recently. Refresh to try again.'
+                : 'Your saved locations have not reported measurements recently. We will show them here when new readings arrive.'
             }
             action={
               onRefresh
@@ -205,7 +212,7 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
             role="region"
             aria-label="Saved locations carousel"
           >
-            {siteCards.map(siteData => (
+            {reportableSiteCards.map(siteData => (
               <div
                 key={siteData._id}
                 data-carousel-card

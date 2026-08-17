@@ -105,6 +105,29 @@ describe('DynamicChart zoom controls', () => {
     expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
   });
 
+  it('keeps sparse line series visible when data has one reading', () => {
+    renderChart(buildSeries(1));
+
+    const lineProps = mockChartCalls.Line.at(-1);
+    expect(lineProps?.connectNulls).toBe(true);
+    expect(
+      (
+        lineProps?.dot as
+          | ((props: { cx: number; cy: number }) => React.ReactNode)
+          | undefined
+      )?.({
+        cx: 10,
+        cy: 20,
+      })
+    ).not.toBeNull();
+  });
+
+  it('connects available readings across missing dates for area series', () => {
+    renderChart(buildSeries(2), { config: { type: 'area' } });
+
+    expect(mockChartCalls.Area.at(-1)?.connectNulls).toBe(true);
+  });
+
   it('shows the pill on default-sized analytics data (7 days of daily points)', () => {
     renderChart(buildSeries(8));
 

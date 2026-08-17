@@ -94,6 +94,12 @@ export interface FleetSummary {
   cleanestSite: { name: string; value: number } | null;
 }
 
+/** A card is reportable only when it contains a real API reading. */
+export const isReportableSiteCard = (card: SiteData): boolean =>
+  card.status !== 'no-value' &&
+  typeof card.value === 'number' &&
+  Number.isFinite(card.value);
+
 /**
  * Aggregates the saved-location cards (built from GET /devices/readings/recent,
  * the same service the favorites module uses) into dashboard summary stats.
@@ -107,12 +113,7 @@ export const summarizeSiteCards = (
 ): FleetSummary => {
   const cards = Array.isArray(siteCards) ? siteCards : [];
 
-  const reporting = cards.filter(
-    card =>
-      card.status !== 'no-value' &&
-      typeof card.value === 'number' &&
-      Number.isFinite(card.value)
-  );
+  const reporting = cards.filter(isReportableSiteCard);
 
   if (reporting.length === 0) {
     return {

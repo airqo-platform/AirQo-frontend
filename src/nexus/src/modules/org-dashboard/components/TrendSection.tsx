@@ -9,6 +9,7 @@ import { DatePicker } from '@/shared/components/ui';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { EmptyState } from '@/shared/components/ui';
 import { useAnalyticsChartData } from '@/modules/analytics';
+import { getGuidelinePeriod } from '@/modules/analytics/utils/chartConfig';
 import { getPollutantLabel } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
 import type { Site } from '@/shared/types/api';
@@ -48,8 +49,8 @@ const toDateInput = (date: Date): string => format(date, 'yyyy-MM-dd');
  * powered by the aggregated D3 chart service — the same service the
  * favorites module uses to visualize saved locations
  * (POST /analytics/dashboard/chart/d3/data), so any range resolves in a
- * single server-side aggregated request. One line per saved location plus
- * the fleet average; the user picks line / area / bar.
+ * single server-side aggregated request. One series per reporting location
+ * plus the fleet average; the user picks line / area / bar.
  */
 export const TrendSection: React.FC<TrendSectionProps> = ({
   siteIds,
@@ -68,7 +69,7 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
     const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
     return { from, to };
   });
-  const [chartType, setChartType] = React.useState<ChartType>('line');
+  const [chartType, setChartType] = React.useState<ChartType>('bar');
 
   const startDate = React.useMemo(
     () => toDateInput(dateRange.from),
@@ -121,7 +122,7 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
       <CardContent className="p-0">
         <ChartContainer
           title="Air Pollution Trends"
-          subtitle={`${getPollutantLabel(pollutant)} daily averages across your saved locations`}
+          subtitle={`${getPollutantLabel(pollutant)} daily averages across locations with recent readings`}
           exportOptions={{
             enablePDF: true,
             enablePNG: true,
@@ -130,10 +131,7 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
           onRefresh={refetch}
           loading={isLoading || isRefreshing}
           error={error}
-          currentChartType={chartType}
-          onChartTypeChange={setChartType}
-          autoSelectChart={false}
-          onAutoSelectToggle={() => setChartType('line')}
+          themeColors
           currentSites={selectedSites.map(site => ({
             _id: site._id,
             name: getSiteDisplayName(site),
@@ -180,16 +178,17 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
           footerHint={
             <span>
               {format(dateRange.from, 'MMM d, yyyy')} –{' '}
-              {format(dateRange.to, 'MMM d, yyyy')} · {siteIds.length} saved{' '}
-              {siteIds.length === 1 ? 'location' : 'locations'}
+              {format(dateRange.to, 'MMM d, yyyy')} · {siteIds.length}{' '}
+              {siteIds.length === 1 ? 'location' : 'locations'} with recent
+              readings
             </span>
           }
         >
           {!isLoading && !error && !hasData ? (
             <EmptyState
               compact
-              title="No measurements for this period"
-              description="There is no measurement data for the selected dates yet. Pick a different range or check back later."
+              title="No recent readings available"
+              description="None of the selected locations reported measurements for this date range. Try a wider date range or check back later."
             />
           ) : (
             <DynamicChart
@@ -200,12 +199,15 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
                 showTooltip: true,
                 showLegend: true,
                 height: 400,
+                themeColors: true,
               }}
               pollutant={pollutant}
               aqiConfig={aqiConfig}
               frequency="daily"
               autoSelectType={false}
-              referenceLinePeriod="24hr"
+              // Daily averages are compared with WHO's 24-hour guideline:
+              // PM2.5 = 15 µg/m³ and PM10 = 45 µg/m³.
+              referenceLinePeriod={getGuidelinePeriod('daily')}
               seriesLabels={{
                 [FLEET_AVERAGE_SERIES_KEY]: FLEET_AVERAGE_SERIES_KEY,
               }}

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { useQueryClient, useIsFetching } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useUser,
   useGroupCohorts,
@@ -17,8 +17,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { AccessDenied } from '@/shared/components/AccessDenied';
-import { WarningBanner, toast } from '@/shared/components/ui';
-import { ErrorState } from '@/shared/components/ui/error-state';
+import { InfoBanner, WarningBanner, toast } from '@/shared/components/ui';
 import { SuggestedLocations } from '@/modules/analytics/components/SuggestedLocations';
 import { AqiLegend } from '@/modules/analytics';
 import AddFavorites from '@/modules/location-insights/add-favorites';
@@ -30,7 +29,10 @@ import { FleetSummary } from './components/FleetSummary';
 import { SavedLocationsGrid } from './components/SavedLocationsGrid';
 import { TrendSection } from './components/TrendSection';
 import { OrgDashboardSkeleton } from './components/OrgDashboardSkeleton';
-import { getFriendlyErrorMessage } from './utils/measurements';
+import {
+  getFriendlyErrorMessage,
+  isReportableSiteCard,
+} from './utils/measurements';
 import type { SiteData } from '@/modules/analytics';
 import type { PollutantType } from './types';
 import { getAirQualityLevel } from '@/shared/utils/airQuality';
@@ -54,8 +56,8 @@ interface OrgDashboardProps {
  *     org map page); the primary cohort id is used only for the private-data
  *     visibility banner.
  *  2. Load the group-scoped user preferences. If the organization has saved
- *     sites → render the full dashboard (fleet summary, saved-location
- *     carousel, trend) for exactly those locations.
+ *     sites → render the dashboard from exactly those preferences, while
+ *     omitting locations that have no recent readings from cards and trends.
  *  3. No preferences yet → show SuggestedLocations so the organization can
  *     pick their sites (selection is saved as a group preference).
  *
@@ -73,6 +75,8 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   const { activeGroup, groups, isLoading: userContextLoading } = useUser();
   const hasTrackedViewRef = React.useRef(false);
   const isRefreshingRef = React.useRef(false);
+  const [isDashboardRefreshing, setIsDashboardRefreshing] =
+    React.useState(false);
 
   const [pollutant, setPollutant] = React.useState<PollutantType>('pm2_5');
   const [isManageLocationsOpen, setIsManageLocationsOpen] =
@@ -120,6 +124,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
     isLoading: siteCardsLoading,
     isRefreshing: siteCardsRefreshing,
     error: siteCardsError,
+    refetch: refetchSiteCards,
   } = useAnalyticsSiteCards({
     selectedSiteIds,
     selectedSites,
@@ -133,15 +138,44 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   // always reflect the live config once it loads.
   const classifiedCards = React.useMemo(() => {
     if (!selectedAqiConfig || siteCards.length === 0) return siteCards;
-    return siteCards.map(card => ({
-      ...card,
-      status: getAirQualityLevel(
-        card.value,
-        card.pollutant as 'pm2_5' | 'pm10',
-        selectedAqiConfig
-      ),
-    }));
+    return siteCards.map(card => {
+      // Missing readings use value 0 as a placeholder. Never classify that
+      // placeholder as Good after the AQI configuration becomes available.
+      if (card.status === 'no-value') return card;
+
+      return {
+        ...card,
+        status: getAirQualityLevel(
+          card.value,
+          card.pollutant as 'pm2_5' | 'pm10',
+          selectedAqiConfig
+        ),
+      };
+    });
   }, [siteCards, selectedAqiConfig]);
+
+  // Keep saved locations in preferences as the source of truth, but only
+  // show locations with recent readings in the cards and trend chart.
+  const reportingCards = React.useMemo(
+    () => classifiedCards.filter(isReportableSiteCard),
+    [classifiedCards]
+  );
+  const reportingSiteIds = React.useMemo(
+    () => reportingCards.map(card => card._id),
+    [reportingCards]
+  );
+  const reportingSiteIdSet = React.useMemo(
+    () => new Set(reportingSiteIds),
+    [reportingSiteIds]
+  );
+  const reportingSites = React.useMemo(
+    () => selectedSites.filter(site => reportingSiteIdSet.has(site._id)),
+    [reportingSiteIdSet, selectedSites]
+  );
+  const missingRecentReadingCount = Math.max(
+    0,
+    selectedSites.length - reportingSiteIds.length
+  );
 
   // Visibility check for the private-cohort warning banner (primary cohort).
   const { data: organizationGroupCohorts } = useGroupCohorts(
@@ -173,13 +207,6 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
   const mapHref = `/org/${encodeURIComponent(normalizedSlug)}/map`;
 
-  // The dashboard data lives under the analytics query cache (site-cards,
-  // chart-data) plus the org-dashboard keys.
-  const isFetchingAny = useIsFetching({ queryKey: ['org-dashboard'] });
-  const isFetchingAnalytics = useIsFetching({ queryKey: ['analytics'] });
-  const isRefreshing =
-    (isFetchingAny > 0 || isFetchingAnalytics > 0) && !isInitialLoading;
-
   const readingsError = React.useMemo(
     () => getFriendlyErrorMessage(siteCardsError),
     [siteCardsError]
@@ -188,6 +215,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   const handleRefresh = React.useCallback(async () => {
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
+    setIsDashboardRefreshing(true);
     try {
       await queryClient.invalidateQueries({
         queryKey: ['analytics'],
@@ -202,6 +230,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
       toast.error('Refresh failed', 'We could not refresh the dashboard.');
     } finally {
       isRefreshingRef.current = false;
+      setIsDashboardRefreshing(false);
     }
   }, [queryClient]);
 
@@ -283,11 +312,18 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
       <DashboardHeader
         organizationTitle={organizationGroup?.title ?? 'Organization'}
         selectedSiteCount={selectedSites.length}
-        isRefreshing={isRefreshing}
+        isRefreshing={isDashboardRefreshing}
         onRefresh={handleRefresh}
         mapHref={mapHref}
         onManageLocations={() => setIsManageLocationsOpen(true)}
       />
+
+      {missingRecentReadingCount > 0 && !siteCardsLoading && !readingsError && (
+        <InfoBanner
+          title="Some saved locations may not appear below"
+          message={`We only show locations with recent readings in the cards and trend chart. ${missingRecentReadingCount} saved location${missingRecentReadingCount === 1 ? ' has' : 's have'} not reported recently, so it may be hidden for now. We will include it again when new data arrives.`}
+        />
+      )}
 
       {isCohortPrivate && (
         <WarningBanner
@@ -310,39 +346,28 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
         />
       )}
 
-      {readingsError ? (
-        <ErrorState
-          title="Unable to load live readings"
-          description={readingsError}
-          retryAction={{
-            label: 'Retry',
-            onClick: () => void handleRefresh(),
-          }}
-        />
-      ) : (
-        <FleetSummary
-          siteCards={classifiedCards}
-          pollutant={pollutant}
-          aqiConfig={selectedAqiConfig}
-          isLoading={siteCardsLoading}
-          onRetry={handleRefresh}
-        />
-      )}
-
-      <SavedLocationsGrid
+      <FleetSummary
         siteCards={classifiedCards}
         pollutant={pollutant}
         aqiConfig={selectedAqiConfig}
         isLoading={siteCardsLoading}
-        isRefreshing={siteCardsRefreshing || isRefreshing}
+        onRetry={() => void refetchSiteCards()}
+      />
+
+      <SavedLocationsGrid
+        siteCards={reportingCards}
+        pollutant={pollutant}
+        aqiConfig={selectedAqiConfig}
+        isLoading={siteCardsLoading}
+        isRefreshing={siteCardsRefreshing}
         errorMessage={readingsError}
-        onRefresh={handleRefresh}
+        onRefresh={() => void refetchSiteCards()}
         onCardClick={handleCardClick}
       />
 
       <TrendSection
-        siteIds={selectedSiteIds}
-        selectedSites={selectedSites}
+        siteIds={reportingSiteIds}
+        selectedSites={reportingSites}
         pollutant={pollutant}
         onPollutantChange={setPollutant}
         aqiConfig={selectedAqiConfig}

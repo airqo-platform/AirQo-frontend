@@ -4,6 +4,7 @@ import {
   buildFleetAverageSeries,
   countLevelDistribution,
   getFriendlyErrorMessage,
+  isReportableSiteCard,
   summarizeSiteCards,
 } from '../measurements';
 
@@ -109,6 +110,32 @@ describe('summarizeSiteCards', () => {
     const summary = summarizeSiteCards(null, 'pm2_5', null);
     expect(summary.totalSiteCount).toBe(0);
     expect(summary.monitoredSiteCount).toBe(0);
+  });
+});
+
+describe('isReportableSiteCard', () => {
+  it('rejects a no-value card even when its placeholder value is zero', () => {
+    expect(
+      isReportableSiteCard(
+        makeCard({ _id: 'missing', value: 0, status: 'no-value' })
+      )
+    ).toBe(false);
+  });
+
+  it('accepts a finite reading with an AQI status', () => {
+    expect(
+      isReportableSiteCard(
+        makeCard({ _id: 'reporting', value: 0, status: 'good' })
+      )
+    ).toBe(true);
+  });
+
+  it('rejects non-finite readings', () => {
+    expect(
+      isReportableSiteCard(
+        makeCard({ _id: 'invalid', value: Number.NaN, status: 'good' })
+      )
+    ).toBe(false);
   });
 });
 
