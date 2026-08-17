@@ -30,7 +30,6 @@ export const GlobalSidebar: React.FC = () => {
   const { status: sessionStatus } = useSession();
   const { activeGroup, isLoading: userLoading } = useUserActions();
   const {
-    hasPermission,
     hasAnyPermissionInActiveGroup,
     hasEmailDomain,
     isLoading: rbacLoading,
@@ -114,15 +113,10 @@ export const GlobalSidebar: React.FC = () => {
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
-    let basePath = '/user';
-    let homePath = '/home';
-    let dataAccessPath = '/favorites';
-
-    if (flow === 'organization' && orgSlug) {
-      basePath = `/org/${orgSlug}`;
-      homePath = '/dashboard';
-      dataAccessPath = '/data-export';
-    }
+    const basePath =
+      flow === 'organization' && orgSlug ? `/org/${orgSlug}` : '/user';
+    const homePath =
+      flow === 'organization' && orgSlug ? '/dashboard' : '/home';
 
     return config.flatMap(group =>
       group.items
@@ -134,10 +128,6 @@ export const GlobalSidebar: React.FC = () => {
               hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
             );
           }
-          // Only show admin-panel if user has GROUP_MANAGEMENT permission
-          if (item.id === 'admin-panel') {
-            return hasPermission('GROUP_MANAGEMENT');
-          }
           return true;
         })
         .map(item => {
@@ -145,18 +135,9 @@ export const GlobalSidebar: React.FC = () => {
           // Keep system management href as is
           if (item.id === 'system-management') {
             href = item.href;
-          } else if (item.id === 'admin-panel') {
-            // Change Organization Panel href based on permissions
-            href = '/admin/members';
           } else if (item.id === 'home') {
             // Home redirects to appropriate dashboard/home based on flow
             href = `${basePath}${homePath}`;
-          } else if (item.id === 'data-access') {
-            // Data Access redirects to appropriate data access page based on flow
-            href = `${basePath}${dataAccessPath}`;
-          } else {
-            // For other items, replace base path if needed
-            href = href.replace('/data-access', `${basePath}${dataAccessPath}`);
           }
           return {
             ...item,
@@ -167,7 +148,6 @@ export const GlobalSidebar: React.FC = () => {
   }, [
     flow,
     orgSlug,
-    hasPermission,
     hasAnyPermissionInActiveGroup,
     hasEmailDomain,
   ]);

@@ -1,5 +1,3 @@
-import { AnalyticsDashboard } from '@/modules/analytics';
-
 interface PageProps {
   params: {
     org_slug: string;
@@ -7,12 +5,10 @@ interface PageProps {
 }
 
 const Page = ({ params }: PageProps) => {
-  return (
-    <AnalyticsDashboard
-      isOrganizationFlow={true}
-      organizationSlug={params.org_slug}
-    />
-  );
+  // Keep the route stable while the underlying module remains available for
+  // a future re-enable.
+  void params;
+  return <div />;
 };
 
 export default Page;

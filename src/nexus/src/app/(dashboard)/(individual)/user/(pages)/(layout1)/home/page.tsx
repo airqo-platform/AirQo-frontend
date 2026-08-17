@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
-import { AqDownloadCloud01, AqStar06, AqBuilding07 } from '@airqo/icons-react';
+import { AqDownloadCloud01, AqBuilding07 } from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
@@ -60,14 +60,6 @@ export default function HomePage() {
           <Button
             variant="outlined"
             size="md"
-            Icon={AqStar06}
-            path="/user/favorites"
-          >
-            My Favorites
-          </Button>
-          <Button
-            variant="outlined"
-            size="md"
             Icon={AqBuilding07}
             path="/request-organization"
           >
@@ -112,7 +104,7 @@ export default function HomePage() {
               <Button
                 variant="filled"
                 size="lg"
-                path="/user/favorites"
+                path="/user/map"
                 dataTestId="get-started-button"
               >
                 Start here
