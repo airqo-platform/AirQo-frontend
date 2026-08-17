@@ -2,6 +2,42 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.36
+**Released:** August 17, 2026
+
+### Fix: "Import External Device" renamed to "Register Non-AirQo Device"
+
+The button that adds a third-party sensor was labelled **"Import External Device"** in five places and **"Import Different Sensor Manufacturer"** in a sixth — two names for one flow, neither of which described what it does. The action hits `POST /devices/soft`, which *creates* a device record for a sensor AirQo did not ship; "import" implied bringing across data that already existed somewhere. All entry points now read **"Register Non-AirQo Device"**.
+
+<details>
+<summary><strong>Every trigger renamed, including the dialog it opens</strong></summary>
+
+- Seven triggers open `ImportDeviceModal`, enumerated by what calls `setImportDeviceOpen`/`openImportModal` rather than by label — which is how the odd one out surfaced. Renamed on `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `home` (header button **and** the card inside the "Add a device" chooser dialog), `HomeEmptyState`, and `admin/networks/[id]` (which shows this button only in its `!isAirQoNetwork` branch).
+- **The dialog title moved with them.** `import-device-modal.tsx` set `title="Import External Device"`, so renaming only the buttons would have sent users from "Register Non-AirQo Device" to a dialog headed "Import External Device" — the same button/modal split corrected on the claim side.
+- **The chooser card was the outlier.** It read "Import Different Sensor Manufacturer" and its description mentioned only the CSV template, understating a button that opens both the single and bulk paths. Now "Register Non-AirQo Device", described as registering a sensor "singly or from a CSV template".
+- **Surrounding copy followed the buttons.** Renaming a CTA without its neighbouring prose leaves the same block contradicting itself, so three descriptions moved too: the home empty state ("import external devices from any Sensor Manufacturer" → "register devices from any other sensor manufacturer"), the register dialog's subtitle ("Add a device…" → "Register a device…"), and the onboarding checklist's add-device step, whose verbs were the wrong way round under the new vocabulary — it said "**Register** your new AirQo sensor or **add** a device from a different manufacturer", now "**Claim** your new AirQo sensor or **register** a device from a different manufacturer".
+
+</details>
+
+<details>
+<summary><strong>Note: internal names deliberately unchanged</strong></summary>
+
+- `import-device-modal.tsx`, `import-steps/`, `useImportDevice`, `useBulkImportDevices`, and the `import-external-device*.spec.ts` filenames all keep "import". They carry no user-visible copy, and renaming them would produce a large diff with no behavioural or UX benefit.
+- Gating is untouched: the button remains `DEVICE_UPDATE` everywhere it is gated. As on the claim side, the `home` header button, the `home` chooser card, and `HomeEmptyState` gate on nothing at all — pre-existing, and left for a dedicated permissions pass.
+
+</details>
+
+**Files changed:**
+- `app/(authenticated)/devices/my-devices/page.tsx` — both header buttons
+- `app/(authenticated)/devices/overview/page.tsx` — header button
+- `app/(authenticated)/home/page.tsx` — header button + chooser-dialog card and its description
+- `app/(authenticated)/admin/networks/[id]/page.tsx` — non-AirQo network branch
+- `components/features/home/HomeEmptyState.tsx` — empty-state button
+- `components/features/devices/import-device-modal.tsx` — dialog title and subtitle
+- `components/onboarding-checklist/ChecklistUI.tsx` — add-device step description
+- `components/features/claim/steps/ManualInputStep.tsx` — the claim form's escape-hatch prose names this button
+- `e2e/tests/rbac/action-visibility.spec.ts`, `e2e/tests/rbac/resource-scoped.spec.ts`, `e2e/tests/devices/import-external-device.spec.ts`, `e2e/tests/devices/import-external-device-bulk.spec.ts` — 13 selectors; three target the dialog by accessible name and so depend on the title change
+
 ## Version 2.0.35
 **Released:** August 15, 2026
 
