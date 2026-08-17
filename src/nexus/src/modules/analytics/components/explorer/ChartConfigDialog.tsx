@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import SelectField from '@/shared/components/ui/select';
@@ -92,6 +98,19 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
   const [showTooltip, setShowTooltip] = useState(true);
   const [themeColors, setThemeColors] = useState(false);
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([]);
+  const saveErrorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!saveError) return;
+
+    const scrollTimer = window.setTimeout(() => {
+      const errorElement = saveErrorRef.current;
+      errorElement?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+      errorElement?.focus({ preventScroll: true });
+    }, 0);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [saveError]);
 
   // Seed the form when the dialog opens
   useEffect(() => {
@@ -218,7 +237,10 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       <div className="space-y-5">
         {saveError && (
           <div
+            ref={saveErrorRef}
             role="alert"
+            aria-live="assertive"
+            tabIndex={-1}
             className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
           >
             {saveError}

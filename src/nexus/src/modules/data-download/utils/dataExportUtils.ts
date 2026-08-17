@@ -35,10 +35,25 @@ const getFirstNonEmptyValue = (...values: unknown[]): string | undefined => {
   return undefined;
 };
 
-const getFiniteNumber = (...values: unknown[]): number | null => {
+const getCoordinate = (
+  axis: 'latitude' | 'longitude',
+  ...values: unknown[]
+): number | null => {
+  const min = axis === 'latitude' ? -90 : -180;
+  const max = axis === 'latitude' ? 90 : 180;
+
   for (const value of values) {
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const parsed =
+      typeof value === 'number'
+        ? value
+        : typeof value === 'string' && value.trim()
+          ? Number(value.trim())
+          : NaN;
+    if (Number.isFinite(parsed) && parsed >= min && parsed <= max) {
+      return parsed;
+    }
   }
+
   return null;
 };
 
@@ -107,13 +122,15 @@ export const getSiteNavigationData = (
   return {
     siteId,
     displayName,
-    latitude: getFiniteNumber(
+    latitude: getCoordinate(
+      'latitude',
       siteRecord?.approximate_latitude,
       siteRecord?.latitude,
       record.approximate_latitude,
       record.latitude
     ),
-    longitude: getFiniteNumber(
+    longitude: getCoordinate(
+      'longitude',
       siteRecord?.approximate_longitude,
       siteRecord?.longitude,
       record.approximate_longitude,

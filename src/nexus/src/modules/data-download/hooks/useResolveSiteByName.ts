@@ -17,7 +17,7 @@ const FLEET_SITES_STALE_TIME_MS = 1000 * 60 * 30;
 
 /**
  * LocalStorage index mapping a site's URL slug → its real data, written when
- * the user clicks a row in the explore table (the exact site id, name and
+ * the user clicks a row in the Data Export table (the exact site id, name and
  * coordinates are already in hand). Direct links/bookmarks fall back to the
  * fleet summary.
  */
@@ -63,8 +63,21 @@ export const rememberSiteSlug = (
   }
 };
 
-const asFiniteNumber = (value: unknown): number | null =>
-  typeof value === 'number' && Number.isFinite(value) ? value : null;
+const asCoordinate = (
+  value: unknown,
+  min: number,
+  max: number
+): number | null => {
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim()
+        ? Number(value.trim())
+        : NaN;
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max
+    ? parsed
+    : null;
+};
 
 /**
  * Coordinates the map should center on. Map nodes are rendered at the
@@ -78,11 +91,11 @@ const extractCoordinates = (
   if (!site) return { latitude: null, longitude: null };
   return {
     latitude:
-      asFiniteNumber(site.approximate_latitude) ??
-      asFiniteNumber(site.latitude),
+      asCoordinate(site.approximate_latitude, -90, 90) ??
+      asCoordinate(site.latitude, -90, 90),
     longitude:
-      asFiniteNumber(site.approximate_longitude) ??
-      asFiniteNumber(site.longitude),
+      asCoordinate(site.approximate_longitude, -180, 180) ??
+      asCoordinate(site.longitude, -180, 180),
   };
 };
 
@@ -96,8 +109,9 @@ export interface ResolvedSite {
 
 /**
  * Resolves the real site id (and its display name) from the site's display
- * name in the background — the URL only ever carries the slugified name, so
- * the raw id is never exposed. Resolution order:
+ * name in the background. When a route site id is available, every remote
+ * match is required to have that same id so duplicate display names cannot
+ * resolve to the wrong site. Resolution order:
  *
  * 1. The slug index (written when the user clicked the row in the explore
  *    table) — instant, exact, zero network.
@@ -107,17 +121,34 @@ export interface ResolvedSite {
  *    diacritics, long names), keyed by an exact slug match so a fuzzy
  *    result can never resolve to the wrong site.
  */
-export const useResolveSiteByName = (siteName: string) => {
+export const useResolveSiteByName = (
+  siteName: string,
+  expectedSiteId?: string
+) => {
   const trimmedName = siteName.trim();
   const slug = toSiteSlug(trimmedName);
-  const shouldFetch = trimmedName.length > 0;
+  const normalizedExpectedSiteId = expectedSiteId?.trim() || undefined;
+  const shouldFetch = trimmedName.length > 0 || !!normalizedExpectedSiteId;
   const queryClient = useQueryClient();
 
   return useQuery<ResolvedSite | null, Error>({
-    queryKey: ['analytics', 'site-resolve-by-name', slug],
+    queryKey: [
+      'analytics',
+      'site-resolve-by-name',
+      slug,
+      normalizedExpectedSiteId ?? 'no-site-id',
+    ],
     queryFn: async ({ signal }) => {
       const remembered = readSlugIndex()[slug];
-      if (remembered?.siteId) {
+      if (
+        remembered?.siteId &&
+        (!normalizedExpectedSiteId ||
+          remembered.siteId === normalizedExpectedSiteId) &&
+        typeof remembered.latitude === 'number' &&
+        Number.isFinite(remembered.latitude) &&
+        typeof remembered.longitude === 'number' &&
+        Number.isFinite(remembered.longitude)
+      ) {
         return {
           siteId: remembered.siteId,
           displayName: remembered.displayName,
@@ -135,7 +166,11 @@ export const useResolveSiteByName = (siteName: string) => {
       const searchMatch = ((response.sites ?? []) as RawSiteData[]).find(
         site => {
           const id = String(site?._id ?? '');
-          return id && siteSlugMatches(slug, getSiteDisplayName(site));
+          return (
+            id &&
+            (!normalizedExpectedSiteId || id === normalizedExpectedSiteId) &&
+            siteSlugMatches(slug, getSiteDisplayName(site))
+          );
         }
       );
       if (searchMatch) {
@@ -166,7 +201,9 @@ export const useResolveSiteByName = (siteName: string) => {
       });
       const fleetMatch = (fleet as RawSiteData[]).find(site => {
         const id = String(site?._id ?? '');
-        return id && siteSlugMatches(slug, getSiteDisplayName(site));
+        if (!id) return false;
+        if (normalizedExpectedSiteId) return id === normalizedExpectedSiteId;
+        return siteSlugMatches(slug, getSiteDisplayName(site));
       });
       if (fleetMatch) {
         const { latitude, longitude } = extractCoordinates(fleetMatch);

@@ -202,6 +202,14 @@ const MapPage: React.FC<MapPageProps> = ({
     };
   }, []);
 
+  const scheduleFlyToClear = React.useCallback(() => {
+    if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
+    flyToTimeoutRef.current = setTimeout(() => {
+      setFlyToLocation(undefined);
+      flyToTimeoutRef.current = null;
+    }, 1100);
+  }, []);
+
   React.useEffect(() => {
     dispatch(clearSelectedLocation());
     setSelectedLocationId(null);
@@ -220,20 +228,32 @@ const MapPage: React.FC<MapPageProps> = ({
   // effects run in declaration order, and the reset would otherwise wipe the
   // URL target before the map ever sees it.
   const searchParams = useSearchParams();
-  React.useEffect(() => {
-    const lat = parseFloat(searchParams.get('lat') ?? '');
-    const lng = parseFloat(searchParams.get('lng') ?? '');
+  const mapTarget = React.useMemo(() => {
+    const latitude = parseFloat(searchParams.get('lat') ?? '');
+    const longitude = parseFloat(searchParams.get('lng') ?? '');
     const zoom = parseFloat(searchParams.get('zoom') ?? '');
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return undefined;
+    }
+
+    return {
+      latitude,
+      longitude,
+      zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : undefined,
+    };
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (mapTarget) {
       setFlyToLocation({
-        latitude: lat,
-        longitude: lng,
-        zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : undefined,
+        ...mapTarget,
       });
       scheduleFlyToClear();
+    } else {
+      setFlyToLocation(undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mapTarget, scheduleFlyToClear]);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -390,14 +410,6 @@ const MapPage: React.FC<MapPageProps> = ({
       filterType: 'data_provider',
       filterValue: provider,
     });
-  };
-
-  const scheduleFlyToClear = () => {
-    if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
-    flyToTimeoutRef.current = setTimeout(() => {
-      setFlyToLocation(undefined);
-      flyToTimeoutRef.current = null;
-    }, 1100);
   };
 
   const handleLocationSelect = async (

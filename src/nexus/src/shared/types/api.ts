@@ -1853,6 +1853,9 @@ export interface Theme {
 
 export interface Period {
   label: string;
+  value?: string;
+  unitValue?: number;
+  unit?: string;
 }
 
 export interface UserPreference {
@@ -2806,6 +2809,7 @@ export interface ChartDetailResponse {
 export interface CreateChartRequest {
   group_id?: string;
   tenant?: string;
+  period?: Period;
   device_ids?: string[];
   site_ids?: string[];
   chartConfig: {
@@ -2825,6 +2829,7 @@ export interface CreateChartRequest {
 
 /** Partial update — fields go top-level (no chartConfig wrapper) */
 export interface UpdateChartRequest {
+  period?: Period;
   title?: string;
   subTitle?: string;
   chartType?: string;

@@ -43,6 +43,8 @@ import {
 import {
   persistedConfigToDraft,
   draftToPersistedConfig,
+  draftToUpdateRequest,
+  buildChartPeriod,
   readChartSidecar,
   writeChartSidecar,
   removeChartSidecar,
@@ -380,11 +382,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       namesSnapshot: Record<string, string>
     ): Promise<string | null> => {
       if (draft.id) {
-        // Update: flat partial body (verified live -- the chartConfig
-        // wrapper is silently ignored by PUT). Round-trip the persisted
-        // fieldId so edits don't reset the chart's slot to 1.
+        // Update: flat partial body (the chartConfig wrapper is not used by
+        // PUT). The existing server fieldId remains untouched; Area is kept
+        // in the sidecar while the API receives a compatible Line type.
         const nextSidecar = {
           subtitle: draft.subtitle,
+          chartType: draft.chartType,
           pollutant: draft.pollutant,
           frequency: draft.frequency,
           referenceStandard: draft.referenceStandard,
@@ -404,10 +407,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           await updateMutation.trigger({
             groupId,
             chartId: draft.id,
-            request: {
-              ...draftToPersistedConfig(draft, draft.fieldId),
-              site_ids: draft.siteIds,
-            },
+            request: draftToUpdateRequest(draft),
           });
         } catch (error) {
           writeChartSidecar(groupId, draft.id, prevSidecar);
@@ -433,6 +433,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           groupId,
           request: {
             group_id: groupId || undefined,
+            period: buildChartPeriod(draft.startDate, draft.endDate),
             site_ids: draft.siteIds,
             chartConfig: draftToPersistedConfig(draft, fieldId),
           },
@@ -446,6 +447,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             referenceStandard: draft.referenceStandard,
             color: draft.color,
             themeColors: draft.themeColors,
+            chartType: draft.chartType,
             startDate: draft.startDate,
             endDate: draft.endDate,
             siteNames: namesSnapshot,
@@ -533,6 +535,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           writeChartSidecar(groupId, newChartId, {
             ...sourceSidecar,
             subtitle: draft.subtitle,
+            chartType: draft.chartType,
             siteNames: Object.fromEntries(siteNames),
           });
           bumpSidecarVersion();

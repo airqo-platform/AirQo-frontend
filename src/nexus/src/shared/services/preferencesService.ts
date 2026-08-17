@@ -25,6 +25,14 @@ interface EnhancedError extends Error {
   success: boolean;
 }
 
+// The preferences API persists the chart configuration using its supported
+// server types. Area remains a UI presentation choice and is rendered from
+// the same line series on the client.
+const normalizeChartTypeForApi = (chartType?: string): string | undefined =>
+  chartType?.toLowerCase() === 'area' ? 'Line' : chartType;
+
+const DEFAULT_CHART_PERIOD = { label: 'Selected date range' };
+
 export class PreferencesService {
   private authenticatedClient: ApiClient;
 
@@ -301,10 +309,7 @@ export class PreferencesService {
 
       return data as ChartListResponse;
     } catch (error: unknown) {
-      throw this.handleApiError(
-        error,
-        'Failed to get chart configurations'
-      );
+      throw this.handleApiError(error, 'Failed to get chart configurations');
     }
   }
 
@@ -331,12 +336,23 @@ export class PreferencesService {
   }
 
   // Create a chart configuration
-  async createChart(request: CreateChartRequest): Promise<ChartMutationResponse> {
+  async createChart(
+    request: CreateChartRequest
+  ): Promise<ChartMutationResponse> {
     await this.ensureAuthenticated();
     try {
+      const normalizedRequest: CreateChartRequest = {
+        ...request,
+        period: request.period ?? DEFAULT_CHART_PERIOD,
+        chartConfig: {
+          ...request.chartConfig,
+          chartType:
+            normalizeChartTypeForApi(request.chartConfig.chartType) ?? 'Line',
+        },
+      };
       const response = await this.authenticatedClient.post<
         ChartMutationResponse | ApiErrorResponse
-      >('/users/preferences/charts', request);
+      >('/users/preferences/charts', normalizedRequest);
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -359,9 +375,16 @@ export class PreferencesService {
   ): Promise<ChartMutationResponse> {
     await this.ensureAuthenticated();
     try {
+      const normalizedRequest: UpdateChartRequest = {
+        ...request,
+        period: request.period ?? DEFAULT_CHART_PERIOD,
+        ...(request.chartType
+          ? { chartType: normalizeChartTypeForApi(request.chartType) }
+          : {}),
+      };
       const response = await this.authenticatedClient.put<
         ChartMutationResponse | ApiErrorResponse
-      >(`/users/preferences/charts/${chartId}`, request);
+      >(`/users/preferences/charts/${chartId}`, normalizedRequest);
       const data = response.data;
 
       if ('success' in data && !data.success) {

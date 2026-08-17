@@ -21,6 +21,7 @@ export default function OrganizationDataExportSiteDetailsRoute({
       siteSlug={params.siteSlug}
       siteId={searchParams?.site_id}
       backHref={`/org/${params.org_slug}/data-export`}
+      mapHref={`/org/${params.org_slug}/map`}
     />
   );
 }

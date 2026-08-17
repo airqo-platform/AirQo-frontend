@@ -445,7 +445,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
               className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <AqEdit02 className="h-3.5 w-3.5" />
-              Manage locations
+              Edit chart
             </button>
           </div>
         }

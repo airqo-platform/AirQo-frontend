@@ -31,6 +31,39 @@ describe('getSiteNavigationData', () => {
     });
   });
 
+  it('prefers approximate coordinates used by the map marker', () => {
+    expect(
+      getSiteNavigationData({
+        id: 'site-1',
+        name: 'Kawempe Division',
+        approximate_latitude: 0.3476,
+        approximate_longitude: 32.5825,
+        latitude: 0.348,
+        longitude: 32.583,
+      })
+    ).toMatchObject({
+      siteId: 'site-1',
+      latitude: 0.3476,
+      longitude: 32.5825,
+    });
+  });
+
+  it('parses coordinate strings and skips invalid approximate values', () => {
+    expect(
+      getSiteNavigationData({
+        id: 'site-1',
+        name: 'Kawempe Division',
+        approximate_latitude: 'not-a-coordinate',
+        approximate_longitude: 300,
+        latitude: '0.3476',
+        longitude: '32.5825',
+      })
+    ).toMatchObject({
+      latitude: 0.3476,
+      longitude: 32.5825,
+    });
+  });
+
   it('does not use a device id when its site id is missing', () => {
     expect(
       getSiteNavigationData({ id: 'device-1', name: 'Device 1' }, 'device')

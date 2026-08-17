@@ -1,6 +1,7 @@
 import {
   persistedConfigToDraft,
   draftToPersistedConfig,
+  draftToUpdateRequest,
   deriveRangeFromDays,
   computeDaysFromRange,
   formatChartRangeLabel,
@@ -206,6 +207,24 @@ describe('chartConfig utils', () => {
       });
       expect(draftToPersistedConfig(draft).title).toBe('Untitled chart');
     });
+
+    it('keeps Area as a client-side type and sends Line to the server', () => {
+      const draft = {
+        ...persistedConfigToDraft(PERSISTED),
+        chartType: 'Area' as const,
+      };
+
+      expect(draftToPersistedConfig(draft).chartType).toBe('Line');
+      expect(draftToUpdateRequest(draft)).toMatchObject({
+        period: {
+          label: formatChartRangeLabel(draft.startDate, draft.endDate),
+        },
+        chartType: 'Line',
+        site_ids: ['site-a', 'site-b'],
+      });
+      expect(draftToUpdateRequest(draft)).not.toHaveProperty('fieldId');
+      expect(draftToUpdateRequest(draft)).not.toHaveProperty('backgroundColor');
+    });
   });
 
   describe('sidecar storage', () => {
@@ -237,6 +256,17 @@ describe('chartConfig utils', () => {
         ...DEFAULT_CHART_SIDECAR,
         color: undefined,
       });
+    });
+
+    it('preserves Area as a client-side chart preference', () => {
+      writeChartSidecar('group-1', 'chart-area', { chartType: 'Area' });
+
+      const draft = persistedConfigToDraft(
+        PERSISTED,
+        readChartSidecar('group-1', 'chart-area')
+      );
+
+      expect(draft.chartType).toBe('Area');
     });
 
     it('merges partial writes and removes cleanly', () => {

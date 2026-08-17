@@ -1099,8 +1099,14 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         )}
       >
         <div className="text-center">
-          <p className="text-lg font-medium">No data available</p>
-          <p className="text-sm">Please check your data source or try again</p>
+          <p className="text-lg font-medium">
+            No readings found for this selection
+          </p>
+          <p className="text-sm">
+            There may be no readings for the selected locations during this time
+            period. Try a wider date range, a different frequency, or another
+            location.
+          </p>
         </div>
       </div>
     );

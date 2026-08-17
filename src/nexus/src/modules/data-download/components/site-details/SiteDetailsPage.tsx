@@ -22,6 +22,8 @@ interface SiteDetailsPageProps {
   siteId?: string;
   /** Base href of the data-export page (the breadcrumb root) */
   backHref: string;
+  /** Map route for the current account context (user or organization). */
+  mapHref?: string;
   className?: string;
 }
 
@@ -35,6 +37,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   siteSlug,
   siteId: siteIdFromRoute,
   backHref,
+  mapHref = '/user/map',
   className,
 }) => {
   // Background resolution: slug → real site id + authoritative display name
@@ -43,7 +46,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
     isLoading: resolving,
     error: resolveError,
     refetch: retryResolve,
-  } = useResolveSiteByName(siteIdFromRoute ? '' : siteSlug);
+  } = useResolveSiteByName(siteSlug, siteIdFromRoute);
 
   // Row navigation passes the exact site id so a duplicate display name can
   // never resolve to a different location. Direct links still use the slug
@@ -51,17 +54,44 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   const siteId = siteIdFromRoute?.trim() || resolved?.siteId || '';
   const resolvedName = resolved?.displayName ?? null;
 
-  const mapUrl =
-    resolved?.latitude != null && resolved?.longitude != null
-      ? `/user/map?lat=${resolved.latitude}&lng=${resolved.longitude}&zoom=14`
-      : '/user/map';
-
   const {
     data: reading,
     isLoading: readingLoading,
     error: readingError,
     refetch,
   } = useSiteRecentReading(siteId, !!siteId);
+
+  // Prefer the coordinates captured from the selected table row/resolver.
+  // The recent-reading payload is a reliable fallback for direct links whose
+  // cached site summary did not include coordinates.
+  const mapUrl = useMemo(() => {
+    const latitude =
+      resolved?.latitude ?? reading?.siteDetails?.approximate_latitude;
+    const longitude =
+      resolved?.longitude ?? reading?.siteDetails?.approximate_longitude;
+
+    if (
+      typeof latitude !== 'number' ||
+      typeof longitude !== 'number' ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      return mapHref;
+    }
+
+    const params = new URLSearchParams({
+      lat: String(latitude),
+      lng: String(longitude),
+      zoom: '14',
+    });
+    return `${mapHref}?${params.toString()}`;
+  }, [
+    mapHref,
+    reading?.siteDetails?.approximate_latitude,
+    reading?.siteDetails?.approximate_longitude,
+    resolved?.latitude,
+    resolved?.longitude,
+  ]);
 
   // Forecast is NOT prefetched here — SiteForecastCard below fetches only
   // the mode the user has selected (hourly by default), so loading the page

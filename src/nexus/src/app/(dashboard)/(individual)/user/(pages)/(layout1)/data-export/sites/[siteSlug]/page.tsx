@@ -20,6 +20,7 @@ export default function DataExportSiteDetailsRoute({
       siteSlug={params.siteSlug}
       siteId={searchParams?.site_id}
       backHref="/user/data-export"
+      mapHref="/user/map"
     />
   );
 }

@@ -2,6 +2,8 @@ import type {
   UserChartConfig,
   GroupChartReferenceLine,
   ChartLocationColor,
+  Period,
+  UpdateChartRequest,
 } from '@/shared/types/api';
 import type {
   FrequencyType,
@@ -49,6 +51,8 @@ export interface ExplorerChartDraft {
 
 export interface ExplorerChartSidecar {
   subtitle: string;
+  /** Area is rendered client-side; the server stores the compatible line type. */
+  chartType?: ExplorerChartType;
   pollutant: PollutantType;
   frequency: FrequencyType;
   /** Reference standard for the guideline line (WHO default) */
@@ -74,9 +78,10 @@ export interface ExplorerChartSidecar {
  * The group-chart backend only persists a whitelist of fields (verified live
  * against staging: extra fields like `pollutant` are silently dropped), so
  * display/UX preferences live in a localStorage sidecar keyed by group +
- * chart id. Server-persisted fields (title, chartType, days, sites, color,
- * toggles, reference lines) still sync across devices; the sidecar falls back
- * to sensible defaults when missing.
+ * chart id. Area is a client-side presentation choice because the chart
+ * configuration API's persisted schema is not consistently Area-compatible;
+ * the sidecar preserves that choice while the server receives Line. Other
+ * server-persisted fields still sync across devices.
  */
 const SIDECAR_STORAGE_KEY = 'nexus:analytics:chart-sidecar';
 
@@ -257,6 +262,18 @@ export const formatChartRangeLabel = (
 };
 
 /**
+ * The preferences API requires a top-level period object when a chart is
+ * mutated, even though the chart itself also stores the range as `days`.
+ * Keep the label aligned with the date picker so custom ranges are preserved.
+ */
+export const buildChartPeriod = (
+  startDate: string,
+  endDate: string
+): Period => ({
+  label: formatChartRangeLabel(startDate, endDate) || 'Selected date range',
+});
+
+/**
  * The one-line subtitle shown on every chart card (focused workspace and
  * overview): pollutant, frequency, date range and selection count.
  */
@@ -313,7 +330,8 @@ export const persistedConfigToDraft = (
     // The v2 API persists subTitle server-side; the sidecar remains a
     // fallback for charts created before that field was supported.
     subtitle: config.subTitle ?? sidecar.subtitle,
-    chartType: normalizeExplorerChartType(config.chartType),
+    chartType:
+      sidecar.chartType ?? normalizeExplorerChartType(config.chartType),
     pollutant: normalizePollutant(sidecar.pollutant),
     frequency: normalizeFrequency(sidecar.frequency),
     ...range,
@@ -339,7 +357,8 @@ export const persistedConfigToDraft = (
  * Convert a draft into the persistable fields of the user-chart contract.
  * `fieldId` (1–8) is required by the backend; the caller assigns a stable
  * slot per chart. A null color is omitted so the backend keeps its default.
- * `subTitle` and `locationColors` are persisted server-side on v2.
+ * `subTitle` and `locationColors` are persisted server-side on v2. Area is
+ * sent as Line because it is rendered client-side from the same series data.
  */
 export const draftToPersistedConfig = (
   draft: ExplorerChartDraft,
@@ -348,7 +367,7 @@ export const draftToPersistedConfig = (
   fieldId,
   title: draft.title.trim() || 'Untitled chart',
   subTitle: draft.subtitle.trim() || undefined,
-  chartType: draft.chartType,
+  chartType: draft.chartType === 'Area' ? 'Line' : draft.chartType,
   days: computeDaysFromRange(draft.startDate, draft.endDate),
   showLegend: draft.showLegend,
   showGrid: draft.showGrid,
@@ -360,3 +379,33 @@ export const draftToPersistedConfig = (
   backgroundColor: '#ffffff',
   referenceLines: draft.referenceLines,
 });
+
+/**
+ * Build the flat, update-only request body. In particular, do not send the
+ * create-only `fieldId`/`backgroundColor` fields back through the update
+ * endpoint; some deployments reject those extra fields during validation.
+ */
+export const draftToUpdateRequest = (
+  draft: ExplorerChartDraft
+): UpdateChartRequest => {
+  const persisted = draftToPersistedConfig(draft, draft.fieldId);
+
+  return {
+    period: buildChartPeriod(draft.startDate, draft.endDate),
+    title: persisted.title,
+    // Send an empty string intentionally so clearing a subtitle removes the
+    // previous server value instead of leaving stale text behind.
+    subTitle: draft.subtitle.trim(),
+    chartType: persisted.chartType,
+    days: persisted.days,
+    ...(persisted.color ? { color: persisted.color } : {}),
+    ...(persisted.locationColors
+      ? { locationColors: persisted.locationColors }
+      : {}),
+    showLegend: persisted.showLegend,
+    showGrid: persisted.showGrid,
+    showTooltip: persisted.showTooltip,
+    referenceLines: persisted.referenceLines,
+    site_ids: draft.siteIds,
+  };
+};
