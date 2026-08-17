@@ -2,8 +2,8 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
-## Version 2.0.35
-**Released:** August 15, 2026
+## Version 2.0.36
+**Released:** August 17, 2026
 
 ### Fix: "Import External Device" renamed to "Register Non-AirQo Device"
 
@@ -37,6 +37,24 @@ The button that adds a third-party sensor was labelled **"Import External Device
 - `components/onboarding-checklist/ChecklistUI.tsx` — add-device step description
 - `components/features/claim/steps/ManualInputStep.tsx` — the claim form's escape-hatch prose names this button
 - `e2e/tests/rbac/action-visibility.spec.ts`, `e2e/tests/rbac/resource-scoped.spec.ts`, `e2e/tests/devices/import-external-device.spec.ts`, `e2e/tests/devices/import-external-device-bulk.spec.ts` — 13 selectors; three target the dialog by accessible name and so depend on the title change
+
+## Version 2.0.35
+**Released:** August 15, 2026
+
+### Fix: "assigned successfully" was reported even when the assignment changed nothing
+
+`POST /devices/cohorts/:id/assign-devices` splits the submitted ids into `updated_cohort.assigned` and `updated_cohort.already_assigned`, but the frontend threw the response away. `useAssignDevicesToCohort`'s `onSuccess` forwarded only the request variables, so both `assign-cohort-devices.tsx` and the post-import assignment in `import-device-modal.tsx` derived their banner from `deviceIds.length` — the count *submitted*, not the count *assigned*. Re-adding a device that was already in the cohort produced "1 device(s) assigned to cohort successfully" for a request that did nothing.
+
+<details>
+<summary><strong>Fix: the banner is now built from the API response</strong></summary>
+
+- **`useAssignDevicesToCohort` now passes `(data, variables)`** to its `onSuccess` option instead of `variables` alone. Consumers using per-call `mutate(..., { onSuccess })` — `orphaned-devices-alert.tsx` and `import-device-modal.tsx` — already received the response from react-query and are unaffected by the signature change.
+- **New `core/utils/cohortAssignment.ts`** maps the response to a severity + message so both call sites stay in step: all new → `success`, none new → `info` ("Device is already assigned to this cohort" / "N device(s) were already assigned and skipped"), mixed → `success` naming both counts.
+- **Older backends that omit `updated_cohort` fall back** to the submitted count and the previous wording, so nothing regresses where the breakdown isn't reported. `AssignDevicesToCohortResponse` marks the field optional to force callers through that path rather than assuming it exists.
+- **The import modal was fixed too** — it carried a copy of the same `deviceIds.length` message. Freshly-imported devices are rarely already assigned, but the message was wrong for the same reason.
+- Covered by unit tests on the mapping and three banner assertions in `assign-cohort-devices.test.tsx` (all-new, all-skipped, partial).
+
+</details>
 
 ## Version 2.0.34
 **Released:** August 10, 2026
