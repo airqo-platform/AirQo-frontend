@@ -735,7 +735,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         isOpen={open}
         onClose={() => onOpenChange(false)}
         title="Register Non-AirQo Device"
-        subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
+        subtitle={isSuccess ? undefined : "Register a device from a different sensor manufacturer"}
         size="3xl"
         maxHeight="max-h-[55vh]"
         preventBackdropClose={true}

@@ -15,6 +15,7 @@ The button that adds a third-party sensor was labelled **"Import External Device
 - Seven triggers open `ImportDeviceModal`, enumerated by what calls `setImportDeviceOpen`/`openImportModal` rather than by label — which is how the odd one out surfaced. Renamed on `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `home` (header button **and** the card inside the "Add a device" chooser dialog), `HomeEmptyState`, and `admin/networks/[id]` (which shows this button only in its `!isAirQoNetwork` branch).
 - **The dialog title moved with them.** `import-device-modal.tsx` set `title="Import External Device"`, so renaming only the buttons would have sent users from "Register Non-AirQo Device" to a dialog headed "Import External Device" — the same button/modal split corrected on the claim side.
 - **The chooser card was the outlier.** It read "Import Different Sensor Manufacturer" and its description mentioned only the CSV template, understating a button that opens both the single and bulk paths. Now "Register Non-AirQo Device", described as registering a sensor "singly or from a CSV template".
+- **Surrounding copy followed the buttons.** Renaming a CTA without its neighbouring prose leaves the same block contradicting itself, so three descriptions moved too: the home empty state ("import external devices from any Sensor Manufacturer" → "register devices from any other sensor manufacturer"), the register dialog's subtitle ("Add a device…" → "Register a device…"), and the onboarding checklist's add-device step, whose verbs were the wrong way round under the new vocabulary — it said "**Register** your new AirQo sensor or **add** a device from a different manufacturer", now "**Claim** your new AirQo sensor or **register** a device from a different manufacturer".
 
 </details>
 
@@ -32,7 +33,8 @@ The button that adds a third-party sensor was labelled **"Import External Device
 - `app/(authenticated)/home/page.tsx` — header button + chooser-dialog card and its description
 - `app/(authenticated)/admin/networks/[id]/page.tsx` — non-AirQo network branch
 - `components/features/home/HomeEmptyState.tsx` — empty-state button
-- `components/features/devices/import-device-modal.tsx` — dialog title
+- `components/features/devices/import-device-modal.tsx` — dialog title and subtitle
+- `components/onboarding-checklist/ChecklistUI.tsx` — add-device step description
 - `components/features/claim/steps/ManualInputStep.tsx` — the claim form's escape-hatch prose names this button
 - `e2e/tests/rbac/action-visibility.spec.ts`, `e2e/tests/rbac/resource-scoped.spec.ts`, `e2e/tests/devices/import-external-device.spec.ts`, `e2e/tests/devices/import-external-device-bulk.spec.ts` — 13 selectors; three target the dialog by accessible name and so depend on the title change
 
