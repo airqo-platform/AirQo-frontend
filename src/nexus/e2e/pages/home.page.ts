@@ -6,9 +6,6 @@ export class HomePage extends BasePage {
   protected static readonly DOWNLOAD_DATA = By.xpath(
     "//a[contains(., 'Download Data')]|//button[contains(., 'Download Data')]"
   );
-  protected static readonly MY_FAVORITES = By.xpath(
-    "//a[contains(., 'My Favorites')]|//button[contains(., 'My Favorites')]"
-  );
   protected static readonly REQUEST_ORG = By.xpath(
     "//a[contains(., 'Request New Organization')]|//button[contains(., 'Request New Organization')]"
   );
@@ -45,10 +42,6 @@ export class HomePage extends BasePage {
     await this.click(HomePage.DOWNLOAD_DATA);
   }
 
-  async clickMyFavorites(): Promise<void> {
-    await this.click(HomePage.MY_FAVORITES);
-  }
-
   async clickRequestOrganization(): Promise<void> {
     await this.click(HomePage.REQUEST_ORG);
   }
@@ -64,7 +57,6 @@ export class HomePage extends BasePage {
   async hasQuickAccessButtons(): Promise<boolean> {
     return (
       (await this.isDisplayed(HomePage.DOWNLOAD_DATA, 3)) ||
-      (await this.isDisplayed(HomePage.MY_FAVORITES, 3)) ||
       (await this.isDisplayed(HomePage.DATA_ACCESS, 3))
     );
   }

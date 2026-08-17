@@ -331,7 +331,7 @@ class _TripDropdownField extends StatelessWidget {
 
     return DropdownButtonFormField<String>(
       key: ValueKey(value),
-      initialValue: value,
+      value: value,
       decoration: InputDecoration(
         labelText: label,
         filled: true,

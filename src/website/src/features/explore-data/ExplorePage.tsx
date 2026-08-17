@@ -7,6 +7,14 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { CustomButton } from '@/components/ui';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  mobileAppCard: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png',
+    { width: 256 },
+  ),
+};
 
 const ExplorePage = () => {
   const router = useRouter();
@@ -110,7 +118,7 @@ const ExplorePage = () => {
                   <div className="bg-gray-100 rounded-t-lg w-full h-full flex justify-center items-center mb-4">
                     <div className="relative w-32 h-32">
                       <Image
-                        src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png"
+                        src={images.mobileAppCard}
                         alt="AirQo App"
                         fill
                         className="object-contain"

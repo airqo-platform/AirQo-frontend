@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -15,8 +16,16 @@ import 'package:airqo/src/app/shared/services/cache_manager.dart';
 class NearbyView extends StatefulWidget {
   final VoidCallback? onNavigateToFavorites;
   final VoidCallback? onExploreCities;
+  final MeasurementCardTourKeys? tourKeys;
+  final VoidCallback? onTourTargetReady;
 
-  const NearbyView({super.key, this.onNavigateToFavorites, this.onExploreCities});
+  const NearbyView({
+    super.key,
+    this.onNavigateToFavorites,
+    this.onExploreCities,
+    this.tourKeys,
+    this.onTourTargetReady,
+  });
 
   @override
   State<NearbyView> createState() => _NearbyViewState();
@@ -594,6 +603,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                   final entry = _nearbyMeasurementsWithDistance[index];
                   return NearbyMeasurementCard(
                     measurement: entry.key,
+                    tourKeys: index == 0 ? widget.tourKeys : null,
+                    onTourTargetReady:
+                        index == 0 ? widget.onTourTargetReady : null,
                   );
                 },
               ),

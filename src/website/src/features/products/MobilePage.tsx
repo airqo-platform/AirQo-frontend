@@ -6,6 +6,34 @@ import React from 'react';
 
 import mainConfig from '@/config/site.config';
 import AppDownloadSection from '@/features/home/AppDownloadSection';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  hero: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695567/website/photos/OurProducts/MobileApp/image7_fjjnl0.jpg',
+    { width: 1000 },
+  ),
+  alerts: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695590/website/photos/OurProducts/MobileApp/image25_htllpb.jpg',
+    { width: 1200 },
+  ),
+  bell: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-1-bell_wsueyx.webp',
+    { width: 400 },
+  ),
+  realtime: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-2_vgl9ey.webp',
+    { width: 1200 },
+  ),
+  healthCard: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png',
+    { width: 660 },
+  ),
+  healthTips: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-3_zyyjnx.webp',
+    { width: 800 },
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -74,7 +102,7 @@ const MobilePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695567/website/photos/OurProducts/MobileApp/image7_fjjnl0.jpg"
+              src={images.hero}
               alt="Discover the quality of air around you"
               width={500}
               height={350}
@@ -149,7 +177,7 @@ const MobilePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1741695590/website/photos/OurProducts/MobileApp/image25_htllpb.jpg"
+              src={images.alerts}
               alt="Personalized air quality alerts"
               width={741}
               height={400}
@@ -159,7 +187,7 @@ const MobilePage = () => {
 
             <div className="w-[200px] h-[200px] absolute -right-24 top-40">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-1-bell_wsueyx.webp"
+                src={images.bell}
                 alt="Personalized air quality alerts"
                 fill
                 style={{ objectFit: 'cover' }}
@@ -187,7 +215,7 @@ const MobilePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-2_vgl9ey.webp"
+              src={images.realtime}
               alt="Real-time and forecast"
               width={741}
               height={540}
@@ -196,7 +224,7 @@ const MobilePage = () => {
             />
             <div className="absolute -left-24 top-40 w-[328px] h-[260px]">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png"
+                src={images.healthCard}
                 alt="Real-time and forecast"
                 fill
                 style={{ objectFit: 'cover' }}
@@ -259,7 +287,7 @@ const MobilePage = () => {
           >
             <div className="relative right-12">
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/MobileApp/section-3_zyyjnx.webp"
+                src={images.healthTips}
                 alt="Health Tips Composite Image"
                 width={402}
                 height={475}

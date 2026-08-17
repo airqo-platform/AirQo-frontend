@@ -6,7 +6,8 @@ enum AppFeatureFlag {
   surveys('surveys'),
   dataSharing('data_sharing'),
   feedback('feedback'),
-  socialLogin('social_login');
+  socialLogin('social_login'),
+  conferenceWall('conference_wall');
 
   final String key;
   const AppFeatureFlag(this.key);

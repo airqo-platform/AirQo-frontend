@@ -18,6 +18,7 @@ interface SocialAuthSectionProps {
   disabled?: boolean;
   className?: string;
   callbackUrl?: string | null;
+  providers?: SupportedSocialAuthProvider[];
 }
 
 const SOCIAL_PROVIDERS: Array<{
@@ -56,6 +57,7 @@ export default function SocialAuthSection({
   disabled = false,
   className,
   callbackUrl,
+  providers,
 }: SocialAuthSectionProps) {
   const actionLabel = mode === 'register' ? 'Continue with' : 'Sign in with';
   const redirectPath = normalizeCallbackUrl(callbackUrl) || '/user/home';
@@ -66,16 +68,20 @@ export default function SocialAuthSection({
     setLastUsedProvider(getLastUsedOAuthProvider());
   }, []);
 
+  const availableProviders = providers
+    ? SOCIAL_PROVIDERS.filter(({ provider }) => providers.includes(provider))
+    : SOCIAL_PROVIDERS;
+
   const orderedProviders = lastUsedProvider
     ? [
-        ...SOCIAL_PROVIDERS.filter(
+        ...availableProviders.filter(
           ({ provider }) => provider === lastUsedProvider
         ),
-        ...SOCIAL_PROVIDERS.filter(
+        ...availableProviders.filter(
           ({ provider }) => provider !== lastUsedProvider
         ),
       ]
-    : SOCIAL_PROVIDERS;
+    : availableProviders;
 
   const handleSocialAuth = useCallback(
     (provider: SupportedSocialAuthProvider) => {
@@ -96,6 +102,10 @@ export default function SocialAuthSection({
     },
     [disabled, redirectPath]
   );
+
+  if (!orderedProviders.length) {
+    return null;
+  }
 
   return (
     <div className={cn('w-full space-y-2.5', className)}>

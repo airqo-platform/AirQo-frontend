@@ -7,6 +7,30 @@ import { BiLinkExternal } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  header: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-header_csuujt.webp',
+    { width: 1000 },
+  ),
+  timelyData: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1_awoy4i.webp',
+    { width: 1200 },
+  ),
+  timelyDataOverlap: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1-overlap_sosw3o.webp',
+    { width: 1200 },
+  ),
+  insights: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/Analytics/section-2_xv8lnw.webp',
+    { width: 1200 },
+  ),
+  dashboard: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-dashboard_qijm7k.webp',
+    { width: 1200 },
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -74,7 +98,7 @@ const AnalyticsPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-header_csuujt.webp"
+              src={images.header}
               alt="Access and visualise air quality data"
               width={500}
               height={350}
@@ -161,7 +185,7 @@ const AnalyticsPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1_awoy4i.webp"
+              src={images.timelyData}
               alt="Timely access to data"
               width={741}
               height={540}
@@ -176,7 +200,7 @@ const AnalyticsPage = () => {
               transition={{ duration: 0.6, ease: 'easeOut' }}
             >
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/section-1-overlap_sosw3o.webp"
+                src={images.timelyDataOverlap}
                 alt="Timely access to data"
                 fill
                 style={{ objectFit: 'contain' }}
@@ -204,7 +228,7 @@ const AnalyticsPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132443/website/photos/OurProducts/Analytics/section-2_xv8lnw.webp"
+              src={images.insights}
               alt="Gain insights to take action"
               width={600}
               height={400}
@@ -278,7 +302,7 @@ const AnalyticsPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Analytics/analytics-dashboard_qijm7k.webp"
+              src={images.dashboard}
               alt="Easy to use interface"
               width={1200}
               height={600}

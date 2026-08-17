@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type QueryFunctionContext } from '@tanstack/react-query';
 import {
+  AssignDevicesToCohortResponse,
   GetCohortsSummaryParams,
   cohorts as cohortsApi,
 } from '../apis/cohorts';
@@ -371,7 +372,13 @@ export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsO
 };
 
 interface UseAssignDevicesToCohortOptions {
-  onSuccess?: (variables: { cohortId: string; deviceIds: string[] }) => void;
+  // `data` carries the assigned/already_assigned breakdown — callers building a
+  // success message must use it rather than the submitted id count, which says
+  // nothing about whether the assignment was a no-op.
+  onSuccess?: (
+    data: AssignDevicesToCohortResponse,
+    variables: { cohortId: string; deviceIds: string[] }
+  ) => void;
   onError?: (error: AxiosError) => void;
 }
 
@@ -391,14 +398,14 @@ export const useAssignDevicesToCohort = (options?: UseAssignDevicesToCohortOptio
       }
       return cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
-      options?.onSuccess?.(variables);
+      options?.onSuccess?.(data, variables);
     },
     onError: (error: AxiosError) => {
       options?.onError?.(error);

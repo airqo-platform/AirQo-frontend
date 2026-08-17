@@ -131,10 +131,10 @@ const WelcomePage = () => {
   const { activeChecklistState, updateChecklist } = useOnboarding();
 
   // ── Permissions ────────────────────────────────────────────────────────────
-  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
+  const permissionsToCheck = [PERMISSIONS.DEVICE.CLAIM];
   const permissionsMap = usePermissions(permissionsToCheck);
-  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
-  const claimDevicePermissionDescription = usePermissionDescription(PERMISSIONS.DEVICE.UPDATE);
+  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.CLAIM];
+  const claimDevicePermissionDescription = usePermissionDescription(PERMISSIONS.DEVICE.CLAIM);
 
   // ── Device data ────────────────────────────────────────────────────────────
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
@@ -331,10 +331,10 @@ const WelcomePage = () => {
             </div>
             <div>
               <span className="text-lg font-medium text-gray-900 dark:text-white">
-                Add AirQo Device
+                Claim AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
-                Have an AirQo sensor? Easily add it to your workspace
+                Received an AirQo sensor? Claim it into your workspace
               </span>
             </div>
           </button>
@@ -348,11 +348,11 @@ const WelcomePage = () => {
             </div>
             <div>
               <span className="text-lg font-medium text-gray-900 dark:text-white">
-                Import Different Sensor Manufacturer
+                Register Non-AirQo Device
               </span>
               <span className="block text-sm text-gray-500 dark:text-gray-400">
-                Import a device from a different manufacturer using a CSV
-                template.
+                Register a sensor from a different manufacturer, singly or from
+                a CSV template.
               </span>
             </div>
           </button>
@@ -406,7 +406,7 @@ const WelcomePage = () => {
               onGoToVisibility={handleGoToVisibility}
               canClaimDevice={canClaimDevice}
               isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
-              missingPermission={PERMISSIONS.DEVICE.UPDATE}
+              missingPermission={PERMISSIONS.DEVICE.CLAIM}
               missingPermissionDescription={claimDevicePermissionDescription}
             />
           </div>
@@ -426,7 +426,7 @@ const WelcomePage = () => {
           onGoToVisibility={handleGoToVisibility}
           canClaimDevice={canClaimDevice}
           isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
-          missingPermission={PERMISSIONS.DEVICE.UPDATE}
+          missingPermission={PERMISSIONS.DEVICE.CLAIM}
           missingPermissionDescription={claimDevicePermissionDescription}
         />
 
@@ -437,18 +437,18 @@ const WelcomePage = () => {
               <ReusableButton
                 variant="filled"
                 disabled={!canClaimDevice}
-                permission={PERMISSIONS.DEVICE.UPDATE}
+                permission={PERMISSIONS.DEVICE.CLAIM}
                 onClick={() => setIsClaimModalOpen(true)}
                 Icon={Plus}
               >
-                Add AirQo Device
+                Claim AirQo Device
               </ReusableButton>
               <ReusableButton
                 variant="outlined"
                 onClick={() => setIsImportModalOpen(true)}
                 Icon={Upload}
               >
-                Import External Device
+                Register Non-AirQo Device
               </ReusableButton>
             </div>
           </div>

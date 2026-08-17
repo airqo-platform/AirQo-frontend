@@ -1,4 +1,4 @@
-import type { User, Group, GroupDetails } from '../types/api';
+import type { User, Group, GroupDetails, AuthMethods } from '../types/api';
 
 export interface NormalizedUser {
   id: string;
@@ -16,6 +16,7 @@ export interface NormalizedUser {
   lastLogin: string;
   createdAt: string;
   updatedAt: string;
+  authMethods?: AuthMethods;
 }
 
 export interface NormalizedGroup {
@@ -53,6 +54,7 @@ export function normalizeUser(
     lastLogin: user.lastLogin || '',
     createdAt: user.createdAt || '',
     updatedAt: user.updatedAt || '',
+    authMethods: user.authMethods,
   };
 }
 

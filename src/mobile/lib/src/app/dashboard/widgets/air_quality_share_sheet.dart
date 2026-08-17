@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/utils/clean_air_forum_branding.dart';
 import 'package:airqo/src/app/dashboard/widgets/air_quality_share_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_filter_tab.dart';
 import 'package:airqo/src/app/dashboard/widgets/clean_air_forum_sticker_frame.dart';
@@ -44,7 +45,7 @@ Future<void> showAirQualityShareSheet(
 /// is the stable `tab` property on share_tab_selected and the `format` on
 /// share_completed; don't rename shipped values.
 enum _ShareTab {
-  filter(label: 'Forum filter', analyticsName: 'forum_filter'),
+  filter(label: 'Selfie filter', analyticsName: 'forum_filter'),
   card(label: 'Card', analyticsName: 'card'),
   sticker(label: 'IG sticker', analyticsName: 'ig_sticker');
 
@@ -81,16 +82,17 @@ class AirQualityShareSheet extends StatefulWidget {
 }
 
 class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
-  // The Clean Air Forum is imminent, so lead with the branded filter tab.
   _ShareTab _tab = _ShareTab.filter;
 
   final GlobalKey _cardKey = GlobalKey();
   final GlobalKey _stickerKey = GlobalKey();
 
   // Lifted from the filter tab: its subtree is unmounted on tab switch, so
-  // the picked selfie and consent choice live here to survive switching.
+  // the picked selfie, consent choice, and scrim color live here to survive
+  // switching.
   File? _selfieFile;
   bool _consentToDisplay = false;
+  FilterScrimColor _scrimColor = FilterScrimColor.teal;
 
   bool _isSharingCard = false;
   bool _isCopyingSticker = false;
@@ -354,7 +356,7 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
   String _subtitleForTab(_ShareTab tab) {
     switch (tab) {
       case _ShareTab.filter:
-        return 'Add a selfie for a Clean Air Forum branded filter.';
+        return 'Add a selfie with your air quality reading.';
       case _ShareTab.card:
         return 'Preview the card before sending it.';
       case _ShareTab.sticker:
@@ -392,6 +394,8 @@ class _AirQualityShareSheetState extends State<AirQualityShareSheet> {
           consentToDisplay: _consentToDisplay,
           onConsentChanged: (value) =>
               setState(() => _consentToDisplay = value),
+          scrimColor: _scrimColor,
+          onScrimColorChanged: (color) => setState(() => _scrimColor = color),
           onMessage: _showMessage,
           submissionService: widget.submissionService,
         );

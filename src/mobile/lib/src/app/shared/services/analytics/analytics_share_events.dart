@@ -18,6 +18,9 @@ extension ShareAnalyticsEvents on AnalyticsService {
         'method': method,
       });
 
+  Future<void> trackCardActionTapped({required String action}) =>
+      trackEvent('card_action_tapped', properties: {'action': action});
+
   Future<void> trackCafFilterTabOpened() => trackEvent('caf_filter_tab_opened');
 
   Future<void> trackCafSelfieSourceSelected({required String source}) =>

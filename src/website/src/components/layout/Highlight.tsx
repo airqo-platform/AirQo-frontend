@@ -3,6 +3,12 @@ import Link from 'next/link';
 import React from 'react';
 
 import mainConfig from '@/config/site.config';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const engineerPortrait = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/highlights/engineer_byss3s.webp',
+  { width: 900 },
+);
 
 const Highlight = () => {
   return (
@@ -12,7 +18,7 @@ const Highlight = () => {
       {/* Left section: Portrait */}
       <div className="flex justify-center lg:justify-end items-center w-full lg:w-1/2 mb-8 lg:mb-0 lg:mr-12">
         <Image
-          src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/highlights/engineer_byss3s.webp"
+          src={engineerPortrait}
           alt="Leader Portrait"
           width={444}
           height={469}

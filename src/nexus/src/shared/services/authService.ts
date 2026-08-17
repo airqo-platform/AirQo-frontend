@@ -2,6 +2,8 @@ import { ApiClient, createOpenClient } from './apiClient';
 import type {
   LoginRequest,
   LoginResponse,
+  CheckEmailRequest,
+  CheckEmailResponse,
   RegisterRequest,
   RegisterResponse,
   ForgotPasswordRequest,
@@ -22,6 +24,51 @@ export class AuthService {
 
   constructor() {
     this.openClient = createOpenClient();
+  }
+
+  // Check whether an account exists before collecting credentials.
+  // This endpoint is intentionally public and rate-limited by the backend.
+  async checkEmail(data: CheckEmailRequest): Promise<CheckEmailResponse> {
+    try {
+      const response = await this.openClient.post<
+        CheckEmailResponse | ApiErrorResponse
+      >('/users/check-email', data);
+      const result = response.data;
+
+      if ('success' in result && !result.success) {
+        const error: EnhancedError = new Error(
+          result.message || 'Unable to check email'
+        ) as EnhancedError;
+        error.status = response.status;
+        error.data = result;
+        error.success = result.success;
+        throw error;
+      }
+
+      return result as CheckEmailResponse;
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'data' in error &&
+        'status' in error
+      ) {
+        throw error as EnhancedError;
+      }
+
+      const axiosError = error as {
+        response?: { status?: number; data?: unknown };
+        message?: string;
+      };
+      const enhancedError: EnhancedError = new Error(
+        axiosError?.message || 'Unable to check email'
+      ) as EnhancedError;
+      enhancedError.status = axiosError?.response?.status || 500;
+      enhancedError.data =
+        (axiosError?.response?.data as ApiErrorResponse) || null;
+      enhancedError.success = false;
+      throw enhancedError;
+    }
   }
 
   // Login - open endpoint

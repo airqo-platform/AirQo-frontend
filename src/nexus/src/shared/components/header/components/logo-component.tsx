@@ -50,7 +50,7 @@ export const LogoComponent: React.FC<LogoComponentProps> = ({ className }) => {
         activeGroup.profilePicture
       );
       return {
-        href: `/org/${activeGroup.organizationSlug}/dashboard`,
+        href: `/org/${activeGroup.organizationSlug}/data-export`,
         logoSrc: renderableProfilePicture
           ? renderableProfilePicture
           : '/images/airqo_logo.svg',
