@@ -48,6 +48,11 @@ void main() {
       expect(isForecastToday(DateTime(2026, 8, 17, 8), now), isTrue);
     });
 
+    test('returns true for UTC timestamp representing the same local day', () {
+      final now = DateTime(2026, 8, 17, 12);
+      expect(isForecastToday(now.toUtc(), now), isTrue);
+    });
+
     test('returns false for a different day', () {
       final now = DateTime(2026, 8, 17, 15, 30);
       expect(isForecastToday(DateTime(2026, 8, 18, 8), now), isFalse);

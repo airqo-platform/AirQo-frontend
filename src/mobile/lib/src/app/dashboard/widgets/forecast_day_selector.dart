@@ -34,7 +34,7 @@ class ForecastDaySelector extends StatelessWidget {
       children: List.generate(forecasts.length, (i) {
         final f = forecasts[i];
         final isActive = i == selectedIndex;
-        final isToday = DateFormat('yyyy-MM-dd').format(f.time) == todayStr;
+        final isToday = isForecastToday(f.time);
         final useLiveReading = isToday && hasLiveReading(liveReading);
         final pm25Label = useLiveReading
             ? liveReading!.pm25!.value!.toStringAsFixed(1)
@@ -81,7 +81,7 @@ class ForecastDaySelector extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    DateFormat.E().format(f.time).substring(0, 2),
+                    DateFormat.E().format(f.time.toLocal()).substring(0, 2),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,

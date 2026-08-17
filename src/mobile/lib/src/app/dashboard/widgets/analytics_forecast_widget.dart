@@ -94,9 +94,6 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
         return BlocBuilder<ForecastBloc, ForecastState>(
           builder: (context, state) {
             if (state is ForecastLoaded) {
-              final today = DateTime.now();
-              final currentDateFormatted = DateFormat('yyyy-MM-dd').format(today);
-              
               // Check if data is stale and show a subtle indicator
               final isStale = state.isStale;
               
@@ -155,9 +152,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                   Row(
                     children: state.response.forecasts
                         .map((e) {
-                          // Check if this forecast is for the current date
-                          final forecastDate = DateFormat('yyyy-MM-dd').format(e.time);
-                          final isCurrentDay = forecastDate == currentDateFormatted;
+                          final isCurrentDay = isForecastToday(e.time);
                           final useLiveReading =
                               isCurrentDay && hasLiveReading(widget.measurement);
                           final iconPath = useLiveReading
@@ -169,7 +164,7 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                           
                           return ForeCastChip(
                             active: isCurrentDay,
-                            day: DateFormat.E().format(e.time).substring(0, 2),
+                            day: DateFormat.E().format(e.time.toLocal()).substring(0, 2),
                             imagePath: iconPath,
                             height: _getResponsiveHeight(context),
                             iconSize: _getResponsiveIconSize(context),
