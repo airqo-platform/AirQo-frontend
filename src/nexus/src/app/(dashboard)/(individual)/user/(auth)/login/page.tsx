@@ -241,7 +241,7 @@ function LoginPageContent() {
         <div
           ref={stepContainerRef}
           tabIndex={-1}
-          className="w-full space-y-4 focus:outline-none"
+          className="w-full space-y-4 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
         >
           <SelectedEmailCard email={emailValue} onChangeEmail={handleGoBack} />
 
