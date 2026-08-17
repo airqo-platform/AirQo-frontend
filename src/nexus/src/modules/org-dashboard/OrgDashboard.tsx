@@ -20,7 +20,7 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { InfoBanner, WarningBanner, toast } from '@/shared/components/ui';
 import { SuggestedLocations } from '@/modules/analytics/components/SuggestedLocations';
 import { AqiLegend } from '@/modules/analytics';
-import AddFavorites from '@/modules/location-insights/add-favorites';
+import AddSavedLocations from '@/modules/location-insights/add-favorites';
 import AddLocation from '@/modules/location-insights/add-location';
 import MoreInsights from '@/modules/location-insights/more-insights';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
@@ -45,7 +45,7 @@ interface OrgDashboardProps {
 /**
  * Organization dashboard — air-quality overview for the user's saved
  * locations (analytics preferences), reusing the exact same data services
- * and components the favorites/analytics module uses for the selected sites:
+ * and components used by analytics for the selected sites:
  *
  *   - Saved-location cards → GET /devices/readings/recent (useAnalyticsSiteCards)
  *   - Trend chart          → POST /analytics/dashboard/chart/d3/data (useAnalyticsChartData)
@@ -117,7 +117,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   const hasSelectedSites = selectedSiteIds.length > 0;
 
   // Saved-location cards — GET /devices/readings/recent, the same service
-  // the favorites module uses. Group-scoped, partial-failure tolerant, and
+  // the saved-locations view uses. Group-scoped, partial-failure tolerant, and
   // independent of the cohort endpoints.
   const {
     siteCards,
@@ -363,6 +363,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
         errorMessage={readingsError}
         onRefresh={() => void refetchSiteCards()}
         onCardClick={handleCardClick}
+        onAddLocation={() => setIsManageLocationsOpen(true)}
       />
 
       <TrendSection
@@ -376,7 +377,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
       <AqiLegend aqiConfig={selectedAqiConfig} className="pt-2" />
 
-      <AddFavorites
+      <AddSavedLocations
         isOpen={isManageLocationsOpen}
         onClose={() => setIsManageLocationsOpen(false)}
       />

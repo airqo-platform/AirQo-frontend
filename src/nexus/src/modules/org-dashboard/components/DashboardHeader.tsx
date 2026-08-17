@@ -77,6 +77,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             Icon={AqRefreshCcw01}
             onClick={onRefresh}
             disabled={isRefreshing}
+            showTextOnMobile
             className="w-full sm:w-auto"
           >
             {isRefreshing ? 'Refreshing…' : 'Refresh'}
@@ -88,6 +89,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             size="md"
             Icon={AqSettings01}
             onClick={onManageLocations}
+            showTextOnMobile
             className="w-full sm:w-auto"
           >
             Manage Locations
@@ -99,6 +101,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             size="md"
             Icon={AqCompass}
             path={mapHref}
+            showTextOnMobile
             className="w-full sm:w-auto"
           >
             View on Map

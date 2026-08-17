@@ -11,16 +11,20 @@ import {
 } from '@airqo/icons-react';
 
 interface WeatherData {
-  temperature: number;
-  feelsLike: number;
-  humidity: number;
-  windSpeed: number;
-  description: string;
-  icon: WeatherIconKey;
-  pressure: number;
-  visibility: number;
+  temperature: number | null;
+  feelsLike: number | null;
+  humidity: number | null;
+  windSpeed: number | null;
+  description: string | null;
+  icon: WeatherIconKey | null;
+  pressure: number | null;
+  visibility: number | null;
   country: string;
   city: string;
+}
+
+interface OpenMeteoResponse {
+  current?: Record<string, unknown>;
 }
 
 interface WeatherWidgetProps {
@@ -40,6 +44,67 @@ interface Coordinates {
  */
 const COORDS_CACHE_KEY = 'nexus:weather-coords';
 const COORDS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+const WEATHER_CACHE_TTL_MS = 1000 * 60 * 15; // 15 minutes
+const PLACE_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+
+interface WeatherCacheEntry {
+  data: WeatherData;
+  expiresAt: number;
+}
+
+interface PlaceCacheEntry {
+  city: string;
+  country: string;
+  expiresAt: number;
+}
+
+// Module caches prevent duplicate requests when the shared header is
+// remounted during client-side navigation. Weather is short-lived; place
+// names can safely be reused for the lifetime of the coordinate cache.
+const weatherCache = new Map<string, WeatherCacheEntry>();
+const placeCache = new Map<string, PlaceCacheEntry>();
+
+const getCoordinateCacheKey = (lat: number, lon: number): string =>
+  `${lat.toFixed(3)},${lon.toFixed(3)}`;
+
+const getCachedWeather = (key: string): WeatherData | null => {
+  const entry = weatherCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    weatherCache.delete(key);
+    return null;
+  }
+  return entry.data;
+};
+
+const cacheWeather = (key: string, data: WeatherData): void => {
+  weatherCache.set(key, {
+    data,
+    expiresAt: Date.now() + WEATHER_CACHE_TTL_MS,
+  });
+};
+
+const getCachedPlace = (
+  key: string
+): { city: string; country: string } | null => {
+  const entry = placeCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    placeCache.delete(key);
+    return null;
+  }
+  return { city: entry.city, country: entry.country };
+};
+
+const cachePlace = (
+  key: string,
+  place: { city: string; country: string }
+): void => {
+  placeCache.set(key, {
+    ...place,
+    expiresAt: Date.now() + PLACE_CACHE_TTL_MS,
+  });
+};
 
 const readCachedCoords = (): Coordinates | null => {
   if (typeof window === 'undefined') return null;
@@ -96,7 +161,8 @@ const getWeatherCondition = (
   if (code >= 61 && code <= 67) return { icon: 'rain', label: 'Rain' };
   if (code >= 71 && code <= 77) return { icon: 'snow', label: 'Snow' };
   if (code >= 80 && code <= 82) return { icon: 'rain', label: 'Rain showers' };
-  if (code === 85 || code === 86) return { icon: 'snow', label: 'Snow showers' };
+  if (code === 85 || code === 86)
+    return { icon: 'snow', label: 'Snow showers' };
   if (code >= 95) return { icon: 'lightning', label: 'Thunderstorm' };
   return { icon: 'cloud', label: 'Unknown' };
 };
@@ -110,7 +176,10 @@ type WeatherIconKey =
   | 'snow'
   | 'lightning';
 
-const WEATHER_ICONS: Record<WeatherIconKey, React.ComponentType<{ className?: string }>> = {
+const WEATHER_ICONS: Record<
+  WeatherIconKey,
+  React.ComponentType<{ className?: string }>
+> = {
   sun: AqSun,
   'cloud-sun': AqCloudSun01,
   cloud: AqCloud01,
@@ -148,7 +217,7 @@ const fetchOpenMeteoWeather = async (
   lat: number,
   lon: number,
   signal: AbortSignal
-): Promise<Record<string, unknown>> => {
+): Promise<OpenMeteoResponse> => {
   const params = new URLSearchParams({
     latitude: lat.toString(),
     longitude: lon.toString(),
@@ -162,7 +231,7 @@ const fetchOpenMeteoWeather = async (
   if (!response.ok) {
     throw new Error(`Weather request failed with status ${response.status}`);
   }
-  return (await response.json()) as Record<string, unknown>;
+  return (await response.json()) as OpenMeteoResponse;
 };
 
 /**
@@ -184,7 +253,9 @@ const fetchPlaceName = async (
     { signal }
   );
   if (!response.ok) {
-    throw new Error(`Reverse geocode request failed with status ${response.status}`);
+    throw new Error(
+      `Reverse geocode request failed with status ${response.status}`
+    );
   }
   const data = (await response.json()) as {
     city?: string;
@@ -203,29 +274,33 @@ const fetchPlaceName = async (
  * Guards every field so a partial/odd response degrades gracefully.
  */
 const mapWeatherData = (
-  data: Record<string, unknown>,
+  data: OpenMeteoResponse,
   city: string,
   country: string
 ): WeatherData => {
-  const current = (data.current ?? {}) as Record<string, number>;
-  const code = typeof current.weather_code === 'number' ? current.weather_code : 2;
-  const condition = getWeatherCondition(code);
-  const visibilityMeters =
-    typeof current.visibility === 'number' ? current.visibility : 10000;
+  const current = data.current ?? {};
+  const toNumber = (value: unknown): number | null =>
+    typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const round = (value: unknown): number | null => {
+    const number = toNumber(value);
+    return number === null ? null : Math.round(number);
+  };
+  const code = toNumber(current.weather_code);
+  const condition = code === null ? null : getWeatherCondition(code);
+  const visibilityMeters = toNumber(current.visibility);
 
   return {
-    temperature: Math.round(current.temperature_2m ?? 0),
-    feelsLike: Math.round(
-      current.apparent_temperature ?? current.temperature_2m ?? 0
-    ),
-    humidity: Math.round(current.relative_humidity_2m ?? 0),
+    temperature: round(current.temperature_2m),
+    feelsLike: round(current.apparent_temperature ?? current.temperature_2m),
+    humidity: round(current.relative_humidity_2m),
     // Open-Meteo reports wind speed in km/h by default — no conversion needed.
-    windSpeed: Math.round(current.wind_speed_10m ?? 0),
-    description: condition.label,
-    icon: condition.icon,
-    pressure: Math.round(current.surface_pressure ?? 0),
+    windSpeed: round(current.wind_speed_10m),
+    description: condition?.label ?? null,
+    icon: condition?.icon ?? null,
+    pressure: round(current.surface_pressure),
     // Open-Meteo reports visibility in meters — convert to km.
-    visibility: Math.max(1, Math.round(visibilityMeters / 1000)),
+    visibility:
+      visibilityMeters === null ? null : Math.round(visibilityMeters / 1000),
     country,
     city,
   };
@@ -235,23 +310,36 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<
+    'location' | 'weather' | null
+  >(null);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
+      setCurrentTime(
+        now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 60000);
+    const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
+    let locationFailed = false;
+    setIsLoadingWeather(true);
+    setWeatherError(null);
 
     const loadWeather = async () => {
       try {
@@ -267,47 +355,70 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
           lat = cached.latitude;
           lon = cached.longitude;
         } else {
-          const coords = await getCurrentPosition();
-          lat = coords.latitude;
-          lon = coords.longitude;
-          cacheCoords(coords);
+          try {
+            const coords = await getCurrentPosition();
+            lat = coords.latitude;
+            lon = coords.longitude;
+            cacheCoords(coords);
+          } catch (error) {
+            locationFailed = true;
+            throw error;
+          }
         }
 
         // 2. Reverse-geocode the place name. A failure here is non-fatal —
         // the widget can still show weather without a city label.
-        try {
-          const place = await fetchPlaceName(lat, lon, controller.signal);
-          city = place.city;
-          country = place.country;
-        } catch {
-          city = 'Your location';
-          country = '';
+        if (controller.signal.aborted) return;
+
+        const coordinateCacheKey = getCoordinateCacheKey(lat, lon);
+        const cachedWeather = getCachedWeather(coordinateCacheKey);
+        if (cachedWeather) {
+          setWeather(cachedWeather);
+          return;
         }
 
-        // 3. Fetch the weather. If this fails, hide the widget entirely —
-        // never show fabricated values as if they were real conditions.
+        const cachedPlace = getCachedPlace(coordinateCacheKey);
+        if (cachedPlace) {
+          city = cachedPlace.city;
+          country = cachedPlace.country;
+        } else {
+          try {
+            const place = await fetchPlaceName(lat, lon, controller.signal);
+            city = place.city;
+            country = place.country;
+            cachePlace(coordinateCacheKey, place);
+          } catch (error) {
+            if ((error as Error).name === 'AbortError') throw error;
+            city = 'Your location';
+            country = '';
+          }
+        }
+
+        // 3. Fetch only current conditions; the widget does not display a forecast.
         const data = await fetchOpenMeteoWeather(lat, lon, controller.signal);
-        setWeather(mapWeatherData(data, city, country));
+        const mappedWeather = mapWeatherData(data, city, country);
+        cacheWeather(coordinateCacheKey, mappedWeather);
+        setWeather(mappedWeather);
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         // Geolocation denied/unavailable/timed out or the weather API failed:
-        // there is no accurate weather for this user, so the widget stays
-        // hidden rather than presenting a different city's data.
+        // there is no accurate weather for this user, so keep the widget
+        // visible with placeholders rather than another city's conditions.
         setWeather(null);
+        setWeatherError(locationFailed ? 'location' : 'weather');
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingWeather(false);
       }
     };
 
     void loadWeather();
 
     return () => controller.abort();
-  }, []);
+  }, [retryNonce]);
 
-  // The widget only renders real weather for the user's actual location. When
-  // the location can't be resolved accurately or the weather API fails, it
-  // stays hidden — no placeholder values, no another-city's conditions.
-  if (!weather) return null;
-
-  const WeatherIcon = WEATHER_ICONS[weather.icon] ?? WEATHER_ICONS['cloud-sun'];
+  const WeatherIcon = weather?.icon
+    ? WEATHER_ICONS[weather.icon]
+    : WEATHER_ICONS.cloud;
 
   return (
     <div
@@ -317,69 +428,122 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
     >
       {/* Main widget */}
       <div className="flex items-center gap-2 px-3 py-1.5 bg-card border border-t-0 border-primary/30 rounded-b-md cursor-default shadow-sm">
-        <WeatherIcon className="w-5 h-5 text-orange-500" />
+        {weather?.icon ? (
+          <WeatherIcon className="w-5 h-5 text-orange-500" />
+        ) : (
+          <span className="h-5 w-5" aria-hidden="true" />
+        )}
         <span className="text-sm font-semibold text-foreground">
-          {weather.temperature}°C
+          {weather?.temperature === null || weather?.temperature === undefined
+            ? '--'
+            : `${weather.temperature}°C`}
         </span>
         <div className="w-px h-3 bg-primary/30" />
         <span className="text-sm font-medium text-muted-foreground">
-          {currentTime || '00:00'}
+          {currentTime || '--:--:--'}
         </span>
       </div>
 
       {/* Hover details card */}
-      {isHovered && weather && (
+      {isHovered && (
         <div className="absolute right-0 top-full z-50 mt-1 w-64 bg-card border border-border rounded-lg shadow-lg p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {weather.city}, {weather.country}
-              </p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {weather.description}
-              </p>
+          {isLoadingWeather ? (
+            <p className="text-sm text-muted-foreground">Loading weather…</p>
+          ) : !weather ? (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Weather unavailable
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {weatherError === 'location'
+                    ? 'Allow location access in your browser, then try again to load weather for your location.'
+                    : 'We could not load weather data for your location.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRetryNonce(value => value + 1)}
+                className="w-full rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+              >
+                Try again
+              </button>
             </div>
-            <WeatherIcon className="w-10 h-10 text-orange-500" />
-          </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {weather.city}, {weather.country}
+                  </p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {weather.description}
+                  </p>
+                </div>
+                {weather.icon ? (
+                  <WeatherIcon className="w-10 h-10 text-orange-500" />
+                ) : (
+                  <span className="text-sm text-muted-foreground">--</span>
+                )}
+              </div>
 
-          {/* Temperature */}
-          <div className="mb-3">
-            <p className="text-3xl font-bold text-foreground">
-              {weather.temperature}°C
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Feels like {weather.feelsLike}°C
-            </p>
-          </div>
+              {/* Temperature */}
+              <div className="mb-3">
+                <p className="text-3xl font-bold text-foreground">
+                  {weather.temperature === null
+                    ? '--'
+                    : `${weather.temperature}°C`}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Feels like{' '}
+                  {weather.feelsLike === null ? '--' : `${weather.feelsLike}°C`}
+                </p>
+              </div>
 
-          {/* Details grid */}
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
-            <div>
-              <p className="text-xs text-muted-foreground">Humidity</p>
-              <p className="text-sm font-medium text-foreground">
-                {weather.humidity}%
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Wind</p>
-              <p className="text-sm font-medium text-foreground">
-                {weather.windSpeed} km/h
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Pressure</p>
-              <p className="text-sm font-medium text-foreground">
-                {weather.pressure} hPa
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Visibility</p>
-              <p className="text-sm font-medium text-foreground">
-                {weather.visibility} km
-              </p>
-            </div>
-          </div>
+              {/* Details grid */}
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
+                <div>
+                  <p className="text-xs text-muted-foreground">Humidity</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {weather.humidity === null ? '--' : `${weather.humidity}%`}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Wind</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {weather.windSpeed === null
+                      ? '--'
+                      : `${weather.windSpeed} km/h`}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pressure</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {weather.pressure === null
+                      ? '--'
+                      : `${weather.pressure} hPa`}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Visibility</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {weather.visibility === null
+                      ? '--'
+                      : `${weather.visibility} km`}
+                  </p>
+                </div>
+              </div>
+              <a
+                href="https://open-meteo.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 block border-t border-border pt-3 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Weather data by Open-Meteo
+              </a>
+            </>
+          )}
         </div>
       )}
     </div>

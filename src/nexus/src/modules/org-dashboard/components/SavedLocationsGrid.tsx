@@ -11,7 +11,12 @@ import {
 import { AnalyticsCard } from '@/modules/analytics';
 import { EmptyState } from '@/shared/components/ui';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
-import { AqArrowLeft, AqArrowRight, AqChevronDown } from '@airqo/icons-react';
+import {
+  AqArrowLeft,
+  AqArrowRight,
+  AqChevronDown,
+  AqPlus,
+} from '@airqo/icons-react';
 import type { AqiConfig } from '@/shared/types/aqi';
 import type { SiteData } from '@/modules/analytics';
 import type { PollutantType } from '../types';
@@ -27,13 +32,14 @@ interface SavedLocationsGridProps {
   errorMessage?: string | null;
   onRefresh?: () => void;
   onCardClick?: (siteData: SiteData) => void;
+  onAddLocation?: () => void;
   className?: string;
 }
 
 /**
  * Preference-driven saved-locations carousel — renders EVERY saved location
  * (no cap) with live readings from GET /devices/readings/recent, the same
- * service and card component the favorites module uses. Scrolled with
+ * service and card component used for saved locations. Scrolled with
  * prev/next controls and native touch swipe.
  */
 export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
@@ -45,6 +51,7 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
   errorMessage = null,
   onRefresh,
   onCardClick,
+  onAddLocation,
   className,
 }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -59,6 +66,8 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
     [siteCards]
   );
   const hasUsableSites = reportableSiteCards.length > 0;
+  const carouselItemCount =
+    reportableSiteCards.length + (onAddLocation ? 1 : 0);
   const shouldShowSkeleton = isLoading && !hasUsableSites;
   const shouldShowErrorState =
     !isLoading && !hasUsableSites && Boolean(errorMessage);
@@ -78,17 +87,15 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
       const first = Math.max(0, Math.floor(scrollLeft / cardWidth));
       const visibleCount = Math.max(1, Math.round(clientWidth / cardWidth));
       setVisibleStart(first);
-      setVisibleEnd(
-        Math.min(reportableSiteCards.length, first + visibleCount)
-      );
+      setVisibleEnd(Math.min(carouselItemCount, first + visibleCount));
     } else {
-      setVisibleEnd(Math.min(reportableSiteCards.length, 1));
+      setVisibleEnd(Math.min(carouselItemCount, 1));
     }
-  }, [reportableSiteCards.length]);
+  }, [carouselItemCount]);
 
   React.useEffect(() => {
     updateScrollState();
-  }, [reportableSiteCards.length, updateScrollState]);
+  }, [carouselItemCount, updateScrollState]);
 
   React.useEffect(() => {
     const container = scrollRef.current;
@@ -122,11 +129,10 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
           </CardDescription>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          {hasUsableSites && reportableSiteCards.length > 1 && (
+          {carouselItemCount > 1 && (
             <span className="text-xs text-muted-foreground">
-              {Math.min(visibleStart + 1, reportableSiteCards.length)}–
-              {visibleEnd} of{' '}
-              {reportableSiteCards.length}
+              {Math.min(visibleStart + 1, carouselItemCount)}–{visibleEnd} of{' '}
+              {carouselItemCount}
             </span>
           )}
           <button
@@ -171,13 +177,19 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
                 : 'Your saved locations have not reported measurements recently. We will show them here when new readings arrive.'
             }
             action={
-              onRefresh
+              shouldShowNoReadingsState && onAddLocation
                 ? {
-                    label: 'Refresh',
-                    onClick: onRefresh,
+                    label: 'Add location',
+                    onClick: onAddLocation,
                     variant: 'outlined',
                   }
-                : undefined
+                : onRefresh
+                  ? {
+                      label: 'Refresh',
+                      onClick: onRefresh,
+                      variant: 'outlined',
+                    }
+                  : undefined
             }
           />
         ) : shouldShowSkeleton ? (
@@ -234,6 +246,27 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
                 />
               </div>
             ))}
+            {onAddLocation && (
+              <div
+                data-carousel-card
+                className="w-[82%] flex-shrink-0 snap-start sm:w-[48%] lg:w-[31%] xl:w-[23.5%]"
+              >
+                <button
+                  type="button"
+                  onClick={onAddLocation}
+                  className="flex min-h-[250px] w-full flex-col items-center justify-center gap-3 rounded-md border border-dashed border-primary bg-primary/10 p-6 text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="Add a saved location"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+                    <AqPlus className="h-5 w-5" />
+                  </span>
+                  <span className="font-medium">Add location</span>
+                  <span className="text-center text-xs text-muted-foreground">
+                    Choose another location to track
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
