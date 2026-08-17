@@ -7,11 +7,9 @@ import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// A full-bleed selfie photo with an AirQo + Clean Air Forum branded overlay
-/// (location, live AQI value/category, event dates) anchored near the
-/// bottom — matches the "AQ/CAF" Figma template exactly (file
-/// `Z0OLd2awVqgZhytJULgO8L`, node 169:534), including its 1080x1080
-/// reference proportions (see [kCafReferenceWidth]).
+/// A full-bleed selfie photo with an AirQo-branded overlay (location, live
+/// AQI value/category, timestamp) anchored near the bottom — matches the
+/// "AQ/CAF" Figma template proportions (see [kCafReferenceWidth]).
 ///
 /// If [selfieFile] is null a neutral placeholder avatar is shown instead so
 /// the template stays visible/previewable before the user picks a photo.
@@ -22,12 +20,16 @@ class CleanAirForumFilterCard extends StatelessWidget {
   final File? selfieFile;
   final Measurement measurement;
   final String? fallbackLocationName;
+  final FilterScrimColor scrimColor;
+  final DateTime? capturedAt;
 
   const CleanAirForumFilterCard({
     super.key,
     required this.selfieFile,
     required this.measurement,
     this.fallbackLocationName,
+    this.scrimColor = FilterScrimColor.teal,
+    this.capturedAt,
   });
 
   @override
@@ -46,6 +48,7 @@ class CleanAirForumFilterCard extends StatelessWidget {
     );
     final pm25Value = measurement.pm25?.value;
     final categoryColor = getMeasurementAqiColor(measurement);
+    final timestamp = capturedAt ?? DateTime.now();
 
     return AspectRatio(
       aspectRatio: 1,
@@ -53,6 +56,7 @@ class CleanAirForumFilterCard extends StatelessWidget {
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           final scale = width / kCafReferenceWidth;
+          final scrim = scrimColor.color;
 
           return ClipRRect(
             borderRadius: BorderRadius.circular(32 * scale),
@@ -62,8 +66,6 @@ class CleanAirForumFilterCard extends StatelessWidget {
                 selfieFile != null
                     ? Image.file(selfieFile!, fit: BoxFit.cover)
                     : _SelfiePlaceholder(scale: scale),
-                // Soft top scrim so the brand header stays legible over
-                // bright photos.
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -74,8 +76,6 @@ class CleanAirForumFilterCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Teal scrim rising from the bottom, approximating the
-                // Figma radial-gradient wash behind the AQI panel.
                 Positioned(
                   left: 0,
                   right: 0,
@@ -87,9 +87,9 @@ class CleanAirForumFilterCard extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          CleanAirForumBrand.scrimTeal.withValues(alpha: 0),
-                          CleanAirForumBrand.scrimTeal.withValues(alpha: 0.5),
-                          CleanAirForumBrand.scrimTeal.withValues(alpha: 0.94),
+                          scrim.withValues(alpha: 0),
+                          scrim.withValues(alpha: 0.5),
+                          scrim.withValues(alpha: 0.94),
                         ],
                         stops: const [0.0, 0.5, 1.0],
                       ),
@@ -100,7 +100,7 @@ class CleanAirForumFilterCard extends StatelessWidget {
                   top: 53 * scale,
                   left: 44 * scale,
                   right: 44 * scale,
-                  child: CleanAirForumBrandHeader(scale: scale),
+                  child: AirQoFilterHeader(scale: scale),
                 ),
                 Positioned(
                   left: 44 * scale,
@@ -113,6 +113,7 @@ class CleanAirForumFilterCard extends StatelessWidget {
                     locationDescription: locationDescription,
                     pm25Value: pm25Value,
                     category: category,
+                    timestamp: formatFilterTimestamp(timestamp),
                   ),
                 ),
               ],
@@ -172,6 +173,7 @@ class _BottomPanel extends StatelessWidget {
   final String locationDescription;
   final double? pm25Value;
   final String category;
+  final String timestamp;
 
   const _BottomPanel({
     required this.scale,
@@ -180,6 +182,7 @@ class _BottomPanel extends StatelessWidget {
     required this.locationDescription,
     required this.pm25Value,
     required this.category,
+    required this.timestamp,
   });
 
   @override
@@ -292,19 +295,18 @@ class _BottomPanel extends StatelessWidget {
                 ),
               ),
             ),
-            if (CleanAirForumBrand.dateRange.isNotEmpty) ...[
-              const Spacer(),
-              Text(
-                CleanAirForumBrand.dateRange,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 35.974 * scale,
-                  fontWeight: FontWeight.w800,
-                ),
+            const Spacer(),
+            Text(
+              timestamp,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28 * scale,
+                fontWeight: FontWeight.w700,
               ),
-            ],
+            ),
           ],
         ),
       ],

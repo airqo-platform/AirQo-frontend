@@ -8,7 +8,7 @@ import {
 } from "../../support/device-mocks";
 
 /**
- * Import External Device — single-device flow, personal context.
+ * Register Non-AirQo Device — single-device flow, personal context.
  *
  * Hybrid interception: navigation, auth, and data GETs (networks, cohorts)
  * run against the real backend; the two mutations (device import, cohort
@@ -34,11 +34,11 @@ test.beforeAll(() => {
 async function openSingleImportWizard(page: Page): Promise<Locator> {
   await page.goto("/devices/my-devices");
 
-  const importButton = page.getByRole("button", { name: "Import External Device" });
+  const importButton = page.getByRole("button", { name: "Register Non-AirQo Device" });
   await expect(importButton).toBeVisible({ timeout: 60_000 });
   await importButton.click();
 
-  const wizard = page.getByRole("dialog", { name: "Import External Device" });
+  const wizard = page.getByRole("dialog", { name: "Register Non-AirQo Device" });
   await expect(wizard).toBeVisible();
   await wizard.getByRole("button", { name: /Import Single Device/ }).click();
   return wizard;

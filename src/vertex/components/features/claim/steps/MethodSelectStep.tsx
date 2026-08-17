@@ -27,8 +27,8 @@ const ALL_METHODS = [
       'bg-blue-100 dark:bg-blue-900/40 group-hover:bg-blue-200 dark:group-hover:bg-blue-800',
     border:
       'hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20',
-    title: 'Add Single Device',
-    desc: 'Scan a QR code or manually enter a Device ID.',
+    title: 'Claim Single Device',
+    desc: 'Scan the QR code on your device, or enter its name and claim token.',
     modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
   {
@@ -40,7 +40,7 @@ const ALL_METHODS = [
       'bg-green-100 dark:bg-green-900/40 group-hover:bg-green-200 dark:group-hover:bg-green-800',
     border:
       'hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20',
-    title: 'Add Multiple Devices',
+    title: 'Claim Multiple Devices',
     desc: 'Upload a CSV file or enter a list of IDs for bulk setup.',
     modes: ['guided', 'fast'] as ClaimFlowMode[],
   },
@@ -52,7 +52,7 @@ const MethodSelectStep = ({ onSelect, mode = 'fast' }: MethodSelectStepProps) =>
   return (
     <div className="space-y-6">
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Choose how you would like to add your device(s).
+        Choose how you would like to claim the AirQo device(s) shipped to you.
       </p>
       <div className="grid grid-cols-1 gap-4">
         {visibleMethods.map(({ step, icon, iconBg, border, title, desc }) => (

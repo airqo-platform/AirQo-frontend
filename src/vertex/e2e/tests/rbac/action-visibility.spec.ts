@@ -35,7 +35,7 @@ async function bootWith(
   await resetAppBootState(page);
 }
 
-test.describe("claim — Add AirQo Device", () => {
+test.describe("claim — Claim AirQo Device", () => {
   test("is disabled on My Devices for a user without DEVICE_CLAIM", async ({ page }) => {
     test.setTimeout(120_000);
     await bootWith(page, {
@@ -50,11 +50,11 @@ test.describe("claim — Add AirQo Device", () => {
     // settled — only then is the claim button's disabled state attributable
     // to the missing permission rather than the loading state.
     await expect(
-      page.getByRole("button", { name: "Import External Device" })
+      page.getByRole("button", { name: "Register Non-AirQo Device" })
     ).toBeEnabled({ timeout: 60_000 });
 
     await expect(
-      page.getByRole("button", { name: "Add AirQo Device" })
+      page.getByRole("button", { name: "Claim AirQo Device" })
     ).toBeDisabled();
   });
 
@@ -66,7 +66,7 @@ test.describe("claim — Add AirQo Device", () => {
 
     await page.goto("/devices/my-devices");
 
-    const claimButton = page.getByRole("button", { name: "Add AirQo Device" });
+    const claimButton = page.getByRole("button", { name: "Claim AirQo Device" });
     await expect(claimButton).toBeEnabled({ timeout: 60_000 });
     await claimButton.click();
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 30_000 });
@@ -85,10 +85,10 @@ test.describe("import & claim — Devices overview", () => {
 
     // Control first: claim gates on DEVICE_CLAIM, which this user holds.
     await expect(
-      page.getByRole("button", { name: "Add AirQo Device" })
+      page.getByRole("button", { name: "Claim AirQo Device" })
     ).toBeEnabled({ timeout: 60_000 });
     await expect(
-      page.getByRole("button", { name: "Import External Device" })
+      page.getByRole("button", { name: "Register Non-AirQo Device" })
     ).toBeDisabled();
   });
 
@@ -103,10 +103,10 @@ test.describe("import & claim — Devices overview", () => {
 
     // Control first: import gates on DEVICE_UPDATE, which this user holds.
     await expect(
-      page.getByRole("button", { name: "Import External Device" })
+      page.getByRole("button", { name: "Register Non-AirQo Device" })
     ).toBeEnabled({ timeout: 60_000 });
     await expect(
-      page.getByRole("button", { name: "Add AirQo Device" })
+      page.getByRole("button", { name: "Claim AirQo Device" })
     ).toBeDisabled();
   });
 
@@ -118,11 +118,11 @@ test.describe("import & claim — Devices overview", () => {
 
     await page.goto("/devices/overview");
 
-    const importButton = page.getByRole("button", { name: "Import External Device" });
+    const importButton = page.getByRole("button", { name: "Register Non-AirQo Device" });
     await expect(importButton).toBeEnabled({ timeout: 60_000 });
     await importButton.click();
     await expect(
-      page.getByRole("dialog", { name: "Import External Device" })
+      page.getByRole("dialog", { name: "Register Non-AirQo Device" })
     ).toBeVisible({ timeout: 30_000 });
   });
 });

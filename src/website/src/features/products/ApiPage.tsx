@@ -6,6 +6,26 @@ import React from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  hero: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105828/website/photos/OurProducts/Api/AirQo_API_hero_eoosnz.webp',
+    { width: 1000 },
+  ),
+  dataAccess: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105658/website/photos/OurProducts/Api/Air_quality_API_t0blnw.webp',
+    { width: 1200 },
+  ),
+  console: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105933/website/photos/OurProducts/Api/AirQo_API_nky6xb.webp',
+    { width: 1200 },
+  ),
+  interface: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-3_uwtkrz.webp',
+    { width: 1200 },
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -73,7 +93,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105828/website/photos/OurProducts/Api/AirQo_API_hero_eoosnz.webp"
+              src={images.hero}
               alt="AirQo API - African air quality data API for developers"
               title="AirQo API - African air quality data API for developers"
               width={500}
@@ -146,7 +166,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105658/website/photos/OurProducts/Api/Air_quality_API_t0blnw.webp"
+              src={images.dataAccess}
               alt="AirQo API - African air quality data API for developers, redefining data access"
               title="AirQo API - African air quality data API for developers"
               width={741}
@@ -175,7 +195,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105933/website/photos/OurProducts/Api/AirQo_API_nky6xb.webp"
+              src={images.console}
               alt="API Console Data - AirQo API for African air quality data developers"
               title="AirQo API Console - African air quality data API for developers"
               width={600}
@@ -249,7 +269,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-3_uwtkrz.webp"
+              src={images.interface}
               alt="Easy-to-use AirQo API interface for African air quality data developers"
               title="AirQo API interface - African air quality data API for developers"
               width={1200}

@@ -4,7 +4,7 @@ import { createDriver, quitDriver, screenshotOnFailure } from '../../setup';
 import { DashboardPage } from '../../pages/dashboard.page';
 import { Config } from '../../config';
 
-describe('Organization Dashboard @organization', function () {
+describe('Organization Default Destination @organization', function () {
   let driver: WebDriver;
   let dashboardPage: DashboardPage;
 
@@ -32,30 +32,10 @@ describe('Organization Dashboard @organization', function () {
     }
   });
 
-  it('should load the org dashboard @smoke', async function () {
-    await dashboardPage.navigateToOrgDashboard();
-    await new Promise(r => setTimeout(r, 5000));
-    const hasContent =
-      (await dashboardPage.hasQuickAccess()) ||
-      (await dashboardPage.isAccessDenied()) ||
-      (await dashboardPage.hasNoFavorites());
-    const url = await dashboardPage.getCurrentUrl();
-    expect(hasContent || url.includes('/dashboard')).to.be.true;
-  });
-
-  it('should display charts or no-favorites state', async function () {
-    await dashboardPage.navigateToOrgDashboard();
-    await new Promise(r => setTimeout(r, 5000));
-    const hasCharts = await dashboardPage.hasCharts();
-    const hasNoFav = await dashboardPage.hasNoFavorites();
-    const url = await dashboardPage.getCurrentUrl();
-    expect(hasCharts || hasNoFav || url.includes('/dashboard')).to.be.true;
-  });
-
-  it('should show access denied for invalid org', async function () {
-    await dashboardPage.navigateToOrgDashboard('nonexistent-org-slug');
+  it('should default the org flow to data export @smoke', async function () {
+    await dashboardPage.navigateToOrgDefault();
     await new Promise(r => setTimeout(r, 3000));
-    const denied = await dashboardPage.isAccessDenied();
-    expect(denied).to.be.true;
+    const url = await dashboardPage.getCurrentUrl();
+    expect(url).to.include('/data-export');
   });
 });

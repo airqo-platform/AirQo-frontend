@@ -7,9 +7,23 @@ import { useState } from 'react';
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useImpactNumbers, usePartners } from '@/hooks/useApiHooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 import { Accordion } from './Accordion';
 import { accordionItems, statItems } from './data';
+
+const ACCORDION_IMAGE_WIDTH = 880;
+
+const images = {
+  airQuality: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    { width: ACCORDION_IMAGE_WIDTH },
+  ),
+  forCommunities: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp',
+    { width: ACCORDION_IMAGE_WIDTH },
+  ),
+};
 
 const HomeStatsSection: React.FC = () => {
   const { data: impactNumbersResponse } = useImpactNumbers();
@@ -143,9 +157,7 @@ const AccordionAndImageSection: React.FC<{
       <div className="relative w-full h-[400px] overflow-hidden">
         <Image
           src={`${
-            activeTab === 'cities'
-              ? 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp'
-              : 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1726578795/website/photos/ForCommunities_oepvth.webp'
+            activeTab === 'cities' ? images.airQuality : images.forCommunities
           }`}
           alt="Air quality monitor installation"
           fill

@@ -2,6 +2,139 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.36
+**Released:** August 17, 2026
+
+### Fix: "Import External Device" renamed to "Register Non-AirQo Device"
+
+The button that adds a third-party sensor was labelled **"Import External Device"** in five places and **"Import Different Sensor Manufacturer"** in a sixth — two names for one flow, neither of which described what it does. The action hits `POST /devices/soft`, which *creates* a device record for a sensor AirQo did not ship; "import" implied bringing across data that already existed somewhere. All entry points now read **"Register Non-AirQo Device"**.
+
+<details>
+<summary><strong>Every trigger renamed, including the dialog it opens</strong></summary>
+
+- Seven triggers open `ImportDeviceModal`, enumerated by what calls `setImportDeviceOpen`/`openImportModal` rather than by label — which is how the odd one out surfaced. Renamed on `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `home` (header button **and** the card inside the "Add a device" chooser dialog), `HomeEmptyState`, and `admin/networks/[id]` (which shows this button only in its `!isAirQoNetwork` branch).
+- **The dialog title moved with them.** `import-device-modal.tsx` set `title="Import External Device"`, so renaming only the buttons would have sent users from "Register Non-AirQo Device" to a dialog headed "Import External Device" — the same button/modal split corrected on the claim side.
+- **The chooser card was the outlier.** It read "Import Different Sensor Manufacturer" and its description mentioned only the CSV template, understating a button that opens both the single and bulk paths. Now "Register Non-AirQo Device", described as registering a sensor "singly or from a CSV template".
+- **Surrounding copy followed the buttons.** Renaming a CTA without its neighbouring prose leaves the same block contradicting itself, so three descriptions moved too: the home empty state ("import external devices from any Sensor Manufacturer" → "register devices from any other sensor manufacturer"), the register dialog's subtitle ("Add a device…" → "Register a device…"), and the onboarding checklist's add-device step, whose verbs were the wrong way round under the new vocabulary — it said "**Register** your new AirQo sensor or **add** a device from a different manufacturer", now "**Claim** your new AirQo sensor or **register** a device from a different manufacturer".
+
+</details>
+
+<details>
+<summary><strong>Note: internal names deliberately unchanged</strong></summary>
+
+- `import-device-modal.tsx`, `import-steps/`, `useImportDevice`, `useBulkImportDevices`, and the `import-external-device*.spec.ts` filenames all keep "import". They carry no user-visible copy, and renaming them would produce a large diff with no behavioural or UX benefit.
+- Gating is untouched: the button remains `DEVICE_UPDATE` everywhere it is gated. As on the claim side, the `home` header button, the `home` chooser card, and `HomeEmptyState` gate on nothing at all — pre-existing, and left for a dedicated permissions pass.
+
+</details>
+
+**Files changed:**
+- `app/(authenticated)/devices/my-devices/page.tsx` — both header buttons
+- `app/(authenticated)/devices/overview/page.tsx` — header button
+- `app/(authenticated)/home/page.tsx` — header button + chooser-dialog card and its description
+- `app/(authenticated)/admin/networks/[id]/page.tsx` — non-AirQo network branch
+- `components/features/home/HomeEmptyState.tsx` — empty-state button
+- `components/features/devices/import-device-modal.tsx` — dialog title and subtitle
+- `components/onboarding-checklist/ChecklistUI.tsx` — add-device step description
+- `components/features/claim/steps/ManualInputStep.tsx` — the claim form's escape-hatch prose names this button
+- `e2e/tests/rbac/action-visibility.spec.ts`, `e2e/tests/rbac/resource-scoped.spec.ts`, `e2e/tests/devices/import-external-device.spec.ts`, `e2e/tests/devices/import-external-device-bulk.spec.ts` — 13 selectors; three target the dialog by accessible name and so depend on the title change
+
+## Version 2.0.35
+**Released:** August 15, 2026
+
+### Fix: "assigned successfully" was reported even when the assignment changed nothing
+
+`POST /devices/cohorts/:id/assign-devices` splits the submitted ids into `updated_cohort.assigned` and `updated_cohort.already_assigned`, but the frontend threw the response away. `useAssignDevicesToCohort`'s `onSuccess` forwarded only the request variables, so both `assign-cohort-devices.tsx` and the post-import assignment in `import-device-modal.tsx` derived their banner from `deviceIds.length` — the count *submitted*, not the count *assigned*. Re-adding a device that was already in the cohort produced "1 device(s) assigned to cohort successfully" for a request that did nothing.
+
+<details>
+<summary><strong>Fix: the banner is now built from the API response</strong></summary>
+
+- **`useAssignDevicesToCohort` now passes `(data, variables)`** to its `onSuccess` option instead of `variables` alone. Consumers using per-call `mutate(..., { onSuccess })` — `orphaned-devices-alert.tsx` and `import-device-modal.tsx` — already received the response from react-query and are unaffected by the signature change.
+- **New `core/utils/cohortAssignment.ts`** maps the response to a severity + message so both call sites stay in step: all new → `success`, none new → `info` ("Device is already assigned to this cohort" / "N device(s) were already assigned and skipped"), mixed → `success` naming both counts.
+- **Older backends that omit `updated_cohort` fall back** to the submitted count and the previous wording, so nothing regresses where the breakdown isn't reported. `AssignDevicesToCohortResponse` marks the field optional to force callers through that path rather than assuming it exists.
+- **The import modal was fixed too** — it carried a copy of the same `deviceIds.length` message. Freshly-imported devices are rarely already assigned, but the message was wrong for the same reason.
+- Covered by unit tests on the mapping and three banner assertions in `assign-cohort-devices.test.tsx` (all-new, all-skipped, partial).
+
+</details>
+
+## Version 2.0.34
+**Released:** August 10, 2026
+
+### Fix: "Add AirQo Device" meant two different things, and general users got the one that fails
+
+Two modals shared the identical label **"Add AirQo Device"** while performing incompatible actions. `create-device-modal.tsx` creates a brand-new device record (`POST /devices`) and is reachable only from Admin → Networks. `claim-device-modal.tsx` claims a device AirQo has already shipped and shipping-prepped (`POST /devices/claim`), and is what every general screen — Home, My Devices, Devices Overview, and both empty states — actually opens. Users read the label as "create", typed a device name of their own choosing, and hit the backend's 404: *"Device doesn't exist yet."* A labelling problem, not a backend one — device creation is intentionally admin-only.
+
+<details>
+<summary><strong>Fix: every claim entry point now says "Claim", not "Add"</strong></summary>
+
+- **Trigger buttons** renamed to "Claim AirQo Device" on `home` (both the header button and the claim card inside the "Add a device" chooser dialog), `devices/my-devices` (both the loaded and error-state headers), `devices/overview`, `HomeEmptyState`, and `cohorts-empty-state`.
+- **The modal itself** was the other half of the problem: its own dialog title was also "Add AirQo Device", so even a user who clicked through from a corrected button landed on a header still reading "Add". Base title → "Claim AirQo Device"; the manual-input primary action → "Claim AirQo Device" / "Claiming…"; the bulk step title → "Claim Multiple Devices".
+- **`MethodSelectStep`'s cards** carried the same create-implication one screen deeper — "Add Single Device" / "Add Multiple Devices" → "Claim …", and the intro copy now states the devices must already have been shipped to you.
+- **Admin → Networks is unchanged.** It keeps "Add AirQo Device" because it is genuine creation. Audited rather than assumed: the button renders only inside `RouteGuard permission={PERMISSIONS.NETWORK.VIEW}`, only in the `isAirQoNetwork` branch, and gates on `DEVICE.UPDATE`.
+
+</details>
+
+<details>
+<summary><strong>Fix: the home claim button was gated on <code>DEVICE_UPDATE</code>, not <code>DEVICE_CLAIM</code></strong></summary>
+
+- Renaming the button to "Claim" exposed that `home` authorizes it against the wrong permission. `canClaimDevice` was `permissionsMap[PERMISSIONS.DEVICE.UPDATE]` — named for claiming, holding update. The button drives `setIsClaimModalOpen` → `ClaimDeviceModal` → `useClaimDevice` → `POST /devices/claim`, so `DEVICE_CLAIM` is what the backend actually enforces.
+- **Consequences both ways:** a user with `DEVICE_UPDATE` but not `DEVICE_CLAIM` got an *enabled* button leading to a request the backend rejects; a user with `DEVICE_CLAIM` but not `DEVICE_UPDATE` got it *disabled* despite being permitted — and could reach the identical flow anyway via My Devices or Overview.
+- The tooltip compounded it: `usePermissionDescription(PERMISSIONS.DEVICE.UPDATE)` told a blocked user to obtain the permission that would not have unblocked them.
+- **The two `OnboardingChecklistWrapper` call sites had to move too.** `canClaimDevice` feeds `isReadOnly` in `components/onboarding-checklist/index.tsx`, while `missingPermission` was independently hardcoded to `DEVICE.UPDATE` at both call sites. Switching only the derivation would have left the checklist disabled by `CLAIM` while naming `UPDATE` as the missing permission — the same check/tooltip mismatch corrected for `overview` in 2.0.28.
+- Restores the policy that entry stated: **claim → `DEVICE_CLAIM`, import → `DEVICE_UPDATE`**. `home` was missed at the time; `my-devices` and `devices/overview` were already correct and are untouched here.
+- **Still inconsistent, deliberately out of scope:** the chooser card (`home`), `HomeEmptyState`, and `cohorts-empty-state` gate on nothing at all, and the home import button is likewise ungated. Those change who sees an enabled button and warrant their own review — as does the fact that `rbac/action-visibility.spec.ts` covers the claim button on `my-devices` and `devices/overview` but not `home`, which is why this divergence went unnoticed.
+
+</details>
+
+<details>
+<summary><strong>Fix: the claim form did not say the device name has to be one AirQo issued</strong></summary>
+
+- `ManualInputStep` already asked for both a device name and a claim token, but its one-line hint ("Enter the device details found on the shipping label") left room to read the name field as free-form. It now states that both values come from the shipment and that claiming only works for devices AirQo has already shipped.
+- Added the missing escape hatch for users who have no token: a `support@airqo.net` mailto link, and a pointer to **Import External Device** for sensors they already own. Previously the only exit from a doomed claim attempt was to guess.
+
+</details>
+
+<details>
+<summary><strong>Fix: a raw 404 told users their device "doesn't exist yet"</strong></summary>
+
+- New `getClaimErrorMessage()` in `components/features/claim/utils.ts` maps a 404 from `POST /devices/claim` (or any not-found wording) to copy the user can act on — check the name and token, or contact support if the device just arrived. Every other failure keeps the backend's own message, so genuine validation errors are not flattened.
+- Deliberately scoped to the single-claim path. The bulk path keeps `getApiErrorMessage` because the new copy is singular ("this device") and a bulk failure can span many. It was still upgraded: it previously read `bulkClaimError.message`, which on an `AxiosError` yields "Request failed with status code 404" rather than anything from the response body.
+- The mapping lives in the claim feature rather than in `core/utils/getApiErrorMessage.ts`, which has ~37 call sites that should not inherit device-claim wording.
+
+</details>
+
+<details>
+<summary><strong>Fix: a claim-modal test was asserting the opposite of what the UI does</strong></summary>
+
+- `claim-device-modal.test.tsx` carried a case named *"only offers Import from Cohort — manual/QR/bulk entry points are not reachable"*, asserting that "Add Single Device" and "Add Multiple Devices" were absent. That stopped being true in 2.0.29, which restored both method cards. After this rename it would have started passing **vacuously** — asserting the absence of strings that had just been renamed away — locking in a false claim about the UI.
+- Rewritten to assert the real contract: all three methods are offered, all worded as claiming, and no `Add …` wording survives in the claim wizard. The stale file-header comment repeating the same claim was corrected.
+- New `components/features/claim/utils.test.ts` covers the error mapping: 404 → claim guidance, not-found wording at another status → same, unrelated backend messages passed through, non-API errors → generic fallback.
+
+</details>
+
+<details>
+<summary><strong>Note: org name stayed hardcoded here on purpose</strong></summary>
+
+- Sourcing the support email and org name from `vertexConfig` was tried and reverted. `vertex.config.ts` resolves the API origin at module scope and throws when no origin is in env, so importing it into `utils.ts` broke the unit tests outright — and would have been a latent hazard in `ManualInputStep`, which escaped notice only because it is dynamically imported and never rendered in the current suite.
+- Every other label in this feature already hardcodes "AirQo", so the new copy matches. Making the org name configurable stays where it already is: the P1 row in `app/_docs/internal/vertex-template-coupling-audit.md`.
+
+</details>
+
+**Files changed:**
+- `components/features/claim/claim-device-modal.tsx` — dialog title, manual-input CTA, bulk step title; wired to `getClaimErrorMessage`
+- `components/features/claim/utils.ts` — `getClaimErrorMessage()` + `DEVICE_NOT_FOUND_MESSAGE`
+- `components/features/claim/utils.test.ts` [NEW] — 4 cases covering the error mapping
+- `components/features/claim/steps/MethodSelectStep.tsx` — method cards and intro copy reworded to claiming
+- `components/features/claim/steps/ManualInputStep.tsx` — expanded helper text, support mailto, import pointer
+- `components/features/claim/claim-device-modal.test.tsx` — method-select case rewritten; stale header comment corrected
+- `app/(authenticated)/home/page.tsx` — header button + chooser-dialog card; claim gating moved from `DEVICE.UPDATE` to `DEVICE.CLAIM` (derivation, tooltip description, both `OnboardingChecklistWrapper` `missingPermission` props, and the button's `permission` prop)
+- `app/(authenticated)/devices/my-devices/page.tsx` — header button in both the loaded and error states
+- `app/(authenticated)/devices/overview/page.tsx` — header button
+- `components/features/home/HomeEmptyState.tsx` — button + empty-state copy
+- `components/features/cohorts/cohorts-empty-state.tsx` — button
+- `components/features/cohorts/cohorts-empty-state.test.tsx` — label assertions
+- `e2e/tests/rbac/action-visibility.spec.ts`, `e2e/tests/rbac/resource-scoped.spec.ts`, `e2e/tests/devices/device-lifecycle.spec.ts` — label selectors
+- `e2e/support/claim-mocks.ts` — comment reference
+
 ## Version 2.0.33
 **Released:** July 30, 2026
 

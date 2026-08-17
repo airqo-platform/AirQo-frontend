@@ -44,7 +44,7 @@ test.beforeAll(() => {
 async function openClaimWizard(page: Page): Promise<Locator> {
   await page.goto("/devices/my-devices");
 
-  const claimButton = page.getByRole("button", { name: "Add AirQo Device" });
+  const claimButton = page.getByRole("button", { name: "Claim AirQo Device" });
   await expect(claimButton).toBeVisible({ timeout: 60_000 });
   await claimButton.click();
 

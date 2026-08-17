@@ -41,8 +41,8 @@ describe('Protected Routes @auth', function () {
     expect(url).to.include('/login');
   });
 
-  it('should redirect unauthenticated user from /user/favorites to login', async function () {
-    await driver.get(`${Config.BASE_URL}/user/favorites`);
+  it('should redirect unauthenticated user from /user/air-quality/rankings to login', async function () {
+    await driver.get(`${Config.BASE_URL}/user/air-quality/rankings`);
     await waitForRedirectToLogin(driver);
     const url = await driver.getCurrentUrl();
     expect(url).to.include('/login');

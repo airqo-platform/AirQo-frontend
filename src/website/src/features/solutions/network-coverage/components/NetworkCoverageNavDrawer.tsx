@@ -8,6 +8,7 @@ import { HiOutlineArrowTopRightOnSquare } from 'react-icons/hi2';
 
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { NAV_ITEMS } from '@/lib/navItems';
+import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 // Nav item types are defined in src/lib/navItems.ts; this component uses the shared NAV_ITEMS constant.
 
 interface NetworkCoverageNavDrawerProps {
@@ -72,7 +73,7 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
         <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3.5">
           <Link href="/home" className="flex items-center" onClick={onClose}>
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+              src={CLOUDINARY_IMAGES.logo}
               alt="AirQo"
               width={64}
               height={44}

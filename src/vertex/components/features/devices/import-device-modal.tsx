@@ -15,6 +15,7 @@ import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { NetworkRequestDialog } from "../networks/network-request-dialog";
 import Papa from "papaparse";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { getCohortAssignmentOutcome } from "@/core/utils/cohortAssignment";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { AqChevronDown, AqChevronUp } from "@airqo/icons-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -411,10 +412,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       cohortId,
       deviceIds,
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         showBannerWithDelay({
-          severity: 'success',
-          message: `${deviceIds.length} device(s) assigned to cohort successfully`,
+          ...getCohortAssignmentOutcome(data, deviceIds.length),
           scoped: false,
         }, 600);
         onAssigned?.();
@@ -734,8 +734,8 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       <ReusableDialog
         isOpen={open}
         onClose={() => onOpenChange(false)}
-        title="Import External Device"
-        subtitle={isSuccess ? undefined : "Add a device from a different sensor manufacturer"}
+        title="Register Non-AirQo Device"
+        subtitle={isSuccess ? undefined : "Register a device from a different sensor manufacturer"}
         size="3xl"
         maxHeight="max-h-[55vh]"
         preventBackdropClose={true}

@@ -12,6 +12,24 @@ export interface GetCohortsSummaryParams {
   tags?: string;
 }
 
+/**
+ * Response of POST /devices/cohorts/:id/assign-devices.
+ *
+ * The backend splits the submitted device ids into those it actually attached
+ * (`assigned`) and those that were already members of the cohort and were
+ * therefore skipped (`already_assigned`). Both are optional here on purpose:
+ * older backend versions omit `updated_cohort` entirely, so consumers must
+ * cope with the breakdown being absent rather than assume it.
+ */
+export interface AssignDevicesToCohortResponse {
+  success: boolean;
+  message?: string;
+  updated_cohort?: {
+    assigned?: string[];
+    already_assigned?: string[];
+  };
+}
+
 export const cohorts = {
   getCohortsSummary: async (params: GetCohortsSummaryParams, signal?: AbortSignal): Promise<CohortsSummaryResponse> => {
     try {
@@ -177,13 +195,7 @@ export const cohorts = {
         { device_ids: deviceIds },
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
-      return response.data as {
-        success: boolean;
-        updated_cohort: {
-          assigned: string[];
-          already_assigned: string[];
-        };
-      };
+      return response.data as AssignDevicesToCohortResponse;
     } catch (error) {
       throw error;
     }

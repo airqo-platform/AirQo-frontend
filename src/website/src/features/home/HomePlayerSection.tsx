@@ -30,7 +30,7 @@ ReactPlayer.displayName = 'ReactPlayer';
 
 const HOME_FULL_VIDEO = 'https://www.youtube.com/watch?v=2NebAd1F8x8';
 const VIDEO_PREVIEW_IMAGE =
-  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_2,f_jpg,q_auto,w_1280/v1716038850/website/videos/opening_jtpafn.jpg';
+  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_2,f_jpg,q_auto,w_1600/v1716038850/website/videos/opening_jtpafn.jpg';
 
 // Whether the configured video is a directly hosted file we can feed into a <video> element
 const isHostedVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(HOME_FULL_VIDEO);
@@ -104,7 +104,8 @@ const VideoSection: React.FC<{
             src={VIDEO_PREVIEW_IMAGE}
             alt="AirQo story preview image"
             fill
-            priority={false}
+            priority
+            sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
           />
         ) : (

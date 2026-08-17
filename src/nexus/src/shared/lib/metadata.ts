@@ -96,32 +96,12 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Manage your AirQo account settings and preferences.',
     },
   },
-  '/user/favorites': {
-    title: 'Favorite Locations',
-    description:
-      'View and manage your favorite air quality monitoring locations.',
-    openGraph: {
-      title: 'Favorite Locations | AirQo Nexus',
-      description:
-        'View and manage your favorite air quality monitoring locations.',
-    },
-  },
   '/user/data-export': {
     title: 'Data Export',
     description: 'Export air quality data for analysis and presentation.',
     openGraph: {
       title: 'Data Export | AirQo Nexus',
       description: 'Export air quality data for analysis and presentation.',
-    },
-  },
-  '/org/dashboard': {
-    title: 'Organization Dashboard',
-    description:
-      'Comprehensive dashboard for organization air quality monitoring and management.',
-    openGraph: {
-      title: 'Organization Dashboard | AirQo Nexus',
-      description:
-        'Comprehensive dashboard for organization air quality monitoring and management.',
     },
   },
   '/org/data-export': {
@@ -132,14 +112,6 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       title: 'Organization Data Export | AirQo Nexus',
       description:
         'Export organization air quality data for analysis and presentation.',
-    },
-  },
-  '/org/favorites': {
-    title: 'Organization Favorites',
-    description: 'Manage favorite locations for your organization.',
-    openGraph: {
-      title: 'Organization Favorites | AirQo Nexus',
-      description: 'Manage favorite locations for your organization.',
     },
   },
   '/org/members': {
