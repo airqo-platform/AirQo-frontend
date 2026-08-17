@@ -351,6 +351,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
         pollutant={pollutant}
         aqiConfig={selectedAqiConfig}
         isLoading={siteCardsLoading}
+        isRefreshing={siteCardsRefreshing}
         onRetry={() => void refetchSiteCards()}
       />
 

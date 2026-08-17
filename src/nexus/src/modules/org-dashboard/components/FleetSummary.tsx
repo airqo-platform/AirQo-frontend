@@ -30,6 +30,7 @@ interface FleetSummaryProps {
   pollutant: PollutantType;
   aqiConfig?: AqiConfig | null;
   isLoading?: boolean;
+  isRefreshing?: boolean;
   onRetry?: () => void;
   className?: string;
 }
@@ -62,6 +63,7 @@ export const FleetSummary: React.FC<FleetSummaryProps> = ({
   pollutant,
   aqiConfig = null,
   isLoading = false,
+  isRefreshing = false,
   onRetry,
   className,
 }) => {
@@ -105,6 +107,7 @@ export const FleetSummary: React.FC<FleetSummaryProps> = ({
                     label: 'Refresh',
                     onClick: onRetry,
                     variant: 'outlined',
+                    loading: isRefreshing,
                   }
                 : undefined
             }

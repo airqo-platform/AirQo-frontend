@@ -391,19 +391,19 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
                     {Object.entries(CHART_TYPE_LABELS)
                       .filter(([type]) => type !== 'area')
                       .map(([type, label]) => (
-                      <button
-                        key={type}
-                        onClick={() => onChartTypeChange(type as ChartType)}
-                        className={cn(
-                          'flex items-center w-full px-2 py-1 text-xs rounded transition-colors',
-                          currentChartType === type
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-foreground hover:bg-muted'
-                        )}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                        <button
+                          key={type}
+                          onClick={() => onChartTypeChange(type as ChartType)}
+                          className={cn(
+                            'flex items-center w-full px-2 py-1 text-xs rounded transition-colors',
+                            currentChartType === type
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-foreground hover:bg-muted'
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
                   </div>
                 </div>
               )}
@@ -484,34 +484,33 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       )}
 
       {/* Period presets without a custom toolbar — their own compact row. */}
-      {!toolbar && periodPresets && periodPresets.length > 0 && onPeriodChange && (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2"
-          data-export-ignore
-          data-html2canvas-ignore="true"
-        >
-          <SegmentedTabs
-            ariaLabel="Chart time range"
-            size="sm"
-            options={periodPresets.map(preset => ({
-              value: preset.value,
-              label: preset.label,
-            }))}
-            value={activePeriod ?? periodPresets[0]?.value ?? ''}
-            onChange={onPeriodChange}
-          />
-        </div>
-      )}
+      {!toolbar &&
+        periodPresets &&
+        periodPresets.length > 0 &&
+        onPeriodChange && (
+          <div
+            className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2"
+            data-export-ignore
+            data-html2canvas-ignore="true"
+          >
+            <SegmentedTabs
+              ariaLabel="Chart time range"
+              size="sm"
+              options={periodPresets.map(preset => ({
+                value: preset.value,
+                label: preset.label,
+              }))}
+              value={activePeriod ?? periodPresets[0]?.value ?? ''}
+              onChange={onPeriodChange}
+            />
+          </div>
+        )}
 
       {/* Export root: the shareable image is the header (title/subtitle) plus
           the chart itself (legend included). Everything interactive inside
           here — More menu, filters, edit form, footer actions — is marked
           export-ignored. */}
-      <div
-        ref={exportRef}
-        data-export-root
-        className="flex min-w-0 flex-col"
-      >
+      <div ref={exportRef} data-export-root className="flex min-w-0 flex-col">
         {(showTitle || (showMoreButton && !toolbar)) && (
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4 gap-3">
             {showTitle &&
@@ -522,164 +521,165 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
                   data-export-ignore
                   data-html2canvas-ignore="true"
                 >
-                <Input
-                  label="Title"
-                  aria-label="Chart title"
-                  value={draftTitle}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setDraftTitle(event.target.value)
-                  }
-                  maxLength={80}
-                />
-                <Input
-                  label="Subtitle"
-                  aria-label="Chart subtitle"
-                  value={draftSubtitle}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setDraftSubtitle(event.target.value)
-                  }
-                  maxLength={120}
-                />
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="filled"
-                    size="sm"
-                    Icon={AqCheck}
-                    onClick={() => void handleSaveTitle()}
-                    loading={isSavingTitle}
-                    disabled={isSavingTitle}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    Icon={AqXClose}
-                    onClick={() => setIsEditingTitle(false)}
-                    disabled={isSavingTitle}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="min-w-0 space-y-1 flex-1">
-                <CardTitle className="text-lg text-foreground truncate">
-                  {title}
-                </CardTitle>
-                {subtitle && (
-                  <p className="text-sm text-muted-foreground truncate">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-            ))}
-
-          {/* More dropdown menu — in the header unless a toolbar is present.
-              Interactive chrome — excluded from chart exports. */}
-          {showMoreButton && !toolbar && (
-            <div data-export-ignore data-html2canvas-ignore="true">
-              {renderMoreDropdown()}
-            </div>
-          )}
-        </CardHeader>
-      )}
-
-      {/* Filters Section — interactive chrome, excluded from chart exports */}
-      {onFiltersChange && currentFilters && (
-        <div data-export-ignore data-html2canvas-ignore="true">
-          <ChartFiltersComponent
-            filters={currentFilters}
-            onFiltersChange={onFiltersChange}
-          />
-        </div>
-      )}
-
-      <CardContent
-        className={cn(
-          'px-1 pb-2 flex-1',
-          !showTitle && !showMoreButton && 'pt-3'
-        )}
-      >
-        <div className="relative w-full min-h-[400px] min-w-0">
-          {error && (
-            <div className="flex items-center justify-center h-64 text-destructive">
-              <div className="text-center">
-                <p className="text-lg font-medium">Error loading chart</p>
-                <p className="text-sm text-muted-foreground mt-1">{error}</p>
-                {onRefresh && (
-                  <button
-                    onClick={handleRefresh}
-                    className="mt-3 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {!error && (
-            <div className="w-full h-full min-h-[400px] min-w-0">
-              {React.isValidElement(children)
-                ? React.cloneElement(
-                    children as React.ReactElement<{
-                      showReferenceLines?: boolean;
-                      standards?: string;
-                    }>,
-                    {
-                      showReferenceLines,
-                      standards: currentStandardsOrg,
+                  <Input
+                    label="Title"
+                    aria-label="Chart title"
+                    value={draftTitle}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setDraftTitle(event.target.value)
                     }
-                  )
-                : children}
-            </div>
-          )}
+                    maxLength={80}
+                  />
+                  <Input
+                    label="Subtitle"
+                    aria-label="Chart subtitle"
+                    value={draftSubtitle}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setDraftSubtitle(event.target.value)
+                    }
+                    maxLength={120}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="filled"
+                      size="sm"
+                      Icon={AqCheck}
+                      onClick={() => void handleSaveTitle()}
+                      loading={isSavingTitle}
+                      disabled={isSavingTitle}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      Icon={AqXClose}
+                      onClick={() => setIsEditingTitle(false)}
+                      disabled={isSavingTitle}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="min-w-0 space-y-1 flex-1">
+                  <CardTitle className="text-lg text-foreground truncate">
+                    {title}
+                  </CardTitle>
+                  {subtitle && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+              ))}
 
-          {loading && !error && (
-            <div
-              className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-40"
-              role="status"
-              aria-live="polite"
-              data-export-ignore
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <LoadingSpinner />
-                <p className="text-sm text-muted-foreground">
-                  Loading chart data...
-                </p>
+            {/* More dropdown menu — in the header unless a toolbar is present.
+              Interactive chrome — excluded from chart exports. */}
+            {showMoreButton && !toolbar && (
+              <div data-export-ignore data-html2canvas-ignore="true">
+                {renderMoreDropdown()}
               </div>
-            </div>
-          )}
+            )}
+          </CardHeader>
+        )}
 
-          {/* Export loading overlay */}
-          {isExporting && (
-            <div
-              className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50"
-              data-export-ignore
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <LoadingSpinner />
-                <p className="text-sm text-muted-foreground">
-                  Exporting chart...
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer hint (e.g. last update time) — interactive footer actions
-            excluded from chart exports */}
-        {footerHint && (
-          <div
-            className="px-1 pt-1 pb-0.5"
-            data-export-ignore
-            data-html2canvas-ignore="true"
-          >
-            {footerHint}
+        {/* Filters Section — interactive chrome, excluded from chart exports */}
+        {onFiltersChange && currentFilters && (
+          <div data-export-ignore data-html2canvas-ignore="true">
+            <ChartFiltersComponent
+              filters={currentFilters}
+              onFiltersChange={onFiltersChange}
+            />
           </div>
         )}
-      </CardContent>
+
+        <CardContent
+          className={cn(
+            'px-1 pb-2 flex-1',
+            !showTitle && !showMoreButton && 'pt-3'
+          )}
+        >
+          <div className="relative w-full min-h-[400px] min-w-0">
+            {error && (
+              <div className="flex items-center justify-center h-64 text-destructive">
+                <div className="text-center">
+                  <p className="text-lg font-medium">Error loading chart</p>
+                  <p className="text-sm text-muted-foreground mt-1">{error}</p>
+                  {onRefresh && (
+                    <Button
+                      onClick={handleRefresh}
+                      className="mt-3"
+                      loading={isRefreshing}
+                    >
+                      Try Again
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!error && (
+              <div className="w-full h-full min-h-[400px] min-w-0">
+                {React.isValidElement(children)
+                  ? React.cloneElement(
+                      children as React.ReactElement<{
+                        showReferenceLines?: boolean;
+                        standards?: string;
+                      }>,
+                      {
+                        showReferenceLines,
+                        standards: currentStandardsOrg,
+                      }
+                    )
+                  : children}
+              </div>
+            )}
+
+            {loading && !error && (
+              <div
+                className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-40"
+                role="status"
+                aria-live="polite"
+                data-export-ignore
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <LoadingSpinner />
+                  <p className="text-sm text-muted-foreground">
+                    Loading chart data...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Export loading overlay */}
+            {isExporting && (
+              <div
+                className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50"
+                data-export-ignore
+              >
+                <div className="flex flex-col items-center space-y-3">
+                  <LoadingSpinner />
+                  <p className="text-sm text-muted-foreground">
+                    Exporting chart...
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer hint (e.g. last update time) — interactive footer actions
+            excluded from chart exports */}
+          {footerHint && (
+            <div
+              className="px-1 pt-1 pb-0.5"
+              data-export-ignore
+              data-html2canvas-ignore="true"
+            >
+              {footerHint}
+            </div>
+          )}
+        </CardContent>
       </div>
 
       {/* Standards Dialog */}

@@ -76,7 +76,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             size="md"
             Icon={AqRefreshCcw01}
             onClick={onRefresh}
-            disabled={isRefreshing}
+            loading={isRefreshing}
             showTextOnMobile
             className="w-full sm:w-auto"
           >

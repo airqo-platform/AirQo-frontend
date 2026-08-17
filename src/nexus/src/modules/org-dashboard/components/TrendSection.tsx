@@ -7,7 +7,6 @@ import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { DatePicker } from '@/shared/components/ui';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { EmptyState } from '@/shared/components/ui';
 import { useAnalyticsChartData } from '@/modules/analytics';
 import { getGuidelinePeriod } from '@/modules/analytics/utils/chartConfig';
 import { getPollutantLabel } from '@/shared/utils/airQuality';
@@ -115,8 +114,6 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
     return Object.fromEntries(map);
   }, [selectedSites]);
 
-  const hasData = chartData.length > 0;
-
   return (
     <Card className={cn('w-full', className)}>
       <CardContent className="p-0">
@@ -184,36 +181,28 @@ export const TrendSection: React.FC<TrendSectionProps> = ({
             </span>
           }
         >
-          {!isLoading && !error && !hasData ? (
-            <EmptyState
-              compact
-              title="No recent readings available"
-              description="None of the selected locations reported measurements for this date range. Try a wider date range or check back later."
-            />
-          ) : (
-            <DynamicChart
-              data={chartDataWithFleet}
-              config={{
-                type: chartType,
-                showGrid: true,
-                showTooltip: true,
-                showLegend: true,
-                height: 400,
-                themeColors: true,
-              }}
-              pollutant={pollutant}
-              aqiConfig={aqiConfig}
-              frequency="daily"
-              autoSelectType={false}
-              // Daily averages are compared with WHO's 24-hour guideline:
-              // PM2.5 = 15 µg/m³ and PM10 = 45 µg/m³.
-              referenceLinePeriod={getGuidelinePeriod('daily')}
-              seriesLabels={{
-                [FLEET_AVERAGE_SERIES_KEY]: FLEET_AVERAGE_SERIES_KEY,
-              }}
-              locationLabels={locationLabels}
-            />
-          )}
+          <DynamicChart
+            data={chartDataWithFleet}
+            config={{
+              type: chartType,
+              showGrid: true,
+              showTooltip: true,
+              showLegend: true,
+              height: 400,
+              themeColors: true,
+            }}
+            pollutant={pollutant}
+            aqiConfig={aqiConfig}
+            frequency="daily"
+            autoSelectType={false}
+            // Daily averages are compared with WHO's 24-hour guideline:
+            // PM2.5 = 15 µg/m³ and PM10 = 45 µg/m³.
+            referenceLinePeriod={getGuidelinePeriod('daily')}
+            seriesLabels={{
+              [FLEET_AVERAGE_SERIES_KEY]: FLEET_AVERAGE_SERIES_KEY,
+            }}
+            locationLabels={locationLabels}
+          />
         </ChartContainer>
       </CardContent>
     </Card>

@@ -188,6 +188,7 @@ export const SavedLocationsGrid: React.FC<SavedLocationsGridProps> = ({
                       label: 'Refresh',
                       onClick: onRefresh,
                       variant: 'outlined',
+                      loading: isRefreshing,
                     }
                   : undefined
             }
