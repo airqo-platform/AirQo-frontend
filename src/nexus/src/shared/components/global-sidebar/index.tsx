@@ -116,7 +116,7 @@ export const GlobalSidebar: React.FC = () => {
     const basePath =
       flow === 'organization' && orgSlug ? `/org/${orgSlug}` : '/user';
     const homePath =
-      flow === 'organization' && orgSlug ? '/dashboard' : '/home';
+      flow === 'organization' && orgSlug ? '/data-export' : '/home';
 
     return config.flatMap(group =>
       group.items
@@ -136,7 +136,7 @@ export const GlobalSidebar: React.FC = () => {
           if (item.id === 'system-management') {
             href = item.href;
           } else if (item.id === 'home') {
-            // Home redirects to appropriate dashboard/home based on flow
+            // Home redirects to the default destination for the active flow
             href = `${basePath}${homePath}`;
           }
           return {

@@ -129,7 +129,7 @@ export default function OrgLoginPage() {
         email: data.email,
         password: data.password,
         org_slug: orgSlug,
-        callbackUrl: callbackUrl || `/org/${orgSlug}/dashboard`,
+        callbackUrl: callbackUrl || `/org/${orgSlug}/data-export`,
       });
 
       if (res?.error) {
@@ -166,7 +166,7 @@ export default function OrgLoginPage() {
         redirectWithReload(
           normalizeCallbackUrl(res?.url) ??
             callbackUrl ??
-            `/org/${orgSlug}/dashboard`
+            `/org/${orgSlug}/data-export`
         );
       }
     } catch (error) {
@@ -208,7 +208,7 @@ export default function OrgLoginPage() {
           <SocialAuthSection
             mode="login"
             disabled={loading}
-            callbackUrl={callbackUrl || `/org/${orgSlug}/dashboard`}
+            callbackUrl={callbackUrl || `/org/${orgSlug}/data-export`}
           />
 
           <div className="text-center">
@@ -270,7 +270,7 @@ export default function OrgLoginPage() {
               <SocialAuthSection
                 mode="login"
                 disabled={loading}
-                callbackUrl={callbackUrl || `/org/${orgSlug}/dashboard`}
+                callbackUrl={callbackUrl || `/org/${orgSlug}/data-export`}
                 providers={linkedOAuthProviders}
               />
             </>

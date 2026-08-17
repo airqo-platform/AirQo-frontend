@@ -114,13 +114,6 @@ const orgSidebarConfig: NavGroup[] = [
     label: 'Main',
     items: [
       {
-        id: 'dashboard',
-        label: 'Dashboard',
-        href: '/org/dashboard',
-        icon: AqHomeSmile,
-      },
-
-      {
         id: 'bulk-export',
         label: 'Visualization & Data Export',
         href: '/org/data-export',
@@ -508,12 +501,6 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
   ],
   organization: [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      href: '/org/dashboard', // Will be replaced with slug
-      icon: AqHomeSmile,
-    },
     {
       id: 'map',
       label: 'Map',

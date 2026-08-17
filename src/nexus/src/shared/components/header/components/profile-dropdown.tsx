@@ -47,7 +47,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   // Otherwise, route to individual user profile
   const profileRoute = React.useMemo(() => {
     if (pathname?.startsWith('/org/')) {
-      // Extract org slug from pathname like /org/my-organization/dashboard
+      // Extract org slug from pathname like /org/my-organization/data-export
       const matches = pathname.match(/^\/org\/([^\/]+)/);
       if (matches && matches[1]) {
         return `/org/${matches[1]}/profile`;

@@ -20,7 +20,7 @@ export default function NotFound() {
       if (activeGroup.title.toLowerCase() === 'airqo') {
         router.push('/user/home');
       } else {
-        router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
+        router.push(`/org/${activeGroup.organizationSlug}/data-export`);
       }
     } else {
       // Fallback if no active group is available
