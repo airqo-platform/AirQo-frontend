@@ -6,7 +6,7 @@ import { DynamicChart } from '@/shared/components/charts';
 import { ChartContainer } from '@/shared/components/charts';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import { getDefaultSiteColor } from '../../utils/siteColors';
+import { getDefaultSiteColor } from '@/modules/analytics/utils/siteColors';
 import {
   useSiteTrendData,
   TREND_PERIOD_PRESETS,

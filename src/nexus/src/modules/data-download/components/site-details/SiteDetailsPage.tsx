@@ -16,23 +16,24 @@ import { SiteForecastCard } from './SiteForecastCard';
 import { SiteHealthRecommendationsCard } from './SiteHealthRecommendationsCard';
 
 interface SiteDetailsPageProps {
-  /** Slugified display name (search_name || location_name) from the explore
-   *  table — the real site id is resolved in the background, never in the URL. */
+  /** Slugified display name (search_name || location_name) from a location row. */
   siteSlug: string;
-  /** Base href of the analytics page (the breadcrumb root) */
+  /** The authoritative site id from the source row, when available. */
+  siteId?: string;
+  /** Base href of the data-export page (the breadcrumb root) */
   backHref: string;
   className?: string;
 }
 
 /**
- * Location detail page (`analytics/sites/[siteSlug]`): breadcrumb nav, AQI
+ * Location detail page (`data-export/sites/[siteSlug]`): breadcrumb nav, AQI
  * gauge hero with pollutant strip, 7D/30D/90D trend, hourly/daily forecast,
- * and health recommendations. The URL only carries the site's display-name
- * slug; the real id is resolved via the fleet sites summary and then handed
- * to the data hooks.
+ * and health recommendations. The display-name slug keeps the URL readable;
+ * export-table navigation passes the authoritative site id to the data hooks.
  */
 export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   siteSlug,
+  siteId: siteIdFromRoute,
   backHref,
   className,
 }) => {
@@ -42,9 +43,12 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
     isLoading: resolving,
     error: resolveError,
     refetch: retryResolve,
-  } = useResolveSiteByName(siteSlug);
+  } = useResolveSiteByName(siteIdFromRoute ? '' : siteSlug);
 
-  const siteId = resolved?.siteId ?? '';
+  // Row navigation passes the exact site id so a duplicate display name can
+  // never resolve to a different location. Direct links still use the slug
+  // resolver for backwards compatibility.
+  const siteId = siteIdFromRoute?.trim() || resolved?.siteId || '';
   const resolvedName = resolved?.displayName ?? null;
 
   const mapUrl =
@@ -68,9 +72,11 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
     [reading]
   );
 
-  // Priority: resolved site name (what was clicked in explore) > reading
+  // Priority: resolved site name > reading
   // siteDetails > raw slug fallback
-  const displayName = resolvedName || readingSiteName || siteSlug;
+  const displayName = siteIdFromRoute
+    ? readingSiteName || siteSlug
+    : resolvedName || readingSiteName || siteSlug;
 
   if (resolving) {
     return (
@@ -107,7 +113,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
               href={backHref}
               className="transition-colors hover:text-foreground"
             >
-              Air Quality Analytics
+              Data Export
             </Link>
           </li>
           <li className="flex items-center gap-1.5" aria-hidden="true">

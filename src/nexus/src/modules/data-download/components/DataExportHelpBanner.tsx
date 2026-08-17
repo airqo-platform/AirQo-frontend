@@ -30,8 +30,8 @@ export const DataExportHelpBanner: React.FC<DataExportHelpBannerProps> = ({
 
   return (
     <InfoBanner
-      title="New to Data Download?"
-      message="Watch our quick tutorial to learn how to visualize and download air quality data."
+      title="How to use Data Download"
+      message="Use the checkboxes to choose locations for export. Click a site or device row to open its air quality details, or use Customize Sites for country and city selections."
       actions={actions}
       dismissible={!!onDismiss}
       onDismiss={onDismiss}

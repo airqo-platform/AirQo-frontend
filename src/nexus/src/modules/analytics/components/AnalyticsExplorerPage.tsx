@@ -1,11 +1,6 @@
 ﻿'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { usePostHog } from 'posthog-js/react';
 import { cn } from '@/shared/lib/utils';
@@ -19,13 +14,7 @@ import { toast } from '@/shared/components/ui/toast';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { AqTrash01 } from '@airqo/icons-react';
-import {
-  AqPlus,
-  AqLayoutGrid01,
-  AqLineChartUp01,
-  AqList,
-  AqCompass01,
-} from '@airqo/icons-react';
+import { AqPlus, AqLayoutGrid01, AqList } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks/useUser';
 import {
   useGroupCharts,
@@ -43,7 +32,6 @@ import {
 import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
 import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
-import { ExploreSitesView } from './explorer/ExploreSitesView';
 import {
   useComparisonReadings,
   extractReadingNames,
@@ -69,28 +57,9 @@ interface AnalyticsExplorerPageProps {
   organizationSlug?: string;
 }
 
-type ViewMode = 'trends' | 'explore';
 type TrendsLayout = 'list' | 'grid';
 
-const VIEW_MODE_STORAGE_KEY = 'nexus:analytics:view-mode';
 const TRENDS_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
-
-const VIEW_OPTIONS: {
-  value: ViewMode;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    value: 'trends',
-    label: 'Trends',
-    icon: <AqLineChartUp01 className="h-3.5 w-3.5" />,
-  },
-  {
-    value: 'explore',
-    label: 'Explore',
-    icon: <AqCompass01 className="h-3.5 w-3.5" />,
-  },
-];
 
 const TRENDS_LAYOUT_OPTIONS: {
   value: TrendsLayout;
@@ -123,20 +92,6 @@ const isCancellationError = (error: unknown): boolean => {
   );
 };
 
-// The active view survives reloads: read it lazily (guarded for SSR) and
-// persist on change so a refreshed page returns to the same tab. Legacy
-// 'table' values map to the Trends view.
-const readStoredViewMode = (): ViewMode => {
-  if (typeof window === 'undefined') return 'trends';
-  try {
-    return window.localStorage.getItem(VIEW_MODE_STORAGE_KEY) === 'explore'
-      ? 'explore'
-      : 'trends';
-  } catch {
-    return 'trends';
-  }
-};
-
 // The Trends layout (list vs grid) survives reloads too.
 const readStoredTrendsLayout = (): TrendsLayout => {
   if (typeof window === 'undefined') return 'list';
@@ -149,13 +104,10 @@ const readStoredTrendsLayout = (): TrendsLayout => {
 };
 
 /**
- * Air Quality Analytics — two top-level views. "Trends" hosts the chart
- * workspace: every configured chart in a list (each rendered as the full
- * focused workspace) or a grid, plus the page-level AQI legend. "Explore"
- * lists the fleet's monitored locations (cached-sites, server-side
- * pagination) and links through to each location's detail page. The page
- * itself never depends on chart configuration — the empty state and the
- * "New chart" action live inside the Trends tab.
+ * Air Quality Analytics — the chart workspace. Every configured chart is
+ * rendered in a list (each as the full focused workspace) or a grid, plus
+ * the page-level AQI legend. Location details are opened from the data
+ * export tables so there is one location-discovery experience.
  */
 export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   className,
@@ -163,12 +115,16 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   organizationSlug,
 }) => {
   const posthog = usePostHog();
-  const { user, activeGroup, groups, isLoading: userContextLoading } =
-    useUser();
+  const {
+    user,
+    activeGroup,
+    groups,
+    isLoading: userContextLoading,
+  } = useUser();
 
-  const [viewMode, setViewMode] = useState<ViewMode>(readStoredViewMode);
-  const [trendsLayout, setTrendsLayout] =
-    useState<TrendsLayout>(readStoredTrendsLayout);
+  const [trendsLayout, setTrendsLayout] = useState<TrendsLayout>(
+    readStoredTrendsLayout
+  );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDraft, setEditingDraft] = useState<ExplorerChartDraft | null>(
@@ -238,15 +194,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistedCharts, groupId, sidecarVersion]);
-
-  // Persist the active view so a refresh returns to the same tab.
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
-    } catch {
-      // Storage unavailable — view memory is best-effort.
-    }
-  }, [viewMode]);
 
   // Persist the Trends layout so a refresh returns to the same view.
   useEffect(() => {
@@ -359,10 +306,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             : [];
         },
         enabled:
-          viewMode === 'trends' &&
-          !isInitialLoading &&
-          charts.length > 0 &&
-          draft.siteIds.length > 0,
+          !isInitialLoading && charts.length > 0 && draft.siteIds.length > 0,
         networkMode: 'online',
         retry: false,
         refetchOnWindowFocus: false,
@@ -405,13 +349,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const copyMutation = useCopyGroupChart();
 
   useEffect(() => {
-    posthog?.capture('analytics_explorer_viewed', {
-      view: viewMode,
+    posthog?.capture('analytics_trends_viewed', {
       layout: trendsLayout,
       chart_count: charts.length,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, trendsLayout]);
+  }, [trendsLayout]);
 
   const handleOpenCreate = useCallback(() => {
     setEditingDraft(null);
@@ -671,10 +614,6 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     });
   }, []);
 
-  const baseHref = isOrganizationFlow
-    ? `/org/${normalizedOrganizationSlug}/air-quality/analytics`
-    : '/user/air-quality/analytics';
-
   const renderTrendsView = () => {
     if (isInitialLoading || (chartsLoading && charts.length === 0)) {
       return (
@@ -784,35 +723,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         <div className="min-w-0">
           <h1 className="text-2xl text-foreground">Air Quality Analytics</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Monitor current conditions, trends and forecasts for your
-            locations — or explore every monitored location.
+            Monitor current conditions, trends and forecasts for your configured
+            locations.
           </p>
         </div>
       </div>
 
-      {/* View switcher — always available, independent of chart setup */}
-      <Card className="w-fit">
-        <CardContent className="p-1">
-          <SegmentedTabs
-            ariaLabel="Analytics view"
-            options={VIEW_OPTIONS}
-            value={viewMode}
-            onChange={setViewMode}
-          />
-        </CardContent>
-      </Card>
-
-      {viewMode === 'explore' ? (
-        isInitialLoading ? (
-          <div className="flex items-center justify-center min-h-[300px]">
-            <LoadingState text="Loading locations..." />
-          </div>
-        ) : (
-          <ExploreSitesView groupId={groupId} baseHref={baseHref} />
-        )
-      ) : (
-        renderTrendsView()
-      )}
+      {renderTrendsView()}
 
       <ChartConfigDialog
         isOpen={dialogOpen}

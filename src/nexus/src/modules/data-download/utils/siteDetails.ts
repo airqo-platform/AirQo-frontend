@@ -24,8 +24,8 @@ export const resolveReadingSiteName = (
 /**
  * Normalizes a display name into a URL-safe slug (diacritics folded,
  * non-alphanumerics collapsed to dashes). The detail-page route
- * (`analytics/sites/[siteSlug]`) uses this so the raw site id never leaks
- * into the URL.
+ * (`data-export/sites/[siteSlug]`) uses this for a readable URL while the
+ * exact site id travels in the query.
  */
 export const normalizeSiteNameForSlug = (name: string): string =>
   name
@@ -65,7 +65,8 @@ export const formatReadingFreshness = (
   if (diffMs < 0) return 'Updated just now';
   const minutes = Math.floor(diffMs / 60000);
   if (minutes < 1) return 'Updated just now';
-  if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  if (minutes < 60)
+    return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`;
   const days = Math.floor(hours / 24);
@@ -73,9 +74,7 @@ export const formatReadingFreshness = (
 };
 
 /** Compact timestamp for tooltips / captions, e.g. "Aug 14, 06:00". */
-export const formatReadingTime = (
-  time: string | undefined | null
-): string => {
+export const formatReadingTime = (time: string | undefined | null): string => {
   if (!time) return '';
   const parsed = new Date(time);
   if (Number.isNaN(parsed.getTime())) return '';

@@ -38,6 +38,7 @@ import {
 import type { SelectedSite } from '@/shared/store/insightsSlice';
 import InsightsFilters from './insights-filters';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import { Banner } from '@/shared/components/ui/banner';
 import { useUser } from '@/shared/hooks/useUser';
 import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
@@ -96,6 +97,9 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const visibleSiteIds = useMemo(() => {
     return Array.from(visibleSites);
   }, [visibleSites]);
+  // The chart API accepts line/bar data requests. Area is a presentation
+  // choice rendered by DynamicChart from the same line-series response.
+  const chartRequestType = chartType === 'area' ? 'line' : chartType;
   const dialogContextKey = useMemo(
     () =>
       [
@@ -116,7 +120,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       Array.isArray(visibleSiteIds) ? visibleSiteIds.join(',') : visibleSiteIds,
       dateRange.from.toISOString().split('T')[0],
       dateRange.to.toISOString().split('T')[0],
-      chartType,
+      chartRequestType,
       frequency,
       pollutant,
     ]
@@ -198,7 +202,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           sites: visibleSiteIds,
           startDate: dateRange.from.toISOString().split('T')[0],
           endDate: dateRange.to.toISOString().split('T')[0],
-          chartType: chartType,
+          chartType: chartRequestType,
           frequency: frequency,
           pollutant: pollutant.toLowerCase().replace('.', '_'),
           organisation_name: '',
@@ -241,7 +245,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       isActive = false;
     };
   }, [
-    chartType,
+    chartRequestType,
     dateRange,
     frequency,
     getChartData,
@@ -438,6 +442,20 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     return chartData;
   }, [chartData]);
 
+  const chartSiteIds = useMemo(
+    () =>
+      new Set(
+        filteredChartData
+          .map(point => point.site_id)
+          .filter((siteId): siteId is string => Boolean(siteId))
+      ),
+    [filteredChartData]
+  );
+  const locationsWithoutData = useMemo(
+    () => visibleSiteIds.filter(siteId => !chartSiteIds.has(siteId)).length,
+    [chartSiteIds, visibleSiteIds]
+  );
+
   // Sidebar content with location cards
   const sidebarContent = (
     <div className="space-y-3">
@@ -602,6 +620,17 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
             />
           </ChartContainer>
         </div>
+
+        {!isChartLoading &&
+          visibleSiteIds.length > 0 &&
+          locationsWithoutData > 0 && (
+            <Banner
+              severity="warning"
+              dense
+              title="Some locations have no data for the selected time period"
+              message={`${locationsWithoutData} of ${visibleSiteIds.length} visible location${visibleSiteIds.length === 1 ? '' : 's'} did not return readings for the selected dates and frequency, so they are not shown on the chart. Try a wider date range or a different frequency.`}
+            />
+          )}
       </div>
     </WideDialog>
   );

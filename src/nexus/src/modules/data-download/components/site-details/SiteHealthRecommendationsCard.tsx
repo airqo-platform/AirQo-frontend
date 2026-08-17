@@ -129,7 +129,11 @@ export const SiteHealthRecommendationsCard: React.FC<
       <Card className={cn('w-full overflow-hidden', className)}>
         <CardContent className="p-5 bg-muted/30">
           <div className="flex items-start gap-3">
-            <span className="text-3xl shrink-0 opacity-40" role="img" aria-hidden="true">
+            <span
+              className="text-3xl shrink-0 opacity-40"
+              role="img"
+              aria-hidden="true"
+            >
               🌤️
             </span>
             <div className="space-y-1 min-w-0">
@@ -137,7 +141,8 @@ export const SiteHealthRecommendationsCard: React.FC<
                 No health recommendations yet
               </h3>
               <p className="text-sm text-muted-foreground/70">
-                Health advice will appear once an air quality reading is available for this site.
+                Health advice will appear once an air quality reading is
+                available for this site.
               </p>
             </div>
           </div>
@@ -156,10 +161,14 @@ export const SiteHealthRecommendationsCard: React.FC<
           </span>
           <div className="space-y-1 min-w-0">
             <h3 className="text-base font-semibold text-foreground">
-              {apiTips.length > 0 ? apiTips[0].title ?? advice.headline : advice.headline}
+              {apiTips.length > 0
+                ? (apiTips[0].title ?? advice.headline)
+                : advice.headline}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {apiTips.length > 0 ? apiTips[0].description ?? advice.body : advice.body}
+              {apiTips.length > 0
+                ? (apiTips[0].description ?? advice.body)
+                : advice.body}
             </p>
           </div>
         </div>
@@ -167,7 +176,10 @@ export const SiteHealthRecommendationsCard: React.FC<
         {/* Tips */}
         <ul className="mt-3 space-y-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
           {advice.tips.map((tip, index) => (
-            <li key={index} className="flex items-start gap-2 text-xs text-muted-foreground">
+            <li
+              key={index}
+              className="flex items-start gap-2 text-xs text-muted-foreground"
+            >
               <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/40" />
               {tip}
             </li>

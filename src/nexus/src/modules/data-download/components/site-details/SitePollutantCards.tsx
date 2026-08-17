@@ -52,8 +52,11 @@ export const SitePollutantCards: React.FC<SitePollutantCardsProps> = ({
           ? rawValue
           : null;
 
-      const info = value !== null ? getAirQualityInfo(value, key, 'WHO', aqiConfig) : null;
-      const color = info ? getAirQualityColor(info.level, aqiConfig ?? null) : '#6B7280';
+      const info =
+        value !== null ? getAirQualityInfo(value, key, 'WHO', aqiConfig) : null;
+      const color = info
+        ? getAirQualityColor(info.level, aqiConfig ?? null)
+        : '#6B7280';
 
       return {
         key,

@@ -7,7 +7,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import { AqiGauge } from './AqiGauge';
 import { SitePollutantCards } from './SitePollutantCards';
-import { AqiLegend } from './AqiLegend';
+import { AqiLegend } from '@/modules/analytics/components/explorer/AqiLegend';
 import type { RecentReading } from '@/shared/types/api';
 import {
   formatReadingFreshness,
@@ -22,20 +22,26 @@ interface SiteCurrentReadingCardProps {
 
 const HEALTH_DESCRIPTIONS: Record<string, string> = {
   good: 'Air quality is satisfactory and poses little or no risk. Enjoy your outdoor activities.',
-  moderate: 'Air quality is acceptable. Some pollutants may be a concern for sensitive individuals.',
-  'unhealthy-sensitive-groups': 'Sensitive groups should reduce prolonged or heavy outdoor exertion.',
+  moderate:
+    'Air quality is acceptable. Some pollutants may be a concern for sensitive individuals.',
+  'unhealthy-sensitive-groups':
+    'Sensitive groups should reduce prolonged or heavy outdoor exertion.',
   unhealthy: 'Everyone may begin to experience health effects.',
-  'very-unhealthy': 'Health alert: everyone may experience more serious health effects.',
-  hazardous: 'Health warning of emergency conditions — everyone is likely to be affected.',
+  'very-unhealthy':
+    'Health alert: everyone may experience more serious health effects.',
+  hazardous:
+    'Health warning of emergency conditions — everyone is likely to be affected.',
 };
 
 /**
  * Current air quality hero: two-column layout with AQI gauge + AQI ranges
  * on the left, "What this means" description + pollutant cards on the right.
  */
-export const SiteCurrentReadingCard: React.FC<
-  SiteCurrentReadingCardProps
-> = ({ reading, isLoading = false, className }) => {
+export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
+  reading,
+  isLoading = false,
+  className,
+}) => {
   const { config: aqiConfig } = useAqiConfig('pm2_5');
 
   const pm25 = getReadingPollutantValue(reading, 'pm2_5');
@@ -48,7 +54,7 @@ export const SiteCurrentReadingCard: React.FC<
   const freshness = formatReadingFreshness(reading?.time);
 
   const description = airInfo
-    ? HEALTH_DESCRIPTIONS[airInfo.level] ?? airInfo.description ?? ''
+    ? (HEALTH_DESCRIPTIONS[airInfo.level] ?? airInfo.description ?? '')
     : '';
 
   // Loading skeleton
@@ -88,7 +94,11 @@ export const SiteCurrentReadingCard: React.FC<
           {/* Left column: Gauge + AQI ranges */}
           <div className="flex flex-col items-center gap-4">
             <AqiGauge value={pm25} freshness={freshness} />
-            <AqiLegend aqiConfig={aqiConfig ?? null} compact markerValue={pm25} />
+            <AqiLegend
+              aqiConfig={aqiConfig ?? null}
+              compact
+              markerValue={pm25}
+            />
           </div>
 
           {/* Right column: What this means + Pollutant cards */}
@@ -110,7 +120,9 @@ export const SiteCurrentReadingCard: React.FC<
               {airInfo && (
                 <div className="flex items-center gap-4 text-sm pt-1">
                   <div>
-                    <span className="text-muted-foreground">Primary Pollutant: </span>
+                    <span className="text-muted-foreground">
+                      Primary Pollutant:{' '}
+                    </span>
                     <span className="font-semibold text-foreground">PM₂.₅</span>
                   </div>
                   <div>

@@ -55,7 +55,7 @@ const hourLabel = (value: string | undefined | null): string => {
 const windArrow = (degrees: number | undefined | null): string => {
   if (degrees == null) return '↑';
   const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
-  const idx = Math.round(((degrees % 360 + 360) % 360) / 45) % 8;
+  const idx = Math.round((((degrees % 360) + 360) % 360) / 45) % 8;
   return arrows[idx];
 };
 
@@ -257,9 +257,7 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
       <div
         className={cn(
           'flex flex-col items-center rounded-xl py-3 px-3 min-w-[80px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
-          isNow
-            ? 'bg-blue-600 border-blue-600 shadow-md'
-            : 'hover:shadow-sm'
+          isNow ? 'bg-blue-600 border-blue-600 shadow-md' : 'hover:shadow-sm'
         )}
         style={
           isNow
@@ -283,9 +281,7 @@ const HourlyCard: React.FC<HourlyCardProps> = ({ item, isNow, aqiConfig }) => {
         <span
           className={cn(
             'inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums mb-1',
-            isNow
-              ? 'bg-white/20 text-white'
-              : 'text-foreground'
+            isNow ? 'bg-white/20 text-white' : 'text-foreground'
           )}
           style={
             isNow
@@ -395,9 +391,7 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
       <div
         className={cn(
           'flex flex-col items-center rounded-xl py-3 px-3 min-w-[80px] border transition-all duration-200 motion-reduce:transition-none flex-shrink-0 cursor-default',
-          isToday
-            ? 'bg-blue-600 border-blue-600 shadow-md'
-            : 'hover:shadow-sm'
+          isToday ? 'bg-blue-600 border-blue-600 shadow-md' : 'hover:shadow-sm'
         )}
         style={
           isToday
@@ -421,9 +415,7 @@ const DailyCard: React.FC<DailyCardProps> = ({ item, isToday, aqiConfig }) => {
         <span
           className={cn(
             'inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums mb-1',
-            isToday
-              ? 'bg-white/20 text-white'
-              : 'text-foreground'
+            isToday ? 'bg-white/20 text-white' : 'text-foreground'
           )}
           style={
             isToday

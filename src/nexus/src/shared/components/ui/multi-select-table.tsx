@@ -1142,7 +1142,7 @@ const MultiSelectTable = <T extends TableItem>({
                 />
               ))
             ) : paginatedData.length === 0 ? (
-              emptyComponent ?? (
+              (emptyComponent ?? (
                 <EmptyState
                   title={
                     searchTerm || hasActiveFilters || hasActiveColumnFilters
@@ -1156,7 +1156,7 @@ const MultiSelectTable = <T extends TableItem>({
                   }
                   className="min-h-[300px] border-0 bg-transparent"
                 />
-              )
+              ))
             ) : (
               <table className="w-full bg-card table-auto">
                 <thead className="border-b bg-muted border-border">
@@ -1246,6 +1246,11 @@ const MultiSelectTable = <T extends TableItem>({
                       {displayColumns.map(column => (
                         <td
                           key={column.key}
+                          onClick={
+                            column.key === 'checkbox'
+                              ? event => event.stopPropagation()
+                              : undefined
+                          }
                           className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                             column.key === 'checkbox'
                               ? 'w-12 max-w-[3rem] px-2 sm:px-3'

@@ -3,7 +3,10 @@
 import React, { useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import { getAirQualityInfo, getAirQualityColor } from '@/shared/utils/airQuality';
+import {
+  getAirQualityInfo,
+  getAirQualityColor,
+} from '@/shared/utils/airQuality';
 import { formatRoundedNumber } from '@/shared/lib/utils';
 
 interface AqiGaugeProps {
@@ -74,7 +77,8 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
 }) => {
   const { config: aqiConfig } = useAqiConfig(pollutant);
 
-  const hasValue = value !== null && value !== undefined && Number.isFinite(value);
+  const hasValue =
+    value !== null && value !== undefined && Number.isFinite(value);
 
   const airInfo = useMemo(() => {
     if (!hasValue) return null;
@@ -114,16 +118,34 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
 
   const trianglePoints = useMemo(() => {
     if (markerAngle === null) return '';
-    const outer = polarToCartesian(cx, cy, arcRadius + strokeWidth / 2 + 6, markerAngle);
-    const left = polarToCartesian(cx, cy, arcRadius - strokeWidth / 2 - 2, markerAngle - 4);
-    const right = polarToCartesian(cx, cy, arcRadius - strokeWidth / 2 - 2, markerAngle + 4);
+    const outer = polarToCartesian(
+      cx,
+      cy,
+      arcRadius + strokeWidth / 2 + 6,
+      markerAngle
+    );
+    const left = polarToCartesian(
+      cx,
+      cy,
+      arcRadius - strokeWidth / 2 - 2,
+      markerAngle - 4
+    );
+    const right = polarToCartesian(
+      cx,
+      cy,
+      arcRadius - strokeWidth / 2 - 2,
+      markerAngle + 4
+    );
     return `${outer.x},${outer.y} ${left.x},${left.y} ${right.x},${right.y}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [markerAngle]);
 
   return (
     <div className={cn('flex flex-col items-center', className)}>
-      <div className="relative" style={{ width: svgSize, height: svgSize * 0.65 }}>
+      <div
+        className="relative"
+        style={{ width: svgSize, height: svgSize * 0.65 }}
+      >
         <svg
           viewBox={`0 0 ${svgSize} ${svgSize * 0.7}`}
           className="w-full h-full"
@@ -144,7 +166,13 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
           {segments.map(segment => (
             <path
               key={segment.key}
-              d={describeArc(cx, cy, arcRadius, segment.startAngle, Math.min(segment.endAngle, END_ANGLE))}
+              d={describeArc(
+                cx,
+                cy,
+                arcRadius,
+                segment.startAngle,
+                Math.min(segment.endAngle, END_ANGLE)
+              )}
               fill="none"
               stroke={segment.color}
               strokeWidth={strokeWidth}
@@ -165,7 +193,10 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
         </svg>
 
         {/* Center text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: '12%' }}>
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center"
+          style={{ paddingTop: '12%' }}
+        >
           {hasValue ? (
             <>
               <span

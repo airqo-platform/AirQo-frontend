@@ -1,11 +1,6 @@
-import React, {
-  useMemo,
-  useEffect,
-  useCallback,
-  useState,
-} from 'react';
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { SuccessBanner } from '@/shared/components/ui/banner';
 import { DataExportSidebar } from './components/DataExportSidebar';
@@ -41,10 +36,11 @@ import {
   useDataExportActions,
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import { resolveGridSitesForDownload } from './utils/dataExportRequest';
 import {
-  resolveGridSitesForDownload,
-} from './utils/dataExportRequest';
-import { getSiteDisplayName } from './utils/dataExportUtils';
+  getSiteDisplayName,
+  getSiteNavigationData,
+} from './utils/dataExportUtils';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
@@ -62,6 +58,8 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { rememberSiteSlug } from './hooks/useResolveSiteByName';
+import { toSiteSlug } from './utils/siteDetails';
 
 type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 type FinalSaveFormat = SaveFormat | 'json';
@@ -111,6 +109,7 @@ type PreviewData = Record<string, string | number | null>;
 
 const DataExportPage = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userLoading } = useUser();
   const { switchGroup } = useUserActions();
@@ -147,6 +146,9 @@ const DataExportPage = () => {
     !isOrgFlow ||
     (!!organizationGroupId && activeGroup?.id === organizationGroupId);
   const isGroupSyncing = isOrgFlow && !isOrgContextReady && !isOrgUnresolved;
+  const exportBaseHref = isOrgFlow
+    ? `/org/${orgSlugFromPath || ''}/data-export`
+    : '/user/data-export';
 
   // State management
   const {
@@ -492,7 +494,8 @@ const DataExportPage = () => {
 
       // Derive config-based field values for the preview
       const frequencyLabel =
-        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] || frequency;
+        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] ||
+        frequency;
       const formatNetwork = (val: unknown): string | null => {
         if (typeof val !== 'string' || !val.trim()) return null;
         return val.trim().toUpperCase();
@@ -511,44 +514,59 @@ const DataExportPage = () => {
       if (activeTab === 'sites') {
         rows = selectedSiteIds.map(id => {
           const site = selectedSitesCache[id];
-          const name = site
-            ? (site.name ?? site.site_name ?? id)
-            : id;
+          const name = site ? (site.name ?? site.site_name ?? id) : id;
           const row: PreviewData = {
             id: site?.id ?? id,
             site_name: name as string,
             datetime: formattedDate,
             frequency: frequencyLabel,
-            network:
-              formatNetwork(site?.network ?? site?.sensor_manufacturer ?? site?.data_provider),
-            latitude: (site?.latitude ?? site?.lat ?? null) as string | number | null,
-            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as string | number | null,
+            network: formatNetwork(
+              site?.network ?? site?.sensor_manufacturer ?? site?.data_provider
+            ),
+            latitude: (site?.latitude ?? site?.lat ?? null) as
+              | string
+              | number
+              | null,
+            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as
+              | string
+              | number
+              | null,
             site_id: (site?.site_id ?? site?.id ?? id) as string,
           };
           if (site?.search_name) row.search_name = site.search_name as string;
-          if (site?.formatted_name) row.formatted_name = site.formatted_name as string;
-          if (site?.location_name) row.location_name = site.location_name as string;
+          if (site?.formatted_name)
+            row.formatted_name = site.formatted_name as string;
+          if (site?.location_name)
+            row.location_name = site.location_name as string;
           if (site?.city) row.city = site.city as string;
           if (site?.country) row.country = site.country as string;
-          if (site?.data_provider) row.data_provider = site.data_provider as string;
+          if (site?.data_provider)
+            row.data_provider = site.data_provider as string;
           return row;
         });
       } else if (activeTab === 'devices') {
         rows = selectedDeviceIds.map(id => {
           const device = selectedDevicesCache[id];
-          const name = device
-            ? (device.name ?? device.device_name ?? id)
-            : id;
+          const name = device ? (device.name ?? device.device_name ?? id) : id;
           const row: PreviewData = {
             id: device?.id ?? id,
             device_name: name as string,
             datetime: formattedDate,
             frequency: frequencyLabel,
-            network:
-              formatNetwork(device?.network ?? device?.sensor_manufacturer ?? device?.manufacturer),
+            network: formatNetwork(
+              device?.network ??
+                device?.sensor_manufacturer ??
+                device?.manufacturer
+            ),
             device_id: (device?.device_id ?? device?.id ?? id) as string,
-            latitude: (device?.latitude ?? device?.lat ?? null) as string | number | null,
-            longitude: (device?.longitude ?? device?.lng ?? device?.lon ?? null) as string | number | null,
+            latitude: (device?.latitude ?? device?.lat ?? null) as
+              | string
+              | number
+              | null,
+            longitude: (device?.longitude ??
+              device?.lng ??
+              device?.lon ??
+              null) as string | number | null,
           };
           if (device?.site_name) row.site_name = device.site_name as string;
           if (device?.category) row.category = device.category as string;
@@ -562,13 +580,17 @@ const DataExportPage = () => {
           selectedGridSiteIds
         );
         const gridData =
-          activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+          activeTab === 'countries'
+            ? processedCountriesData
+            : processedCitiesData;
 
         // Build siteId → siteName and siteId → network lookups from grid data
         const siteIdToName = new Map<string, string>();
         const siteIdToNetwork = new Map<string, string | null>();
         gridData.forEach(grid => {
-          const gridNetwork = formatNetwork(grid.network ?? grid.sensor_manufacturer);
+          const gridNetwork = formatNetwork(
+            grid.network ?? grid.sensor_manufacturer
+          );
           const sites = grid.sites as
             | Array<{ _id?: string; name?: string }>
             | undefined;
@@ -594,9 +616,7 @@ const DataExportPage = () => {
 
       setPreviewRows(rows);
     } catch {
-      setPreviewError(
-        'Unable to build data preview. Please try again.'
-      );
+      setPreviewError('Unable to build data preview. Please try again.');
     } finally {
       setIsPreviewLoading(false);
       setPreviewOpen(true);
@@ -876,6 +896,34 @@ const DataExportPage = () => {
     }
   };
 
+  const handleTableRowClick = useCallback(
+    (item: TableItem) => {
+      if (activeTab !== 'sites' && activeTab !== 'devices') return;
+
+      const navigationData = getSiteNavigationData(
+        item,
+        activeTab === 'devices' ? 'device' : 'site'
+      );
+
+      if (!navigationData) {
+        toast.warning(
+          'Location details unavailable',
+          activeTab === 'devices'
+            ? 'This device is not linked to a monitoring site.'
+            : 'This row does not contain a valid site ID.'
+        );
+        return;
+      }
+
+      const slug = toSiteSlug(navigationData.displayName);
+      rememberSiteSlug(slug, navigationData);
+      router.push(
+        `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+      );
+    },
+    [activeTab, exportBaseHref, router]
+  );
+
   // Keep selected sites cache synchronized as table pages/search results change.
   useEffect(() => {
     if (selectedSiteIds.length === 0) {
@@ -1105,9 +1153,11 @@ const DataExportPage = () => {
     try {
       // Use pendingDownload if already prepared (from grid site selection),
       // otherwise make the API call now that user has chosen a format
-      const preparedDownload = pendingDownload ?? (await handleDownload({
-        exportColumnKeys: pendingColumnKeys ?? undefined,
-      }));
+      const preparedDownload =
+        pendingDownload ??
+        (await handleDownload({
+          exportColumnKeys: pendingColumnKeys ?? undefined,
+        }));
 
       if (!preparedDownload) {
         setSavingFormat(null);
@@ -1325,6 +1375,7 @@ const DataExportPage = () => {
               }
               onSearchChange={search => updateTabState(activeTab, { search })}
               onSelectedItemsChange={handleSelectedItemsChange}
+              onRowClick={handleTableRowClick}
             />
           </div>
         </main>
@@ -1377,9 +1428,12 @@ const DataExportPage = () => {
           onConfirm={handleSiteSelectionConfirm}
           sites={selectedGridForSites.grid.sites}
           initialSelectedSiteIds={
-            selectedGridSiteIds[selectedGridForSites.grid._id] || []
+            selectedGridSiteIds[selectedGridForSites.grid._id] ??
+            selectedGridSites[selectedGridForSites.grid._id] ??
+            []
           }
           gridName={selectedGridForSites.grid.name}
+          detailsBaseHref={exportBaseHref}
           gridType={
             selectedGridForSites.gridType === 'countries' ? 'country' : 'city'
           }

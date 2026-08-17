@@ -3,19 +3,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { deviceService } from '@/shared/services/deviceService';
 import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
-import {
-  getSiteDisplayName,
-  type RawSiteData,
-} from '@/shared/utils/siteUtils';
+import { getSiteDisplayName, type RawSiteData } from '@/shared/utils/siteUtils';
 import { toSiteSlug, siteSlugMatches } from '../utils/siteDetails';
-import { fetchAllSitesSummary } from './useSiteNamesFallback';
+import { fetchAllSitesSummary } from '@/shared/services/siteSummary';
 
 const RESOLVE_STALE_TIME_MS = 1000 * 60 * 30;
 const RESOLVE_GC_TIME_MS = 1000 * 60 * 60 * 12;
 const RESOLVE_PAGE_SIZE = 80;
 
-/** Shared react-query key with useSiteNamesFallback (30-min fleet cache). */
-const FLEET_SITES_QUERY_KEY = ['analytics', 'site-names-fallback'] as const;
+/** Shared react-query key with the analytics name fallback (30-min cache). */
+const FLEET_SITES_QUERY_KEY = ['sites', 'site-names-fallback'] as const;
 const FLEET_SITES_STALE_TIME_MS = 1000 * 60 * 30;
 
 /**
@@ -164,8 +161,7 @@ export const useResolveSiteByName = (siteName: string) => {
       // backend search can't match.
       const fleet = await queryClient.ensureQueryData({
         queryKey: [...FLEET_SITES_QUERY_KEY],
-        queryFn: ({ signal: fleetSignal }) =>
-          fetchAllSitesSummary(fleetSignal),
+        queryFn: ({ signal: fleetSignal }) => fetchAllSitesSummary(fleetSignal),
         staleTime: FLEET_SITES_STALE_TIME_MS,
       });
       const fleetMatch = (fleet as RawSiteData[]).find(site => {
