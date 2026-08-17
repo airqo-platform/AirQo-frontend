@@ -1,8 +1,11 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,7 +14,13 @@ import 'package:loggy/loggy.dart';
 
 class AnalyticsForecastWidget extends StatefulWidget {
   final String siteId;
-  const AnalyticsForecastWidget({super.key, required this.siteId});
+  final Measurement? measurement;
+
+  const AnalyticsForecastWidget({
+    super.key,
+    required this.siteId,
+    this.measurement,
+  });
 
   @override
   State<AnalyticsForecastWidget> createState() => _AnalyticsForecastWidgetState();
@@ -149,12 +158,19 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
                           // Check if this forecast is for the current date
                           final forecastDate = DateFormat('yyyy-MM-dd').format(e.time);
                           final isCurrentDay = forecastDate == currentDateFormatted;
+                          final useLiveReading =
+                              isCurrentDay && hasLiveReading(widget.measurement);
+                          final iconPath = useLiveReading
+                              ? getAirQualityIcon(
+                                  widget.measurement!,
+                                  widget.measurement!.pm25!.value!,
+                                )
+                              : getForecastAirQualityIcon(e.aqiCategory);
                           
                           return ForeCastChip(
                             active: isCurrentDay,
                             day: DateFormat.E().format(e.time).substring(0, 2),
-                            imagePath:
-                                getForecastAirQualityIcon(e.aqiCategory),
+                            imagePath: iconPath,
                             height: _getResponsiveHeight(context),
                             iconSize: _getResponsiveIconSize(context),
                             margin: _getResponsiveMargin(context),

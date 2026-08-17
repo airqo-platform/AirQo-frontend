@@ -1,20 +1,27 @@
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/widgets/forecast_met_row.dart';
 import 'package:airqo/src/app/shared/widgets/aqi_category_chip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ForecastDayDetailCard extends StatelessWidget {
   final ForecastReadingSnapshot reading;
   final bool isDark;
+  final Measurement? liveMeasurement;
 
   const ForecastDayDetailCard({
     super.key,
     required this.reading,
     required this.isDark,
+    this.liveMeasurement,
   });
+
+  bool get _isLiveReading =>
+      liveMeasurement != null && reading.forecastConfidence == null;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +98,10 @@ class ForecastDayDetailCard extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               SvgPicture.asset(
-                getForecastAirQualityIcon(reading.aqiCategory),
+                _isLiveReading
+                    ? getAirQualityIcon(
+                        liveMeasurement!, liveMeasurement!.pm25!.value!)
+                    : getForecastAirQualityIcon(reading.aqiCategory),
                 width: 72,
                 height: 72,
               ),

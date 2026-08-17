@@ -134,12 +134,25 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     }
   }
 
-  List<Forecast> _futureDailyForecasts(List<Forecast> forecasts) {
-    final today = _dateOnly(DateTime.now());
-    return forecasts
-        .where((f) => _dateOnly(f.time.toLocal()).isAfter(today))
-        .toList();
+  void _syncTodayIndex(List<Forecast> forecasts) {
+    if (_selectedDayIndex != 0) return;
+    final todayIdx =
+        forecasts.indexWhere((f) => isForecastToday(f.time.toLocal()));
+    if (todayIdx <= 0) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _selectedDayIndex = todayIdx);
+    });
   }
+
+  bool _isLiveDailyReading(Forecast day, DateTime now) =>
+      isForecastToday(day.time, now) && hasLiveReading(widget.measurement);
+
+  bool _isLiveHourlyReading(HourlyForecastEntry? entry, DateTime now) =>
+      entry != null &&
+      isCurrentHourEntry(entry, now) &&
+      isForecastToday(entry.time, now) &&
+      hasLiveReading(widget.measurement);
 
   void _syncHourIndex(List<HourlyForecastEntry> entries, DateTime day) {
     if (_timeScope != ForecastTimeScope.hourly || entries.isEmpty) return;
@@ -350,19 +363,22 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     bool hourlyLoading = false,
     String? hourlyError,
   }) {
-    final forecasts = _futureDailyForecasts(state.response.forecasts);
+    final forecasts = state.response.forecasts;
     if (forecasts.isEmpty) {
       return const Center(child: Text('No forecast data available.'));
     }
+
+    _syncTodayIndex(forecasts);
 
     final idx = _selectedDayIndex.clamp(0, forecasts.length - 1).toInt();
     final day = forecasts[idx];
     final selectedDateLabel = DateFormat('EEEE, MMMM d').format(day.time);
     final now = DateTime.now();
+    final viewingToday = isForecastToday(day.time, now);
     final hourEntries = hourlyEntriesForDate(
       state.hourlyResponse,
       day.time,
-      skipCurrentHour: true,
+      skipCurrentHour: !viewingToday,
       now: now,
     );
     _syncHourIndex(hourEntries, day.time);
@@ -371,6 +387,20 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
         ? 0
         : _selectedHourIndex.clamp(0, hourEntries.length - 1).toInt();
     final selectedHour = hourEntries.isNotEmpty ? hourEntries[hourIdx] : null;
+    final dailyReading = ForecastReadingSnapshot.fromDailyOrLive(
+      forecast: day,
+      measurement: widget.measurement,
+      now: now,
+    );
+    final hourlyReading = selectedHour == null
+        ? null
+        : ForecastReadingSnapshot.fromHourlyOrLive(
+            entry: selectedHour,
+            measurement: widget.measurement,
+            now: now,
+          );
+    final isLiveDaily = _isLiveDailyReading(day, now);
+    final isLiveHourly = _isLiveHourlyReading(selectedHour, now);
 
     return SingleChildScrollView(
       controller: scrollController,
@@ -402,16 +432,21 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
               onSelected: _selectDay,
               isDark: isDark,
               onInsetPanel: true,
+              liveReading: widget.measurement,
             ),
           ),
           const SizedBox(height: 20),
           if (_timeScope == ForecastTimeScope.daily) ...[
             ForecastDayDetailCard(
-              reading: ForecastReadingSnapshot.fromDaily(day),
+              reading: dailyReading,
               isDark: isDark,
+              liveMeasurement: isLiveDaily ? widget.measurement : null,
             ),
             const SizedBox(height: 20),
-            ForecastGuidanceSection.fromForecast(day),
+            if (isLiveDaily && widget.measurement != null)
+              ForecastGuidanceSection.fromMeasurement(widget.measurement!)
+            else
+              ForecastGuidanceSection.fromForecast(day),
           ] else ...[
             Container(
               padding: const EdgeInsets.all(12),
@@ -426,17 +461,22 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                 onInsetPanel: true,
                 selectedHourIndex: hourIdx,
                 onHourSelected: _selectHour,
-                skipCurrentHour: true,
+                skipCurrentHour: !viewingToday,
+                liveReading: widget.measurement,
               ),
             ),
-            if (selectedHour != null) ...[
+            if (selectedHour != null && hourlyReading != null) ...[
               const SizedBox(height: 20),
               ForecastDayDetailCard(
-                reading: ForecastReadingSnapshot.fromHourly(selectedHour),
+                reading: hourlyReading,
                 isDark: isDark,
+                liveMeasurement: isLiveHourly ? widget.measurement : null,
               ),
               const SizedBox(height: 20),
-              ForecastGuidanceSection.fromHourly(selectedHour),
+              if (isLiveHourly && widget.measurement != null)
+                ForecastGuidanceSection.fromMeasurement(widget.measurement!)
+              else
+                ForecastGuidanceSection.fromHourly(selectedHour),
             ],
           ],
           const SizedBox(height: 32),
@@ -521,6 +561,4 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
       ),
     );
   }
-
-  DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 }

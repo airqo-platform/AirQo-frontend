@@ -217,6 +217,7 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                 if (widget.measurement.siteDetails?.id != null)
                   AnalyticsForecastWidget(
                     siteId: widget.measurement.siteDetails!.id!,
+                    measurement: widget.measurement,
                   )
                 else
                   const Center(
