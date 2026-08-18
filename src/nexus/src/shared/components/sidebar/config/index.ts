@@ -75,7 +75,7 @@ const userSidebarConfig: NavGroup[] = [
       },
       {
         id: 'map',
-        label: 'AirQo Map',
+        label: 'Air Quality Map',
         href: '/user/map',
         icon: AqGlobe05,
       },
@@ -121,15 +121,9 @@ const orgSidebarConfig: NavGroup[] = [
       },
       {
         id: 'map',
-        label: 'AirQo Map',
+        label: 'Air Quality Map',
         href: '/org/map',
         icon: AqGlobe05,
-      },
-      {
-        id: 'air-quality-analytics',
-        label: 'Air Quality Analysis',
-        href: '/org/air-quality/analytics',
-        icon: AqPresentationChart02,
       },
     ],
   },
@@ -501,7 +495,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'map',
-      label: 'AirQo Map',
+      label: 'Air Quality Map',
       href: '/user/map',
       icon: AqGlobe05,
     },
@@ -521,7 +515,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'map',
-      label: 'AirQo Map',
+      label: 'Air Quality Map',
       href: '/org/map', // Will be replaced with slug
       icon: AqGlobe05,
     },

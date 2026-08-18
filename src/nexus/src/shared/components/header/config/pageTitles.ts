@@ -2,7 +2,7 @@
 export const PAGE_TITLES: Record<string, string> = {
   // User routes
   '/user/home': 'Home',
-  '/user/map': 'AirQo Map',
+  '/user/map': 'Air Quality Map',
   '/user/profile': 'Profile',
   '/user/data-export': 'Visualization & Data Export',
   '/user/data-visualizer': 'Upload & Visualize Air Quality Data',
@@ -11,11 +11,10 @@ export const PAGE_TITLES: Record<string, string> = {
 
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
-  '/org/map': 'AirQo Map',
+  '/org/map': 'Air Quality Map',
   '/org/data-export': 'Visualization & Data Export',
   '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/org/air-quality/rankings': 'Air Quality Rankings',
-  '/org/air-quality/analytics': 'Air Quality Analysis',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',
@@ -134,7 +133,7 @@ export const capitalizeTitle = (title: string): string => {
   return title
     .split(' ')
     .map(word => {
-      // Preserve brand casing anywhere in a compound title (e.g. AirQo Map)
+      // Preserve brand casing anywhere in a compound title (e.g. 'AirQo' brand names)
       if (word.toLowerCase() === 'airqo') {
         return 'AirQo';
       }
