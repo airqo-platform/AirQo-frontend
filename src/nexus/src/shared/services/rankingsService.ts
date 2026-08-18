@@ -31,9 +31,9 @@ const isAbortError = (error: unknown): boolean => {
  * Client for the African AQI rankings endpoints
  * (`/devices/readings/rankings` and `/devices/readings/rankings/history`).
  *
- * These endpoints authenticate with the shared API token (via the
- * `/api/external` proxy) rather than a user JWT, matching how chart data
- * and recent readings are fetched.
+ * These endpoints authenticate with the shared API token (via query params)
+ * rather than a user JWT, matching how chart data and recent readings are
+ * fetched.
  */
 export class RankingsService {
   private serverClient: ApiClient;

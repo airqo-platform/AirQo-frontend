@@ -78,7 +78,7 @@ export class AnalyticsService {
     await syncClientSessionToken(this.authenticatedClient);
   }
 
-  // Get chart data - proxied to avoid CORS issues with direct browser-to-API calls
+  // Get chart data - direct backend call via API token
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal

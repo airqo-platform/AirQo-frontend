@@ -258,8 +258,8 @@ The African AQI leaderboard, powered by the device-registry rankings endpoints
   no usable data come back as `null` from the API and render as a grayed-out
   dash — never as clean air.
 
-Data flows through `rankingsService` (token-authenticated via the
-`/api/external` proxy — these endpoints reject user JWTs) and the
+Data flows through `rankingsService` (API-token-authenticated — these
+endpoints reject user JWTs) and the
 `useRankings` / `useRankingsHistory` react-query hooks.
 
 ## Air Quality Analytics (`/user/air-quality/analytics`)

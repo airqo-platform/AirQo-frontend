@@ -267,7 +267,7 @@ export class DeviceService {
     return data as SitesSummaryResponse;
   }
 
-  // Get sites summary - API token endpoint
+  // Get sites summary - API token endpoint (direct backend call)
   async getSitesSummaryWithToken(
     params: SitesSummaryParams = {},
     signal?: AbortSignal
@@ -530,7 +530,7 @@ export class DeviceService {
     return data as GridsSummaryResponse;
   }
 
-  // Get grids summary - API token endpoint
+  // Get grids summary - API token endpoint (direct backend call)
   async getGridsSummaryWithToken(
     params: GridsSummaryParams = {},
     cohort_id?: string,
@@ -574,7 +574,7 @@ export class DeviceService {
     return data as CountriesResponse;
   }
 
-  // Get countries list - API token endpoint
+  // Get countries list - API token endpoint (direct backend call)
   async getCountriesWithToken(
     cohort_id?: string,
     signal?: AbortSignal
@@ -595,7 +595,7 @@ export class DeviceService {
     return data as CountriesResponse;
   }
 
-  // Get map readings - API token endpoint
+  // Get map readings - API token endpoint (direct backend call)
   async getMapReadingsWithToken(
     cohort_id?: string,
     signal?: AbortSignal
@@ -617,7 +617,7 @@ export class DeviceService {
     return data as MapReadingsResponse;
   }
 
-  // ---- Measurements v2 endpoints (API token, proxied via /api/external) ----
+  // ---- Measurements v2 endpoints (direct backend calls via API token) ----
 
   private async getMeasurements<T extends MeasurementsResponse>(
     path: string,
@@ -723,9 +723,9 @@ export class DeviceService {
     );
   }
 
-  // Get daily forecast data - new v2 endpoint (proxied to avoid CORS).
+  // Get daily forecast data - direct backend call via API token.
   // NOTE: the backend 404s this route WITH a trailing slash — keep the path
-  // slash-free so direct (non-proxy) calls also work.
+  // slash-free so direct calls also work.
   async getDailyForecast(
     siteId: string,
     signal?: AbortSignal
@@ -747,7 +747,7 @@ export class DeviceService {
     return data as DailyForecastResponse;
   }
 
-  // Get hourly forecast data - new v2 endpoint (proxied to avoid CORS).
+  // Get hourly forecast data - direct backend call via API token.
   // Slash-free path — the backend 404s the trailing-slash form (same as
   // daily-forecasting).
   async getHourlyForecast(
