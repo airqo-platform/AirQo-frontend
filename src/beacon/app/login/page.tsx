@@ -175,14 +175,7 @@ export default function LoginPage() {
     }
   }
 
-  /**
-   * Clear error when user starts typing
-   */
-  useEffect(() => {
-    if (error && (email || password)) {
-      setError("")
-    }
-  }, [error, email, password])
+
 
   return (
     <div className="relative min-h-screen bg-gray-50">
@@ -297,7 +290,10 @@ export default function LoginPage() {
                         autoComplete="username"
                         required={step === 1}
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value)
+                          if (error) setError("")
+                        }}
                         className="pl-10 h-11"
                         placeholder="Enter your email"
                         disabled={isLoading}
@@ -319,6 +315,7 @@ export default function LoginPage() {
                         onClick={() => {
                           setStep(1)
                           setPassword("")
+                          if (error) setError("")
                         }}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2.5 py-1 rounded-md hover:bg-blue-100 transition-colors shrink-0"
                       >
@@ -346,7 +343,10 @@ export default function LoginPage() {
                         autoComplete="current-password"
                         required={step === 2}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value)
+                          if (error) setError("")
+                        }}
                         className="pl-10 pr-10 h-11"
                         placeholder="Enter your password"
                         disabled={isLoading}
