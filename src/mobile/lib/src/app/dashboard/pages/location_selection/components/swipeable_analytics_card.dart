@@ -3,6 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_action_strip.dart';
+import 'package:airqo/src/app/dashboard/widgets/measurement_card_gestures.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
@@ -13,11 +16,15 @@ class SwipeableAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
   final Function(String) onRemove;
   final String? fallbackLocationName;
+  final MeasurementCardTourKeys? tourKeys;
+  final VoidCallback? onTourTargetReady;
 
   const SwipeableAnalyticsCard({
     required this.measurement,
     required this.onRemove,
     this.fallbackLocationName,
+    this.tourKeys,
+    this.onTourTargetReady,
     super.key,
   });
 
@@ -30,6 +37,10 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
   double _dragOffset = 0;
   bool _isDeleteVisible = false;
   final double _deleteWidth = 80.0;
+  final GlobalKey _defaultShareButtonKey = GlobalKey();
+  bool _tourReadyNotified = false;
+
+  GlobalKey get _shareButtonKey => _defaultShareButtonKey;
 
   Timer? _autoHideTimer;
 
@@ -71,7 +82,22 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showHelpTooltip();
+      if (widget.tourKeys != null) {
+        scheduleMeasurementCardTourReady(
+          keys: widget.tourKeys!,
+          onReady: _notifyTourTargetReady,
+          isActive: () => mounted && !_tourReadyNotified,
+        );
+      }
     });
+  }
+
+  void _notifyTourTargetReady() {
+    if (_tourReadyNotified || !mounted || widget.onTourTargetReady == null) {
+      return;
+    }
+    _tourReadyNotified = true;
+    widget.onTourTargetReady!();
   }
 
   @override
@@ -176,6 +202,19 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
     );
   }
 
+  Future<void> _openShare(String source) {
+    if (_isDeleteVisible || _dragOffset < 0) return Future.value();
+    return openMeasurementShareSheet(
+      context,
+      measurement: widget.measurement,
+      source: source,
+      fallbackLocationName: widget.fallbackLocationName,
+      shareButtonKey: _shareButtonKey,
+    );
+  }
+
+  bool get _cardActionsEnabled => !_isDeleteVisible && _dragOffset >= 0;
+
   String _getLocationDescription(Measurement measurement) {
     final siteDetails = measurement.siteDetails;
     if (siteDetails == null) return "Unknown location";
@@ -207,18 +246,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
 
   Color _getAqiColor(Measurement measurement) {
     return getAppAqiCategoryColor(measurement.aqiCategory ?? '');
-  }
-
-  Widget _chevron(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/icons/chevron-right.svg',
-      width: 20,
-      height: 20,
-      colorFilter: ColorFilter.mode(
-        AppTextColors.modalCloseIcon(context),
-        BlendMode.srcIn,
-      ),
-    );
   }
 
   void _handleRemove() {
@@ -294,7 +321,6 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
             final shakeOffset = (_shakeAnimation?.value ?? 0.0) * 15.0;
 
             return GestureDetector(
-              onTap: _openForecast,
               onLongPress: _showHelpTooltip,
               onHorizontalDragStart: (details) {
                 if (_showTooltip) {
@@ -329,189 +355,236 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
               child: Transform.translate(
                 offset: Offset(_dragOffset + shakeOffset, 0),
                 child: Container(
+                  key: widget.tourKeys?.cardKey,
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: AppSurfaceColors.elevatedCardDecoration(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, right: 16, bottom: 16, top: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.measurement.siteDetails?.searchName ??
-                                            widget.measurement.siteDetails?.name ??
-                                            widget.fallbackLocationName ??
-                                            "---",
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w700,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .headlineSmall
-                                              ?.color,
+                              padding: const EdgeInsets.fromLTRB(
+                                kMeasurementCardHorizontalPadding,
+                                kMeasurementCardTopPadding,
+                                kMeasurementCardHorizontalPadding,
+                                16,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.measurement.siteDetails
+                                                  ?.searchName ??
+                                              widget.measurement.siteDetails
+                                                  ?.name ??
+                                              widget.fallbackLocationName ??
+                                              "---",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w700,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall
+                                                ?.color,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          SvgPicture.asset(
-                                            'assets/images/shared/location_pin.svg',
-                                            width: 14,
-                                            height: 14,
-                                            colorFilter: ColorFilter.mode(
-                                              locationColor,
-                                              BlendMode.srcIn,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              _getLocationDescription(widget.measurement),
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: locationColor,
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            SvgPicture.asset(
+                                              'assets/images/shared/location_pin.svg',
+                                              width: 14,
+                                              height: 14,
+                                              colorFilter: ColorFilter.mode(
+                                                locationColor,
+                                                BlendMode.srcIn,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                _getLocationDescription(
+                                                    widget.measurement),
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: locationColor,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8, top: 2),
-                                  child: _chevron(context),
-                                ),
-                              ],
+                                  MeasurementCardHeaderShare(
+                                    shareButtonKey: _shareButtonKey,
+                                    onShare: () => _openShare('dashboard_card'),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                      Divider(
-                        thickness: .5,
-                        color: Theme.of(context).dividerColor,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, right: 16, bottom: 16, top: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SvgPicture.asset(
-                                            Theme.of(context).brightness == Brightness.light
-                                                ? "assets/images/shared/pm_rating_white.svg"
-                                                : 'assets/images/shared/pm_rating.svg',
-                                          ),
-                                          const SizedBox(width: 2),
-                                          TranslatedText(
-                                            "PM2.5",
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .headlineSmall
-                                                  ?.color,
+                      MeasurementCardTapLayer(
+                              enabled: _cardActionsEnabled,
+                              onForecast: _openForecast,
+                              onShareDoubleTap: () =>
+                                  _openShare('dashboard_card_double_tap'),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Divider(
+                                    thickness: .5,
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      kMeasurementCardHorizontalPadding,
+                                      4,
+                                      kMeasurementCardHorizontalPadding,
+                                      8,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      SvgPicture.asset(
+                                                        Theme.of(context)
+                                                                    .brightness ==
+                                                                Brightness.light
+                                                            ? "assets/images/shared/pm_rating_white.svg"
+                                                            : 'assets/images/shared/pm_rating.svg',
+                                                      ),
+                                                      const SizedBox(width: 2),
+                                                      TranslatedText(
+                                                        "PM2.5",
+                                                        style: TextStyle(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .headlineSmall
+                                                              ?.color,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        widget.measurement.pm25
+                                                                    ?.value !=
+                                                                null
+                                                            ? widget
+                                                                .measurement
+                                                                .pm25!
+                                                                .value!
+                                                                .toStringAsFixed(
+                                                                    1)
+                                                            : "-",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontSize: 36,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .headlineLarge
+                                                              ?.color,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        " μg/m³",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontSize: 18,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .headlineLarge
+                                                              ?.color,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            widget.measurement.pm25?.value != null
-                                                ? widget.measurement.pm25!.value!
-                                                    .toStringAsFixed(1)
-                                                : "-",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 36,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .headlineLarge
-                                                  ?.color,
+                                            SizedBox(
+                                              child: Center(
+                                                child: widget.measurement.pm25
+                                                            ?.value !=
+                                                        null
+                                                    ? SvgPicture.asset(
+                                                        getAirQualityIcon(
+                                                          widget.measurement,
+                                                          widget.measurement
+                                                              .pm25!.value!,
+                                                        ),
+                                                        height: 86,
+                                                        width: 86,
+                                                      )
+                                                    : const Icon(
+                                                        Icons.help_outline,
+                                                        size: 60,
+                                                        color: Colors.grey,
+                                                      ),
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Container(
+                                          margin: EdgeInsets.zero,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: _getAqiColor(
+                                                    widget.measurement)
+                                                .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
                                           ),
-                                          Text(
-                                            " μg/m³",
+                                          child: TranslatedText(
+                                            widget.measurement.aqiCategory ??
+                                                'Unknown',
                                             style: TextStyle(
+                                              fontSize: 14,
                                               fontWeight: FontWeight.w600,
-                                              fontSize: 18,
-                                              color: Theme.of(context)
-                                                  .textTheme
-                                                  .headlineLarge
-                                                  ?.color,
+                                              color: _getAqiColor(
+                                                  widget.measurement),
                                             ),
+                                            maxLines: 1,
                                           ),
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                SizedBox(
-                                  child: Center(
-                                    child: widget.measurement.pm25?.value != null
-                                        ? SvgPicture.asset(
-                                            getAirQualityIcon(
-                                              widget.measurement,
-                                              widget.measurement.pm25!.value!,
-                                            ),
-                                            height: 86,
-                                            width: 86,
-                                          )
-                                        : const Icon(
-                                            Icons.help_outline,
-                                            size: 60,
-                                            color: Colors.grey,
-                                          ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _getAqiColor(widget.measurement)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: TranslatedText(
-                                widget.measurement.aqiCategory ?? 'Unknown',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getAqiColor(widget.measurement),
-                                ),
-                                maxLines: 1,
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                      MeasurementCardFooterForecast(
+                        enabled: _cardActionsEnabled,
+                        onForecast: _openForecast,
                       ),
                     ],
                   ),

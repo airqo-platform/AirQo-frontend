@@ -39,7 +39,7 @@ const STEPS: ChecklistStep[] = [
     id: "add-device",
     title: "Add your first device",
     description:
-      "Register your new AirQo sensor or add a device from a different sensor manufacturer (Clarity, PurpleAir, and others).",
+      "Claim your new AirQo sensor or register a device from a different sensor manufacturer (Clarity, PurpleAir, and others).",
     cta: "Add a device",
     heuristic: "Start here",
   },

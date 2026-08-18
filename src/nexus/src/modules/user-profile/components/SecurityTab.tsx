@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Banner } from '@/shared/components/ui';
@@ -14,14 +15,17 @@ import { isInOrganizationContext } from '@/shared/utils/groupUtils';
 import SettingsLayout from './SettingsLayout';
 import AccountDeletionCard from './AccountDeletionCard';
 import { LeaveOrganizationCard } from '@/modules/organization';
+import ConnectedAccounts from './ConnectedAccounts';
 
 const SecurityTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const { user, activeGroup } = useUser();
+  const { user, activeGroup, isLoading: isUserLoading } = useUser();
+  const { data: session, status: sessionStatus } = useSession();
   const { trigger: updatePassword } = useUpdatePassword();
 
   // Check if user is in an organization context (not AirQo default)
   const showLeaveOrganization = isInOrganizationContext(activeGroup);
+  const authMethods = user?.authMethods ?? session?.authMethods;
 
   const {
     register,
@@ -75,7 +79,7 @@ const SecurityTab: React.FC = () => {
         description="Update your password and security preferences"
       >
         <div className="space-y-8">
-            {/* Password Section */}
+          {/* Password Section */}
           <div className="space-y-6">
             {/* Security Info */}
             <Banner
@@ -135,6 +139,11 @@ const SecurityTab: React.FC = () => {
           </div>
         </div>
       </SettingsLayout>
+
+      <ConnectedAccounts
+        authMethods={authMethods}
+        loading={isUserLoading || sessionStatus === 'loading'}
+      />
 
       {/* Account Deletion Section */}
       <AccountDeletionCard />

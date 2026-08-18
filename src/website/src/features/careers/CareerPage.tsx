@@ -8,6 +8,12 @@ import { FiArrowRight } from 'react-icons/fi';
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useCareers, useDepartments } from '@/hooks/useApiHooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const careerHeaderImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
+  { width: 1600 },
+);
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
@@ -74,8 +80,7 @@ const CareerPage: React.FC = () => {
       <header
         className="relative h-[300px] lg:h-[400px] mb-16 w-full bg-cover bg-center"
         style={{
-          backgroundImage:
-            'url("https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png")',
+          backgroundImage: `url("${careerHeaderImage}")`,
         }}
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>

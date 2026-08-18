@@ -6,6 +6,26 @@ import React from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const images = {
+  header: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/calibration-header_u4y4co.webp',
+    { width: 1000 },
+  ),
+  costEffective: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-1_hnmddw.webp',
+    { width: 1200 },
+  ),
+  calibrate: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-2_t8dlbm.webp',
+    { width: 1200 },
+  ),
+  interface: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-3_nmblis.webp',
+    { width: 1200 },
+  ),
+};
 
 // Define motion variants for different animations
 const containerVariants = {
@@ -73,7 +93,7 @@ const CalibratePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/calibration-header_u4y4co.webp"
+              src={images.header}
               alt="Calibrate your low-cost sensor data"
               width={500}
               height={350}
@@ -158,7 +178,7 @@ const CalibratePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-1_hnmddw.webp"
+              src={images.costEffective}
               alt="Cost Effective Calibration"
               width={741}
               height={640}
@@ -186,7 +206,7 @@ const CalibratePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-2_t8dlbm.webp"
+              src={images.calibrate}
               alt="Calibrate Your Data"
               width={600}
               height={400}
@@ -263,7 +283,7 @@ const CalibratePage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Calibration/section-3_nmblis.webp"
+              src={images.interface}
               alt="Easy to use interface"
               width={1200}
               height={600}

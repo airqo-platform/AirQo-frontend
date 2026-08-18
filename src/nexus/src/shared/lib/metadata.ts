@@ -104,16 +104,6 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Export air quality data for analysis and presentation.',
     },
   },
-  '/org/dashboard': {
-    title: 'Organization Dashboard',
-    description:
-      'Comprehensive dashboard for organization air quality monitoring and management.',
-    openGraph: {
-      title: 'Organization Dashboard | AirQo Nexus',
-      description:
-        'Comprehensive dashboard for organization air quality monitoring and management.',
-    },
-  },
   '/org/data-export': {
     title: 'Organization Data Export',
     description:

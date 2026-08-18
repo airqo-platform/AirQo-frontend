@@ -28,7 +28,9 @@ const ManualInputStep = ({
           activeGroupTitle={activeGroupTitle}
         />
       )}
-      <p className="text-sm text-gray-500 dark:text-gray-400">Enter the device details found on the shipping label.</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Enter the device name and claim token from your shipment — both are printed on the shipping label. Claiming only works for devices AirQo has already shipped to you.
+      </p>
       <div className="space-y-4">
         <FormField
           control={formMethods.control}
@@ -46,6 +48,16 @@ const ManualInputStep = ({
         />
       </div>
       {error && <ErrorAlert message={error} />}
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Don&apos;t have a claim token?{' '}
+        <a
+          href="mailto:support@airqo.net"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Contact AirQo support
+        </a>
+        , or close this dialog and use <span className="font-medium">Register Non-AirQo Device</span> to add a sensor you already own.
+      </p>
     </div>
   </Form>
 );

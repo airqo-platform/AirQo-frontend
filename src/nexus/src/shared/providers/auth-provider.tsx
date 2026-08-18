@@ -115,12 +115,12 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (isUserPath) {
-      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
       return;
     }
 
     if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
-      router.replace(`/org/${activeGroup.organizationSlug}/dashboard`);
+      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
     }
   }, [
     activeGroup,
@@ -654,7 +654,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       if (activeGroup.title.toLowerCase() === 'airqo') {
         redirectWithReload('/user/home');
       } else {
-        redirectWithReload(`/org/${activeGroup.organizationSlug}/dashboard`);
+        redirectWithReload(`/org/${activeGroup.organizationSlug}/data-export`);
       }
       return;
     }

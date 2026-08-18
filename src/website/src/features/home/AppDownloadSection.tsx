@@ -2,6 +2,26 @@ import Image from 'next/image';
 import React from 'react';
 
 import mainConfig from '@/config/site.config';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const STORE_BADGE_WIDTH = 320;
+const MOCKUP_WIDTH = 800;
+
+const storeBadges = {
+  appStore: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179257/website/photos/apple_vpcn6j.png',
+    { width: STORE_BADGE_WIDTH },
+  ),
+  googlePlay: optimizeCloudinaryUrl(
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179280/website/photos/google_play_vdmjrx.png',
+    { width: STORE_BADGE_WIDTH },
+  ),
+};
+
+const defaultMockupImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
+  { width: MOCKUP_WIDTH },
+);
 
 interface AppDownloadSectionProps {
   title?: string;
@@ -16,7 +36,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
   description = 'Discover the quality of air you are breathing',
   appStoreLink = '#',
   googlePlayLink = '#',
-  mockupImage = 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
+  mockupImage = defaultMockupImage,
 }) => {
   return (
     <section className="w-full ">
@@ -40,7 +60,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                 rel="noopener noreferrer"
               >
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179257/website/photos/apple_vpcn6j.png"
+                  src={storeBadges.appStore}
                   alt="Download on the App Store"
                   width={140}
                   height={45}
@@ -55,7 +75,7 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                 rel="noopener noreferrer"
               >
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728179280/website/photos/google_play_vdmjrx.png"
+                  src={storeBadges.googlePlay}
                   alt="Get it on Google Play"
                   width={140}
                   height={45}

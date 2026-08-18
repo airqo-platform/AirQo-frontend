@@ -64,10 +64,10 @@ test("denies device actions in an org where the role lacks DEVICE_UPDATE, despit
   // …but the mutating actions are denied: DEVICE_UPDATE and DEVICE_CLAIM
   // exist on the user's AirQo membership, not on this organization's role.
   await expect(
-    page.getByRole("button", { name: "Import External Device" })
+    page.getByRole("button", { name: "Register Non-AirQo Device" })
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Add AirQo Device" })
+    page.getByRole("button", { name: "Claim AirQo Device" })
   ).toBeDisabled();
 });
 
@@ -81,10 +81,10 @@ test("allows the same device actions in the personal scope that holds DEVICE_UPD
   await page.goto("/devices/overview");
 
   await expect(
-    page.getByRole("button", { name: "Import External Device" })
+    page.getByRole("button", { name: "Register Non-AirQo Device" })
   ).toBeEnabled({ timeout: 60_000 });
   await expect(
-    page.getByRole("button", { name: "Add AirQo Device" })
+    page.getByRole("button", { name: "Claim AirQo Device" })
   ).toBeEnabled();
 });
 

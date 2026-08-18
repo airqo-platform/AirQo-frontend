@@ -27,6 +27,58 @@ describe('AuthService', () => {
     jest.clearAllMocks();
   });
 
+  describe('checkEmail', () => {
+    it('calls the public check-email endpoint', async () => {
+      const responseData = {
+        success: true as const,
+        exists: true,
+        authMethods: {
+          password: true,
+          google: true,
+          github: false,
+          linkedin: false,
+          microsoft: false,
+          twitter: false,
+          facebook: false,
+          apple: false,
+        },
+      };
+      mockPost.mockResolvedValueOnce({ data: responseData, status: 200 });
+
+      const result = await AuthService.checkEmail({
+        email: 'test@test.com',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith('/users/check-email', {
+        email: 'test@test.com',
+      });
+      expect(result).toEqual(responseData);
+    });
+
+    it('returns a not-found response without auth methods', async () => {
+      const responseData = { success: true as const, exists: false };
+      mockPost.mockResolvedValueOnce({ data: responseData, status: 200 });
+
+      await expect(
+        AuthService.checkEmail({ email: 'new@test.com' })
+      ).resolves.toEqual(responseData);
+    });
+
+    it('preserves the rate-limit status for the login flow', async () => {
+      mockPost.mockRejectedValueOnce({
+        response: {
+          status: 429,
+          data: { success: false, message: 'Too many requests' },
+        },
+        message: 'Request failed with status code 429',
+      });
+
+      await expect(
+        AuthService.checkEmail({ email: 'test@test.com' })
+      ).rejects.toMatchObject({ status: 429, success: false });
+    });
+  });
+
   describe('login', () => {
     it('calls post with correct endpoint and credentials', async () => {
       mockPost.mockResolvedValueOnce({

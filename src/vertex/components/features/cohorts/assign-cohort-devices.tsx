@@ -24,6 +24,7 @@ import { Device } from "@/app/types/devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useBanner } from "@/context/banner-context";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { getCohortAssignmentOutcome } from "@/core/utils/cohortAssignment";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 
 interface AssignCohortDevicesDialogProps {
@@ -109,10 +110,9 @@ export function AssignCohortDevicesDialog({
     search: debouncedDeviceSearch,
   });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort({
-    onSuccess: (variables) => {
+    onSuccess: (data, variables) => {
       showBannerWithDelay({
-        severity: 'success',
-        message: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
+        ...getCohortAssignmentOutcome(data, variables.deviceIds.length),
         scoped: false,
       });
     },

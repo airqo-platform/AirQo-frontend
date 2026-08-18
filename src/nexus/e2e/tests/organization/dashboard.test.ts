@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { WebDriver } from 'selenium-webdriver';
 import { createDriver, quitDriver, screenshotOnFailure } from '../../setup';
 import { DashboardPage } from '../../pages/dashboard.page';
+import { Config } from '../../config';
 
 describe('Organization Dashboard @organization', function () {
   let driver: WebDriver;

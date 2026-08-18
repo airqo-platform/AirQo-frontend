@@ -5,6 +5,10 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface CheckEmailRequest {
+  email: string;
+}
+
 export interface AuthMethods {
   password: boolean;
   google: boolean;
@@ -14,6 +18,12 @@ export interface AuthMethods {
   twitter: boolean;
   facebook: boolean;
   apple: boolean;
+}
+
+export interface CheckEmailResponse {
+  success: true;
+  exists: boolean;
+  authMethods?: AuthMethods;
 }
 
 export interface LoginResponse {

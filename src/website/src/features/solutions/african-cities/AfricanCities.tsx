@@ -6,7 +6,13 @@ import {
   useAfricanCountries,
   useAfricanCountryDetail,
 } from '@/hooks/useApiHooks';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 import type { AfricanCountry, City } from '@/types/api';
+
+const decorativeBlob = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/about_us_vector_3_p0mihk.png',
+  { width: 600 },
+);
 
 const AfricanCities: React.FC = () => {
   // Get all African countries
@@ -277,7 +283,7 @@ const AfricanCities: React.FC = () => {
               {/* Decorative Background Blob - Hidden on mobile for better performance */}
               <div className="hidden lg:block absolute top-0 right-0 -z-10 w-[500px] h-[400px] xl:w-[600px] xl:h-[480px] opacity-10">
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/about_us_vector_3_p0mihk.png"
+                  src={decorativeBlob}
                   alt=""
                   fill
                   className="object-cover"

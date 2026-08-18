@@ -34,7 +34,7 @@ export function OrganizationSelector() {
     const destinationPath =
       isDefaultAirQoGroup(selectedGroup) || !organizationSlug
         ? '/user/home'
-        : `/org/${encodeURIComponent(organizationSlug)}/dashboard`;
+        : `/org/${encodeURIComponent(organizationSlug)}/data-export`;
 
     // Close dialog first
     handleClose();

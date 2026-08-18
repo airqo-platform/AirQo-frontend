@@ -132,7 +132,6 @@ const orgSidebarConfig: NavGroup[] = [
         href: '/org/dashboard',
         icon: AqHomeSmile,
       },
-
       {
         id: 'bulk-export',
         label: 'Visualization & Data Export',

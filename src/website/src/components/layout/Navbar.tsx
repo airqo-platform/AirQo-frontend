@@ -13,6 +13,7 @@ import mainConfig from '@/config/site.config';
 import { useDispatch } from '@/hooks';
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { NAV_ITEMS } from '@/lib/navItems';
+import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 import { openModal } from '@/store/slices/modalSlice';
 
 import TopBanner from './TopBanner';
@@ -155,7 +156,7 @@ const Navbar: React.FC = () => {
             className="flex items-center"
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+              src={CLOUDINARY_IMAGES.logo}
               alt="AirQo"
               width={71}
               height={48}
@@ -257,7 +258,7 @@ const Navbar: React.FC = () => {
           <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">
             <Link href={mainConfig.homePageUrl} onClick={handleLinkClick}>
               <Image
-                src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+                src={CLOUDINARY_IMAGES.logo}
                 alt="AirQo"
                 width={64}
                 height={44}

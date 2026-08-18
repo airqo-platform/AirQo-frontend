@@ -8,7 +8,7 @@ import {
 } from "../../support/device-mocks";
 
 /**
- * Import External Device — bulk/CSV flow, personal context.
+ * Register Non-AirQo Device — bulk/CSV flow, personal context.
  *
  * Same hybrid-interception approach as the single-device spec: real auth,
  * navigation, and data GETs; POST /devices/soft/bulk and the cohort
@@ -57,11 +57,11 @@ test.beforeAll(() => {
 async function openBulkImportWizard(page: Page): Promise<Locator> {
   await page.goto("/devices/my-devices");
 
-  const importButton = page.getByRole("button", { name: "Import External Device" });
+  const importButton = page.getByRole("button", { name: "Register Non-AirQo Device" });
   await expect(importButton).toBeVisible({ timeout: 60_000 });
   await importButton.click();
 
-  const wizard = page.getByRole("dialog", { name: "Import External Device" });
+  const wizard = page.getByRole("dialog", { name: "Register Non-AirQo Device" });
   await expect(wizard).toBeVisible();
   await wizard.getByRole("button", { name: /Import Multiple Devices/ }).click();
   return wizard;

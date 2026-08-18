@@ -187,7 +187,7 @@ class ShareTabChip extends StatelessWidget {
           color: selected
               ? AppColors.primaryColor
               : (isDark
-                  ? AppColors.darkHighlight
+                  ? AppSurfaceColors.nested(context)
                   : AppColors.dividerColorlight),
           borderRadius: BorderRadius.circular(30),
         ),
@@ -200,7 +200,7 @@ class ShareTabChip extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: selected
                 ? Colors.white
-                : (isDark ? Colors.white : Colors.black87),
+                : (isDark ? Colors.white : AppColors.boldHeadlineColor4),
           ),
         ),
       ),
@@ -212,12 +212,14 @@ class ShareActionButton extends StatelessWidget {
   final String label;
   final bool loading;
   final VoidCallback? onPressed;
+  final Widget? icon;
 
   const ShareActionButton({
     super.key,
     required this.label,
     required this.loading,
     required this.onPressed,
+    this.icon,
   });
 
   @override
@@ -234,13 +236,14 @@ class ShareActionButton extends StatelessWidget {
                 color: Colors.white,
               ),
             )
-          : SvgPicture.asset(
-              'assets/icons/share-icon.svg',
-              width: 18,
-              height: 18,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
+          : icon ??
+              SvgPicture.asset(
+                'assets/icons/share-icon.svg',
+                width: 18,
+                height: 18,
+                colorFilter:
+                    const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              ),
       label: Text(label),
     );
   }

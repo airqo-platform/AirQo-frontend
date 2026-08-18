@@ -7,6 +7,7 @@ import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import mainConfig from '@/config/site.config';
+import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
@@ -107,7 +108,7 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="lg:col-span-4">
           <Image
-            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+            src={CLOUDINARY_IMAGES.logo}
             alt="AirQo"
             width={64}
             height={54}
@@ -310,7 +311,7 @@ const Footer = () => {
             A project by
           </span>
           <Image
-            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728142537/website/Logos/MakName_xmsi0k.png"
+            src={CLOUDINARY_IMAGES.makerereName}
             alt="Makerere University"
             width={160}
             height={26}

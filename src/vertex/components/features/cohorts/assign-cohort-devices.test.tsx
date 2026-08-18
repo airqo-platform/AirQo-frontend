@@ -71,6 +71,21 @@ function mockAssignDevices(
   );
 }
 
+/**
+ * Drives the assign mutation to success with a given API breakdown, so the
+ * banner assertions exercise the response → message mapping rather than the
+ * submitted device count.
+ */
+function respondWith(updated_cohort: {
+  assigned: string[];
+  already_assigned: string[];
+}) {
+  return vi.fn((variables, hookOptions, callOptions) => {
+    hookOptions?.onSuccess?.({ success: true, updated_cohort }, variables);
+    callOptions?.onSuccess?.();
+  });
+}
+
 const DEVICE_A = { _id: "device-1", name: "airqo_g1", long_name: "AirQo G1" };
 const DEVICE_B = { _id: "device-2", name: "airqo_g2", long_name: "AirQo G2" };
 
@@ -150,11 +165,9 @@ describe("AssignCohortDevicesDialog", () => {
   });
 
   it("shows a success banner and closes on success", async () => {
-    const assignSpy = vi.fn((variables, hookOptions, callOptions) => {
-      hookOptions?.onSuccess?.(variables);
-      callOptions?.onSuccess?.();
-    });
-    mockAssignDevices(assignSpy);
+    mockAssignDevices(
+      respondWith({ assigned: ["device-1"], already_assigned: [] })
+    );
     const onOpenChange = vi.fn();
     const onSuccess = vi.fn();
     const user = userEvent.setup();
@@ -179,6 +192,59 @@ describe("AssignCohortDevicesDialog", () => {
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it("says the device was already assigned instead of claiming success", async () => {
+    // Regression: the banner used to be built from the submitted id count, so a
+    // no-op assignment still reported "1 device(s) assigned ... successfully".
+    mockAssignDevices(
+      respondWith({ assigned: [], already_assigned: ["device-1"] })
+    );
+    const user = userEvent.setup();
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+        selectedDevices={[DEVICE_A] as never}
+      />
+    );
+
+    await user.click(dialog().getByRole("button", { name: "Add" }));
+
+    await waitFor(() => {
+      expect(showBannerWithDelayMock).toHaveBeenCalledWith({
+        severity: "info",
+        message: "Device is already assigned to this cohort",
+        scoped: false,
+      });
+    });
+  });
+
+  it("reports the assigned and skipped counts separately for a partial assignment", async () => {
+    mockAssignDevices(
+      respondWith({ assigned: ["device-1"], already_assigned: ["device-2"] })
+    );
+    const user = userEvent.setup();
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+        selectedDevices={[DEVICE_A, DEVICE_B] as never}
+      />
+    );
+
+    await user.click(dialog().getByRole("button", { name: "Add" }));
+
+    await waitFor(() => {
+      expect(showBannerWithDelayMock).toHaveBeenCalledWith({
+        severity: "success",
+        message:
+          "1 device(s) assigned to cohort successfully, 1 already assigned and skipped",
+        scoped: false,
+      });
+    });
   });
 
   it("opens Create New Cohort with the currently-selected devices preselected, closing this dialog", async () => {
