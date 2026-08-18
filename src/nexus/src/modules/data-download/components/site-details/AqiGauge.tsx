@@ -192,44 +192,34 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
           )}
         </svg>
 
-        {/* Center text */}
+        {/* Center text — short content only (value + unit label) */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-center"
-          style={{ paddingTop: '12%' }}
+          style={{ paddingTop: '8%' }}
         >
-          {hasValue ? (
-            <>
-              <span
-                className="text-4xl font-bold leading-none tabular-nums"
-                style={{ color: categoryColor }}
-              >
-                {formatRoundedNumber(value!, 0)}
-              </span>
-              <span
-                className="mt-1 text-sm font-semibold"
-                style={{ color: categoryColor }}
-              >
-                {airInfo?.label ?? '—'}
-              </span>
-              <span className="mt-0.5 text-[10px] text-muted-foreground">
-                AQI (US)
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="text-4xl font-bold leading-none text-muted-foreground">
-                —
-              </span>
-              <span className="mt-1 text-sm text-muted-foreground">
-                No data
-              </span>
-              <span className="mt-0.5 text-[10px] text-muted-foreground">
-                AQI (US)
-              </span>
-            </>
-          )}
+          <span
+            className="text-4xl font-bold leading-none tabular-nums"
+            style={hasValue ? { color: categoryColor } : undefined}
+          >
+            {hasValue ? formatRoundedNumber(value!, 0) : '—'}
+          </span>
+          <span className="mt-0.5 text-[10px] text-muted-foreground">
+            AQI (US)
+          </span>
         </div>
       </div>
+
+      {/* Category label — full width below gauge so long labels wrap cleanly */}
+      {hasValue ? (
+        <span
+          className="mt-2 max-w-[180px] text-center text-sm font-semibold leading-snug"
+          style={{ color: categoryColor }}
+        >
+          {airInfo?.label ?? '—'}
+        </span>
+      ) : (
+        <span className="mt-2 text-sm text-muted-foreground">No data</span>
+      )}
 
       {freshness && (
         <p className="mt-1 text-xs text-muted-foreground">{freshness}</p>

@@ -113,6 +113,18 @@ async function forwardRequest(
     const response = await fetch(backendUrl.toString(), init);
 
     // 8. Proxy the backend response back to the client
+    // For 5xx errors, return clean JSON instead of forwarding raw backend HTML
+    if (response.status >= 500) {
+      return NextResponse.json(
+        {
+          error: 'Upstream service unavailable',
+          message:
+            'The data service is temporarily unavailable. Please try again later.',
+        },
+        { status: response.status }
+      );
+    }
+
     const responseBody = await response.text();
     const responseHeaders = new Headers();
     const backendContentType = response.headers.get('content-type');
