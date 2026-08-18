@@ -3,7 +3,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqXClose } from '@airqo/icons-react';
 import { useSitesForSelection } from '../../hooks/useCohortSelection';
 import { getDefaultSiteColor, toHexInputValue } from '../../utils/siteColors';
@@ -320,16 +319,6 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
         onSearchChange={sitesData.setSearchTerm}
         compactRows
       />
-
-      {!sitesData.isLoading &&
-        !sitesData.error &&
-        sitesData.sites.length === 0 && (
-          <EmptyState
-            compact
-            title="No sites found"
-            description="Try a different search, or check that monitoring sites are assigned."
-          />
-        )}
     </div>
   );
 };

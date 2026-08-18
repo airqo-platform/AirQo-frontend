@@ -66,7 +66,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
             disabled={!groupId}
             showTextOnMobile
           >
-            Manage charts
+            Add chart
           </Button>
         )}
       </div>

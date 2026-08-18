@@ -1,34 +1,17 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import { cn } from '@/shared/lib/utils';
 import { AqSettings01 } from '@airqo/icons-react';
 import { Button } from '@/shared/components/ui/button';
-import { ChartContainer, DynamicChart } from '@/shared/components/charts';
-import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { useAnalyticsPreferences } from '@/modules/analytics';
 import {
-  useAnalyticsPreferences,
-  useAnalyticsChartData,
-} from '@/modules/analytics';
-import { getGuidelinePeriod } from '@/modules/analytics/utils/chartConfig';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+  deriveRangeFromDays,
+  type ExplorerChartDraft,
+} from '@/modules/analytics/utils/chartConfig';
 import AddSavedLocations from '@/modules/location-insights/add-favorites';
-
-const isCancellationError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  return (
-    candidate?.name === 'AbortError' ||
-    candidate?.name === 'CanceledError' ||
-    candidate?.code === 'ERR_CANCELED' ||
-    candidate?.message === 'canceled'
-  );
-};
+import { AnalyticsChartCard } from '@/modules/analytics/components/explorer/AnalyticsChartCard';
+import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 interface SavedPreferencesSectionProps {
   groupId: string;
@@ -46,34 +29,53 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
   className,
 }) => {
   const [isManageLocationsOpen, setIsManageLocationsOpen] = useState(false);
+  const [forecastEnabled, setForecastEnabled] = useState(false);
 
   const {
     selectedSiteIds,
+    selectedSites,
     isLoading: preferencesLoading,
   } = useAnalyticsPreferences({
     groupId: groupId || undefined,
     enabled: !!groupId,
   });
 
-  const { config: aqiConfig } = useAqiConfig('pm2_5');
+  const siteCount = selectedSiteIds.length;
 
-  const filters = useMemo(() => {
-    const to = new Date();
-    const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return {
-      frequency: 'daily',
-      startDate: format(from, 'yyyy-MM-dd'),
-      endDate: format(to, 'yyyy-MM-dd'),
+  // Build the synthetic draft — stable data shape for AnalyticsChartCard.
+  const range = useMemo(() => deriveRangeFromDays(7), []);
+  const syntheticDraft: ExplorerChartDraft = useMemo(
+    () => ({
+      id: 'saved-preferences',
+      fieldId: 1,
+      title: 'Air pollution trend',
+      subtitle: `Daily PM2.5 levels across ${siteCount} saved location${siteCount === 1 ? '' : 's'}`,
+      chartType: 'Line',
       pollutant: 'pm2_5',
-    };
-  }, []);
-
-  const { chartData, isLoading, error, refresh } = useAnalyticsChartData(
-    filters,
-    'line',
-    selectedSiteIds,
-    !!groupId && selectedSiteIds.length > 0
+      frequency: 'daily',
+      startDate: range.startDate,
+      endDate: range.endDate,
+      siteIds: selectedSiteIds,
+      color: null,
+      locationColors: [],
+      themeColors: false,
+      referenceStandard: 'WHO',
+      showLegend: true,
+      showGrid: true,
+      showTooltip: true,
+      referenceLines: [],
+    }),
+    [siteCount, selectedSiteIds, range.startDate, range.endDate]
   );
+
+  // Build siteNames Map (siteId → display name) from selectedSites.
+  const siteNames = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const site of selectedSites) {
+      map.set(site._id, getSiteDisplayName(site));
+    }
+    return map;
+  }, [selectedSites]);
 
   // Hide rule: return null while preferences are loading or when there are
   // no saved preference sites — the section only exists when the org has
@@ -81,14 +83,6 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
   if (preferencesLoading || selectedSiteIds.length === 0) {
     return null;
   }
-
-  const friendlyError = error
-    ? isCancellationError(error)
-      ? null
-      : getUserFriendlyErrorMessage(error)
-    : null;
-
-  const siteCount = selectedSiteIds.length;
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -110,33 +104,17 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
       </div>
 
       {/* Fixed chart */}
-      <ChartContainer
-        title="Saved locations"
-        subtitle={`${siteCount} saved location${siteCount === 1 ? '' : 's'}`}
-        loading={isLoading}
-        error={friendlyError}
-        onRefresh={refresh}
-        exportOptions={{
-          enablePDF: true,
-          enablePNG: true,
-          filename: 'saved-preferences-trends',
-        }}
-      >
-        {isLoading ? null : (
-          <DynamicChart
-            data={chartData}
-            config={{
-              type: 'line',
-              height: 380,
-            }}
-            pollutant="pm2_5"
-            aqiConfig={aqiConfig}
-            frequency="daily"
-            autoSelectType={false}
-            referenceLinePeriod={getGuidelinePeriod('daily')}
-          />
-        )}
-      </ChartContainer>
+      <AnalyticsChartCard
+        draft={syntheticDraft}
+        groupId={groupId}
+        siteNames={siteNames}
+        forecastEnabled={forecastEnabled}
+        onForecastToggle={() => setForecastEnabled(v => !v)}
+        onEdit={() => {}}
+        onRequestDelete={() => {}}
+        onDuplicate={async () => {}}
+        isFixed
+      />
 
       {/* Manage locations modal */}
       <AddSavedLocations

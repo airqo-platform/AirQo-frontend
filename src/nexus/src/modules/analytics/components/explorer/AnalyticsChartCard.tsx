@@ -1,21 +1,17 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
-import { Tooltip } from 'flowbite-react';
 import {
   AqEdit02,
   AqCopy01,
   AqTrash01,
-  AqInfoCircle,
 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
-import {
-  getPollutantLabel,
-  getPollutantUnits,
-} from '@/shared/components/charts/utils';
-import { REFERENCE_LINES } from '@/shared/utils/airQuality';
+import SelectField from '@/shared/components/ui/select';
+import { DatePicker } from '@/shared/components/calendar';
+import type { DateRange } from '@/shared/components/calendar';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -38,8 +34,7 @@ import {
   buildSeriesLabels,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
-import type { NormalizedChartData } from '@/shared/components/charts/types';
-import type { StandardsType } from '@/shared/components/charts/types';
+import type { NormalizedChartData, PollutantType, StandardsType } from '@/shared/components/charts/types';
 
 interface AnalyticsChartCardProps {
   draft: ExplorerChartDraft;
@@ -51,42 +46,24 @@ interface AnalyticsChartCardProps {
   onEdit: (draft: ExplorerChartDraft) => void;
   /** Opens the delete-confirmation dialog for this chart */
   onRequestDelete: (draft: ExplorerChartDraft) => void;
-  onEditTitle: (
+  onEditTitle?: (
     draftId: string,
     title: string,
     subtitle?: string
   ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
+  /** When true, hides edit/duplicate/delete menu items and inline title editing */
+  isFixed?: boolean;
   className?: string;
 }
 
 /** Forecast series prefix — each site's projection gets its own dashed line */
 const FORECAST_SERIES_PREFIX = 'Forecast · ';
 
-const STANDARDS_OPTIONS: { value: StandardsType; label: string }[] = [
-  { value: 'WHO', label: 'WHO 2021' },
-  { value: 'NEMA_UGANDA', label: 'NEMA (Uganda)' },
-  { value: 'NEMA_KENYA', label: 'NEMA (Kenya)' },
-  { value: 'SOUTH_AFRICA', label: 'South Africa (NEM:AQA)' },
-  { value: 'NIGERIA', label: 'Nigeria (NESREA)' },
+const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
+  { value: 'pm2_5', label: 'PM2.5' },
+  { value: 'pm10', label: 'PM10' },
 ];
-
-const STANDARDS_TITLES: Record<StandardsType, string> = {
-  WHO: 'WHO (World Health Organization) 2021 air quality guidelines',
-  NEMA_UGANDA: 'National Environment Management Authority (Uganda) limits',
-  NEMA_KENYA: 'NEMA Kenya — Legal Notice 180 of 2024',
-  SOUTH_AFRICA: 'South Africa National Ambient Air Quality Standards',
-  NIGERIA:
-    'Nigeria National Environmental (Air Quality Control) Regulations 2021',
-};
-
-const PERIOD_KEYS: Record<
-  string,
-  { '24hr': string | undefined; annual: string | undefined }
-> = {
-  pm2_5: { '24hr': 'PM25_24HR', annual: 'PM25_ANNUAL' },
-  pm10: { '24hr': 'PM10_24HR', annual: 'PM10_ANNUAL' },
-};
 
 interface ForecastSeries {
   siteId: string;
@@ -118,10 +95,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onRequestDelete,
   onEditTitle,
   onDuplicate,
+  isFixed = false,
   className,
-}) => {
-  const { config: aqiConfig } = useAqiConfig(draft.pollutant);
-
+  }) => {
   const [referenceStandard, setReferenceStandard] = useState<StandardsType>(
     () => readChartSidecar(groupId, draft.id).referenceStandard ?? 'WHO'
   );
@@ -134,6 +110,18 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => readChartSidecar(groupId, draft.id).themeColors ?? false
   );
 
+  // Local overrides — non-persistent quick-view tweaks for pollutant and
+  // date range, consistent with the card's existing local state pattern.
+  const [pollutantOverride, setPollutantOverride] = useState<PollutantType>(
+    draft.pollutant
+  );
+  const [dateRangeOverride, setDateRangeOverride] = useState<{
+    startDate: string;
+    endDate: string;
+  }>({ startDate: draft.startDate, endDate: draft.endDate });
+
+  const { config: aqiConfig } = useAqiConfig(pollutantOverride);
+
   React.useEffect(() => {
     setThemeColors(draft.themeColors ?? false);
   }, [draft.themeColors]);
@@ -141,11 +129,11 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const filters = useMemo(
     () => ({
       frequency: draft.frequency,
-      pollutant: draft.pollutant,
-      startDate: draft.startDate,
-      endDate: draft.endDate,
+      pollutant: pollutantOverride,
+      startDate: dateRangeOverride.startDate,
+      endDate: dateRangeOverride.endDate,
     }),
-    [draft]
+    [draft.frequency, pollutantOverride, dateRangeOverride]
   );
 
   const { chartData, isLoading, isRefreshing, error, refresh } =
@@ -157,21 +145,11 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     );
 
   const forecastUsable =
-    draft.pollutant === 'pm2_5' && draft.siteIds.length > 0;
+    pollutantOverride === 'pm2_5' && draft.siteIds.length > 0;
 
   // The guideline the chart compares against: annual for monthly data,
   // 24-hour for every other frequency (same rule as the overview cards).
   const guidelinePeriod = getGuidelinePeriod(draft.frequency);
-
-  // The reference line value for the selected standard + averaging period,
-  // shown in the toolbar next to the standard selector.
-  const guidelineValue = useMemo(() => {
-    const keys = PERIOD_KEYS[draft.pollutant];
-    const table = REFERENCE_LINES[referenceStandard];
-    if (!keys || !table) return null;
-    const value = table[keys[guidelinePeriod] as keyof typeof table];
-    return typeof value === 'number' ? value : null;
-  }, [draft.pollutant, guidelinePeriod, referenceStandard]);
 
   // Persist the standards selection (chosen via the shared standards dialog
   // in the More menu) so it survives reloads.
@@ -398,8 +376,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   const handleContainerTitleEdit = useCallback(
-    (title: string, subtitle?: string) =>
-      onEditTitle(draft.id, title, subtitle ?? ''),
+    (title: string, subtitle?: string) => {
+      if (!onEditTitle) return Promise.resolve();
+      return onEditTitle(draft.id, title, subtitle ?? '');
+    },
     [draft.id, onEditTitle]
   );
 
@@ -407,11 +387,40 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     void onDuplicate(draft);
   }, [draft, onDuplicate]);
 
-  // The toolbar select must not collide across chart cards on the same page.
-  const standardSelectId = `reference-standard-${draft.id.replace(
-    /[^a-zA-Z0-9_-]/g,
-    '-'
-  )}`;
+  // Sync overrides when the draft changes (e.g. after a dialog save).
+  useEffect(() => {
+    setPollutantOverride(draft.pollutant);
+  }, [draft.pollutant]);
+
+  useEffect(() => {
+    setDateRangeOverride({ startDate: draft.startDate, endDate: draft.endDate });
+  }, [draft.startDate, draft.endDate]);
+
+  // Stable reference for the DatePicker so it only re-syncs when dates change.
+  const datePickerValue = useMemo(
+    () => ({
+      from: new Date(dateRangeOverride.startDate),
+      to: new Date(dateRangeOverride.endDate),
+    }),
+    [dateRangeOverride.startDate, dateRangeOverride.endDate]
+  );
+
+  const handleDateRangeChange = (
+    value:
+      | string
+      | Date
+      | DateRange
+      | { from: string; to: string }
+      | undefined
+  ) => {
+    if (!value) return;
+    if (typeof value === 'object' && 'from' in value && 'to' in value) {
+      const { from, to } = value;
+      if (typeof from === 'string' && typeof to === 'string') {
+        setDateRangeOverride({ startDate: from, endDate: to });
+      }
+    }
+  };
 
   return (
     <div className={cn('w-full min-w-0 space-y-2', className)}>
@@ -429,7 +438,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           enablePNG: true,
           filename: exportFilename,
         }}
-        onEditTitle={handleContainerTitleEdit}
+        onEditTitle={isFixed ? undefined : handleContainerTitleEdit}
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         themeColors={themeColors}
@@ -439,77 +448,50 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
             <span className="min-w-0 truncate text-xs text-muted-foreground">
               {metadata}
             </span>
-            <button
-              type="button"
-              onClick={() => onEdit(draft)}
-              className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            >
-              <AqEdit02 className="h-3.5 w-3.5" />
-              Edit chart
-            </button>
+            {!isFixed && (
+              <button
+                type="button"
+                onClick={() => onEdit(draft)}
+                className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                <AqEdit02 className="h-3.5 w-3.5" />
+                Edit chart
+              </button>
+            )}
           </div>
         }
         toolbar={
           <>
-            {/* Reference standard selector */}
-            <div>
-              <label
-                htmlFor={standardSelectId}
-                className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
-              >
-                Reference standard
-              </label>
-              <select
-                id={standardSelectId}
-                value={referenceStandard}
-                onChange={event =>
-                  handleStandardsChange(event.target.value as StandardsType)
-                }
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-              >
-                {STANDARDS_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Pollutant dropdown */}
+            <SelectField
+              label="Pollutant"
+              value={pollutantOverride}
+              onChange={(event: { target: { value: unknown } }) =>
+                setPollutantOverride(event.target.value as PollutantType)
+              }
+            >
+              {POLLUTANT_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SelectField>
 
-            {/* Guideline value for the selected standard */}
+            {/* Date range picker */}
             <div>
-              <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                {guidelinePeriod === '24hr'
-                  ? '24-hour guideline'
-                  : 'Annual guideline'}
+              <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                Date range
               </span>
-              <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
-                {guidelineValue !== null
-                  ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
-                  : '—'}
-                <Tooltip
-                  content={
-                    <div className="max-w-[240px] space-y-0.5 text-left">
-                      <p className="text-xs font-semibold text-white">
-                        {STANDARDS_TITLES[referenceStandard]}
-                      </p>
-                      <p className="text-xs text-gray-200">
-                        {guidelinePeriod === '24hr' ? '24-hour' : 'Annual'}{' '}
-                        {getPollutantLabel(draft.pollutant)} guideline:{' '}
-                        <span className="font-semibold text-white">
-                          {guidelineValue !== null
-                            ? `${guidelineValue} ${getPollutantUnits(draft.pollutant)}`
-                            : 'not available'}
-                        </span>
-                      </p>
-                    </div>
-                  }
-                  placement="top"
-                >
-                  <span className="inline-flex cursor-help">
-                    <AqInfoCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                  </span>
-                </Tooltip>
-              </span>
+              <DatePicker
+                mode="range"
+                value={datePickerValue}
+                onChange={handleDateRangeChange}
+                placeholder="Select date range"
+                className="bg-white dark:bg-[#1d1f20] dark:border-gray-700 shadow-sm w-auto"
+                showPresets
+                returnFormat="backend-datetime"
+                useDialog
+              />
             </div>
           </>
         }
@@ -543,24 +525,28 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           )
         }
         menuItems={
-          <>
-            <DropdownMenuItem onClick={() => onEdit(draft)}>
-              <AqEdit02 className="mr-2 h-4 w-4" />
-              Edit chart
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDuplicate}>
-              <AqCopy01 className="mr-2 h-4 w-4" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onRequestDelete(draft)}
-              className="text-destructive hover:bg-destructive/10"
-            >
-              <AqTrash01 className="mr-2 h-4 w-4" />
-              Delete chart
-            </DropdownMenuItem>
-          </>
+          isFixed
+            ? undefined
+            : (
+              <>
+                <DropdownMenuItem onClick={() => onEdit(draft)}>
+                  <AqEdit02 className="mr-2 h-4 w-4" />
+                  Edit chart
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDuplicate}>
+                  <AqCopy01 className="mr-2 h-4 w-4" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onRequestDelete(draft)}
+                  className="text-destructive hover:bg-destructive/10"
+                >
+                  <AqTrash01 className="mr-2 h-4 w-4" />
+                  Delete chart
+                </DropdownMenuItem>
+              </>
+            )
         }
       >
         <DynamicChart
@@ -582,7 +568,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
               : {}),
             seriesColors,
           }}
-          pollutant={draft.pollutant}
+          pollutant={pollutantOverride}
           aqiConfig={aqiConfig}
           frequency={draft.frequency}
           autoSelectType={false}
