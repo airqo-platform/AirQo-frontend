@@ -6,6 +6,9 @@ import { useUser, useOrgGroup } from '@/shared/hooks';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { AqiLegend } from '@/modules/analytics';
+import { Button } from '@/shared/components/ui/button';
+import { AqPlus } from '@airqo/icons-react';
+import { useChartManagement } from '@/modules/analytics/hooks/useChartManagement';
 import { DashboardHeader } from './components/DashboardHeader';
 import { DashboardCharts } from './components/DashboardCharts';
 import { SavedPreferencesSection } from './components/SavedPreferencesSection';
@@ -18,7 +21,8 @@ interface OrgDashboardProps {
 
 /**
  * Organization dashboard — renders an empty-state header for the org
- * and a group-scoped charts section (group-saved chart configurations).
+ * and a unified "Air Quality Analysis" section combining saved locations
+ * and user-configured charts.
  */
 export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   organizationSlug,
@@ -35,6 +39,9 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   } = useOrgGroup({ organizationSlug, isOrganizationFlow: true });
 
   const { config: selectedAqiConfig } = useAqiConfig('pm2_5');
+
+  // Call unconditionally — the hook's `enabled` param handles the not-ready state.
+  const chartMgmt = useChartManagement(organizationGroupId, !!organizationGroupId);
 
   const isOrgContextReady =
     !!organizationGroupId && activeGroup?.id === organizationGroupId;
@@ -82,8 +89,25 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   return (
     <div className={`space-y-5 ${className}`}>
       <DashboardHeader organizationTitle={organizationGroup?.title ?? 'Organization'} />
-      <SavedPreferencesSection groupId={organizationGroupId} />
-      <DashboardCharts groupId={organizationGroupId} />
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-medium text-foreground">Air Quality Analysis</h2>
+          {chartMgmt.charts.length > 0 && (
+            <Button
+              variant="filled"
+              size="md"
+              Icon={AqPlus}
+              onClick={chartMgmt.openCreate}
+              disabled={!organizationGroupId}
+              showTextOnMobile
+            >
+              Add chart
+            </Button>
+          )}
+        </div>
+        <SavedPreferencesSection groupId={organizationGroupId} />
+        <DashboardCharts groupId={organizationGroupId} chartMgmt={chartMgmt} />
+      </section>
       <AqiLegend aqiConfig={selectedAqiConfig} className="pt-2" />
     </div>
   );

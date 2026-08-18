@@ -54,6 +54,8 @@ interface AnalyticsChartCardProps {
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
   /** When true, hides edit/duplicate/delete menu items and inline title editing */
   isFixed?: boolean;
+  /** Custom action rendered in the footer's right slot (replaces "Edit chart" when provided) */
+  footerAction?: React.ReactNode;
   className?: string;
 }
 
@@ -96,8 +98,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onEditTitle,
   onDuplicate,
   isFixed = false,
+  footerAction,
   className,
-  }) => {
+}) => {
   const [referenceStandard, setReferenceStandard] = useState<StandardsType>(
     () => readChartSidecar(groupId, draft.id).referenceStandard ?? 'WHO'
   );
@@ -448,34 +451,41 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
             <span className="min-w-0 truncate text-xs text-muted-foreground">
               {metadata}
             </span>
-            {!isFixed && (
-              <button
-                type="button"
-                onClick={() => onEdit(draft)}
-                className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              >
-                <AqEdit02 className="h-3.5 w-3.5" />
-                Edit chart
-              </button>
-            )}
+            {footerAction ??
+              (!isFixed && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(draft)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                >
+                  <AqEdit02 className="h-3.5 w-3.5" />
+                  Edit chart
+                </button>
+              ))}
           </div>
         }
         toolbar={
           <>
             {/* Pollutant dropdown */}
-            <SelectField
-              label="Pollutant"
-              value={pollutantOverride}
-              onChange={(event: { target: { value: unknown } }) =>
-                setPollutantOverride(event.target.value as PollutantType)
-              }
-            >
-              {POLLUTANT_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </SelectField>
+            <div>
+              <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                Pollutant
+              </span>
+              <SelectField
+                value={pollutantOverride}
+                onChange={(event: { target: { value: unknown } }) =>
+                  setPollutantOverride(event.target.value as PollutantType)
+                }
+                containerClassName="!mb-0"
+                className="h-9 py-0"
+              >
+                {POLLUTANT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
 
             {/* Date range picker */}
             <div>
@@ -487,7 +497,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
                 value={datePickerValue}
                 onChange={handleDateRangeChange}
                 placeholder="Select date range"
-                className="bg-white dark:bg-[#1d1f20] dark:border-gray-700 shadow-sm w-auto"
+                className="h-9 py-0 bg-white dark:bg-[#1d1f20] dark:border-gray-700 shadow-sm w-auto"
                 showPresets
                 returnFormat="backend-datetime"
                 useDialog

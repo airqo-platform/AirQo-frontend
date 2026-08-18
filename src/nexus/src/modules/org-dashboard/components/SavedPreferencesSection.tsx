@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { AqSettings01 } from '@airqo/icons-react';
-import { Button } from '@/shared/components/ui/button';
 import { useAnalyticsPreferences } from '@/modules/analytics';
 import {
   deriveRangeFromDays,
@@ -86,23 +85,6 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Header row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-foreground">
-          Saved locations
-        </h2>
-        <Button
-          variant="filled"
-          size="md"
-          Icon={AqSettings01}
-          onClick={() => setIsManageLocationsOpen(true)}
-          disabled={!groupId}
-          showTextOnMobile
-        >
-          Manage locations
-        </Button>
-      </div>
-
       {/* Fixed chart */}
       <AnalyticsChartCard
         draft={syntheticDraft}
@@ -114,6 +96,16 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
         onRequestDelete={() => {}}
         onDuplicate={async () => {}}
         isFixed
+        footerAction={
+          <button
+            type="button"
+            onClick={() => setIsManageLocationsOpen(true)}
+            className="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          >
+            <AqSettings01 className="h-3.5 w-3.5" />
+            Manage locations
+          </button>
+        }
       />
 
       {/* Manage locations modal */}

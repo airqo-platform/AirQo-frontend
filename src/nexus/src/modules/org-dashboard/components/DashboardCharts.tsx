@@ -2,29 +2,29 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/components/ui/button';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import ReusableDialog from '@/shared/components/ui/dialog';
-import { AqPlus, AqTrash01 } from '@airqo/icons-react';
-import { useChartManagement } from '@/modules/analytics/hooks/useChartManagement';
+import { AqTrash01 } from '@airqo/icons-react';
 import { AnalyticsChartCard } from '@/modules/analytics/components/explorer/AnalyticsChartCard';
 import { ChartConfigDialog } from '@/modules/analytics/components/explorer/ChartConfigDialog';
+import type { UseChartManagementResult } from '@/modules/analytics/hooks/useChartManagement';
 
 interface DashboardChartsProps {
   groupId: string;
+  chartMgmt: UseChartManagementResult;
   className?: string;
 }
 
 /**
  * Organization dashboard charts section — renders the group's configured
- * charts as a list (default view uses the group's saved chart preferences),
- * with a "Manage charts" flow to create/edit/duplicate/delete — reusing the
- * analytics module's chart machinery via `useChartManagement`.
+ * charts as a list, with the chart config dialog and delete-confirmation.
+ * The heading + "Add chart" button live in the parent (OrgDashboard).
  */
 export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   groupId,
+  chartMgmt,
   className,
 }) => {
   const {
@@ -39,7 +39,6 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     deleteDraft,
     saveError,
     isSaving,
-    openCreate,
     openEdit,
     closeDialog,
     handleSaveDraft,
@@ -50,27 +49,10 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     handleForecastToggle,
     handleEditTitle,
     handleNamesResolved,
-  } = useChartManagement(groupId, !!groupId);
+  } = chartMgmt;
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Header row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-foreground">Charts</h2>
-        {charts.length > 0 && (
-          <Button
-            variant="filled"
-            size="md"
-            Icon={AqPlus}
-            onClick={openCreate}
-            disabled={!groupId}
-            showTextOnMobile
-          >
-            Add chart
-          </Button>
-        )}
-      </div>
-
       {/* Body */}
       {chartsLoading && charts.length === 0 ? (
         <div className="flex items-center justify-center min-h-[200px]">
@@ -90,7 +72,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
         <EmptyState
           title="No charts yet"
           description="Create your first chart to explore air quality across locations and time periods."
-          action={{ label: 'Create chart', onClick: openCreate }}
+          action={{ label: 'Create chart', onClick: chartMgmt.openCreate }}
         />
       ) : (
         <div className="space-y-4">
