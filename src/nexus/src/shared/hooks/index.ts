@@ -89,7 +89,7 @@ export {
 } from './useClient';
 
 // Analytics hooks
-export { useGetChartData, useGetRecentReadings } from './useAnalytics';
+export { useGetChartData } from './useAnalytics';
 
 // Admin hooks
 export {

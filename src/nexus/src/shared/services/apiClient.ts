@@ -19,26 +19,6 @@ const JWT_REFRESH_SKEW_MS = 2 * 60 * 1000;
 
 const apiFailureNotificationCache = new Map<string, number>();
 
-let cachedApiToken: string | null = null;
-let apiTokenPromise: Promise<string | null> | null = null;
-
-async function resolveApiToken(): Promise<string | null> {
-  if (cachedApiToken) return cachedApiToken;
-  if (!apiTokenPromise) {
-    apiTokenPromise = fetch('/api/config/api-token', { credentials: 'same-origin' })
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        cachedApiToken = (data?.token as string) || null;
-        return cachedApiToken;
-      })
-      .catch(() => null)
-      .finally(() => {
-        apiTokenPromise = null;
-      });
-  }
-  return apiTokenPromise;
-}
-
 let _isRefreshing = false;
 let _pendingQueue: Array<{
   resolve: (authHeader: string) => void;
@@ -249,7 +229,7 @@ const shouldNotifyApiFailure = (key: string): boolean => {
 export enum AuthType {
   NONE = 'none',
   JWT = 'jwt', // From next-auth session
-  API_TOKEN = 'api_token', // From env, attached as query params
+  API_TOKEN = 'api_token', // From env, attached server-side via BFF
 }
 
 // Base API client class
@@ -274,6 +254,13 @@ export class ApiClient {
   }
 
   private buildBaseUrl(): string {
+    // API_TOKEN-mode requests go through the server-side BFF which attaches
+    // the token server-side. Use a relative URL so axios resolves it against
+    // the current origin (same Next.js app).
+    if (this.authType === AuthType.API_TOKEN) {
+      return '/api/data';
+    }
+
     const baseUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL || '';
 
@@ -362,19 +349,10 @@ export class ApiClient {
           config.headers = headers;
         } else if (this.authType === AuthType.API_TOKEN) {
           // API token endpoints must never receive Authorization headers;
-          // the backend reads the token from query params instead.
+          // the token is attached server-side by the BFF.
           const headers = AxiosHeaders.from(config.headers);
           headers.delete('Authorization');
           config.headers = headers;
-
-          const apiToken = await resolveApiToken();
-          if (apiToken) {
-            config.params = {
-              ...config.params,
-              token: apiToken,
-              access_token: apiToken,
-            };
-          }
         }
         return config;
       },
