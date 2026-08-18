@@ -514,29 +514,31 @@ export default function DevicesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Device Monitoring</h1>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
-            onClick={handleSyncDevices}
-            disabled={isSyncing || isRefreshing}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Refresh Devices'}
-          </Button>
+        {isAirqoGroup && (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
+              onClick={handleSyncDevices}
+              disabled={isSyncing || isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Refresh Devices'}
+            </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center"
-            onClick={refreshData}
-            disabled={isRefreshing || isSyncing}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>
-        </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center"
+              onClick={refreshData}
+              disabled={isRefreshing || isSyncing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {activeError && (

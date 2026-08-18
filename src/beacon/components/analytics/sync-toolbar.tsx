@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { syncCohorts, syncGrids, syncThingSpeak } from "@/services/device-api.service"
+import { useGroup } from "@/lib/group-context"
 
 interface SyncState {
   isSyncingCohorts: boolean
@@ -93,6 +94,12 @@ export function SyncToolbar({
   handleSyncGrids,
   handleSyncData,
 }: SyncState) {
+  const { activeGroup } = useGroup()
+  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
+
+  if (!isAirqoGroup) {
+    return null
+  }
   return (
     <>
       <Button
