@@ -414,7 +414,7 @@ const Checklist = ({
   return (
     <div>
       {/* Header Section */}
-      <div className="flex flex-row justify-between items-center md:items-center mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 mb-4">
         <div className="w-full md:w-1/2 flex flex-col">
           <h2 className="text-xl md:text-2xl font-medium text-foreground">
             Onboarding Checklist
@@ -425,13 +425,13 @@ const Checklist = ({
               : 'Continue with your onboarding journey.'}
           </p>
         </div>
-        <div className="w-full md:w-1/2 mt-4 md:mt-0">
+        <div className="w-full md:w-1/2 md:mt-0">
           <StepProgress step={stepCount} totalSteps={totalSteps} />
         </div>
       </div>
 
       {/* Checklist Grid */}
-      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         {mergedSteps.map(stepItem => (
           <ChecklistStepCard
             key={`step-${stepItem.id}-${stepItem._id || 'new'}`}

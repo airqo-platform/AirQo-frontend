@@ -62,7 +62,7 @@ describe('Air Quality pages (end-to-end)', function () {
     await driver.get(`${BASE}/user/air-quality/analytics`);
     await driver.wait(
       until.elementLocated(
-        By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]")
+        By.xpath("//h1[contains(normalize-space(), 'Air Quality Analysis')]")
       ),
       60_000
     );
@@ -394,7 +394,7 @@ describe('Air Quality pages (end-to-end)', function () {
   it('Analytics: page renders with view switcher, legend and add-chart affordance', async () => {
     await driver.get(`${BASE}/user/air-quality/analytics`);
     await waitFor(
-      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]"),
+      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analysis')]"),
       60
     );
     await waitFor(By.xpath("//button[normalize-space()='New chart']"), 30);
@@ -431,7 +431,7 @@ describe('Air Quality pages (end-to-end)', function () {
   it('Analytics: add chart dialog exposes every configuration setting', async () => {
     await driver.get(`${BASE}/user/air-quality/analytics`);
     await waitFor(
-      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]"),
+      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analysis')]"),
       60
     );
 
@@ -535,7 +535,7 @@ describe('Air Quality pages (end-to-end)', function () {
   it('Analytics: create a chart with two sites and verify the tile renders', async () => {
     await driver.get(`${BASE}/user/air-quality/analytics`);
     await waitFor(
-      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analytics')]"),
+      By.xpath("//h1[contains(normalize-space(), 'Air Quality Analysis')]"),
       60
     );
     await click(By.xpath("//button[normalize-space()='New chart']"));

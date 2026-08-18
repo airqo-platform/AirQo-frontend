@@ -26,6 +26,7 @@ export {
   useAnalyticsSiteCards,
   useDataDownload,
 } from './hooks';
+export { useChartManagement } from './hooks/useChartManagement';
 export { useRankings } from './hooks/useRankings';
 export { useRankingsHistory } from './hooks/useRankingsHistory';
 export { useSitesForSelection } from './hooks/useCohortSelection';

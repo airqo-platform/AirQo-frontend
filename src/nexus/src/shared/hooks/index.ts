@@ -121,6 +121,9 @@ export {
   useSetGroupManager,
 } from './useGroups';
 
+// Organization group resolution
+export { useOrgGroup } from './useOrgGroup';
+
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';

@@ -240,7 +240,7 @@ export const ChartsOverviewView: React.FC<ChartsOverviewViewProps> = ({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 items-start gap-4 sm:grid-cols-2',
+        'grid grid-cols-1 items-start gap-4 lg:grid-cols-2',
         className
       )}
     >

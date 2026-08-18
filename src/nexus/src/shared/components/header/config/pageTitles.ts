@@ -2,16 +2,20 @@
 export const PAGE_TITLES: Record<string, string> = {
   // User routes
   '/user/home': 'Home',
-  '/user/map': 'Map',
+  '/user/map': 'AirQo Map',
   '/user/profile': 'Profile',
   '/user/data-export': 'Visualization & Data Export',
   '/user/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/user/air-quality/rankings': 'Air Quality Rankings',
-  '/user/air-quality/analytics': 'Air Quality Analytics',
+  '/user/air-quality/analytics': 'Air Quality Analysis',
 
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
+  '/org/map': 'AirQo Map',
   '/org/data-export': 'Visualization & Data Export',
+  '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
+  '/org/air-quality/rankings': 'Air Quality Rankings',
+  '/org/air-quality/analytics': 'Air Quality Analysis',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',
@@ -52,8 +56,9 @@ export const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/org/')) {
     const parts = pathname.split('/');
     if (parts.length >= 4) {
-      // org/slug/page
-      const route = `/org/${parts[3]}`;
+      // Join remaining path segments after the slug to support nested routes
+      // e.g. /org/slug/air-quality/rankings → /org/air-quality/rankings
+      const route = `/org/${parts.slice(3).join('/')}`;
       return PAGE_TITLES[route] || 'Organization';
     }
   }
@@ -128,6 +133,12 @@ export const capitalizeTitle = (title: string): string => {
 
   return title
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map(word => {
+      // Preserve brand casing anywhere in a compound title (e.g. AirQo Map)
+      if (word.toLowerCase() === 'airqo') {
+        return 'AirQo';
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
     .join(' ');
 };

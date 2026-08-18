@@ -25,6 +25,7 @@ import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useCohort, useGroupCohorts } from '@/shared/hooks';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useUser } from '@/shared/hooks/useUser';
+import { useOrgGroup } from '@/shared/hooks/useOrgGroup';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { WarningBanner } from '@/shared/components/ui';
 import {
@@ -45,7 +46,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
-  const { activeGroup, groups, isLoading: userContextLoading } = useUser();
+  const { activeGroup, isLoading: userContextLoading } = useUser();
+
+  const {
+    organizationGroup,
+    organizationGroupId,
+  } = useOrgGroup({ organizationSlug, isOrganizationFlow: true });
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -69,27 +75,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     };
   }, []);
 
-  // Get user preferences and selected sites (primary data - always fetch first)
-  const normalizedOrganizationSlug = React.useMemo(
-    () => (organizationSlug || '').trim().toLowerCase(),
-    [organizationSlug]
-  );
-
-  const organizationGroup = React.useMemo(() => {
-    return (
-      groups?.find(
-        group =>
-          (group.organizationSlug || '').trim().toLowerCase() ===
-          normalizedOrganizationSlug
-      ) || null
-    );
-  }, [groups, normalizedOrganizationSlug]);
-
-  const organizationGroupId = organizationGroup?.id || '';
-
+  // Use org-resolved groupId for isOrgContextReady
   const isOrgContextReady =
     !!organizationGroupId && activeGroup?.id === organizationGroupId;
 
+  // Get user preferences and selected sites (primary data - always fetch first)
   const {
     selectedSiteIds,
     selectedSites,
@@ -137,7 +127,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   } = useAnalyticsChartData(filters, 'bar', selectedSiteIds, isOrgContextReady);
 
   const unresolvedOrganizationSlug =
-    !!normalizedOrganizationSlug && !userContextLoading && !organizationGroupId;
+    !!organizationGroup?.organizationSlug &&
+    !userContextLoading &&
+    !organizationGroupId;
 
   // Fetch cohorts by the org slug resolved group to avoid stale active-group lookups.
   const { data: organizationGroupCohorts } = useGroupCohorts(

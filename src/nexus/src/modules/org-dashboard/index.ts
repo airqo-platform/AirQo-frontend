@@ -1,6 +1,5 @@
 export { OrgDashboard } from './OrgDashboard';
 export { DashboardHeader } from './components/DashboardHeader';
-export { FleetSummary } from './components/FleetSummary';
-export { SavedLocationsGrid } from './components/SavedLocationsGrid';
-export { TrendSection } from './components/TrendSection';
+export { DashboardCharts } from './components/DashboardCharts';
+export { SavedPreferencesSection } from './components/SavedPreferencesSection';
 export { OrgDashboardSkeleton } from './components/OrgDashboardSkeleton';

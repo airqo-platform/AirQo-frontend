@@ -127,6 +127,16 @@ export const GlobalSidebar: React.FC = () => {
                 : '/user/home',
           };
         }
+        if (
+          (item.id === 'data-visualizer' || item.id === 'air-quality-rankings') &&
+          flow === 'organization' &&
+          orgSlug
+        ) {
+          return {
+            ...item,
+            href: item.href.replace('/user/', `/org/${orgSlug}/`),
+          };
+        }
         return item;
       })
       .filter(item => {

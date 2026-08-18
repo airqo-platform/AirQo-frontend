@@ -446,7 +446,8 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
 
       {/* Hover details card */}
       {isHovered && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-64 bg-card border border-border rounded-lg shadow-lg p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full z-50 w-64 pt-1">
+          <div className="bg-card border border-border rounded-lg shadow-lg p-4 animate-in fade-in slide-in-from-top-2 duration-200">
           {isLoadingWeather ? (
             <p className="text-sm text-muted-foreground">Loading weather…</p>
           ) : !weather ? (
@@ -544,6 +545,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className = '' }) => {
               </a>
             </>
           )}
+          </div>
         </div>
       )}
     </div>

@@ -29,6 +29,8 @@ import {
   DownloadFileTransformOptions,
 } from '@/modules/data-download/utils/dataExportFile';
 
+export { useChartManagement, type UseChartManagementResult } from './useChartManagement';
+
 interface AnalyticsSelections {
   selectedSiteIds: string[];
   selectedSites: Site[];
