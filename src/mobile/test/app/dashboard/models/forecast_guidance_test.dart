@@ -24,7 +24,7 @@ Forecast _forecast({
     aqiColorName: 'orange',
     pm25: pm25,
     time: time,
-    forecastConfidence: 80,
+    forecastConfidence: 80.0,
   );
 }
 
@@ -37,7 +37,7 @@ HourlyForecastEntry _hourlyEntry({
     aqiColor: '#FF9900',
     pm25Mean: pm25,
     time: time,
-    forecastConfidence: 75,
+    forecastConfidence: 75.0,
   );
 }
 
