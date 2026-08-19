@@ -11,11 +11,15 @@ class NavigationService with UiLoggy {
   factory NavigationService() => _instance;
   NavigationService._internal();
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static GlobalKey<NavigatorState>? _navigatorKey;
   final NotificationManager _notificationManager = NotificationManager();
 
-  NavigatorState? get _navigator => navigatorKey.currentState;
-  BuildContext? get currentContext => navigatorKey.currentContext;
+  static void setNavigatorKey(GlobalKey<NavigatorState> key) {
+    _navigatorKey = key;
+  }
+
+  NavigatorState? get _navigator => _navigatorKey?.currentState;
+  BuildContext? get currentContext => _navigatorKey?.currentContext;
   bool get canNavigate => _navigator != null && currentContext != null;
 
   Future<void> navigateToSurvey(Survey survey) async {

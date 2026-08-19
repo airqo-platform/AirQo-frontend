@@ -12,6 +12,7 @@ import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 
 class NearbyView extends StatefulWidget {
   final VoidCallback? onNavigateToFavorites;
@@ -99,6 +100,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           _userPosition = position;
         });
 
+        SurveyTriggerService().updateLocation(position);
+
         // Update nearby locations with this position
         await _updateNearbyLocations();
       }
@@ -117,6 +120,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             _userPosition = position;
           });
         }
+
+        SurveyTriggerService().updateLocation(position);
         
         // Update nearby locations with the more accurate position
         await _updateNearbyLocations();

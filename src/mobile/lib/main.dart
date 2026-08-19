@@ -42,10 +42,11 @@ import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
+import 'package:airqo/src/app/shared/navigation/app_navigator.dart';
+import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   runZonedGuarded(
     () async {
@@ -197,7 +198,7 @@ class AirqoMobile extends StatelessWidget {
               bool isLightTheme = themeState is ThemeLight;
 
               return MaterialApp(
-                navigatorKey: navigatorKey,
+                navigatorKey: appNavigatorKey,
                 // Captures $screen events for named PageRoutes; routes are
                 // named via RouteSettings at each push site.
                 navigatorObservers: [PosthogObserver()],
@@ -253,7 +254,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AutoUpdateService().initialize(navigatorKey);
+      AutoUpdateService().initialize(appNavigatorKey);
       _fetchCountries();
       _initLearnGuestSession();
     });
@@ -288,6 +289,18 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
       _checkTokenExpiryOnResume();
+      _refreshLocalNotificationsOnResume();
+    }
+  }
+
+  Future<void> _refreshLocalNotificationsOnResume() async {
+    if (!mounted) return;
+    final dashboardState = context.read<DashboardBloc>().state;
+    if (dashboardState is DashboardLoaded &&
+        dashboardState.response.measurements != null) {
+      await NotificationHelper().onDashboardMeasurementsLoaded(
+        dashboardState.response.measurements,
+      );
     }
   }
 
