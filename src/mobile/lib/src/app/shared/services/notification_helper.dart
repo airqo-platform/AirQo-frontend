@@ -237,8 +237,13 @@ class NotificationHelper with UiLoggy {
     var minDistance = double.infinity;
 
     for (final measurement in measurements) {
-      final lat = measurement.siteDetails?.approximateLatitude;
-      final lon = measurement.siteDetails?.approximateLongitude;
+      final siteDetails = measurement.siteDetails;
+      if (siteDetails == null) continue;
+
+      final lat = siteDetails.approximateLatitude ??
+          siteDetails.siteCategory?.latitude;
+      final lon = siteDetails.approximateLongitude ??
+          siteDetails.siteCategory?.longitude;
       if (lat == null || lon == null) continue;
 
       final distance = _haversineDistance(

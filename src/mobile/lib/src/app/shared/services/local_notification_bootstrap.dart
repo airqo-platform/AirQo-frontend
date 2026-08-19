@@ -16,8 +16,9 @@ class LocalNotificationBootstrap with UiLoggy {
     if (_initialized) return;
 
     NavigationService.setNavigatorKey(appNavigatorKey);
-    await PushNotificationService().initializeLocalOnly();
     NotificationHelper().configureTapHandling();
+    await PushNotificationService().initializeLocalOnly();
+    await PushNotificationService().processLaunchNotification();
     await AirQualityBackgroundTask.schedule();
     await AirQualityBackgroundTask.scheduleInitialCheck();
 

@@ -10,6 +10,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 /// Periodic on-device AQ checks when the app is not in the foreground.
+///
+/// Timing is platform-dependent:
+/// - **Android:** WorkManager generally runs near the requested [checkInterval]
+///   when network and battery constraints are met.
+/// - **iOS:** [checkInterval] and [initialCheckDelay] are best-effort hints to
+///   BGTaskScheduler. The system may defer or skip runs — do not treat these
+///   as guaranteed delivery times in acceptance tests.
 class AirQualityBackgroundTask with UiLoggy {
   AirQualityBackgroundTask._();
 
@@ -31,8 +38,9 @@ class AirQualityBackgroundTask with UiLoggy {
       ),
       existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
     );
-    Loggy('AirQualityBackgroundTask')
-        .info('Scheduled periodic AQ background check (${checkInterval.inHours}h)');
+    Loggy('AirQualityBackgroundTask').info(
+      'Scheduled periodic AQ background check (requested every ${checkInterval.inHours}h; iOS timing is best-effort)',
+    );
   }
 
   /// One-time check shortly after first NavPage load — validates the background
@@ -54,7 +62,7 @@ class AirQualityBackgroundTask with UiLoggy {
 
     await prefs.setBool(initialCheckScheduledKey, true);
     Loggy('AirQualityBackgroundTask').info(
-      'Scheduled initial AQ background check in ${initialCheckDelay.inSeconds}s',
+      'Scheduled initial AQ background check (requested in ${initialCheckDelay.inSeconds}s; iOS timing is best-effort)',
     );
   }
 

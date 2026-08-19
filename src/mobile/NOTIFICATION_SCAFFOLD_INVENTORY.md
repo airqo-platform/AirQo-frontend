@@ -29,7 +29,9 @@ We audited the existing notification code in the mobile app. **Most of the notif
 
 **FCM** — message sent from our backend via Firebase (Android + iOS). Requires Firebase setup and backend integration.
 
-> None of the scaffold notifications are **scheduled background jobs** yet. Local ones fire when the app runs relevant code; FCM ones fire when the server sends a push.
+> **Background execution (best-effort):** `AirQualityBackgroundTask` schedules periodic (requested every 3 hours) and one-time on-device AQ checks via WorkManager / BGTaskScheduler. On **Android**, WorkManager generally honours the requested interval subject to battery/network constraints. On **iOS**, `frequency` and `initialDelay` are **scheduling hints only** — the system decides when (or if) to run tasks based on usage, battery, and network. Do not treat iOS timing as guaranteed in acceptance tests.
+>
+> Local OS alerts also fire when the app is open (dashboard load / resume). FCM alerts fire when the server sends a push. **Still out of scope:** scheduled reminders (daily digest, learn nudges), quiet hours, per-category preferences, and guaranteed delivery when the app has never been opened or location is unavailable.
 
 ---
 
@@ -220,11 +222,11 @@ flowchart TD
 | **#7–#10 FCM** | Do we need server-sent alerts this quarter? | Keep dormant, or plan a separate push initiative |
 | **Notification settings** | Should users control alert types? | Add settings screen once local alerts are live |
 
-### Phase 3 — True background & advanced (future)
+### Phase 3 — Advanced background & preferences (future)
 
-Not in the current scaffold. Requires separate scoping:
+Partially addressed: on-device AQ checks when the app is backgrounded (`AirQualityBackgroundTask`). Still requires separate scoping:
 
-- Alerts when the app is fully closed (needs push or background tasks)
+- Guaranteed closed-app alerts via server push (FCM) when on-device scheduling is insufficient
 - Scheduled reminders (daily digest, learn nudges)
 - Quiet hours and per-category preferences
 

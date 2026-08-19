@@ -53,6 +53,25 @@ class PushNotificationService with UiLoggy {
     }
   }
 
+  /// Handle a local notification that launched the app from a terminated state.
+  /// Call after [onNotificationTap] is wired — [onDidReceiveNotificationResponse]
+  /// does not fire for cold-start launches.
+  Future<void> processLaunchNotification() async {
+    try {
+      final details =
+          await _localNotifications.getNotificationAppLaunchDetails();
+      if (details == null || !details.didNotificationLaunchApp) return;
+
+      final payload = details.notificationResponse?.payload;
+      if (payload == null || payload.isEmpty) return;
+
+      loggy.info('App launched from terminated state via local notification');
+      onNotificationTap?.call(_decodePayload(payload));
+    } catch (e, stackTrace) {
+      loggy.error('Failed to process launch notification', e, stackTrace);
+    }
+  }
+
   /// Initialize push notifications (local + FCM). Deferred until server push is needed.
   Future<void> initialize() async {
     if (_isInitialized && !_localOnly) {
