@@ -22,6 +22,7 @@ class AirQualityBackgroundTask with UiLoggy {
 
   static const uniqueName = 'airqo-aq-background-check';
   static const initialCheckUniqueName = 'airqo-aq-initial-check';
+  /// Android one-off handler name. iOS periodic tasks receive [uniqueName] instead.
   static const taskName = 'com.airqo.net.aqBackgroundCheck';
   static const initialCheckScheduledKey = 'aq_background_initial_check_scheduled';
   static const checkInterval = Duration(hours: 3);
@@ -94,6 +95,7 @@ class AirQualityBackgroundTask with UiLoggy {
 void airQualityBackgroundCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
+      case AirQualityBackgroundTask.uniqueName:
       case AirQualityBackgroundTask.taskName:
       case Workmanager.iOSBackgroundTask:
         return AirQualityBackgroundTask.run();

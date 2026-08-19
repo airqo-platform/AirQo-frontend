@@ -80,7 +80,7 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.airqo.net.aqBackgroundCheck</string>
+		<string>airqo-aq-background-check</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
