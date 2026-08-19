@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/shared/navigation/app_navigator.dart';
+import 'package:airqo/src/app/shared/services/air_quality_background_task.dart';
 import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
@@ -17,6 +18,8 @@ class LocalNotificationBootstrap with UiLoggy {
     NavigationService.setNavigatorKey(appNavigatorKey);
     await PushNotificationService().initializeLocalOnly();
     NotificationHelper().configureTapHandling();
+    await AirQualityBackgroundTask.schedule();
+    await AirQualityBackgroundTask.scheduleInitialCheck();
 
     _initialized = true;
     loggy.info('Local notification bootstrap complete');

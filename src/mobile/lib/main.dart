@@ -43,15 +43,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/navigation/app_navigator.dart';
+import 'package:airqo/src/app/shared/services/air_quality_background_task.dart';
 import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
   runZonedGuarded(
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
+        Workmanager().initialize(airQualityBackgroundCallbackDispatcher);
 
         await HiveBoxSetup.initializeBoxes();
         await CacheManager().initialize();
