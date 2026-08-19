@@ -40,19 +40,13 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Install production dependencies only
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps --omit=dev && \
-    npm cache clean --force
-
-# Copy built application from builder
+# Copy public assets
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/next.config.mjs ./
-COPY --from=builder /app/.env* ./
 
-# Set ownership
-RUN chown -R nextjs:nodejs /app
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Switch to non-root user
 USER nextjs
@@ -65,5 +59,5 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
-# Start the application using Next.js start command
-CMD ["npm", "start"]
+# Start the application using the standalone server
+CMD ["node", "server.js"]
