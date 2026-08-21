@@ -13,6 +13,7 @@ import {
   AqUploadCloud01,
   AqBookOpen01,
 } from '@airqo/icons-react';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import {
   Button,
   Card,
@@ -1497,6 +1498,7 @@ export const DataVisualizerWorkspace: React.FC<
           >
             Watch tutorial
           </Button>
+          <AiDrawerTrigger />
         </div>
       </div>
 

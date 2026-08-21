@@ -1,11 +1,11 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { Button } from '@/shared/components/ui';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Input } from '@/shared/components/ui/input';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { CustomField } from './CustomField';
 import { DateRange } from '@/shared/components/calendar/types';
 import { WarningBanner } from '@/shared/components/ui';
 import { Tooltip } from 'flowbite-react';
+import { AqXClose } from '@airqo/icons-react';
 import {
   FREQUENCY_LABELS,
   POLLUTANT_LABELS,
@@ -62,12 +62,12 @@ const FieldLabel = ({
   tooltip?: string;
 }) => (
   <span className="inline-flex items-center gap-1.5">
-    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+    <span className="text-sm font-medium text-muted-foreground">
       {label}
     </span>
     {tooltip && (
       <Tooltip content={tooltip} placement="top">
-        <span className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
+        <span className="text-muted-foreground/60 hover:text-muted-foreground cursor-help">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -128,6 +128,26 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   }, [dateRange]);
   const [pollutantError, setPollutantError] = useState<string | null>(null);
 
+  // Body scroll lock when mobile sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [sidebarOpen]);
+
+  // Escape key to close mobile sidebar
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarOpen, setSidebarOpen]);
+
   const handlePollutantChange = useCallback(
     (pollutant: string, checked: boolean | 'indeterminate') => {
       // Clear previous error on any interaction
@@ -156,10 +176,10 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     <>
       {/* Sidebar - Hidden by default on mobile, always visible on desktop */}
       <aside
-        className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
+        className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-background border-r border-border p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
       >
         <div className="space-y-4">
-          <h2 className="text-lg text-gray-900 dark:text-gray-100">
+          <h2 className="text-lg text-foreground">
             Export Configuration
           </h2>
 
@@ -167,7 +187,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           <div className="space-y-1">
             <label
               htmlFor="file-title-desktop"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="text-sm font-medium text-muted-foreground"
             >
               File Title
             </label>
@@ -204,7 +224,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               options={[]}
             />
             {!dateRange?.from && (
-              <p className="text-sm text-red-600 dark:text-red-400">
+              <p className="text-sm text-destructive">
                 Date range is required for data export
               </p>
             )}
@@ -238,12 +258,12 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
           {/* Pollutants */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="text-sm font-medium text-muted-foreground">
               Pollutants
             </label>
             {pollutantError && (
               <p
-                className="text-sm text-red-600 dark:text-red-400"
+                className="text-sm text-destructive"
                 role="alert"
                 aria-live="polite"
               >
@@ -254,13 +274,13 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               {pollutants.map(pollutant => (
                 <div key={pollutant} className="flex items-center">
                   <Checkbox
-                    id={pollutant}
+                    id={`desktop-${pollutant}`}
                     checked={selectedPollutants.includes(pollutant)}
                     onCheckedChange={(checked: boolean | 'indeterminate') =>
                       handlePollutantChange(pollutant, checked)
                     }
                   />
-                  <label htmlFor={pollutant} className="ml-2 text-sm">
+                  <label htmlFor={`desktop-${pollutant}`} className="ml-2 text-sm">
                     {
                       POLLUTANT_LABELS[
                         pollutant as keyof typeof POLLUTANT_LABELS
@@ -301,24 +321,27 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
       {/* Mobile/Tablet Sidebar - Below lg breakpoint */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 z-[60] w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out motion-reduce:transition-none overflow-visible ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Export Configuration"
+        className={`lg:hidden fixed left-1.5 top-1.5 bottom-1.5 z-[60] w-[85%] max-w-80 bg-background border border-border rounded-lg shadow-2xl transform transition-transform duration-300 ease-in-out motion-reduce:transition-none overflow-visible ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${sidebarOpen ? 'flex' : 'hidden'}`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full w-full">
           {/* Mobile Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg text-gray-900 dark:text-gray-100">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h2 className="text-base font-semibold text-foreground">
               Export Configuration
             </h2>
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
+              type="button"
               onClick={() => setSidebarOpen(false)}
-              className="p-2"
+              className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Close sidebar"
             >
-              ✕
-            </Button>
+              <AqXClose size={20} />
+            </button>
           </div>
 
           {/* Mobile Sidebar Content */}
@@ -327,7 +350,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             <div className="space-y-1">
               <label
                 htmlFor="file-title-mobile"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-sm font-medium text-muted-foreground"
               >
                 File Title
               </label>
@@ -364,7 +387,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 options={[]}
               />
               {!dateRange?.from && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm text-destructive">
                   Date range is required for data export
                 </p>
               )}
@@ -398,12 +421,12 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
             {/* Pollutants */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-muted-foreground">
                 Pollutants
               </label>
               {pollutantError && (
                 <p
-                  className="text-sm text-red-600 dark:text-red-400"
+                  className="text-sm text-destructive"
                   role="alert"
                   aria-live="polite"
                 >
@@ -414,13 +437,13 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 {pollutants.map(pollutant => (
                   <div key={pollutant} className="flex items-center">
                     <Checkbox
-                      id={pollutant}
+                      id={`mobile-${pollutant}`}
                       checked={selectedPollutants.includes(pollutant)}
                       onCheckedChange={(checked: boolean | 'indeterminate') =>
                         handlePollutantChange(pollutant, checked)
                       }
                     />
-                    <label htmlFor={pollutant} className="ml-2 text-sm">
+                    <label htmlFor={`mobile-${pollutant}`} className="ml-2 text-sm">
                       {
                         POLLUTANT_LABELS[
                           pollutant as keyof typeof POLLUTANT_LABELS
@@ -463,7 +486,8 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
       {/* Mobile/Tablet Sidebar Overlay - Only when open on smaller screens */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[55] bg-black/50"
+          className="lg:hidden fixed inset-0 z-[55] bg-black/40"
+          aria-hidden="true"
           onClick={() => setSidebarOpen(false)}
         />
       )}

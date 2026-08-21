@@ -12,6 +12,7 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useRankings } from '../hooks/useRankings';
 import { useRankingsHistory } from '../hooks/useRankingsHistory';
 import { AqiLegend } from './explorer/AqiLegend';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import {
   RankingsHistoryFilters,
   RankingsSummaryCards,
@@ -136,16 +137,19 @@ export const AirQualityRankingsPage: React.FC<
         subtitle="Compare average PM2.5 air quality across African countries and cities, ranked by their current AQI."
         infoLine="Only locations with a reading from the last 3 days are ranked. Years without data in the historical view are shown as a dash — not as clean air."
         action={
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={() => void handleRefresh()}
-            Icon={AqRefreshCcw01}
-            loading={isRefreshingAny}
-            disabled={isRefreshingAny}
-          >
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => void handleRefresh()}
+              Icon={AqRefreshCcw01}
+              loading={isRefreshingAny}
+              disabled={isRefreshingAny}
+            >
+              Refresh
+            </Button>
+            <AiDrawerTrigger />
+          </div>
         }
       />
 

@@ -7,6 +7,8 @@ import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { FeedbackLauncher } from '@/modules/feedback';
+import { AiAssistant } from '@/modules/ai/components/AiAssistant';
+import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
@@ -24,6 +26,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const theme = useAppSelector(state => state.theme);
   const { isLoggingOut } = useUser();
+  const { isOpen: isAiDrawerOpen } = useAiAssistantContext();
   useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
 
   return (
@@ -31,7 +34,8 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
       <div
         className={cn(
           'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
-          theme.interfaceStyle === 'bordered' && 'border border-border'
+          theme.interfaceStyle === 'bordered' && 'border border-border',
+          isAiDrawerOpen && 'md:pr-[calc(400px+0.375rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
         )}
       >
         {/* Fixed Header */}
@@ -63,6 +67,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           </div>
           {/* Footer at the end of the main container */}
           <FeedbackLauncher />
+          <AiAssistant />
         </div>
 
         {/* Bottom Navigation intentionally hidden on map pages to avoid

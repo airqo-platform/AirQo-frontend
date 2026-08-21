@@ -8,6 +8,7 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { AqiLegend } from '@/modules/analytics';
 import { Button } from '@/shared/components/ui/button';
 import { AqPlus } from '@airqo/icons-react';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { useChartManagement } from '@/modules/analytics/hooks/useChartManagement';
 import { DashboardHeader } from './components/DashboardHeader';
 import { DashboardCharts } from './components/DashboardCharts';
@@ -92,18 +93,21 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-medium text-foreground">Air Quality Analysis</h2>
-          {chartMgmt.charts.length > 0 && (
-            <Button
-              variant="filled"
-              size="md"
-              Icon={AqPlus}
-              onClick={chartMgmt.openCreate}
-              disabled={!organizationGroupId}
-              showTextOnMobile
-            >
-              Add chart
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {chartMgmt.charts.length > 0 && (
+              <Button
+                variant="filled"
+                size="md"
+                Icon={AqPlus}
+                onClick={chartMgmt.openCreate}
+                disabled={!organizationGroupId}
+                showTextOnMobile
+              >
+                Add chart
+              </Button>
+            )}
+            <AiDrawerTrigger />
+          </div>
         </div>
         <SavedPreferencesSection groupId={organizationGroupId} />
         <DashboardCharts groupId={organizationGroupId} chartMgmt={chartMgmt} />

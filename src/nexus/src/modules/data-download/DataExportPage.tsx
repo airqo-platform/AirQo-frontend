@@ -2,6 +2,8 @@ import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname, useRouter } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
+import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { SuccessBanner } from '@/shared/components/ui/banner';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
@@ -12,10 +14,9 @@ import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
+import { DataAvailabilityBanner } from './components/DataAvailabilityBanner';
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import { toast } from '@/shared/components/ui/toast';
-import Dialog from '@/shared/components/ui/dialog';
-import { AqAlertTriangle } from '@airqo/icons-react';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -36,6 +37,7 @@ import {
   useDataExportActions,
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import { useDataAvailabilityCheck } from './hooks/useDataAvailabilityCheck';
 import { resolveGridSitesForDownload } from './utils/dataExportRequest';
 import {
   getSiteDisplayName,
@@ -237,11 +239,7 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
-  const [tabChangeConfirm, setTabChangeConfirm] = React.useState<{
-    isOpen: boolean;
-    targetTab: TabType;
-    selectionCount: number;
-  }>({ isOpen: false, targetTab: 'sites', selectionCount: 0 });
+
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -325,24 +323,7 @@ const DataExportPage = () => {
         return;
       }
 
-      // Warn user before switching tabs if they have active selections
       if (tab !== activeTab) {
-        const selectionCount =
-          selectedSiteIds.length +
-          selectedDeviceIds.length +
-          selectedGridIds.length;
-
-        if (selectionCount > 0) {
-          setTabChangeConfirm({
-            isOpen: true,
-            targetTab: tab,
-            selectionCount,
-          });
-          return;
-        }
-
-        clearSelectionState();
-
         trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
           from_tab: activeTab,
           to_tab: tab,
@@ -357,45 +338,8 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [
-      activeTab,
-      clearSelectionState,
-      handleTabChange,
-      isGroupSyncing,
-      isOrgFlow,
-      posthog,
-      selectedDeviceIds,
-      selectedGridIds,
-      selectedSiteIds,
-    ]
+    [activeTab, handleTabChange, isGroupSyncing, isOrgFlow, posthog]
   );
-
-  const confirmTabChange = useCallback(() => {
-    const { targetTab } = tabChangeConfirm;
-    setTabChangeConfirm(prev => ({ ...prev, isOpen: false }));
-
-    clearSelectionState();
-
-    trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
-      from_tab: activeTab,
-      to_tab: targetTab,
-      is_org_flow: isOrgFlow,
-    });
-    trackEvent('data_export_tab_changed', {
-      from_tab: activeTab,
-      to_tab: targetTab,
-      is_org_flow: isOrgFlow,
-    });
-
-    handleTabChange(targetTab);
-  }, [
-    tabChangeConfirm,
-    activeTab,
-    isOrgFlow,
-    handleTabChange,
-    posthog,
-    clearSelectionState,
-  ]);
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
@@ -825,6 +769,94 @@ const DataExportPage = () => {
     selectedPollutants,
   ]);
 
+  // Data availability check — verifies which selected locations have
+  // measurement data for the current date range and pollutants.
+  // Build a siteId → display name map so the banner shows human-readable
+  // names instead of raw IDs.
+  const availabilitySiteNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+
+    if (activeTab === 'sites') {
+      selectedSiteIds.forEach(id => {
+        const cached = selectedSitesCache[id];
+        if (cached) {
+          const displayName = getSiteDisplayName(cached);
+          if (displayName && displayName !== '--') {
+            map[id] = displayName;
+          }
+        }
+      });
+    } else if (activeTab === 'devices') {
+      // For devices, map each resolved site ID to the first device name
+      // found that links to it, falling back to site name from cache.
+      selectedDeviceIds.forEach(deviceId => {
+        const device = selectedDevicesCache[deviceId];
+        if (!device) return;
+        const siteId = (device.site_id ?? device.siteId) as string | undefined;
+        if (!siteId || !siteId.trim()) return;
+        const trimmedSiteId = siteId.trim();
+        if (!map[trimmedSiteId]) {
+          const deviceName =
+            device.name || device.device_name;
+          const nameStr =
+            typeof deviceName === 'string' &&
+            deviceName.trim() &&
+            deviceName !== '--'
+              ? deviceName.trim()
+              : undefined;
+          if (nameStr) {
+            map[trimmedSiteId] = nameStr;
+          }
+        }
+      });
+    } else {
+      // countries / cities: resolve names from the grid data
+      const gridData =
+        activeTab === 'countries'
+          ? processedCountriesData
+          : processedCitiesData;
+      gridData.forEach(grid => {
+        const sites = grid.sites as
+          | Array<{ _id?: string; name?: string; search_name?: string }>
+          | undefined;
+        sites?.forEach(site => {
+          if (site._id) {
+            const displayName = getSiteDisplayName(site);
+            if (displayName && displayName !== '--') {
+              map[String(site._id)] = displayName;
+            }
+          }
+        });
+      });
+    }
+
+    return map;
+  }, [
+    activeTab,
+    selectedSiteIds,
+    selectedSitesCache,
+    selectedDeviceIds,
+    selectedDevicesCache,
+    processedCountriesData,
+    processedCitiesData,
+  ]);
+
+  const availability = useDataAvailabilityCheck(
+    activeTab,
+    selectedSiteIds,
+    selectedDeviceIds,
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds,
+    selectedDevicesCache,
+    dateRange,
+    availabilitySiteNameMap
+  );
+
+  // When no data is available, the download button should guide the user
+  // instead of showing "Review & Download".
+  const hasNoData = isDownloadReady && availability.aggregateStatus === 'none';
+
   // Handle table selection changes
   const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {
     const stringIds = selectedIds.map(id => String(id));
@@ -1225,11 +1257,30 @@ const DataExportPage = () => {
   }
 
   return (
+    <AiPageContextProvider
+      value={{
+        pageTitle: 'Visualization & Data Export',
+        pageDescription:
+          'Download air quality measurement data for selected locations.',
+        data: {
+          activeTab,
+          selectedSiteCount: selectedSiteIds.length,
+          selectedDeviceCount: selectedDeviceIds.length,
+          dateRange: dateRange
+            ? {
+                from: dateRange.from?.toISOString?.() ?? null,
+                to: dateRange.to?.toISOString?.() ?? null,
+              }
+            : null,
+        },
+      }}
+    >
     <div className="flex flex-col">
       {/* Page Header */}
       <PageHeading
         title="Custom Data Downloads"
         subtitle="Select any number of locations across Africa to download comprehensive air quality datasets with flexible date ranges and formats."
+        action={<AiDrawerTrigger />}
       />
 
       {/* Main Layout with Sidebar and Content */}
@@ -1293,6 +1344,21 @@ const DataExportPage = () => {
               pathname={pathname}
             />
 
+            {/* Data Availability Banner */}
+            {isDownloadReady && (
+              <DataAvailabilityBanner
+                aggregateStatus={availability.aggregateStatus}
+                totalSites={availability.totalSites}
+                sitesWithData={availability.sitesWithData}
+                sitesWithoutData={availability.sitesWithoutData}
+                siteDetails={availability.siteDetails}
+                activeTab={activeTab}
+                isDownloadReady={isDownloadReady}
+                onChangeFilters={() => setSidebarOpen(true)}
+                onChooseLocations={() => setSidebarOpen(true)}
+              />
+            )}
+
             {/* Selected Grids Summary */}
             {(activeTab === 'countries' || activeTab === 'cities') &&
               selectedGridIds.length > 0 && (
@@ -1336,6 +1402,7 @@ const DataExportPage = () => {
               showHelpBanner={showHelpBanner}
               onToggleHelpBanner={handleToggleHelpBanner}
               selectionCount={selectionCount}
+              hasNoData={hasNoData}
             />
 
             {/* Download Success Banner */}
@@ -1462,36 +1529,8 @@ const DataExportPage = () => {
         locationCount={exportLocationCount}
       />
 
-      {/* Tab Change Confirmation Dialog */}
-      <Dialog
-        isOpen={tabChangeConfirm.isOpen}
-        onClose={() =>
-          setTabChangeConfirm(prev => ({ ...prev, isOpen: false }))
-        }
-        title="Switch Tab?"
-        subtitle="Your current selections will be cleared"
-        icon={AqAlertTriangle}
-        iconColor="text-amber-600"
-        iconBgColor="bg-amber-100"
-        primaryAction={{
-          label: 'Switch Tab',
-          onClick: confirmTabChange,
-          className: 'bg-amber-600 hover:bg-amber-700 text-white',
-        }}
-        secondaryAction={{
-          label: 'Cancel',
-          onClick: () =>
-            setTabChangeConfirm(prev => ({ ...prev, isOpen: false })),
-        }}
-        size="md"
-      >
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          You have {tabChangeConfirm.selectionCount} item
-          {tabChangeConfirm.selectionCount !== 1 ? 's' : ''} selected. Switching
-          tabs will clear all current selections. Do you want to continue?
-        </p>
-      </Dialog>
     </div>
+    </AiPageContextProvider>
   );
 };
 

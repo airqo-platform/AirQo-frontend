@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { SearchField } from '@/shared/components/ui/search-field';
 import { usePhotonSearch } from '../../hooks/usePhotonSearch';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 
 interface MapHeaderProps {
   onSearch?: (query: string) => void;
@@ -30,11 +31,14 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
 
   return (
     <div className="p-2 border-b border-gray-100 dark:border-gray-700 min-w-0 overflow-x-hidden">
-      <div className="mb-2 min-w-0 sm:mb-4">
-        <h1 className="text-xl font-semibold mb-1">Air Quality Map</h1>
-        <p className="text-sm text-gray-600 break-words hidden sm:block">
-          Navigate air quality analytics with precision and actionable tips.
-        </p>
+      <div className="mb-2 min-w-0 sm:mb-4 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold mb-1">Air Quality Map</h1>
+          <p className="text-sm text-gray-600 break-words hidden sm:block">
+            Navigate air quality analytics with precision and actionable tips.
+          </p>
+        </div>
+        <AiDrawerTrigger />
       </div>
 
       <SearchField

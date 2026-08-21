@@ -12,6 +12,33 @@ const METRIC_COLUMN_PATTERN =
 const DIMENSION_COLUMN_PATTERN =
   /(site|device|sensor|location|station|city|country|region|district|name|id|network|provider)/i;
 
+/**
+ * Air-quality pollutants ranked by relevance on this platform.
+ * Lower number = higher priority. Non-pollutant metrics (value, reading,
+ * concentration) and environmental variables (temperature, humidity) receive
+ * lower priority so the default measurement favours pollutants like PM2.5.
+ */
+const AIR_QUALITY_POLLUTANT_PRIORITY: Array<{ pattern: RegExp; rank: number }> =
+  [
+    { pattern: /(pm\s*2[\W_]*5|pm25|pm_?2_?5|fine_?particulate)/i, rank: 0 },
+    { pattern: /pm10|coarse_?particulate/i, rank: 1 },
+    { pattern: /\bno2\b|nitrogen_?dioxide/i, rank: 2 },
+    { pattern: /\bo3\b|ozone/i, rank: 3 },
+    { pattern: /\bso2\b|sulfur_?dioxide|sulphur_?dioxide/i, rank: 4 },
+    { pattern: /\bco\b|carbon_?monoxide/i, rank: 5 },
+    { pattern: /\baqi\b|air_?quality_?index/i, rank: 6 },
+  ];
+
+const getAirQualityPriority = (column: string): number => {
+  for (const { pattern, rank } of AIR_QUALITY_POLLUTANT_PRIORITY) {
+    if (pattern.test(column)) return rank;
+  }
+
+  // Non-pollutant metrics (value, reading, concentration) and environmental
+  // variables (temperature, humidity) are pushed below all known pollutants.
+  return 100;
+};
+
 export const normalizeHeader = (value: unknown, index: number) => {
   const text = String(value ?? '')
     .replace(/\s+/g, ' ')
@@ -196,11 +223,18 @@ export const profileDataset = (
 
   const numericColumns = profiles
     .filter(profile => profile.kind === 'numeric')
-    .sort(
-      (a, b) =>
-        getColumnPriority(a.name, METRIC_COLUMN_PATTERN) -
-        getColumnPriority(b.name, METRIC_COLUMN_PATTERN)
-    )
+    .sort((a, b) => {
+      const patternA = getColumnPriority(a.name, METRIC_COLUMN_PATTERN);
+      const patternB = getColumnPriority(b.name, METRIC_COLUMN_PATTERN);
+
+      // Columns matching the metric pattern beat non-matching ones
+      if (patternA !== patternB) return patternA - patternB;
+
+      // Among matching columns, prefer air-quality pollutants (PM2.5 > PM10 >
+      // NO2 > …) over generic metrics (value, reading) and environmental
+      // variables (temperature, humidity).
+      return getAirQualityPriority(a.name) - getAirQualityPriority(b.name);
+    })
     .map(profile => profile.name);
 
   const dimensionColumns = profiles

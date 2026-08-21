@@ -2019,6 +2019,8 @@ export interface DataDownloadResponse {
 // Recent readings types
 export interface RecentReadingRequest {
   site_id: string; // comma-separated site IDs
+  /** Used by the POST path when site_ids.length > RECENT_READINGS_BATCH_SIZE */
+  site_ids?: string[];
 }
 
 export interface AQIRanges {

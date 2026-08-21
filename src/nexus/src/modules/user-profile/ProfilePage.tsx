@@ -15,6 +15,7 @@ import {
   AqCreditCard01,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 
 interface ExtendedSessionUser {
   id?: string;
@@ -74,6 +75,10 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div>
+      {/* Page header */}
+      <div className="flex items-center justify-end mb-4">
+        <AiDrawerTrigger />
+      </div>
       {/* Tab Navigation */}
       <Card className="mb-6">
         <nav className="flex overflow-x-auto scrollbar-hide px-4 sm:px-6">

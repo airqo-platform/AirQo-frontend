@@ -426,25 +426,42 @@ const MapPage: React.FC<MapPageProps> = ({
 
       setSelectedLocationId(locationId);
 
+      // Try to find the corresponding reading in the loaded data so we can
+      // show the location details panel in the sidebar.
+      const matchedReading = readings.find(
+        r => r.site_id === locationId || r._id === locationId
+      );
+
+      if (matchedReading?.siteDetails) {
+        // Dispatch the reading into Redux so the sidebar switches to the
+        // details panel and the map flies to the site coordinates.
+        dispatch(
+          setSelectedLocation({
+            ...matchedReading,
+            lastUpdated:
+              matchedReading.updatedAt || new Date().toISOString(),
+          })
+        );
+      } else {
+        // External location (e.g. Photon search result) — clear any previous
+        // selection so the sidebar reverts to the list, then fly the map.
+        dispatch(clearSelectedLocation());
+      }
+
       const coords = locationData
         ? { longitude: locationData.longitude, latitude: locationData.latitude }
         : (() => {
-            const reading = readings.find(
-              r => r.site_id === locationId || r._id === locationId
-            );
-            if (!reading?.siteDetails) return null;
+            if (!matchedReading?.siteDetails) return null;
             return {
-              longitude: reading.siteDetails.approximate_longitude,
-              latitude: reading.siteDetails.approximate_latitude,
+              longitude: matchedReading.siteDetails.approximate_longitude,
+              latitude: matchedReading.siteDetails.approximate_latitude,
             };
           })();
 
       if (coords) {
-        setFlyToLocation({ ...coords, zoom: 10 });
+        setFlyToLocation({ ...coords, zoom: 12 });
         scheduleFlyToClear();
       }
-
-      dispatch(clearSelectedLocation());
     } catch (error) {
       console.error('Error flying to location:', error);
     }

@@ -46,25 +46,6 @@ const normalizeRecentReadingsResponse = (
   };
 };
 
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  if (!candidate) {
-    return false;
-  }
-
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
-
 export class AnalyticsService {
   private authenticatedClient: ApiClient;
   private serverClient: ApiClient;
@@ -114,104 +95,37 @@ export class AnalyticsService {
       };
     }
 
-    // The backend can fail on larger comma-joined site_id lists, so keep
-    // recent-readings requests small and merge the results for the caller.
-    const siteIdBatches: string[][] = [];
+    // For small lists, use the existing single GET with comma-joined site_ids.
+    // For larger lists, the backend now supports a POST endpoint that accepts
+    // a JSON body, avoiding the request-storm of N parallel batched GETs.
+    if (normalizedSiteIds.length <= RECENT_READINGS_BATCH_SIZE) {
+      const response = await this.serverClient.get<RecentReadingsPayload>(
+        '/devices/readings/recent',
+        {
+          params: {
+            site_id: normalizedSiteIds.join(','),
+          },
+          signal,
+        }
+      );
 
-    for (
-      let index = 0;
-      index < normalizedSiteIds.length;
-      index += RECENT_READINGS_BATCH_SIZE
-    ) {
-      siteIdBatches.push(
-        normalizedSiteIds.slice(index, index + RECENT_READINGS_BATCH_SIZE)
+      return normalizeRecentReadingsResponse(
+        response.data,
+        'Recent readings fetched successfully'
       );
     }
 
-    const responses = await Promise.allSettled(
-      siteIdBatches.map(async siteIdBatch => {
-        const response = await this.serverClient.get<RecentReadingsPayload>(
-          '/devices/readings/recent',
-          {
-            params: {
-              site_id: siteIdBatch.join(','),
-            },
-            signal,
-          }
-        );
-
-        return normalizeRecentReadingsResponse(
-          response.data,
-          'Recent readings fetched successfully'
-        );
-      })
+    // Large site_id list — single POST to the backend.
+    const response = await this.serverClient.post<RecentReadingsPayload>(
+      '/devices/readings/recent',
+      { site_ids: normalizedSiteIds },
+      { signal }
     );
 
-    const abortedResponse = responses.find(
-      (response): response is PromiseRejectedResult =>
-        response.status === 'rejected' &&
-        (signal?.aborted || isAbortError(response.reason))
+    return normalizeRecentReadingsResponse(
+      response.data,
+      'Recent readings fetched successfully'
     );
-
-    if (abortedResponse) {
-      throw abortedResponse.reason;
-    }
-
-    const successfulResponses = responses
-      .filter(
-        (
-          response
-        ): response is PromiseFulfilledResult<RecentReadingsResponse> =>
-          response.status === 'fulfilled'
-      )
-      .map(response => response.value);
-
-    const failedBatches = responses.reduce<
-      { batchIndex: number; siteIds: string[]; error: unknown }[]
-    >((acc, response, idx) => {
-      if (response.status === 'rejected' && !isAbortError(response.reason)) {
-        acc.push({
-          batchIndex: idx,
-          siteIds: siteIdBatches[idx] ?? [],
-          error: response.reason,
-        });
-      }
-      return acc;
-    }, []);
-
-    if (successfulResponses.length === 0) {
-      const failedResponse = responses.find(
-        (response): response is PromiseRejectedResult =>
-          response.status === 'rejected'
-      );
-
-      throw (
-        failedResponse?.reason || new Error('Failed to fetch recent readings')
-      );
-    }
-
-    // Warn about partial failures but still return successful data
-    if (failedBatches.length > 0) {
-      const failedSiteIds = failedBatches.flatMap(b => b.siteIds).join(', ');
-      console.warn(
-        `Partial forecast data: some readings failed to load (sites: ${failedSiteIds}). ` +
-          `${successfulResponses.length}/${responses.length} batches succeeded.`
-      );
-    }
-
-    return {
-      success:
-        successfulResponses.length === responses.length &&
-        successfulResponses.every(response => response.success !== false),
-      message:
-        successfulResponses
-          .map(response => response.message)
-          .filter(Boolean)
-          .join('; ') || 'Recent readings fetched successfully',
-      measurements: successfulResponses.flatMap(
-        response => response.measurements ?? []
-      ),
-    };
   }
 
   // Download data - authenticated endpoint

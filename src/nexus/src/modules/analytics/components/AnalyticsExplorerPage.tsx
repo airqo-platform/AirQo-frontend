@@ -26,6 +26,8 @@ import { useChartManagement } from '../hooks/useChartManagement';
 import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
 import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
+import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -307,7 +309,18 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <AiPageContextProvider
+      value={{
+        pageTitle: 'Air Quality Analysis',
+        pageDescription:
+          'Compare and analyze air quality trends across locations.',
+        data: {
+          chartCount: charts.length,
+          chartTitles: charts.map(c => c.title),
+        },
+      }}
+    >
+      <div className={cn('space-y-4', className)}>
       {/* Compact page header: title, description */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -317,6 +330,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             locations.
           </p>
         </div>
+        <AiDrawerTrigger />
       </div>
 
       {renderTrendsView()}
@@ -360,6 +374,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         </p>
       </ReusableDialog>
     </div>
+    </AiPageContextProvider>
   );
 };
 

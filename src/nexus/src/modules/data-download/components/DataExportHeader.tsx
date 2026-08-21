@@ -8,6 +8,8 @@ import {
   AqRefreshCcw01,
   AqHelpCircle,
   AqAlertTriangle,
+  AqXClose,
+  AqMenu01,
 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
@@ -34,6 +36,7 @@ interface DataExportHeaderProps {
   showHelpBanner?: boolean;
   onToggleHelpBanner?: () => void;
   selectionCount?: number;
+  hasNoData?: boolean;
 }
 
 /**
@@ -62,6 +65,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   showHelpBanner = true,
   onToggleHelpBanner,
   selectionCount = 0,
+  hasNoData = false,
 }) => {
   const [showClearConfirm, setShowClearConfirm] = React.useState(false);
 
@@ -85,9 +89,11 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     onClearSelections();
   };
 
-  const reviewDownloadTooltip = isDownloadReady
-    ? 'Preview your export before downloading'
-    : 'Select a date range, location, and pollutant to enable download';
+  const reviewDownloadTooltip = hasNoData
+    ? 'No measurement data is available for the selected locations, date range, and pollutants. Adjust your filters or choose different locations.'
+    : isDownloadReady
+      ? 'Preview your export before downloading'
+      : 'Select a date range, location, and pollutant to enable download';
 
   return (
     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4 min-w-0">
@@ -104,7 +110,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <span className="sr-only">
                 {sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
               </span>
-              {sidebarOpen ? '✕' : '☰'}
+              {sidebarOpen ? <AqXClose size={16} /> : <AqMenu01 size={16} />}
             </Button>
           </div>
         )}
@@ -166,16 +172,17 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           </Tooltip>
         )}
         {onRefresh && (
-          <Button
-            variant="outlined"
-            onClick={onRefresh}
-            Icon={AqRefreshCcw01}
-            loading={isRefreshing}
-            disabled={isGroupSyncing || isRefreshing}
-            size="sm"
-          >
-            Refresh
-          </Button>
+              <Button
+                variant="outlined"
+                onClick={onRefresh}
+                Icon={AqRefreshCcw01}
+                loading={isRefreshing}
+                disabled={isGroupSyncing || isRefreshing}
+                size="sm"
+                aria-label="Refresh"
+              >
+                Refresh
+              </Button>
         )}
         {hasSelections && (
           <Button
@@ -184,6 +191,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             Icon={AqAnnotationX}
             disabled={isGroupSyncing}
             size="sm"
+            aria-label="Clear all selections"
           >
             Clear All
           </Button>
@@ -207,21 +215,24 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Tooltip content={reviewDownloadTooltip} placement="top">
             <span className="inline-flex">
               <Button
-                variant="filled"
+                variant={hasNoData ? 'outlined' : 'filled'}
                 onClick={onDownload}
                 Icon={AqDownload01}
                 size="sm"
-                disabled={isGroupSyncing || !isDownloadReady || isPreviewLoading || isDownloading}
+                disabled={isGroupSyncing || !isDownloadReady || hasNoData || isPreviewLoading || isDownloading}
                 loading={isPreviewLoading || isDownloading}
-                className="whitespace-nowrap"
+                showTextOnMobile={true}
+                className={hasNoData ? 'text-amber-700 border-amber-300' : 'whitespace-nowrap'}
               >
                 {isPreviewLoading
                   ? 'Loading...'
                   : isDownloading
                     ? 'Downloading...'
-                    : selectionCount > 0
-                      ? `Review & Download (${selectionCount})`
-                      : 'Review & Download'}
+                    : hasNoData
+                      ? 'No Data for Selection'
+                      : selectionCount > 0
+                        ? `Review & Download (${selectionCount})`
+                        : 'Review & Download'}
               </Button>
             </span>
           </Tooltip>

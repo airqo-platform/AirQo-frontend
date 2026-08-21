@@ -16,6 +16,8 @@ import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
 import { MaintenanceBanner } from '../components';
 import { FeedbackLauncher } from '@/modules/feedback';
+import { AiAssistant } from '@/modules/ai/components/AiAssistant';
+import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -35,6 +37,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const theme = useAppSelector(state => state.theme);
   const { isLoading: userLoading, isLoggingOut } = useUser();
+  const { isOpen: isAiDrawerOpen } = useAiAssistantContext();
   useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
 
   return (
@@ -51,7 +54,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <div
             className={cn(
               'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
-              theme.interfaceStyle === 'bordered' && 'border border-border'
+              theme.interfaceStyle === 'bordered' && 'border border-border',
+              isAiDrawerOpen && 'md:pr-[calc(400px+0.375rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
             )}
           >
             {/* Fixed Header */}
@@ -134,6 +138,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             )}
 
             <FeedbackLauncher />
+            <AiAssistant />
           </div>
 
           <GlobalSidebar />

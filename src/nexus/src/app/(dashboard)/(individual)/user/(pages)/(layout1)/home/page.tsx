@@ -11,6 +11,7 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { useEnvironmentAwareUrl } from '@/shared/hooks';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -79,6 +80,7 @@ export default function HomePage() {
               </Button>
             </div>
           </Tooltip>
+          <AiDrawerTrigger />
         </div>
       </div>
 
