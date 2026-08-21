@@ -54,6 +54,30 @@ You also need access to App Store Connect:
 
 Ask the admin to add you with at least **App Manager** role.
 
+### 6. Fastlane + App Store Connect API key (for build number automation)
+The build number (`CFBundleVersion`) no longer needs to be guessed or hand-edited —
+`ios/fastlane` auto-increments it based on what App Store Connect has already seen.
+One-time setup:
+
+```bash
+cd ios
+sudo gem install bundler   # if not already installed
+bundle install
+```
+
+Then get an **App Store Connect API key** (ask the admin to generate one if you don't
+have access):
+1. https://appstoreconnect.apple.com → Users and Access → Integrations → App Store Connect API
+2. Generate a key with **App Manager** access, download the `.p8` file (Apple only lets you download it once)
+3. Note the **Key ID** and **Issuer ID** shown next to it
+
+Export these before running a release build:
+```bash
+export ASC_KEY_ID="XXXXXXXXXX"
+export ASC_ISSUER_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+export ASC_KEY_PATH="/absolute/path/to/AuthKey_XXXXXXXXXX.p8"
+```
+
 ---
 
 ## First-Time Repository Setup
@@ -78,15 +102,18 @@ cd ..
 
 ## Before Every Release
 
-### 1. Confirm the version number
+### 1. Confirm the marketing version number
 In `pubspec.yaml` (project root):
 ```yaml
 version: 3.0.4+1   # format is: marketing_version+build_number
 ```
-- `3.0.4` → shown to users on the App Store (`CFBundleShortVersionString`)
-- `+1` → build number, must be **higher than the last uploaded build** (`CFBundleVersion`)
-
-The build number in Xcode must also be bumped. Open `ios/Runner.xcworkspace` → Runner target → General tab → confirm both Version and Build match `pubspec.yaml`.
+- `3.0.4` is the only part you still need to bump by hand — it's what's shown to
+  users on the App Store (`CFBundleShortVersionString`). Bump it for a new release
+  as usual (semver-ish: patch for fixes, minor for features).
+- The `+1` build number **no longer needs to be edited manually**. `bundle exec
+  fastlane ios release` (see "Building the App" below) asks App Store Connect for
+  the highest build number it has ever seen and bumps past it automatically, so
+  nobody has to guess or remember the last uploaded build number.
 
 ### 2. Pull the latest code from `staging`
 ```bash
@@ -100,7 +127,16 @@ cd ios && pod install && cd ..
 
 ## Building the App
 
-### Option A: Command Line (recommended)
+### Option A: Fastlane (recommended — builds, bumps build number, and uploads to TestFlight)
+```bash
+# From the mobile/ios/ directory, with ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_PATH exported (see Prerequisites #6)
+bundle exec fastlane ios release
+```
+This queries App Store Connect for the last build number, bumps it, runs
+`flutter build ipa --release --build-number=<n>`, and uploads the result to
+TestFlight in one step. Skip to "Submitting for Review" once it finishes.
+
+### Option B: Command Line, manual build only (no auto-versioning)
 ```bash
 # From the mobile/ directory
 flutter build ipa --release
@@ -110,13 +146,15 @@ The `.ipa` file will be at:
 ```text
 build/ios/ipa/airqo.ipa
 ```
+If you build this way, you're responsible for bumping the build number in
+`pubspec.yaml` yourself and making sure it's higher than the last uploaded build.
 
 If you get signing errors, use:
 ```bash
 flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 ```
 
-### Option B: Xcode Archive (if command line fails)
+### Option C: Xcode Archive (if command line fails)
 1. Open `ios/Runner.xcworkspace` in Xcode
 2. Select **Any iOS Device (arm64)** as the build target (not a simulator)
 3. Menu: **Product → Archive**
@@ -137,6 +175,10 @@ If you see a provisioning profile error:
 ---
 
 ## Uploading to App Store Connect
+
+> If you used `bundle exec fastlane ios release` above, the upload already happened
+> — skip to "Submitting for Review". The options below are for builds made manually
+> (Option B/C above).
 
 ### Option A: From Xcode Organizer
 1. After archiving, the Organizer opens automatically
@@ -199,7 +241,7 @@ If you need to regenerate it (e.g., it was accidentally deleted):
 |---|---|
 | `No signing certificate` | Xcode → Settings → Accounts → Download Manual Profiles |
 | `Provisioning profile doesn't include bundle ID` | Check bundle ID is `com.airqo.net` in Xcode signing settings |
-| `Build number already exists` | Bump the build number in `pubspec.yaml` (`+N` must be higher than previous upload) |
+| `Build number already exists` | If you skipped fastlane and built manually, bump the build number in `pubspec.yaml` (`+N` must be higher than previous upload). Using `bundle exec fastlane ios release` avoids this entirely. |
 | `Pod install fails` | Run `cd ios && pod repo update && pod install` |
 | `flutter build ipa` fails with Xcode error | Run `flutter clean && flutter pub get && cd ios && pod install` then retry |
 | Build processes fine but crashes on device | Make sure you built with `--release`, not `--debug` |
@@ -213,11 +255,11 @@ If you need to regenerate it (e.g., it was accidentally deleted):
 - [ ] On a Mac with Xcode installed
 - [ ] Added to Apple Developer team (`DFMDF9D6NT`)
 - [ ] Added to App Store Connect with App Manager role
-- [ ] `pubspec.yaml` version and build number updated
+- [ ] `pubspec.yaml` marketing version bumped (build number is automatic via fastlane)
 - [ ] `git pull` latest from `staging`
 - [ ] `flutter pub get` + `pod install` done
-- [ ] `flutter build ipa --release` succeeds
-- [ ] `.ipa` uploaded via Xcode Organizer or Transporter
+- [ ] `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_KEY_PATH` exported
+- [ ] `bundle exec fastlane ios release` succeeds (builds + uploads to TestFlight)
 - [ ] Build appears in App Store Connect (wait ~15 min after upload)
 - [ ] Release notes written
 - [ ] Submitted for review
