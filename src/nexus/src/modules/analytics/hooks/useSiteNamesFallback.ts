@@ -14,7 +14,7 @@ import { fetchAllSitesSummary } from '@/shared/services/siteSummary';
  * endpoint isn't available. Long stale time — the fleet's names barely
  * change, and the page revalidates nothing else this heavy.
  */
-const SITES_SUMMARY_STALE_MS = 1000 * 60 * 30;
+const SITES_SUMMARY_STALE_MS = 1000 * 60 * 60;
 const SITES_SUMMARY_GC_MS = 1000 * 60 * 60 * 12;
 export const useSiteNamesFallback = (enabled = true) => {
   const { data, isLoading } = useQuery({

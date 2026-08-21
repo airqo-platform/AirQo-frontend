@@ -11,10 +11,6 @@ import {
   useCopyGroupChart,
 } from '@/shared/hooks/useGroupCharts';
 import {
-  useComparisonReadings,
-  extractReadingNames,
-} from './useComparisonReadings';
-import {
   useSiteNamesFallback,
   useMergeFallbackNames,
 } from './useSiteNamesFallback';
@@ -182,23 +178,15 @@ export const useChartManagement = (
     [charts]
   );
 
-  // Resolve display names from the latest readings (shared cache with the
-  // location detail page) so chart legends never show raw ids.
-  const { data: readingsForNames } = useComparisonReadings(
-    allSiteIds,
-    allSiteIds.length > 0
-  );
-  useEffect(() => {
-    if (!readingsForNames || readingsForNames.length === 0) return;
-    const names = extractReadingNames(readingsForNames);
-    if (names.size > 0) handleNamesResolved(names);
-  }, [readingsForNames, handleNamesResolved]);
-
-  // Fleet-wide site-name fallback: fills names the picker sidecar/readings
-  // couldn't provide (e.g. charts built on another browser), so "Unknown
-  // location" and raw ids never surface in the table/summary.
+  // Fleet-wide site-name fallback: fills names the sidecar couldn't provide
+  // (e.g. charts built on another browser), so "Unknown location" and raw
+  // ids never surface in the table/summary.  Only fires when at least one
+  // chart exists AND some site ids still lack a display name.
+  const missingSiteIds = useMemo(() => {
+    return allSiteIds.filter(id => !siteNames.has(id));
+  }, [allSiteIds, siteNames]);
   const { names: fallbackSiteNames } = useSiteNamesFallback(
-    enabled && charts.length > 0
+    enabled && charts.length > 0 && missingSiteIds.length > 0
   );
   useMergeFallbackNames(siteNames, fallbackSiteNames, handleNamesResolved);
 
