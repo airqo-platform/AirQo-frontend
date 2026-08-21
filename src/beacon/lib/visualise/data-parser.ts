@@ -300,12 +300,16 @@ export async function parseCSVFileStream(
     const chunkText = leftover + textDecoder.decode(buffer, { stream: nextOffset < fileSize })
     leftover = ""
 
-    // Line splitting with quote state tracking
+    // Line splitting with RFC 4180 quote state tracking
     let lineStart = 0
     for (let i = 0; i < chunkText.length; i++) {
       const char = chunkText[i]
       if (char === '"') {
-        inQuotes = !inQuotes
+        if (inQuotes && chunkText[i + 1] === '"') {
+          i++ // skip escaped quote ("") inside quoted field
+        } else {
+          inQuotes = !inQuotes
+        }
       } else if (!inQuotes && (char === "\n" || char === "\r")) {
         const line = chunkText.substring(lineStart, i).trim()
         if (char === "\r" && chunkText[i + 1] === "\n") {
@@ -320,20 +324,29 @@ export async function parseCSVFileStream(
             )
           } else {
             totalRowsSeen++
-            const shouldSample =
-              sampleMode === "uniform"
-                ? totalRowsSeen % sampleStep === 0
-                : collectedRows.length < maxRows
+            const fields = parseCSVLine(line, delimiter)
+            const rowObj: Record<string, any> = {}
+            for (let c = 0; c < headers.length; c++) {
+              const header = headers[c]
+              const val = fields[c] ?? ""
+              rowObj[header] = val === "" ? null : val
+            }
 
-            if (shouldSample && collectedRows.length < maxRows) {
-              const fields = parseCSVLine(line, delimiter)
-              const rowObj: Record<string, any> = {}
-              for (let c = 0; c < headers.length; c++) {
-                const header = headers[c]
-                const val = fields[c] ?? ""
-                rowObj[header] = val === "" ? null : val
+            if (sampleMode === "uniform") {
+              // Reservoir / adaptive sampling across full file
+              if (collectedRows.length < maxRows) {
+                collectedRows.push(rowObj)
+              } else {
+                const j = Math.floor(Math.random() * totalRowsSeen)
+                if (j < maxRows) {
+                  collectedRows[j] = rowObj
+                }
               }
-              collectedRows.push(rowObj)
+            } else {
+              // Head mode
+              if (collectedRows.length < maxRows) {
+                collectedRows.push(rowObj)
+              }
             }
           }
         }
@@ -365,24 +378,28 @@ export async function parseCSVFileStream(
   // Handle final leftover line
   if (leftover.trim().length > 0 && headers) {
     totalRowsSeen++
+    const fields = parseCSVLine(leftover.trim(), delimiter)
+    const rowObj: Record<string, any> = {}
+    for (let c = 0; c < headers.length; c++) {
+      const header = headers[c]
+      const val = fields[c] ?? ""
+      rowObj[header] = val === "" ? null : val
+    }
+
     if (collectedRows.length < maxRows) {
-      const fields = parseCSVLine(leftover.trim(), delimiter)
-      const rowObj: Record<string, any> = {}
-      for (let c = 0; c < headers.length; c++) {
-        const header = headers[c]
-        const val = fields[c] ?? ""
-        rowObj[header] = val === "" ? null : val
-      }
       collectedRows.push(rowObj)
+    } else if (sampleMode === "uniform") {
+      const j = Math.floor(Math.random() * totalRowsSeen)
+      if (j < maxRows) {
+        collectedRows[j] = rowObj
+      }
     }
   }
 
-  const finalTotalRows = Math.max(totalRowsSeen, estimatedTotalRows)
-
   return {
     data: collectedRows,
-    totalFileRows: finalTotalRows,
-    totalEstimatedRows: finalTotalRows,
+    totalFileRows: totalRowsSeen,
+    totalEstimatedRows: totalRowsSeen,
     isSampled: totalRowsSeen > collectedRows.length,
     headers: headers || [],
   }
@@ -447,9 +464,10 @@ export function profileDataset(
     }
   }
 
-  // Get union of all keys
+  // Get union of all keys across up to 5,000 sample rows
   const columnSet = new Set<string>()
-  for (const row of rawData.slice(0, 50)) {
+  const sampleScan = rawData.slice(0, 5000)
+  for (const row of sampleScan) {
     Object.keys(row).forEach((k) => columnSet.add(k))
   }
   const columns = Array.from(columnSet)
@@ -590,12 +608,15 @@ export function profileDataset(
       }
     })
 
+    const errorVals = new Set(data.map((r) => r[derivedError]).filter((v) => v !== null))
+    const avgVals = new Set(data.map((r) => r[derivedAvg]).filter((v) => v !== null))
+
     columnProfiles[derivedError] = {
       name: derivedError,
       type: "number",
       totalCount: data.length,
       nullCount: data.filter((r) => r[derivedError] === null).length,
-      uniqueCount: 100,
+      uniqueCount: errorVals.size,
     }
 
     columnProfiles[derivedAvg] = {
@@ -603,7 +624,7 @@ export function profileDataset(
       type: "number",
       totalCount: data.length,
       nullCount: data.filter((r) => r[derivedAvg] === null).length,
-      uniqueCount: 100,
+      uniqueCount: avgVals.size,
     }
   }
 
@@ -618,58 +639,53 @@ export function profileDataset(
 }
 
 // Calculate Pearson Correlation, R2, Slope, Intercept, and MAE for scatter plots
-export function calculateCorrelation(
-  data: Record<string, any>[],
-  xCol: string,
-  yCol: string
-): CorrelationStats | null {
-  const pairs: Array<{ x: number; y: number }> = []
+export function calculateCorrelationStats(
+  points: Array<{ x: number; y: number }>
+): {
+  r: number
+  r2: number
+  slope: number
+  intercept: number
+  mae: number
+  count: number
+} | null {
+  const valid = points.filter(
+    (p) =>
+      typeof p.x === "number" &&
+      typeof p.y === "number" &&
+      !isNaN(p.x) &&
+      !isNaN(p.y)
+  )
 
-  for (const row of data) {
-    const x = row[xCol]
-    const y = row[yCol]
-    if (typeof x === "number" && typeof y === "number" && !isNaN(x) && !isNaN(y)) {
-      pairs.push({ x, y })
-    }
-  }
+  const n = valid.length
+  if (n < 2) return null
 
-  if (pairs.length < 2) return null
-
-  const n = pairs.length
   let sumX = 0
   let sumY = 0
   let sumXY = 0
   let sumX2 = 0
   let sumY2 = 0
 
-  for (const { x, y } of pairs) {
-    sumX += x
-    sumY += y
-    sumXY += x * y
-    sumX2 += x * x
-    sumY2 += y * y
+  for (const p of valid) {
+    sumX += p.x
+    sumY += p.y
+    sumXY += p.x * p.y
+    sumX2 += p.x * p.x
+    sumY2 += p.y * p.y
   }
 
-  const numerator = n * sumXY - sumX * sumY
-  const denom = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+  if (denominator === 0) return null
 
-  if (denom === 0) return null
-
-  const r = numerator / denom
+  const r = (n * sumXY - sumX * sumY) / denominator
   const r2 = r * r
 
-  // Linear regression line: y = slope * x + intercept
-  const slopeDenom = n * sumX2 - sumX * sumX
-  const slope = slopeDenom !== 0 ? (n * sumXY - sumX * sumY) / slopeDenom : 0
+  const xVariance = n * sumX2 - sumX * sumX
+  const slope = xVariance !== 0 ? (n * sumXY - sumX * sumY) / xVariance : 0
   const intercept = (sumY - slope * sumX) / n
 
-  // Mean Absolute Error (MAE)
-  let absErrorSum = 0
-  for (const { x, y } of pairs) {
-    const predY = slope * x + intercept
-    absErrorSum += Math.abs(y - predY)
-  }
-  const mae = absErrorSum / n
+  // Calculate Mean Absolute Error (MAE) between Sensor 1 and Sensor 2
+  const mae = valid.reduce((acc, p) => acc + Math.abs(p.x - p.y), 0) / n
 
   return {
     r: Number(r.toFixed(4)),
@@ -679,6 +695,15 @@ export function calculateCorrelation(
     mae: Number(mae.toFixed(2)),
     count: n,
   }
+}
+
+export function calculateCorrelation(
+  data: Record<string, any>[],
+  xCol: string,
+  yCol: string
+) {
+  const points = data.map((r) => ({ x: r[xCol], y: r[yCol] }))
+  return calculateCorrelationStats(points)
 }
 
 // Apply user filters
@@ -699,18 +724,46 @@ export function applyFilters(
         case "neq":
           if (String(val).toLowerCase() === String(f.value).toLowerCase()) return false
           break
-        case "gt":
-          if (typeof val !== "number" || val <= Number(f.value)) return false
+        case "gt": {
+          const numVal = typeof val === "number" ? val : Number(val)
+          const filterNum = Number(f.value)
+          if (!isNaN(numVal) && !isNaN(filterNum)) {
+            if (numVal <= filterNum) return false
+          } else {
+            if (String(val) <= String(f.value)) return false
+          }
           break
-        case "gte":
-          if (typeof val !== "number" || val < Number(f.value)) return false
+        }
+        case "gte": {
+          const numVal = typeof val === "number" ? val : Number(val)
+          const filterNum = Number(f.value)
+          if (!isNaN(numVal) && !isNaN(filterNum)) {
+            if (numVal < filterNum) return false
+          } else {
+            if (String(val) < String(f.value)) return false
+          }
           break
-        case "lt":
-          if (typeof val !== "number" || val >= Number(f.value)) return false
+        }
+        case "lt": {
+          const numVal = typeof val === "number" ? val : Number(val)
+          const filterNum = Number(f.value)
+          if (!isNaN(numVal) && !isNaN(filterNum)) {
+            if (numVal >= filterNum) return false
+          } else {
+            if (String(val) >= String(f.value)) return false
+          }
           break
-        case "lte":
-          if (typeof val !== "number" || val > Number(f.value)) return false
+        }
+        case "lte": {
+          const numVal = typeof val === "number" ? val : Number(val)
+          const filterNum = Number(f.value)
+          if (!isNaN(numVal) && !isNaN(filterNum)) {
+            if (numVal > filterNum) return false
+          } else {
+            if (String(val) > String(f.value)) return false
+          }
           break
+        }
         case "contains":
           if (!String(val).toLowerCase().includes(String(f.value).toLowerCase())) return false
           break
@@ -729,13 +782,11 @@ export function aggregateDataset({
   xColumn,
   yColumns,
   aggregation,
-  groupByColumn,
 }: {
   data: Record<string, any>[]
   xColumn: string
   yColumns: string[]
   aggregation: AggregationType
-  groupByColumn?: string
 }): Record<string, any>[] {
   if (!xColumn || yColumns.length === 0) return []
 
@@ -856,7 +907,7 @@ export function aggregateDataset({
   })
 }
 
-// Generate histogram bins for single numeric metric
+// Generate histogram bins for single numeric metric with linear stack-safe min/max
 export function generateHistogramData(
   data: Record<string, any>[],
   column: string,
@@ -868,8 +919,13 @@ export function generateHistogramData(
 
   if (numericValues.length === 0) return []
 
-  const min = Math.min(...numericValues)
-  const max = Math.max(...numericValues)
+  let min = numericValues[0]
+  let max = numericValues[0]
+  for (let i = 1; i < numericValues.length; i++) {
+    const v = numericValues[i]
+    if (v < min) min = v
+    if (v > max) max = v
+  }
 
   if (min === max) {
     return [{ bin: `${min}`, count: numericValues.length, min, max }]

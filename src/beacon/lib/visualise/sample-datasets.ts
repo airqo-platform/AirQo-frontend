@@ -1,3 +1,5 @@
+import { getAQICategory } from "./column-mapper"
+
 export interface SampleDatasetInfo {
   id: string
   title: string
@@ -37,10 +39,7 @@ const generateAirQualityTimeseries = (): string => {
       const humidity = Number((82 - (temp - 20) * 4 + (Math.random() * 4 - 2)).toFixed(1))
       const battery = Number((4.12 - (hour % 24 > 18 || hour % 24 < 6 ? 0.35 : 0) + (Math.random() * 0.05)).toFixed(2))
 
-      let aqiCategory = "Good"
-      if (pm2_5 > 55.4) aqiCategory = "Unhealthy"
-      else if (pm2_5 > 35.4) aqiCategory = "Unhealthy for Sensitive Groups"
-      else if (pm2_5 > 12.0) aqiCategory = "Moderate"
+      const aqiCategory = getAQICategory(pm2_5).category
 
       rows.push(
         `${timeStr},${s.device},${s.site},${pm2_5},${pm10},${temp},${humidity},${battery},${aqiCategory}`

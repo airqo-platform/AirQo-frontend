@@ -113,8 +113,8 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
   // Scatter Correlation Statistics (R², slope, intercept, MAE)
   const correlationStats = useMemo(() => {
     if (config.chartType !== "scatter" || !config.xColumn || !config.yColumns[0]) return null
-    return calculateCorrelation(dataset.data, config.xColumn, config.yColumns[0])
-  }, [config.chartType, config.xColumn, config.yColumns, dataset.data])
+    return calculateCorrelation(processedData, config.xColumn, config.yColumns[0])
+  }, [config.chartType, config.xColumn, config.yColumns, processedData])
 
   // Format X-axis tick values for dates or long strings
   const formatXAxisTick = (val: any) => {
@@ -135,9 +135,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       }
     }
 
-    if (str.length > 18) {
-      return str.substring(0, 15) + "..."
-    }
+    if (str.length > 14) return `${str.substring(0, 12)}…`
     return str
   }
 
@@ -156,53 +154,47 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
     return String(label)
   }
 
-  // Export Chart as PNG
+  // Export as PNG
   const handleExportPNG = async () => {
     if (!chartCardRef.current) return
     setIsExporting(true)
-
     try {
-      toast.info("Generating high-resolution image...")
+      const html2canvas = (await import("html2canvas")).default
       const canvas = await html2canvas(chartCardRef.current, {
         scale: 2,
-        useCORS: true,
         backgroundColor: "#ffffff",
-        logging: false,
       })
-
-      const image = canvas.toDataURL("image/png")
+      const dataUrl = canvas.toDataURL("image/png")
       const link = document.createElement("a")
       link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.png`
-      link.href = image
+      link.href = dataUrl
       link.click()
-      toast.success("Chart exported as PNG image.")
+      toast.success("Chart exported as high-resolution PNG image.")
     } catch (err) {
-      console.error(err)
-      toast.error("Failed to export image.")
+      toast.error("Failed to export chart image.")
     } finally {
       setIsExporting(false)
     }
   }
 
-  // Export Chart as SVG
+  // Export as SVG
   const handleExportSVG = () => {
     if (!chartCardRef.current) return
-    const svgElement = chartCardRef.current.querySelector("svg")
-    if (!svgElement) {
-      toast.error("No SVG chart found to export.")
-      return
-    }
-
     try {
-      const serializer = new XMLSerializer()
-      const svgString = serializer.serializeToString(svgElement)
-      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" })
+      const svgElement = chartCardRef.current.querySelector("svg")
+      if (!svgElement) {
+        toast.error("No SVG chart found to export.")
+        return
+      }
+
+      const svgData = new XMLSerializer().serializeToString(svgElement)
+      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" })
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.svg`
       link.href = url
       link.click()
-      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
       toast.success("Chart exported as SVG vector.")
     } catch (err) {
       toast.error("Failed to export SVG.")

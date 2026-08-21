@@ -40,9 +40,10 @@ import type { ParsedDataset, ColumnProfile } from "@/lib/visualise/data-parser"
 
 interface DataTablePreviewProps {
   dataset: ParsedDataset
+  records?: Record<string, any>[]
 }
 
-export function DataTablePreview({ dataset }: DataTablePreviewProps) {
+export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(15)
@@ -52,10 +53,11 @@ export function DataTablePreview({ dataset }: DataTablePreviewProps) {
 
   const columns = dataset.columns
   const profiles = dataset.columnProfiles
+  const baseData = records || dataset.data
 
   // Filter & sort data
   const filteredData = useMemo(() => {
-    let result = dataset.data
+    let result = baseData
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
@@ -86,7 +88,7 @@ export function DataTablePreview({ dataset }: DataTablePreviewProps) {
     }
 
     return result
-  }, [dataset.data, searchQuery, sortColumn, sortDirection, columns])
+  }, [baseData, searchQuery, sortColumn, sortDirection, columns])
 
   // Pagination slice
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize))

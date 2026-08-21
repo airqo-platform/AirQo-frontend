@@ -19,29 +19,16 @@ import {
 import {
   BarChart3,
   PieChart as PieChartIcon,
-  Layers,
-  Activity,
-  CheckCircle2,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
-import { getAQICategory } from "@/lib/visualise/column-mapper"
+import { getAQICategory, AQI_COLORS } from "@/lib/visualise/column-mapper"
 
 interface CohortSummaryViewProps {
   records: StandardizedRecord[]
 }
 
-const AQI_COLORS: Record<string, string> = {
-  Good: "#45ae03",
-  Moderate: "#e5cc16",
-  Sensitive: "#ff9800",
-  Unhealthy: "#d32f2f",
-  "Very Unhealthy": "#8e24aa",
-  Hazardous: "#5d4037",
-  Unknown: "#94a3b8",
-}
-
 export function CohortSummaryView({ records }: CohortSummaryViewProps) {
-  // Device Comparison Aggregations
+  // Device Comparison Aggregations (sorted by avgPm25 desc)
   const deviceStats = useMemo(() => {
     const map = new Map<
       string,
@@ -76,14 +63,16 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
 
     const avg = (arr: number[]) => (arr.length > 0 ? Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)) : 0)
 
-    return Array.from(map.values()).map((d) => ({
-      device: d.deviceName,
-      records: d.count,
-      avgPm25: avg(d.pm25Arr),
-      avgPm10: avg(d.pm10Arr),
-      avgBattery: avg(d.batteryArr),
-      avgError: avg(d.errorArr),
-    }))
+    return Array.from(map.values())
+      .map((d) => ({
+        device: d.deviceName,
+        records: d.count,
+        avgPm25: avg(d.pm25Arr),
+        avgPm10: avg(d.pm10Arr),
+        avgBattery: avg(d.batteryArr),
+        avgError: avg(d.errorArr),
+      }))
+      .sort((a, b) => b.avgPm25 - a.avgPm25)
   }, [records])
 
   // AQI Severity Distribution
@@ -95,14 +84,15 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
       Unhealthy: 0,
       "Very Unhealthy": 0,
       Hazardous: 0,
+      Unknown: 0,
     }
 
     for (const r of records) {
-      if (r.pm25 !== null) {
-        const cat = getAQICategory(r.pm25).category
-        if (counts[cat] !== undefined) {
-          counts[cat]++
-        }
+      const cat = getAQICategory(r.pm25).category
+      if (counts[cat] !== undefined) {
+        counts[cat]++
+      } else {
+        counts.Unknown = (counts.Unknown || 0) + 1
       }
     }
 
@@ -114,6 +104,16 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
         color: AQI_COLORS[name] || "#94a3b8",
       }))
   }, [records])
+
+  if (records.length === 0) {
+    return (
+      <Card className="border-slate-200 shadow-sm bg-white">
+        <CardContent className="p-12 text-center text-slate-500 text-xs">
+          No records available to display cohort summary.
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">

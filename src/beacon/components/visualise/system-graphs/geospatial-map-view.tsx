@@ -1,11 +1,32 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useMemo } from "react"
+import React, { useEffect, useRef, useMemo } from "react"
+import "leaflet/dist/leaflet.css"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Navigation, Activity, Battery, Thermometer, Layers, AlertCircle } from "lucide-react"
+import { MapPin } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
-import { getAQICategory } from "@/lib/visualise/column-mapper"
+import { getAQICategory, AQI_CATEGORIES } from "@/lib/visualise/column-mapper"
+
+const escapeHtml = (v: unknown): string => {
+  if (v === null || v === undefined) return ""
+  return String(v).replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case "&":
+        return "&amp;"
+      case "<":
+        return "&lt;"
+      case ">":
+        return "&gt;"
+      case '"':
+        return "&quot;"
+      case "'":
+        return "&#39;"
+      default:
+        return c
+    }
+  })
+}
 
 interface GeospatialMapViewProps {
   records: StandardizedRecord[]
@@ -14,7 +35,6 @@ interface GeospatialMapViewProps {
 export function GeospatialMapView({ records }: GeospatialMapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
-  const [leafletLoaded, setLeafletLoaded] = useState(false)
 
   // Filter records with valid coordinates
   const validGeoRecords = useMemo(() => {
@@ -64,8 +84,6 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
 
       try {
         const L = (await import("leaflet")).default
-        // Import CSS
-        import("leaflet/dist/leaflet.css")
 
         if (!isMounted) return
 
@@ -117,19 +135,27 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
             fillOpacity: 0.85,
           }).addTo(map)
 
-          // Popup HTML
+          // Popup HTML (properly escaped against XSS)
+          const safeDeviceName = escapeHtml(dev.deviceName)
+          const safeCategory = escapeHtml(aqi.category)
+          const safePm25 = rec.pm25 !== null ? `${escapeHtml(rec.pm25)} µg/m³` : "N/A"
+          const safeS1Pm25 = rec.s1Pm25 !== null ? `<div><b>S1 PM2.5:</b> ${escapeHtml(rec.s1Pm25)} µg/m³</div>` : ""
+          const safeS2Pm25 = rec.s2Pm25 !== null ? `<div><b>S2 PM2.5:</b> ${escapeHtml(rec.s2Pm25)} µg/m³</div>` : ""
+          const safeBattery = rec.battery !== null ? `<div><b>Battery:</b> ${escapeHtml(rec.battery)} V</div>` : ""
+          const safeTemp = rec.primaryTemp !== null ? `<div><b>Temp:</b> ${escapeHtml(rec.primaryTemp)} °C</div>` : ""
+
           const popupHtml = `
             <div style="font-family: system-ui, sans-serif; min-width: 180px; font-size: 12px; line-height: 1.4;">
-              <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px; font-size: 13px;">${dev.deviceName}</div>
+              <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px; font-size: 13px;">${safeDeviceName}</div>
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <span style="background: ${aqi.color}; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px;">${aqi.category}</span>
-                <span style="color: #64748b; font-family: monospace; font-size: 11px;">${rec.pm25 !== null ? rec.pm25 + ' µg/m³' : 'N/A'}</span>
+                <span style="background: ${aqi.color}; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px;">${safeCategory}</span>
+                <span style="color: #64748b; font-family: monospace; font-size: 11px;">${safePm25}</span>
               </div>
               <div style="color: #334155; font-size: 11px; border-top: 1px solid #f1f5f9; padding-top: 4px; margin-top: 4px;">
-                ${rec.s1Pm25 !== null ? `<div><b>S1 PM2.5:</b> ${rec.s1Pm25} µg/m³</div>` : ''}
-                ${rec.s2Pm25 !== null ? `<div><b>S2 PM2.5:</b> ${rec.s2Pm25} µg/m³</div>` : ''}
-                ${rec.battery !== null ? `<div><b>Battery:</b> ${rec.battery} V</div>` : ''}
-                ${rec.primaryTemp !== null ? `<div><b>Temp:</b> ${rec.primaryTemp} °C</div>` : ''}
+                ${safeS1Pm25}
+                ${safeS2Pm25}
+                ${safeBattery}
+                ${safeTemp}
                 <div style="color: #94a3b8; font-size: 10px; margin-top: 4px;">Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}</div>
               </div>
             </div>
@@ -150,8 +176,6 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
         if (devicesMap.length > 1 && bounds.isValid()) {
           map.fitBounds(bounds, { padding: [40, 40] })
         }
-
-        setLeafletLoaded(true)
       } catch (err) {
         console.error("Leaflet map initialization error:", err)
       }
@@ -213,12 +237,12 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
           <div className="flex items-center gap-3">
             <span className="font-semibold text-slate-700">AQI Index:</span>
             <div className="flex items-center gap-1.5 font-mono text-[11px]">
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#45ae03]" /> Good</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#e5cc16]" /> Moderate</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#ff9800]" /> Sensitive</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#d32f2f]" /> Unhealthy</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#8e24aa]" /> Very Unhealthy</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#5d4037]" /> Hazardous</span>
+              {AQI_CATEGORIES.filter((c) => c.category !== "Unknown").map((cat) => (
+                <span key={cat.category} className="inline-flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                  {cat.category}
+                </span>
+              ))}
             </div>
           </div>
 

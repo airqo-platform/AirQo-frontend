@@ -167,7 +167,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
   }
 
   // Handle pasted text submit
-  const handlePasteSubmit = () => {
+  const handlePasteSubmit = async () => {
     if (!pastedText.trim()) {
       toast.error("Please paste CSV or JSON data first.")
       return
@@ -175,6 +175,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
 
     setIsProcessing(true)
     setError(null)
+    await new Promise((res) => setTimeout(res, 20))
 
     try {
       let data: Record<string, any>[] = []
@@ -329,7 +330,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-center gap-2 max-w-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1 text-left">{error}</span>
-              <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+              <button onClick={() => setError(null)} aria-label="Dismiss error" className="text-red-400 hover:text-red-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -349,8 +350,9 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
 
           <div className="space-y-4 py-2">
             <div>
-              <label className="text-xs font-medium text-slate-700 block mb-1">Dataset Name</label>
+              <label htmlFor="paste-dataset-name" className="text-xs font-medium text-slate-700 block mb-1">Dataset Name</label>
               <Input
+                id="paste-dataset-name"
                 value={pasteDatasetName}
                 onChange={(e) => setPasteDatasetName(e.target.value)}
                 placeholder="e.g. Field Calibration Run"
@@ -359,8 +361,9 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             </div>
 
             <div>
-              <label className="text-xs font-medium text-slate-700 block mb-1">Raw CSV or JSON Text</label>
+              <label htmlFor="paste-raw-text" className="text-xs font-medium text-slate-700 block mb-1">Raw CSV or JSON Text</label>
               <Textarea
+                id="paste-raw-text"
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder={`created_at,device_name,Sensor1 PM2.5,Sensor2 PM2.5\n2025-08-19 08:00:00,AQ_01,24.5,23.8\n2025-08-19 09:00:00,AQ_01,28.1,27.9`}
@@ -374,8 +377,8 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             <Button variant="outline" onClick={() => setIsPasteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handlePasteSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Parse & Visualise Data
+            <Button onClick={handlePasteSubmit} disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {isProcessing ? "Processing..." : "Parse & Visualise Data"}
             </Button>
           </DialogFooter>
         </DialogContent>

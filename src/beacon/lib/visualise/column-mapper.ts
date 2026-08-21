@@ -56,7 +56,7 @@ export function autoDetectColumnMapping(
 
   // 7. Temperature (allow multiple)
   const tempCandidates = columns.filter((c) =>
-    /temp|temperature|deg_?c|celsius/i.test(c) && !/humidity|battery|error/i.test(c)
+    /(^|[^a-z])(temp|temperature|deg_?c|celsius)([^a-z]|$)/i.test(c) && !/humidity|battery|error/i.test(c)
   )
   if (tempCandidates.length > 0) {
     mapping.tempCols = tempCandidates
@@ -64,7 +64,7 @@ export function autoDetectColumnMapping(
 
   // 8. Humidity (allow multiple)
   const humidityCandidates = columns.filter((c) =>
-    /humid|humidity|rh|rel_?humidity/i.test(c) && !/temp|battery|error/i.test(c)
+    /(^|[^a-z])(humid|humidity|rh|rel_?humidity)([^a-z]|$)/i.test(c) && !/temp|battery|error/i.test(c)
   )
   if (humidityCandidates.length > 0) {
     mapping.humidityCols = humidityCandidates
@@ -72,17 +72,17 @@ export function autoDetectColumnMapping(
 
   // 9. Battery Voltage
   mapping.batteryCol = columns.find((c) =>
-    /battery|batt_?volt|voltage|vbatt/i.test(c)
+    /(^|[^a-z])(battery|batt_?volt|voltage|vbatt)([^a-z]|$)/i.test(c)
   )
 
-  // 10. Latitude & Longitude
+  // 10. Latitude & Longitude (ensure lat does not match re-lat-ive)
   mapping.latitudeCol = columns.find((c) =>
     /^(latitude|lat|gps_lat|y)$/i.test(c.trim())
-  ) || columns.find((c) => /latitude|lat/i.test(c))
+  ) || columns.find((c) => /(^|[^a-z])(latitude|lat)([^a-z]|$)/i.test(c))
 
   mapping.longitudeCol = columns.find((c) =>
     /^(longitude|long|lng|lon|gps_lng|gps_lon|x)$/i.test(c.trim())
-  ) || columns.find((c) => /longitude|long|lng/i.test(c))
+  ) || columns.find((c) => /(^|[^a-z])(longitude|long|lng|lon)([^a-z]|$)/i.test(c))
 
   // 11. GPS / ExtraData
   mapping.gpsCol = columns.find((c) => /gps/i.test(c))
@@ -97,6 +97,34 @@ export function autoDetectColumnMapping(
   }
 
   return mapping
+}
+
+export interface AQICategoryDefinition {
+  category: string
+  color: string
+  label: string
+  minPm25: number
+  maxPm25: number | null
+}
+
+export const AQI_CATEGORIES: AQICategoryDefinition[] = [
+  { category: "Good", color: "#45ae03", label: "Good (0-9.0)", minPm25: 0, maxPm25: 9.0 },
+  { category: "Moderate", color: "#e5cc16", label: "Moderate (9.1-35.4)", minPm25: 9.1, maxPm25: 35.4 },
+  { category: "Sensitive", color: "#ff9800", label: "Unhealthy for Sensitive Groups (35.5-55.4)", minPm25: 35.5, maxPm25: 55.4 },
+  { category: "Unhealthy", color: "#d32f2f", label: "Unhealthy (55.5-125.4)", minPm25: 55.5, maxPm25: 125.4 },
+  { category: "Very Unhealthy", color: "#8e24aa", label: "Very Unhealthy (125.5-225.4)", minPm25: 125.5, maxPm25: 225.4 },
+  { category: "Hazardous", color: "#5d4037", label: "Hazardous (225.5+)", minPm25: 225.5, maxPm25: null },
+  { category: "Unknown", color: "#94a3b8", label: "No Data", minPm25: -1, maxPm25: -1 },
+]
+
+export const AQI_COLORS: Record<string, string> = {
+  Good: "#45ae03",
+  Moderate: "#e5cc16",
+  Sensitive: "#ff9800",
+  Unhealthy: "#d32f2f",
+  "Very Unhealthy": "#8e24aa",
+  Hazardous: "#5d4037",
+  Unknown: "#94a3b8",
 }
 
 export interface StandardizedRecord {
@@ -121,27 +149,27 @@ export interface StandardizedRecord {
   aqiCategory: string
 }
 
-// Convert AQI PM2.5 to standard AQI Category
+// Convert AQI PM2.5 to standard EPA 2024 AQI Category
 export function getAQICategory(pm25: number | null): { category: string; color: string; label: string } {
   if (pm25 === null || isNaN(pm25)) {
     return { category: "Unknown", color: "#94a3b8", label: "No Data" }
   }
-  if (pm25 <= 12.0) {
-    return { category: "Good", color: "#45ae03", label: "Good (0-12)" }
+  if (pm25 <= 9.0) {
+    return { category: "Good", color: "#45ae03", label: "Good (0-9.0)" }
   }
   if (pm25 <= 35.4) {
-    return { category: "Moderate", color: "#e5cc16", label: "Moderate (12.1-35.4)" }
+    return { category: "Moderate", color: "#e5cc16", label: "Moderate (9.1-35.4)" }
   }
   if (pm25 <= 55.4) {
     return { category: "Sensitive", color: "#ff9800", label: "Unhealthy for Sensitive (35.5-55.4)" }
   }
-  if (pm25 <= 150.4) {
-    return { category: "Unhealthy", color: "#d32f2f", label: "Unhealthy (55.5-150.4)" }
+  if (pm25 <= 125.4) {
+    return { category: "Unhealthy", color: "#d32f2f", label: "Unhealthy (55.5-125.4)" }
   }
-  if (pm25 <= 250.4) {
-    return { category: "Very Unhealthy", color: "#8e24aa", label: "Very Unhealthy (150.5-250.4)" }
+  if (pm25 <= 225.4) {
+    return { category: "Very Unhealthy", color: "#8e24aa", label: "Very Unhealthy (125.5-225.4)" }
   }
-  return { category: "Hazardous", color: "#5d4037", label: "Hazardous (250.5+)" }
+  return { category: "Hazardous", color: "#5d4037", label: "Hazardous (225.5+)" }
 }
 
 // Standardize data rows according to column mapping

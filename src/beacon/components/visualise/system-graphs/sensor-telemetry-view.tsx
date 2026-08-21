@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   ResponsiveContainer,
   LineChart,
@@ -21,10 +20,10 @@ import {
   Thermometer,
   Droplets,
   Battery,
-  Zap,
   Eye,
   EyeOff,
   SlidersHorizontal,
+  CloudRain,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
 
@@ -34,7 +33,6 @@ interface SensorTelemetryViewProps {
 }
 
 export function SensorTelemetryView({ records, aggregation = "none" }: SensorTelemetryViewProps) {
-  // PM2.5 Series Visibility Controls
   const [pm25Visibility, setPm25Visibility] = useState({
     s1: true,
     s2: true,
@@ -42,27 +40,22 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
     avg: false,
   })
 
-  // PM10 Series Visibility Controls
   const [pm10Visibility, setPm10Visibility] = useState({
     s1: true,
     s2: true,
     avg: false,
   })
 
-  // Environmental Telemetry Visibility Controls (Temperature & Humidity)
   const [envVisibility, setEnvVisibility] = useState({
     temp: true,
     humidity: true,
   })
 
-  // Battery Visibility Controls
   const [batteryVisible, setBatteryVisible] = useState(true)
 
-  // Aggregate or downsample records for smooth charting
   const chartData = useMemo(() => {
     if (!records || records.length === 0) return []
 
-    // Sort by timestamp ascending
     const sorted = [...records].sort((a, b) => {
       const ta = a.timestamp?.getTime() || 0
       const tb = b.timestamp?.getTime() || 0
@@ -70,7 +63,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
     })
 
     if (aggregation === "none") {
-      // Downsample if more than 3000 points
       const step = sorted.length > 3000 ? Math.ceil(sorted.length / 3000) : 1
       const result = []
 
@@ -95,7 +87,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
       return result
     }
 
-    // Hourly or daily bucket aggregation
     const map = new Map<
       string,
       {
@@ -107,6 +98,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
         pm25Arr: number[]
         s1Pm10Arr: number[]
         s2Pm10Arr: number[]
+        pm10Arr: number[]
         batteryArr: number[]
         tempArr: number[]
         rhArr: number[]
@@ -122,7 +114,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
       const bucketKey =
         aggregation === "daily"
           ? `${y}-${m}-${day}`
-          : `${y}-${m}-${day} ${String(d.getUTCHours()).padStart(2, "0")}:00`
+          : `${y}-${m}-${day} ${String(d.getUTCHours()).padStart(2, "0")}:00 UTC`
 
       if (!map.has(bucketKey)) {
         map.set(bucketKey, {
@@ -134,48 +126,58 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
           pm25Arr: [],
           s1Pm10Arr: [],
           s2Pm10Arr: [],
+          pm10Arr: [],
           batteryArr: [],
           tempArr: [],
           rhArr: [],
         })
       }
-      const b = map.get(bucketKey)!
-      b.count++
-      if (r.s1Pm25 !== null) b.s1Pm25Arr.push(r.s1Pm25)
-      if (r.s2Pm25 !== null) b.s2Pm25Arr.push(r.s2Pm25)
-      if (r.errorMarginPm25 !== null) b.errorMarginArr.push(r.errorMarginPm25)
-      if (r.pm25 !== null) b.pm25Arr.push(r.pm25)
-      if (r.s1Pm10 !== null) b.s1Pm10Arr.push(r.s1Pm10)
-      if (r.s2Pm10 !== null) b.s2Pm10Arr.push(r.s2Pm10)
-      if (r.battery !== null) b.batteryArr.push(r.battery)
-      if (r.primaryTemp !== null) b.tempArr.push(r.primaryTemp)
-      if (r.primaryHumidity !== null) b.rhArr.push(r.primaryHumidity)
+
+      const item = map.get(bucketKey)!
+      item.count++
+      if (r.s1Pm25 !== null) item.s1Pm25Arr.push(r.s1Pm25)
+      if (r.s2Pm25 !== null) item.s2Pm25Arr.push(r.s2Pm25)
+      if (r.errorMarginPm25 !== null) item.errorMarginArr.push(r.errorMarginPm25)
+      if (r.pm25 !== null) item.pm25Arr.push(r.pm25)
+      if (r.s1Pm10 !== null) item.s1Pm10Arr.push(r.s1Pm10)
+      if (r.s2Pm10 !== null) item.s2Pm10Arr.push(r.s2Pm10)
+      if (r.pm10 !== null) item.pm10Arr.push(r.pm10)
+      if (r.battery !== null) item.batteryArr.push(r.battery)
+      if (r.primaryTemp !== null) item.tempArr.push(r.primaryTemp)
+      if (r.primaryHumidity !== null) item.rhArr.push(r.primaryHumidity)
     }
 
-    return Array.from(map.values()).map((b) => {
-      const avg = (arr: number[]) =>
-        arr.length > 0
-          ? Number((arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2))
-          : null
-      return {
-        time: b.time,
-        s1Pm25: avg(b.s1Pm25Arr),
-        s2Pm25: avg(b.s2Pm25Arr),
-        errorMarginPm25: avg(b.errorMarginArr),
-        pm25: avg(b.pm25Arr),
-        s1Pm10: avg(b.s1Pm10Arr),
-        s2Pm10: avg(b.s2Pm10Arr),
-        battery: avg(b.batteryArr),
-        primaryTemp: avg(b.tempArr),
-        primaryHumidity: avg(b.rhArr),
-      }
-    })
+    const avgOf = (arr: number[]) =>
+      arr.length > 0
+        ? Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2))
+        : null
+
+    return Array.from(map.values()).map((b) => ({
+      time: b.time,
+      s1Pm25: avgOf(b.s1Pm25Arr),
+      s2Pm25: avgOf(b.s2Pm25Arr),
+      pm25: avgOf(b.pm25Arr),
+      errorMarginPm25: avgOf(b.errorMarginArr),
+      s1Pm10: avgOf(b.s1Pm10Arr),
+      s2Pm10: avgOf(b.s2Pm10Arr),
+      pm10: avgOf(b.pm10Arr),
+      battery: avgOf(b.batteryArr),
+      primaryTemp: avgOf(b.tempArr),
+      primaryHumidity: avgOf(b.rhArr),
+    }))
   }, [records, aggregation])
 
   const formatTick = (timeStr: string) => {
+    if (!timeStr) return ""
     try {
       const d = new Date(timeStr)
       if (!isNaN(d.getTime())) {
+        if (aggregation === "daily") {
+          return d.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })
+        }
         return `${d.toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
@@ -192,14 +194,13 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
   }
 
   const hasPm25 = chartData.some((d) => d.s1Pm25 !== null || d.s2Pm25 !== null)
-  const hasPm10 = chartData.some((d) => d.s1Pm10 !== null || d.s2Pm10 !== null)
+  const hasPm10 = chartData.some((d) => d.s1Pm10 !== null || d.s2Pm10 !== null || d.pm10 !== null)
   const hasTemp = chartData.some((d) => d.primaryTemp !== null)
   const hasHumidity = chartData.some((d) => d.primaryHumidity !== null)
   const hasBattery = chartData.some((d) => d.battery !== null)
 
   return (
     <div className="space-y-6">
-      {/* 1. PM2.5 Dual-Sensor Timeseries + Error Margin */}
       {hasPm25 && (
         <Card className="border-slate-200 shadow-sm bg-white">
           <CardHeader className="pb-3 pt-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100">
@@ -213,16 +214,15 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
               </CardDescription>
             </div>
 
-            {/* Interactive Toggle Pills to Gray Out Series */}
             <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
               <span className="text-[11px] font-semibold text-slate-500 mr-1 flex items-center gap-1">
                 <SlidersHorizontal className="w-3 h-3 text-slate-400" />
                 Toggle:
               </span>
 
-              {/* Sensor 1 Pill */}
               <button
                 type="button"
+                aria-pressed={pm25Visibility.s1}
                 onClick={() =>
                   setPm25Visibility((prev) => ({ ...prev, s1: !prev.s1 }))
                 }
@@ -240,9 +240,9 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                 Sensor 1
               </button>
 
-              {/* Sensor 2 Pill */}
               <button
                 type="button"
+                aria-pressed={pm25Visibility.s2}
                 onClick={() =>
                   setPm25Visibility((prev) => ({ ...prev, s2: !prev.s2 }))
                 }
@@ -260,9 +260,9 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                 Sensor 2
               </button>
 
-              {/* Error Margin Pill */}
               <button
                 type="button"
+                aria-pressed={pm25Visibility.errorMargin}
                 onClick={() =>
                   setPm25Visibility((prev) => ({
                     ...prev,
@@ -283,9 +283,9 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                 Error Margin (|S1 - S2|)
               </button>
 
-              {/* Sensor Average Pill */}
               <button
                 type="button"
+                aria-pressed={pm25Visibility.avg}
                 onClick={() =>
                   setPm25Visibility((prev) => ({ ...prev, avg: !prev.avg }))
                 }
@@ -344,7 +344,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                   />
                   <Legend verticalAlign="top" height={32} iconType="circle" />
 
-                  {/* Sensor 1 PM2.5 */}
                   {pm25Visibility.s1 && (
                     <Line
                       type="monotone"
@@ -356,7 +355,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     />
                   )}
 
-                  {/* Sensor 2 PM2.5 */}
                   {pm25Visibility.s2 && (
                     <Line
                       type="monotone"
@@ -368,7 +366,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     />
                   )}
 
-                  {/* Error Margin (|S1 - S2|) */}
                   {pm25Visibility.errorMargin && (
                     <Line
                       type="monotone"
@@ -381,7 +378,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     />
                   )}
 
-                  {/* Average PM2.5 */}
                   {pm25Visibility.avg && (
                     <Line
                       type="monotone"
@@ -409,7 +405,175 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
         </Card>
       )}
 
-      {/* 2. Temperature & Relative Humidity (With Gray-out Toggles) */}
+      {hasPm10 && (
+        <Card className="border-slate-200 shadow-sm bg-white">
+          <CardHeader className="pb-3 pt-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100">
+            <div>
+              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <CloudRain className="w-4 h-4 text-indigo-600" />
+                Particulate Matter PM10 (Sensor 1 vs Sensor 2)
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-500">
+                Coarse particulate matter PM10 concentrations across channels in µg/m³
+              </CardDescription>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+              <span className="text-[11px] font-semibold text-slate-500 mr-1 flex items-center gap-1">
+                <SlidersHorizontal className="w-3 h-3 text-slate-400" />
+                Toggle:
+              </span>
+
+              <button
+                type="button"
+                aria-pressed={pm10Visibility.s1}
+                onClick={() =>
+                  setPm10Visibility((prev) => ({ ...prev, s1: !prev.s1 }))
+                }
+                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  pm10Visibility.s1
+                    ? "bg-indigo-600 text-white shadow-xs"
+                    : "bg-slate-200/80 text-slate-400 line-through opacity-70"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    pm10Visibility.s1 ? "bg-white" : "bg-slate-400"
+                  }`}
+                />
+                Sensor 1 PM10
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={pm10Visibility.s2}
+                onClick={() =>
+                  setPm10Visibility((prev) => ({ ...prev, s2: !prev.s2 }))
+                }
+                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  pm10Visibility.s2
+                    ? "bg-teal-600 text-white shadow-xs"
+                    : "bg-slate-200/80 text-slate-400 line-through opacity-70"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    pm10Visibility.s2 ? "bg-white" : "bg-slate-400"
+                  }`}
+                />
+                Sensor 2 PM10
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={pm10Visibility.avg}
+                onClick={() =>
+                  setPm10Visibility((prev) => ({ ...prev, avg: !prev.avg }))
+                }
+                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  pm10Visibility.avg
+                    ? "bg-purple-600 text-white shadow-xs"
+                    : "bg-slate-200/80 text-slate-400 opacity-70"
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    pm10Visibility.avg ? "bg-white" : "bg-slate-400"
+                  }`}
+                />
+                Average PM10
+              </button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-4 pt-5">
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#f1f5f9"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="time"
+                    tickFormatter={formatTick}
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    dy={6}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    label={{
+                      value: "PM10 (µg/m³)",
+                      angle: -90,
+                      position: "insideLeft",
+                      fontSize: 11,
+                      fill: "#64748b",
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "12px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={32} iconType="circle" />
+
+                  {pm10Visibility.s1 && (
+                    <Line
+                      type="monotone"
+                      dataKey="s1Pm10"
+                      stroke="#4f46e5"
+                      strokeWidth={2.2}
+                      dot={false}
+                      name="Sensor 1 PM10"
+                    />
+                  )}
+
+                  {pm10Visibility.s2 && (
+                    <Line
+                      type="monotone"
+                      dataKey="s2Pm10"
+                      stroke="#0d9488"
+                      strokeWidth={2.2}
+                      dot={false}
+                      name="Sensor 2 PM10"
+                    />
+                  )}
+
+                  {pm10Visibility.avg && (
+                    <Line
+                      type="monotone"
+                      dataKey="pm10"
+                      stroke="#9333ea"
+                      strokeWidth={1.8}
+                      strokeDasharray="2 2"
+                      dot={false}
+                      name="Average PM10"
+                    />
+                  )}
+
+                  {chartData.length > 30 && (
+                    <Brush
+                      dataKey="time"
+                      height={20}
+                      stroke="#94a3b8"
+                      fill="#f8fafc"
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {(hasTemp || hasHumidity) && (
         <Card className="border-slate-200 shadow-sm bg-white">
           <CardHeader className="pb-3 pt-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100">
@@ -423,16 +587,15 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
               </CardDescription>
             </div>
 
-            {/* Interactive Toggle Pills to Gray Out Temp or Humidity */}
             <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
               <span className="text-[11px] font-semibold text-slate-500 mr-1 flex items-center gap-1">
                 <SlidersHorizontal className="w-3 h-3 text-slate-400" />
                 Toggle:
               </span>
 
-              {/* Temperature Pill */}
               <button
                 type="button"
+                aria-pressed={envVisibility.temp}
                 onClick={() =>
                   setEnvVisibility((prev) => ({ ...prev, temp: !prev.temp }))
                 }
@@ -451,9 +614,9 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                 )}
               </button>
 
-              {/* Humidity Pill */}
               <button
                 type="button"
+                aria-pressed={envVisibility.humidity}
                 onClick={() =>
                   setEnvVisibility((prev) => ({
                     ...prev,
@@ -496,7 +659,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     dy={6}
                   />
 
-                  {/* Left Axis for Temperature */}
                   {envVisibility.temp ? (
                     <YAxis
                       yAxisId="temp"
@@ -514,7 +676,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     <YAxis yAxisId="temp" hide />
                   )}
 
-                  {/* Right Axis for Humidity */}
                   {envVisibility.humidity ? (
                     <YAxis
                       yAxisId="rh"
@@ -544,7 +705,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                   />
                   <Legend verticalAlign="top" height={32} iconType="circle" />
 
-                  {/* Temperature Curve */}
                   {envVisibility.temp && (
                     <Line
                       yAxisId="temp"
@@ -557,7 +717,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                     />
                   )}
 
-                  {/* Humidity Curve */}
                   {envVisibility.humidity && (
                     <Line
                       yAxisId="rh"
@@ -585,7 +744,6 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
         </Card>
       )}
 
-      {/* 3. Battery Voltage & Charging Profile */}
       {hasBattery && (
         <Card className="border-slate-200 shadow-sm bg-white">
           <CardHeader className="pb-3 pt-4 px-6 flex flex-row items-center justify-between border-b border-slate-100">
@@ -601,6 +759,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                aria-pressed={batteryVisible}
                 onClick={() => setBatteryVisible(!batteryVisible)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
                   batteryVisible

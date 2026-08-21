@@ -26,33 +26,37 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
-import { calculateCorrelation } from "@/lib/visualise/data-parser"
+import { calculateCorrelation, calculateCorrelationStats } from "@/lib/visualise/data-parser"
 
 interface SensorHealthViewProps {
   records: StandardizedRecord[]
 }
 
 export function SensorHealthView({ records }: SensorHealthViewProps) {
-  // Scatter points (S1 vs S2)
+  // Scatter points (S1 vs S2) - representative sample
   const scatterPoints = useMemo(() => {
-    return records
-      .filter((r) => r.s1Pm25 !== null && r.s2Pm25 !== null)
-      .slice(0, 3000)
-      .map((r) => ({
+    const valid = records.filter((r) => r.s1Pm25 !== null && r.s2Pm25 !== null)
+    const step = valid.length > 3000 ? Math.ceil(valid.length / 3000) : 1
+    const result = []
+    for (let i = 0; i < valid.length; i += step) {
+      const r = valid[i]
+      result.push({
         s1: r.s1Pm25,
         s2: r.s2Pm25,
         time: r.timestampStr,
-      }))
+      })
+    }
+    return result
   }, [records])
 
-  // Correlation Stats
+  // Correlation Stats calculated on the visible representative scatter points
   const stats = useMemo(() => {
-    const valid = records.filter((r) => r.s1Pm25 !== null && r.s2Pm25 !== null)
-    if (valid.length < 2) return null
-
-    const dataObjs = valid.map((r) => ({ s1: r.s1Pm25, s2: r.s2Pm25 }))
-    return calculateCorrelation(dataObjs, "s1", "s2")
-  }, [records])
+    if (scatterPoints.length < 2) return null
+    const points = scatterPoints
+      .filter((p) => p.s1 !== null && p.s2 !== null)
+      .map((p) => ({ x: p.s1!, y: p.s2! }))
+    return calculateCorrelationStats(points)
+  }, [scatterPoints])
 
   // Error Margin timeline
   const errorMarginData = useMemo(() => {
@@ -137,7 +141,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
   return (
     <div className="space-y-6">
       {/* 1. S1 vs S2 Scatter Plot & Linear Regression */}
-      {scatterPoints.length > 0 && stats && (
+      {scatterPoints.length > 0 && (
         <Card className="border-slate-200 shadow-sm bg-white">
           <CardHeader className="pb-2 pt-4 px-6 flex flex-row items-center justify-between border-b border-slate-100">
             <div>
@@ -149,33 +153,37 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
                 Linear regression and scatter correlation for collocation validation
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-bold text-xs">
-                R² = {stats.r2}
-              </Badge>
-              <Badge variant="outline" className="text-xs text-blue-600 font-mono">
-                r = {stats.r}
-              </Badge>
-            </div>
+            {stats && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-bold text-xs">
+                  R² = {stats.r2}
+                </Badge>
+                <Badge variant="outline" className="text-xs text-blue-600 font-mono">
+                  r = {stats.r}
+                </Badge>
+              </div>
+            )}
           </CardHeader>
 
           {/* Quick Metrics Bar */}
-          <div className="bg-slate-50 px-6 py-2 border-b border-slate-100 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-700">
-            <span className="font-semibold text-blue-700">
-              Fit: y = {stats.slope}x {stats.intercept >= 0 ? `+ ${stats.intercept}` : `- ${Math.abs(stats.intercept)}`}
-            </span>
-            <span>MAE: ±{stats.mae} µg/m³</span>
-            <span>{stats.count.toLocaleString()} valid pairs</span>
-            {stats.r2 >= 0.85 ? (
-              <span className="text-emerald-600 flex items-center gap-1 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> High Agreement (Passed)
+          {stats && (
+            <div className="bg-slate-50 px-6 py-2 border-b border-slate-100 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-700">
+              <span className="font-semibold text-blue-700">
+                Fit: y = {stats.slope}x {stats.intercept >= 0 ? `+ ${stats.intercept}` : `- ${Math.abs(stats.intercept)}`}
               </span>
-            ) : (
-              <span className="text-amber-600 flex items-center gap-1 font-semibold">
-                <AlertTriangle className="w-3.5 h-3.5" /> Moderate/Low Agreement
-              </span>
-            )}
-          </div>
+              <span>MAE: ±{stats.mae} µg/m³</span>
+              <span>{stats.count.toLocaleString()} valid pairs</span>
+              {stats.r2 >= 0.85 ? (
+                <span className="text-emerald-600 flex items-center gap-1 font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> High Agreement (Passed)
+                </span>
+              ) : (
+                <span className="text-amber-600 flex items-center gap-1 font-semibold">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Moderate/Low Agreement
+                </span>
+              )}
+            </div>
+          )}
 
           <CardContent className="p-4 pt-5">
             <div className="h-80 w-full">

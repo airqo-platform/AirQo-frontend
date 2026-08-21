@@ -3,25 +3,20 @@
 import React, { useState, useMemo, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   BarChart3,
   Table as TableIcon,
   UploadCloud,
   FileSpreadsheet,
   Activity,
-  Layers,
   MapPin,
   Clock,
   Sliders,
-  Sparkles,
   PieChart as PieChartIcon,
   Calculator,
-  PlusCircle,
 } from "lucide-react"
 import { DataUploader } from "@/components/visualise/data-uploader"
-import { ChartControls, type ChartConfigState } from "@/components/visualise/chart-controls"
-import { ChartCanvas } from "@/components/visualise/chart-canvas"
+import type { ChartConfigState } from "@/components/visualise/chart-controls"
 import { DataTablePreview } from "@/components/visualise/data-table-preview"
 import { KpiSummary } from "@/components/visualise/kpi-summary"
 import { ColumnMappingDialog } from "@/components/visualise/column-mapping-dialog"
@@ -108,7 +103,7 @@ export default function VisualisePage() {
       showGrid: true,
       showLegend: true,
       showTooltip: true,
-      showDots: numCols.length <= 100,
+      showDots: newDataset.data.length <= 100,
       smoothCurve: true,
       histogramBins: 10,
       filters: [],
@@ -154,9 +149,25 @@ export default function VisualisePage() {
     }
   }, [standardizedRecords])
 
-  // Filter records by selected period & selected device
+  // Filter records by selected period & selected device (with time-of-day support)
   const filteredRecords = useMemo(() => {
     if (standardizedRecords.length === 0) return []
+
+    const hasDateFilter = Boolean(periodState.startDate || periodState.endDate)
+    const startTimeStr = periodState.startTime || "00:00"
+    const endTimeStr = periodState.endTime || "23:59"
+
+    let startTimestamp: number | null = null
+    let endTimestamp: number | null = null
+
+    if (periodState.startDate) {
+      const parsed = new Date(`${periodState.startDate}T${startTimeStr}:00Z`).getTime()
+      if (!isNaN(parsed)) startTimestamp = parsed
+    }
+    if (periodState.endDate) {
+      const parsed = new Date(`${periodState.endDate}T${endTimeStr}:59Z`).getTime()
+      if (!isNaN(parsed)) endTimestamp = parsed
+    }
 
     return standardizedRecords.filter((r) => {
       // 1. Device filter
@@ -164,24 +175,23 @@ export default function VisualisePage() {
         return false
       }
 
-      // 2. Date Range filter
-      if (periodState.startDate || periodState.endDate) {
-        if (!r.timestamp) return true
+      // 2. Date Range and Time-of-Day filter
+      if (hasDateFilter) {
+        if (!r.timestamp) return false
         const rTime = r.timestamp.getTime()
 
-        if (periodState.startDate) {
-          const start = new Date(`${periodState.startDate}T00:00:00Z`).getTime()
-          if (rTime < start) return false
-        }
-        if (periodState.endDate) {
-          const end = new Date(`${periodState.endDate}T23:59:59Z`).getTime()
-          if (rTime > end) return false
-        }
+        if (startTimestamp !== null && rTime < startTimestamp) return false
+        if (endTimestamp !== null && rTime > endTimestamp) return false
       }
 
       return true
     })
   }, [standardizedRecords, periodState])
+
+  // Filtered raw records for table preview and export
+  const filteredRawRecords = useMemo(() => {
+    return filteredRecords.map((r) => r.raw)
+  }, [filteredRecords])
 
   return (
     <div className="space-y-5 pb-12">
@@ -376,7 +386,7 @@ export default function VisualisePage() {
 
             {/* TAB 7: Data Table */}
             <TabsContent value="table" className="m-0">
-              <DataTablePreview dataset={dataset} />
+              <DataTablePreview dataset={dataset} records={filteredRawRecords} />
             </TabsContent>
           </Tabs>
 

@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Tooltip,
@@ -13,9 +12,6 @@ import {
 import {
   Calendar,
   Clock,
-  Layers,
-  Activity,
-  Zap,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
 
@@ -28,7 +24,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
 
   // Process 24-hour x Date Grid
   const { dates, grid, maxFreq, maxPm25, maxError } = useMemo(() => {
-    const dateMap = new Map<string, Map<number, { count: number; pm25Sum: number; errorSum: number }>>()
+    const dateMap = new Map<string, Map<number, { count: number; pm25Sum: number; pm25Count: number; errorSum: number; errorCount: number }>>()
 
     for (const r of records) {
       if (!r.timestamp) continue
@@ -44,12 +40,18 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
       }
       const hourMap = dateMap.get(dateStr)!
       if (!hourMap.has(hour)) {
-        hourMap.set(hour, { count: 0, pm25Sum: 0, errorSum: 0 })
+        hourMap.set(hour, { count: 0, pm25Sum: 0, pm25Count: 0, errorSum: 0, errorCount: 0 })
       }
       const entry = hourMap.get(hour)!
       entry.count++
-      if (r.pm25 !== null) entry.pm25Sum += r.pm25
-      if (r.errorMarginPm25 !== null) entry.errorSum += r.errorMarginPm25
+      if (r.pm25 !== null) {
+        entry.pm25Sum += r.pm25
+        entry.pm25Count++
+      }
+      if (r.errorMarginPm25 !== null) {
+        entry.errorSum += r.errorMarginPm25
+        entry.errorCount++
+      }
     }
 
     const sortedDates = Array.from(dateMap.keys()).sort()
@@ -57,7 +59,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
     let maxP = 1
     let maxE = 1
 
-    const matrix: { date: string; hours: { hour: number; count: number; avgPm25: number | null; avgError: number | null }[] }[] = []
+    const matrix: { date: string; hours: { hour: number; count: number; pm25Sum: number; pm25Count: number; avgPm25: number | null; avgError: number | null }[] }[] = []
 
     for (const dt of sortedDates) {
       const hMap = dateMap.get(dt)!
@@ -65,14 +67,16 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
       for (let h = 0; h < 24; h++) {
         const item = hMap.get(h)
         const count = item ? item.count : 0
-        const avgPm25 = item && item.count > 0 ? Number((item.pm25Sum / item.count).toFixed(1)) : null
-        const avgError = item && item.count > 0 ? Number((item.errorSum / item.count).toFixed(1)) : null
+        const pm25Sum = item ? item.pm25Sum : 0
+        const pm25Count = item ? item.pm25Count : 0
+        const avgPm25 = item && item.pm25Count > 0 ? Number((item.pm25Sum / item.pm25Count).toFixed(1)) : null
+        const avgError = item && item.errorCount > 0 ? Number((item.errorSum / item.errorCount).toFixed(1)) : null
 
         if (count > maxF) maxF = count
         if (avgPm25 !== null && avgPm25 > maxP) maxP = avgPm25
         if (avgError !== null && avgError > maxE) maxE = avgError
 
-        hours.push({ hour: h, count, avgPm25, avgError })
+        hours.push({ hour: h, count, pm25Sum, pm25Count, avgPm25, avgError })
       }
       matrix.push({ date: dt, hours })
     }
@@ -80,7 +84,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
     return { dates: sortedDates, grid: matrix, maxFreq: maxF, maxPm25: maxP, maxError: maxE }
   }, [records])
 
-  // Get cell color based on metric
+  // Get cell color based on metric with EPA 2024 AQI breakpoints
   const getCellColor = (cell: { count: number; avgPm25: number | null; avgError: number | null }) => {
     if (cell.count === 0) return "bg-slate-100"
 
@@ -96,10 +100,12 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
     if (heatmapMetric === "pm25") {
       const val = cell.avgPm25
       if (val === null) return "bg-slate-100"
-      if (val > 55.4) return "bg-red-600"
-      if (val > 35.4) return "bg-orange-500"
-      if (val > 12.0) return "bg-amber-400"
-      return "bg-emerald-500"
+      if (val > 225.4) return "bg-[#5d4037]"
+      if (val > 125.4) return "bg-[#8e24aa]"
+      if (val > 55.4) return "bg-[#d32f2f]"
+      if (val > 35.4) return "bg-[#ff9800]"
+      if (val > 9.0) return "bg-[#e5cc16]"
+      return "bg-[#45ae03]"
     }
 
     if (heatmapMetric === "errorMargin") {
@@ -113,15 +119,16 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
     return "bg-blue-500"
   }
 
-  // Daily Summary Stats
+  // Daily Summary Stats (record-weighted)
   const dailySummary = useMemo(() => {
     return grid.map((day) => {
       const activeHours = day.hours.filter((h) => h.count > 0).length
       const uptimePct = Number(((activeHours / 24) * 100).toFixed(1))
       const totalDayRecords = day.hours.reduce((s, h) => s + h.count, 0)
-      const validPm25Hours = day.hours.filter((h) => h.avgPm25 !== null)
-      const avgDayPm25 = validPm25Hours.length > 0
-        ? Number((validPm25Hours.reduce((s, h) => s + h.avgPm25!, 0) / validPm25Hours.length).toFixed(1))
+      const dayPm25Sum = day.hours.reduce((s, h) => s + h.pm25Sum, 0)
+      const dayPm25Count = day.hours.reduce((s, h) => s + h.pm25Count, 0)
+      const avgDayPm25 = dayPm25Count > 0
+        ? Number((dayPm25Sum / dayPm25Count).toFixed(1))
         : null
 
       return {
