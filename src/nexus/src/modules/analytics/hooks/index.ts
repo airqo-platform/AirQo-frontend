@@ -21,7 +21,10 @@ import {
   DownloadFileTransformOptions,
 } from '@/modules/data-download/utils/dataExportFile';
 
-export { useChartManagement, type UseChartManagementResult } from './useChartManagement';
+export {
+  useChartManagement,
+  type UseChartManagementResult,
+} from './useChartManagement';
 
 type PreferenceSite = Partial<Site> & {
   id?: string;
@@ -189,8 +192,8 @@ export const useAnalyticsPreferences = (
 // Hook for fetching and managing chart data
 export interface ChartDataFilters {
   frequency: string;
-  startDate: string;
-  endDate: string;
+  startDateTime: string;
+  endDateTime: string;
   pollutant: string;
 }
 
@@ -211,8 +214,8 @@ export const buildChartDataQueryKey = (
   activeGroupId ?? 'no-active-group',
   chartType,
   selectedSiteIds.join(','),
-  filters.startDate,
-  filters.endDate,
+  filters.startDateTime,
+  filters.endDateTime,
   filters.frequency,
   filters.pollutant,
 ];
@@ -228,10 +231,10 @@ export const useAnalyticsChartData = (
   // Calculate date range based on filters
   const dateRange = useMemo(() => {
     return {
-      startDate: filters.startDate,
-      endDate: filters.endDate,
+      startDate: filters.startDateTime,
+      endDate: filters.endDateTime,
     };
-  }, [filters.startDate, filters.endDate]);
+  }, [filters.startDateTime, filters.endDateTime]);
 
   const shouldFetch = enabled && selectedSiteIds.length > 0;
 
@@ -244,15 +247,15 @@ export const useAnalyticsChartData = (
         selectedSiteIds,
         {
           frequency: filters.frequency,
-          startDate: filters.startDate,
-          endDate: filters.endDate,
+          startDateTime: filters.startDateTime,
+          endDateTime: filters.endDateTime,
           pollutant: filters.pollutant,
         }
       ),
     [
       chartType,
-      filters.endDate,
-      filters.startDate,
+      filters.endDateTime,
+      filters.startDateTime,
       filters.frequency,
       filters.pollutant,
       selectedSiteIds,
@@ -272,8 +275,8 @@ export const useAnalyticsChartData = (
       const response = await analyticsService.getChartData(
         {
           sites: selectedSiteIds,
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
+          startDateTime: dateRange.startDate,
+          endDateTime: dateRange.endDate,
           chartType,
           frequency: filters.frequency,
           pollutant: filters.pollutant.toLowerCase().replace('.', '_'),

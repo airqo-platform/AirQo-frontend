@@ -3,11 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
-import {
-  AqEdit02,
-  AqCopy01,
-  AqTrash01,
-} from '@airqo/icons-react';
+import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import SelectField from '@/shared/components/ui/select';
 import { DatePicker } from '@/shared/components/calendar';
@@ -34,7 +30,11 @@ import {
   buildSeriesLabels,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
-import type { NormalizedChartData, PollutantType, StandardsType } from '@/shared/components/charts/types';
+import type {
+  NormalizedChartData,
+  PollutantType,
+  StandardsType,
+} from '@/shared/components/charts/types';
 
 interface AnalyticsChartCardProps {
   draft: ExplorerChartDraft;
@@ -133,8 +133,8 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => ({
       frequency: draft.frequency,
       pollutant: pollutantOverride,
-      startDate: dateRangeOverride.startDate,
-      endDate: dateRangeOverride.endDate,
+      startDateTime: dateRangeOverride.startDate,
+      endDateTime: dateRangeOverride.endDate,
     }),
     [draft.frequency, pollutantOverride, dateRangeOverride]
   );
@@ -396,7 +396,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   }, [draft.pollutant]);
 
   useEffect(() => {
-    setDateRangeOverride({ startDate: draft.startDate, endDate: draft.endDate });
+    setDateRangeOverride({
+      startDate: draft.startDate,
+      endDate: draft.endDate,
+    });
   }, [draft.startDate, draft.endDate]);
 
   // Stable reference for the DatePicker so it only re-syncs when dates change.
@@ -409,12 +412,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   const handleDateRangeChange = (
-    value:
-      | string
-      | Date
-      | DateRange
-      | { from: string; to: string }
-      | undefined
+    value: string | Date | DateRange | { from: string; to: string } | undefined
   ) => {
     if (!value) return;
     if (typeof value === 'object' && 'from' in value && 'to' in value) {
@@ -535,28 +533,26 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           )
         }
         menuItems={
-          isFixed
-            ? undefined
-            : (
-              <>
-                <DropdownMenuItem onClick={() => onEdit(draft)}>
-                  <AqEdit02 className="mr-2 h-4 w-4" />
-                  Edit chart
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDuplicate}>
-                  <AqCopy01 className="mr-2 h-4 w-4" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onRequestDelete(draft)}
-                  className="text-destructive hover:bg-destructive/10"
-                >
-                  <AqTrash01 className="mr-2 h-4 w-4" />
-                  Delete chart
-                </DropdownMenuItem>
-              </>
-            )
+          isFixed ? undefined : (
+            <>
+              <DropdownMenuItem onClick={() => onEdit(draft)}>
+                <AqEdit02 className="mr-2 h-4 w-4" />
+                Edit chart
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDuplicate}>
+                <AqCopy01 className="mr-2 h-4 w-4" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onRequestDelete(draft)}
+                className="text-destructive hover:bg-destructive/10"
+              >
+                <AqTrash01 className="mr-2 h-4 w-4" />
+                Delete chart
+              </DropdownMenuItem>
+            </>
+          )
         }
       >
         <DynamicChart

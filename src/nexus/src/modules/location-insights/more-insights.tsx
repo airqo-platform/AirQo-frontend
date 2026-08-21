@@ -200,8 +200,8 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       try {
         const response = await getChartData({
           sites: visibleSiteIds,
-          startDate: dateRange.from.toISOString().split('T')[0],
-          endDate: dateRange.to.toISOString().split('T')[0],
+          startDateTime: dateRange.from.toISOString().split('T')[0],
+          endDateTime: dateRange.to.toISOString().split('T')[0],
           chartType: chartRequestType,
           frequency: frequency,
           pollutant: pollutant.toLowerCase().replace('.', '_'),

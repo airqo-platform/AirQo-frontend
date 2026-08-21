@@ -81,10 +81,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const posthog = usePostHog();
   const { user, activeGroup } = useUser();
 
-  const {
-    groupId,
-    isInitialLoading,
-  } = useOrgGroup({ organizationSlug, isOrganizationFlow });
+  const { groupId, isInitialLoading } = useOrgGroup({
+    organizationSlug,
+    isOrganizationFlow,
+  });
 
   const [trendsLayout, setTrendsLayout] = useState<TrendsLayout>(
     readStoredTrendsLayout
@@ -134,8 +134,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       const filters: ChartDataFilters = {
         frequency: draft.frequency,
         pollutant: draft.pollutant,
-        startDate: draft.startDate,
-        endDate: draft.endDate,
+        startDateTime: draft.startDate,
+        endDateTime: draft.endDate,
       };
       const chartType = draft.chartType === 'Bar' ? 'bar' : 'line';
       return {
@@ -150,8 +150,8 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
           const response = await analyticsService.getChartData(
             {
               sites: draft.siteIds,
-              startDate: filters.startDate,
-              endDate: filters.endDate,
+              startDateTime: filters.startDateTime,
+              endDateTime: filters.endDateTime,
               chartType,
               frequency: filters.frequency,
               pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
@@ -321,59 +321,59 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       }}
     >
       <div className={cn('space-y-4', className)}>
-      {/* Compact page header: title, description */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl text-foreground">Air Quality Analysis</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor current conditions, trends and forecasts for your configured
-            locations.
-          </p>
+        {/* Compact page header: title, description */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl text-foreground">Air Quality Analysis</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Monitor current conditions, trends and forecasts for your
+              configured locations.
+            </p>
+          </div>
+          <AiDrawerTrigger />
         </div>
-        <AiDrawerTrigger />
+
+        {renderTrendsView()}
+
+        <ChartConfigDialog
+          isOpen={dialogOpen}
+          onClose={closeDialog}
+          groupId={groupId}
+          draft={editingDraft}
+          onSave={draft => void handleSaveDraft(draft)}
+          onSelectionNamesChange={handleNamesResolved}
+          siteNames={siteNames}
+          isSaving={isSaving}
+          saveError={saveError}
+        />
+
+        {/* Delete chart confirmation */}
+        <ReusableDialog
+          isOpen={!!deleteDraft}
+          onClose={cancelDelete}
+          title="Delete chart?"
+          subtitle={
+            deleteDraft
+              ? `"${deleteDraft.title}" will be permanently removed from your saved charts. This action cannot be undone.`
+              : undefined
+          }
+          icon={AqTrash01}
+          iconColor="text-destructive"
+          iconBgColor="bg-destructive/10"
+          size="sm"
+          primaryAction={{
+            label: 'Delete chart',
+            onClick: confirmDelete,
+            variant: 'danger',
+          }}
+          secondaryAction={{ label: 'Cancel', onClick: cancelDelete }}
+        >
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to continue? The chart configuration and its
+            saved settings will be removed.
+          </p>
+        </ReusableDialog>
       </div>
-
-      {renderTrendsView()}
-
-      <ChartConfigDialog
-        isOpen={dialogOpen}
-        onClose={closeDialog}
-        groupId={groupId}
-        draft={editingDraft}
-        onSave={draft => void handleSaveDraft(draft)}
-        onSelectionNamesChange={handleNamesResolved}
-        siteNames={siteNames}
-        isSaving={isSaving}
-        saveError={saveError}
-      />
-
-      {/* Delete chart confirmation */}
-      <ReusableDialog
-        isOpen={!!deleteDraft}
-        onClose={cancelDelete}
-        title="Delete chart?"
-        subtitle={
-          deleteDraft
-            ? `"${deleteDraft.title}" will be permanently removed from your saved charts. This action cannot be undone.`
-            : undefined
-        }
-        icon={AqTrash01}
-        iconColor="text-destructive"
-        iconBgColor="bg-destructive/10"
-        size="sm"
-        primaryAction={{
-          label: 'Delete chart',
-          onClick: confirmDelete,
-          variant: 'danger',
-        }}
-        secondaryAction={{ label: 'Cancel', onClick: cancelDelete }}
-      >
-        <p className="text-sm text-muted-foreground">
-          Are you sure you want to continue? The chart configuration and its
-          saved settings will be removed.
-        </p>
-      </ReusableDialog>
-    </div>
     </AiPageContextProvider>
   );
 };

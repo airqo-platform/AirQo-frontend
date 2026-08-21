@@ -36,7 +36,6 @@ interface DataExportHeaderProps {
   showHelpBanner?: boolean;
   onToggleHelpBanner?: () => void;
   selectionCount?: number;
-  hasNoData?: boolean;
 }
 
 /**
@@ -65,7 +64,6 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   showHelpBanner = true,
   onToggleHelpBanner,
   selectionCount = 0,
-  hasNoData = false,
 }) => {
   const [showClearConfirm, setShowClearConfirm] = React.useState(false);
 
@@ -76,9 +74,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     Object.keys(selectedGridSiteIds).length > 0;
 
   const totalSelectionCount =
-    selectedSiteIds.length +
-    selectedDeviceIds.length +
-    selectedGridIds.length;
+    selectedSiteIds.length + selectedDeviceIds.length + selectedGridIds.length;
 
   const handleClearClick = () => {
     setShowClearConfirm(true);
@@ -89,11 +85,9 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     onClearSelections();
   };
 
-  const reviewDownloadTooltip = hasNoData
-    ? 'No measurement data is available for the selected locations, date range, and pollutants. Adjust your filters or choose different locations.'
-    : isDownloadReady
-      ? 'Preview your export before downloading'
-      : 'Select a date range, location, and pollutant to enable download';
+  const reviewDownloadTooltip = isDownloadReady
+    ? 'Preview your export before downloading'
+    : 'Select a date range, location, and pollutant to enable download';
 
   return (
     <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-4 min-w-0">
@@ -172,17 +166,17 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           </Tooltip>
         )}
         {onRefresh && (
-              <Button
-                variant="outlined"
-                onClick={onRefresh}
-                Icon={AqRefreshCcw01}
-                loading={isRefreshing}
-                disabled={isGroupSyncing || isRefreshing}
-                size="sm"
-                aria-label="Refresh"
-              >
-                Refresh
-              </Button>
+          <Button
+            variant="outlined"
+            onClick={onRefresh}
+            Icon={AqRefreshCcw01}
+            loading={isRefreshing}
+            disabled={isGroupSyncing || isRefreshing}
+            size="sm"
+            aria-label="Refresh"
+          >
+            Refresh
+          </Button>
         )}
         {hasSelections && (
           <Button
@@ -215,24 +209,27 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           <Tooltip content={reviewDownloadTooltip} placement="top">
             <span className="inline-flex">
               <Button
-                variant={hasNoData ? 'outlined' : 'filled'}
+                variant="filled"
                 onClick={onDownload}
                 Icon={AqDownload01}
                 size="sm"
-                disabled={isGroupSyncing || !isDownloadReady || hasNoData || isPreviewLoading || isDownloading}
+                disabled={
+                  isGroupSyncing ||
+                  !isDownloadReady ||
+                  isPreviewLoading ||
+                  isDownloading
+                }
                 loading={isPreviewLoading || isDownloading}
                 showTextOnMobile={true}
-                className={hasNoData ? 'text-amber-700 border-amber-300' : 'whitespace-nowrap'}
+                className="whitespace-nowrap"
               >
                 {isPreviewLoading
                   ? 'Loading...'
                   : isDownloading
                     ? 'Downloading...'
-                    : hasNoData
-                      ? 'No Data for Selection'
-                      : selectionCount > 0
-                        ? `Review & Download (${selectionCount})`
-                        : 'Review & Download'}
+                    : selectionCount > 0
+                      ? `Review & Download (${selectionCount})`
+                      : 'Review & Download'}
               </Button>
             </span>
           </Tooltip>
@@ -260,8 +257,9 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         size="md"
       >
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          You have {totalSelectionCount} item{totalSelectionCount !== 1 ? 's' : ''} selected.
-          Are you sure you want to clear all selections?
+          You have {totalSelectionCount} item
+          {totalSelectionCount !== 1 ? 's' : ''} selected. Are you sure you want
+          to clear all selections?
         </p>
       </Dialog>
     </div>

@@ -80,8 +80,8 @@ export const useSiteChartData = ({
       const response = await analyticsService.getChartData(
         {
           sites: [siteId],
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
+          startDateTime: dateRange.startDate,
+          endDateTime: dateRange.endDate,
           chartType: 'line',
           frequency,
           pollutant: pollutant.toLowerCase().replace('.', '_'),

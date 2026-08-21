@@ -55,7 +55,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             className={cn(
               'flex flex-col h-screen gap-2 p-1 overflow-hidden',
               theme.interfaceStyle === 'bordered' && 'border border-border',
-              isAiDrawerOpen && 'md:pr-[calc(400px+0.25rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
+              isAiDrawerOpen &&
+                'md:pr-[calc(400px+0.75rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
             )}
           >
             {/* Fixed Header */}

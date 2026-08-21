@@ -2,10 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
-import {
-  AqEdit02,
-  AqTrash01,
-} from '@airqo/icons-react';
+import { AqEdit02, AqTrash01 } from '@airqo/icons-react';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -49,13 +46,7 @@ const OverviewChartCard: React.FC<{
   groupId: string;
   onEdit: () => void;
   onRequestDelete: () => void;
-}> = ({
-  draft,
-  siteNames,
-  groupId,
-  onEdit,
-  onRequestDelete,
-}) => {
+}> = ({ draft, siteNames, groupId, onEdit, onRequestDelete }) => {
   const { config: aqiConfig } = useAqiConfig(draft.pollutant);
 
   // Theme-shade coloring preference — same sidecar + toggle as the list
@@ -73,8 +64,8 @@ const OverviewChartCard: React.FC<{
     () => ({
       frequency: draft.frequency,
       pollutant: draft.pollutant,
-      startDate: draft.startDate,
-      endDate: draft.endDate,
+      startDateTime: draft.startDate,
+      endDateTime: draft.endDate,
     }),
     [draft]
   );
@@ -117,7 +108,13 @@ const OverviewChartCard: React.FC<{
       }
     });
     return Object.keys(colors).length > 0 ? colors : undefined;
-  }, [draft.siteIds, draft.locationColors, themeColors, dataKeyBySiteId, siteNames]);
+  }, [
+    draft.siteIds,
+    draft.locationColors,
+    themeColors,
+    dataKeyBySiteId,
+    siteNames,
+  ]);
 
   const metadata = useMemo(() => buildChartMetadata(draft), [draft]);
 
@@ -192,9 +189,8 @@ const OverviewChartCard: React.FC<{
               ...(draft.siteIds.length === 1
                 ? {
                     color:
-                      draft.locationColors.find(
-                        c => c.id === draft.siteIds[0]
-                      )?.color ?? getDefaultSiteColor(0, themeColors),
+                      draft.locationColors.find(c => c.id === draft.siteIds[0])
+                        ?.color ?? getDefaultSiteColor(0, themeColors),
                   }
                 : {}),
               seriesColors,

@@ -1953,8 +1953,8 @@ export interface UpdateOrganizationGroupThemeResponse {
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
-  startDate: string;
-  endDate: string;
+  startDateTime: string;
+  endDateTime: string;
   chartType: string;
   frequency: string;
   pollutant: string;
@@ -2447,12 +2447,7 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    | 'active'
-    | 'inactive'
-    | 'past_due'
-    | 'cancelled'
-    | 'trialing'
-    | 'paused';
+    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2498,12 +2493,7 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      | 'active'
-      | 'inactive'
-      | 'past_due'
-      | 'cancelled'
-      | 'trialing'
-      | 'paused';
+      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -2715,12 +2705,7 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  | 'good'
-  | 'moderate'
-  | 'u4sg'
-  | 'unhealthy'
-  | 'very_unhealthy'
-  | 'hazardous';
+  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
 
 export interface RankingEntry {
   rank: number;

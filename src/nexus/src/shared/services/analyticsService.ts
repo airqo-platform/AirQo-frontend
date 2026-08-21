@@ -19,10 +19,13 @@ import type {
  * Strip time components from a date string so the API receives `YYYY-MM-DD`.
  *
  * The chart-data endpoint (`/analytics/dashboard/chart/d3/data`) validates
- * `startDate` / `endDate` as plain date strings. Callers that pass full ISO
- * datetime strings (e.g. `2025-08-21T00:00:00.000Z`) trigger a 422
+ * `startDateTime` / `endDateTime` as plain date strings.  Callers that pass
+ * full ISO datetime strings (e.g. `2025-08-21T00:00:00.000Z`) trigger a 422
  * Unprocessable Entity from the backend.  This helper is a no-op when the
  * input is already in `YYYY-MM-DD` format.
+ *
+ * Empirically confirmed (2026-08-21): the backend also accepts ISO datetimes,
+ * but YYYY-MM-DD is the safest, most compact format.
  */
 const toDateString = (value: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
@@ -72,25 +75,24 @@ export class AnalyticsService {
   private async ensureAuthenticated() {
     await syncClientSessionToken(this.authenticatedClient);
   }
-
   // Get chart data - direct backend call via API token
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
-    // The chart-data endpoint expects YYYY-MM-DD date strings. Some callers
-    // pass full ISO datetime strings (e.g. "2025-08-21T00:00:00.000Z") which
-    // cause 422 Unprocessable Entity. Normalize here so all callers are safe.
-    const response =
-      await this.serverClient.post<AnalyticsChartResponse>(
-        '/analytics/dashboard/chart/d3/data',
-        {
-          ...request,
-          startDate: toDateString(request.startDate),
-          endDate: toDateString(request.endDate),
-        },
-        { signal }
-      );
+    // The chart-data endpoint expects YYYY-MM-DD date strings for
+    // startDateTime/endDateTime. Some callers pass full ISO datetime strings
+    // (e.g. "2025-08-21T00:00:00.000Z") which cause 422 Unprocessable Entity.
+    // Normalize here so all callers are safe.
+    const response = await this.serverClient.post<AnalyticsChartResponse>(
+      '/analytics/dashboard/chart/d3/data',
+      {
+        ...request,
+        startDateTime: toDateString(request.startDateTime),
+        endDateTime: toDateString(request.endDateTime),
+      },
+      { signal }
+    );
     return response.data;
   }
 

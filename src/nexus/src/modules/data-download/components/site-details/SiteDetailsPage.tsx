@@ -7,9 +7,7 @@ import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronRight, AqCompass } from '@airqo/icons-react';
-import { useSiteRecentReading } from '../../hooks/useSiteRecentReading';
 import { useResolveSiteByName } from '../../hooks/useResolveSiteByName';
-import { resolveReadingSiteName } from '../../utils/siteDetails';
 import { SiteCurrentReadingCard } from './SiteCurrentReadingCard';
 import { SiteTrendChartCard } from './SiteTrendChartCard';
 import { SiteForecastCard } from './SiteForecastCard';
@@ -54,21 +52,10 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   const siteId = siteIdFromRoute?.trim() || resolved?.siteId || '';
   const resolvedName = resolved?.displayName ?? null;
 
-  const {
-    data: reading,
-    isLoading: readingLoading,
-    error: readingError,
-    refetch,
-  } = useSiteRecentReading(siteId, !!siteId);
-
   // Prefer the coordinates captured from the selected table row/resolver.
-  // The recent-reading payload is a reliable fallback for direct links whose
-  // cached site summary did not include coordinates.
   const mapUrl = useMemo(() => {
-    const latitude =
-      resolved?.latitude ?? reading?.siteDetails?.approximate_latitude;
-    const longitude =
-      resolved?.longitude ?? reading?.siteDetails?.approximate_longitude;
+    const latitude = resolved?.latitude;
+    const longitude = resolved?.longitude;
 
     if (
       typeof latitude !== 'number' ||
@@ -85,28 +72,14 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
       zoom: '14',
     });
     return `${mapHref}?${params.toString()}`;
-  }, [
-    mapHref,
-    reading?.siteDetails?.approximate_latitude,
-    reading?.siteDetails?.approximate_longitude,
-    resolved?.latitude,
-    resolved?.longitude,
-  ]);
+  }, [mapHref, resolved?.latitude, resolved?.longitude]);
 
   // Forecast is NOT prefetched here — SiteForecastCard below fetches only
   // the mode the user has selected (hourly by default), so loading the page
   // fires exactly one forecast request instead of hourly + daily.
 
-  const readingSiteName = useMemo(
-    () => resolveReadingSiteName(reading),
-    [reading]
-  );
-
-  // Priority: resolved site name > reading
-  // siteDetails > raw slug fallback
-  const displayName = siteIdFromRoute
-    ? readingSiteName || siteSlug
-    : resolvedName || readingSiteName || siteSlug;
+  // Priority: resolved site name > raw slug fallback
+  const displayName = siteIdFromRoute ? siteSlug : resolvedName || siteSlug;
 
   if (resolving) {
     return (
@@ -171,31 +144,17 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
         </Button>
       </div>
 
-      {readingLoading ? (
-        <div className="flex min-h-[300px] items-center justify-center">
-          <LoadingState text="Loading location details..." />
-        </div>
-      ) : readingError ? (
-        <ErrorState
-          title="Unable to load location details"
-          description={readingError.message}
-          retryAction={{ label: 'Retry', onClick: () => void refetch() }}
-        />
-      ) : (
-        <>
-          {/* AQI Hero: gauge + AQI ranges (left) | what this means + pollutants (right) */}
-          <SiteCurrentReadingCard reading={reading} />
+      {/* AQI Hero: gauge + AQI ranges (left) | what this means + pollutants (right) */}
+      <SiteCurrentReadingCard />
 
-          {/* Historical trend — 7D / 30D / 90D with PM2.5/PM10 toggle */}
-          <SiteTrendChartCard siteId={siteId} siteName={displayName} />
+      {/* Historical trend — 7D / 30D / 90D with PM2.5/PM10 toggle */}
+      <SiteTrendChartCard siteId={siteId} siteName={displayName} />
 
-          {/* Forecast — full width, before health */}
-          <SiteForecastCard siteId={siteId} siteName={displayName} />
+      {/* Forecast — full width, before health */}
+      <SiteForecastCard siteId={siteId} siteName={displayName} />
 
-          {/* Health recommendation — full width */}
-          <SiteHealthRecommendationsCard reading={reading} />
-        </>
-      )}
+      {/* Health recommendation — full width */}
+      <SiteHealthRecommendationsCard />
     </div>
   );
 };
