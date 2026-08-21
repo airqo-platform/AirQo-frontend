@@ -6,6 +6,7 @@ import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { AqXClose } from '@airqo/icons-react';
 import { useSitesForSelection } from '../../hooks/useCohortSelection';
 import { getDefaultSiteColor, toHexInputValue } from '../../utils/siteColors';
+import { isUnknownPlaceholder } from '../../utils/chartConfig';
 import type { NormalizedSiteData } from '@/shared/utils/siteUtils';
 
 interface LocationPickerSectionProps {
@@ -89,7 +90,7 @@ export const LocationPickerSection: React.FC<LocationPickerSectionProps> = ({
       nextIds.forEach(id => {
         const site = sitesData.sites.find(s => s.id === id);
         const name = site?.location ?? UNKNOWN_LABEL;
-        if (name && name !== UNKNOWN_LABEL) names.set(id, name);
+        if (name && !isUnknownPlaceholder(name)) names.set(id, name);
       });
       onSelectionChange(nextIds, names);
     },

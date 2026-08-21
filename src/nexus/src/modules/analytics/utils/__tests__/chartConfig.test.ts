@@ -13,6 +13,8 @@ import {
   removeChartSidecar,
   DEFAULT_CHART_SIDECAR,
   getGuidelinePeriod,
+  buildSiteEntries,
+  isUnknownPlaceholder,
 } from '../chartConfig';
 import type { UserChartConfig } from '@/shared/types/api';
 
@@ -299,6 +301,116 @@ describe('chartConfig utils', () => {
         ...DEFAULT_CHART_SIDECAR,
         color: undefined,
       });
+    });
+  });
+
+  describe('isUnknownPlaceholder', () => {
+    it('matches "Unknown location" and "Unknown Location" (case-insensitive)', () => {
+      expect(isUnknownPlaceholder('Unknown location')).toBe(true);
+      expect(isUnknownPlaceholder('Unknown Location')).toBe(true);
+      expect(isUnknownPlaceholder('unknown location')).toBe(true);
+      expect(isUnknownPlaceholder('')).toBe(true);
+      expect(isUnknownPlaceholder(undefined)).toBe(true);
+      expect(isUnknownPlaceholder('Site Alpha')).toBe(false);
+    });
+  });
+
+  describe('buildSiteEntries', () => {
+    it('builds entries only for site_ids with known names', () => {
+      const entries = buildSiteEntries(['id-a', 'id-b', 'id-c'], {
+        'id-a': 'Site Alpha',
+        'id-c': 'Site Gamma',
+      });
+      expect(entries).toEqual([
+        { site_id: 'id-a', name: 'Site Alpha' },
+        { site_id: 'id-c', name: 'Site Gamma' },
+      ]);
+    });
+
+    it('filters out unknown-location placeholders', () => {
+      const entries = buildSiteEntries(['id-a', 'id-b'], {
+        'id-a': 'Site Alpha',
+        'id-b': 'Unknown location',
+      });
+      expect(entries).toEqual([{ site_id: 'id-a', name: 'Site Alpha' }]);
+    });
+
+    it('returns empty array for empty siteIds', () => {
+      expect(buildSiteEntries([], { 'id-a': 'Alpha' })).toEqual([]);
+    });
+
+    it('returns empty array for empty names', () => {
+      expect(buildSiteEntries(['id-a'], {})).toEqual([]);
+    });
+  });
+
+  describe('persistedConfigToDraft — siteNames', () => {
+    it('reads config.sites into draft.siteNames (server names authoritative)', () => {
+      const config: UserChartConfig = {
+        ...PERSISTED,
+        sites: [
+          { site_id: 'site-a', name: 'Site Alpha' },
+          { site_id: 'site-b', name: 'Site Beta' },
+        ],
+      };
+      const draft = persistedConfigToDraft(config);
+      expect(draft.siteNames).toEqual({
+        'site-a': 'Site Alpha',
+        'site-b': 'Site Beta',
+      });
+    });
+
+    it('server names take precedence over sidecar.siteNames', () => {
+      const config: UserChartConfig = {
+        ...PERSISTED,
+        sites: [
+          { site_id: 'site-a', name: 'Server Alpha' },
+          { site_id: 'site-b', name: 'Server Beta' },
+        ],
+      };
+      const draft = persistedConfigToDraft(config, {
+        ...DEFAULT_CHART_SIDECAR,
+        siteNames: { 'site-a': 'Sidecar Alpha', 'site-c': 'Sidecar Gamma' },
+        startDate: '',
+        endDate: '',
+      });
+      expect(draft.siteNames['site-a']).toBe('Server Alpha');
+      expect(draft.siteNames['site-c']).toBe('Sidecar Gamma');
+    });
+
+    it('sidecar.siteNames fills gaps when config.sites is absent (legacy)', () => {
+      const draft = persistedConfigToDraft(PERSISTED, {
+        ...DEFAULT_CHART_SIDECAR,
+        siteNames: { 'site-a': 'Sidecar Alpha' },
+        startDate: '',
+        endDate: '',
+      });
+      expect(draft.siteNames).toEqual({ 'site-a': 'Sidecar Alpha' });
+    });
+
+    it('filters "Unknown location" from both config.sites and sidecar', () => {
+      const config: UserChartConfig = {
+        ...PERSISTED,
+        sites: [
+          { site_id: 'site-a', name: 'Unknown location' },
+          { site_id: 'site-b', name: 'Site Beta' },
+        ],
+      };
+      const draft = persistedConfigToDraft(config, {
+        ...DEFAULT_CHART_SIDECAR,
+        siteNames: { 'site-a': 'Unknown Location', 'site-c': 'Sidecar Gamma' },
+        startDate: '',
+        endDate: '',
+      });
+      expect(draft.siteNames).toEqual({
+        'site-b': 'Site Beta',
+        'site-c': 'Sidecar Gamma',
+      });
+    });
+
+    it('returns empty siteNames for legacy config with no names', () => {
+      const draft = persistedConfigToDraft(PERSISTED);
+      expect(draft.siteNames).toEqual({});
     });
   });
 });

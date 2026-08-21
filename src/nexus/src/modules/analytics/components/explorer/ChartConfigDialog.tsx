@@ -198,6 +198,7 @@ export const ChartConfigDialog: React.FC<ChartConfigDialogProps> = ({
       startDate,
       endDate,
       siteIds: selectedSiteIds,
+      siteNames: draft?.siteNames ?? {},
       color: null,
       locationColors: materializeSiteColors(
         selectedSiteIds,

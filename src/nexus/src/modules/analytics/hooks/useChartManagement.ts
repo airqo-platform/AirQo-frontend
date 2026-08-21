@@ -19,10 +19,12 @@ import {
   draftToPersistedConfig,
   draftToUpdateRequest,
   buildChartPeriod,
+  buildSiteEntries,
   readChartSidecar,
   writeChartSidecar,
   removeChartSidecar,
   DEFAULT_CHART_SIDECAR,
+  isUnknownPlaceholder,
   type ExplorerChartDraft,
 } from '../utils/chartConfig';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -128,24 +130,29 @@ export const useChartManagement = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistedCharts, groupId, sidecarVersion]);
 
-  // Hydrate the site-names map (chips + location legend) from the sidecars
-  // so names survive reloads.
+  // Hydrate the site-names map (chips + location legend) from server config
+  // sites (authoritative, v2.1+) and sidecar (legacy fallback).
   useEffect(() => {
     if (!persistedCharts) return;
     setSiteNames(prev => {
       const next = new Map(prev);
       persistedCharts.forEach(config => {
         if (!config._id) return;
+
+        // 1. Server-side names from config.sites — authoritative source.
+        if (Array.isArray(config.sites)) {
+          for (const { site_id, name } of config.sites) {
+            if (site_id && name && !isUnknownPlaceholder(name)) {
+              next.set(site_id, name);
+            }
+          }
+        }
+
+        // 2. Sidecar names fill remaining gaps only (legacy browsers,
+        //    charts built before the server stored names).
         const sidecar = readChartSidecar(groupId, config._id);
         Object.entries(sidecar.siteNames ?? {}).forEach(([id, name]) => {
-          // Skip "Unknown location" entries from the sidecar so the
-          // fallback chain (forecast API / fleet summary) can resolve real
-          // names after the page loads.
-          if (
-            name &&
-            name !== 'Unknown location' &&
-            name !== 'Unknown Location'
-          ) {
+          if (name && !isUnknownPlaceholder(name) && !next.has(id)) {
             next.set(id, name);
           }
         });
@@ -161,11 +168,7 @@ export const useChartManagement = (
       names.forEach((name, id) => {
         // Never let "Unknown location" placeholders overwrite real names —
         // the picker reports them for off-page rows that haven't loaded yet.
-        if (
-          name &&
-          name !== 'Unknown location' &&
-          name !== 'Unknown Location'
-        ) {
+        if (name && !isUnknownPlaceholder(name)) {
           next.set(id, name);
         }
       });
@@ -218,6 +221,10 @@ export const useChartManagement = (
       draft: ExplorerChartDraft,
       namesSnapshot: Record<string, string>
     ): Promise<string | null> => {
+      // Build the server-side sites snapshot from the names map.
+      // Partial coverage is accepted by the backend (verified 2026-08-22).
+      const sitesEntries = buildSiteEntries(draft.siteIds, namesSnapshot);
+
       if (draft.id) {
         // Update: flat partial body (the chartConfig wrapper is not used by
         // PUT). The existing server fieldId remains untouched; Area is kept
@@ -244,7 +251,11 @@ export const useChartManagement = (
           await updateMutation.trigger({
             groupId,
             chartId: draft.id,
-            request: draftToUpdateRequest(draft),
+            request: {
+              ...draftToUpdateRequest(draft),
+              // sites go at top level for PUT (backend asymmetry)
+              ...(sitesEntries.length > 0 ? { sites: sitesEntries } : {}),
+            },
           });
         } catch (error) {
           writeChartSidecar(groupId, draft.id, prevSidecar);
@@ -272,7 +283,11 @@ export const useChartManagement = (
             group_id: groupId || undefined,
             period: buildChartPeriod(draft.startDate, draft.endDate),
             site_ids: draft.siteIds,
-            chartConfig: draftToPersistedConfig(draft, fieldId),
+            chartConfig: {
+              ...draftToPersistedConfig(draft, fieldId),
+              // sites go INSIDE chartConfig for POST (backend asymmetry)
+              ...(sitesEntries.length > 0 ? { sites: sitesEntries } : {}),
+            },
           },
         });
         const newChartId = result?.data?._id ?? '';

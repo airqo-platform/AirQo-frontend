@@ -2788,6 +2788,10 @@ export interface UserChartConfig {
   /** Scope — stored alongside the config on the same document */
   site_ids?: string[];
   device_ids?: string[];
+  /** Snapshot display names persisted server-side (v2.1+). Legacy configs: []. */
+  sites?: { site_id: string; name: string }[];
+  /** Snapshot device display names persisted server-side (v2.1+). Legacy: []. */
+  devices?: { device_id: string; name: string }[];
 }
 
 export interface ChartListResponse {
@@ -2820,6 +2824,10 @@ export interface CreateChartRequest {
     showGrid?: boolean;
     showTooltip?: boolean;
     referenceLines?: GroupChartReferenceLine[];
+    /** Snapshot site names — MUST be inside chartConfig for POST (backend asymmetry) */
+    sites?: { site_id: string; name: string }[];
+    /** Snapshot device names — inside chartConfig for POST */
+    devices?: { device_id: string; name: string }[];
   };
 }
 
@@ -2838,6 +2846,10 @@ export interface UpdateChartRequest {
   referenceLines?: GroupChartReferenceLine[];
   device_ids?: string[];
   site_ids?: string[];
+  /** Snapshot site names — top level for PUT (backend asymmetry) */
+  sites?: { site_id: string; name: string }[];
+  /** Snapshot device names — top level for PUT */
+  devices?: { device_id: string; name: string }[];
 }
 
 export interface ChartMutationResponse {

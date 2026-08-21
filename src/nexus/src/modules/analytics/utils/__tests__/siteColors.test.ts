@@ -22,6 +22,7 @@ const draft = (
   startDate: '2026-01-01T00:00:00Z',
   endDate: '2026-01-07T23:59:59Z',
   siteIds: ['a', 'b', 'c'],
+  siteNames: {},
   color: null,
   locationColors: [],
   themeColors: false,
@@ -35,7 +36,9 @@ const draft = (
 
 describe('getDefaultSiteColor', () => {
   it('returns distinct colors for consecutive sites', () => {
-    const colors = new Set([0, 1, 2, 3, 4].map(index => getDefaultSiteColor(index)));
+    const colors = new Set(
+      [0, 1, 2, 3, 4].map(index => getDefaultSiteColor(index))
+    );
     expect(colors.size).toBe(5);
   });
 

@@ -23,10 +23,9 @@ interface SavedPreferencesSectionProps {
  * preferences (backward compatibility for orgs that previously saved
  * preference sites).
  */
-export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = ({
-  groupId,
-  className,
-}) => {
+export const SavedPreferencesSection: React.FC<
+  SavedPreferencesSectionProps
+> = ({ groupId, className }) => {
   const [isManageLocationsOpen, setIsManageLocationsOpen] = useState(false);
   const [forecastEnabled, setForecastEnabled] = useState(false);
 
@@ -55,6 +54,7 @@ export const SavedPreferencesSection: React.FC<SavedPreferencesSectionProps> = (
       startDate: range.startDate,
       endDate: range.endDate,
       siteIds: selectedSiteIds,
+      siteNames: {},
       color: null,
       locationColors: [],
       themeColors: false,

@@ -15,6 +15,15 @@ import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 
 export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
 
+/**
+ * Canonical unknown-name placeholder. The picker and sidecar both emit
+ * variations; all consumers guard with `isUnknownPlaceholder` to let the
+ * fallback chain (server names → sidecar → fleet summary) resolve real names.
+ */
+export const UNKNOWN_PLACEHOLDER = 'Unknown location';
+export const isUnknownPlaceholder = (name: string | undefined): boolean =>
+  !name || name.toLowerCase() === 'unknown location';
+
 export interface ExplorerChartDraft {
   /** Persisted chart config _id (empty for an unsaved draft) */
   id: string;
@@ -32,6 +41,11 @@ export interface ExplorerChartDraft {
   startDate: string;
   endDate: string;
   siteIds: string[];
+  /**
+   * Resolved site display names for this chart. Hydrated from config.sites
+   * (server, authoritative) → sidecar.siteNames (legacy) → picker → fleet.
+   */
+  siteNames: Record<string, string>;
   /** Null = use the chart component's default palette */
   color: string | null;
   /** Per-location series colors (id = site_id or device_id) */
@@ -83,7 +97,7 @@ export interface ExplorerChartSidecar {
  * the sidecar preserves that choice while the server receives Line. Other
  * server-persisted fields still sync across devices.
  */
-const SIDECAR_STORAGE_KEY = 'nexus:analytics:chart-sidecar';
+const SIDECAR_STORAGE_KEY = 'nexus:analytics:chart-sidecar-v2';
 
 export const DEFAULT_CHART_SIDECAR: ExplorerChartSidecar = {
   subtitle: '',
@@ -298,6 +312,21 @@ export const getGuidelinePeriod = (
 ): '24hr' | 'annual' => (frequency === 'monthly' ? 'annual' : '24hr');
 
 /**
+ * Build the `sites` snapshot entries for a chart create/update request.
+ * Only includes site_ids that have a known name — partial coverage is accepted
+ * by the backend (verified 2026-08-22). Empty-name entries are never emitted.
+ */
+export const buildSiteEntries = (
+  siteIds: string[],
+  names: Record<string, string>
+): { site_id: string; name: string }[] => {
+  if (!siteIds.length || !names) return [];
+  return siteIds
+    .filter(id => names[id] && !isUnknownPlaceholder(names[id]))
+    .map(id => ({ site_id: id, name: names[id] }));
+};
+
+/**
  * Convert a persisted chart config (+ sidecar) into the runtime draft the
  * explorer works with.
  */
@@ -320,6 +349,24 @@ export const persistedConfigToDraft = (
     ? { startDate: sidecar.startDate, endDate: sidecar.endDate }
     : deriveRangeFromDays(days);
 
+  // Build siteNames: server names (config.sites, authoritative) then
+  // sidecar.siteNames fills remaining gaps (legacy browsers).
+  const siteNames: Record<string, string> = {};
+  if (Array.isArray(config.sites)) {
+    for (const { site_id, name } of config.sites) {
+      if (site_id && name && !isUnknownPlaceholder(name)) {
+        siteNames[site_id] = name;
+      }
+    }
+  }
+  if (sidecar.siteNames) {
+    for (const [id, name] of Object.entries(sidecar.siteNames)) {
+      if (id && name && !isUnknownPlaceholder(name) && !siteNames[id]) {
+        siteNames[id] = name;
+      }
+    }
+  }
+
   return {
     id: config._id ?? '',
     fieldId:
@@ -336,6 +383,7 @@ export const persistedConfigToDraft = (
     frequency: normalizeFrequency(sidecar.frequency),
     ...range,
     siteIds: config.site_ids ?? [],
+    siteNames,
     // Explicit `null` (user picked the chart default) or an explicit color
     // wins; an absent sidecar falls back to the persisted color.
     color: sidecar.color === undefined ? (config.color ?? null) : sidecar.color,
