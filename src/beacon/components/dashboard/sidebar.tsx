@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare } from "lucide-react"
+import { Home, Package, Layers, Box, ChevronRight, Wrench, FlaskConical, FileText, MessageSquare, BarChart3 } from "lucide-react"
 import { AqMonitor, AqAirQlouds } from '@/components/icons'
 import { useGroup } from '@/lib/group-context'
 import { openFeedbackDialog } from '@/components/features/feedback/feedback-dialog'
@@ -24,6 +24,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
   const canViewAirqoAdminTools = isAirqoGroup && canMaintainDevices
   const canViewMaintenance = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasPermission('DEVICE_MAINTAIN'))
   const canViewReports = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW']))
+  const canViewVisualise = !!activeGroup
 
   return (
     <div
@@ -223,6 +224,25 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
                 {!sidebarOpen && (
                   <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                     Reports
+                  </span>
+                )}
+              </Link>
+            </li>
+          )}
+
+          {canViewVisualise && (
+            <li>
+              <Link
+                href="/dashboard/visualise"
+                className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                  }`}
+                title={!sidebarOpen ? "Visualise" : ""}
+              >
+                <BarChart3 className="h-5 w-5 flex-shrink-0 text-blue-600" />
+                {sidebarOpen && <span className="ml-3 text-sm">Visualise</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Visualise
                   </span>
                 )}
               </Link>
