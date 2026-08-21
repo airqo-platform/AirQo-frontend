@@ -19,6 +19,7 @@ import '../widgets/my_places_view.dart';
 import '../widgets/explore_countries_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
+import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -143,7 +144,14 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       appBar: DashboardAppBar(),
       body: BlocListener<DashboardBloc, DashboardState>(
         listenWhen: (previous, current) => current is DashboardLoaded,
-        listener: (context, state) => _scheduleCardGesturesTourCheck(),
+        listener: (context, state) {
+          _scheduleCardGesturesTourCheck();
+          if (state is DashboardLoaded) {
+            unawaited(NotificationHelper().onDashboardMeasurementsLoaded(
+              state.response.measurements,
+            ));
+          }
+        },
         child: Stack(
           children: [
             RefreshIndicator(

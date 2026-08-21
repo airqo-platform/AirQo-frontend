@@ -24,6 +24,10 @@ class PushNotificationService with UiLoggy {
 
   String? _currentToken;
   bool _isInitialized = false;
+  bool _localOnly = false;
+
+  bool get isInitialized => _isInitialized;
+  bool get isLocalOnly => _localOnly;
 
   /// Callback for handling notification taps when app is in foreground/background
   Function(Map<String, dynamic>)? onNotificationTap;
@@ -31,9 +35,46 @@ class PushNotificationService with UiLoggy {
   /// Callback for handling notification received in foreground
   Function(RemoteMessage)? onForegroundMessage;
 
-  /// Initialize push notifications
-  Future<void> initialize() async {
+  /// Local notifications only — no Firebase / FCM (Phase 0/1).
+  Future<void> initializeLocalOnly() async {
     if (_isInitialized) {
+      loggy.info('Local notifications already initialized');
+      return;
+    }
+
+    try {
+      loggy.info('Initializing local notification service...');
+      await _initializeLocalNotifications();
+      _localOnly = true;
+      _isInitialized = true;
+      loggy.info('Local notification service initialized');
+    } catch (e, stackTrace) {
+      loggy.error('Failed to initialize local notifications', e, stackTrace);
+    }
+  }
+
+  /// Handle a local notification that launched the app from a terminated state.
+  /// Call after [onNotificationTap] is wired — [onDidReceiveNotificationResponse]
+  /// does not fire for cold-start launches.
+  Future<void> processLaunchNotification() async {
+    try {
+      final details =
+          await _localNotifications.getNotificationAppLaunchDetails();
+      if (details == null || !details.didNotificationLaunchApp) return;
+
+      final payload = details.notificationResponse?.payload;
+      if (payload == null || payload.isEmpty) return;
+
+      loggy.info('App launched from terminated state via local notification');
+      onNotificationTap?.call(_decodePayload(payload));
+    } catch (e, stackTrace) {
+      loggy.error('Failed to process launch notification', e, stackTrace);
+    }
+  }
+
+  /// Initialize push notifications (local + FCM). Deferred until server push is needed.
+  Future<void> initialize() async {
+    if (_isInitialized && !_localOnly) {
       loggy.info('Push notifications already initialized');
       return;
     }
@@ -43,6 +84,7 @@ class PushNotificationService with UiLoggy {
 
       // Initialize local notifications
       await _initializeLocalNotifications();
+      _localOnly = false;
 
       // Request notification permissions
       await requestPermission();
@@ -141,21 +183,19 @@ class PushNotificationService with UiLoggy {
 
       // Handle iOS permissions
       if (Platform.isIOS) {
-        final settings = await _firebaseMessaging.requestPermission(
-          alert: true,
-          badge: true,
-          sound: true,
-          provisional: false,
-          announcement: false,
-          carPlay: false,
-          criticalAlert: false,
-        );
+        final status = await Permission.notification.status;
+        if (status.isGranted) return true;
 
-        final enabled = settings.authorizationStatus == AuthorizationStatus.authorized ||
-            settings.authorizationStatus == AuthorizationStatus.provisional;
+        if (status.isDenied || status.isLimited) {
+          final result = await Permission.notification.request();
+          loggy.info('iOS notification permission request result: $result');
+          return result.isGranted;
+        }
 
-        loggy.info('iOS notification permission status: ${settings.authorizationStatus}');
-        return enabled;
+        if (status.isPermanentlyDenied) {
+          loggy.warning('iOS notification permission permanently denied');
+          return false;
+        }
       }
 
       return false;
@@ -174,9 +214,8 @@ class PushNotificationService with UiLoggy {
       }
 
       if (Platform.isIOS) {
-        final settings = await _firebaseMessaging.getNotificationSettings();
-        return settings.authorizationStatus == AuthorizationStatus.authorized ||
-            settings.authorizationStatus == AuthorizationStatus.provisional;
+        final status = await Permission.notification.status;
+        return status.isGranted;
       }
 
       return false;
@@ -289,6 +328,7 @@ class PushNotificationService with UiLoggy {
     required int id,
     required String title,
     required String body,
+    Map<String, dynamic>? payload,
   }) async {
     try {
       await _localNotifications.show(
@@ -310,6 +350,7 @@ class PushNotificationService with UiLoggy {
             presentSound: true,
           ),
         ),
+        payload: payload != null ? _encodePayload(payload) : null,
       );
     } catch (e, stackTrace) {
       loggy.error('Failed to show local notification', e, stackTrace);
