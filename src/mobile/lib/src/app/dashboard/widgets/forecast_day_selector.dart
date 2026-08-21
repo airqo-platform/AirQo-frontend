@@ -1,6 +1,9 @@
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +15,7 @@ class ForecastDaySelector extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final bool isDark;
   final bool onInsetPanel;
+  final Measurement? liveReading;
 
   const ForecastDaySelector({
     super.key,
@@ -21,6 +25,7 @@ class ForecastDaySelector extends StatelessWidget {
     required this.onSelected,
     required this.isDark,
     this.onInsetPanel = false,
+    this.liveReading,
   });
 
   @override
@@ -29,7 +34,14 @@ class ForecastDaySelector extends StatelessWidget {
       children: List.generate(forecasts.length, (i) {
         final f = forecasts[i];
         final isActive = i == selectedIndex;
-        final isToday = DateFormat('yyyy-MM-dd').format(f.time) == todayStr;
+        final isToday = isForecastToday(f.time);
+        final useLiveReading = isToday && hasLiveReading(liveReading);
+        final pm25Label = useLiveReading
+            ? liveReading!.pm25!.value!.toStringAsFixed(1)
+            : '${f.pm25.round()}';
+        final iconPath = useLiveReading
+            ? getAirQualityIcon(liveReading!, liveReading!.pm25!.value!)
+            : getForecastAirQualityIcon(f.aqiCategory);
 
         Color bgColor;
         Border? chipBorder;
@@ -69,7 +81,7 @@ class ForecastDaySelector extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    DateFormat.E().format(f.time).substring(0, 2),
+                    DateFormat.E().format(f.time.toLocal()).substring(0, 2),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -87,12 +99,11 @@ class ForecastDaySelector extends StatelessWidget {
                   SizedBox(
                     width: 26,
                     height: 26,
-                    child: SvgPicture.asset(
-                        getForecastAirQualityIcon(f.aqiCategory)),
+                    child: SvgPicture.asset(iconPath),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${f.pm25.round()}',
+                    pm25Label,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,

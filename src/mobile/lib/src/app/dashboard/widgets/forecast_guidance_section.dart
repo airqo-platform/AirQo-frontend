@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -15,6 +16,12 @@ class ForecastGuidanceSection extends StatelessWidget {
 
   factory ForecastGuidanceSection.fromHourly(HourlyForecastEntry entry) {
     return ForecastGuidanceSection(guidance: guidanceFromHourlyEntry(entry));
+  }
+
+  factory ForecastGuidanceSection.fromMeasurement(Measurement measurement) {
+    return ForecastGuidanceSection(
+      guidance: guidanceFromMeasurement(measurement),
+    );
   }
 
   @override

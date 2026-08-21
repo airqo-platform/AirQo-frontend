@@ -1,9 +1,11 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,6 +22,7 @@ class ForecastHourlySection extends StatelessWidget {
   final int selectedHourIndex;
   final ValueChanged<int>? onHourSelected;
   final bool skipCurrentHour;
+  final Measurement? liveReading;
 
   const ForecastHourlySection({
     super.key,
@@ -33,6 +36,7 @@ class ForecastHourlySection extends StatelessWidget {
     this.selectedHourIndex = 0,
     this.onHourSelected,
     this.skipCurrentHour = false,
+    this.liveReading,
   });
 
   @override
@@ -68,6 +72,7 @@ class ForecastHourlySection extends StatelessWidget {
             selectedHourIndex: selectedHourIndex,
             onHourSelected: onHourSelected,
             skipCurrentHour: skipCurrentHour,
+            liveReading: liveReading,
           ),
       ],
     );
@@ -120,6 +125,7 @@ class _HourlyList extends StatelessWidget {
   final int selectedHourIndex;
   final ValueChanged<int>? onHourSelected;
   final bool skipCurrentHour;
+  final Measurement? liveReading;
 
   const _HourlyList({
     required this.hourlyResponse,
@@ -129,6 +135,7 @@ class _HourlyList extends StatelessWidget {
     required this.selectedHourIndex,
     this.onHourSelected,
     this.skipCurrentHour = false,
+    this.liveReading,
   });
 
   Color _surfaceColor(BuildContext context) => onInsetPanel
@@ -183,11 +190,15 @@ class _HourlyList extends StatelessWidget {
           final isSelected = onHourSelected != null
               ? i == selectedHourIndex.clamp(0, dayEntries.length - 1).toInt()
               : isNow;
+          final useLiveReading = isNow &&
+              isForecastToday(entry.time, now) &&
+              hasLiveReading(liveReading);
           return _HourlyChip(
             entry: entry,
             isSelected: isSelected,
             onInsetPanel: onInsetPanel,
             onTap: onHourSelected != null ? () => onHourSelected!(i) : null,
+            liveReading: useLiveReading ? liveReading : null,
           );
         },
       ),
@@ -200,12 +211,14 @@ class _HourlyChip extends StatelessWidget {
   final bool isSelected;
   final bool onInsetPanel;
   final VoidCallback? onTap;
+  final Measurement? liveReading;
 
   const _HourlyChip({
     required this.entry,
     required this.isSelected,
     this.onInsetPanel = false,
     this.onTap,
+    this.liveReading,
   });
 
   @override
@@ -216,6 +229,14 @@ class _HourlyChip extends StatelessWidget {
     final inactiveMetaColor = isDarkTheme
         ? Colors.white.withValues(alpha: 0.85)
         : AppTextColors.muted(context);
+
+    final useLiveReading = hasLiveReading(liveReading);
+    final pm25Label = useLiveReading
+        ? liveReading!.pm25!.value!.toStringAsFixed(1)
+        : '${entry.pm25Mean.round()}';
+    final iconPath = useLiveReading
+        ? getAirQualityIcon(liveReading!, liveReading!.pm25!.value!)
+        : getForecastAirQualityIcon(entry.aqiCategory);
 
     final chip = Container(
       width: 64,
@@ -247,13 +268,13 @@ class _HourlyChip extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           SvgPicture.asset(
-            getForecastAirQualityIcon(entry.aqiCategory),
+            iconPath,
             width: 24,
             height: 24,
           ),
           const SizedBox(height: 4),
           Text(
-            '${entry.pm25Mean.round()}',
+            pm25Label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
