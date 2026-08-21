@@ -199,11 +199,11 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
       aria-modal="false"
       aria-label="AI Assistant"
       className={cn(
-        'fixed inset-1.5 z-[10001] flex flex-col overflow-hidden bg-background shadow-2xl border border-border',
+        'fixed inset-1 z-[10001] flex flex-col overflow-hidden bg-background shadow-2xl border border-border',
         // Mobile: full-width floating panel with gap on all sides
         'rounded-lg',
         // Desktop: right-side drawer, matching the layout push breakpoint
-        'md:inset-x-auto md:right-1.5 md:top-1.5 md:bottom-1.5 md:w-[400px] md:rounded-lg'
+        'md:inset-x-auto md:right-1 md:top-1 md:bottom-1 md:w-[400px] md:rounded-lg'
       )}
     >
         {/* Header */}

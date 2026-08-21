@@ -545,6 +545,7 @@ export class ApiClient {
 
           const shouldNotifySlack =
             status >= 405 && // Skip validation errors (400, 404 already handled)
+            status !== 422 && // Skip 422 validation errors (client payload issues)
             status !== 429; // Skip rate limiting (already handled)
 
           if (shouldNotifySlack) {

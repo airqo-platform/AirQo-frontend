@@ -176,7 +176,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     <>
       {/* Sidebar - Hidden by default on mobile, always visible on desktop */}
       <aside
-        className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-background border-r border-border p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
+        className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-card text-card-foreground border-r border-border p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
       >
         <div className="space-y-4">
           <h2 className="text-lg text-foreground">
@@ -324,7 +324,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Export Configuration"
-        className={`lg:hidden fixed left-1.5 top-1.5 bottom-1.5 z-[60] w-[85%] max-w-80 bg-background border border-border rounded-lg shadow-2xl transform transition-transform duration-300 ease-in-out motion-reduce:transition-none overflow-visible ${
+        className={`lg:hidden fixed left-1 top-1 bottom-1 z-[60] w-[85%] max-w-80 bg-card text-card-foreground border border-border rounded-lg shadow-2xl transform transition-transform duration-300 ease-in-out motion-reduce:transition-none overflow-visible ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${sidebarOpen ? 'flex' : 'hidden'}`}
       >

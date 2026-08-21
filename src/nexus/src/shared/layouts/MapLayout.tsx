@@ -33,9 +33,9 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
     <>
       <div
         className={cn(
-          'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
+          'flex flex-col h-screen gap-2 p-1 overflow-hidden',
           theme.interfaceStyle === 'bordered' && 'border border-border',
-          isAiDrawerOpen && 'md:pr-[calc(400px+0.375rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
+          isAiDrawerOpen && 'md:pr-[calc(400px+0.25rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
         )}
       >
         {/* Fixed Header */}
