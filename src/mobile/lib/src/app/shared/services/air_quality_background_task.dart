@@ -20,10 +20,13 @@ import 'package:workmanager/workmanager.dart';
 class AirQualityBackgroundTask with UiLoggy {
   AirQualityBackgroundTask._();
 
-  static const uniqueName = 'airqo-aq-background-check';
-  static const initialCheckUniqueName = 'airqo-aq-initial-check';
-  /// Android one-off handler name. iOS periodic tasks receive [uniqueName] instead.
-  static const taskName = 'com.airqo.net.aqBackgroundCheck';
+  /// BGTaskScheduler identifier (iOS) / WorkManager unique name (Android).
+  /// Must match `BGTaskSchedulerPermittedIdentifiers` in Info.plist.
+  static const uniqueName = 'com.airqo.net.aqBackgroundCheck';
+  static const initialCheckUniqueName = 'com.airqo.net.aqInitialCheck';
+  /// Handler name returned to the Dart callback on Android; also used for iOS one-off tasks.
+  static const taskName = uniqueName;
+  static const initialTaskName = initialCheckUniqueName;
   static const initialCheckScheduledKey = 'aq_background_initial_check_scheduled';
   static const checkInterval = Duration(hours: 3);
   static const initialCheckDelay = Duration(seconds: 15);
@@ -54,7 +57,7 @@ class AirQualityBackgroundTask with UiLoggy {
 
     await Workmanager().registerOneOffTask(
       initialCheckUniqueName,
-      taskName,
+      initialTaskName,
       initialDelay: initialCheckDelay,
       constraints: Constraints(
         networkType: NetworkType.connected,
@@ -96,7 +99,7 @@ void airQualityBackgroundCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
       case AirQualityBackgroundTask.uniqueName:
-      case AirQualityBackgroundTask.taskName:
+      case AirQualityBackgroundTask.initialCheckUniqueName:
       case Workmanager.iOSBackgroundTask:
         return AirQualityBackgroundTask.run();
       default:

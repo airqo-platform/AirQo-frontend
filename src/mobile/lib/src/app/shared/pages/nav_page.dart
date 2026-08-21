@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
@@ -48,7 +50,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeLocalNotifications();
+      unawaited(_initializeLocalNotifications());
     });
   }
 

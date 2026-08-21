@@ -147,9 +147,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         listener: (context, state) {
           _scheduleCardGesturesTourCheck();
           if (state is DashboardLoaded) {
-            NotificationHelper().onDashboardMeasurementsLoaded(
+            unawaited(NotificationHelper().onDashboardMeasurementsLoaded(
               state.response.measurements,
-            );
+            ));
           }
         },
         child: Stack(
