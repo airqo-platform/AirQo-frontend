@@ -719,7 +719,7 @@ export default function AnalyticsFilters({
             timeRange: includeTime ? timeRange : undefined,
             includeTime,
           })}
-          disabled={isAnalysing || selectedItems.length === 0}
+          disabled={isAnalysing || selectedItems.length === 0 || (!hideDateRange && (!dateRange?.from || !dateRange?.to))}
         >
           {isAnalysing ? (
             <>

@@ -131,6 +131,9 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
     const isReports = pathname.startsWith('/dashboard/reports')
     const canAccessReports = !!activeGroup && (!isAirqoGroup || canMaintainDevices || hasAnyPermission(['DATA_EXPORT', 'ANALYTICS_EXPORT', 'DATA_VIEW']))
 
+    const isVisualise = pathname.startsWith('/dashboard/visualise') || pathname.startsWith('/dashboard/visualize')
+    const canAccessVisualise = !!activeGroup
+
     if ((isOverview || isRestrictedAirqoOnly) && (!isAirqoGroup || !canMaintainDevices)) {
       router.replace('/dashboard/devices')
     } else if (isAnalytics && !canAccessAnalytics) {
@@ -138,6 +141,8 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
     } else if (isMaintenance && !canAccessMaintenance) {
       router.replace('/dashboard/devices')
     } else if (isReports && !canAccessReports) {
+      router.replace('/dashboard/devices')
+    } else if (isVisualise && !canAccessVisualise) {
       router.replace('/dashboard/devices')
     }
   }, [activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission, loading, pathname, router])

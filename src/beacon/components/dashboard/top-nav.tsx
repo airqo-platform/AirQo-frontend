@@ -7,8 +7,8 @@ import { AqAirQo, AqHelpCircle } from '@airqo/icons-react'
 import { Button } from "@/components/ui/button"
 import GroupSelector from "@/components/dashboard/group-selector"
 import { syncGroups } from "@/services/device-api.service"
-import authService from "@/services/api-service"
 import { useToast } from "@/components/ui/use-toast"
+import { useGroup } from "@/lib/group-context"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,23 +55,6 @@ interface TopNavProps {
   onLogout: () => void
 }
 
-const GROUP_SYNC_ADMIN_EMAIL = "gibson@airqo.net"
-
-function decodeJwtEmail(token: string | null): string | null {
-  if (!token) return null
-
-  try {
-    const rawToken = token.replace(/^(JWT|Bearer)\s+/i, "")
-    const parts = rawToken.split('.')
-    if (parts.length !== 3) return null
-
-    const payload = JSON.parse(atob(parts[1].replaceAll('-', '+').replaceAll('_', '/')))
-    return payload.email || payload.userName || payload.username || null
-  } catch {
-    return null
-  }
-}
-
 export default function TopNav({
   user,
   loading,
@@ -80,9 +63,10 @@ export default function TopNav({
   onLogout,
 }: Readonly<TopNavProps>) {
   const { toast } = useToast()
+  const { activeGroup } = useGroup()
+  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
-  const [canSyncGroups, setCanSyncGroups] = useState(false)
   const router = useRouter()
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -94,11 +78,6 @@ export default function TopNav({
   const toggleDarkMode = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark")
   }
-
-  useEffect(() => {
-    const email = decodeJwtEmail(authService.getToken())
-    setCanSyncGroups(email?.toLowerCase() === GROUP_SYNC_ADMIN_EMAIL)
-  }, [])
 
   // Generate user initials from first_name and last_name
   const getUserInitials = (user: User | null) => {
@@ -170,7 +149,7 @@ export default function TopNav({
         </div>
         <div className="flex items-center gap-x-3 pr-2">
           <GroupSelector />
-          {canSyncGroups && (
+          {isAirqoGroup && (
             <Button
               variant="outline"
               size="sm"

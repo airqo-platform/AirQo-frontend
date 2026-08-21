@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_response.dart';
 
 /// API-sourced guidance for the forecast modal guidance panel.
@@ -29,6 +30,36 @@ ForecastGuidance guidanceFromHourlyEntry(HourlyForecastEntry entry) {
     trendMessage: _trimOrNull(entry.trendMessage),
   );
 }
+
+ForecastGuidance guidanceFromMeasurement(Measurement measurement) {
+  final tips = measurement.healthTips;
+  if (tips == null || tips.isEmpty) {
+    return const ForecastGuidance();
+  }
+  final tip = tips.first;
+  return ForecastGuidance(
+    message: _trimOrNull(tip.description) ??
+        _trimOrNull(tip.tagLine) ??
+        _trimOrNull(tip.title),
+  );
+}
+
+bool isForecastToday(DateTime forecastTime, [DateTime? now]) {
+  final reference = (now ?? DateTime.now()).toLocal();
+  return _fmtDate(forecastTime.toLocal()) == _fmtDate(reference);
+}
+
+bool isCurrentHourEntry(HourlyForecastEntry entry, [DateTime? now]) {
+  final reference = (now ?? DateTime.now()).toLocal();
+  final entryTime = entry.time.toLocal();
+  return entryTime.year == reference.year &&
+      entryTime.month == reference.month &&
+      entryTime.day == reference.day &&
+      entryTime.hour == reference.hour;
+}
+
+bool hasLiveReading(Measurement? measurement) =>
+    measurement?.pm25?.value != null;
 
 String? _trimOrNull(String? value) {
   if (value == null) return null;
@@ -70,6 +101,38 @@ class ForecastReadingSnapshot {
       forecastConfidence: entry.forecastConfidence,
       met: entry.met,
     );
+  }
+
+  factory ForecastReadingSnapshot.fromMeasurement(Measurement measurement) {
+    return ForecastReadingSnapshot(
+      pm25: measurement.pm25!.value!,
+      aqiCategory: measurement.aqiCategory ?? 'Unavailable',
+      aqiColor: measurement.aqiColor ?? '',
+    );
+  }
+
+  factory ForecastReadingSnapshot.fromDailyOrLive({
+    required Forecast forecast,
+    Measurement? measurement,
+    DateTime? now,
+  }) {
+    if (isForecastToday(forecast.time, now) && hasLiveReading(measurement)) {
+      return ForecastReadingSnapshot.fromMeasurement(measurement!);
+    }
+    return ForecastReadingSnapshot.fromDaily(forecast);
+  }
+
+  factory ForecastReadingSnapshot.fromHourlyOrLive({
+    required HourlyForecastEntry entry,
+    Measurement? measurement,
+    DateTime? now,
+  }) {
+    if (isCurrentHourEntry(entry, now) &&
+        isForecastToday(entry.time, now) &&
+        hasLiveReading(measurement)) {
+      return ForecastReadingSnapshot.fromMeasurement(measurement!);
+    }
+    return ForecastReadingSnapshot.fromHourly(entry);
   }
 }
 
