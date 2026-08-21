@@ -391,7 +391,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
                   {config.yColumns.map((col, idx) => {
                     const color = paletteColors[idx % paletteColors.length]
                     return (
-                      <linearGradient key={`grad_${col}`} id={`grad_${col}`} x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient key={`grad_ycol_${idx}`} id={`grad_ycol_${idx}`} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={color} stopOpacity={0.4} />
                         <stop offset="95%" stopColor={color} stopOpacity={0.0} />
                       </linearGradient>
@@ -428,7 +428,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
                       dataKey={col}
                       stroke={color}
                       fillOpacity={1}
-                      fill={`url(#grad_${col})`}
+                      fill={`url(#grad_ycol_${idx})`}
                       strokeWidth={2}
                       name={col}
                     />

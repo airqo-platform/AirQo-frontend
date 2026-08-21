@@ -4,12 +4,6 @@ import React, { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   Calendar,
   Clock,
 } from "lucide-react"
@@ -21,6 +15,13 @@ interface HeatmapAnalyticsViewProps {
 
 export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
   const [heatmapMetric, setHeatmapMetric] = useState<"frequency" | "pm25" | "errorMargin">("frequency")
+  const [hoveredCell, setHoveredCell] = useState<{
+    date: string
+    hour: number
+    cell: { count: number; avgPm25: number | null; avgError: number | null }
+    x: number
+    y: number
+  } | null>(null)
 
   // Process 24-hour x Date Grid
   const { dates, grid, maxFreq, maxPm25, maxError } = useMemo(() => {
@@ -184,82 +185,98 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 overflow-x-auto">
-          <TooltipProvider delayDuration={50}>
-            <div className="min-w-[700px] space-y-2">
-              {/* Legend */}
-              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span>Legend:</span>
-                  <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                    <div className="w-3 h-3 rounded bg-slate-100 border border-slate-200" /> 0
-                    {heatmapMetric === "frequency" ? (
-                      <>
-                        <div className="w-3 h-3 rounded bg-blue-200" /> Low
-                        <div className="w-3 h-3 rounded bg-blue-400" /> Med
-                        <div className="w-3 h-3 rounded bg-blue-600" /> High ({maxFreq}/hr)
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-3 h-3 rounded bg-emerald-500" /> Good
-                        <div className="w-3 h-3 rounded bg-amber-400" /> Moderate
-                        <div className="w-3 h-3 rounded bg-red-600" /> Elevated
-                      </>
-                    )}
+        <CardContent className="p-6 overflow-x-auto relative">
+          <div className="min-w-[700px] space-y-2">
+            {/* Legend */}
+            <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span>Legend:</span>
+                <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                  <div className="w-3 h-3 rounded bg-slate-100 border border-slate-200" /> 0
+                  {heatmapMetric === "frequency" ? (
+                    <>
+                      <div className="w-3 h-3 rounded bg-blue-200" /> Low
+                      <div className="w-3 h-3 rounded bg-blue-400" /> Med
+                      <div className="w-3 h-3 rounded bg-blue-600" /> High ({maxFreq}/hr)
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-3 h-3 rounded bg-[#45ae03]" /> Good
+                      <div className="w-3 h-3 rounded bg-[#e5cc16]" /> Moderate
+                      <div className="w-3 h-3 rounded bg-[#d32f2f]" /> Elevated
+                    </>
+                  )}
+                </div>
+              </div>
+              <span className="text-[11px] font-mono">{dates.length} days analyzed</span>
+            </div>
+
+            {/* Grid: 24 Rows (Hours) x Columns (Dates) */}
+            <div className="space-y-1">
+              {Array.from({ length: 24 }).map((_, hour) => (
+                <div key={hour} className="flex items-center gap-1">
+                  <span className="w-12 text-[11px] font-mono text-slate-400 text-right pr-2">
+                    {String(hour).padStart(2, "0")}:00
+                  </span>
+
+                  <div className="flex items-center gap-1 flex-1">
+                    {grid.map((day) => {
+                      const cell = day.hours[hour]
+                      return (
+                        <div
+                          key={`${day.date}-${hour}`}
+                          className={`h-4 flex-1 min-w-[12px] max-w-[28px] rounded-xs cursor-pointer transition-all hover:ring-2 hover:ring-blue-400 ${getCellColor(
+                            cell
+                          )}`}
+                          onMouseEnter={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            setHoveredCell({
+                              date: day.date,
+                              hour,
+                              cell,
+                              x: rect.left + rect.width / 2,
+                              y: rect.top,
+                            })
+                          }}
+                          onMouseLeave={() => setHoveredCell(null)}
+                        />
+                      )
+                    })}
                   </div>
                 </div>
-                <span className="text-[11px] font-mono">{dates.length} days analyzed</span>
-              </div>
+              ))}
+            </div>
 
-              {/* Grid: 24 Rows (Hours) x Columns (Dates) */}
-              <div className="space-y-1">
-                {Array.from({ length: 24 }).map((_, hour) => (
-                  <div key={hour} className="flex items-center gap-1">
-                    <span className="w-12 text-[11px] font-mono text-slate-400 text-right pr-2">
-                      {String(hour).padStart(2, "0")}:00
-                    </span>
-
-                    <div className="flex items-center gap-1 flex-1">
-                      {grid.map((day) => {
-                        const cell = day.hours[hour]
-                        return (
-                          <Tooltip key={`${day.date}-${hour}`}>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={`h-4 flex-1 min-w-[12px] max-w-[28px] rounded-xs cursor-pointer transition-all hover:ring-2 hover:ring-blue-400 ${getCellColor(
-                                  cell
-                                )}`}
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent className="text-xs p-2.5 font-mono">
-                              <p className="font-bold text-slate-900 mb-1">{day.date} @ {String(hour).padStart(2, "0")}:00 UTC</p>
-                              <p className="text-slate-600">Records: <span className="font-bold text-blue-600">{cell.count}</span></p>
-                              {cell.avgPm25 !== null && (
-                                <p className="text-slate-600">Avg PM2.5: <span className="font-bold text-emerald-600">{cell.avgPm25} µg/m³</span></p>
-                              )}
-                              {cell.avgError !== null && (
-                                <p className="text-slate-600">Avg Error Margin: <span className="font-bold text-amber-600">±{cell.avgError}</span></p>
-                              )}
-                            </TooltipContent>
-                          </Tooltip>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* X-Axis Date Labels */}
-              <div className="flex items-center gap-1 pt-2">
-                <span className="w-12" />
-                <div className="flex items-center justify-between flex-1 text-[10px] text-slate-400 font-mono">
-                  <span>{dates[0]}</span>
-                  {dates.length > 5 && <span>{dates[Math.floor(dates.length / 2)]}</span>}
-                  <span>{dates[dates.length - 1]}</span>
-                </div>
+            {/* X-Axis Date Labels */}
+            <div className="flex items-center gap-1 pt-2">
+              <span className="w-12" />
+              <div className="flex items-center justify-between flex-1 text-[10px] text-slate-400 font-mono">
+                <span>{dates[0]}</span>
+                {dates.length > 5 && <span>{dates[Math.floor(dates.length / 2)]}</span>}
+                <span>{dates[dates.length - 1]}</span>
               </div>
             </div>
-          </TooltipProvider>
+          </div>
+
+          {/* Single Shared Floating Tooltip */}
+          {hoveredCell && (
+            <div
+              className="fixed z-50 pointer-events-none -translate-x-1/2 -translate-y-full mb-2 bg-slate-900 text-white text-xs p-2.5 rounded-lg shadow-xl font-mono animate-in fade-in-50 duration-75"
+              style={{
+                left: `${hoveredCell.x}px`,
+                top: `${hoveredCell.y - 8}px`,
+              }}
+            >
+              <p className="font-bold text-white mb-1">{hoveredCell.date} @ {String(hoveredCell.hour).padStart(2, "0")}:00 UTC</p>
+              <p className="text-slate-300">Records: <span className="font-bold text-blue-400">{hoveredCell.cell.count}</span></p>
+              {hoveredCell.cell.avgPm25 !== null && (
+                <p className="text-slate-300">Avg PM2.5: <span className="font-bold text-emerald-400">{hoveredCell.cell.avgPm25} µg/m³</span></p>
+              )}
+              {hoveredCell.cell.avgError !== null && (
+                <p className="text-slate-300">Avg Error Margin: <span className="font-bold text-amber-400">±{hoveredCell.cell.avgError}</span></p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

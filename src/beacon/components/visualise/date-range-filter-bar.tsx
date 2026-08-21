@@ -1,19 +1,22 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Calendar as CalendarIcon,
   Clock,
-  Filter,
   Monitor,
-  Layers,
   RotateCcw,
   Sliders,
+  ChevronDown,
+  Search,
+  Check,
 } from "lucide-react"
 import { format, subDays, subHours } from "date-fns"
 
@@ -23,7 +26,8 @@ export interface TimePeriodState {
   endDate?: string // YYYY-MM-DD
   startTime: string // HH:mm
   endTime: string // HH:mm
-  selectedDevice: string // "all" or specific device_name
+  selectedDevices: string[] // [] or ["all"] or specific device names
+  selectedDevice?: string // backward compatibility
   aggregation: "none" | "hourly" | "daily"
 }
 
@@ -48,8 +52,70 @@ export function DateRangeFilterBar({
   filteredRecordsCount,
   onOpenColumnMapper,
 }: DateRangeFilterBarProps) {
+  const [deviceSearch, setDeviceSearch] = useState("")
+
   const update = <K extends keyof TimePeriodState>(key: K, value: TimePeriodState[K]) => {
     onChange({ ...periodState, [key]: value })
+  }
+
+  // Selected devices normalized
+  const selectedDevices = useMemo(() => {
+    if (periodState.selectedDevices && periodState.selectedDevices.length > 0) {
+      return periodState.selectedDevices
+    }
+    if (periodState.selectedDevice && periodState.selectedDevice !== "all") {
+      return [periodState.selectedDevice]
+    }
+    return []
+  }, [periodState.selectedDevices, periodState.selectedDevice])
+
+  const isAllSelected = selectedDevices.length === 0 || selectedDevices.includes("all") || selectedDevices.length === availableDevices.length
+
+  const filteredDeviceList = useMemo(() => {
+    if (!deviceSearch.trim()) return availableDevices
+    const q = deviceSearch.toLowerCase()
+    return availableDevices.filter((d) => d.toLowerCase().includes(q))
+  }, [availableDevices, deviceSearch])
+
+  const handleToggleDevice = (dev: string) => {
+    let next: string[]
+    if (isAllSelected) {
+      // If previously all, selecting one unselects others
+      next = [dev]
+    } else if (selectedDevices.includes(dev)) {
+      next = selectedDevices.filter((d) => d !== dev)
+      if (next.length === 0) {
+        next = [] // all
+      }
+    } else {
+      next = [...selectedDevices, dev]
+      if (next.length === availableDevices.length) {
+        next = [] // all
+      }
+    }
+    onChange({
+      ...periodState,
+      selectedDevices: next,
+      selectedDevice: next.length === 1 ? next[0] : next.length === 0 ? "all" : "custom",
+    })
+  }
+
+  const handleSelectAllDevices = () => {
+    onChange({
+      ...periodState,
+      selectedDevices: [],
+      selectedDevice: "all",
+    })
+  }
+
+  const handleClearAllDevices = () => {
+    if (availableDevices.length > 0) {
+      onChange({
+        ...periodState,
+        selectedDevices: [availableDevices[0]],
+        selectedDevice: availableDevices[0],
+      })
+    }
   }
 
   // Handle Preset Clicks
@@ -99,6 +165,12 @@ export function DateRangeFilterBar({
   const pct = totalRecordsCount > 0
     ? ((filteredRecordsCount / totalRecordsCount) * 100).toFixed(0)
     : "100"
+
+  const deviceButtonLabel = useMemo(() => {
+    if (isAllSelected) return `All Devices (${availableDevices.length})`
+    if (selectedDevices.length === 1) return selectedDevices[0]
+    return `${selectedDevices.length} Devices Selected`
+  }, [isAllSelected, selectedDevices, availableDevices.length])
 
   return (
     <Card className="border-slate-200 shadow-sm bg-white">
@@ -166,31 +238,85 @@ export function DateRangeFilterBar({
           </div>
         </div>
 
-        {/* Right Side: Device Filter, Aggregation, & Column Mapper Button */}
+        {/* Right Side: Multi-Device Filter, Aggregation, & Column Mapper Button */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Device Filter (if multiple devices) */}
+          {/* Multi-Device Filter Popover */}
           {availableDevices.length > 1 && (
-            <div className="flex items-center gap-1.5">
-              <Monitor className="w-3.5 h-3.5 text-slate-400" />
-              <Select
-                value={periodState.selectedDevice}
-                onValueChange={(val) => update("selectedDevice", val)}
-              >
-                <SelectTrigger className="h-7 text-xs w-36 bg-slate-50 border-slate-200">
-                  <SelectValue placeholder="All Devices" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="all" className="text-xs font-semibold">
-                    All Devices ({availableDevices.length})
-                  </SelectItem>
-                  {availableDevices.map((dev) => (
-                    <SelectItem key={dev} value={dev} className="text-xs">
-                      <span className="truncate max-w-[180px]">{dev}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1.5 bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 max-w-[200px]"
+                >
+                  <Monitor className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span className="truncate">{deviceButtonLabel}</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400 flex-shrink-0 ml-auto" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 text-xs" align="end">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <span className="font-semibold text-slate-800">Filter Devices</span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllDevices}
+                        className="text-[11px] text-blue-600 hover:underline font-medium"
+                      >
+                        All
+                      </button>
+                      <span className="text-slate-300">|</span>
+                      <button
+                        type="button"
+                        onClick={handleClearAllDevices}
+                        className="text-[11px] text-slate-500 hover:underline"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {availableDevices.length > 5 && (
+                    <div className="relative">
+                      <Search className="w-3 h-3 absolute left-2 top-2 text-slate-400" />
+                      <Input
+                        placeholder="Search devices..."
+                        value={deviceSearch}
+                        onChange={(e) => setDeviceSearch(e.target.value)}
+                        className="h-7 pl-6 text-xs bg-slate-50 border-slate-200"
+                      />
+                    </div>
+                  )}
+
+                  <div className="max-h-48 overflow-y-auto space-y-1 py-1">
+                    {filteredDeviceList.map((dev) => {
+                      const checked = isAllSelected || selectedDevices.includes(dev)
+                      return (
+                        <label
+                          key={dev}
+                          className="flex items-center gap-2 p-1.5 rounded hover:bg-slate-50 cursor-pointer text-xs select-none"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => handleToggleDevice(dev)}
+                          />
+                          <span className="truncate flex-1 font-mono text-[11px]">{dev}</span>
+                        </label>
+                      )
+                    })}
+                    {filteredDeviceList.length === 0 && (
+                      <p className="text-center text-slate-400 py-2 text-[11px]">No devices match</p>
+                    )}
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>{isAllSelected ? "All devices active" : `${selectedDevices.length} of ${availableDevices.length} active`}</span>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
           {/* Time Bucketing Selector */}

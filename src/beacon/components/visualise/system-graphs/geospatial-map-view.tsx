@@ -43,33 +43,40 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
 
   // Group by device to find latest state & coordinate path
   const devicesMap = useMemo(() => {
+    const MAX_POINTS_PER_DEVICE = 500
     const map = new Map<
       string,
       {
         deviceName: string
         latestRecord: StandardizedRecord
         points: Array<[number, number]>
-        avgPm25: number
-        minPm25: number
-        maxPm25: number
       }
     >()
 
     for (const r of validGeoRecords) {
+      const lat = r.latitude!
+      const lng = r.longitude!
+
       if (!map.has(r.deviceName)) {
         map.set(r.deviceName, {
           deviceName: r.deviceName,
           latestRecord: r,
-          points: [],
-          avgPm25: r.pm25 || 0,
-          minPm25: r.pm25 || 0,
-          maxPm25: r.pm25 || 0,
+          points: [[lat, lng]],
         })
-      }
-      const item = map.get(r.deviceName)!
-      item.points.push([r.latitude!, r.longitude!])
-      if (r.timestamp && (!item.latestRecord.timestamp || r.timestamp > item.latestRecord.timestamp)) {
-        item.latestRecord = r
+      } else {
+        const item = map.get(r.deviceName)!
+        const lastPt = item.points[item.points.length - 1]
+
+        // Deduplicate consecutive identical coordinates & enforce maximum vertex cap
+        if (!lastPt || lastPt[0] !== lat || lastPt[1] !== lng) {
+          if (item.points.length < MAX_POINTS_PER_DEVICE) {
+            item.points.push([lat, lng])
+          }
+        }
+
+        if (r.timestamp && (!item.latestRecord.timestamp || r.timestamp > item.latestRecord.timestamp)) {
+          item.latestRecord = r
+        }
       }
     }
 

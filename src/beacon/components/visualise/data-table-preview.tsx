@@ -112,10 +112,22 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
     }
   }
 
-  // Export to CSV
+  // Export to CSV (with formula injection sanitization)
   const handleExportCSV = () => {
     try {
-      const worksheet = XLSX.utils.json_to_sheet(filteredData)
+      const escapeFormula = (val: any) => {
+        if (typeof val === "string" && /^[=+\-@\t\r]/.test(val)) {
+          return `'${val}`
+        }
+        return val ?? ""
+      }
+
+      const headers = columns.map((col) => escapeFormula(col))
+      const rows = filteredData.map((row) =>
+        columns.map((col) => escapeFormula(row[col]))
+      )
+      const aoa = [headers, ...rows]
+      const worksheet = XLSX.utils.aoa_to_sheet(aoa)
       const csvOutput = XLSX.utils.sheet_to_csv(worksheet)
       const blob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" })
       const url = URL.createObjectURL(blob)
@@ -123,7 +135,7 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
       link.href = url
       link.download = `${dataset.name}_export_${Date.now()}.csv`
       link.click()
-      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
       toast.success("Dataset exported to CSV.")
     } catch (err) {
       toast.error("Failed to export CSV.")

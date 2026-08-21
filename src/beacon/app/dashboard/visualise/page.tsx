@@ -52,6 +52,7 @@ export default function VisualisePage() {
     preset: "all",
     startTime: "00:00",
     endTime: "23:59",
+    selectedDevices: [],
     selectedDevice: "all",
     aggregation: "none",
   })
@@ -114,6 +115,7 @@ export default function VisualisePage() {
       preset: "all",
       startDate: undefined,
       endDate: undefined,
+      selectedDevices: [],
       selectedDevice: "all",
     }))
   }, [])
@@ -149,7 +151,7 @@ export default function VisualisePage() {
     }
   }, [standardizedRecords])
 
-  // Filter records by selected period & selected device (with time-of-day support)
+  // Filter records by selected period & multi-selected devices (with time-of-day support)
   const filteredRecords = useMemo(() => {
     if (standardizedRecords.length === 0) return []
 
@@ -161,23 +163,35 @@ export default function VisualisePage() {
     let endTimestamp: number | null = null
 
     if (periodState.startDate) {
-      const parsed = new Date(`${periodState.startDate}T${startTimeStr}:00Z`).getTime()
+      const fullStart = startTimeStr.length === 5 ? `${startTimeStr}:00` : startTimeStr
+      const parsed = new Date(`${periodState.startDate}T${fullStart}Z`).getTime()
       if (!isNaN(parsed)) startTimestamp = parsed
     }
     if (periodState.endDate) {
-      const parsed = new Date(`${periodState.endDate}T${endTimeStr}:59Z`).getTime()
+      const fullEnd = endTimeStr.length === 5 ? `${endTimeStr}:59.999` : endTimeStr
+      const parsed = new Date(`${periodState.endDate}T${fullEnd}Z`).getTime()
       if (!isNaN(parsed)) endTimestamp = parsed
     }
 
+    const selectedDevs = periodState.selectedDevices || []
+    const isAllDevices =
+      selectedDevs.length === 0 ||
+      selectedDevs.includes("all") ||
+      (periodState.selectedDevice === "all" && selectedDevs.length === 0)
+
     return standardizedRecords.filter((r) => {
-      // 1. Device filter
-      if (periodState.selectedDevice !== "all" && r.deviceName !== periodState.selectedDevice) {
-        return false
+      // 1. Multi-Device filter
+      if (!isAllDevices) {
+        if (selectedDevs.length > 0) {
+          if (!selectedDevs.includes(r.deviceName)) return false
+        } else if (periodState.selectedDevice && periodState.selectedDevice !== "all") {
+          if (r.deviceName !== periodState.selectedDevice) return false
+        }
       }
 
       // 2. Date Range and Time-of-Day filter
       if (hasDateFilter) {
-        if (!r.timestamp) return false
+        if (!r.timestamp || isNaN(r.timestamp.getTime())) return false
         const rTime = r.timestamp.getTime()
 
         if (startTimestamp !== null && rTime < startTimestamp) return false
@@ -310,10 +324,10 @@ export default function VisualisePage() {
                   Geospatial Map
                 </TabsTrigger>
 
-                {/* 5. Cohort & AQI Breakdown */}
+                {/* 5. Fleet Health & Performance Ranking */}
                 <TabsTrigger value="cohort" className="gap-1.5 text-xs font-semibold">
-                  <PieChartIcon className="w-3.5 h-3.5 text-pink-600" />
-                  Cohort & AQI Summary
+                  <Activity className="w-3.5 h-3.5 text-pink-600" />
+                  Fleet Health & Ranking
                 </TabsTrigger>
 
                 {/* 6. Custom Studio (Commented out for now) */}

@@ -208,10 +208,16 @@ export function parseCSVText(csvText: string): Record<string, any>[] {
   return dataRows
 }
 
-// Parse Excel files (.xlsx / .xls)
+// Parse Excel files (.xlsx / .xls) with hardened parsing options
 export async function parseExcelFile(file: File): Promise<Record<string, any>[]> {
   const buffer = await file.arrayBuffer()
-  const workbook = XLSX.read(buffer, { type: "array" })
+  const workbook = XLSX.read(buffer, {
+    type: "array",
+    cellFormula: false,
+    cellHTML: false,
+    cellText: false,
+    dense: true,
+  })
   const firstSheetName = workbook.SheetNames[0]
   if (!firstSheetName) return []
   const worksheet = workbook.Sheets[firstSheetName]

@@ -80,6 +80,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
       { key: "battery", label: "Battery", values: records.map((r) => r.battery) },
     ].filter((m) => m.values.some((v) => v !== null))
 
+    const pairCache = new Map<string, number | null>()
     const grid: { row: string; cells: { col: string; r: number | null }[] }[] = []
 
     for (const rowMetric of metrics) {
@@ -87,6 +88,12 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
       for (const colMetric of metrics) {
         if (rowMetric.key === colMetric.key) {
           cells.push({ col: colMetric.label, r: 1.0 })
+          continue
+        }
+
+        const pairKey = [rowMetric.key, colMetric.key].sort().join("::")
+        if (pairCache.has(pairKey)) {
+          cells.push({ col: colMetric.label, r: pairCache.get(pairKey)! })
           continue
         }
 
@@ -100,12 +107,14 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
           }
         }
 
-        if (validPairs.length < 3) {
-          cells.push({ col: colMetric.label, r: null })
-        } else {
+        let rVal: number | null = null
+        if (validPairs.length >= 3) {
           const res = calculateCorrelation(validPairs, "a", "b")
-          cells.push({ col: colMetric.label, r: res ? res.r : null })
+          rVal = res ? res.r : null
         }
+
+        pairCache.set(pairKey, rVal)
+        cells.push({ col: colMetric.label, r: rVal })
       }
       grid.push({ row: rowMetric.label, cells })
     }

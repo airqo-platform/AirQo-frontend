@@ -41,6 +41,8 @@ interface DataUploaderProps {
   currentDatasetName?: string
 }
 
+const MAX_NON_STREAM_FILE_SIZE_BYTES = 50 * 1024 * 1024 // 50MB limit for in-memory Excel/JSON
+
 export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -127,7 +129,12 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             : `Loaded dataset with ${profiled.rawRowCount.toLocaleString()} rows`
         )
       } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
-        // 2. Excel Files
+        // 2. Excel Files (non-streaming in-memory parsing)
+        if (file.size > MAX_NON_STREAM_FILE_SIZE_BYTES) {
+          throw new Error(
+            `Excel file size (${formatBytes(file.size)}) exceeds the maximum supported limit of ${formatBytes(MAX_NON_STREAM_FILE_SIZE_BYTES)}. For large datasets, please convert and upload as CSV.`
+          )
+        }
         const data = await parseExcelFile(file)
         if (!data || data.length === 0) {
           throw new Error("No readable rows found in the Excel workbook.")
@@ -137,7 +144,12 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
         onDatasetLoaded(profiled)
         toast.success(`Loaded Excel dataset with ${profiled.rawRowCount.toLocaleString()} rows`)
       } else if (fileName.endsWith(".json")) {
-        // 3. JSON Files
+        // 3. JSON Files (non-streaming in-memory parsing)
+        if (file.size > MAX_NON_STREAM_FILE_SIZE_BYTES) {
+          throw new Error(
+            `JSON file size (${formatBytes(file.size)}) exceeds the maximum supported limit of ${formatBytes(MAX_NON_STREAM_FILE_SIZE_BYTES)}. For large datasets, please convert and upload as CSV.`
+          )
+        }
         const text = await file.text()
         const data = parseJSONText(text)
         if (!data || data.length === 0) {

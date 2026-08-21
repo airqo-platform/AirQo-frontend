@@ -353,7 +353,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {columns.map((col) => (
+                  {(config.chartType === "scatter" ? numericCols : columns).map((col) => (
                     <SelectItem key={col} value={col} className="text-xs">
                       <div className="flex items-center">
                         {getColumnIcon(col)}
