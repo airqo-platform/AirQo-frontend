@@ -2,8 +2,8 @@
 
 import React from 'react';
 import {
-  FaApple,
-  FaFacebook,
+  // FaApple,
+  // FaFacebook,
   FaGithub,
   FaGoogle,
   FaLinkedin,
@@ -28,8 +28,8 @@ const PROVIDERS: Array<{
   { key: 'linkedin', label: 'LinkedIn', Icon: FaLinkedin },
   { key: 'microsoft', label: 'Microsoft', Icon: FaMicrosoft },
   { key: 'twitter', label: 'X', Icon: FaXTwitter },
-  { key: 'facebook', label: 'Facebook', Icon: FaFacebook },
-  { key: 'apple', label: 'Apple', Icon: FaApple },
+  // { key: 'facebook', label: 'Facebook', Icon: FaFacebook },
+  // { key: 'apple', label: 'Apple', Icon: FaApple },
 ];
 
 const ConnectedAccounts: React.FC<ConnectedAccountsProps> = ({
