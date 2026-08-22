@@ -15,9 +15,6 @@ concrete ask. Nothing here depends on prior reports or external references.
 All evidence was collected on 2026-08-22 using browser network inspection,
 API-level probing with a valid user JWT, and frontend source code review.
 
-Items marked **[FIXED-FRONTEND]** were addressed in the Nexus app on 2026-08-22;
-remaining items are backend asks.
-
 ---
 
 ## 1. CRITICAL -- Chart Data Endpoint Performance
@@ -33,21 +30,8 @@ on the analytics page.
 
 **Evidence:** Measured via browser Resource Timing API during a standard
 analytics page load on 2026-08-22. Two independent chart requests both exceeded
-6.5 seconds. The requests fire in parallel via React Query `useQueries` with
-deduplicated keys; wall time equals the slowest request, not the sum.
-
-**What is happening:** The analytics page renders multiple charts, each backed
-by a POST to this endpoint. React Query fires all chart-data requests in
-parallel on mount and deduplicates identical query keys. Each request
-independently takes over 6 seconds on staging, so the page is blocked until the
-slowest one completes.
-
-**Frontend mitigation:** Chart-data cache `staleTime` is a single consolidated
-constant (`CHART_DATA_STALE_TIME_MS = 300_000`, i.e. 5 min) used by both
-`useAnalyticsChartData` and the coverage queries in `AnalyticsExplorerPage`.
-Repeat views of an unchanged chart configuration within 5 minutes are served
-from the React Query cache without re-firing the slow POST. The 6.7 s
-first-load latency remains a backend concern.
+6.5 seconds, with per-request latency of approximately 6.7 s. Users wait
+approximately 7 s for the analytics dashboard to become interactive.
 
 **Ask:**
 
@@ -176,53 +160,36 @@ small backend change with significant client-side performance impact.
 
 ---
 
-## 5. MEDIUM / LOW -- Duplicate and Slow Client-Side Reads
+## 5. MEDIUM / LOW -- Slow Endpoints and Probe Concerns
 
 **Severity: MEDIUM / LOW**
 
-Several endpoints are called multiple times during a browsing session without
-client-side deduplication, and some have unexpectedly slow response times.
+Several endpoints have unexpectedly slow response times or have specific
+reliability requirements due to their role in the application's health
+monitoring.
 
-### 5a. Maintenances endpoint called multiple times across page navigation
+### 5a. Maintenances endpoint: health probe must stay cheap
 
-| Endpoint                          | Method | Status | Calls per page load                    | Notes                                              |
-| --------------------------------- | ------ | ------ | -------------------------------------- | -------------------------------------------------- |
-| GET /users/maintenances/analytics | GET    | 200    | 1 per page (SWR dedupingInterval 15 s) | Also serves as the app backend-outage health probe |
+| Endpoint                          | Method | Observed behavior  |
+| --------------------------------- | ------ | ------------------ |
+| GET /users/maintenances/analytics | GET    | Healthy (HTTP 200) |
 
-**Evidence:** On 2026-08-22, browser network logs across a multi-page test
-session (rankings, data-export, analytics) showed five cumulative calls to this
-endpoint. A single SWR consumer (`MaintenanceBanner`) with a 15-second
-dedupingInterval ensures only one network request per page load; the remaining
-calls were separate pages navigating during the test session.
+This endpoint serves as the app's backend-outage health probe. During an
+outage, many clients poll this endpoint simultaneously to detect recovery.
 
-**Ask:** Keep this endpoint cheap, cacheable, and side-effect-free. It is the
-app's primary backend-outage detection signal. If it becomes expensive (for
-example, if it starts querying large tables), the outage overlay will trigger
-false positives or add unnecessary load during actual outages when many clients
-are polling it simultaneously.
+**Ask:** Keep this endpoint cheap, cacheable, and side-effect-free. If it
+becomes expensive (for example, if it starts querying large tables), the outage
+overlay will trigger false positives or add unnecessary load during actual
+outages when many clients are polling it simultaneously.
 
-### 5b. Theme preferences endpoint called 3 times per page load
+### 5b. Theme preferences endpoint slow response
 
-| Endpoint                                          | Method | Status | Calls per page load | Observed response time |
-| ------------------------------------------------- | ------ | ------ | ------------------- | ---------------------- |
-| GET /users/preferences/theme/user/{id}/group/{id} | GET    | 200    | 3                   | Approximately 1,058 ms |
+| Endpoint                                          | Method | Observed response time |
+| ------------------------------------------------- | ------ | ---------------------- |
+| GET /users/preferences/theme/user/{id}/group/{id} | GET    | Approximately 1,058 ms |
 
-**Evidence:** On 2026-08-22, browser network logs showed three calls to this
-endpoint on every page load across the application. Each call took over 1
-second.
-
-**Frontend fix [FIXED-FRONTEND]:** Root cause identified and fixed on
-2026-08-22. `ThemeProvider` mounted and immediately triggered a spurious SWR
-prefix invalidation for all `preferences/theme/*` keys (the initial
-`undefined → value` group resolution counted as a group switch). Fixed by
-adding a `prevGroupIdRef` that tracks the previous group ID so invalidation
-only fires on real group switches, not on the initial mount. This eliminates
-two of the three calls on page load. The remaining call is the normal
-`useTheme()` SWR fetch.
-
-**Remaining ask:** The single remaining call still takes approximately 1,058 ms.
-Add server-side caching for this endpoint (user plus group scoped, TTL of at
-least 5 minutes) or optimize the query.
+**Ask:** This endpoint takes over 1 second per request. Add server-side caching
+(user plus group scoped, TTL of at least 5 minutes) or optimize the query.
 
 ### 5c. Auth session endpoint slow on profile page
 
@@ -247,9 +214,7 @@ the auth store on every request.
 ### 6a. Chart data endpoint: publish OpenAPI documentation
 
 HTTP 422 responses from POST /analytics/dashboard/chart/d3/data are validation
-errors. The frontend excludes them from Slack alerting (status 422 is filtered
-out of the error interceptor). However, the valid request contract is currently
-undocumented.
+errors. The valid request contract is currently undocumented.
 
 **Observed contract (empirically verified on 2026-08-22):**
 
@@ -295,10 +260,9 @@ should be preserved as-is.
 
 ### 401 handling and token refresh
 
-The 401 response flow works correctly. When a JWT expires, the backend returns
-HTTP 401, the frontend silently refreshes the token and retries the original
-request. Users never see an auth error for expired tokens. The refresh
-mechanism is single-flight (parallel 401s do not trigger parallel refreshes).
+The backend correctly returns HTTP 401 when a JWT expires, enabling clients to
+detect expired tokens and initiate refresh. The refresh flow is stable and
+predictable, with no spurious errors during normal operation.
 
 ### Rankings endpoints
 
@@ -346,10 +310,3 @@ This prevents garbage data from entering the system.
 POST /users/preferences/charts/{id}/copy correctly duplicates a chart
 configuration including its sites, devices, and title. The copy is independent
 of the source (editing the copy does not affect the original).
-
-### Note on org-dashboard route (test artifact, not an issue)
-
-During E2E testing, a `/user/org-dashboard` path returned HTTP 404. This was a
-wrong route used during the test session. The real org dashboard route
-`/org/[org_slug]/dashboard` exists and is correctly served; the header
-organizations button navigates to it. This is not a backend issue.
