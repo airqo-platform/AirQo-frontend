@@ -31,6 +31,28 @@ export const toDateString = (value: string): string => {
   return value.slice(0, 10);
 };
 
+/**
+ * Frequencies the chart-data endpoint accepts.
+ *
+ * Empirically confirmed live (2026-08-22, staging-analytics): `raw` is
+ * rejected with 400 "No data source configured for datatype=calibrated,
+ * device_category=lowcost, frequency=raw" while hourly/daily/weekly/monthly
+ * all return 200. `FrequencyType` still legally contains 'raw' (the UI uses
+ * it for rendering decisions), so the request boundary maps it to `daily`
+ * — the same fallback the analytics module's normalizeFrequency applies to
+ * persisted drafts. Kept local to this shared service: shared code must not
+ * import from modules.
+ */
+const CHART_API_FREQUENCIES: ReadonlySet<string> = new Set([
+  'hourly',
+  'daily',
+  'weekly',
+  'monthly',
+]);
+
+export const normalizeChartApiFrequency = (value: string): string =>
+  CHART_API_FREQUENCIES.has(value) ? value : 'daily';
+
 export class AnalyticsService {
   private authenticatedClient: ApiClient;
   private serverClient: ApiClient;
@@ -51,13 +73,15 @@ export class AnalyticsService {
     // The chart-data endpoint expects YYYY-MM-DD date strings for
     // startDateTime/endDateTime. Some callers pass full ISO datetime strings
     // (e.g. "2025-08-21T00:00:00.000Z") which cause 422 Unprocessable Entity.
-    // Normalize here so all callers are safe.
+    // Normalize here so all callers are safe. Frequency is normalized for the
+    // same reason: the backend 400s on 'raw' (see normalizeChartApiFrequency).
     const response = await this.serverClient.post<AnalyticsChartResponse>(
       '/analytics/dashboard/chart/d3/data',
       {
         ...request,
         startDateTime: toDateString(request.startDateTime),
         endDateTime: toDateString(request.endDateTime),
+        frequency: normalizeChartApiFrequency(request.frequency),
       },
       { signal }
     );

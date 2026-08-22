@@ -22,6 +22,7 @@ export {
   useAnalyticsPreferences,
   useAnalyticsChartData,
   useDataDownload,
+  useRecentReadings,
 } from './hooks';
 export { useChartManagement } from './hooks/useChartManagement';
 export { useRankings } from './hooks/useRankings';

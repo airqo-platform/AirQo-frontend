@@ -7,6 +7,8 @@ import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronRight, AqCompass } from '@airqo/icons-react';
+import { useUser } from '@/shared/hooks';
+import { useRecentReadings } from '@/modules/analytics';
 import { useResolveSiteByName } from '../../hooks/useResolveSiteByName';
 import { SiteCurrentReadingCard } from './SiteCurrentReadingCard';
 import { SiteTrendChartCard } from './SiteTrendChartCard';
@@ -51,6 +53,22 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   // resolver for backwards compatibility.
   const siteId = siteIdFromRoute?.trim() || resolved?.siteId || '';
   const resolvedName = resolved?.displayName ?? null;
+
+  // Current-reading hero: the recent-readings endpoint (proven contract,
+  // self-contained siteDetails) keyed per user + group. A missing reading is
+  // rendered as the card's honest "No current reading available" fallback.
+  const { user, activeGroup } = useUser();
+  const { readings: currentReadings, isLoading: currentReadingsLoading } =
+    useRecentReadings({
+      userId: user?.id,
+      groupId: activeGroup?.id,
+      siteIds: siteId ? [siteId] : [],
+    });
+  const currentReading = currentReadings[0] ?? null;
+  // While the session context hydrates (no user/group yet) keep the skeleton
+  // instead of flashing the "no reading" empty state.
+  const readingPending =
+    currentReadingsLoading || (!!siteId && (!user?.id || !activeGroup?.id));
 
   // Prefer the coordinates captured from the selected table row/resolver.
   const mapUrl = useMemo(() => {
@@ -145,7 +163,10 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
       </div>
 
       {/* AQI Hero: gauge + AQI ranges (left) | what this means + pollutants (right) */}
-      <SiteCurrentReadingCard />
+      <SiteCurrentReadingCard
+        reading={currentReading}
+        isLoading={readingPending}
+      />
 
       {/* Historical trend — 7D / 30D / 90D with PM2.5/PM10 toggle */}
       <SiteTrendChartCard siteId={siteId} siteName={displayName} />

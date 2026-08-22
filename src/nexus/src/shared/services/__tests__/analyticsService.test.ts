@@ -35,7 +35,11 @@ const { __mockPost: mockPost } = jest.requireMock('../apiClient') as {
 const { analyticsService } = jest.requireActual('../analyticsService') as {
   analyticsService: {
     getChartData: (
-      request: { startDateTime: string; endDateTime: string },
+      request: {
+        startDateTime: string;
+        endDateTime: string;
+        frequency?: string;
+      },
       signal?: AbortSignal
     ) => Promise<{
       status: string;
@@ -93,6 +97,42 @@ describe('AnalyticsService.getChartData', () => {
       }),
       expect.anything()
     );
+  });
+
+  it('maps the rejected raw frequency to daily (live backend 400s on raw)', async () => {
+    mockPost.mockResolvedValueOnce({ data: chartPayload });
+
+    await analyticsService.getChartData({
+      startDateTime: '2025-08-21',
+      endDateTime: '2025-08-21',
+      frequency: 'raw',
+    });
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/dashboard/chart/d3/data',
+      expect.objectContaining({ frequency: 'daily' }),
+      expect.anything()
+    );
+  });
+
+  it('passes accepted frequencies through unchanged', async () => {
+    mockPost.mockResolvedValue({ data: chartPayload });
+
+    for (const frequency of ['hourly', 'daily', 'weekly', 'monthly']) {
+      await analyticsService.getChartData({
+        startDateTime: '2025-08-21',
+        endDateTime: '2025-08-21',
+        frequency,
+      });
+    }
+
+    const bodies = mockPost.mock.calls.map(call => call[1]);
+    expect(bodies.map(body => body.frequency)).toEqual([
+      'hourly',
+      'daily',
+      'weekly',
+      'monthly',
+    ]);
   });
 
   it('forwards abort signal', async () => {

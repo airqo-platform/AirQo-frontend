@@ -44,7 +44,7 @@ export const SiteTrendChartCard: React.FC<SiteTrendChartCardProps> = ({
   const [pollutant, setPollutant] = useState<PollutantType>('pm2_5');
   const { config: aqiConfig } = useAqiConfig(pollutant);
 
-  const { chartData, isLoading, error, hasData } = useSiteTrendData({
+  const { chartData, isLoading, error, hasData, refresh } = useSiteTrendData({
     siteId,
     period,
     pollutant,
@@ -68,6 +68,7 @@ export const SiteTrendChartCard: React.FC<SiteTrendChartCardProps> = ({
       subtitle={siteName ?? undefined}
       loading={isLoading}
       error={error ?? null}
+      onRefresh={refresh}
       exportOptions={{
         enablePDF: true,
         enablePNG: true,
