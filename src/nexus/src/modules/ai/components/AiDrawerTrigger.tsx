@@ -42,20 +42,8 @@ export const AiDrawerTrigger: React.FC<AiDrawerTriggerProps> = ({
     <Tooltip
       content="AI Assistant"
       placement="bottom"
-      theme={{
-        target: 'inline-block',
-        base: 'absolute z-50 whitespace-nowrap rounded-lg py-1.5 px-3 text-sm font-medium shadow-sm',
-        content:
-          'relative z-10 rounded-lg bg-popover px-2.5 py-1.5 text-popover-foreground',
-        arrow: {
-          base: 'absolute z-10 h-2 w-2 rotate-45',
-          style: {
-            dark: 'bg-popover',
-            light: 'bg-popover',
-            auto: 'bg-popover',
-          },
-        },
-      }}
+      style="dark"
+      className="bg-black text-white rounded-md px-2.5 py-1.5 text-xs"
     >
       <div className="inline-block">{triggerButton}</div>
     </Tooltip>

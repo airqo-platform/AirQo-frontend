@@ -19,6 +19,7 @@ import { useOrgGroup } from '@/shared/hooks/useOrgGroup';
 import { analyticsService } from '@/shared/services/analyticsService';
 import {
   buildChartDataQueryKey,
+  CHART_DATA_STALE_TIME_MS,
   transformChartData,
   type ChartDataFilters,
 } from '../hooks';
@@ -171,7 +172,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         retry: false,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
-        staleTime: 1000 * 60 * 5,
+        staleTime: CHART_DATA_STALE_TIME_MS,
         gcTime: 1000 * 60 * 60 * 12,
       };
     }),

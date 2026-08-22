@@ -34,7 +34,6 @@ type PreferenceSite = Partial<Site> & {
 
 const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
-const ANALYTICS_QUERY_STALE_TIME_MS = 1000 * 60 * 5;
 const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
 const resolvePreferenceSiteId = (site?: PreferenceSite | null): string => {
@@ -199,6 +198,13 @@ export interface ChartDataFilters {
 }
 
 /**
+ * Stale time for chart-data React Query caches.  Unchanged chart configs
+ * should not re-fire 6-7 s POSTs on every mount / navigation.
+ * 300 000 ms = 5 min — preserves the original duplicated literals.
+ */
+export const CHART_DATA_STALE_TIME_MS = 300_000;
+
+/**
  * The React Query key for a chart-data request. Exported so consumers can
  * read cached chart data without re-fetching (e.g. saved-chart sparklines).
  */
@@ -297,7 +303,7 @@ export const useAnalyticsChartData = (
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    staleTime: ANALYTICS_QUERY_STALE_TIME_MS,
+    staleTime: CHART_DATA_STALE_TIME_MS,
     gcTime: ANALYTICS_QUERY_GC_TIME_MS,
     placeholderData: previousData => previousData,
   });
