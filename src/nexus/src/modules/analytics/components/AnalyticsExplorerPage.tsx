@@ -27,6 +27,7 @@ import { useChartManagement } from '../hooks/useChartManagement';
 import { AnalyticsChartCard } from './explorer/AnalyticsChartCard';
 import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
+import { ComparisonView } from './comparison';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { enrichChartDataSiteIds } from '../utils/chartLabels';
@@ -41,6 +42,26 @@ interface AnalyticsExplorerPageProps {
 type TrendsLayout = 'list' | 'grid';
 
 const TRENDS_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
+
+type OverviewTab = 'trends' | 'comparison';
+
+const OVERVIEW_TAB_STORAGE_KEY = 'nexus:analytics:overview-tab';
+
+// The active page-level tab survives reloads too (mirrors the Rankings tab).
+const readStoredOverviewTab = (): OverviewTab => {
+  if (typeof window === 'undefined') return 'trends';
+  try {
+    const stored = window.localStorage.getItem(OVERVIEW_TAB_STORAGE_KEY);
+    return stored === 'trends' || stored === 'comparison' ? stored : 'trends';
+  } catch {
+    return 'trends';
+  }
+};
+
+const OVERVIEW_TAB_OPTIONS: { value: OverviewTab; label: string }[] = [
+  { value: 'trends', label: 'Trends' },
+  { value: 'comparison', label: 'Comparison' },
+];
 
 const TRENDS_LAYOUT_OPTIONS: {
   value: TrendsLayout;
@@ -93,6 +114,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     readStoredTrendsLayout
   );
 
+  const [activeTab, setActiveTab] = useState<OverviewTab>(
+    readStoredOverviewTab
+  );
+
   const {
     charts,
     chartsLoading,
@@ -126,6 +151,15 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       // Storage unavailable — layout memory is best-effort.
     }
   }, [trendsLayout]);
+
+  // Persist the page-level tab so a refresh returns to the same view.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(OVERVIEW_TAB_STORAGE_KEY, activeTab);
+    } catch {
+      // Storage unavailable — tab memory is best-effort.
+    }
+  }, [activeTab]);
 
   // Data-coverage warning: users can select many locations, but the chart
   // API only returns series for locations that actually have data. These
@@ -167,7 +201,10 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             : [];
         },
         enabled:
-          !isInitialLoading && charts.length > 0 && draft.siteIds.length > 0,
+          !isInitialLoading &&
+          activeTab === 'trends' &&
+          charts.length > 0 &&
+          draft.siteIds.length > 0,
         networkMode: 'online',
         retry: false,
         refetchOnWindowFocus: false,
@@ -325,58 +362,80 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       }}
     >
       <div className={cn('space-y-4', className)}>
-        {/* Compact page header: title, description */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl text-foreground">Air Quality Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Monitor current conditions, trends and forecasts for your
-              configured locations.
-            </p>
+        {/* Page-level view switcher — Trends (charts) vs Comparison table */}
+        <Card className="w-fit">
+          <CardContent className="p-2">
+            <SegmentedTabs
+              ariaLabel="Analytics views"
+              options={OVERVIEW_TAB_OPTIONS}
+              value={activeTab}
+              onChange={setActiveTab}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Compact page header: title, description — Trends view only */}
+        {activeTab === 'trends' && (
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-2xl text-foreground">Air Quality Analysis</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Monitor current conditions, trends and forecasts for your
+                configured locations.
+              </p>
+            </div>
+            <AiDrawerTrigger />
           </div>
-          <AiDrawerTrigger />
-        </div>
+        )}
 
-        {renderTrendsView()}
+        {activeTab === 'comparison' ? (
+          <ComparisonView groupId={groupId} />
+        ) : (
+          renderTrendsView()
+        )}
 
-        <ChartConfigDialog
-          isOpen={dialogOpen}
-          onClose={closeDialog}
-          groupId={groupId}
-          draft={editingDraft}
-          onSave={draft => void handleSaveDraft(draft)}
-          onSelectionNamesChange={handleNamesResolved}
-          siteNames={siteNames}
-          isSaving={isSaving}
-          saveError={saveError}
-        />
+        {activeTab === 'trends' && (
+          <>
+            <ChartConfigDialog
+              isOpen={dialogOpen}
+              onClose={closeDialog}
+              groupId={groupId}
+              draft={editingDraft}
+              onSave={draft => void handleSaveDraft(draft)}
+              onSelectionNamesChange={handleNamesResolved}
+              siteNames={siteNames}
+              isSaving={isSaving}
+              saveError={saveError}
+            />
 
-        {/* Delete chart confirmation */}
-        <ReusableDialog
-          isOpen={!!deleteDraft}
-          onClose={cancelDelete}
-          title="Delete chart?"
-          subtitle={
-            deleteDraft
-              ? `"${deleteDraft.title}" will be permanently removed from your saved charts. This action cannot be undone.`
-              : undefined
-          }
-          icon={AqTrash01}
-          iconColor="text-destructive"
-          iconBgColor="bg-destructive/10"
-          size="sm"
-          primaryAction={{
-            label: 'Delete chart',
-            onClick: confirmDelete,
-            variant: 'danger',
-          }}
-          secondaryAction={{ label: 'Cancel', onClick: cancelDelete }}
-        >
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to continue? The chart configuration and its
-            saved settings will be removed.
-          </p>
-        </ReusableDialog>
+            {/* Delete chart confirmation */}
+            <ReusableDialog
+              isOpen={!!deleteDraft}
+              onClose={cancelDelete}
+              title="Delete chart?"
+              subtitle={
+                deleteDraft
+                  ? `"${deleteDraft.title}" will be permanently removed from your saved charts. This action cannot be undone.`
+                  : undefined
+              }
+              icon={AqTrash01}
+              iconColor="text-destructive"
+              iconBgColor="bg-destructive/10"
+              size="sm"
+              primaryAction={{
+                label: 'Delete chart',
+                onClick: confirmDelete,
+                variant: 'danger',
+              }}
+              secondaryAction={{ label: 'Cancel', onClick: cancelDelete }}
+            >
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to continue? The chart configuration and
+                its saved settings will be removed.
+              </p>
+            </ReusableDialog>
+          </>
+        )}
       </div>
     </AiPageContextProvider>
   );

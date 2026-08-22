@@ -10,6 +10,8 @@ import type {
   AnalyticsChartResponse,
   DataDownloadRequest,
   DataDownloadResponse,
+  RecentReadingsResponse,
+  RecentReading,
 } from '../types/api';
 
 /**
@@ -70,6 +72,44 @@ export class AnalyticsService {
       DataDownloadResponse | string
     >('/analytics/data-download', request);
     return response.data;
+  }
+
+  /**
+   * Latest reading per site — POST /devices/readings/recent.
+   *
+   * Goes through the server client (API_TOKEN via the BFF route), mirroring
+   * `getChartData`: device endpoints need the shared API token, which the
+   * BFF attaches server-side so it never reaches the browser.
+   *
+   * The backend rejects an empty `site_ids` array with 400, so empty input
+   * short-circuits to `[]` without a network call. A `success: false` body
+   * (or a malformed one) throws a fixed safe message — the backend error is
+   * not interpolated into the thrown Error to prevent server-internal wording
+   * from reaching the UI. Aborted requests propagate as cancellations and
+   * must never be retried by callers (AGENTS.md retry policy).
+   */
+  async getRecentReadings(
+    siteIds: string[],
+    signal?: AbortSignal
+  ): Promise<RecentReading[]> {
+    const trimmedSiteIds = siteIds.map(siteId => siteId.trim()).filter(Boolean);
+
+    if (trimmedSiteIds.length === 0) {
+      return [];
+    }
+
+    const response = await this.serverClient.post<RecentReadingsResponse>(
+      '/devices/readings/recent',
+      { site_ids: trimmedSiteIds },
+      { signal }
+    );
+
+    const payload = response.data;
+    if (!payload?.success) {
+      throw new Error('Failed to fetch the latest readings.');
+    }
+
+    return Array.isArray(payload.measurements) ? payload.measurements : [];
   }
 }
 

@@ -27,6 +27,19 @@ export {
   type UseChartManagementResult,
 } from './useChartManagement';
 
+export {
+  buildRecentReadingsKey,
+  useRecentReadings,
+  type UseRecentReadingsOptions,
+  type UseRecentReadingsResult,
+} from './useRecentReadings';
+
+export {
+  useComparisonSelection,
+  type UseComparisonSelectionOptions,
+  type UseComparisonSelectionResult,
+} from './useComparisonSelection';
+
 type PreferenceSite = Partial<Site> & {
   id?: string;
   site_id?: string;
@@ -34,7 +47,12 @@ type PreferenceSite = Partial<Site> & {
 
 const EMPTY_SELECTED_SITE_IDS: string[] = [];
 
-const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
+/**
+ * React Query garbage-collection window shared by the analytics queries.
+ * 12 h — cached chart data / recent readings survive route round-trips
+ * without re-firing requests.
+ */
+export const ANALYTICS_QUERY_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
 const resolvePreferenceSiteId = (site?: PreferenceSite | null): string => {
   const candidateIds = [site?._id, site?.id, site?.site_id];

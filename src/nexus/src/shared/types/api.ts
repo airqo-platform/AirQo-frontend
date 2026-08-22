@@ -1110,6 +1110,11 @@ export interface Averages {
     currentWeek: number;
     previousWeek: number;
   };
+  /**
+   * True when the recent week had enough data for the averages to be
+   * meaningful. Optional: older backend deployments omit it.
+   */
+  hasSufficientData?: boolean;
 }
 
 export interface DeviceCategories {
@@ -2051,6 +2056,11 @@ export interface Averages {
     currentWeek: number;
     previousWeek: number;
   };
+  /**
+   * True when the recent week had enough data for the averages to be
+   * meaningful. Optional: older backend deployments omit it.
+   */
+  hasSufficientData?: boolean;
 }
 
 export interface HealthTip {
@@ -2096,8 +2106,14 @@ export interface RecentReading {
   time: string;
   __v: number;
   aqi_category: string;
+  /**
+   * Hex color WITHOUT leading # (e.g. "ECAA06") — prepend # before use as
+   * CSS color.
+   */
   aqi_color: string;
   aqi_color_name: string;
+  /** Numeric AQI index (e.g. 72) shown alongside the category. */
+  aqi_index: number;
   aqi_ranges: AQIRanges;
   averages: Averages;
   createdAt: string;
