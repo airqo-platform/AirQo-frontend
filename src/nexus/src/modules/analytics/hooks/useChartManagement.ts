@@ -183,13 +183,16 @@ export const useChartManagement = (
 
   // Fleet-wide site-name fallback: fills names the sidecar couldn't provide
   // (e.g. charts built on another browser), so "Unknown location" and raw
-  // ids never surface in the table/summary.  Only fires when at least one
-  // chart exists AND some site ids still lack a display name.
+  // ids never surface in the table/summary.  Only fires when the chart
+  // dialog is OPEN — on page load, names come from config.sites (server,
+  // authoritative since T16.3) + sidecar (zero network).  The fleet call
+  // only matters for the picker/labels inside the dialog.  React Query
+  // staleTime is 1h, so re-opening the dialog within the hour = no network.
   const missingSiteIds = useMemo(() => {
     return allSiteIds.filter(id => !siteNames.has(id));
   }, [allSiteIds, siteNames]);
   const { names: fallbackSiteNames } = useSiteNamesFallback(
-    enabled && charts.length > 0 && missingSiteIds.length > 0
+    enabled && dialogOpen && charts.length > 0 && missingSiteIds.length > 0
   );
   useMergeFallbackNames(siteNames, fallbackSiteNames, handleNamesResolved);
 

@@ -12,6 +12,7 @@ type ChartLocationDisplaySource = {
   search_name?: string;
   location_name?: string;
   name?: string;
+  site_name?: string;
   formatted_name?: string;
   generated_name?: string;
   site?: string;
@@ -27,6 +28,7 @@ export const getChartLocationDisplayName = (
     source.search_name?.trim() ||
     source.location_name?.trim() ||
     source.name?.trim() ||
+    source.site_name?.trim() ||
     source.formatted_name?.trim() ||
     source.site?.trim() ||
     source.generated_name?.trim() ||
@@ -35,29 +37,155 @@ export const getChartLocationDisplayName = (
 };
 
 /**
- * Normalizes air quality data for chart consumption
+ * Resolves a numeric value from a point, unwrapping {value:n} objects and
+ * coercing numeric strings.  Returns undefined if no finite number found.
+ */
+const resolveNumericValue = (candidate: unknown): number | undefined => {
+  if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+    return candidate;
+  }
+  if (typeof candidate === 'string' && candidate.trim() !== '') {
+    const n = Number(candidate);
+    if (Number.isFinite(n)) return n;
+  }
+  if (
+    typeof candidate === 'object' &&
+    candidate !== null &&
+    'value' in candidate
+  ) {
+    const inner = (candidate as { value?: unknown }).value;
+    if (typeof inner === 'number' && Number.isFinite(inner)) return inner;
+    if (typeof inner === 'string' && inner.trim() !== '') {
+      const n = Number(inner);
+      if (Number.isFinite(n)) return n;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Normalizes air quality data for chart consumption.
+ *
+ * Shape-agnostic: the backend may return {time,value}, {date,pm2_5},
+ * {timestamp,pm10}, epoch numbers, numeric strings, or nested {value:n}
+ * objects.  This function resolves the canonical `time` (ISO-ish string)
+ * and `value` (finite number) from any plausible shape.  Points that
+ * cannot produce both a time and a finite value are dropped (recharts
+ * cannot render NaN).
  */
 export const normalizeAirQualityData = (
   data: AirQualityDataPoint[]
 ): NormalizedChartData[] => {
   if (!data || data.length === 0) return [];
 
-  // Keep the original ISO timestamp in `time` so the formatter used by the
-  // charts can convert it correctly depending on frequency. Store a rawTime
-  // field as well for backwards compatibility where needed.
-  return data.map(point => ({
-    time: point.time,
-    value: Math.round(point.value * 100) / 100, // Round to 2 decimal places
-    site: getChartLocationDisplayName(point),
-    device_id: point.device_id,
-    site_id: point.site_id,
-    rawTime: point.time,
-    search_name: point.search_name,
-    location_name: point.location_name,
-    formatted_name: point.formatted_name,
-    name: point.name,
-    generated_name: point.generated_name,
-  }));
+  const resolved: NormalizedChartData[] = [];
+
+  for (const point of data) {
+    // ---- TIME resolution ----
+    // Prefer explicit time/date/timestamp fields; fall back to scanning
+    // any key whose value looks like a date string or epoch number.
+    let rawTime: string | number | undefined =
+      point.time ?? point.date ?? point.timestamp ?? point.datetime;
+
+    if (rawTime === undefined || rawTime === null) {
+      // Scan remaining keys for a plausible time value
+      for (const key of Object.keys(point)) {
+        if (/time|date/i.test(key)) {
+          const v = (point as Record<string, unknown>)[key];
+          if (typeof v === 'string' || typeof v === 'number') {
+            rawTime = v;
+            break;
+          }
+        }
+      }
+    }
+
+    if (rawTime === undefined || rawTime === null) continue;
+
+    // Normalize to ISO-ish string
+    let normalizedTime: string;
+    if (typeof rawTime === 'number') {
+      normalizedTime = new Date(rawTime).toISOString();
+    } else if (typeof rawTime === 'string') {
+      if (/^\d+$/.test(rawTime)) {
+        // Pure digit string — treat as epoch millis
+        normalizedTime = new Date(Number(rawTime)).toISOString();
+      } else if (rawTime.includes(' ') && !rawTime.includes('T')) {
+        // "YYYY-MM-DD HH:mm:ss" → "YYYY-MM-DDTHH:mm:ss"
+        normalizedTime = rawTime.replace(' ', 'T');
+      } else {
+        normalizedTime = rawTime;
+      }
+    } else {
+      continue;
+    }
+
+    // ---- VALUE resolution ----
+    // Check the canonical value field first, then common alternative names.
+    const VALUE_CANDIDATES: unknown[] = [
+      point.value,
+      point.pm2_5,
+      point.pm10,
+      point.pm25,
+      point.pm25Value,
+      point.pm10Value,
+    ];
+
+    let numericValue: number | undefined;
+    for (const c of VALUE_CANDIDATES) {
+      numericValue = resolveNumericValue(c);
+      if (numericValue !== undefined) break;
+    }
+
+    // Last resort: scan all keys for any numeric-ish value
+    if (numericValue === undefined) {
+      for (const key of Object.keys(point)) {
+        if (
+          [
+            'site_id',
+            'device_id',
+            'name',
+            'time',
+            'date',
+            'timestamp',
+            'datetime',
+            'search_name',
+            'location_name',
+            'formatted_name',
+            'site_name',
+            'generated_name',
+          ].includes(key)
+        )
+          continue;
+        const c = (point as Record<string, unknown>)[key];
+        numericValue = resolveNumericValue(c);
+        if (numericValue !== undefined) break;
+      }
+    }
+
+    // Drop points with no usable numeric value (recharts cannot render NaN)
+    if (numericValue === undefined) continue;
+
+    const rounded = Math.round(numericValue * 100) / 100;
+
+    resolved.push({
+      time: normalizedTime,
+      value: rounded,
+      site: getChartLocationDisplayName(point),
+      device_id: String(point.device_id ?? ''),
+      site_id: String(point.site_id ?? ''),
+      rawTime: normalizedTime,
+      search_name: point.search_name,
+      location_name: point.location_name,
+      formatted_name: point.formatted_name,
+      site_name: point.site_name,
+      name: point.name,
+      generated_name: point.generated_name,
+      count: point.count,
+    });
+  }
+
+  return resolved;
 };
 
 /**

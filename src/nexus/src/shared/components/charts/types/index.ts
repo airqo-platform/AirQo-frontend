@@ -1,16 +1,37 @@
 import type { AqiConfig } from '@/shared/types/aqi';
 
 // Chart data types
+/**
+ * Shape-agnostic input point. The backend may return {time,value}, {date,pm2_5},
+ * {timestamp,pm10}, or any other combination of field names.  The normalizer
+ * (normalizeAirQualityData) resolves the canonical `time`/`value` from any
+ * plausible shape so callers never need to know the exact contract.
+ */
 export interface AirQualityDataPoint {
-  site_id: string;
-  value: number;
-  time: string;
-  generated_name: string;
-  device_id: string;
-  name: string;
+  site_id?: string;
+  value?: number | string | { value?: number };
+  time?: string | number;
+  generated_name?: string;
+  device_id?: string;
+  name?: string;
   search_name?: string;
   location_name?: string;
   formatted_name?: string;
+  /** Backend d3 chart data carries site_name (no site_id) */
+  site_name?: string;
+  /** Common alternative time fields returned by various API shapes */
+  date?: string;
+  timestamp?: string | number;
+  datetime?: string;
+  /** Common alternative value fields returned by various API shapes */
+  pm2_5?: number | string | { value?: number };
+  pm10?: number | string | { value?: number };
+  pm25?: number | string;
+  pm25Value?: number | string;
+  pm10Value?: number | string;
+  count?: number;
+  /** Catch-all for any extra fields the API may include */
+  [key: string]: unknown;
 }
 
 export interface NormalizedChartData {
@@ -28,11 +49,7 @@ export interface NormalizedChartData {
 export type FrequencyType = 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly';
 export type PollutantType = 'pm2_5' | 'pm10';
 export type StandardsType =
-  | 'WHO'
-  | 'NEMA_UGANDA'
-  | 'NEMA_KENYA'
-  | 'SOUTH_AFRICA'
-  | 'NIGERIA';
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -293,11 +310,7 @@ export interface AirQualityStandardsConfig {
 }
 
 export type ChartStandardsType =
-  | 'WHO'
-  | 'NEMA_UGANDA'
-  | 'NEMA_KENYA'
-  | 'SOUTH_AFRICA'
-  | 'NIGERIA';
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;

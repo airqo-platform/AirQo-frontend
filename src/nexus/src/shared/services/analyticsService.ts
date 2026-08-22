@@ -24,7 +24,7 @@ import type {
  * Empirically confirmed (2026-08-21): the backend also accepts ISO datetimes,
  * but YYYY-MM-DD is the safest, most compact format.
  */
-const toDateString = (value: string): string => {
+export const toDateString = (value: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   return value.slice(0, 10);
 };

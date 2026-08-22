@@ -21,6 +21,7 @@ import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import { useUsers, useUpdateUserRole } from '@/shared/hooks/useAdmin';
 import { useRolesSummary } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
+import { toDateString } from '@/shared/services/analyticsService';
 import type { User } from '@/shared/types/api';
 import {
   AqEye,
@@ -195,7 +196,7 @@ const UserManagementPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `users-export-${toDateString(new Date().toISOString())}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -247,7 +248,7 @@ const UserManagementPage: React.FC = () => {
         );
       }
 
-      doc.save(`users-export-${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`users-export-${toDateString(new Date().toISOString())}.pdf`);
     } catch (err) {
       toast.error(getUserFriendlyErrorMessage(err));
     }

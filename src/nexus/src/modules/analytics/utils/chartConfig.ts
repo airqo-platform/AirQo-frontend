@@ -215,6 +215,13 @@ export const normalizeFrequency = (value?: string | null): FrequencyType => {
     : 'daily';
 };
 
+/**
+ * Map an explorer chart type (display-side) to the backend `chartType` value.
+ * Area is a client-side presentation choice; the backend only knows `line` / `bar`.
+ */
+export const toBackendChartType = (chartType: string): 'bar' | 'line' =>
+  chartType === 'Bar' ? 'bar' : 'line';
+
 export const normalizeExplorerChartType = (
   value?: string | null
 ): ExplorerChartType => {

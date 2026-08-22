@@ -2,8 +2,12 @@
 
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { analyticsService } from '@/shared/services/analyticsService';
+import {
+  analyticsService,
+  toDateString,
+} from '@/shared/services/analyticsService';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
+import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
 import type { ChartDataPoint } from '@/shared/types/api';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import type {
@@ -49,8 +53,8 @@ export const useSiteChartData = ({
     start.setDate(end.getDate() - (days || 7));
 
     return {
-      startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0],
+      startDate: toDateString(start.toISOString()),
+      endDate: toDateString(end.toISOString()),
     };
   }, [startDate, endDate, days]);
 
@@ -84,7 +88,7 @@ export const useSiteChartData = ({
           endDateTime: dateRange.endDate,
           chartType: 'line',
           frequency,
-          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          pollutant: normalizePollutant(pollutant),
           organisation_name: '',
         },
         signal

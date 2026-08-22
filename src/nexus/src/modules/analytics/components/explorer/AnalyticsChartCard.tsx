@@ -20,6 +20,7 @@ import {
   getGuidelinePeriod,
   readChartSidecar,
   writeChartSidecar,
+  toBackendChartType,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import { resolveParsedNumber } from '@/shared/types/api';
@@ -28,6 +29,7 @@ import {
   buildDataKeyBySiteId,
   buildSiteLabels,
   buildSeriesLabels,
+  enrichChartDataSiteIds,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
 import type {
@@ -142,10 +144,17 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const { chartData, isLoading, isRefreshing, error, refresh } =
     useAnalyticsChartData(
       filters,
-      draft.chartType === 'Bar' ? 'bar' : 'line',
+      toBackendChartType(draft.chartType),
       draft.siteIds,
       draft.siteIds.length > 0
     );
+
+  // Backend d3 chart data carries site_name but no site_id.  Enrichment
+  // reverse-matches display names → ids so per-site series split works.
+  const enrichedChartData = useMemo(
+    () => enrichChartDataSiteIds(chartData, siteNames),
+    [chartData, siteNames]
+  );
 
   const forecastUsable =
     pollutantOverride === 'pm2_5' && draft.siteIds.length > 0;
@@ -224,10 +233,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   const forecastSeries = useMemo<ForecastSeries[]>(() => {
-    if (!forecastEnabled || !forecastUsable || chartData.length === 0) {
+    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
       return [];
     }
-    const observedTimes = chartData
+    const observedTimes = enrichedChartData
       .map(point => String(point.time ?? ''))
       .filter(Boolean)
       .sort();
@@ -288,7 +297,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     });
     return series;
   }, [
-    chartData,
+    enrichedChartData,
     draft.frequency,
     forecastEnabled,
     forecastItemsBySite,
@@ -297,10 +306,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   ]);
 
   const nowLine = useMemo(() => {
-    if (!forecastEnabled || !forecastUsable || chartData.length === 0) {
+    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
       return undefined;
     }
-    const times = chartData
+    const times = enrichedChartData
       .map(point => String(point.time ?? ''))
       .filter(Boolean)
       .sort();
@@ -315,22 +324,25 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           },
         ]
       : undefined;
-  }, [chartData, forecastEnabled, forecastUsable]);
+  }, [enrichedChartData, forecastEnabled, forecastUsable]);
 
   const mergedData = useMemo(
     () =>
       forecastSeries.length > 0
-        ? [...chartData, ...forecastSeries.flatMap(series => series.points)]
-        : chartData,
-    [chartData, forecastSeries]
+        ? [
+            ...enrichedChartData,
+            ...forecastSeries.flatMap(series => series.points),
+          ]
+        : enrichedChartData,
+    [enrichedChartData, forecastSeries]
   );
 
   // Series colors: observed sites + forecast projections (dashed, inheriting
   // their site's color). Keyed by the rendered series key (the chart-data
   // name) so explicit picks apply even without the sidecar.
   const dataKeyBySiteId = useMemo(
-    () => buildDataKeyBySiteId(chartData),
-    [chartData]
+    () => buildDataKeyBySiteId(enrichedChartData),
+    [enrichedChartData]
   );
 
   const seriesColors = useMemo(() => {
@@ -354,15 +366,15 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   // (search_name || location_name || name || formatted_name), falling back
   // to the chart-data name so raw ids never leak.
   const siteLabels = useMemo(
-    () => buildSiteLabels(chartData, siteNames),
-    [chartData, siteNames]
+    () => buildSiteLabels(enrichedChartData, siteNames),
+    [enrichedChartData, siteNames]
   );
 
   // Legend/tooltip label overrides keyed by series key (single-series charts
   // render under recharts' generic 'value' key, which gets the name too).
   const seriesLabels = useMemo(
-    () => buildSeriesLabels(chartData, siteLabels),
-    [chartData, siteLabels]
+    () => buildSeriesLabels(enrichedChartData, siteLabels),
+    [enrichedChartData, siteLabels]
   );
 
   const metadata = buildChartMetadata(draft);

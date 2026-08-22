@@ -7,9 +7,16 @@ import axios, {
 } from 'axios';
 import { getSession } from 'next-auth/react';
 import logger from '@/shared/lib/logger';
-import { buildServerApiUrl, normalizeApiBaseUrl } from '@/shared/lib/api-routing';
+import {
+  buildServerApiUrl,
+  normalizeApiBaseUrl,
+} from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { trackApiPerformance } from '@/shared/utils/enhancedAnalytics';
+import {
+  recordBackendResponded,
+  recordBackendUnreachable,
+} from '@/shared/lib/backendStatus';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
@@ -378,6 +385,9 @@ export class ApiClient {
           response.status
         );
 
+        // Any real HTTP response means the backend is reachable.
+        recordBackendResponded();
+
         // Log successful responses at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
         // API response logging removed to reduce console noise
@@ -430,6 +440,25 @@ export class ApiClient {
         if (isCanceledRequest) {
           logger.debug('API request canceled', errorContext);
           return Promise.reject(error);
+        }
+
+        // --- Backend-outage tracking (addition-only, no behavior change) ---
+        // AbortError / ERR_CANCELED are filtered above and must NOT count.
+        if (error.response) {
+          const s = error.response.status;
+          if (s === 502 || s === 503 || s === 504) {
+            // Gateway can't reach the upstream backend.
+            recordBackendUnreachable(`Gateway error ${s}`);
+          } else {
+            // Server answered — even 5xx means the backend is reachable.
+            recordBackendResponded();
+          }
+        } else if (
+          error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNABORTED' ||
+          error.name === 'TimeoutError'
+        ) {
+          recordBackendUnreachable('Network error');
         }
 
         if (

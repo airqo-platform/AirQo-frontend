@@ -14,6 +14,7 @@ import {
   buildChartMetadata,
   getGuidelinePeriod,
   readChartSidecar,
+  toBackendChartType,
   type ExplorerChartDraft,
 } from '../../utils/chartConfig';
 import {
@@ -75,7 +76,7 @@ const OverviewChartCard: React.FC<{
   // list view, so data is shared.
   const { chartData, isLoading, error, refresh } = useAnalyticsChartData(
     filters,
-    draft.chartType === 'Bar' ? 'bar' : 'line',
+    toBackendChartType(draft.chartType),
     draft.siteIds,
     draft.siteIds.length > 0
   );

@@ -2,9 +2,13 @@
 
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { analyticsService } from '@/shared/services/analyticsService';
+import {
+  analyticsService,
+  toDateString,
+} from '@/shared/services/analyticsService';
 import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
+import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
 import type {
   FrequencyType,
   PollutantType,
@@ -46,8 +50,6 @@ interface UseSiteTrendDataOptions {
   enabled?: boolean;
 }
 
-const toDateKey = (date: Date): string => date.toISOString().split('T')[0];
-
 /**
  * Trend (D3 chart) data for a single site at the given time-range preset.
  *
@@ -68,8 +70,8 @@ export const useSiteTrendData = ({
     const end = new Date();
     const start = new Date(end.getTime() - config.days * 24 * 60 * 60 * 1000);
     return {
-      startDate: toDateKey(start),
-      endDate: toDateKey(end),
+      startDate: toDateString(start.toISOString()),
+      endDate: toDateString(end.toISOString()),
     };
   }, [config.days]);
 
@@ -94,7 +96,7 @@ export const useSiteTrendData = ({
           endDateTime: dateRange.endDate,
           chartType: 'line',
           frequency: config.frequency,
-          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          pollutant: normalizePollutant(pollutant),
           organisation_name: '',
         },
         signal

@@ -47,6 +47,8 @@ import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { toast } from '@/shared/components/ui/toast';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
+import { toDateString } from '@/shared/services/analyticsService';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -118,8 +120,8 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const { trigger: getChartData, isMutating: isChartLoading } = useGetChartData(
     [
       Array.isArray(visibleSiteIds) ? visibleSiteIds.join(',') : visibleSiteIds,
-      dateRange.from.toISOString().split('T')[0],
-      dateRange.to.toISOString().split('T')[0],
+      toDateString(dateRange.from.toISOString()),
+      toDateString(dateRange.to.toISOString()),
       chartRequestType,
       frequency,
       pollutant,
@@ -200,11 +202,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       try {
         const response = await getChartData({
           sites: visibleSiteIds,
-          startDateTime: dateRange.from.toISOString().split('T')[0],
-          endDateTime: dateRange.to.toISOString().split('T')[0],
+          startDateTime: toDateString(dateRange.from.toISOString()),
+          endDateTime: toDateString(dateRange.to.toISOString()),
           chartType: chartRequestType,
           frequency: frequency,
-          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          pollutant: normalizePollutant(pollutant),
           organisation_name: '',
         });
 

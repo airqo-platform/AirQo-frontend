@@ -10,6 +10,7 @@ import {
 import { useUser } from '@/shared/hooks/useUser';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import { analyticsService } from '@/shared/services/analyticsService';
+import { normalizePollutant } from '../utils/chartConfig';
 import type { ChartData } from '../types';
 import type {
   ChartDataPoint,
@@ -279,7 +280,7 @@ export const useAnalyticsChartData = (
           endDateTime: dateRange.endDate,
           chartType,
           frequency: filters.frequency,
-          pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
+          pollutant: normalizePollutant(filters.pollutant),
           organisation_name: '',
         },
         signal

@@ -1962,12 +1962,25 @@ export interface AnalyticsChartRequest {
 }
 
 export interface ChartDataPoint {
-  site_id: string;
-  value: number;
-  time: string;
-  generated_name: string;
-  device_id: string;
-  name: string;
+  site_id?: string;
+  value?: number | string | { value?: number };
+  time?: string | number;
+  generated_name?: string;
+  device_id?: string;
+  name?: string;
+  search_name?: string;
+  location_name?: string;
+  formatted_name?: string;
+  date?: string;
+  timestamp?: string | number;
+  datetime?: string;
+  pm2_5?: number | string | { value?: number };
+  pm10?: number | string | { value?: number };
+  pm25?: number | string;
+  pm25Value?: number | string;
+  pm10Value?: number | string;
+  count?: number;
+  [key: string]: unknown;
 }
 
 export interface AnalyticsChartResponse {

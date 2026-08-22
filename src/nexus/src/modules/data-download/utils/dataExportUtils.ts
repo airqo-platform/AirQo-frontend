@@ -5,6 +5,7 @@ import {
   GridsSummaryResponse,
 } from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
+import { getSiteDisplayName as getCanonicalSiteDisplayName } from '@/shared/utils/siteUtils';
 
 type SiteNameSource = {
   [key: string]: unknown;
@@ -70,14 +71,14 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
 };
 
 export const getSiteDisplayName = (site?: SiteNameSource): string => {
-  const displayName =
-    getFirstNonEmptyString(
-      site?.search_name,
-      site?.name,
-      site?.formatted_name,
-      site?.location_name
-    ) || '--';
-  return normalizeText(removeUnderscores(displayName));
+  const canonicalName = getCanonicalSiteDisplayName({
+    search_name: site?.search_name as string | undefined,
+    location_name: site?.location_name as string | undefined,
+    name: site?.name as string | undefined,
+    formatted_name: site?.formatted_name as string | undefined,
+  });
+  const resolved = canonicalName === 'Unknown Location' ? '--' : canonicalName;
+  return normalizeText(removeUnderscores(resolved));
 };
 
 /**

@@ -25,6 +25,7 @@ import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RecentReading } from '@/shared/types/api';
 import type { AqiConfig } from '@/shared/types/aqi';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
+import { normalizePollutant } from './chartConfig';
 
 // Re-export shared utilities for convenience
 export {
@@ -38,19 +39,6 @@ export {
   formatTimestampByFrequency,
   getPollutantLabel,
   getPollutantUnits,
-};
-
-const VALID_POLLUTANT_TYPES: ReadonlySet<string> = new Set([
-  'pm2_5',
-  'pm10',
-]);
-
-const normalizePollutantType = (value: string): PollutantType => {
-  const normalized = value?.toLowerCase().replace('.', '_') ?? '';
-  if (VALID_POLLUTANT_TYPES.has(normalized)) {
-    return normalized as PollutantType;
-  }
-  return 'pm2_5';
 };
 
 /**
@@ -198,7 +186,7 @@ export const transformAnalyticsData = (
 
     const level = getAirQualityLevel(
       latestPoint.value,
-      normalizePollutantType(latestPoint.pollutant || 'pm2_5')
+      normalizePollutant(latestPoint.pollutant || 'pm2_5')
     );
     const trend = generateTrend(latestPoint.value, previousPoint?.value);
 
@@ -254,7 +242,7 @@ export const calculateAverageAirQuality = (
 
   const averageValue =
     validSites.reduce((sum, site) => sum + site.value, 0) / validSites.length;
-  const level = getAirQualityLevel(averageValue, normalizePollutantType(pollutant));
+  const level = getAirQualityLevel(averageValue, normalizePollutant(pollutant));
 
   return {
     averageValue,

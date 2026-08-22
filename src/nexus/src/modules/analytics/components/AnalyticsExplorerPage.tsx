@@ -28,6 +28,8 @@ import { ChartsOverviewView } from './explorer/ChartsOverviewView';
 import { ChartConfigDialog } from './explorer/ChartConfigDialog';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
+import { enrichChartDataSiteIds } from '../utils/chartLabels';
+import { toBackendChartType, normalizePollutant } from '../utils/chartConfig';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -137,7 +139,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         startDateTime: draft.startDate,
         endDateTime: draft.endDate,
       };
-      const chartType = draft.chartType === 'Bar' ? 'bar' : 'line';
+      const chartType = toBackendChartType(draft.chartType);
       return {
         queryKey: buildChartDataQueryKey(
           user?.id,
@@ -154,7 +156,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               endDateTime: filters.endDateTime,
               chartType,
               frequency: filters.frequency,
-              pollutant: filters.pollutant.toLowerCase().replace('.', '_'),
+              pollutant: normalizePollutant(filters.pollutant),
               organisation_name: '',
             },
             signal
@@ -179,12 +181,13 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   const coveredSiteIds = useMemo(() => {
     const withData = new Set<string>();
     coverageQueries.forEach(query => {
-      (query.data ?? []).forEach(point => {
+      const enriched = enrichChartDataSiteIds(query.data ?? [], siteNames);
+      enriched.forEach(point => {
         if (point.site_id) withData.add(point.site_id);
       });
     });
     return withData;
-  }, [coverageQueries]);
+  }, [coverageQueries, siteNames]);
 
   const allSiteIds = useMemo(
     () => Array.from(new Set(charts.flatMap(chart => chart.siteIds))),
