@@ -1843,6 +1843,8 @@ export interface Site {
   _id: string;
   formatted_name?: string;
   search_name: string;
+  /** Canonical display-name chain member (search_name → location_name → …). */
+  location_name?: string;
   parish?: string;
   sub_county?: string;
   city?: string;

@@ -43,6 +43,8 @@ export {
 type PreferenceSite = Partial<Site> & {
   id?: string;
   site_id?: string;
+  /** Stored by some preference payloads; part of the canonical name chain. */
+  location_name?: string;
 };
 
 const EMPTY_SELECTED_SITE_IDS: string[] = [];
@@ -66,7 +68,32 @@ const resolvePreferenceSiteId = (site?: PreferenceSite | null): string => {
   );
 };
 
-const normalizePreferenceSelectedSites = (
+/**
+ * Resolves a saved preference site's display name with the canonical
+ * precedence (search_name → location_name → name → formatted_name — mirrors
+ * `getSiteDisplayName` in shared/utils/siteUtils).
+ *
+ * Returns '' when nothing usable is stored: callers must fall through to the
+ * next name source honestly instead of fabricating the raw site id as a name
+ * (a truthy raw id would short-circuit every downstream display chain and
+ * render as "647f09...").
+ */
+export const resolvePreferenceSiteName = (
+  site?: PreferenceSite | null
+): string =>
+  site?.search_name?.trim() ||
+  site?.location_name?.trim() ||
+  site?.name?.trim() ||
+  site?.formatted_name?.trim() ||
+  '';
+
+/**
+ * Normalizes a preference's `selected_sites` payload into full `Site`
+ * objects ordered by `selectedSiteIds`. The resolved display name is written
+ * into `search_name` — or left EMPTY when no name field survived the
+ * round-trip; the raw id is never fabricated as a name.
+ */
+export const normalizePreferenceSelectedSites = (
   selectedSiteIds: string[],
   selectedSites: PreferenceSite[]
 ): Site[] => {
@@ -80,14 +107,9 @@ const normalizePreferenceSelectedSites = (
     }
 
     normalizedSitesById.set(siteId, {
-      search_name:
-        selectedSite.search_name ||
-        selectedSite.formatted_name ||
-        selectedSite.generated_name ||
-        selectedSite.name ||
-        siteId,
       ...selectedSite,
       _id: siteId,
+      search_name: resolvePreferenceSiteName(selectedSite),
     });
   });
 
@@ -98,10 +120,11 @@ const normalizePreferenceSelectedSites = (
       return existingSite;
     }
 
+    // Id has no payload entry (e.g. only `site_ids` is populated): keep it
+    // selectable but leave names empty so downstream chains fall through.
     return {
       _id: siteId,
-      search_name: siteId,
-      name: siteId,
+      search_name: '',
     };
   });
 };

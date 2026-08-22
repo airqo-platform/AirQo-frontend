@@ -14,6 +14,7 @@ import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import type { NormalizedSiteData, RawSiteData } from '@/shared/utils/siteUtils';
 import type { RecentReading, Site } from '@/shared/types/api';
 import { useComparisonSelection } from '../../hooks/useComparisonSelection';
+import { resolvePreferenceSiteName } from '../../hooks';
 import { useRecentReadings } from '../../hooks/useRecentReadings';
 import {
   buildComparisonRow,
@@ -185,11 +186,10 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       if (name && !map.has(site.id)) map.set(site.id, name);
     });
     savedSites.forEach(site => {
-      const name =
-        site.search_name ||
-        site.name ||
-        site.formatted_name ||
-        site.generated_name;
+      // Canonical precedence (search_name → location_name → name →
+      // formatted_name); '' when the payload carries no name so the next
+      // source wins instead of a raw id.
+      const name = resolvePreferenceSiteName(site);
       if (name && !map.has(site._id)) map.set(site._id, name);
     });
     readings.forEach(reading => {

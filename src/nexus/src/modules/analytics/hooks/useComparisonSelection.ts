@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAnalyticsPreferences } from './index';
 import { useUpdateUserPreferences } from '@/shared/hooks/usePreferences';
 import type { Site } from '@/shared/types/api';
@@ -14,12 +14,15 @@ export interface UseComparisonSelectionOptions {
 
 export interface UseComparisonSelectionResult {
   /**
-   * Persisted selection for the active group — the preference payload until
-   * the first local save, then the locally-saved ids (which the invalidated
-   * preference list confirms moments later).
+   * Persisted selection for the active group — the just-saved ids until the
+   * invalidated preferences refetch confirms them, then the server payload.
    */
   savedSiteIds: string[];
-  /** Full `Site` objects behind `savedSiteIds`, from the preference payload. */
+  /**
+   * Full `Site` objects behind `savedSiteIds`. Between a save and the
+   * preferences refetch these are the just-saved objects (they carry the
+   * display names); afterwards they come from the server payload.
+   */
   savedSites: Site[];
   /**
    * True while the group's preference list is loading. Pickers must wait for
@@ -40,8 +43,28 @@ export interface UseComparisonSelectionResult {
 
 interface SavedOverride {
   groupId: string;
-  ids: string[];
+  /** Full just-saved Site objects — they carry the display names. */
+  sites: Site[];
 }
+
+/**
+ * True when both selections contain exactly the same site ids
+ * (order-insensitive). Detects that the post-save preferences refetch has
+ * converged on the just-saved selection. Ids are compared as sorted sets —
+ * NEVER by array identity, since every refetch builds a fresh array and an
+ * identity check would keep the override alive forever.
+ */
+export const savedOverrideMatchesPreference = (
+  overrideIds: string[],
+  preferenceIds: string[]
+): boolean => {
+  if (overrideIds.length !== preferenceIds.length) {
+    return false;
+  }
+  const sortedOverride = [...overrideIds].sort();
+  const sortedPreference = [...preferenceIds].sort();
+  return sortedOverride.every((id, index) => id === sortedPreference[index]);
+};
 
 /**
  * Read/write access to the comparison ("my locations") selection:
@@ -55,9 +78,11 @@ interface SavedOverride {
  *   (add-favorites.tsx), so comparison selections stay consistent with
  *   favorites and the map's saved locations.
  *
- * A successful save also invalidates every `preferences/*` SWR key
- * (see useUpdateUserPreferences), so the read side converges on the server
- * state without extra wiring here.
+ * A successful save stores the full just-saved Site[] as a local override so
+ * display names survive until the invalidated `preferences/*` SWR keys
+ * refetch (see useUpdateUserPreferences). Once the refetched preference's id
+ * set matches the override, the override is dropped and the server payload —
+ * which stores the site objects incl. names — becomes authoritative again.
  */
 export const useComparisonSelection = (
   options?: UseComparisonSelectionOptions
@@ -77,29 +102,50 @@ export const useComparisonSelection = (
 
   const { trigger, isMutating } = useUpdateUserPreferences();
 
-  // Locally-saved ids win over the (briefly stale) preference payload right
-  // after a save; they are dropped on a group switch so the next group's
-  // preference is authoritative again.
+  // The just-saved Site objects win over the (briefly stale) preference
+  // payload right after a save. The override only applies while the user
+  // stays in the saved group — a group switch falls back to that group's
+  // preference immediately.
   const [savedOverride, setSavedOverride] = useState<SavedOverride | null>(
     null
   );
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const savedSiteIds = useMemo(() => {
-    if (
-      savedOverride &&
-      resolvedGroupId &&
-      savedOverride.groupId === resolvedGroupId
-    ) {
-      return savedOverride.ids;
-    }
-    return prefSiteIds;
-  }, [prefSiteIds, resolvedGroupId, savedOverride]);
+  const activeOverride =
+    savedOverride &&
+    resolvedGroupId &&
+    savedOverride.groupId === resolvedGroupId
+      ? savedOverride
+      : null;
+
+  const savedSiteIds = useMemo(
+    () =>
+      activeOverride ? activeOverride.sites.map(site => site._id) : prefSiteIds,
+    [activeOverride, prefSiteIds]
+  );
 
   const savedSites = useMemo(
-    () => (savedSiteIds === prefSiteIds ? prefSites : []),
-    [prefSiteIds, prefSites, savedSiteIds]
+    () => (activeOverride ? activeOverride.sites : prefSites),
+    [activeOverride, prefSites]
   );
+
+  // Convergence: once the post-save preferences refetch lands and its id set
+  // matches the just-saved selection, drop the local override — the server
+  // payload is authoritative. Runs at most once per save (after clearing,
+  // activeOverride is null and the effect exits early — no render loop).
+  useEffect(() => {
+    if (!activeOverride || preferencesLoading) {
+      return;
+    }
+    if (
+      savedOverrideMatchesPreference(
+        activeOverride.sites.map(site => site._id),
+        prefSiteIds
+      )
+    ) {
+      setSavedOverride(null);
+    }
+  }, [activeOverride, preferencesLoading, prefSiteIds]);
 
   const save = useCallback(
     async (sites: Site[]): Promise<boolean> => {
@@ -117,7 +163,7 @@ export const useComparisonSelection = (
         });
         setSavedOverride({
           groupId: resolvedGroupId,
-          ids: sites.map(site => site._id),
+          sites,
         });
         return true;
       } catch (err) {
