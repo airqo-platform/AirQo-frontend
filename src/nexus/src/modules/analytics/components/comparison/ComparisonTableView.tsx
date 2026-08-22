@@ -159,7 +159,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
                           : undefined
                       }
                       className={cn(
-                        'sticky top-0 z-10 border-b border-border bg-muted px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+                        'sticky top-0 z-10 whitespace-nowrap border-b border-border bg-muted px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground',
                         column.headerClassName
                       )}
                     >
@@ -198,14 +198,14 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
               {sortedRows.map(row => (
                 <tr key={row.siteId} className="hover:bg-muted/40">
                   {/* Site */}
-                  <td className="px-5 py-4 text-sm">
+                  <td className="whitespace-nowrap px-5 py-4 text-sm">
                     <span className="block max-w-[220px] truncate">
                       {row.siteName}
                     </span>
                   </td>
                   {/* AQI — colored badge AND numeric index AND category text
                       (never color alone). */}
-                  <td className="px-5 py-4">
+                  <td className="whitespace-nowrap px-5 py-4">
                     {row.hasReading ? (
                       <span className="flex items-center gap-2">
                         <span
@@ -229,15 +229,15 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
                     )}
                   </td>
                   {/* Pollutants — µg/m³, 1 decimal, null → — */}
-                  <td className="px-5 py-4 tabular-nums text-foreground">
+                  <td className="whitespace-nowrap px-5 py-4 tabular-nums text-foreground">
                     {formatPollutantCell(row.pm2_5)}
                   </td>
-                  <td className="px-5 py-4 tabular-nums text-foreground">
+                  <td className="whitespace-nowrap px-5 py-4 tabular-nums text-foreground">
                     {formatPollutantCell(row.pm10)}
                   </td>
                   <td
                     className={cn(
-                      'px-5 py-4 tabular-nums text-foreground',
+                      'whitespace-nowrap px-5 py-4 tabular-nums text-foreground',
                       COLUMNS[4].cellClassName
                     )}
                   >
