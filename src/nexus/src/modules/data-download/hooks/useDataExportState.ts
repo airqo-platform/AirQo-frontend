@@ -278,7 +278,9 @@ export const useDataExportState = () => {
     }));
   }, []);
 
-  // Handle tab switching - clear selections to avoid conflicts
+  // Handle tab switching — selections persist across tabs so users can
+  // freely browse Sites / Devices / Countries / Cities without losing
+  // previously selected items. Only the active tab changes.
   const handleTabChange = useCallback(
     (tab: TabType, isOrgFlow = false) => {
       // Prevent switching to countries or cities tabs in org flow
@@ -286,26 +288,8 @@ export const useDataExportState = () => {
         return;
       }
       setActiveTab(tab);
-      setSelectedSites([]);
-      setSelectedDevices([]);
-      setSelectedSiteIds([]);
-      setSelectedDeviceIds([]);
-      setSelectedGridIds([]);
-      setSelectedGridSites({});
-      setEnableSiteSelection(false);
-      setSelectedGridSiteIds({});
     },
-    [
-      setActiveTab,
-      setSelectedSites,
-      setSelectedDevices,
-      setSelectedSiteIds,
-      setSelectedDeviceIds,
-      setSelectedGridIds,
-      setSelectedGridSites,
-      setEnableSiteSelection,
-      setSelectedGridSiteIds,
-    ]
+    [setActiveTab]
   );
 
   // Handle clearing all selections

@@ -2,7 +2,6 @@
 import {
   ApiClient,
   createAuthenticatedClient,
-  createServerClient,
   createOpenClient,
 } from '@/shared/services/apiClient';
 import { syncClientSessionToken } from '@/shared/services/sessionAuthToken';
@@ -17,12 +16,10 @@ import type {
 
 export class ThemeService {
   private authenticatedClient: ApiClient;
-  private serverClient: ApiClient;
   private openClient: ApiClient;
 
   constructor() {
     this.authenticatedClient = createAuthenticatedClient();
-    this.serverClient = createServerClient();
     this.openClient = createOpenClient();
   }
 

@@ -1,12 +1,9 @@
-import React, {
-  useMemo,
-  useEffect,
-  useCallback,
-  useState,
-} from 'react';
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
+import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { SuccessBanner } from '@/shared/components/ui/banner';
 import { DataExportSidebar } from './components/DataExportSidebar';
 import { SiteSelectionDialog } from './components/SiteSelectionDialog';
@@ -17,10 +14,9 @@ import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
 import { DataExportHelpBanner } from './components/DataExportHelpBanner';
+
 import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import { toast } from '@/shared/components/ui/toast';
-import Dialog from '@/shared/components/ui/dialog';
-import { AqAlertTriangle } from '@airqo/icons-react';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -41,10 +37,11 @@ import {
   useDataExportActions,
 } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
+import { resolveGridSitesForDownload } from './utils/dataExportRequest';
 import {
-  resolveGridSitesForDownload,
-} from './utils/dataExportRequest';
-import { getSiteDisplayName } from './utils/dataExportUtils';
+  getSiteDisplayName,
+  getSiteNavigationData,
+} from './utils/dataExportUtils';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
@@ -62,6 +59,8 @@ import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
 import { AccessDenied } from '@/shared/components/AccessDenied';
+import { rememberSiteSlug } from './hooks/useResolveSiteByName';
+import { toSiteSlug } from './utils/siteDetails';
 
 type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 type FinalSaveFormat = SaveFormat | 'json';
@@ -111,6 +110,7 @@ type PreviewData = Record<string, string | number | null>;
 
 const DataExportPage = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const posthog = usePostHog();
   const { activeGroup, groups, isLoading: userLoading } = useUser();
   const { switchGroup } = useUserActions();
@@ -147,6 +147,9 @@ const DataExportPage = () => {
     !isOrgFlow ||
     (!!organizationGroupId && activeGroup?.id === organizationGroupId);
   const isGroupSyncing = isOrgFlow && !isOrgContextReady && !isOrgUnresolved;
+  const exportBaseHref = isOrgFlow
+    ? `/org/${orgSlugFromPath || ''}/data-export`
+    : '/user/data-export';
 
   // State management
   const {
@@ -235,11 +238,6 @@ const DataExportPage = () => {
     return true;
   });
   const previousGroupIdRef = React.useRef<string | null>(null);
-  const [tabChangeConfirm, setTabChangeConfirm] = React.useState<{
-    isOpen: boolean;
-    targetTab: TabType;
-    selectionCount: number;
-  }>({ isOpen: false, targetTab: 'sites', selectionCount: 0 });
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -323,24 +321,7 @@ const DataExportPage = () => {
         return;
       }
 
-      // Warn user before switching tabs if they have active selections
       if (tab !== activeTab) {
-        const selectionCount =
-          selectedSiteIds.length +
-          selectedDeviceIds.length +
-          selectedGridIds.length;
-
-        if (selectionCount > 0) {
-          setTabChangeConfirm({
-            isOpen: true,
-            targetTab: tab,
-            selectionCount,
-          });
-          return;
-        }
-
-        clearSelectionState();
-
         trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
           from_tab: activeTab,
           to_tab: tab,
@@ -355,45 +336,8 @@ const DataExportPage = () => {
 
       handleTabChange(tab);
     },
-    [
-      activeTab,
-      clearSelectionState,
-      handleTabChange,
-      isGroupSyncing,
-      isOrgFlow,
-      posthog,
-      selectedDeviceIds,
-      selectedGridIds,
-      selectedSiteIds,
-    ]
+    [activeTab, handleTabChange, isGroupSyncing, isOrgFlow, posthog]
   );
-
-  const confirmTabChange = useCallback(() => {
-    const { targetTab } = tabChangeConfirm;
-    setTabChangeConfirm(prev => ({ ...prev, isOpen: false }));
-
-    clearSelectionState();
-
-    trackFeatureUsage(posthog, 'data_export', 'tab_changed', {
-      from_tab: activeTab,
-      to_tab: targetTab,
-      is_org_flow: isOrgFlow,
-    });
-    trackEvent('data_export_tab_changed', {
-      from_tab: activeTab,
-      to_tab: targetTab,
-      is_org_flow: isOrgFlow,
-    });
-
-    handleTabChange(targetTab);
-  }, [
-    tabChangeConfirm,
-    activeTab,
-    isOrgFlow,
-    handleTabChange,
-    posthog,
-    clearSelectionState,
-  ]);
 
   // Data fetching and processing (initial call with empty array)
   const selectedDevicesForActions = useMemo(
@@ -492,7 +436,8 @@ const DataExportPage = () => {
 
       // Derive config-based field values for the preview
       const frequencyLabel =
-        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] || frequency;
+        FREQUENCY_LABELS[frequency as keyof typeof FREQUENCY_LABELS] ||
+        frequency;
       const formatNetwork = (val: unknown): string | null => {
         if (typeof val !== 'string' || !val.trim()) return null;
         return val.trim().toUpperCase();
@@ -511,44 +456,53 @@ const DataExportPage = () => {
       if (activeTab === 'sites') {
         rows = selectedSiteIds.map(id => {
           const site = selectedSitesCache[id];
-          const name = site
-            ? (site.name ?? site.site_name ?? id)
-            : id;
+          const name = site ? (site.name ?? site.site_name ?? id) : id;
           const row: PreviewData = {
             id: site?.id ?? id,
             site_name: name as string,
             datetime: formattedDate,
             frequency: frequencyLabel,
-            network:
-              formatNetwork(site?.network ?? site?.sensor_manufacturer ?? site?.data_provider),
-            latitude: (site?.latitude ?? site?.lat ?? null) as string | number | null,
-            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as string | number | null,
+            network: formatNetwork(
+              site?.network ?? site?.sensor_manufacturer ?? site?.data_provider
+            ),
+            latitude: (site?.latitude ?? site?.lat ?? null) as
+              string | number | null,
+            longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as
+              string | number | null,
             site_id: (site?.site_id ?? site?.id ?? id) as string,
           };
           if (site?.search_name) row.search_name = site.search_name as string;
-          if (site?.formatted_name) row.formatted_name = site.formatted_name as string;
-          if (site?.location_name) row.location_name = site.location_name as string;
+          if (site?.formatted_name)
+            row.formatted_name = site.formatted_name as string;
+          if (site?.location_name)
+            row.location_name = site.location_name as string;
           if (site?.city) row.city = site.city as string;
           if (site?.country) row.country = site.country as string;
-          if (site?.data_provider) row.data_provider = site.data_provider as string;
+          if (site?.data_provider)
+            row.data_provider = site.data_provider as string;
           return row;
         });
       } else if (activeTab === 'devices') {
         rows = selectedDeviceIds.map(id => {
           const device = selectedDevicesCache[id];
-          const name = device
-            ? (device.name ?? device.device_name ?? id)
-            : id;
+          const name = device ? (device.name ?? device.device_name ?? id) : id;
           const row: PreviewData = {
             id: device?.id ?? id,
             device_name: name as string,
             datetime: formattedDate,
             frequency: frequencyLabel,
-            network:
-              formatNetwork(device?.network ?? device?.sensor_manufacturer ?? device?.manufacturer),
+            network: formatNetwork(
+              device?.network ??
+                device?.sensor_manufacturer ??
+                device?.manufacturer
+            ),
             device_id: (device?.device_id ?? device?.id ?? id) as string,
-            latitude: (device?.latitude ?? device?.lat ?? null) as string | number | null,
-            longitude: (device?.longitude ?? device?.lng ?? device?.lon ?? null) as string | number | null,
+            latitude: (device?.latitude ?? device?.lat ?? null) as
+              string | number | null,
+            longitude: (device?.longitude ??
+              device?.lng ??
+              device?.lon ??
+              null) as string | number | null,
           };
           if (device?.site_name) row.site_name = device.site_name as string;
           if (device?.category) row.category = device.category as string;
@@ -562,16 +516,19 @@ const DataExportPage = () => {
           selectedGridSiteIds
         );
         const gridData =
-          activeTab === 'countries' ? processedCountriesData : processedCitiesData;
+          activeTab === 'countries'
+            ? processedCountriesData
+            : processedCitiesData;
 
         // Build siteId → siteName and siteId → network lookups from grid data
         const siteIdToName = new Map<string, string>();
         const siteIdToNetwork = new Map<string, string | null>();
         gridData.forEach(grid => {
-          const gridNetwork = formatNetwork(grid.network ?? grid.sensor_manufacturer);
+          const gridNetwork = formatNetwork(
+            grid.network ?? grid.sensor_manufacturer
+          );
           const sites = grid.sites as
-            | Array<{ _id?: string; name?: string }>
-            | undefined;
+            Array<{ _id?: string; name?: string }> | undefined;
           sites?.forEach(site => {
             if (site._id) {
               siteIdToName.set(String(site._id), String(site.name ?? site._id));
@@ -594,9 +551,7 @@ const DataExportPage = () => {
 
       setPreviewRows(rows);
     } catch {
-      setPreviewError(
-        'Unable to build data preview. Please try again.'
-      );
+      setPreviewError('Unable to build data preview. Please try again.');
     } finally {
       setIsPreviewLoading(false);
       setPreviewOpen(true);
@@ -804,7 +759,6 @@ const DataExportPage = () => {
     selectedGridSiteCount,
     selectedPollutants,
   ]);
-
   // Handle table selection changes
   const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {
     const stringIds = selectedIds.map(id => String(id));
@@ -875,6 +829,34 @@ const DataExportPage = () => {
       }
     }
   };
+
+  const handleTableRowClick = useCallback(
+    (item: TableItem) => {
+      if (activeTab !== 'sites' && activeTab !== 'devices') return;
+
+      const navigationData = getSiteNavigationData(
+        item,
+        activeTab === 'devices' ? 'device' : 'site'
+      );
+
+      if (!navigationData) {
+        toast.warning(
+          'Location details unavailable',
+          activeTab === 'devices'
+            ? 'This device is not linked to a monitoring site.'
+            : 'This row does not contain a valid site ID.'
+        );
+        return;
+      }
+
+      const slug = toSiteSlug(navigationData.displayName);
+      rememberSiteSlug(slug, navigationData);
+      router.push(
+        `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+      );
+    },
+    [activeTab, exportBaseHref, router]
+  );
 
   // Keep selected sites cache synchronized as table pages/search results change.
   useEffect(() => {
@@ -1105,9 +1087,11 @@ const DataExportPage = () => {
     try {
       // Use pendingDownload if already prepared (from grid site selection),
       // otherwise make the API call now that user has chosen a format
-      const preparedDownload = pendingDownload ?? (await handleDownload({
-        exportColumnKeys: pendingColumnKeys ?? undefined,
-      }));
+      const preparedDownload =
+        pendingDownload ??
+        (await handleDownload({
+          exportColumnKeys: pendingColumnKeys ?? undefined,
+        }));
 
       if (!preparedDownload) {
         setSavingFormat(null);
@@ -1175,269 +1159,263 @@ const DataExportPage = () => {
   }
 
   return (
-    <div className="flex flex-col">
-      {/* Page Header */}
-      <PageHeading
-        title="Custom Data Downloads"
-        subtitle="Select any number of locations across Africa to download comprehensive air quality datasets with flexible date ranges and formats."
-      />
-
-      {/* Main Layout with Sidebar and Content */}
-      <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden relative">
-        <DataExportSidebar
-          fileTitle={fileTitle}
-          setFileTitle={setFileTitle}
-          dataType={dataType}
-          setDataType={(value: string) => setDataType(value as DataType)}
-          frequency={frequency}
-          setFrequency={(value: string) => setFrequency(value as Frequency)}
-          fileType={fileType}
-          setFileType={(value: string) => setFileType(value as FileType)}
-          selectedPollutants={selectedPollutants}
-          setSelectedPollutants={setSelectedPollutants}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          deviceCategory={deviceCategory}
-          setDeviceCategory={(value: string) =>
-            setDeviceCategory(value as DeviceCategory)
-          }
-          activeTab={activeTab}
+    <AiPageContextProvider
+      value={{
+        pageTitle: 'Visualization & Data Export',
+        pageDescription:
+          'Download air quality measurement data for selected locations.',
+        data: {
+          activeTab,
+          selectedSiteCount: selectedSiteIds.length,
+          selectedDeviceCount: selectedDeviceIds.length,
+          dateRange: dateRange
+            ? {
+                from: dateRange.from?.toISOString?.() ?? null,
+                to: dateRange.to?.toISOString?.() ?? null,
+              }
+            : null,
+        },
+      }}
+    >
+      <div className="flex flex-col">
+        {/* Page Header */}
+        <PageHeading
+          title="Custom Data Downloads"
+          subtitle="Select any number of locations across Africa to download comprehensive air quality datasets with flexible date ranges and formats."
+          action={<AiDrawerTrigger />}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
-          <div className="gap-4 md:px-4 flex-col flex flex-1">
-            {/* Help Banner */}
-            {showHelpBanner && (
-              <DataExportHelpBanner
-                onShowTutorial={() => setTutorialOpen(true)}
-                onDismiss={handleDismissHelpBanner}
-              />
-            )}
+        {/* Main Layout with Sidebar and Content */}
+        <div className="flex flex-col lg:flex-row flex-1 lg:overflow-hidden relative">
+          <DataExportSidebar
+            fileTitle={fileTitle}
+            setFileTitle={setFileTitle}
+            dataType={dataType}
+            setDataType={(value: string) => setDataType(value as DataType)}
+            frequency={frequency}
+            setFrequency={(value: string) => setFrequency(value as Frequency)}
+            fileType={fileType}
+            setFileType={(value: string) => setFileType(value as FileType)}
+            selectedPollutants={selectedPollutants}
+            setSelectedPollutants={setSelectedPollutants}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            deviceCategory={deviceCategory}
+            setDeviceCategory={(value: string) =>
+              setDeviceCategory(value as DeviceCategory)
+            }
+            activeTab={activeTab}
+          />
 
-            {/* Dynamic Banner Notification */}
-            <DataExportBanner
-              dateRange={dateRange}
-              activeTab={activeTab}
-              selectedSiteIds={selectedSiteIds}
-              selectedDeviceIds={selectedDeviceIds}
-              selectedGridIds={selectedGridIds}
-              selectedGridSiteCount={selectedGridSiteCount}
-              selectedPollutants={selectedPollutants}
-              deviceCategory={deviceCategory}
-              isDownloadReady={isDownloadReady}
-              sitesData={displaySitesData}
-              devicesData={displayDevicesData}
-              isLoadingSites={
-                isGroupSyncing ||
-                groupCohortsHook.isLoading ||
-                sitesHook.isLoading
-              }
-              isLoadingDevices={
-                isGroupSyncing ||
-                groupCohortsHook.isLoading ||
-                devicesHook.isLoading
-              }
-              pathname={pathname}
-            />
-
-            {/* Selected Grids Summary */}
-            {(activeTab === 'countries' || activeTab === 'cities') &&
-              selectedGridIds.length > 0 && (
-                <SelectedGridsSummary
-                  activeTab={activeTab}
-                  selectedGridIds={selectedGridIds}
-                  processedGridsData={
-                    activeTab === 'countries'
-                      ? (processedCountriesData as unknown as Grid[])
-                      : (processedCitiesData as unknown as Grid[])
-                  }
-                  selectedGridSites={selectedGridSites}
-                  selectedGridSiteIds={selectedGridSiteIds}
-                  onCustomizeSites={(grid: Grid) => {
-                    setSelectedGridForSites({ grid, gridType: activeTab });
-                    setSiteSelectionDialogOpen(true);
-                  }}
+          {/* Main Content */}
+          <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
+            <div className="gap-4 md:px-4 flex-col flex flex-1">
+              {/* Help Banner */}
+              {showHelpBanner && (
+                <DataExportHelpBanner
+                  onShowTutorial={() => setTutorialOpen(true)}
+                  onDismiss={handleDismissHelpBanner}
                 />
               )}
 
-            <DataExportHeader
-              activeTab={activeTab}
-              selectedSiteIds={selectedSiteIds}
-              selectedDeviceIds={selectedDeviceIds}
-              selectedGridIds={selectedGridIds}
-              selectedGridSiteIds={selectedGridSiteIds}
-              isDownloadReady={isDownloadReady}
-              isDownloading={isDownloading}
-              isPreviewLoading={isPreviewLoading}
-              isGroupSyncing={isGroupSyncing}
-              canDownload={canDownload}
-              onRefresh={handleRefreshCurrentTab}
-              isRefreshing={isRefreshing}
-              onTabChange={wrappedHandleTabChange}
-              onClearSelections={clearSelectionState}
-              onVisualizeData={handleVisualizeData}
-              onDownload={handleOpenPreview}
-              onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-              sidebarOpen={sidebarOpen}
-              isOrgFlow={isOrgFlow}
-              showHelpBanner={showHelpBanner}
-              onToggleHelpBanner={handleToggleHelpBanner}
-              selectionCount={selectionCount}
-            />
-
-            {/* Download Success Banner */}
-            {downloadSuccess && (
-              <SuccessBanner
-                dense
-                dismissible
-                onDismiss={() => setDownloadSuccess(null)}
-                title={`Saved as ${downloadSuccess.format}`}
-                message={downloadSuccess.message}
+              {/* Dynamic Banner Notification */}
+              <DataExportBanner
+                dateRange={dateRange}
+                activeTab={activeTab}
+                selectedSiteIds={selectedSiteIds}
+                selectedDeviceIds={selectedDeviceIds}
+                selectedGridIds={selectedGridIds}
+                selectedGridSiteCount={selectedGridSiteCount}
+                selectedPollutants={selectedPollutants}
+                deviceCategory={deviceCategory}
+                isDownloadReady={isDownloadReady}
+                sitesData={displaySitesData}
+                devicesData={displayDevicesData}
+                isLoadingSites={
+                  isGroupSyncing ||
+                  groupCohortsHook.isLoading ||
+                  sitesHook.isLoading
+                }
+                isLoadingDevices={
+                  isGroupSyncing ||
+                  groupCohortsHook.isLoading ||
+                  devicesHook.isLoading
+                }
+                pathname={pathname}
               />
-            )}
 
-            <DataExportTable
-              activeTab={activeTab}
-              tableData={displayTableData}
-              columns={config.columns}
-              loading={tableLoading}
-              isRefreshing={tableRefreshing}
-              error={currentHook.error?.message || null}
-              currentPage={currentState.page}
-              totalPages={meta.totalPages}
-              pageSize={currentState.pageSize}
-              totalItems={meta.total}
-              searchTerm={currentState.search}
-              selectedItems={
-                activeTab === 'sites'
-                  ? selectedSiteIds
-                  : activeTab === 'devices'
-                    ? selectedDeviceIds
-                    : selectedGridIds // countries and cities use grid IDs
-              }
-              compactRows={compactTableRows}
-              onPageChange={page => updateTabState(activeTab, { page })}
-              onPageSizeChange={size =>
-                updateTabState(activeTab, { pageSize: size })
-              }
-              onSearchChange={search => updateTabState(activeTab, { search })}
-              onSelectedItemsChange={handleSelectedItemsChange}
-            />
-          </div>
-        </main>
-      </div>
+              {/* Selected Grids Summary */}
+              {(activeTab === 'countries' || activeTab === 'cities') &&
+                selectedGridIds.length > 0 && (
+                  <SelectedGridsSummary
+                    activeTab={activeTab}
+                    selectedGridIds={selectedGridIds}
+                    processedGridsData={
+                      activeTab === 'countries'
+                        ? (processedCountriesData as unknown as Grid[])
+                        : (processedCitiesData as unknown as Grid[])
+                    }
+                    selectedGridSites={selectedGridSites}
+                    selectedGridSiteIds={selectedGridSiteIds}
+                    onCustomizeSites={(grid: Grid) => {
+                      setSelectedGridForSites({ grid, gridType: activeTab });
+                      setSiteSelectionDialogOpen(true);
+                    }}
+                  />
+                )}
 
-      {/* Data Export Preview Dialog */}
-      <DataExportPreview
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        onConfirm={(selectedColumnKeys: string[]) => {
-          setPendingColumnKeys(selectedColumnKeys);
-          setPreviewOpen(false);
-          setSaveFormatDialogOpen(true);
-        }}
-        onRetryPreview={handleOpenPreview}
-        isDownloading={isDownloading}
-        previewRows={previewRows}
-        isFetchingPreview={isPreviewLoading}
-        previewError={previewError}
-        dataType={dataType}
-        frequency={frequency}
-        fileType={fileType}
-        selectedPollutants={selectedPollutants}
-        dateRange={dateRange}
-        activeTab={activeTab}
-        selectedSites={selectedSites}
-        selectedDevices={selectedDeviceNamesForExport}
-        selectedGridIds={selectedGridIds}
-        selectedGridSites={selectedGridSites}
-        selectedGridSiteIds={selectedGridSiteIds}
-      />
+              <DataExportHeader
+                activeTab={activeTab}
+                selectedSiteIds={selectedSiteIds}
+                selectedDeviceIds={selectedDeviceIds}
+                selectedGridIds={selectedGridIds}
+                selectedGridSiteIds={selectedGridSiteIds}
+                isDownloadReady={isDownloadReady}
+                isDownloading={isDownloading}
+                isPreviewLoading={isPreviewLoading}
+                isGroupSyncing={isGroupSyncing}
+                canDownload={canDownload}
+                onRefresh={handleRefreshCurrentTab}
+                isRefreshing={isRefreshing}
+                onTabChange={wrappedHandleTabChange}
+                onClearSelections={clearSelectionState}
+                onVisualizeData={handleVisualizeData}
+                onDownload={handleOpenPreview}
+                onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                sidebarOpen={sidebarOpen}
+                isOrgFlow={isOrgFlow}
+                showHelpBanner={showHelpBanner}
+                onToggleHelpBanner={handleToggleHelpBanner}
+                selectionCount={selectionCount}
+              />
 
-      {/* More Insights Dialog */}
-      <MoreInsights
-        activeTab={
-          activeTab === 'sites' || activeTab === 'devices'
-            ? activeTab
-            : undefined
-        }
-      />
+              {/* Download Success Banner */}
+              {downloadSuccess && (
+                <SuccessBanner
+                  dense
+                  dismissible
+                  onDismiss={() => setDownloadSuccess(null)}
+                  title={`Saved as ${downloadSuccess.format}`}
+                  message={downloadSuccess.message}
+                />
+              )}
 
-      {/* Add Location Dialog */}
-      <AddLocation />
+              <DataExportTable
+                activeTab={activeTab}
+                tableData={displayTableData}
+                columns={config.columns}
+                loading={tableLoading}
+                isRefreshing={tableRefreshing}
+                error={currentHook.error?.message || null}
+                currentPage={currentState.page}
+                totalPages={meta.totalPages}
+                pageSize={currentState.pageSize}
+                totalItems={meta.total}
+                searchTerm={currentState.search}
+                selectedItems={
+                  activeTab === 'sites'
+                    ? selectedSiteIds
+                    : activeTab === 'devices'
+                      ? selectedDeviceIds
+                      : selectedGridIds // countries and cities use grid IDs
+                }
+                compactRows={compactTableRows}
+                onPageChange={page => updateTabState(activeTab, { page })}
+                onPageSizeChange={size =>
+                  updateTabState(activeTab, { pageSize: size })
+                }
+                onSearchChange={search => updateTabState(activeTab, { search })}
+                onSelectedItemsChange={handleSelectedItemsChange}
+                onRowClick={handleTableRowClick}
+              />
+            </div>
+          </main>
+        </div>
 
-      {/* Site Selection Dialog */}
-      {selectedGridForSites && (
-        <SiteSelectionDialog
-          isOpen={siteSelectionDialogOpen}
-          onClose={handleSiteSelectionCancel}
-          onConfirm={handleSiteSelectionConfirm}
-          sites={selectedGridForSites.grid.sites}
-          initialSelectedSiteIds={
-            selectedGridSiteIds[selectedGridForSites.grid._id] || []
-          }
-          gridName={selectedGridForSites.grid.name}
-          gridType={
-            selectedGridForSites.gridType === 'countries' ? 'country' : 'city'
-          }
-          isDownloading={siteSelectionDownloading}
+        {/* Data Export Preview Dialog */}
+        <DataExportPreview
+          isOpen={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          onConfirm={(selectedColumnKeys: string[]) => {
+            setPendingColumnKeys(selectedColumnKeys);
+            setPreviewOpen(false);
+            setSaveFormatDialogOpen(true);
+          }}
+          onRetryPreview={handleOpenPreview}
+          isDownloading={isDownloading}
+          previewRows={previewRows}
+          isFetchingPreview={isPreviewLoading}
+          previewError={previewError}
+          dataType={dataType}
+          frequency={frequency}
+          fileType={fileType}
+          selectedPollutants={selectedPollutants}
+          dateRange={dateRange}
+          activeTab={activeTab}
+          selectedSites={selectedSites}
+          selectedDevices={selectedDeviceNamesForExport}
+          selectedGridIds={selectedGridIds}
+          selectedGridSites={selectedGridSites}
+          selectedGridSiteIds={selectedGridSiteIds}
         />
-      )}
 
-      {/* Video Tutorial Dialog */}
-      <VideoTutorialDialog
-        isOpen={tutorialOpen}
-        onClose={() => setTutorialOpen(false)}
-      />
-
-      <DownloadFormatDialog
-        isOpen={saveFormatDialogOpen}
-        isSaving={savingFormat !== null}
-        savingFormat={savingFormat}
-        onClose={() => {
-          if (!savingFormat) {
-            setSaveFormatDialogOpen(false);
-            setPendingDownload(null);
-            setPendingColumnKeys(null);
+        {/* More Insights Dialog */}
+        <MoreInsights
+          activeTab={
+            activeTab === 'sites' || activeTab === 'devices'
+              ? activeTab
+              : undefined
           }
-        }}
-        onSave={handleSaveFormatSelection}
-        locationCount={exportLocationCount}
-      />
+        />
 
-      {/* Tab Change Confirmation Dialog */}
-      <Dialog
-        isOpen={tabChangeConfirm.isOpen}
-        onClose={() =>
-          setTabChangeConfirm(prev => ({ ...prev, isOpen: false }))
-        }
-        title="Switch Tab?"
-        subtitle="Your current selections will be cleared"
-        icon={AqAlertTriangle}
-        iconColor="text-amber-600"
-        iconBgColor="bg-amber-100"
-        primaryAction={{
-          label: 'Switch Tab',
-          onClick: confirmTabChange,
-          className: 'bg-amber-600 hover:bg-amber-700 text-white',
-        }}
-        secondaryAction={{
-          label: 'Cancel',
-          onClick: () =>
-            setTabChangeConfirm(prev => ({ ...prev, isOpen: false })),
-        }}
-        size="md"
-      >
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          You have {tabChangeConfirm.selectionCount} item
-          {tabChangeConfirm.selectionCount !== 1 ? 's' : ''} selected. Switching
-          tabs will clear all current selections. Do you want to continue?
-        </p>
-      </Dialog>
-    </div>
+        {/* Add Location Dialog */}
+        <AddLocation />
+
+        {/* Site Selection Dialog */}
+        {selectedGridForSites && (
+          <SiteSelectionDialog
+            isOpen={siteSelectionDialogOpen}
+            onClose={handleSiteSelectionCancel}
+            onConfirm={handleSiteSelectionConfirm}
+            sites={selectedGridForSites.grid.sites}
+            initialSelectedSiteIds={
+              selectedGridSiteIds[selectedGridForSites.grid._id] ??
+              selectedGridSites[selectedGridForSites.grid._id] ??
+              []
+            }
+            gridName={selectedGridForSites.grid.name}
+            detailsBaseHref={exportBaseHref}
+            gridType={
+              selectedGridForSites.gridType === 'countries' ? 'country' : 'city'
+            }
+            isDownloading={siteSelectionDownloading}
+          />
+        )}
+
+        {/* Video Tutorial Dialog */}
+        <VideoTutorialDialog
+          isOpen={tutorialOpen}
+          onClose={() => setTutorialOpen(false)}
+        />
+
+        <DownloadFormatDialog
+          isOpen={saveFormatDialogOpen}
+          isSaving={savingFormat !== null}
+          savingFormat={savingFormat}
+          onClose={() => {
+            if (!savingFormat) {
+              setSaveFormatDialogOpen(false);
+              setPendingDownload(null);
+              setPendingColumnKeys(null);
+            }
+          }}
+          onSave={handleSaveFormatSelection}
+          locationCount={exportLocationCount}
+        />
+      </div>
+    </AiPageContextProvider>
   );
 };
 

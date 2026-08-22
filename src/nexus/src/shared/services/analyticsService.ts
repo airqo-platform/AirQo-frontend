@@ -8,61 +8,27 @@ import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
-  RecentReading,
-  RecentReadingRequest,
-  RecentReadingsResponse,
   DataDownloadRequest,
   DataDownloadResponse,
+  RecentReadingsResponse,
+  RecentReading,
 } from '../types/api';
 
-const RECENT_READINGS_BATCH_SIZE = 2;
-
-type RecentReadingsPayload =
-  | RecentReadingsResponse
-  | {
-      success?: boolean;
-      message?: string;
-      measurements?: RecentReading[];
-      data?: RecentReading[] | { measurements?: RecentReading[] };
-    };
-
-const normalizeRecentReadingsResponse = (
-  payload: RecentReadingsPayload,
-  fallbackMessage: string
-): RecentReadingsResponse => {
-  const nestedData = 'data' in payload ? payload.data : undefined;
-  const measurements = Array.isArray(payload.measurements)
-    ? payload.measurements
-    : Array.isArray(nestedData)
-      ? nestedData
-      : nestedData && Array.isArray(nestedData.measurements)
-        ? nestedData.measurements
-        : [];
-
-  return {
-    success: payload.success !== false,
-    message: payload.message || fallbackMessage,
-    measurements,
-  };
-};
-
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  if (!candidate) {
-    return false;
-  }
-
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
+/**
+ * Strip time components from a date string so the API receives `YYYY-MM-DD`.
+ *
+ * The chart-data endpoint (`/analytics/dashboard/chart/d3/data`) validates
+ * `startDateTime` / `endDateTime` as plain date strings.  Callers that pass
+ * full ISO datetime strings (e.g. `2025-08-21T00:00:00.000Z`) trigger a 422
+ * Unprocessable Entity from the backend.  This helper is a no-op when the
+ * input is already in `YYYY-MM-DD` format.
+ *
+ * Empirically confirmed (2026-08-21): the backend also accepts ISO datetimes,
+ * but YYYY-MM-DD is the safest, most compact format.
+ */
+export const toDateString = (value: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  return value.slice(0, 10);
 };
 
 export class AnalyticsService {
@@ -77,119 +43,25 @@ export class AnalyticsService {
   private async ensureAuthenticated() {
     await syncClientSessionToken(this.authenticatedClient);
   }
-
-  // Get chart data - proxied to avoid CORS issues with direct browser-to-API calls
+  // Get chart data - direct backend call via API token
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
-    const response =
-      await this.serverClient.post<AnalyticsChartResponse>(
-        '/analytics/dashboard/chart/d3/data',
-        request,
-        { signal }
-      );
+    // The chart-data endpoint expects YYYY-MM-DD date strings for
+    // startDateTime/endDateTime. Some callers pass full ISO datetime strings
+    // (e.g. "2025-08-21T00:00:00.000Z") which cause 422 Unprocessable Entity.
+    // Normalize here so all callers are safe.
+    const response = await this.serverClient.post<AnalyticsChartResponse>(
+      '/analytics/dashboard/chart/d3/data',
+      {
+        ...request,
+        startDateTime: toDateString(request.startDateTime),
+        endDateTime: toDateString(request.endDateTime),
+      },
+      { signal }
+    );
     return response.data;
-  }
-
-  // Get recent readings data
-  async getRecentReadings(
-    request: RecentReadingRequest,
-    signal?: AbortSignal
-  ): Promise<RecentReadingsResponse> {
-    const normalizedSiteIds = Array.from(
-      new Set(
-        (request.site_id || '')
-          .split(',')
-          .map(siteId => siteId.trim())
-          .filter(Boolean)
-      )
-    );
-
-    if (normalizedSiteIds.length === 0) {
-      return {
-        success: true,
-        message: 'No site IDs provided',
-        measurements: [],
-      };
-    }
-
-    // The backend can fail on larger comma-joined site_id lists, so keep
-    // recent-readings requests small and merge the results for the caller.
-    const siteIdBatches: string[][] = [];
-
-    for (
-      let index = 0;
-      index < normalizedSiteIds.length;
-      index += RECENT_READINGS_BATCH_SIZE
-    ) {
-      siteIdBatches.push(
-        normalizedSiteIds.slice(index, index + RECENT_READINGS_BATCH_SIZE)
-      );
-    }
-
-    const responses = await Promise.allSettled(
-      siteIdBatches.map(async siteIdBatch => {
-        const response = await this.serverClient.get<RecentReadingsPayload>(
-          '/devices/readings/recent',
-          {
-            params: {
-              site_id: siteIdBatch.join(','),
-            },
-            signal,
-          }
-        );
-
-        return normalizeRecentReadingsResponse(
-          response.data,
-          'Recent readings fetched successfully'
-        );
-      })
-    );
-
-    const abortedResponse = responses.find(
-      (response): response is PromiseRejectedResult =>
-        response.status === 'rejected' &&
-        (signal?.aborted || isAbortError(response.reason))
-    );
-
-    if (abortedResponse) {
-      throw abortedResponse.reason;
-    }
-
-    const successfulResponses = responses
-      .filter(
-        (
-          response
-        ): response is PromiseFulfilledResult<RecentReadingsResponse> =>
-          response.status === 'fulfilled'
-      )
-      .map(response => response.value);
-
-    if (successfulResponses.length === 0) {
-      const failedResponse = responses.find(
-        (response): response is PromiseRejectedResult =>
-          response.status === 'rejected'
-      );
-
-      throw (
-        failedResponse?.reason || new Error('Failed to fetch recent readings')
-      );
-    }
-
-    return {
-      success:
-        successfulResponses.length === responses.length &&
-        successfulResponses.every(response => response.success !== false),
-      message:
-        successfulResponses
-          .map(response => response.message)
-          .filter(Boolean)
-          .join('; ') || 'Recent readings fetched successfully',
-      measurements: successfulResponses.flatMap(
-        response => response.measurements ?? []
-      ),
-    };
   }
 
   // Download data - authenticated endpoint
@@ -200,6 +72,44 @@ export class AnalyticsService {
       DataDownloadResponse | string
     >('/analytics/data-download', request);
     return response.data;
+  }
+
+  /**
+   * Latest reading per site — POST /devices/readings/recent.
+   *
+   * Goes through the server client (API_TOKEN via the BFF route), mirroring
+   * `getChartData`: device endpoints need the shared API token, which the
+   * BFF attaches server-side so it never reaches the browser.
+   *
+   * The backend rejects an empty `site_ids` array with 400, so empty input
+   * short-circuits to `[]` without a network call. A `success: false` body
+   * (or a malformed one) throws a fixed safe message — the backend error is
+   * not interpolated into the thrown Error to prevent server-internal wording
+   * from reaching the UI. Aborted requests propagate as cancellations and
+   * must never be retried by callers (AGENTS.md retry policy).
+   */
+  async getRecentReadings(
+    siteIds: string[],
+    signal?: AbortSignal
+  ): Promise<RecentReading[]> {
+    const trimmedSiteIds = siteIds.map(siteId => siteId.trim()).filter(Boolean);
+
+    if (trimmedSiteIds.length === 0) {
+      return [];
+    }
+
+    const response = await this.serverClient.post<RecentReadingsResponse>(
+      '/devices/readings/recent',
+      { site_ids: trimmedSiteIds },
+      { signal }
+    );
+
+    const payload = response.data;
+    if (!payload?.success) {
+      throw new Error('Failed to fetch the latest readings.');
+    }
+
+    return Array.isArray(payload.measurements) ? payload.measurements : [];
   }
 }
 

@@ -120,9 +120,12 @@ export const usePendingInvitations = () => {
     },
     {
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      dedupingInterval: 10000,
       shouldRetryOnError: false,
-      revalidateOnMount: true,
+      // Invitations mutate explicitly on accept/reject; a remount (the auth
+      // tree mounts more than once per load) must reuse the cached response
+      // instead of re-firing the request.
+      revalidateIfStale: false,
       errorRetryCount: 0,
     }
   );

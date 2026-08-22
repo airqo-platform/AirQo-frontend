@@ -14,8 +14,8 @@ export async function generateMetadata({
   params,
 }: OrgLayoutProps): Promise<Metadata> {
   const { org_slug } = params;
-  // Data Export is the default organization destination.
-  return generateOrgMetadata(org_slug, 'data-export');
+  // Dashboard is the default organization destination.
+  return generateOrgMetadata(org_slug, 'dashboard');
 }
 
 const OrgLayout = ({ children }: OrgLayoutProps) => {

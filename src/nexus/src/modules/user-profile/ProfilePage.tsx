@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
@@ -15,6 +15,7 @@ import {
   AqCreditCard01,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
+import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 
 interface ExtendedSessionUser {
   id?: string;
@@ -26,25 +27,47 @@ interface ExtendedSessionUser {
   image?: string | null;
 }
 
+const TAB_PARAM_MAP: Record<string, number> = {
+  profile: 0,
+  security: 1,
+  api: 2,
+  subscription: 3,
+  'org-invites': 4,
+  theme: 5,
+};
+
+const TAB_ID_TO_PARAM: Record<number, string> = Object.fromEntries(
+  Object.entries(TAB_PARAM_MAP).map(([param, id]) => [id, param])
+);
+
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(0);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get('tab');
+    return tabParam && tabParam in TAB_PARAM_MAP ? TAB_PARAM_MAP[tabParam] : 0;
+  });
 
   const userId = (session?.user as ExtendedSessionUser)?._id;
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'org-invites') {
-      setActiveTab(4);
-    }
-    if (tabParam === 'subscription') {
-      setActiveTab(3);
-    }
-    if (tabParam === 'api') {
-      setActiveTab(2);
+    if (tabParam && tabParam in TAB_PARAM_MAP) {
+      setActiveTab(TAB_PARAM_MAP[tabParam]);
     }
   }, [searchParams]);
+
+  const navigateToTab = useCallback(
+    (tabId: number) => {
+      setActiveTab(tabId);
+      const param = TAB_ID_TO_PARAM[tabId];
+      if (param && searchParams.get('tab') !== param) {
+        router.replace(`?tab=${param}`, { scroll: false });
+      }
+    },
+    [router, searchParams]
+  );
 
   if (status === 'loading') {
     return (
@@ -74,6 +97,10 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div>
+      {/* Page header */}
+      <div className="flex items-center justify-end mb-4">
+        <AiDrawerTrigger />
+      </div>
       {/* Tab Navigation */}
       <Card className="mb-6">
         <nav className="flex overflow-x-auto scrollbar-hide px-4 sm:px-6">
@@ -81,7 +108,7 @@ const ProfilePage: React.FC = () => {
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => tab.component && setActiveTab(tab.id)}
+                onClick={() => tab.component && navigateToTab(tab.id)}
                 disabled={!tab.component}
                 className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                   activeTab === tab.id

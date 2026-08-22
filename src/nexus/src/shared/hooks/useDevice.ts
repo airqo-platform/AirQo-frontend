@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { deviceService } from '../services/deviceService';
 import {
@@ -31,6 +31,11 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
   shouldRetryOnError: false,
+  // The auth tree mounts more than once per page load; a remount must reuse
+  // the cached response instead of re-firing the request. Freshness is
+  // handled by key changes (group switch), explicit mutations and the
+  // group-switch invalidation.
+  revalidateIfStale: false,
   dedupingInterval: 5000,
 } as const;
 
@@ -54,26 +59,22 @@ const useAbortableFetcher = <T>(
 ) => {
   const abortRef = useRef<AbortController | null>(null);
 
-  // Cleanup abort controller on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-    };
-  }, []);
+  // NOTE: no abort on unmount. SWR deduplicates subscribers on the same key
+  // and shares one in-flight request between them — a StrictMode remount
+  // subscribes to the SAME in-flight request, and aborting it on unmount
+  // leaves the remount with a "canceled" error that nothing re-triggers
+  // (shouldRetryOnError: false). The request is still aborted when a NEW
+  // fetch supersedes it (revalidation / key change), and the AbortSignal
+  // keeps working for per-request cancellation.
 
   return useCallback(async () => {
-    // Abort any previous in-flight request
+    // Abort the previous in-flight request when a new fetch supersedes it.
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
     try {
       return await fetcher(controller.signal);
-    } catch (error) {
-      // Let AbortError propagate — SWR sets error but useCohortSitesQuery
-      // suppresses it via isAbortError check. This prevents SWR from treating
-      // cancellation as a successful value or triggering unnecessary retries.
-      throw error;
     } finally {
       if (abortRef.current === controller) {
         abortRef.current = null;
@@ -311,7 +312,12 @@ export const useCohortDevices = (
 
 // Group cohorts hook
 export const useGroupCohorts = (groupId: string, enabled = true) => {
-  const key = enabled && groupId ? ['group/cohorts', groupId] : null;
+  // Memoized so the key's identity is stable across renders — a fresh array
+  // would make the abort-recovery effect below re-run on every render.
+  const key = useMemo(
+    () => (enabled && groupId ? ['group/cohorts', groupId] : null),
+    [enabled, groupId]
+  );
   const fetcher = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) => deviceService.getGroupCohorts(groupId, signal),
@@ -319,7 +325,29 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
     )
   );
 
-  return useSWR<GroupCohortsResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
+  const result = useSWR<GroupCohortsResponse>(
+    key,
+    fetcher,
+    SWR_STABLE_REQUEST_OPTIONS
+  );
+
+  // A canceled error can land on the key (e.g. a superseded fetch); nothing
+  // re-fires it (shouldRetryOnError: false), so re-trigger once when that
+  // happens — otherwise cohortIds stay empty and dependent lists hang.
+  const recoveredAbortRef = useRef(false);
+  useEffect(() => {
+    if (
+      key &&
+      result.error &&
+      isAbortError(result.error) &&
+      !recoveredAbortRef.current
+    ) {
+      recoveredAbortRef.current = true;
+      mutate(key);
+    }
+  }, [key, result.error]);
+
+  return result;
 };
 
 // Cohort details hook
@@ -410,7 +438,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
   }, [groupId, dispatch]);
 
   // Fetch cohorts for active group
-  const { error: swrError, isLoading: swrIsLoading } =
+  const { data, error: swrError, isLoading: swrIsLoading } =
     useSWR<GroupCohortsResponse>(
       shouldFetch ? ['group/cohorts', groupId] : null,
       fetchGroupCohorts,
@@ -445,6 +473,30 @@ export const useActiveGroupCohorts = (enabled = true) => {
       }
     );
 
+  // With revalidateIfStale: false a remount serves the cached response
+  // WITHOUT firing a fetch, so onSuccess never runs and the Redux store
+  // would stay empty (lastFetchedGroupId unset → resolvedCohortIds []).
+  // Hydrate Redux from the cached response instead of issuing a duplicate
+  // request. Idempotent: once lastFetchedGroupId matches, shouldFetch flips
+  // false and this effect stops running.
+  useEffect(() => {
+    if (
+      enabled &&
+      groupId &&
+      lastFetchedGroupId !== groupId &&
+      data?.success &&
+      !swrIsLoading
+    ) {
+      dispatch(
+        setActiveGroupCohorts({
+          groupId,
+          cohortIds: normalizeCohortIds(data.data),
+        })
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, groupId, data, swrIsLoading, dispatch, lastFetchedGroupId]);
+
   const resolvedCohortIds =
     enabled && groupId && lastFetchedGroupId === groupId
       ? activeGroupCohorts
@@ -453,6 +505,23 @@ export const useActiveGroupCohorts = (enabled = true) => {
   const hasPendingGroup =
     enabled && !!groupId && lastFetchedGroupId !== groupId;
   const resolvedError = enabled ? error || swrError : null;
+
+  // A canceled error can land on the key while lastFetchedGroupId is still
+  // unset (e.g. StrictMode remount or a superseded fetch); nothing re-fires
+  // it (shouldRetryOnError: false), leaving cohortIds permanently empty and
+  // the sites table stuck on "Loading data...". Re-trigger once.
+  const recoveredAbortRef = useRef(false);
+  useEffect(() => {
+    if (
+      shouldFetch &&
+      swrError &&
+      isAbortError(swrError) &&
+      !recoveredAbortRef.current
+    ) {
+      recoveredAbortRef.current = true;
+      mutate(['group/cohorts', groupId]);
+    }
+  }, [shouldFetch, swrError, groupId]);
 
   return {
     cohortIds: resolvedCohortIds,

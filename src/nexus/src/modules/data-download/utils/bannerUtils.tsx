@@ -113,7 +113,7 @@ export const getBannerNotification = ({
     return (
       <WarningBanner
         title="Location Selection Required"
-        message={`Please select at least one ${locationTypeLabel} to include in your data export.`}
+        message={`Select at least one ${locationTypeLabel} using the row checkbox to include it in your data export. Clicking a site or device row opens its details.`}
       />
     );
   }
@@ -125,7 +125,7 @@ export const getBannerNotification = ({
     return (
       <WarningBanner
         title="Monitoring Site Selection Required"
-        message={`The selected ${activeTab === 'countries' ? 'country' : 'city'} has no monitoring sites selected. Choose at least one site before exporting.`}
+        message={`Choose at least one monitoring site in Customize Sites for the selected ${activeTab === 'countries' ? 'country' : 'city'} before exporting. Use View more beside a site to open its details.`}
       />
     );
   }
@@ -170,7 +170,7 @@ export const getBannerNotification = ({
     return (
       <InfoBanner
         title="Ready to Export"
-        message="Your data export configuration is complete. Click 'Review & Download' to preview and start the export process."
+        message="Your export is ready. Click Review & Download to preview and save it. Row checkboxes control what is downloaded; row clicks open location details."
       />
     );
   }

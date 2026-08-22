@@ -52,7 +52,8 @@ export function useMapReadings(
     sessionUser?.id || sessionUser?._id || sessionUser?.email || null;
   const hasStableUserId = Boolean(stableUserId);
   const sessionScope = stableUserId || 'pending';
-  const requestEnabled = enabled && sessionStatus === 'authenticated' && hasStableUserId;
+  const requestEnabled =
+    enabled && sessionStatus === 'authenticated' && hasStableUserId;
 
   const {
     data: readings = [],
@@ -75,9 +76,11 @@ export function useMapReadings(
     retry: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    // A map view should always validate its readings when it mounts. Cached
-    // data is still used immediately while the request is in flight.
-    refetchOnMount: 'always',
+    // Revalidate on mount only when the cached readings are stale (see
+    // staleTime below). Cached data renders immediately while a background
+    // revalidation is in flight — navigating away and back within the stale
+    // window reuses the cache without another request to the API.
+    refetchOnMount: true,
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 60 * 12,
   });

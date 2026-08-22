@@ -41,7 +41,7 @@ const MyAnalyticsPage = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Air Quality Analytics</h1>
-      <AnalyticsDashboard />
+      <AnalyticsDashboard organizationSlug="my-organization" />
     </div>
   );
 };
@@ -75,8 +75,7 @@ const CustomDashboard = () => {
         onFilterChange={(filter, value) =>
           setFilters(prev => ({ ...prev, [filter]: value }))
         }
-        onManageFavorites={() => console.log('Manage favorites')}
-        onDownloadData={() => console.log('Download data')}
+        onRefresh={() => console.log('Refresh data')}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -243,6 +242,52 @@ The module uses Tailwind CSS classes and is fully responsive. All components sup
 - More pollutant types
 - Historical data comparison
 - Weather data integration
+
+## Air Quality Rankings (`/user/air-quality/rankings`)
+
+The African AQI leaderboard, powered by the device-registry rankings endpoints
+(`GET /devices/readings/rankings` and `GET /devices/readings/rankings/history`).
+
+- **Live rankings** — country or city leaderboard, worst/cleanest first, with
+  configurable entry count. Each row shows rank, flag, average PM2.5, derived
+  AQI index, a color-coded category badge (colored from the live AQI ranges
+  config) and how many sites contributed. Locations only appear once they have
+  a reading from the last 3 days.
+- **Historical comparison** — year-by-year average PM2.5 per location
+  (entities as rows, years as columns, capped at a 5-year span). Years with
+  no usable data come back as `null` from the API and render as a grayed-out
+  dash — never as clean air.
+
+Data flows through `rankingsService` (API-token-authenticated — these
+endpoints reject user JWTs) and the
+`useRankings` / `useRankingsHistory` react-query hooks.
+
+## Air Quality Analytics (`/user/air-quality/analytics`)
+
+A chart explorer for a group's monitoring locations:
+
+- **Chart builder** — add as many charts as needed, each with its own
+  locations, pollutant, frequency, custom date range and series color,
+  persisted to the group's chart configurations
+  (`/users/preferences/groups/:grp_id/charts`). Titles and subtitles are
+  editable inline from the chart header; every chart exports as PDF/PNG and
+  shows its own collapsible forecast via the air-quality map's `useForecast`
+  service (`WeeklyForecastCard`).
+- **Location picker** — multi-select from the group's cached Sites
+  (`/devices/cohorts/cached-sites`) with server-side search and pagination.
+  Each site row shows the device(s) deployed there (the payload embeds them),
+  so the device name rides along with the site. Display names are always
+  shown — raw ids never surface.
+- **Trends view** — one tab hosting the chart workspace: a single active
+  chart with its reference legend, saved-charts list and forecast summary
+  ("Focus"), or every chart at once as a list/grid ("All charts") — the two
+  are the same data in different layouts, toggled without leaving the tab.
+- **Table view** — an unlimited location-comparison table (latest PM2.5/PM10
+  per site, sortable, threshold-colored, with the shared AQI legend shown
+  once at page level).
+- **AQI legend** — the segmented AQI scale is rendered once per page from the
+  live `/devices/aqi-ranges` config (the single source of truth) instead of
+  being repeated on every chart.
 
 ## Dependencies
 

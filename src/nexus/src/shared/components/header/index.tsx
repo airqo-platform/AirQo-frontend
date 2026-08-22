@@ -13,6 +13,7 @@ import {
   OrganizationSelector,
   LogoComponent,
   InfoDropdown,
+  WeatherWidget,
 } from './components';
 import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
@@ -54,10 +55,12 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logo */}
           <LogoComponent />
 
-          {/* Page Title */}
-          <div className="flex-1 ml-4">
-            <h1 className="text-xl text-foreground truncate">{pageTitle}</h1>
-          </div>
+          {/* Page Title — hidden on mobile to reduce congestion in the nav bar */}
+          {!isMobile && (
+            <div className="flex-1 ml-4">
+              <h1 className="text-xl text-foreground truncate">{pageTitle}</h1>
+            </div>
+          )}
 
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
@@ -68,6 +71,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Weather Widget positioned below header */}
+      <div className="absolute right-4 top-full">
+        <WeatherWidget />
+      </div>
     </motion.header>
   );
 };

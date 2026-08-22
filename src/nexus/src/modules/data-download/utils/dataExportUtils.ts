@@ -5,6 +5,7 @@ import {
   GridsSummaryResponse,
 } from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
+import { getSiteDisplayName as getCanonicalSiteDisplayName } from '@/shared/utils/siteUtils';
 
 type SiteNameSource = {
   [key: string]: unknown;
@@ -12,6 +13,49 @@ type SiteNameSource = {
   search_name?: unknown;
   formatted_name?: unknown;
   location_name?: unknown;
+};
+
+export interface SiteNavigationData {
+  siteId: string;
+  displayName: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+const getFirstNonEmptyValue = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim() && value.trim() !== '--') {
+      return value.trim();
+    }
+  }
+  return undefined;
+};
+
+const getCoordinate = (
+  axis: 'latitude' | 'longitude',
+  ...values: unknown[]
+): number | null => {
+  const min = axis === 'latitude' ? -90 : -180;
+  const max = axis === 'latitude' ? 90 : 180;
+
+  for (const value of values) {
+    const parsed =
+      typeof value === 'number'
+        ? value
+        : typeof value === 'string' && value.trim()
+          ? Number(value.trim())
+          : NaN;
+    if (Number.isFinite(parsed) && parsed >= min && parsed <= max) {
+      return parsed;
+    }
+  }
+
+  return null;
 };
 
 const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
@@ -27,14 +71,73 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
 };
 
 export const getSiteDisplayName = (site?: SiteNameSource): string => {
+  const canonicalName = getCanonicalSiteDisplayName({
+    search_name: site?.search_name as string | undefined,
+    location_name: site?.location_name as string | undefined,
+    name: site?.name as string | undefined,
+    formatted_name: site?.formatted_name as string | undefined,
+  });
+  const resolved = canonicalName === 'Unknown Location' ? '--' : canonicalName;
+  return normalizeText(removeUnderscores(resolved));
+};
+
+/**
+ * Returns the authoritative site identity used by location-detail
+ * navigation. Device rows use the linked site's id/name and never fall back
+ * to the device id, which would send the detail page to the wrong location.
+ */
+export const getSiteNavigationData = (
+  item: TableItem,
+  source: 'site' | 'device' = 'site'
+): SiteNavigationData | null => {
+  const record = item as Record<string, unknown>;
+  const nestedSite = asRecord(record.site);
+  const nestedSiteDetails = asRecord(record.siteDetails);
+  const siteRecord = nestedSite ?? nestedSiteDetails;
+
+  const siteId = getFirstNonEmptyValue(
+    source === 'device' ? undefined : record._id,
+    source === 'device' ? undefined : record.id,
+    siteRecord?._id,
+    siteRecord?.site_id,
+    record.site_id
+  );
+
+  if (!siteId) return null;
+
   const displayName =
-    getFirstNonEmptyString(
-      site?.search_name,
-      site?.name,
-      site?.formatted_name,
-      site?.location_name
-    ) || '--';
-  return normalizeText(removeUnderscores(displayName));
+    getFirstNonEmptyValue(
+      siteRecord?.search_name,
+      siteRecord?.name,
+      siteRecord?.formatted_name,
+      siteRecord?.location_name,
+      record.site_search_name,
+      record.site_name,
+      record.site_formatted_name,
+      record.site_location_name,
+      source === 'site' ? record.search_name : undefined,
+      source === 'site' ? record.name : undefined,
+      source === 'site' ? record.location_name : undefined
+    ) || siteId;
+
+  return {
+    siteId,
+    displayName,
+    latitude: getCoordinate(
+      'latitude',
+      siteRecord?.approximate_latitude,
+      siteRecord?.latitude,
+      record.approximate_latitude,
+      record.latitude
+    ),
+    longitude: getCoordinate(
+      'longitude',
+      siteRecord?.approximate_longitude,
+      siteRecord?.longitude,
+      record.approximate_longitude,
+      record.longitude
+    ),
+  };
 };
 
 const getSiteSearchName = (site?: SiteNameSource): string => {

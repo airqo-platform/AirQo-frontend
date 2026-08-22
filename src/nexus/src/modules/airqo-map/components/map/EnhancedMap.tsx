@@ -18,6 +18,8 @@ import { MapLegend } from './MapLegend';
 import { MapNodes } from './MapNodes';
 import { MapLoadingOverlay } from './MapLoadingOverlay';
 import { PollutantSelector } from './PollutantSelector';
+import { DataProviderFilter } from './DataProviderFilter';
+import { DATA_PROVIDER_ALL } from '@/modules/airqo-map/utils/dataProviders';
 import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
@@ -108,7 +110,16 @@ interface EnhancedMapProps {
   isAqiConfigLoading?: boolean;
   aqiConfigError?: unknown;
   onPollutantChange?: (pollutant: PollutantType) => void;
+  /** Canonical data-provider keys present in the loaded readings */
+  dataProviders?: string[];
+  selectedDataProvider?: string;
+  onDataProviderChange?: (provider: string) => void;
   selectionContextKey?: string;
+  /**
+   * When false (mobile), Flowbite hover tooltips on nodes are disabled —
+   * on touch a tap would open them over the filter controls.
+   */
+  enableHoverTooltip?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -127,7 +138,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   isAqiConfigLoading = false,
   aqiConfigError,
   onPollutantChange,
+  dataProviders = [],
+  selectedDataProvider = DATA_PROVIDER_ALL,
+  onDataProviderChange,
   selectionContextKey,
+  enableHoverTooltip = true,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -201,15 +216,38 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   // ── Fly-to (programmatic) ────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!flyToLocation || !mapRef.current) return;
+  // The target survives until the map can apply it. When the map page opens
+  // with URL coordinates, the map instance may not be mounted yet while the
+  // request is in flight — dropping it here would leave the map at the
+  // default view. The pending target is replayed once the map reports ready.
+  const pendingFlyToRef = useRef<{
+    longitude: number;
+    latitude: number;
+    zoom?: number;
+  } | null>(null);
+
+  const applyFlyTo = useCallback(() => {
+    if (!mapRef.current) return;
+    const target = pendingFlyToRef.current;
+    if (!target) return;
+    pendingFlyToRef.current = null;
     mapRef.current.flyTo({
-      center: [flyToLocation.longitude, flyToLocation.latitude],
-      zoom: flyToLocation.zoom ?? 14,
+      center: [target.longitude, target.latitude],
+      zoom: target.zoom ?? 14,
       duration: 1000,
       easing: t => t * (2 - t),
     });
-  }, [flyToLocation]);
+  }, []);
+
+  useEffect(() => {
+    if (!flyToLocation) return;
+    pendingFlyToRef.current = flyToLocation;
+    applyFlyTo();
+  }, [flyToLocation, applyFlyTo]);
+
+  const handleMapLoad = useCallback(() => {
+    applyFlyTo();
+  }, [applyFlyTo]);
 
   // ── Clustering ───────────────────────────────────────────────────────────────
 
@@ -570,6 +608,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         dragPan
         doubleClickZoom
         onClick={handleMapClick}
+        onLoad={handleMapLoad}
       >
         {/* ── Cluster markers ──────────────────────────────────────────────── */}
         {clusters.map(cluster => (
@@ -589,6 +628,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               selectedPollutant={selectedPollutant}
               aqiConfig={aqiConfig}
               zoomLevel={viewState.zoom}
+              enableHoverTooltip={enableHoverTooltip}
             />
           </Marker>
         ))}
@@ -614,6 +654,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               aqiConfig={aqiConfig}
               isTooltipOpen={pinnedTooltipId === reading.id}
               zoomLevel={viewState.zoom}
+              enableHoverTooltip={enableHoverTooltip}
             />
           </Marker>
         ))}
@@ -638,12 +679,21 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         />
       </div>
 
-      {onPollutantChange && (
-        <div className="absolute top-4 left-4 z-20">
-          <PollutantSelector
-            selectedPollutant={selectedPollutant}
-            onPollutantChange={onPollutantChange}
-          />
+      {(onPollutantChange || onDataProviderChange) && (
+        <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2 md:flex-row md:items-center">
+          {onPollutantChange && (
+            <PollutantSelector
+              selectedPollutant={selectedPollutant}
+              onPollutantChange={onPollutantChange}
+            />
+          )}
+          {onDataProviderChange && dataProviders.length > 1 && (
+            <DataProviderFilter
+              providers={dataProviders}
+              selectedProvider={selectedDataProvider}
+              onProviderChange={onDataProviderChange}
+            />
+          )}
         </div>
       )}
 

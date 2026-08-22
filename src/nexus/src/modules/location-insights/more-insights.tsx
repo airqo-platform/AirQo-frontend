@@ -38,7 +38,7 @@ import {
 import type { SelectedSite } from '@/shared/store/insightsSlice';
 import InsightsFilters from './insights-filters';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { InfoBanner } from '@/shared/components/ui/banner';
+import { Banner } from '@/shared/components/ui/banner';
 import { useUser } from '@/shared/hooks/useUser';
 import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
@@ -47,14 +47,12 @@ import { trackDataDownload } from '@/shared/utils/enhancedAnalytics';
 import { toast } from '@/shared/components/ui/toast';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
+import { toDateString } from '@/shared/services/analyticsService';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
 };
-
-// Configuration constants for site management
-const MAX_VISIBLE_SITES = 8; // Maximum sites that can be displayed on chart simultaneously
-const INITIAL_VISIBLE_SITES = 5; // Number of sites to show initially when dialog opens
 
 export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -64,8 +62,8 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const selectedSites = useSelector(selectSelectedSites);
   const isOpen = useSelector(selectIsDialogOpen('more-insights'));
 
-  // Get user data for personalized banner dismissal
-  const { user, activeGroup } = useUser();
+  // Get active group context
+  const { activeGroup } = useUser();
 
   // Initialize default date range to last 7 days
   const getDefaultDateRange = () => {
@@ -83,24 +81,14 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     getDefaultDateRange()
   );
   const [dataType, setDataType] = useState<'calibrated' | 'raw'>('calibrated');
-  const { config: selectedAqiConfig, isLoading: aqiConfigLoading } = useAqiConfig(pollutant);
+  const { config: selectedAqiConfig, isLoading: aqiConfigLoading } =
+    useAqiConfig(pollutant);
 
   // State for tracking which sites are visible on chart (checked)
   const [visibleSites, setVisibleSites] = useState<Set<string>>(new Set());
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Banner dismissal state
-  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
-    if (typeof window !== 'undefined' && user?.id) {
-      return (
-        localStorage.getItem(`more-insights-banner-dismissed-${user.id}`) ===
-        'true'
-      );
-    }
-    return false;
-  });
 
   // Chart data hook will be created after visibleSiteIds and dateRange are defined
 
@@ -111,6 +99,9 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const visibleSiteIds = useMemo(() => {
     return Array.from(visibleSites);
   }, [visibleSites]);
+  // The chart API accepts line/bar data requests. Area is a presentation
+  // choice rendered by DynamicChart from the same line-series response.
+  const chartRequestType = chartType === 'area' ? 'line' : chartType;
   const dialogContextKey = useMemo(
     () =>
       [
@@ -129,9 +120,9 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const { trigger: getChartData, isMutating: isChartLoading } = useGetChartData(
     [
       Array.isArray(visibleSiteIds) ? visibleSiteIds.join(',') : visibleSiteIds,
-      dateRange.from.toISOString().split('T')[0],
-      dateRange.to.toISOString().split('T')[0],
-      chartType,
+      toDateString(dateRange.from.toISOString()),
+      toDateString(dateRange.to.toISOString()),
+      chartRequestType,
       frequency,
       pollutant,
     ]
@@ -153,18 +144,9 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
   // Bulk operations
   const handleSelectAllVisible = () => {
-    const availableSlots = MAX_VISIBLE_SITES - visibleSites.size;
-    if (availableSlots <= 0) {
-      toast.warning(
-        'Maximum Sites Reached',
-        `You can display a maximum of ${MAX_VISIBLE_SITES} sites on the chart simultaneously.`
-      );
-      return;
-    }
-
-    const sitesToAdd = filteredSites
-      .filter((site: SelectedSite) => !visibleSites.has(site._id))
-      .slice(0, availableSlots);
+    const sitesToAdd = filteredSites.filter(
+      (site: SelectedSite) => !visibleSites.has(site._id)
+    );
 
     if (sitesToAdd.length === 0) {
       toast.info(
@@ -194,14 +176,6 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     );
   };
 
-  // Handle banner dismissal
-  const handleDismissBanner = () => {
-    setIsBannerDismissed(true);
-    if (typeof window !== 'undefined' && user?.id) {
-      localStorage.setItem(`more-insights-banner-dismissed-${user.id}`, 'true');
-    }
-  };
-
   // Chart data state
   const [chartData, setChartData] = useState<ChartData[]>([]);
 
@@ -228,11 +202,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       try {
         const response = await getChartData({
           sites: visibleSiteIds,
-          startDate: dateRange.from.toISOString().split('T')[0],
-          endDate: dateRange.to.toISOString().split('T')[0],
-          chartType: chartType,
+          startDateTime: toDateString(dateRange.from.toISOString()),
+          endDateTime: toDateString(dateRange.to.toISOString()),
+          chartType: chartRequestType,
           frequency: frequency,
-          pollutant: pollutant.toLowerCase().replace('.', '_'),
+          pollutant: normalizePollutant(pollutant),
           organisation_name: '',
         });
 
@@ -258,7 +232,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           return;
         }
 
-        console.error('Error fetching chart data:', error);
+        // Log only the message — axios errors carry Authorization headers
+        console.error(
+          'Error fetching chart data:',
+          (error as { message?: unknown })?.message ?? error
+        );
         setChartData([]);
       }
     };
@@ -269,7 +247,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       isActive = false;
     };
   }, [
-    chartType,
+    chartRequestType,
     dateRange,
     frequency,
     getChartData,
@@ -294,25 +272,12 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       return;
     }
 
-    // Smart initial selection: show only first N sites to avoid chart clutter
-    const initialVisibleCount = Math.min(
-      INITIAL_VISIBLE_SITES,
-      selectedSites.length
+    // Show all selected sites on the chart
+    setVisibleSites(
+      new Set(selectedSites.map((site: SelectedSite) => site._id))
     );
-    const initialVisibleSites = selectedSites
-      .slice(0, initialVisibleCount)
-      .map((site: SelectedSite) => site._id);
-    setVisibleSites(new Set(initialVisibleSites));
     setSearchQuery('');
     setChartData([]);
-
-    // Show toast notification if there are more sites available
-    if (selectedSites.length > INITIAL_VISIBLE_SITES) {
-      toast.info(
-        'Chart Optimized',
-        `Showing ${initialVisibleCount} of ${selectedSites.length} selected sites on chart. Use the sidebar to add more sites for comparison.`
-      );
-    }
   }, [dialogContextKey, isOpen, selectedSites]);
 
   // Handle site visibility toggle (for chart display)
@@ -320,27 +285,8 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     setVisibleSites(prev => {
       const newSet = new Set(prev);
       if (newSet.has(siteId)) {
-        // Removing site - always allowed
         newSet.delete(siteId);
       } else {
-        // Adding site - check limit
-        if (newSet.size >= MAX_VISIBLE_SITES) {
-          toast.warning(
-            'Maximum Sites Reached',
-            `You can display a maximum of ${MAX_VISIBLE_SITES} sites on the chart simultaneously. Please remove a site before adding another.`
-          );
-          return prev;
-        }
-
-        // Show warning when approaching limit
-        const remainingSlots = MAX_VISIBLE_SITES - newSet.size;
-        if (remainingSlots <= 2 && remainingSlots > 0) {
-          toast.info(
-            'Approaching Limit',
-            `You can add ${remainingSlots} more site${remainingSlots > 1 ? 's' : ''} to the chart.`
-          );
-        }
-
         newSet.add(siteId);
       }
       return newSet;
@@ -498,6 +444,20 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     return chartData;
   }, [chartData]);
 
+  const chartSiteIds = useMemo(
+    () =>
+      new Set(
+        filteredChartData
+          .map(point => point.site_id)
+          .filter((siteId): siteId is string => Boolean(siteId))
+      ),
+    [filteredChartData]
+  );
+  const locationsWithoutData = useMemo(
+    () => visibleSiteIds.filter(siteId => !chartSiteIds.has(siteId)).length,
+    [chartSiteIds, visibleSiteIds]
+  );
+
   // Sidebar content with location cards
   const sidebarContent = (
     <div className="space-y-3">
@@ -533,7 +493,6 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       <div className="flex gap-2">
         <button
           onClick={handleSelectAllVisible}
-          disabled={visibleSites.size >= MAX_VISIBLE_SITES}
           className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <HiEye className="h-3 w-3" />
@@ -637,16 +596,6 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         {/* Filters */}
         {filtersContent}
 
-        {/* Information Banner */}
-        {!isBannerDismissed && selectedSites.length > MAX_VISIBLE_SITES && (
-          <InfoBanner
-            title="Optimized Data Visualization"
-            message={`For optimal chart performance and clarity, we limit simultaneous display to ${MAX_VISIBLE_SITES} locations. Your selection includes ${selectedSites.length} locations, with ${visibleSites.size} currently visible. Use the sidebar controls to manage which locations appear on your analysis.`}
-            dismissible
-            onDismiss={handleDismissBanner}
-          />
-        )}
-
         {/* Chart */}
         <div className="flex-1">
           <ChartContainer
@@ -655,7 +604,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
                 (option: { value: string; label: string }) =>
                   option.value.toLowerCase() === pollutant
               )?.label || pollutant.toUpperCase()
-            } ${visibleSites.size >= MAX_VISIBLE_SITES ? '(Max sites reached)' : ''}`}
+            }`}
             loading={isChartLoading || aqiConfigLoading}
             className="h-full flex flex-col border"
             showTitle={false}
@@ -673,6 +622,17 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
             />
           </ChartContainer>
         </div>
+
+        {!isChartLoading &&
+          visibleSiteIds.length > 0 &&
+          locationsWithoutData > 0 && (
+            <Banner
+              severity="warning"
+              dense
+              title="Some locations have no data for the selected time period"
+              message={`${locationsWithoutData} of ${visibleSiteIds.length} visible location${visibleSiteIds.length === 1 ? '' : 's'} did not return readings for the selected dates and frequency, so they are not shown on the chart. Try a wider date range or a different frequency.`}
+            />
+          )}
       </div>
     </WideDialog>
   );

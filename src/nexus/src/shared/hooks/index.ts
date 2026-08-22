@@ -42,6 +42,15 @@ export {
   useUpdateOrganizationGroupTheme,
 } from './usePreferences';
 
+// Chart configuration hooks
+export {
+  useGroupCharts,
+  useCreateGroupChart,
+  useUpdateGroupChart,
+  useDeleteGroupChart,
+  useCopyGroupChart,
+} from './useGroupCharts';
+
 // Checklist hooks
 export { useUserChecklist, useUpdateUserChecklist } from './useChecklist';
 
@@ -80,7 +89,7 @@ export {
 } from './useClient';
 
 // Analytics hooks
-export { useGetChartData, useGetRecentReadings } from './useAnalytics';
+export { useGetChartData } from './useAnalytics';
 
 // Admin hooks
 export {
@@ -111,6 +120,9 @@ export {
   useLeaveGroup,
   useSetGroupManager,
 } from './useGroups';
+
+// Organization group resolution
+export { useOrgGroup } from './useOrgGroup';
 
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';

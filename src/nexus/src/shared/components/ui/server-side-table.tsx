@@ -29,6 +29,8 @@ export interface ServerSideTableProps<T = TableItem> {
   isRefreshing?: boolean;
   error?: string | null;
   onRefresh?: () => void;
+  /** Custom empty state rendered when the table has no data (overrides the default) */
+  emptyComponent?: React.ReactNode;
   className?: string;
   multiSelect?: boolean;
   selectedItems?: (string | number)[];
@@ -45,6 +47,8 @@ export interface ServerSideTableProps<T = TableItem> {
   // Server-side search props (optional for client-side)
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
+  /** Restrict the built-in client-side search to these columns (null = all) */
+  searchableColumns?: string[] | null;
 
   // Custom header component
   customHeader?: React.ReactNode;
@@ -54,6 +58,13 @@ export interface ServerSideTableProps<T = TableItem> {
 
   // Whether to show client-side pagination from MultiSelectTable
   showClientPagination?: boolean;
+
+  /** Page-size choices in the server-side pagination footer (defaults to the
+   *  built-in [6, 10, 20, 40, 80]) */
+  pageSizeOptions?: number[];
+
+  /** When provided, the entire row becomes clickable */
+  onRowClick?: (item: T) => void;
 }
 
 /**
@@ -68,6 +79,7 @@ export function ServerSideTable<T extends TableItem>({
   isRefreshing = false,
   error,
   onRefresh,
+  emptyComponent,
   className,
   multiSelect = false,
   selectedItems,
@@ -83,11 +95,17 @@ export function ServerSideTable<T extends TableItem>({
   searchTerm,
   onSearchChange,
 
+  searchableColumns,
+
   customHeader,
 
   compactRows = false,
 
   showClientPagination = false,
+
+  pageSizeOptions = [6, 10, 20, 40, 80],
+
+  onRowClick,
 }: ServerSideTableProps<T>) {
   // Pagination controls (only when pagination props are provided)
   const handlePreviousPage = useCallback(() => {
@@ -139,7 +157,7 @@ export function ServerSideTable<T extends TableItem>({
                 aria-label="Rows per page"
                 className="px-2 py-1 border border-input rounded text-xs sm:text-sm focus:ring-2 focus:ring-ring focus:border-primary bg-background text-foreground"
               >
-                {[6, 10, 20, 40, 80].map(size => (
+                {pageSizeOptions.map(size => (
                   <option key={size} value={size}>
                     {size}
                   </option>
@@ -186,14 +204,17 @@ export function ServerSideTable<T extends TableItem>({
         isRefreshing={isRefreshing}
         error={error}
         onRefresh={onRefresh}
+        emptyComponent={emptyComponent}
         multiSelect={multiSelect}
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
         searchable={true} // Enable search in table header
+        searchableColumns={searchableColumns}
         showPagination={showClientPagination} // Enable built-in pagination for client-side operations
         sortable={true}
         headerComponent={customHeader}
         compactRows={compactRows}
+        onRowClick={onRowClick}
         {...(searchTerm !== undefined && onSearchChange !== undefined
           ? { searchTerm, onSearchChange }
           : {})}

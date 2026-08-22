@@ -37,7 +37,7 @@ A comprehensive, dynamic chart component system built with React, Recharts, and 
 The chart components are already installed as part of the project. Required dependencies:
 
 ```bash
-yarn add recharts@^3.2.1 react-icons@^5.5.0 html2canvas@^1.4.1 jspdf@^3.0.3
+yarn add recharts@^3.2.1 react-icons@^5.5.0 html-to-image@^1.11.13 jspdf@^3.0.3
 ```
 
 ## 🚀 Quick Start
@@ -133,6 +133,63 @@ const AdvancedChart = () => {
   );
 };
 ```
+
+## 🔍 Zooming Into Charts
+
+Dense time-series charts (line, area, bar, scatter) come with a floating
+zoom control pill in the **top-right corner of the chart plot** — a small
+round button group with **+ / −** icons (and a labeled **Reset** while
+zoomed in).
+
+### How to use it
+
+1. **Hover the chart** (or focus the controls with the keyboard — Tab) to
+   reveal the zoom pill; it stays hidden otherwise. On touch devices it is
+   always visible.
+2. **Zoom in (+)** — halves the visible time window around the current
+   view's center. Keep clicking to drill down further (minimum window:
+   4 data points).
+3. **Zoom out (−)** — doubles the window back toward the full range.
+4. **Reset** — appears only while zoomed; returns to the full dataset.
+5. **Pan / scroll** once zoomed in, to move the window along the x-axis:
+   - **Drag the chart plot** left/right (the cursor becomes a grab hand),
+   - **Scroll horizontally** (trackpad swipe, or shift + mouse wheel),
+   - **Use the scrubber bar** that appears under the chart: drag its
+     thumb, press anywhere on the track to jump the window's center
+     there, or scroll over it. It's a real slider — focus it and use
+     **← / →** (10% of the window), **Home**, or **End**.
+6. **Hover** any control for a tooltip explaining the action.
+
+### When it appears
+
+- **Automatically** on line/area/bar/scatter charts with **7 or more data
+  points** (the analytics default — 7 days at daily frequency — qualifies).
+- Never on pie/radar charts, and never on charts with fewer than 7 points
+  (there is nothing to zoom).
+- `zoomable={false}` forces it off; `zoomable={true}` forces it on (still
+  only on the zoom-capable types above).
+
+### What it does under the hood
+
+Zooming and panning **slice the rendered data client-side** — no refetch,
+no cache impact, no API call. The chart only draws the visible window,
+which also makes very heavy datasets (thousands of points) lighter to
+render while zoomed. Above 2,000 visible points the chart renders the
+**min/max envelope** (peaks and valleys preserved, never dropped like
+stride sampling), so multi-thousand-point series stay smooth; zoom in
+below that budget and full fidelity returns automatically. Animation is
+suspended during zoom steps to avoid re-animating the whole curve on
+every click.
+
+### Chart exports (PNG / PDF)
+
+Exports capture the **full shareable view**: the chart's title and
+subtitle, the chart itself with its legend, grid and axis labels, and the
+footer metadata line. The following are **never** included: the zoom
+controls, the scrubber, the More menu, toolbar/filter controls, the inline
+title editor, and footer action buttons. Text is pinned to dark-on-white
+so exports stay readable in dark mode, at 2× resolution (PNG) with an
+A4-fitted layout (PDF).
 
 ## 🎨 Component API
 

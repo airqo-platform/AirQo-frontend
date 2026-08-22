@@ -341,6 +341,26 @@ html {
   }
 }
 
+/* Route-level loading spinner: delayed fade-in so fast transitions don't
+   flash a loader at all (mirrors LoadingOverlay's delayMs behavior). */
+@keyframes nexus-route-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.route-loader {
+  opacity: 0;
+  animation: nexus-route-fade-in 0.25s ease 0.15s both, l13 1s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loader {
+    opacity: 1;
+    animation: l13 1s infinite linear;
+  }
+}
+
 /* ==========================================================================
    SCROLLBARS
    ========================================================================== */
@@ -424,6 +444,30 @@ html {
 /* Arrow styling */
 .tooltip-arrow:before {
   background-color: inherit !important;
+}
+
+/* ==========================================================================
+   CHART EXPORT STYLES
+   ========================================================================== */
+
+/* PNG/PDF chart exports are captured with html-to-image, which renders the
+   export root with the browser's own engine — the clone inherits the LIVE
+   computed styles, including dark-mode `text-foreground` colors that would
+   be invisible on the white export canvas. While a capture runs the export
+   hook marks the root with `data-export-light`; these scoped rules pin the
+   export typography to dark so light and dark theme exports stay legible.
+   The marker is removed as soon as the capture resolves. */
+[data-export-light] h1,
+[data-export-light] h2,
+[data-export-light] h3,
+[data-export-light] h4,
+[data-export-light] h5,
+[data-export-light] h6,
+[data-export-light] p,
+[data-export-light] [data-chart-export-title],
+[data-export-light] span.recharts-legend-item-text,
+[data-export-light] .recharts-default-legend li {
+  color: #111827 !important;
 }
 
 /* ==========================================================================

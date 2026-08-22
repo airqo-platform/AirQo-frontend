@@ -1,0 +1,271 @@
+'use client';
+
+import React, { useMemo, useState } from 'react';
+import { cn } from '@/shared/lib/utils';
+import { Card, CardContent } from '@/shared/components/ui/card';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { ErrorState } from '@/shared/components/ui/error-state';
+import { LoadingState } from '@/shared/components/ui/loading-state';
+import {
+  sortComparisonRows,
+  type ComparisonRow,
+  type ComparisonSortDir,
+  type ComparisonSortKey,
+} from '../../utils/comparisonRows';
+
+interface ComparisonTableViewProps {
+  /** One row per selected location — including honest no-data rows. */
+  rows: ComparisonRow[];
+  isLoading: boolean;
+  error: string | null;
+  /** False when nothing is selected yet (drives the pick-locations empty state). */
+  hasSelection: boolean;
+  onRetry: () => void;
+  className?: string;
+}
+
+interface ColumnDefinition {
+  key: ComparisonSortKey | null;
+  label: string;
+  /** Unit annotation rendered under/next to the header label. */
+  unit?: string;
+  headerClassName?: string;
+  cellClassName?: string;
+}
+
+const COLUMNS: ColumnDefinition[] = [
+  { key: 'name', label: 'Site', cellClassName: 'font-medium text-foreground' },
+  { key: 'aqi', label: 'AQI' },
+  { key: 'pm2_5', label: 'PM2.5', unit: 'µg/m³' },
+  { key: 'pm10', label: 'PM10', unit: 'µg/m³' },
+  {
+    key: 'no2',
+    label: 'NO2',
+    unit: 'µg/m³',
+    // Secondary pollutant — hidden on narrow screens per the responsive spec.
+    headerClassName: 'hidden sm:table-cell',
+    cellClassName: 'hidden sm:table-cell',
+  },
+  { key: 'time', label: 'Last reading' },
+  { key: null, label: 'Freshness' },
+];
+
+const DEFAULT_DIR_BY_KEY: Record<
+  Exclude<ComparisonSortKey, 'time'>,
+  ComparisonSortDir
+> & { time: ComparisonSortDir } = {
+  name: 'asc',
+  aqi: 'desc',
+  pm2_5: 'desc',
+  pm10: 'desc',
+  no2: 'desc',
+  time: 'desc',
+};
+
+const formatPollutantCell = (value: number | null): string =>
+  value === null ? '—' : value.toFixed(1);
+
+/**
+ * The "Compare locations" table: Site | AQI badge | PM2.5 | PM10 | NO2 |
+ * Last reading | Freshness. Worst-AQI-first by default ("league table"),
+ * click-to-sort headers (local state only), sticky header inside an
+ * overflow-x-auto wrapper, NO2 hidden below `sm`. Locations without a
+ * recent reading render an honest muted "No reading" row — never omitted.
+ */
+export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
+  rows,
+  isLoading,
+  error,
+  hasSelection,
+  onRetry,
+  className,
+}) => {
+  const [sortKey, setSortKey] = useState<ComparisonSortKey>('aqi');
+  const [sortDir, setSortDir] = useState<ComparisonSortDir>('desc');
+
+  const sortedRows = useMemo(
+    () => sortComparisonRows(rows, sortKey, sortDir),
+    [rows, sortKey, sortDir]
+  );
+
+  const handleSortClick = (key: ComparisonSortKey) => {
+    if (key === sortKey) {
+      setSortDir(currentDir => (currentDir === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortKey(key);
+    setSortDir(DEFAULT_DIR_BY_KEY[key]);
+  };
+
+  // Rows exist for every selected location (including honest no-data rows),
+  // so "no data at all" means no row carries a reading.
+  const hasAnyReading = sortedRows.some(row => row.hasReading);
+
+  if (error && !hasAnyReading) {
+    return (
+      <ErrorState
+        title="Unable to load the latest readings"
+        description={error}
+        retryAction={{ label: 'Retry', onClick: onRetry }}
+        className={className}
+      />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <LoadingState text="Loading latest readings..." className={className} />
+    );
+  }
+
+  if (!hasSelection) {
+    return (
+      <EmptyState
+        title="Pick locations to compare"
+        description="Select one or more locations above to see their latest air-quality readings side by side."
+        className={className}
+      />
+    );
+  }
+
+  if (sortedRows.length === 0) {
+    return (
+      <EmptyState
+        title="No recent readings"
+        description="None of the selected locations returned a recent reading. Try different locations or check back later."
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <Card className={className}>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr>
+                {COLUMNS.map(column => {
+                  const isSorted = column.key === sortKey;
+                  return (
+                    <th
+                      key={column.label}
+                      scope="col"
+                      aria-sort={
+                        isSorted
+                          ? sortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                      className={cn(
+                        'sticky top-0 z-10 border-b border-border bg-muted px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+                        column.headerClassName
+                      )}
+                    >
+                      {column.key ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSortClick(column.key!)}
+                          className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-foreground"
+                        >
+                          {column.label}
+                          {column.unit && (
+                            <span className="font-normal normal-case text-muted-foreground/80">
+                              ({column.unit})
+                            </span>
+                          )}
+                          <span aria-hidden="true" className="w-3 text-[10px]">
+                            {isSorted ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                        </button>
+                      ) : (
+                        <>
+                          {column.label}
+                          {column.unit && (
+                            <span className="ml-1 font-normal normal-case text-muted-foreground/80">
+                              ({column.unit})
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {sortedRows.map(row => (
+                <tr key={row.siteId} className="hover:bg-muted/40">
+                  {/* Site */}
+                  <td className="px-5 py-4 text-sm">
+                    <span className="block max-w-[220px] truncate">
+                      {row.siteName}
+                    </span>
+                  </td>
+                  {/* AQI — colored badge AND numeric index AND category text
+                      (never color alone). */}
+                  <td className="px-5 py-4">
+                    {row.hasReading ? (
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="inline-flex min-w-[2.75rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+                          style={{
+                            backgroundColor: row.aqiColor ?? undefined,
+                          }}
+                        >
+                          {row.aqiIndex ?? '—'}
+                        </span>
+                        {row.aqiCategory && (
+                          <span className="text-xs text-muted-foreground">
+                            {row.aqiCategory}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        No reading
+                      </span>
+                    )}
+                  </td>
+                  {/* Pollutants — µg/m³, 1 decimal, null → — */}
+                  <td className="px-5 py-4 tabular-nums text-foreground">
+                    {formatPollutantCell(row.pm2_5)}
+                  </td>
+                  <td className="px-5 py-4 tabular-nums text-foreground">
+                    {formatPollutantCell(row.pm10)}
+                  </td>
+                  <td
+                    className={cn(
+                      'px-5 py-4 tabular-nums text-foreground',
+                      COLUMNS[4].cellClassName
+                    )}
+                  >
+                    {formatPollutantCell(row.no2)}
+                  </td>
+                  {/* Last reading */}
+                  <td className="whitespace-nowrap px-5 py-4 text-muted-foreground">
+                    {row.lastReadingLabel}
+                  </td>
+                  {/* Freshness */}
+                  <td className="whitespace-nowrap px-5 py-4">
+                    <span
+                      className={cn(
+                        'text-xs font-medium',
+                        row.hasReading
+                          ? 'text-foreground'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {row.freshnessLabel}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

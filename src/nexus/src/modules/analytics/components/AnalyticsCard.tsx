@@ -24,6 +24,10 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     selectedPollutant,
     aqiConfig = null,
     onClick,
+    showTrend = true,
+    interactive = true,
+    headerLabel,
+    extraInfo,
   }) => {
     const posthog = usePostHog();
     // truncation refs
@@ -80,8 +84,9 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
 
     return (
       <Card
-        className={cn('w-full cursor-pointer', className)}
+        className={cn('w-full', interactive && 'cursor-pointer', className)}
         onClick={() => {
+          if (!interactive) return;
           posthog?.capture('analytics_card_clicked', {
             ...anonymizeSiteData(siteData._id),
             pollutant: displayPollutant,
@@ -94,9 +99,10 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           });
           onClick?.(siteData);
         }}
-        role="button"
-        tabIndex={0}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
         onKeyDown={e => {
+          if (!interactive) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             posthog?.capture('analytics_card_clicked', {
@@ -117,6 +123,11 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0 pr-4">
+              {headerLabel && (
+                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {headerLabel}
+                </p>
+              )}
               <Tooltip content={displayName} className="bg-black">
                 <h5
                   ref={nameRef}
@@ -139,27 +150,29 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
 
             <div className="flex items-center gap-3 flex-shrink-0 ml-2">
               {/* Trend indicator with tooltip */}
-              <Tooltip
-                content={
-                  percentageDifference !== undefined
-                    ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared with the previous reading.`
-                    : 'Air quality trend compared with the previous reading.'
-                }
-                className="bg-black"
-              >
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-6 h-6 rounded-full cursor-help',
-                    trend === 'up'
-                      ? 'bg-red-100 text-red-500'
-                      : trend === 'down'
-                        ? 'bg-green-100 text-green-500'
-                        : 'bg-gray-100 text-gray-500'
-                  )}
+              {showTrend && (
+                <Tooltip
+                  content={
+                    percentageDifference !== undefined
+                      ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(1)}% compared with the previous reading.`
+                      : 'Air quality trend compared with the previous reading.'
+                  }
+                  className="bg-black"
                 >
-                  <TrendIcon className="h-3 w-3" />
-                </div>
-              </Tooltip>
+                  <div
+                    className={cn(
+                      'flex items-center justify-center w-6 h-6 rounded-full cursor-help',
+                      trend === 'up'
+                        ? 'bg-red-100 text-red-500'
+                        : trend === 'down'
+                          ? 'bg-green-100 text-green-500'
+                          : 'bg-gray-100 text-gray-500'
+                    )}
+                  >
+                    <TrendIcon className="h-3 w-3" />
+                  </div>
+                </Tooltip>
+              )}
             </div>
           </div>
 
@@ -207,6 +220,9 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               )}
             </div>
           </div>
+
+          {/* Extra info row (e.g. AQI index + monitoring sites) */}
+          {extraInfo && <div className="pt-1">{extraInfo}</div>}
         </CardContent>
       </Card>
     );

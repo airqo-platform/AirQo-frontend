@@ -75,43 +75,51 @@ export const useUserActions = () => {
       // Structural group-scoped keys: clear and allow SWR to revalidate active
       // subscriptions immediately so components receive fresh data for the new group
       // instead of being stuck on undefined / stale values.
-      mutate(
-        key => {
-          const keyText = Array.isArray(key)
-            ? key
-                .filter(
-                  (segment): segment is string | number =>
-                    typeof segment === 'string' || typeof segment === 'number'
-                )
-                .join(' ')
-            : typeof key === 'string'
+      // Only when there IS a previous group: on first load the ActiveGroupGuard
+      // performs a bootstrap sync from a null Redux group, and refetching every
+      // group-scoped key here would re-fire cohorts/theme/preferences requests
+      // that the mounted hooks already fetched — a duplicate request storm on
+      // every page load.
+      if (previousGroupId) {
+        mutate(
+          key => {
+            const keyText = Array.isArray(key)
               ? key
-              : '';
+                  .filter(
+                    (segment): segment is string | number =>
+                      typeof segment === 'string' || typeof segment === 'number'
+                  )
+                  .join(' ')
+              : typeof key === 'string'
+                ? key
+                : '';
 
-          if (!keyText) {
-            return false;
-          }
+            if (!keyText) {
+              return false;
+            }
 
-          return (
-            keyText.startsWith('preferences/') ||
-            keyText.startsWith('preferences/list/') ||
-            keyText.startsWith('preferences/theme/') ||
-            keyText.includes('/preferences') ||
-            keyText.includes('/theme') ||
-            keyText.includes('group/cohorts') ||
-            keyText.includes('cohort/details') ||
-            keyText.includes('cohort/sites') ||
-            keyText.includes('cohort/devices') ||
-            keyText.includes('/devices/groups/') ||
-            keyText.includes('/devices/cohorts/') ||
-            (!!previousGroupId && keyText.includes(`/${previousGroupId}`)) ||
-            (!!nextGroupId && keyText.includes(`/${nextGroupId}`))
-          );
-        },
-        undefined
-        // No revalidate option — defaults to true, so active SWR subscriptions
-        // immediately refetch with fresh data for the new group context.
-      );
+            return (
+              keyText.startsWith('preferences/') ||
+              keyText.startsWith('preferences/list/') ||
+              keyText.startsWith('preferences/theme/') ||
+              keyText.includes('/preferences') ||
+              keyText.includes('/theme') ||
+              keyText.includes('group/cohorts') ||
+              keyText.includes('cohort/details') ||
+              keyText.includes('cohort/sites') ||
+              keyText.includes('cohort/devices') ||
+              keyText.includes('/devices/groups/') ||
+              keyText.includes('/devices/cohorts/') ||
+              (!!previousGroupId &&
+                keyText.includes(`/${previousGroupId}`)) ||
+              (!!nextGroupId && keyText.includes(`/${nextGroupId}`))
+            );
+          },
+          undefined
+          // No revalidate option — defaults to true, so active SWR subscriptions
+          // immediately refetch with fresh data for the new group context.
+        );
+      }
 
       queryClient.removeQueries({
         predicate: query => {

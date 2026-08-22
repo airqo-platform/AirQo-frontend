@@ -79,12 +79,14 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-background/80 transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'} ${className}`}
+      className={`fixed inset-0 z-[2147483647] flex items-center justify-center backdrop-blur-sm bg-background/80 transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'} ${className}`}
       role="status"
       aria-live="polite"
     >
       {hasCopy ? (
-        <div className={`flex flex-col items-center gap-4 rounded-2xl border border-border bg-card/85 px-8 py-6 text-center shadow-sm transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}>
+        <div
+          className={`flex flex-col items-center gap-4 rounded-2xl border border-border bg-card/85 px-8 py-6 text-center shadow-sm transition-opacity duration-300 ease-in-out ${isFadingOut ? 'opacity-0' : 'opacity-100'}`}
+        >
           <div
             className="SecondaryMainloader"
             aria-label={title || 'Loading'}
@@ -94,7 +96,9 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
               <p className="text-sm font-semibold text-foreground">{title}</p>
             ) : null}
             {description ? (
-              <p className="text-xs leading-5 text-muted-foreground">{description}</p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                {description}
+              </p>
             ) : null}
           </div>
         </div>

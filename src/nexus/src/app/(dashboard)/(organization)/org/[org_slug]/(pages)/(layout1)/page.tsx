@@ -9,5 +9,5 @@ interface OrganizationRootPageProps {
 export default function OrganizationRootPage({
   params,
 }: OrganizationRootPageProps) {
-  redirect(`/org/${encodeURIComponent(params.org_slug)}/data-export`);
+  redirect(`/org/${encodeURIComponent(params.org_slug)}/dashboard`);
 }

@@ -19,6 +19,7 @@ import {
   AqBookOpen01,
   AqImage01,
   AqShieldZap,
+  AqTrophy01,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -57,8 +58,8 @@ export interface SidebarConfig {
 // User flow sidebar configuration
 const userSidebarConfig: NavGroup[] = [
   {
-    id: 'explore',
-    label: 'Explore',
+    id: 'main',
+    label: 'Main',
     items: [
       {
         id: 'home',
@@ -67,28 +68,21 @@ const userSidebarConfig: NavGroup[] = [
         icon: AqHomeSmile,
       },
       {
-        id: 'map',
-        label: 'Map',
-        href: '/user/map',
-        icon: AqGlobe05,
-        disabled: false,
-      },
-    ],
-  },
-  {
-    id: 'data',
-    label: 'Data & Analysis',
-    items: [
-      {
         id: 'bulk-export',
         label: 'Visualization & Data Export',
         href: '/user/data-export',
         icon: AqUpload01,
       },
       {
-        id: 'data-visualizer',
-        label: 'Dataset Visualizer',
-        href: '/user/data-visualizer',
+        id: 'map',
+        label: 'Air Quality Map',
+        href: '/user/map',
+        icon: AqGlobe05,
+      },
+      {
+        id: 'air-quality-analytics',
+        label: 'Air Quality Analysis',
+        href: '/user/air-quality/analytics',
         icon: AqPresentationChart02,
       },
     ],
@@ -114,20 +108,20 @@ const orgSidebarConfig: NavGroup[] = [
     label: 'Main',
     items: [
       {
+        id: 'dashboard',
+        label: 'Dashboard',
+        href: '/org/dashboard',
+        icon: AqHomeSmile,
+      },
+      {
         id: 'bulk-export',
         label: 'Visualization & Data Export',
         href: '/org/data-export',
         icon: AqDownload01,
       },
       {
-        id: 'data-visualizer',
-        label: 'Dataset Visualizer',
-        href: '/org/data-visualizer',
-        icon: AqPresentationChart02,
-      },
-      {
         id: 'map',
-        label: 'Map',
+        label: 'Air Quality Map',
         href: '/org/map',
         icon: AqGlobe05,
       },
@@ -347,6 +341,18 @@ const globalSidebarConfig: NavGroup[] = [
         icon: AqHomeSmile,
       },
       {
+        id: 'data-visualizer',
+        label: 'Dataset Visualizer',
+        href: '/user/data-visualizer',
+        icon: AqPresentationChart02,
+      },
+      {
+        id: 'air-quality-rankings',
+        label: 'Air Quality Rankings',
+        href: '/user/air-quality/rankings',
+        icon: AqTrophy01,
+      },
+      {
         id: 'system-management',
         label: 'System Management',
         href: '/system/clients',
@@ -489,7 +495,7 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
     },
     {
       id: 'map',
-      label: 'Map',
+      label: 'Air Quality Map',
       href: '/user/map',
       icon: AqGlobe05,
     },
@@ -502,8 +508,14 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
   ],
   organization: [
     {
+      id: 'dashboard',
+      label: 'Dashboard',
+      href: '/org/dashboard', // Will be replaced with slug
+      icon: AqHomeSmile,
+    },
+    {
       id: 'map',
-      label: 'Map',
+      label: 'Air Quality Map',
       href: '/org/map', // Will be replaced with slug
       icon: AqGlobe05,
     },

@@ -168,8 +168,10 @@ export const useGroupTheme = (groupId: string) => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
-      // Keep theme data fresh when switching organizations
-      dedupingInterval: 2000,
+      // Key is group-scoped; the window only dedupes concurrent same-key
+      // subscribers so mounted consumers share one request.
+      revalidateIfStale: false,
+      dedupingInterval: 30000,
     }
   );
 };
@@ -185,8 +187,11 @@ export const useUserTheme = (userId: string, groupId: string) => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
-      // Ensure fresh data when group changes by minimal deduping
-      dedupingInterval: 1000,
+      // Key is group-scoped and mutations invalidate it explicitly; a remount
+      // with cached data should reuse it instead of re-fetching, so concurrent
+      // consumers (theme provider, header, page) share one request per load.
+      revalidateIfStale: false,
+      dedupingInterval: 30000,
       // Keep error retry to minimum to avoid infinite loops on group switch
       errorRetryCount: 0,
       errorRetryInterval: 1000,

@@ -21,6 +21,8 @@ export interface UseDevicesDataResult {
 
   // Loading states
   isLoading: boolean;
+  /** True while data exists and a revalidation (search/page change) is in flight */
+  isRefreshing: boolean;
   error: string | null;
 
   // Pagination controls
@@ -81,7 +83,7 @@ export function useDevicesData({
   }, [currentPage, pageSize, debouncedSearchTerm, deviceCategory, maxLimit]);
 
   // Fetch data using the enhanced hook
-  const { data, error, isLoading } = useActiveGroupCohortDevices(
+  const { data, error, isLoading, isValidating } = useActiveGroupCohortDevices(
     apiParams,
     enabled
   );
@@ -123,6 +125,7 @@ export function useDevicesData({
 
     // Loading states
     isLoading,
+    isRefreshing: isValidating && !isLoading,
     error: typeof error === 'string' ? error : (error?.message ?? null),
 
     // Pagination controls

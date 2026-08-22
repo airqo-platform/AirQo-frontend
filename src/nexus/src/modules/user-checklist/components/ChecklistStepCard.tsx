@@ -82,7 +82,7 @@ const ChecklistStepCard = memo(
 
     return (
       <Card
-        className={`w-full h-full ${cardStyle}`}
+        className={`w-full h-full min-w-0 ${cardStyle}`}
         data-testid={`checklist-card-${stepItem.id}`}
       >
         <CardContent className="flex flex-col gap-4 p-4">
@@ -93,11 +93,11 @@ const ChecklistStepCard = memo(
 
           {/* Step Content */}
           <div>
-            <p className="text-base font-medium">
+            <p className="text-base font-medium break-words">
               {stepItem.title || stepItem.label}
             </p>
             {stepItem.description && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 break-words">
                 {stepItem.description}
               </p>
             )}

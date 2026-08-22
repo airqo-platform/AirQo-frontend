@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui';
 import { Input } from '@/shared/components/ui/input';
 import { AqMarkerPin01 } from '@airqo/icons-react';
 import { GridSite } from '@/shared/types/api';
+import { getSiteNavigationData } from '../utils/dataExportUtils';
+import type { TableItem } from '../types/dataExportTypes';
+import { rememberSiteSlug } from '../hooks/useResolveSiteByName';
+import { toSiteSlug } from '../utils/siteDetails';
 
 const toNormalizedText = (value: unknown): string =>
   typeof value === 'string' ? value.toLowerCase() : '';
@@ -17,6 +22,7 @@ interface SiteSelectionDialogProps {
   initialSelectedSiteIds: string[];
   gridName: string;
   gridType: 'country' | 'city';
+  detailsBaseHref: string;
   isDownloading?: boolean;
 }
 
@@ -28,8 +34,10 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
   initialSelectedSiteIds,
   gridName,
   gridType,
+  detailsBaseHref,
   isDownloading = false,
 }) => {
+  const router = useRouter();
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>(
     initialSelectedSiteIds
   );
@@ -84,6 +92,23 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       console.error('Download failed:', error);
     }
   };
+
+  const handleViewSite = useCallback(
+    (site: GridSite) => {
+      const navigationData = getSiteNavigationData(
+        site as unknown as TableItem,
+        'site'
+      );
+      if (!navigationData) return;
+
+      const slug = toSiteSlug(navigationData.displayName);
+      rememberSiteSlug(slug, navigationData);
+      router.push(
+        `${detailsBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+      );
+    },
+    [detailsBaseHref, router]
+  );
 
   return (
     <ReusableDialog
@@ -171,7 +196,7 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
             filteredSites.map(site => (
               <div
                 key={site._id}
-                className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
+                className="flex items-center gap-2 rounded p-2 hover:bg-gray-50"
               >
                 <Checkbox
                   id={site._id}
@@ -183,7 +208,7 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
                 />
                 <label
                   htmlFor={site._id}
-                  className="text-sm cursor-pointer flex-1"
+                  className="flex-1 cursor-pointer text-sm"
                 >
                   <div className="font-medium text-gray-900 dark:text-gray-100">
                     {site.name}
@@ -192,6 +217,15 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
                     {site.city}, {site.country}
                   </div>
                 </label>
+                <Button
+                  variant="text"
+                  size="sm"
+                  onClick={() => handleViewSite(site)}
+                  disabled={isDownloading}
+                  className="shrink-0"
+                >
+                  View more
+                </Button>
               </div>
             ))
           )}
