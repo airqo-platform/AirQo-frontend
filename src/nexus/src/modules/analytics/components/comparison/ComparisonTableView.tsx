@@ -3,6 +3,10 @@
 import React, { useMemo, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
+import {
+  DataTable,
+  type DataTableColumn,
+} from '@/shared/components/ui/data-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
@@ -24,30 +28,82 @@ interface ComparisonTableViewProps {
   className?: string;
 }
 
-interface ColumnDefinition {
-  key: ComparisonSortKey | null;
-  label: string;
-  /** Unit annotation rendered under/next to the header label. */
-  unit?: string;
-  headerClassName?: string;
-  cellClassName?: string;
-}
-
-const COLUMNS: ColumnDefinition[] = [
-  { key: 'name', label: 'Site', cellClassName: 'font-medium text-foreground' },
-  { key: 'aqi', label: 'AQI' },
-  { key: 'pm2_5', label: 'PM2.5', unit: 'µg/m³' },
-  { key: 'pm10', label: 'PM10', unit: 'µg/m³' },
+const COLUMNS: DataTableColumn<ComparisonRow>[] = [
+  {
+    key: 'name',
+    label: 'Site',
+    cellClassName: 'font-medium text-foreground',
+    render: row => (
+      <span className="block max-w-[220px] truncate">{row.siteName}</span>
+    ),
+  },
+  {
+    key: 'aqi',
+    label: 'AQI',
+    render: row =>
+      row.hasReading ? (
+        <span className="flex items-center gap-2">
+          <span
+            className="inline-flex min-w-[2.75rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+            style={{ backgroundColor: row.aqiColor ?? undefined }}
+          >
+            {row.aqiIndex ?? '—'}
+          </span>
+          {row.aqiCategory && (
+            <span className="text-xs text-muted-foreground">
+              {row.aqiCategory}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          No reading
+        </span>
+      ),
+  },
+  {
+    key: 'pm2_5',
+    label: 'PM2.5',
+    unit: 'µg/m³',
+    cellClassName: 'tabular-nums text-foreground',
+    render: row => formatPollutantCell(row.pm2_5),
+  },
+  {
+    key: 'pm10',
+    label: 'PM10',
+    unit: 'µg/m³',
+    cellClassName: 'tabular-nums text-foreground',
+    render: row => formatPollutantCell(row.pm10),
+  },
   {
     key: 'no2',
     label: 'NO2',
     unit: 'µg/m³',
-    // Secondary pollutant — hidden on narrow screens per the responsive spec.
     headerClassName: 'hidden sm:table-cell',
-    cellClassName: 'hidden sm:table-cell',
+    cellClassName: 'hidden sm:table-cell tabular-nums text-foreground',
+    render: row => formatPollutantCell(row.no2),
   },
-  { key: 'time', label: 'Last reading' },
-  { key: null, label: 'Freshness' },
+  {
+    key: 'time',
+    label: 'Last reading',
+    cellClassName: 'text-muted-foreground',
+    render: row => row.lastReadingLabel,
+  },
+  {
+    key: 'freshness',
+    label: 'Freshness',
+    sortable: false,
+    render: row => (
+      <span
+        className={cn(
+          'text-xs font-medium',
+          row.hasReading ? 'text-foreground' : 'text-muted-foreground'
+        )}
+      >
+        {row.freshnessLabel}
+      </span>
+    ),
+  },
 ];
 
 const DEFAULT_DIR_BY_KEY: Record<
@@ -88,13 +144,13 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     [rows, sortKey, sortDir]
   );
 
-  const handleSortClick = (key: ComparisonSortKey) => {
+  const handleSortClick = (key: string) => {
     if (key === sortKey) {
       setSortDir(currentDir => (currentDir === 'asc' ? 'desc' : 'asc'));
       return;
     }
-    setSortKey(key);
-    setSortDir(DEFAULT_DIR_BY_KEY[key]);
+    setSortKey(key as ComparisonSortKey);
+    setSortDir(DEFAULT_DIR_BY_KEY[key as ComparisonSortKey]);
   };
 
   // Rows exist for every selected location (including honest no-data rows),
@@ -112,12 +168,6 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     );
   }
 
-  if (isLoading) {
-    return (
-      <LoadingState text="Loading latest readings..." className={className} />
-    );
-  }
-
   if (!hasSelection) {
     return (
       <EmptyState
@@ -128,7 +178,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     );
   }
 
-  if (sortedRows.length === 0) {
+  if (sortedRows.length === 0 && !isLoading) {
     return (
       <EmptyState
         title="No recent readings"
@@ -141,130 +191,22 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   return (
     <Card className={className}>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr>
-                {COLUMNS.map(column => {
-                  const isSorted = column.key === sortKey;
-                  return (
-                    <th
-                      key={column.label}
-                      scope="col"
-                      aria-sort={
-                        isSorted
-                          ? sortDir === 'asc'
-                            ? 'ascending'
-                            : 'descending'
-                          : undefined
-                      }
-                      className={cn(
-                        'sticky top-0 z-10 whitespace-nowrap border-b border-border bg-muted px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground',
-                        column.headerClassName
-                      )}
-                    >
-                      {column.key ? (
-                        <button
-                          type="button"
-                          onClick={() => handleSortClick(column.key!)}
-                          className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-foreground"
-                        >
-                          {column.label}
-                          {column.unit && (
-                            <span className="font-normal normal-case text-muted-foreground/80">
-                              ({column.unit})
-                            </span>
-                          )}
-                          <span aria-hidden="true" className="w-3 text-[10px]">
-                            {isSorted ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-                          </span>
-                        </button>
-                      ) : (
-                        <>
-                          {column.label}
-                          {column.unit && (
-                            <span className="ml-1 font-normal normal-case text-muted-foreground/80">
-                              ({column.unit})
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {sortedRows.map(row => (
-                <tr key={row.siteId} className="hover:bg-muted/40">
-                  {/* Site */}
-                  <td className="whitespace-nowrap px-5 py-4 text-sm">
-                    <span className="block max-w-[220px] truncate">
-                      {row.siteName}
-                    </span>
-                  </td>
-                  {/* AQI — colored badge AND numeric index AND category text
-                      (never color alone). */}
-                  <td className="whitespace-nowrap px-5 py-4">
-                    {row.hasReading ? (
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="inline-flex min-w-[2.75rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                          style={{
-                            backgroundColor: row.aqiColor ?? undefined,
-                          }}
-                        >
-                          {row.aqiIndex ?? '—'}
-                        </span>
-                        {row.aqiCategory && (
-                          <span className="text-xs text-muted-foreground">
-                            {row.aqiCategory}
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                        No reading
-                      </span>
-                    )}
-                  </td>
-                  {/* Pollutants — µg/m³, 1 decimal, null → — */}
-                  <td className="whitespace-nowrap px-5 py-4 tabular-nums text-foreground">
-                    {formatPollutantCell(row.pm2_5)}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-4 tabular-nums text-foreground">
-                    {formatPollutantCell(row.pm10)}
-                  </td>
-                  <td
-                    className={cn(
-                      'whitespace-nowrap px-5 py-4 tabular-nums text-foreground',
-                      COLUMNS[4].cellClassName
-                    )}
-                  >
-                    {formatPollutantCell(row.no2)}
-                  </td>
-                  {/* Last reading */}
-                  <td className="whitespace-nowrap px-5 py-4 text-muted-foreground">
-                    {row.lastReadingLabel}
-                  </td>
-                  {/* Freshness */}
-                  <td className="whitespace-nowrap px-5 py-4">
-                    <span
-                      className={cn(
-                        'text-xs font-medium',
-                        row.hasReading
-                          ? 'text-foreground'
-                          : 'text-muted-foreground'
-                      )}
-                    >
-                      {row.freshnessLabel}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={sortedRows}
+          columns={COLUMNS}
+          rowKey={row => row.siteId}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSortChange={handleSortClick}
+          loading={isLoading}
+          loadingComponent={
+            <LoadingState
+              text="Loading latest readings..."
+              className="min-h-[200px]"
+            />
+          }
+          className="rounded-b-lg"
+        />
       </CardContent>
     </Card>
   );
