@@ -1,12 +1,8 @@
-import type { Metadata } from 'next';
+'use client';
 import DataVisualizerPage from '@/modules/data-visualizer/DataVisualizerPage';
 
-export const metadata: Metadata = {
-  title: 'Upload & Visualize Air Quality Data',
-};
-
-const Page = () => {
+const page = () => {
   return <DataVisualizerPage />;
 };
 
-export default Page;
+export default page;

@@ -11,6 +11,7 @@ export interface EmptyStateProps {
     label: string;
     onClick: () => void;
     variant?: 'filled' | 'outlined' | 'text' | 'ghost';
+    loading?: boolean;
   };
   className?: string;
   compact?: boolean;
@@ -60,6 +61,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             onClick={action.onClick}
             variant={action.variant || 'outlined'}
             size={compact ? 'sm' : 'md'}
+            loading={action.loading}
           >
             {action.label}
           </Button>

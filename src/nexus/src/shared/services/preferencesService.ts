@@ -10,6 +10,11 @@ import type {
   UpdateOrganizationGroupThemeRequest,
   UpdateOrganizationGroupThemeResponse,
   GetUserPreferencesListResponse,
+  ChartListResponse,
+  ChartDetailResponse,
+  CreateChartRequest,
+  UpdateChartRequest,
+  ChartMutationResponse,
   ApiErrorResponse,
 } from '../types/api';
 import { syncClientSessionToken } from './sessionAuthToken';
@@ -19,6 +24,14 @@ interface EnhancedError extends Error {
   data: ApiErrorResponse | null;
   success: boolean;
 }
+
+// The preferences API persists the chart configuration using its supported
+// server types. Area remains a UI presentation choice and is rendered from
+// the same line series on the client.
+const normalizeChartTypeForApi = (chartType?: string): string | undefined =>
+  chartType?.toLowerCase() === 'area' ? 'Line' : chartType;
+
+const DEFAULT_CHART_PERIOD = { label: 'Selected date range' };
 
 export class PreferencesService {
   private authenticatedClient: ApiClient;
@@ -263,6 +276,171 @@ export class PreferencesService {
         error,
         'Failed to update organization group theme'
       );
+    }
+  }
+
+  // ── User chart configurations ──────────────────────────────────────────────
+  // Contract verified live against staging (auth-service v2):
+  //   GET    /users/preferences/charts[?group_id=]      → list flat chart docs
+  //   GET    /users/preferences/charts/:chartId         → single flat chart doc
+  //   POST   /users/preferences/charts                  → create (chartConfig wrapper)
+  //   PUT    /users/preferences/charts/:chartId         → partial update (FLAT body)
+  //   POST   /users/preferences/charts/:chartId/copy    → duplicate (title "(Copy)")
+  //   DELETE /users/preferences/charts/:chartId         → delete
+  // Charts are user-scoped; `group_id` narrows to a group and defaults to the
+  // user's default group when omitted.
+
+  // List the user's chart configurations
+  async getCharts(groupId?: string): Promise<ChartListResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const query = groupId ? `?group_id=${encodeURIComponent(groupId)}` : '';
+      const response = await this.authenticatedClient.get<
+        ChartListResponse | ApiErrorResponse
+      >(`/users/preferences/charts${query}`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to get chart configurations',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartListResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to get chart configurations');
+    }
+  }
+
+  // Get a single chart configuration with its site/device scope
+  async getChart(chartId: string): Promise<ChartDetailResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.get<
+        ChartDetailResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to get chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartDetailResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to get chart configuration');
+    }
+  }
+
+  // Create a chart configuration
+  async createChart(
+    request: CreateChartRequest
+  ): Promise<ChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const normalizedRequest: CreateChartRequest = {
+        ...request,
+        period: request.period ?? DEFAULT_CHART_PERIOD,
+        chartConfig: {
+          ...request.chartConfig,
+          chartType:
+            normalizeChartTypeForApi(request.chartConfig.chartType) ?? 'Line',
+        },
+      };
+      const response = await this.authenticatedClient.post<
+        ChartMutationResponse | ApiErrorResponse
+      >('/users/preferences/charts', normalizedRequest);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to create chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to create chart configuration');
+    }
+  }
+
+  // Update a chart configuration (flat partial body — verified live)
+  async updateChart(
+    chartId: string,
+    request: UpdateChartRequest
+  ): Promise<ChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const normalizedRequest: UpdateChartRequest = {
+        ...request,
+        period: request.period ?? DEFAULT_CHART_PERIOD,
+        ...(request.chartType
+          ? { chartType: normalizeChartTypeForApi(request.chartType) }
+          : {}),
+      };
+      const response = await this.authenticatedClient.put<
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`, normalizedRequest);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to update chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to update chart configuration');
+    }
+  }
+
+  // Duplicate a chart configuration (includes device_ids/site_ids/locationColors)
+  async copyChart(chartId: string): Promise<ChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.post<
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}/copy`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to copy chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to copy chart configuration');
+    }
+  }
+
+  // Delete a chart configuration
+  async deleteChart(chartId: string): Promise<ChartMutationResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.delete<
+        ChartMutationResponse | ApiErrorResponse
+      >(`/users/preferences/charts/${chartId}`);
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw this.createEnhancedError(
+          data.message || 'Failed to delete chart configuration',
+          { status: response.status, data: data as ApiErrorResponse }
+        );
+      }
+
+      return data as ChartMutationResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(error, 'Failed to delete chart configuration');
     }
   }
 }

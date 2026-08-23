@@ -4,3 +4,4 @@ export { default as OrganizationSelector } from './organization-selector';
 export { LogoComponent } from './logo-component';
 export { default as LogoutConfirmationDialog } from './logout-confirmation-dialog';
 export { default as InfoDropdown } from './info-dropdown';
+export { default as WeatherWidget } from './weather-widget';

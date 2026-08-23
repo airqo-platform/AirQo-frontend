@@ -33,7 +33,8 @@ export const PollutantSelector: React.FC<PollutantSelectorProps> = ({
       <Select
         value={selectedPollutant}
         onChange={handleChange}
-        className="w-24 h-8 text-sm shadow"
+        containerClassName="!mb-0"
+        className="w-24 h-[44px] text-sm shadow md:h-8"
       >
         {Object.entries(POLLUTANT_LABELS).map(([value, label]) => (
           <option key={value} value={value}>

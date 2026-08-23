@@ -307,6 +307,20 @@ describe('airQuality', () => {
       expect(typeof AQ_STANDARDS.NEMA_KENYA.pm2_5).toBe('number');
       expect(typeof AQ_STANDARDS.NEMA_KENYA.pm10).toBe('number');
     });
+
+    it('SOUTH_AFRICA has pm2_5 and pm10', () => {
+      expect(AQ_STANDARDS.SOUTH_AFRICA).toHaveProperty('pm2_5');
+      expect(AQ_STANDARDS.SOUTH_AFRICA).toHaveProperty('pm10');
+      expect(typeof AQ_STANDARDS.SOUTH_AFRICA.pm2_5).toBe('number');
+      expect(typeof AQ_STANDARDS.SOUTH_AFRICA.pm10).toBe('number');
+    });
+
+    it('NIGERIA has pm2_5 and pm10', () => {
+      expect(AQ_STANDARDS.NIGERIA).toHaveProperty('pm2_5');
+      expect(AQ_STANDARDS.NIGERIA).toHaveProperty('pm10');
+      expect(typeof AQ_STANDARDS.NIGERIA.pm2_5).toBe('number');
+      expect(typeof AQ_STANDARDS.NIGERIA.pm10).toBe('number');
+    });
   });
 
   describe('REFERENCE_LINES', () => {
@@ -329,6 +343,58 @@ describe('airQuality', () => {
       expect(REFERENCE_LINES.NEMA_KENYA).toHaveProperty('PM25_24HR');
       expect(REFERENCE_LINES.NEMA_KENYA).toHaveProperty('PM10_ANNUAL');
       expect(REFERENCE_LINES.NEMA_KENYA).toHaveProperty('PM10_24HR');
+    });
+
+    it('SOUTH_AFRICA has same keys as WHO', () => {
+      expect(REFERENCE_LINES.SOUTH_AFRICA).toHaveProperty('PM25_ANNUAL');
+      expect(REFERENCE_LINES.SOUTH_AFRICA).toHaveProperty('PM25_24HR');
+      expect(REFERENCE_LINES.SOUTH_AFRICA).toHaveProperty('PM10_ANNUAL');
+      expect(REFERENCE_LINES.SOUTH_AFRICA).toHaveProperty('PM10_24HR');
+    });
+
+    it('NIGERIA has same keys as WHO', () => {
+      expect(REFERENCE_LINES.NIGERIA).toHaveProperty('PM25_ANNUAL');
+      expect(REFERENCE_LINES.NIGERIA).toHaveProperty('PM25_24HR');
+      expect(REFERENCE_LINES.NIGERIA).toHaveProperty('PM10_ANNUAL');
+      expect(REFERENCE_LINES.NIGERIA).toHaveProperty('PM10_24HR');
+    });
+
+    it('matches the verified legal values', () => {
+      // WHO 2021 AQG
+      expect(REFERENCE_LINES.WHO).toEqual({
+        PM25_ANNUAL: 5,
+        PM25_24HR: 15,
+        PM10_ANNUAL: 15,
+        PM10_24HR: 45,
+      });
+      // Uganda SI 22 of 2024
+      expect(REFERENCE_LINES.NEMA_UGANDA).toEqual({
+        PM25_ANNUAL: 25,
+        PM25_24HR: 35,
+        PM10_ANNUAL: 40,
+        PM10_24HR: 60,
+      });
+      // Kenya LN 180 of 2024
+      expect(REFERENCE_LINES.NEMA_KENYA).toEqual({
+        PM25_ANNUAL: 35,
+        PM25_24HR: 75,
+        PM10_ANNUAL: 70,
+        PM10_24HR: 150,
+      });
+      // South Africa GN 1210/2009 + GN 486/2012 (current phase)
+      expect(REFERENCE_LINES.SOUTH_AFRICA).toEqual({
+        PM25_ANNUAL: 20,
+        PM25_24HR: 40,
+        PM10_ANNUAL: 40,
+        PM10_24HR: 75,
+      });
+      // Nigeria SI 88 of 2021
+      expect(REFERENCE_LINES.NIGERIA).toEqual({
+        PM25_ANNUAL: 20,
+        PM25_24HR: 40,
+        PM10_ANNUAL: 60,
+        PM10_24HR: 150,
+      });
     });
   });
 });

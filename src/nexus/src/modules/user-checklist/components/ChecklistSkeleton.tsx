@@ -89,16 +89,16 @@ const SkeletonCard = () => (
 
 const ChecklistSkeleton = () => (
   <div>
-    <div className="flex flex-row justify-between items-center md:items-center mb-6">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 mb-6">
       <div className="w-full md:w-1/2 space-y-2">
         <Skeleton className="w-64 bg-primary/10 h-7" />
         <Skeleton className="w-80 bg-primary/10 h-5" />
       </div>
-      <div className="w-full md:w-1/2 mt-4 md:mt-0 flex justify-end">
+      <div className="w-full md:w-1/2 md:mt-0 flex justify-end">
         <CircularProgressSkeleton />
       </div>
     </div>
-    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
       {/* Static list — index key is safe */}
       {Array(4)
         .fill(0)

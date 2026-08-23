@@ -8,6 +8,8 @@ import {
   AqRefreshCcw01,
   AqHelpCircle,
   AqAlertTriangle,
+  AqXClose,
+  AqMenu01,
 } from '@airqo/icons-react';
 import { TabType } from '../types/dataExportTypes';
 
@@ -72,9 +74,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
     Object.keys(selectedGridSiteIds).length > 0;
 
   const totalSelectionCount =
-    selectedSiteIds.length +
-    selectedDeviceIds.length +
-    selectedGridIds.length;
+    selectedSiteIds.length + selectedDeviceIds.length + selectedGridIds.length;
 
   const handleClearClick = () => {
     setShowClearConfirm(true);
@@ -104,7 +104,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
               <span className="sr-only">
                 {sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
               </span>
-              {sidebarOpen ? '✕' : '☰'}
+              {sidebarOpen ? <AqXClose size={16} /> : <AqMenu01 size={16} />}
             </Button>
           </div>
         )}
@@ -173,6 +173,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             loading={isRefreshing}
             disabled={isGroupSyncing || isRefreshing}
             size="sm"
+            aria-label="Refresh"
           >
             Refresh
           </Button>
@@ -184,6 +185,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
             Icon={AqAnnotationX}
             disabled={isGroupSyncing}
             size="sm"
+            aria-label="Clear all selections"
           >
             Clear All
           </Button>
@@ -211,8 +213,14 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
                 onClick={onDownload}
                 Icon={AqDownload01}
                 size="sm"
-                disabled={isGroupSyncing || !isDownloadReady || isPreviewLoading || isDownloading}
+                disabled={
+                  isGroupSyncing ||
+                  !isDownloadReady ||
+                  isPreviewLoading ||
+                  isDownloading
+                }
                 loading={isPreviewLoading || isDownloading}
+                showTextOnMobile={true}
                 className="whitespace-nowrap"
               >
                 {isPreviewLoading
@@ -249,8 +257,9 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         size="md"
       >
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          You have {totalSelectionCount} item{totalSelectionCount !== 1 ? 's' : ''} selected.
-          Are you sure you want to clear all selections?
+          You have {totalSelectionCount} item
+          {totalSelectionCount !== 1 ? 's' : ''} selected. Are you sure you want
+          to clear all selections?
         </p>
       </Dialog>
     </div>

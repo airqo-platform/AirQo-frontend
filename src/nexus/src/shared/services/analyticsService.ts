@@ -8,61 +8,151 @@ import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
-  RecentReading,
-  RecentReadingRequest,
-  RecentReadingsResponse,
   DataDownloadRequest,
   DataDownloadResponse,
+  RecentReadingsResponse,
+  RecentReading,
 } from '../types/api';
 
-const RECENT_READINGS_BATCH_SIZE = 2;
-
-type RecentReadingsPayload =
-  | RecentReadingsResponse
-  | {
-      success?: boolean;
-      message?: string;
-      measurements?: RecentReading[];
-      data?: RecentReading[] | { measurements?: RecentReading[] };
-    };
-
-const normalizeRecentReadingsResponse = (
-  payload: RecentReadingsPayload,
-  fallbackMessage: string
-): RecentReadingsResponse => {
-  const nestedData = 'data' in payload ? payload.data : undefined;
-  const measurements = Array.isArray(payload.measurements)
-    ? payload.measurements
-    : Array.isArray(nestedData)
-      ? nestedData
-      : nestedData && Array.isArray(nestedData.measurements)
-        ? nestedData.measurements
-        : [];
-
-  return {
-    success: payload.success !== false,
-    message: payload.message || fallbackMessage,
-    measurements,
-  };
+/**
+ * Strip time components from a date string so the API receives `YYYY-MM-DD`.
+ *
+ * The chart-data endpoint (`/analytics/dashboard/chart/d3/data`) validates
+ * `startDateTime` / `endDateTime` as plain date strings.  Callers that pass
+ * full ISO datetime strings (e.g. `2025-08-21T00:00:00.000Z`) trigger a 422
+ * Unprocessable Entity from the backend.  This helper is a no-op when the
+ * input is already in `YYYY-MM-DD` format.
+ *
+ * Empirically confirmed (2026-08-21): the backend also accepts ISO datetimes,
+ * but YYYY-MM-DD is the safest, most compact format.
+ */
+export const toDateString = (value: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  return value.slice(0, 10);
 };
 
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
+/**
+ * Frequencies the chart-data endpoint accepts.
+ *
+ * Empirically confirmed live (2026-08-22, staging-analytics): `raw` is
+ * rejected with 400 "No data source configured for datatype=calibrated,
+ * device_category=lowcost, frequency=raw" while hourly/daily/weekly/monthly
+ * all return 200. `FrequencyType` still legally contains 'raw' (the UI uses
+ * it for rendering decisions), so the request boundary maps it to `daily`
+ * — the same fallback the analytics module's normalizeFrequency applies to
+ * persisted drafts. Kept local to this shared service: shared code must not
+ * import from modules.
+ */
+const CHART_API_FREQUENCIES: ReadonlySet<string> = new Set([
+  'hourly',
+  'daily',
+  'weekly',
+  'monthly',
+]);
 
-  if (!candidate) {
-    return false;
+export const normalizeChartApiFrequency = (value: string): string =>
+  CHART_API_FREQUENCIES.has(value) ? value : 'daily';
+
+/**
+ * Date-key contract negotiation for the chart-data endpoint.
+ *
+ * The live backend has been observed speaking TWO schemas for the same URL
+ * (2026-08-21 -> 2026-08-23, staging-analytics):
+ *
+ * - Current schema: requires `startDateTime` / `endDateTime` (pydantic-style
+ *   errors: `{"errors":[{"loc":["body","startDateTime"],"msg":"Field
+ *   required"}]}`) and IGNORES unknown keys.
+ * - Legacy schema: REQUIRES `startDate` / `endDate` and rejects the other
+ *   pair with marshmallow-style errors:
+ *   `{"errors":{"startDate":["Missing data for required field."],
+ *   "endDateTime":["Unknown field."],"startDateTime":["Unknown field."]}}`.
+ *
+ * No request body satisfies both schemas at once (the legacy one rejects
+ * unknown fields), so on the FIRST chart request of a browser session the
+ * primary key set is sent; if the response body matches the legacy rejection
+ * signature, the request is retried ONCE with the alternate key set and the
+ * winning contract is cached in module scope. Subsequent requests use the
+ * cached contract directly — at most ONE extra request per session, never a
+ * loop (AGENTS.md retry policy: fail once, no unbounded retries).
+ */
+export type ChartDateContract = 'startDateTime' | 'startDate';
+
+const PRIMARY_CHART_DATE_CONTRACT: ChartDateContract = 'startDateTime';
+
+/** Module-scope cache: undefined = not negotiated yet this session. */
+let negotiatedChartDateContract: ChartDateContract | undefined;
+
+/** Test hook: resets the session-scoped contract negotiation. */
+export const resetChartDateContract = (): void => {
+  negotiatedChartDateContract = undefined;
+};
+
+/**
+ * Pure decision helper: does this error body match the LEGACY contract's
+ * rejection of `startDateTime`/`endDateTime`? Returns the contract to switch
+ * to, or null for anything else (unrelated 400/422, network failure,
+ * new-schema validation, ...). Exported for unit tests — no network involved.
+ */
+export const chartContractToRetryForErrorBody = (
+  body: unknown
+): ChartDateContract | null => {
+  if (!body) return null;
+  let text: string;
+  try {
+    text = typeof body === 'string' ? body : JSON.stringify(body);
+  } catch {
+    return null;
   }
+  if (!text.includes('Unknown field')) return null;
+  // The observed legacy body lists all four keys: startDate/endDate missing
+  // plus startDateTime/endDateTime unknown. Require both pairs before
+  // switching so a coincidental "Unknown field" elsewhere never flips us.
+  if (!text.includes('startDateTime') || !text.includes('startDate')) {
+    return null;
+  }
+  return 'startDate';
+};
 
+/** Extracts the HTTP response body from an axios-like rejected error. */
+const extractErrorResponseBody = (error: unknown): unknown => {
+  const candidate = error as { response?: { data?: unknown } } | null;
+  return candidate?.response?.data;
+};
+
+const isCancellation = (error: unknown): boolean => {
+  const candidate = error as { name?: string; code?: string } | null;
   return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
+    candidate?.name === 'AbortError' ||
+    candidate?.name === 'CanceledError' ||
+    candidate?.code === 'ERR_CANCELED'
   );
+};
+
+/**
+ * Builds the POST body for the given date-key contract. Only the date KEYS
+ * change — every other field is identical, values stay YYYY-MM-DD (accepted
+ * by both schemas) and frequency stays normalized.
+ */
+const buildChartPayload = (
+  request: AnalyticsChartRequest,
+  contract: ChartDateContract
+): Record<string, unknown> => {
+  const { startDateTime, endDateTime, ...rest } = request;
+  const start = toDateString(startDateTime);
+  const end = toDateString(endDateTime);
+  return contract === PRIMARY_CHART_DATE_CONTRACT
+    ? {
+        ...rest,
+        startDateTime: start,
+        endDateTime: end,
+        frequency: normalizeChartApiFrequency(request.frequency),
+      }
+    : {
+        ...rest,
+        startDate: start,
+        endDate: end,
+        frequency: normalizeChartApiFrequency(request.frequency),
+      };
 };
 
 export class AnalyticsService {
@@ -77,119 +167,56 @@ export class AnalyticsService {
   private async ensureAuthenticated() {
     await syncClientSessionToken(this.authenticatedClient);
   }
-
-  // Get chart data - proxied to avoid CORS issues with direct browser-to-API calls
+  // Get chart data - direct backend call via API token
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
-    const response =
-      await this.serverClient.post<AnalyticsChartResponse>(
-        '/analytics/dashboard/chart/d3/data',
-        request,
+    const CHART_DATA_PATH = '/analytics/dashboard/chart/d3/data';
+    const contract = negotiatedChartDateContract ?? PRIMARY_CHART_DATE_CONTRACT;
+
+    try {
+      const response = await this.serverClient.post<AnalyticsChartResponse>(
+        CHART_DATA_PATH,
+        buildChartPayload(request, contract),
         { signal }
       );
-    return response.data;
-  }
+      negotiatedChartDateContract = contract;
+      return response.data;
+    } catch (error) {
+      // Aborted requests are never retried (AGENTS.md). Negotiation only
+      // runs while the contract is unknown and ONLY on the legacy schema's
+      // exact rejection signature — anything else surfaces to the caller.
+      if (
+        negotiatedChartDateContract !== undefined ||
+        isCancellation(error) ||
+        signal?.aborted
+      ) {
+        throw error;
+      }
 
-  // Get recent readings data
-  async getRecentReadings(
-    request: RecentReadingRequest,
-    signal?: AbortSignal
-  ): Promise<RecentReadingsResponse> {
-    const normalizedSiteIds = Array.from(
-      new Set(
-        (request.site_id || '')
-          .split(',')
-          .map(siteId => siteId.trim())
-          .filter(Boolean)
-      )
-    );
-
-    if (normalizedSiteIds.length === 0) {
-      return {
-        success: true,
-        message: 'No site IDs provided',
-        measurements: [],
-      };
-    }
-
-    // The backend can fail on larger comma-joined site_id lists, so keep
-    // recent-readings requests small and merge the results for the caller.
-    const siteIdBatches: string[][] = [];
-
-    for (
-      let index = 0;
-      index < normalizedSiteIds.length;
-      index += RECENT_READINGS_BATCH_SIZE
-    ) {
-      siteIdBatches.push(
-        normalizedSiteIds.slice(index, index + RECENT_READINGS_BATCH_SIZE)
+      const retryContract = chartContractToRetryForErrorBody(
+        extractErrorResponseBody(error)
       );
-    }
+      if (!retryContract) {
+        throw error;
+      }
 
-    const responses = await Promise.allSettled(
-      siteIdBatches.map(async siteIdBatch => {
-        const response = await this.serverClient.get<RecentReadingsPayload>(
-          '/devices/readings/recent',
-          {
-            params: {
-              site_id: siteIdBatch.join(','),
-            },
-            signal,
-          }
+      negotiatedChartDateContract = retryContract;
+      try {
+        const response = await this.serverClient.post<AnalyticsChartResponse>(
+          CHART_DATA_PATH,
+          buildChartPayload(request, retryContract),
+          { signal }
         );
-
-        return normalizeRecentReadingsResponse(
-          response.data,
-          'Recent readings fetched successfully'
-        );
-      })
-    );
-
-    const abortedResponse = responses.find(
-      (response): response is PromiseRejectedResult =>
-        response.status === 'rejected' &&
-        (signal?.aborted || isAbortError(response.reason))
-    );
-
-    if (abortedResponse) {
-      throw abortedResponse.reason;
+        return response.data;
+      } catch {
+        // The alternate contract failed too — surface the ORIGINAL error so
+        // the caller sees the primary failure, not a secondary symptom.
+        // Fail once; never loop.
+        throw error;
+      }
     }
-
-    const successfulResponses = responses
-      .filter(
-        (
-          response
-        ): response is PromiseFulfilledResult<RecentReadingsResponse> =>
-          response.status === 'fulfilled'
-      )
-      .map(response => response.value);
-
-    if (successfulResponses.length === 0) {
-      const failedResponse = responses.find(
-        (response): response is PromiseRejectedResult =>
-          response.status === 'rejected'
-      );
-
-      throw (
-        failedResponse?.reason || new Error('Failed to fetch recent readings')
-      );
-    }
-
-    return {
-      success:
-        successfulResponses.length === responses.length &&
-        successfulResponses.every(response => response.success !== false),
-      message:
-        successfulResponses
-          .map(response => response.message)
-          .filter(Boolean)
-          .join('; ') || 'Recent readings fetched successfully',
-      measurements: successfulResponses.flatMap(
-        response => response.measurements ?? []
-      ),
-    };
   }
 
   // Download data - authenticated endpoint
@@ -200,6 +227,44 @@ export class AnalyticsService {
       DataDownloadResponse | string
     >('/analytics/data-download', request);
     return response.data;
+  }
+
+  /**
+   * Latest reading per site — POST /devices/readings/recent.
+   *
+   * Goes through the server client (API_TOKEN via the BFF route), mirroring
+   * `getChartData`: device endpoints need the shared API token, which the
+   * BFF attaches server-side so it never reaches the browser.
+   *
+   * The backend rejects an empty `site_ids` array with 400, so empty input
+   * short-circuits to `[]` without a network call. A `success: false` body
+   * (or a malformed one) throws a fixed safe message — the backend error is
+   * not interpolated into the thrown Error to prevent server-internal wording
+   * from reaching the UI. Aborted requests propagate as cancellations and
+   * must never be retried by callers (AGENTS.md retry policy).
+   */
+  async getRecentReadings(
+    siteIds: string[],
+    signal?: AbortSignal
+  ): Promise<RecentReading[]> {
+    const trimmedSiteIds = siteIds.map(siteId => siteId.trim()).filter(Boolean);
+
+    if (trimmedSiteIds.length === 0) {
+      return [];
+    }
+
+    const response = await this.serverClient.post<RecentReadingsResponse>(
+      '/devices/readings/recent',
+      { site_ids: trimmedSiteIds },
+      { signal }
+    );
+
+    const payload = response.data;
+    if (!payload?.success) {
+      throw new Error('Failed to fetch the latest readings.');
+    }
+
+    return Array.isArray(payload.measurements) ? payload.measurements : [];
   }
 }
 

@@ -7,6 +7,7 @@ import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { AqWind01 } from '@airqo/icons-react';
 import {
   getAirQualityInfo,
+  getAirQualityColor,
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
 import { formatRoundedNumber } from '@/shared/lib/utils';
@@ -58,6 +59,12 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
     return null;
   }, [aqiConfig, pollutantValue, selectedPollutant]);
   const AirQualityIcon = airQualityInfo?.icon;
+  const aqiIndex =
+    (mapReading as MapReading)?.aqi_index ??
+    (mapReading as AirQualityReading)?.fullReadingData?.aqi_index;
+  const aqiColor = airQualityInfo
+    ? getAirQualityColor(airQualityInfo.level, aqiConfig)
+    : undefined;
 
   // Helper function to extract city and country from location name
   const parseLocationDetails = (locationName?: string) => {
@@ -153,8 +160,8 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
       <CardContent className="p-6">
         {/* Header with PM2.5 value and icon */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
+        <div className="flex items-center justify-between mb-6 min-w-0">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center flex-shrink-0 p-1 bg-gray-200 dark:bg-gray-800 rounded-full">
                 <AqWind01 className="w-4 h-4 text-gray-400" />
@@ -166,6 +173,15 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pollutantValue !== null && pollutantValue !== undefined
                 ? `${formatRoundedNumber(pollutantValue, 1)}µg/m³`
+                : '--'}
+            </div>
+            <div
+              className="mt-1 text-sm font-semibold truncate"
+              style={aqiColor ? { color: aqiColor } : undefined}
+            >
+              AQI{' '}
+              {aqiIndex !== undefined && !isNaN(aqiIndex)
+                ? Math.round(aqiIndex)
                 : '--'}
             </div>
           </div>
@@ -185,13 +201,16 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             </div>
           </div>
 
-          <div className="pb-3">
+          <div className="pb-3 min-w-0">
             <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 Air Quality
               </div>
             </div>
-            <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+            <div
+              className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate"
+              title={airQualityInfo?.label ?? undefined}
+            >
               {airQualityInfo?.label ?? '--'}
             </div>
           </div>
@@ -206,7 +225,14 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                     Site name
                   </div>
                 </div>
-                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                <div
+                  className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate"
+                  title={
+                    (mapReading as MapReading)?.siteDetails?.name ||
+                    (mapReading as AirQualityReading)?.locationName ||
+                    locationData.name
+                  }
+                >
                   {(mapReading as MapReading)?.siteDetails?.name ||
                     (mapReading as AirQualityReading)?.locationName ||
                     locationData.name}

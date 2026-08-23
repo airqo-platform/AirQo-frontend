@@ -37,6 +37,6 @@ export default async function middleware(req: NextRequest) {
 // both in sync when adding new public routes.
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|user/login|user/creation|user/forgotPwd|user/delete/confirm|org-invite|request-organization|org/[^/]+/login|org/[^/]+/register|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|user/login|user/creation|user/forgotPwd|user/delete/confirm|org-invite|request-organization|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)',
   ],
 };

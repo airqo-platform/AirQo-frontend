@@ -7,7 +7,8 @@ import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { FeedbackLauncher } from '@/modules/feedback';
-import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
+import { AiAssistant } from '@/modules/ai/components/AiAssistant';
+import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
@@ -25,14 +26,17 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const theme = useAppSelector(state => state.theme);
   const { isLoggingOut } = useUser();
+  const { isOpen: isAiDrawerOpen } = useAiAssistantContext();
   useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
 
   return (
     <>
       <div
         className={cn(
-          'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
-          theme.interfaceStyle === 'bordered' && 'border border-border'
+          'flex flex-col h-screen gap-2 p-1 overflow-hidden',
+          theme.interfaceStyle === 'bordered' && 'border border-border',
+          isAiDrawerOpen &&
+            'md:pr-[calc(400px+0.75rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
         )}
       >
         {/* Fixed Header */}
@@ -56,7 +60,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           {/* Main Content Area - Full Height for Map */}
           <div
             className={cn(
-              'flex flex-col flex-1 min-h-0',
+              'flex flex-col flex-1 min-h-0 min-w-0',
               showBottomNav && 'pb-[65px] md:pb-0'
             )}
           >
@@ -64,6 +68,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           </div>
           {/* Footer at the end of the main container */}
           <FeedbackLauncher />
+          <AiAssistant />
         </div>
 
         {/* Bottom Navigation intentionally hidden on map pages to avoid
@@ -72,7 +77,12 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 
       {/* Global Sidebar */}
       <GlobalSidebar />
-      {showSidebar && <MobileSidebar />}
+      {/*
+       * MobileSidebar intentionally NOT rendered on map pages: the map's own
+       * mobile layout already provides a dedicated 60dvh sidebar pane below
+       * the map, and the full-screen MobileSidebar overlay would cover and
+       * block the entire map on small screens.
+       */}
     </>
   );
 };

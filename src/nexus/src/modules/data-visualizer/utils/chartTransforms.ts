@@ -144,8 +144,37 @@ const sampleChartData = (
     return data;
   }
 
-  const step = Math.ceil(data.length / MAX_CHART_RENDER_ROWS);
-  return data.filter((_, index) => index % step === 0);
+  // Envelope sampling: keeps min/max of every column per bucket so peaks and
+  // valleys survive sampling (stride sampling drops them).
+  const bucketSize = Math.ceil(data.length / MAX_CHART_RENDER_ROWS);
+  const out: Array<Record<string, string | number | null>> = [];
+  for (let start = 0; start < data.length; start += bucketSize) {
+    const bucket = data.slice(start, Math.min(data.length, start + bucketSize));
+    const first = { ...bucket[0] };
+    const last = { ...bucket[bucket.length - 1] };
+    Object.keys(first).forEach(key => {
+      let min = Number.POSITIVE_INFINITY;
+      let max = Number.NEGATIVE_INFINITY;
+      let hasValue = false;
+      for (const row of bucket) {
+        const value = row[key];
+        if (typeof value !== 'number' || Number.isNaN(value)) continue;
+        hasValue = true;
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+      if (hasValue) {
+        first[key] = min;
+        last[key] = max;
+      } else {
+        first[key] = null;
+        last[key] = null;
+      }
+    });
+    last[X_KEY] = bucket[bucket.length - 1][X_KEY];
+    out.push(first, last);
+  }
+  return out;
 };
 
 const getTopLabels = (

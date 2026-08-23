@@ -11,6 +11,10 @@ import {
   WHO_PM10_STANDARDS,
   NEMA_KENYA_PM25_STANDARDS,
   NEMA_KENYA_PM10_STANDARDS,
+  SOUTH_AFRICA_PM25_STANDARDS,
+  SOUTH_AFRICA_PM10_STANDARDS,
+  NIGERIA_PM25_STANDARDS,
+  NIGERIA_PM10_STANDARDS,
   STANDARDS_ORGANIZATIONS,
   REFERENCE_LINES,
 } from '../../constants';
@@ -86,42 +90,35 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
         return NEMA_KENYA_PM25_STANDARDS;
       case 'NEMA_KENYA_PM10':
         return NEMA_KENYA_PM10_STANDARDS;
+      case 'SOUTH_AFRICA_PM2.5':
+        return SOUTH_AFRICA_PM25_STANDARDS;
+      case 'SOUTH_AFRICA_PM10':
+        return SOUTH_AFRICA_PM10_STANDARDS;
+      case 'NIGERIA_PM2.5':
+        return NIGERIA_PM25_STANDARDS;
+      case 'NIGERIA_PM10':
+        return NIGERIA_PM10_STANDARDS;
       default:
         return WHO_PM25_STANDARDS;
     }
   }, [selectedOrg, displayPollutant]);
 
-  const getReferenceLine = useCallback(() => {
-    if (selectedOrg === 'WHO') {
-      switch (displayPollutant) {
-        case 'PM2.5':
-          return REFERENCE_LINES.WHO.PM25_ANNUAL;
-        case 'PM10':
-          return REFERENCE_LINES.WHO.PM10_ANNUAL;
-        default:
-          return REFERENCE_LINES.WHO.PM25_ANNUAL;
-      }
-    } else if (selectedOrg === 'NEMA_UGANDA') {
-      switch (displayPollutant) {
-        case 'PM2.5':
-          return REFERENCE_LINES.NEMA_UGANDA.PM25_ANNUAL;
-        case 'PM10':
-          return REFERENCE_LINES.NEMA_UGANDA.PM10_ANNUAL;
-        default:
-          return REFERENCE_LINES.NEMA_UGANDA.PM25_ANNUAL;
-      }
-    } else {
-      // NEMA_KENYA
-      switch (displayPollutant) {
-        case 'PM2.5':
-          return REFERENCE_LINES.NEMA_KENYA.PM25_ANNUAL;
-        case 'PM10':
-          return REFERENCE_LINES.NEMA_KENYA.PM10_ANNUAL;
-        default:
-          return REFERENCE_LINES.NEMA_KENYA.PM25_ANNUAL;
-      }
-    }
+  // Annual + 24-hour limits for the selected organization/pollutant, read
+  // straight from REFERENCE_LINES so the dialog always agrees with the
+  // reference line drawn on the chart.
+  const getLimits = useCallback(() => {
+    const lines = REFERENCE_LINES[selectedOrg] ?? REFERENCE_LINES.WHO;
+    return {
+      annual:
+        displayPollutant === 'PM2.5' ? lines.PM25_ANNUAL : lines.PM10_ANNUAL,
+      daily:
+        displayPollutant === 'PM2.5' ? lines.PM25_24HR : lines.PM10_24HR,
+    };
   }, [selectedOrg, displayPollutant]);
+
+  const getReferenceLine = useCallback(() => {
+    return getLimits().annual;
+  }, [getLimits]);
 
   const handleApply = () => {
     onApplyStandards({
@@ -143,7 +140,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
       isOpen={open}
       onClose={onClose}
       title={`Air Quality Standards - ${displayPollutant}`}
-      size="lg"
+      size="xl"
       contentClassName="overflow-y-auto max-h-[75vh]"
       primaryAction={{
         label: 'Apply Standards',
@@ -185,17 +182,8 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               µg/m³
             </span>
             <span className="text-xs text-blue-600">
-              {selectedOrg === 'WHO'
-                ? displayPollutant === 'PM2.5'
-                  ? 'WHO 2021: 5 µg/m³ annual, 15 µg/m³ 24-hour'
-                  : 'WHO 2021: 15 µg/m³ annual, 45 µg/m³ 24-hour'
-                : selectedOrg === 'NEMA_UGANDA'
-                  ? displayPollutant === 'PM2.5'
-                    ? 'NEMA Uganda: 25 µg/m³ annual, 35 µg/m³ 24-hour'
-                    : 'NEMA Uganda: 40 µg/m³ annual, 60 µg/m³ 24-hour'
-                  : displayPollutant === 'PM2.5'
-                    ? 'NEMA Kenya (Legal Notice 180/2024): 35 µg/m³ annual, 75 µg/m³ 24-hour'
-                    : 'NEMA Kenya (Legal Notice 180/2024): 70 µg/m³ annual, 150 µg/m³ 24-hour'}
+              {getLimits().annual} µg/m³ annual, {getLimits().daily} µg/m³
+              24-hour
             </span>
           </div>
           <Checkbox
@@ -240,8 +228,12 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               {selectedOrg === 'WHO'
                 ? 'WHO 2021 Air Quality Guidelines'
                 : selectedOrg === 'NEMA_UGANDA'
-                  ? 'NEMA Uganda standards'
-                  : 'NEMA Kenya standards (Legal Notice 180/2024)'}{' '}
+                  ? 'NEMA Uganda standards (SI 22 of 2024)'
+                  : selectedOrg === 'NEMA_KENYA'
+                    ? 'NEMA Kenya standards (Legal Notice 180/2024)'
+                    : selectedOrg === 'SOUTH_AFRICA'
+                      ? 'South Africa NEM: Air Quality Act standards (GN 1210/2009, GN 486/2012)'
+                      : 'Nigeria NESREA standards (SI 88 of 2021)'}{' '}
               for {displayPollutant}
             </span>
           </div>
@@ -253,113 +245,34 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               const IconComponent = getAirQualityIcon(standardLevel);
               const iconColor = getAirQualityColor(standardLevel);
 
-              // Get specific values for annual and 24-hour based on WHO 2021, NEMA Uganda, and NEMA Kenya standards
+              {/* Get specific values for annual and 24-hour based on the
+                  selected organization's legal limits (from REFERENCE_LINES
+                  so the dialog always agrees with the chart line). */}
               const getDetailedValues = () => {
-                const orgPrefix =
-                  selectedOrg === 'WHO'
-                    ? 'WHO 2021'
-                    : selectedOrg === 'NEMA_UGANDA'
-                      ? 'NEMA Uganda'
-                      : 'NEMA Kenya (LN 180/2024)';
+                const orgPrefix = STANDARDS_ORGANIZATIONS[selectedOrg]
+                  .replace(' (World Health Organization)', '')
+                  .replace(' (NEM:AQA)', ' (SA)');
+                const { annual, daily } = getLimits();
 
-                if (selectedOrg === 'WHO' && displayPollutant === 'PM2.5') {
-                  switch (standard.level) {
-                    case 'Good':
-                      return {
-                        annual: '0-5 µg/m³',
-                        daily: '0-15 µg/m³',
-                        note: `${orgPrefix}: Annual guideline 5 µg/m³, 24-hour guideline 15 µg/m³`,
-                      };
-                    case 'Moderate':
-                      return {
-                        annual: '5-15 µg/m³',
-                        daily: '15-25 µg/m³',
-                        note: `${orgPrefix}: Above annual guideline, approaching 24-hour limit`,
-                      };
-                    default:
-                      return {
-                        annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                        daily: 'Exceeds 24-hour guidelines',
-                        note: `${orgPrefix}: Significantly above health-protective levels`,
-                      };
-                  }
-                } else if (
-                  selectedOrg === 'WHO' &&
-                  displayPollutant === 'PM10'
-                ) {
-                  switch (standard.level) {
-                    case 'Good':
-                      return {
-                        annual: '0-15 µg/m³',
-                        daily: '0-45 µg/m³',
-                        note: `${orgPrefix}: Annual guideline 15 µg/m³, 24-hour guideline 45 µg/m³`,
-                      };
-                    case 'Moderate':
-                      return {
-                        annual: '15-45 µg/m³',
-                        daily: '45-75 µg/m³',
-                        note: `${orgPrefix}: Above annual guideline, approaching 24-hour limit`,
-                      };
-                    default:
-                      return {
-                        annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                        daily: 'Exceeds 24-hour guidelines',
-                        note: `${orgPrefix}: Significantly above health-protective levels`,
-                      };
-                  }
-                } else if (selectedOrg === 'NEMA_UGANDA') {
-                  // NEMA Uganda standards
-                  if (displayPollutant === 'PM2.5') {
-                    return {
-                      annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                      daily:
-                        standard.level === 'Moderate'
-                          ? '24h: 35 µg/m³'
-                          : standard.level === 'Good'
-                            ? '24h: <35 µg/m³'
-                            : 'Exceeds 24h limit',
-                      note: `${orgPrefix}: Annual 25 µg/m³, 24-hour 35 µg/m³`,
-                    };
-                  } else {
-                    // PM10
-                    return {
-                      annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                      daily:
-                        standard.level === 'Moderate'
-                          ? '24h: 60 µg/m³'
-                          : standard.level === 'Good'
-                            ? '24h: <60 µg/m³'
-                            : 'Exceeds 24h limit',
-                      note: `${orgPrefix}: Annual 40 µg/m³, 24-hour 60 µg/m³`,
-                    };
-                  }
-                } else {
-                  // NEMA Kenya standards
-                  if (displayPollutant === 'PM2.5') {
-                    return {
-                      annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                      daily:
-                        standard.level === 'Moderate'
-                          ? '24h: 75 µg/m³'
-                          : standard.level === 'Good'
-                            ? '24h: <75 µg/m³'
-                            : 'Exceeds 24h limit',
-                      note: `${orgPrefix}: Annual 35 µg/m³, 24-hour 75 µg/m³`,
-                    };
-                  } else {
-                    // PM10
-                    return {
-                      annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                      daily:
-                        standard.level === 'Moderate'
-                          ? '24h: 150 µg/m³'
-                          : standard.level === 'Good'
-                            ? '24h: <150 µg/m³'
-                            : 'Exceeds 24h limit',
-                      note: `${orgPrefix}: Annual 70 µg/m³, 24-hour 150 µg/m³`,
-                    };
-                  }
+                if (standard.level === 'Good') {
+                  return {
+                    annual: `0-${annual} µg/m³`,
+                    daily: `0-${daily} µg/m³`,
+                    note: `${orgPrefix}: Annual ${annual} µg/m³, 24-hour ${daily} µg/m³`,
+                  };
                 }
+                if (standard.level === 'Moderate') {
+                  return {
+                    annual: `${annual}-${daily} µg/m³`,
+                    daily: `≤${daily} µg/m³`,
+                    note: `${orgPrefix}: Above annual limit, within 24-hour limit`,
+                  };
+                }
+                return {
+                  annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
+                  daily: 'Exceeds 24-hour limit',
+                  note: `${orgPrefix}: Significantly above the 24-hour limit`,
+                };
               };
 
               const detailedValues = getDetailedValues();

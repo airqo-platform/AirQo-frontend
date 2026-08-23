@@ -1,0 +1,466 @@
+import type {
+  UserChartConfig,
+  GroupChartReferenceLine,
+  ChartLocationColor,
+  Period,
+  UpdateChartRequest,
+} from '@/shared/types/api';
+import type {
+  FrequencyType,
+  PollutantType,
+  StandardsType,
+} from '@/shared/components/charts/types';
+import { getPollutantLabel } from '@/shared/utils/airQuality';
+import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
+
+export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
+
+/**
+ * Canonical unknown-name placeholder. The picker and sidecar both emit
+ * variations; all consumers guard with `isUnknownPlaceholder` to let the
+ * fallback chain (server names → sidecar → fleet summary) resolve real names.
+ */
+export const UNKNOWN_PLACEHOLDER = 'Unknown location';
+export const isUnknownPlaceholder = (name: string | undefined): boolean =>
+  !name || name.toLowerCase() === 'unknown location';
+
+export interface ExplorerChartDraft {
+  /** Persisted chart config _id (empty for an unsaved draft) */
+  id: string;
+  /** ThingSpeak field slot (1–8) the backend requires — round-tripped */
+  fieldId: number;
+  title: string;
+  /** Display subtitle — persisted server-side via `subTitle` (v2 API) */
+  subtitle: string;
+  chartType: ExplorerChartType;
+  /** Pollutant — kept client-side (see sidecar note below) */
+  pollutant: PollutantType;
+  /** Frequency — kept client-side (see sidecar note below) */
+  frequency: FrequencyType;
+  /** Effective request date range (from the picker or derived from `days`) */
+  startDate: string;
+  endDate: string;
+  siteIds: string[];
+  /**
+   * Resolved site display names for this chart. Hydrated from config.sites
+   * (server, authoritative) → sidecar.siteNames (legacy) → picker → fleet.
+   */
+  siteNames: Record<string, string>;
+  /** Null = use the chart component's default palette */
+  color: string | null;
+  /** Per-location series colors (id = site_id or device_id) */
+  locationColors: ChartLocationColor[];
+  /**
+   * When true, unset series render in shades of the ACTIVE theme primary
+   * instead of the fixed multi-hue palette (see `getThemeShade`).
+   */
+  themeColors: boolean;
+  /** Reference standard driving the guideline line and summary (WHO default) */
+  referenceStandard: StandardsType;
+  showLegend: boolean;
+  showGrid: boolean;
+  showTooltip: boolean;
+  referenceLines: GroupChartReferenceLine[];
+}
+
+export interface ExplorerChartSidecar {
+  subtitle: string;
+  /** Area is rendered client-side; the server stores the compatible line type. */
+  chartType?: ExplorerChartType;
+  pollutant: PollutantType;
+  frequency: FrequencyType;
+  /** Reference standard for the guideline line (WHO default) */
+  referenceStandard: StandardsType;
+  /**
+   * Null = chart component default palette. Absent (no stored entry) = legacy
+   * draft that should fall back to the persisted color.
+   */
+  color?: string | null;
+  /**
+   * When true, unset series render in shades of the ACTIVE theme primary
+   * instead of the fixed multi-hue palette. Absent (no stored entry) = false.
+   */
+  themeColors?: boolean;
+  /** Custom range picked in the dialog (fallback: derive from `days`) */
+  startDate: string;
+  endDate: string;
+  /** Display names for the chart's sites (chips, forecast selector) */
+  siteNames?: Record<string, string>;
+}
+
+/**
+ * The group-chart backend only persists a whitelist of fields (verified live
+ * against staging: extra fields like `pollutant` are silently dropped), so
+ * display/UX preferences live in a localStorage sidecar keyed by group +
+ * chart id. Area is a client-side presentation choice because the chart
+ * configuration API's persisted schema is not consistently Area-compatible;
+ * the sidecar preserves that choice while the server receives Line. Other
+ * server-persisted fields still sync across devices.
+ */
+const SIDECAR_STORAGE_KEY = 'nexus:analytics:chart-sidecar-v2';
+
+export const DEFAULT_CHART_SIDECAR: ExplorerChartSidecar = {
+  subtitle: '',
+  pollutant: 'pm2_5',
+  frequency: 'daily',
+  referenceStandard: 'WHO',
+  color: null,
+  themeColors: false,
+  startDate: '',
+  endDate: '',
+};
+
+const readSidecarMap = (): Record<string, ExplorerChartSidecar> => {
+  try {
+    const raw = window.localStorage.getItem(SIDECAR_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, ExplorerChartSidecar>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeSidecarMap = (map: Record<string, ExplorerChartSidecar>) => {
+  try {
+    window.localStorage.setItem(SIDECAR_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // Storage unavailable (private mode) — sidecar persistence is best-effort.
+  }
+};
+
+const sidecarKey = (groupId: string, chartId: string) =>
+  `${groupId}:${chartId}`;
+
+/**
+ * Reads the sidecar entry for a chart. When no entry exists, `color` is left
+ * `undefined` so legacy drafts fall back to their persisted color (see
+ * persistedConfigToDraft).
+ */
+export const readChartSidecar = (
+  groupId: string,
+  chartId: string
+): ExplorerChartSidecar => {
+  const map = readSidecarMap();
+  const stored = map[sidecarKey(groupId, chartId)];
+  if (!stored) {
+    // No stored entry — leave `color` absent so legacy drafts fall back to
+    // their persisted color (see persistedConfigToDraft).
+    return {
+      subtitle: '',
+      pollutant: 'pm2_5',
+      frequency: 'daily',
+      referenceStandard: 'WHO',
+      themeColors: false,
+      startDate: '',
+      endDate: '',
+    };
+  }
+  return { ...DEFAULT_CHART_SIDECAR, ...stored };
+};
+
+export const writeChartSidecar = (
+  groupId: string,
+  chartId: string,
+  sidecar: Partial<ExplorerChartSidecar>
+) => {
+  const map = readSidecarMap();
+  map[sidecarKey(groupId, chartId)] = {
+    ...DEFAULT_CHART_SIDECAR,
+    ...map[sidecarKey(groupId, chartId)],
+    ...sidecar,
+  };
+  writeSidecarMap(map);
+};
+
+export const removeChartSidecar = (groupId: string, chartId: string) => {
+  const map = readSidecarMap();
+  delete map[sidecarKey(groupId, chartId)];
+  writeSidecarMap(map);
+};
+
+const VALID_POLLUTANTS: ReadonlySet<string> = new Set(['pm2_5', 'pm10']);
+const VALID_FREQUENCIES: ReadonlySet<string> = new Set([
+  'hourly',
+  'daily',
+  'weekly',
+  'monthly',
+]);
+const VALID_STANDARDS: ReadonlySet<string> = new Set([
+  'WHO',
+  'NEMA_UGANDA',
+  'NEMA_KENYA',
+  'SOUTH_AFRICA',
+  'NIGERIA',
+]);
+
+export const normalizeStandard = (value?: string | null): StandardsType => {
+  const normalized = (value ?? 'WHO').toUpperCase();
+  return VALID_STANDARDS.has(normalized)
+    ? (normalized as StandardsType)
+    : 'WHO';
+};
+
+export const normalizePollutant = (value?: string | null): PollutantType => {
+  const normalized = (value ?? '').toLowerCase().replace('.', '_');
+  return VALID_POLLUTANTS.has(normalized)
+    ? (normalized as PollutantType)
+    : 'pm2_5';
+};
+
+export const normalizeFrequency = (value?: string | null): FrequencyType => {
+  const normalized = (value ?? '').toLowerCase();
+  return VALID_FREQUENCIES.has(normalized)
+    ? (normalized as FrequencyType)
+    : 'daily';
+};
+
+/**
+ * Map an explorer chart type (display-side) to the backend `chartType` value.
+ * Area is a client-side presentation choice; the backend only knows `line` / `bar`.
+ */
+export const toBackendChartType = (chartType: string): 'bar' | 'line' =>
+  chartType === 'Bar' ? 'bar' : 'line';
+
+export const normalizeExplorerChartType = (
+  value?: string | null
+): ExplorerChartType => {
+  const normalized = (value ?? '').toLowerCase();
+  if (normalized === 'area') return 'Area';
+  if (normalized === 'bar' || normalized === 'column') return 'Bar';
+  return 'Line';
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Range ending today covering `days` days, mirroring the backend semantics */
+export const deriveRangeFromDays = (
+  days: number
+): { startDate: string; endDate: string } => {
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  const startDate = new Date(endDate.getTime() - days * DAY_MS);
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  };
+};
+
+/** Number of days covered by a range (1 minimum) — persisted as `days` */
+export const computeDaysFromRange = (
+  startDate: string,
+  endDate: string
+): number => {
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return 7;
+  }
+  return Math.max(1, Math.round((end - start) / DAY_MS));
+};
+
+/** Compact label for a chart's date range, e.g. "Aug 4 - Aug 11, 2026" */
+export const formatChartRangeLabel = (
+  startDate: string,
+  endDate: string
+): string => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return '';
+  }
+  const format = (date: Date, includeYear: boolean) =>
+    date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      ...(includeYear ? { year: 'numeric' } : {}),
+    });
+  const sameYear = start.getFullYear() === end.getFullYear();
+  if (sameYear) {
+    return `${format(start, false)} - ${format(end, true)}`;
+  }
+  return `${format(start, true)} - ${format(end, true)}`;
+};
+
+/**
+ * The preferences API requires a top-level period object when a chart is
+ * mutated, even though the chart itself also stores the range as `days`.
+ * Keep the label aligned with the date picker so custom ranges are preserved.
+ */
+export const buildChartPeriod = (
+  startDate: string,
+  endDate: string
+): Period => ({
+  label: formatChartRangeLabel(startDate, endDate) || 'Selected date range',
+});
+
+/**
+ * The one-line subtitle shown on every chart card (focused workspace and
+ * overview): pollutant, frequency, date range and selection count.
+ */
+export const buildChartMetadata = (draft: ExplorerChartDraft): string => {
+  const parts = [
+    getPollutantLabel(draft.pollutant),
+    `${FREQUENCY_LABELS[draft.frequency] ?? draft.frequency} average`,
+    formatChartRangeLabel(draft.startDate, draft.endDate),
+    `${draft.siteIds.length} location${draft.siteIds.length === 1 ? '' : 's'}`,
+  ].filter(Boolean);
+  return parts.join(' • ');
+};
+
+/**
+ * The guideline averaging period a chart compares against: annual for monthly
+ * data, 24-hour for every other frequency. Shared by the reference line, the
+ * guideline value display and the standards dialog so the chart and the
+ * summary can never disagree.
+ */
+export const getGuidelinePeriod = (
+  frequency: FrequencyType
+): '24hr' | 'annual' => (frequency === 'monthly' ? 'annual' : '24hr');
+
+/**
+ * Build the `sites` snapshot entries for a chart create/update request.
+ * Only includes site_ids that have a known name — partial coverage is accepted
+ * by the backend (verified 2026-08-22). Empty-name entries are never emitted.
+ */
+export const buildSiteEntries = (
+  siteIds: string[],
+  names: Record<string, string>
+): { site_id: string; name: string }[] => {
+  if (!siteIds.length || !names) return [];
+  return siteIds
+    .filter(id => names[id] && !isUnknownPlaceholder(names[id]))
+    .map(id => ({ site_id: id, name: names[id] }));
+};
+
+/**
+ * Convert a persisted chart config (+ sidecar) into the runtime draft the
+ * explorer works with.
+ */
+export const persistedConfigToDraft = (
+  config: UserChartConfig,
+  sidecar: ExplorerChartSidecar = {
+    // Legacy default: no stored sidecar → persisted color/range apply.
+    subtitle: '',
+    pollutant: 'pm2_5',
+    frequency: 'daily',
+    referenceStandard: 'WHO',
+    startDate: '',
+    endDate: '',
+  }
+): ExplorerChartDraft => {
+  const days =
+    typeof config.days === 'number' && config.days > 0 ? config.days : 7;
+  const hasCustomRange = Boolean(sidecar.startDate && sidecar.endDate);
+  const range = hasCustomRange
+    ? { startDate: sidecar.startDate, endDate: sidecar.endDate }
+    : deriveRangeFromDays(days);
+
+  // Build siteNames: server names (config.sites, authoritative) then
+  // sidecar.siteNames fills remaining gaps (legacy browsers).
+  const siteNames: Record<string, string> = {};
+  if (Array.isArray(config.sites)) {
+    for (const { site_id, name } of config.sites) {
+      if (site_id && name && !isUnknownPlaceholder(name)) {
+        siteNames[site_id] = name;
+      }
+    }
+  }
+  if (sidecar.siteNames) {
+    for (const [id, name] of Object.entries(sidecar.siteNames)) {
+      if (id && name && !isUnknownPlaceholder(name) && !siteNames[id]) {
+        siteNames[id] = name;
+      }
+    }
+  }
+
+  return {
+    id: config._id ?? '',
+    fieldId:
+      typeof config.fieldId === 'number' && config.fieldId >= 1
+        ? config.fieldId
+        : 1,
+    title: config.title || 'Untitled chart',
+    // The v2 API persists subTitle server-side; the sidecar remains a
+    // fallback for charts created before that field was supported.
+    subtitle: config.subTitle ?? sidecar.subtitle,
+    chartType:
+      sidecar.chartType ?? normalizeExplorerChartType(config.chartType),
+    pollutant: normalizePollutant(sidecar.pollutant),
+    frequency: normalizeFrequency(sidecar.frequency),
+    ...range,
+    siteIds: config.site_ids ?? [],
+    siteNames,
+    // Explicit `null` (user picked the chart default) or an explicit color
+    // wins; an absent sidecar falls back to the persisted color.
+    color: sidecar.color === undefined ? (config.color ?? null) : sidecar.color,
+    themeColors: sidecar.themeColors ?? false,
+    locationColors: Array.isArray(config.locationColors)
+      ? config.locationColors
+      : [],
+    referenceStandard: normalizeStandard(sidecar.referenceStandard),
+    showLegend: config.showLegend !== false,
+    showGrid: config.showGrid !== false,
+    showTooltip: config.showTooltip !== false,
+    referenceLines: Array.isArray(config.referenceLines)
+      ? config.referenceLines
+      : [],
+  };
+};
+
+/**
+ * Convert a draft into the persistable fields of the user-chart contract.
+ * `fieldId` (1–8) is required by the backend; the caller assigns a stable
+ * slot per chart. A null color is omitted so the backend keeps its default.
+ * `subTitle` and `locationColors` are persisted server-side on v2. Area is
+ * sent as Line because it is rendered client-side from the same series data.
+ */
+export const draftToPersistedConfig = (
+  draft: ExplorerChartDraft,
+  fieldId = 1
+): UserChartConfig => ({
+  fieldId,
+  title: draft.title.trim() || 'Untitled chart',
+  subTitle: draft.subtitle.trim() || undefined,
+  chartType: draft.chartType === 'Area' ? 'Line' : draft.chartType,
+  days: computeDaysFromRange(draft.startDate, draft.endDate),
+  showLegend: draft.showLegend,
+  showGrid: draft.showGrid,
+  showTooltip: draft.showTooltip,
+  ...(draft.color ? { color: draft.color } : {}),
+  ...(draft.locationColors.length > 0
+    ? { locationColors: draft.locationColors }
+    : {}),
+  backgroundColor: '#ffffff',
+  referenceLines: draft.referenceLines,
+});
+
+/**
+ * Build the flat, update-only request body. In particular, do not send the
+ * create-only `fieldId`/`backgroundColor` fields back through the update
+ * endpoint; some deployments reject those extra fields during validation.
+ */
+export const draftToUpdateRequest = (
+  draft: ExplorerChartDraft
+): UpdateChartRequest => {
+  const persisted = draftToPersistedConfig(draft, draft.fieldId);
+
+  return {
+    period: buildChartPeriod(draft.startDate, draft.endDate),
+    title: persisted.title,
+    // Send an empty string intentionally so clearing a subtitle removes the
+    // previous server value instead of leaving stale text behind.
+    subTitle: draft.subtitle.trim(),
+    chartType: persisted.chartType,
+    days: persisted.days,
+    ...(persisted.color ? { color: persisted.color } : {}),
+    ...(persisted.locationColors
+      ? { locationColors: persisted.locationColors }
+      : {}),
+    showLegend: persisted.showLegend,
+    showGrid: persisted.showGrid,
+    showTooltip: persisted.showTooltip,
+    referenceLines: persisted.referenceLines,
+    site_ids: draft.siteIds,
+  };
+};

@@ -132,7 +132,7 @@ interface ReusableDialogProps {
   customFooter?: React.ReactNode;
 
   // Modal props
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
   preventBackdropClose?: boolean;
   className?: string;
 
@@ -255,6 +255,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '3xl': 'max-w-3xl',
     full: 'max-w-full',
   };
 

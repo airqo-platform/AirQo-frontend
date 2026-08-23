@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { PieLabelRenderProps } from 'recharts';
-import { getPrimaryColor } from '../../constants';
+import { resolveDefaultSeriesColor } from '../../colors';
 
 export interface StatsPieChartDataPoint {
   name: string;
@@ -25,6 +25,11 @@ interface StatsPieChartProps {
   showLabel?: boolean;
   showLegend?: boolean;
   colors?: string[];
+  /**
+   * When true, cells without an explicit `colors` entry render in shades of
+   * the ACTIVE theme primary instead of the fixed multi-hue palette.
+   */
+  themeColors?: boolean;
 }
 
 const StatsPieChart: React.FC<StatsPieChartProps> = ({
@@ -35,6 +40,7 @@ const StatsPieChart: React.FC<StatsPieChartProps> = ({
   showLabel = true,
   showLegend = true,
   colors,
+  themeColors = false,
 }) => {
   const total = data?.reduce((sum, d) => sum + (d.value || 0), 0) ?? 0;
 
@@ -90,7 +96,9 @@ const StatsPieChart: React.FC<StatsPieChartProps> = ({
           {data.map((_, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={colors?.[index] || getPrimaryColor(index)}
+              fill={
+                colors?.[index] || resolveDefaultSeriesColor(index, themeColors)
+              }
               stroke="hsl(var(--background))"
               strokeWidth={2}
             />

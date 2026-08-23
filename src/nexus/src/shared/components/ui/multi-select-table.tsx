@@ -110,6 +110,8 @@ interface MultiSelectTableProps<T = TableItem> {
   error?: string | null;
   loadingComponent?: React.ReactNode;
   errorComponent?: React.ReactNode;
+  /** Custom empty state rendered when the table has no data (overrides the default) */
+  emptyComponent?: React.ReactNode;
   onRefresh?: () => void;
   headerComponent?: React.ReactNode;
   multiSelect?: boolean;
@@ -118,6 +120,8 @@ interface MultiSelectTableProps<T = TableItem> {
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
   enableColumnFilters?: boolean;
   compactRows?: boolean;
+  /** When provided, the entire row becomes clickable with cursor-pointer + hover highlight */
+  onRowClick?: (item: T) => void;
   // Server-side search props
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
@@ -520,6 +524,7 @@ const MultiSelectTable = <T extends TableItem>({
   error = null,
   loadingComponent = null,
   errorComponent = null,
+  emptyComponent = null,
   onRefresh,
   headerComponent,
   multiSelect = false,
@@ -528,6 +533,7 @@ const MultiSelectTable = <T extends TableItem>({
   onSelectedItemsChange,
   enableColumnFilters = false,
   compactRows = false,
+  onRowClick,
   // Server-side search props
   searchTerm: controlledSearchTerm,
   onSearchChange,
@@ -739,6 +745,18 @@ const MultiSelectTable = <T extends TableItem>({
 
       if (aValue == null) return 1;
       if (bValue == null) return -1;
+
+      // Numeric-aware compare: finite numbers sort numerically so columns
+      // like PM2.5/AQI/rank behave correctly instead of lexicographically.
+      if (
+        typeof aValue === 'number' &&
+        typeof bValue === 'number' &&
+        Number.isFinite(aValue) &&
+        Number.isFinite(bValue)
+      ) {
+        const diff = aValue - bValue;
+        return sortConfig.direction === 'asc' ? diff : -diff;
+      }
 
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
@@ -1099,7 +1117,7 @@ const MultiSelectTable = <T extends TableItem>({
 
       <div className="relative">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-          <div className="min-w-full inline-block align-top">
+          <div className="min-w-full">
             {error ? (
               (errorComponent ?? (
                 <ErrorState
@@ -1124,19 +1142,21 @@ const MultiSelectTable = <T extends TableItem>({
                 />
               ))
             ) : paginatedData.length === 0 ? (
-              <EmptyState
-                title={
-                  searchTerm || hasActiveFilters || hasActiveColumnFilters
-                    ? 'No matching results found'
-                    : 'No data available'
-                }
-                description={
-                  searchTerm || hasActiveFilters || hasActiveColumnFilters
-                    ? "Try adjusting your search or filters to find what you're looking for."
-                    : 'There is no data to display at the moment.'
-                }
-                className="min-h-[300px] border-0 bg-transparent"
-              />
+              (emptyComponent ?? (
+                <EmptyState
+                  title={
+                    searchTerm || hasActiveFilters || hasActiveColumnFilters
+                      ? 'No matching results found'
+                      : 'No data available'
+                  }
+                  description={
+                    searchTerm || hasActiveFilters || hasActiveColumnFilters
+                      ? "Try adjusting your search or filters to find what you're looking for."
+                      : 'There is no data to display at the moment.'
+                  }
+                  className="min-h-[300px] border-0 bg-transparent"
+                />
+              ))
             ) : (
               <table className="w-full bg-card table-auto">
                 <thead className="border-b bg-muted border-border">
@@ -1161,7 +1181,9 @@ const MultiSelectTable = <T extends TableItem>({
                             : undefined
                         }
                       >
-                        <div className="flex items-center space-x-1 min-w-0">
+                        <div
+                          className={`flex items-center space-x-1 min-w-0${column.headerClassName?.includes('text-right') ? ' justify-end' : ''}`}
+                        >
                           <span
                             className={`truncate ${
                               sortable && column.sortable !== false
@@ -1214,11 +1236,21 @@ const MultiSelectTable = <T extends TableItem>({
                   {paginatedData.map((item, index) => (
                     <tr
                       key={item.id ?? index}
-                      className="transition-colors hover:bg-muted/50"
+                      className={
+                        onRowClick
+                          ? 'transition-colors hover:bg-muted/50 cursor-pointer'
+                          : 'transition-colors hover:bg-muted/50'
+                      }
+                      onClick={onRowClick ? () => onRowClick(item) : undefined}
                     >
                       {displayColumns.map(column => (
                         <td
                           key={column.key}
+                          onClick={
+                            column.key === 'checkbox'
+                              ? event => event.stopPropagation()
+                              : undefined
+                          }
                           className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                             column.key === 'checkbox'
                               ? 'w-12 max-w-[3rem] px-2 sm:px-3'

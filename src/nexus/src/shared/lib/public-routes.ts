@@ -16,15 +16,8 @@ export const publicRoutes = [
   '/request-organization',
 ];
 
-/**
- * Regex pattern that matches public auth routes.
- * Covers the explicit list plus org-scoped login/register.
- */
-const orgAuthRoutePattern = /^\/org\/[^/]+\/(login|register)$/;
-
 export const isPublicAuthRoute = (pathname: string): boolean =>
-  publicRoutes.some(route => pathname.startsWith(route)) ||
-  orgAuthRoutePattern.test(pathname);
+  publicRoutes.some(route => pathname.startsWith(route));
 
 /**
  * Public routes that authenticated users can access (e.g., invitation pages).

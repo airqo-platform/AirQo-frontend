@@ -1,16 +1,37 @@
 import type { AqiConfig } from '@/shared/types/aqi';
 
 // Chart data types
+/**
+ * Shape-agnostic input point. The backend may return {time,value}, {date,pm2_5},
+ * {timestamp,pm10}, or any other combination of field names.  The normalizer
+ * (normalizeAirQualityData) resolves the canonical `time`/`value` from any
+ * plausible shape so callers never need to know the exact contract.
+ */
 export interface AirQualityDataPoint {
-  site_id: string;
-  value: number;
-  time: string;
-  generated_name: string;
-  device_id: string;
-  name: string;
+  site_id?: string;
+  value?: number | string | { value?: number };
+  time?: string | number;
+  generated_name?: string;
+  device_id?: string;
+  name?: string;
   search_name?: string;
   location_name?: string;
   formatted_name?: string;
+  /** Backend d3 chart data carries site_name (no site_id) */
+  site_name?: string;
+  /** Common alternative time fields returned by various API shapes */
+  date?: string;
+  timestamp?: string | number;
+  datetime?: string;
+  /** Common alternative value fields returned by various API shapes */
+  pm2_5?: number | string | { value?: number };
+  pm10?: number | string | { value?: number };
+  pm25?: number | string;
+  pm25Value?: number | string;
+  pm10Value?: number | string;
+  count?: number;
+  /** Catch-all for any extra fields the API may include */
+  [key: string]: unknown;
 }
 
 export interface NormalizedChartData {
@@ -27,7 +48,8 @@ export interface NormalizedChartData {
 // Chart filter types
 export type FrequencyType = 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly';
 export type PollutantType = 'pm2_5' | 'pm10';
-export type StandardsType = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+export type StandardsType =
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -61,6 +83,25 @@ export interface ChartConfig {
   height?: number;
   width?: number | string;
   seriesColors?: Record<string, string>;
+  /**
+   * When true, series WITHOUT an explicit color render in shades of the
+   * ACTIVE theme primary (see `getThemeShade`) instead of the fixed
+   * multi-hue palette. Toggled per chart from the More menu / config
+   * dialog. Explicit picks (color / seriesColors) always win.
+   */
+  themeColors?: boolean;
+  /**
+   * Overrides the x-axis tick label rendering (defaults to
+   * `formatTimestampByFrequency`). Used for non-time x values (e.g. year
+   * buckets in the rankings history chart) so they pass through untouched.
+   */
+  xAxisTickFormatter?: (value: string) => string;
+  /**
+   * Overrides the tooltip header label rendering (defaults to the
+   * frequency-aware date formatting). Used together with
+   * `xAxisTickFormatter` when the x values are not ISO timestamps.
+   */
+  tooltipDateFormatter?: (label: string | number) => string;
   pollutant?: PollutantType;
   standards?: StandardsType;
   margin?: {
@@ -100,6 +141,8 @@ export interface TooltipData {
     payload: NormalizedChartData;
   }>;
   label?: string | number;
+  /** Index of the hovered data point (recharts 3 passes this to tooltip content) */
+  activeIndex?: number | undefined;
 }
 
 // Legend types
@@ -141,6 +184,14 @@ export interface ChartContainerProps {
   onAutoSelectToggle?: () => void;
   showReferenceLines?: boolean;
   onReferenceLinesToggle?: (show: boolean) => void;
+  /**
+   * When true, series without an explicit color render in shades of the
+   * ACTIVE theme primary instead of the fixed multi-hue palette. The More
+   * menu gains a "Theme colors" toggle when `onThemeColorsToggle` is set.
+   */
+  themeColors?: boolean;
+  /** Toggle handler for the "Theme colors" entry in the More menu */
+  onThemeColorsToggle?: () => void;
   currentFilters?: Partial<ChartFilters>;
   currentSites?: Array<{
     _id: string;
@@ -153,6 +204,38 @@ export interface ChartContainerProps {
   error?: string | null;
   showTitle?: boolean;
   showMoreButton?: boolean;
+  /**
+   * When provided, the More menu gains "Edit title & subtitle" and the header
+   * becomes inline-editable. The callback persists the change.
+   */
+  onEditTitle?: (title: string, subtitle?: string) => Promise<void> | void;
+  /** Custom actions rendered at the top of the More dropdown (e.g. edit/delete chart) */
+  menuItems?: React.ReactNode;
+  /**
+   * Footer hint rendered under the chart body (e.g. "Last update …"), used
+   * for trust signaling (IQAir/AirGradient pattern).
+   */
+  footerHint?: React.ReactNode;
+  /**
+   * Optional toolbar row rendered between the header and the chart. When
+   * provided, the More menu moves out of the header into the right side of
+   * this row (with `toolbarActions` just before it), and a matching
+   * separator line is drawn under the chart to close the section.
+   */
+  toolbar?: React.ReactNode;
+  /** Right-aligned actions inside the toolbar row, before the More menu */
+  toolbarActions?: React.ReactNode;
+  /**
+   * Optional time-range presets rendered as a segmented control between the
+   * header and the chart (e.g. "24H / 7D / 30D"). When provided together
+   * with `toolbar`, the presets render on the left side of the toolbar row;
+   * on their own they render in a compact toolbar row of their own.
+   */
+  periodPresets?: { value: string; label: string }[];
+  /** The currently active period preset value */
+  activePeriod?: string;
+  /** Called when the user selects a different period preset */
+  onPeriodChange?: (period: string) => void;
 }
 
 // Dynamic chart props
@@ -169,16 +252,65 @@ export interface DynamicChartProps {
   standards?: StandardsType;
   id?: string;
   onReferenceLinesToggle?: (show: boolean) => void;
+  /**
+   * Controlled hidden series keys. When provided, the internal legend-click
+   * state is overridden and clicks report through `onHiddenSeriesChange`.
+   */
+  hiddenSeries?: string[];
+  /** Called when the legend toggles a series while `hiddenSeries` is controlled */
+  onHiddenSeriesChange?: (hidden: string[]) => void;
+  /**
+   * Controlled series emphasis — while set, only this series stays vivid and
+   * the rest are dimmed (drives the location legend hover-highlight).
+   */
+  focusedSeries?: string | null;
+  /** Series keys rendered with a dashed stroke + connected nulls (forecast) */
+  dashedSeries?: string[];
+  /** Extra reference lines (e.g. the forecast "Now" boundary) */
+  additionalReferenceLines?: AdditionalReferenceLine[];
+  /** Prefer the 24-hour guideline over the annual one for the standards line */
+  referenceLinePeriod?: '24hr' | 'annual';
+  /**
+   * Display-label overrides keyed by series key (the picker's names).
+   * Applied to the legend and the tooltip.
+   */
+  seriesLabels?: Record<string, string>;
+  /**
+   * Display-label overrides keyed by site_id (the picker's names) — used by
+   * the tooltip's "Location:" line so it matches what the user selected.
+   */
+  locationLabels?: Record<string, string>;
+  /**
+   * Enables the top-right zoom controls (zoom in / out / reset) that window
+   * the rendered data. Defaults to auto — controls appear only on dense
+   * ordered charts (line/area/bar/scatter) above the zoom threshold.
+   * Pass `false` to force-disable, `true` to force-enable (still only on
+   * the zoom-capable chart types above — never on pie/radar, which don't
+   * support windowing).
+   */
+  zoomable?: boolean;
+}
+
+/** A generic reference line drawn on top of the chart (x or y anchored). */
+export interface AdditionalReferenceLine {
+  x?: number | string;
+  y?: number | string;
+  /** Short label rendered in a chip on the line (e.g. "Now") */
+  label?: string;
+  stroke?: string;
+  strokeDasharray?: string;
+  strokeWidth?: number;
 }
 
 // Air quality standards
 export interface AirQualityStandardsConfig {
-  organization: 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+  organization: StandardsType;
   pollutant: 'PM2.5' | 'PM10';
   showReferenceLine?: boolean;
 }
 
-export type ChartStandardsType = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+export type ChartStandardsType =
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;

@@ -205,7 +205,8 @@ export const CountryList: React.FC<CountryListProps> = ({
       </div>
 
       {/* ── Country list ────────────────────────────────────────────────── */}
-      {/* Mobile: hidden when collapsed, shown when expanded               */}
+      {/* Mobile: hidden when collapsed, shown when expanded — and scrollable
+          so it never pushes the locations list out of the sidebar pane.   */}
       {/* Desktop: always visible, horizontal scroll                       */}
       <div
         className={cn(
@@ -214,7 +215,7 @@ export const CountryList: React.FC<CountryListProps> = ({
           'sm:pt-3'
         )}
       >
-        <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:scrollbar-hide">
+        <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto overscroll-contain sm:max-h-none sm:flex-nowrap sm:overflow-x-auto sm:overflow-y-visible sm:scrollbar-hide">
           {countries.map(country => (
             <button
               key={country.code}

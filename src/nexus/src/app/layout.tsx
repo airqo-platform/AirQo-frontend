@@ -15,6 +15,7 @@ import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 import AppNetworkGate from '@/shared/components/AppNetworkGate';
+import { AiAssistantProvider } from '@/modules/ai/context/ai-assistant-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -59,8 +60,10 @@ export default function RootLayout({
                 <PostHogProvider>
                   <AppNetworkGate>
                     <ThemeProvider>
-                      {children}
-                      <Toaster />
+                      <AiAssistantProvider>
+                        {children}
+                        <Toaster />
+                      </AiAssistantProvider>
                     </ThemeProvider>
                   </AppNetworkGate>
                 </PostHogProvider>

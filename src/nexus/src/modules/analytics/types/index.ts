@@ -42,6 +42,14 @@ export interface AnalyticsCardProps {
   selectedPollutant?: PollutantType;
   aqiConfig?: AqiConfig | null;
   onClick?: (site: SiteData) => void;
+  /** Show the trend badge (defaults to true) */
+  showTrend?: boolean;
+  /** Make the card clickable (role/button/cursor, defaults to true) */
+  interactive?: boolean;
+  /** Small uppercase label rendered above the site name (e.g. "Most polluted") */
+  headerLabel?: string;
+  /** Optional content rendered below the value/icon row (e.g. AQI + site count) */
+  extraInfo?: ReactNode;
 }
 
 // Favorite locations props interface
@@ -57,7 +65,6 @@ export interface QuickAccessLocationsProps {
     filter: string,
     value: string | { startDate: string; endDate: string }
   ) => void;
-  onManageFavorites: () => void;
   className?: string;
   title?: string;
   subtitle?: string;

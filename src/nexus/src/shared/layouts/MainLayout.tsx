@@ -11,11 +11,14 @@ import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation';
 import { Footer } from '@/shared/components/ui/footer';
 import { NotificationBanner } from '@/shared/components/NotificationBanner';
-import { useAppSelector } from '@/shared/hooks/redux';
+import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
+import { setSidebarCollapsed } from '@/shared/store/uiSlice';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
 import { useUser } from '@/shared/hooks/useUser';
 import { MaintenanceBanner } from '../components';
 import { FeedbackLauncher } from '@/modules/feedback';
+import { AiAssistant } from '@/modules/ai/components/AiAssistant';
+import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -35,7 +38,47 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const theme = useAppSelector(state => state.theme);
   const { isLoading: userLoading, isLoggingOut } = useUser();
+  const { isOpen: isAiDrawerOpen } = useAiAssistantContext();
+  const dispatch = useAppDispatch();
   useGlobalLoading(isLoggingOut, { priority: 100, delayMs: 0 });
+
+  // Auto-collapse sidebar when AI drawer opens; restore on close.
+  // The ref saves the user's pre-drawer preference so the restore
+  // always matches their persisted state, even if they toggled
+  // the sidebar manually while the drawer was open.
+  const preDrawerCollapsedRef = React.useRef(sidebarCollapsed);
+  const suppressTrackRef = React.useRef(false);
+  const wasDrawerOpenRef = React.useRef(isAiDrawerOpen);
+
+  // Track user-initiated sidebar changes while the drawer is open,
+  // so restore reflects their final intent.
+  React.useEffect(() => {
+    if (isAiDrawerOpen && !suppressTrackRef.current) {
+      preDrawerCollapsedRef.current = sidebarCollapsed;
+    }
+    // Reset suppress after our tracking effect has seen it.
+    if (suppressTrackRef.current) {
+      suppressTrackRef.current = false;
+    }
+  }, [sidebarCollapsed, isAiDrawerOpen]);
+
+  React.useEffect(() => {
+    if (isAiDrawerOpen && !wasDrawerOpenRef.current) {
+      // Drawer just opened — save state, then force-collapse.
+      preDrawerCollapsedRef.current = sidebarCollapsed;
+      if (!sidebarCollapsed) {
+        suppressTrackRef.current = true;
+        dispatch(setSidebarCollapsed(true));
+      }
+    } else if (!isAiDrawerOpen && wasDrawerOpenRef.current) {
+      // Drawer just closed — restore user's pre-drawer preference.
+      dispatch(setSidebarCollapsed(preDrawerCollapsedRef.current));
+    }
+    wasDrawerOpenRef.current = isAiDrawerOpen;
+    // Intentionally keyed only on drawer open/close — sidebarCollapsed
+    // changes while open are tracked in the effect above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAiDrawerOpen]);
 
   return (
     <>
@@ -50,8 +93,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
           <div
             className={cn(
-              'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
-              theme.interfaceStyle === 'bordered' && 'border border-border'
+              'flex flex-col h-screen gap-2 p-1 overflow-hidden',
+              theme.interfaceStyle === 'bordered' && 'border border-border',
+              isAiDrawerOpen &&
+                'md:pr-[calc(400px+0.75rem)] transition-[padding] duration-150 ease-out motion-reduce:transition-none'
             )}
           >
             {/* Fixed Header */}
@@ -134,6 +179,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             )}
 
             <FeedbackLauncher />
+            <AiAssistant />
           </div>
 
           <GlobalSidebar />

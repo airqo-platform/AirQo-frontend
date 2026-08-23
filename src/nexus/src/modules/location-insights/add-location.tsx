@@ -33,6 +33,7 @@ const AddLocation: React.FC = () => {
   const {
     sites,
     isLoading,
+    isRefreshing,
     error,
     totalSites,
     totalPages,
@@ -288,6 +289,7 @@ const AddLocation: React.FC = () => {
             onSelectedItemsChange={handleSelectionChange}
             multiSelect={true}
             loading={isLoading}
+            isRefreshing={isRefreshing}
             error={error}
             // Server-side pagination props
             currentPage={currentPage}

@@ -1,5 +1,10 @@
 import React from 'react';
-import { AqMonitor03, AqMarkerPin03, AqGlobe01 } from '@airqo/icons-react';
+import {
+  AqChevronRight,
+  AqMonitor03,
+  AqMarkerPin03,
+  AqGlobe01,
+} from '@airqo/icons-react';
 import { ColumnConfig, TabConfig, TabType } from '../types/dataExportTypes';
 import { DEVICE_CATEGORY_OPTIONS } from '../constants/dataExportConstants';
 
@@ -42,6 +47,13 @@ export const getSitesColumns = (): ColumnConfig[] => [
     minWidth: '140px',
     cellClassName: 'whitespace-nowrap',
   },
+  {
+    key: '_actions',
+    label: '',
+    width: '3rem',
+    minWidth: '3rem',
+    render: () => <AqChevronRight className="h-4 w-4 text-muted-foreground" />,
+  },
 ];
 
 /**
@@ -72,6 +84,13 @@ export const getDevicesColumns = (): ColumnConfig[] => [
       );
       return <span>{option?.label || category}</span>;
     },
+  },
+  {
+    key: '_actions',
+    label: '',
+    width: '3rem',
+    minWidth: '3rem',
+    render: () => <AqChevronRight className="h-4 w-4 text-muted-foreground" />,
   },
 ];
 
