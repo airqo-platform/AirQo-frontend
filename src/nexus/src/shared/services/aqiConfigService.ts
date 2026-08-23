@@ -5,6 +5,7 @@ import type {
   AqiPollutant,
   AqiRangesResponse,
   UpdateAqiRangesRequest,
+  ResetAqiRangesRequest,
 } from '../types/aqi';
 
 const extractSuccessData = <T extends { success?: boolean; message?: string }>(
@@ -29,8 +30,7 @@ const validateAqiRangesResponse = (
     : undefined;
   const hasSequentialDisplayOrder = orderedRanges?.every(
     (range, index) =>
-      Number.isInteger(range.display_order) &&
-      range.display_order === index + 1
+      Number.isInteger(range.display_order) && range.display_order === index + 1
   );
   const hasExpectedKeys = orderedRanges?.every(
     (range, index) => range.key === AQI_RANGE_KEYS[index]
@@ -121,12 +121,15 @@ export class AqiConfigService {
     return extractSuccessData(response.data, 'Failed to update AQI ranges');
   }
 
-  async resetAqiRanges(adminSecret: string): Promise<AqiRangesResponse> {
+  async resetAqiRanges(
+    adminSecret: string,
+    pollutant: AqiPollutant
+  ): Promise<AqiRangesResponse> {
     const client = await this.requireAuthenticatedClient();
     const response = await client.delete<AqiRangesResponse>(
       '/devices/aqi-ranges',
       {
-        data: { admin_secret: adminSecret },
+        data: { admin_secret: adminSecret, pollutant } as ResetAqiRangesRequest,
       }
     );
     return extractSuccessData(response.data, 'Failed to reset AQI ranges');

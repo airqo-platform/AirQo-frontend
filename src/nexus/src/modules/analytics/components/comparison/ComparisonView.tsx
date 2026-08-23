@@ -21,6 +21,10 @@ import {
   buildEmptyComparisonRow,
   type ComparisonRow,
 } from '../../utils/comparisonRows';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { AqiLegend } from '../explorer/AqiLegend';
+import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
+import type { AqiPollutant } from '@/shared/types/aqi';
 import { ComparisonSitePicker } from './ComparisonSitePicker';
 import { ComparisonTableView } from './ComparisonTableView';
 
@@ -168,6 +172,11 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     siteIds: pickerIds,
   });
 
+  const { config: pm25Config } = useAqiConfig('pm2_5');
+  const { config: pm10Config } = useAqiConfig('pm10');
+
+  const [legendPollutant, setLegendPollutant] = useState<AqiPollutant>('pm2_5');
+
   const readingsBySiteId = useMemo(() => {
     const map = new Map<string, RecentReading>();
     readings.forEach(reading => {
@@ -314,7 +323,25 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         error={readingsError?.message ?? null}
         hasSelection={pickerIds.length > 0}
         onRetry={refetchReadings}
+        pm25Config={pm25Config}
+        pm10Config={pm10Config}
       />
+
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <SegmentedTabs
+          options={[
+            { value: 'pm2_5' as AqiPollutant, label: 'PM2.5' },
+            { value: 'pm10' as AqiPollutant, label: 'PM10' },
+          ]}
+          value={legendPollutant}
+          onChange={setLegendPollutant}
+          ariaLabel="AQI legend pollutant"
+          size="sm"
+        />
+        <AqiLegend
+          aqiConfig={legendPollutant === 'pm2_5' ? pm25Config : pm10Config}
+        />
+      </div>
     </div>
   );
 };
