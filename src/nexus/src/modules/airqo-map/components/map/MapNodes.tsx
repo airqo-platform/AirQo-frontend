@@ -337,17 +337,40 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 // ─── Memo equality ─────────────────────────────────────────────────────────────
 
 /**
+ * Cheap deterministic contribution of a category string to the fingerprint —
+ * additive char-code sum (0 when absent). Approximate by design: collisions
+ * are possible but categories are short and stable API enums.
+ */
+const categoryFingerprint = (category?: string | null): number => {
+  if (!category) return 0;
+  let sum = 0;
+  for (let i = 0; i < category.length; i++) {
+    sum += category.charCodeAt(i);
+  }
+  return sum;
+};
+
+/**
  * Cluster readings content fingerprint — detects changes in pm2.5/pm10 values
- * even when the cluster ID and point count are unchanged.
+ * AND each member's effective AQI category even when the cluster ID and point
+ * count are unchanged.
  *
- * We compute a cheap numeric sum of pollutant values rather than doing a deep
- * comparison or JSON serialisation; this is O(n) but avoids allocation.
+ * We compute a cheap numeric sum of pollutant values plus per-member category
+ * fingerprints rather than doing a deep comparison or JSON serialisation;
+ * this is O(n) but avoids allocation.
+ *
+ * FIX (CodeRabbit review): best/worst cluster icons derive from member display
+ * levels, which are authoritative from `aqiCategory` /
+ * `fullReadingData.aqi_category` (see resolveReadingDisplayLevel). A member
+ * whose only change is its category must therefore change the fingerprint.
  */
 const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
   let sum = 0;
   for (const r of readings) {
     // XOR-accumulate IDs' char codes for a fast structural check
     sum += (r.pm25Value ?? 0) + (r.pm10Value ?? 0);
+    sum += categoryFingerprint(r.aqiCategory);
+    sum += categoryFingerprint(r.fullReadingData?.aqi_category);
   }
   return sum;
 };
@@ -362,6 +385,12 @@ const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
  * FIX (CodeRabbit review): cluster.readings content is now checked via a
  * lightweight fingerprint so that updated pollutant values with unchanged
  * member IDs correctly invalidate the memo and trigger a re-render.
+ *
+ * FIX (CodeRabbit review): the individual-reading branch also compares
+ * `aqiCategory` / `fullReadingData.aqi_category`, and the cluster fingerprint
+ * includes each member's effective category — these are the AUTHORITATIVE
+ * display classification (resolveReadingDisplayLevel), so a category-only
+ * change must refresh the node's icon and color.
  *
  * FIX (glitching): zoomLevel is compared as Math.round() so fractional zoom
  * changes during smooth pan/zoom animations don't cause constant re-renders.
@@ -388,7 +417,12 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
     prev.reading?.id !== next.reading?.id ||
     prev.reading?.pm25Value !== next.reading?.pm25Value ||
     prev.reading?.pm10Value !== next.reading?.pm10Value ||
-    prev.reading?.status !== next.reading?.status
+    prev.reading?.status !== next.reading?.status ||
+    // FIX: category is the authoritative display classification — a
+    // category-only change must invalidate the memo (icon/color refresh).
+    prev.reading?.aqiCategory !== next.reading?.aqiCategory ||
+    prev.reading?.fullReadingData?.aqi_category !==
+      next.reading?.fullReadingData?.aqi_category
   )
     return false;
 

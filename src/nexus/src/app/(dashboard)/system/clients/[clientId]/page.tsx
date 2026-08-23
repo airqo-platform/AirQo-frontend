@@ -253,7 +253,7 @@ const ClientDetailsPage: React.FC = () => {
     if (isForbiddenError(error)) {
       return (
         <PermissionGuard
-          requiredPermissions={['SYSTEM_ADMIN']}
+          requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
           accessDeniedTitle="Access Restricted"
           accessDeniedMessage="You need system administrator permissions to access API client details."
         >
@@ -285,7 +285,7 @@ const ClientDetailsPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredPermissions={['SYSTEM_ADMIN']}
+      requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administrator permissions to access API client details."
     >

@@ -2,6 +2,7 @@ import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
 import { useRef, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { adminService } from '../services/adminService';
 import { userService } from '../services/userService';
 
@@ -248,9 +249,42 @@ export const useUserStatistics = () => {
 
 // Get pre-aggregated user statistics breakdown
 export const useUserStatsBreakdown = (months = 12, limit = 8) => {
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  const fetcher = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      return await userService.getUserStatsBreakdown(
+        months,
+        limit,
+        controller.signal
+      );
+    } catch (err: unknown) {
+      // Superseded requests must never surface as user-facing errors;
+      // keepPreviousData keeps the UI populated from the last successful fetch.
+      if (axios.isCancel(err)) {
+        return undefined;
+      }
+      throw err;
+    } finally {
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+      }
+    }
+  }, [months, limit]);
+
   return useSWR(
     `admin/user-stats-breakdown?months=${months}&limit=${limit}`,
-    () => userService.getUserStatsBreakdown(months, limit),
+    fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,

@@ -505,12 +505,13 @@ export class UserService {
   // Get pre-aggregated user statistics breakdown - authenticated endpoint
   async getUserStatsBreakdown(
     months = 12,
-    limit = 8
+    limit = 8,
+    signal?: AbortSignal
   ): Promise<UserStatsBreakdownResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       UserStatsBreakdownResponse | ApiErrorResponse
-    >(`/users/stats/breakdown?months=${months}&limit=${limit}`);
+    >(`/users/stats/breakdown?months=${months}&limit=${limit}`, { signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {

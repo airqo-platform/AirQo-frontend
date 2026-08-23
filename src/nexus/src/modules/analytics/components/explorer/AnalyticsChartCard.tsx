@@ -33,6 +33,7 @@ import {
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
 import type {
+  ChartType,
   NormalizedChartData,
   PollutantType,
   StandardsType,
@@ -67,6 +68,16 @@ const FORECAST_SERIES_PREFIX = 'Forecast · ';
 const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
   { value: 'pm2_5', label: 'PM2.5' },
   { value: 'pm10', label: 'PM10' },
+];
+
+// Toolbar chart-type options: the draft/backend contract only persists
+// Line | Area | Bar, and scatter/radar/pie misrepresent multi-site time
+// series (and could never persist), so the quick-view selector offers
+// exactly the three supported types.
+const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+  { value: 'line', label: 'Line Chart' },
+  { value: 'area', label: 'Area Chart' },
+  { value: 'bar', label: 'Bar Chart' },
 ];
 
 interface ForecastSeries {
@@ -115,8 +126,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => readChartSidecar(groupId, draft.id).themeColors ?? false
   );
 
-  // Local overrides — non-persistent quick-view tweaks for pollutant and
-  // date range, consistent with the card's existing local state pattern.
+  // Local overrides — non-persistent quick-view tweaks for pollutant, date
+  // range and chart type, consistent with the card's existing local state
+  // pattern.
   const [pollutantOverride, setPollutantOverride] = useState<PollutantType>(
     draft.pollutant
   );
@@ -124,6 +136,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     startDate: string;
     endDate: string;
   }>({ startDate: draft.startDate, endDate: draft.endDate });
+  const [chartTypeOverride, setChartTypeOverride] = useState<ChartType>(
+    () => draft.chartType.toLowerCase() as ChartType
+  );
 
   const { config: aqiConfig } = useAqiConfig(pollutantOverride);
 
@@ -414,6 +429,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     });
   }, [draft.startDate, draft.endDate]);
 
+  useEffect(() => {
+    setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+  }, [draft.chartType]);
+
   // Stable reference for the DatePicker so it only re-syncs when dates change.
   const datePickerValue = useMemo(
     () => ({
@@ -455,6 +474,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         themeColors={themeColors}
+        // Quick-view chart-type switcher in the toolbar (local override
+        // only — persistence stays with the draft dialog).
+        onChartTypeChange={setChartTypeOverride}
+        currentChartType={chartTypeOverride}
+        autoSelectChart={false}
+        chartTypeOptions={CHART_TYPE_OPTIONS}
         className="w-full"
         footerHint={
           <div className="flex items-center justify-between gap-3">
@@ -570,7 +595,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         <DynamicChart
           data={mergedData}
           config={{
-            type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
+            type: chartTypeOverride,
             showGrid: draft.showGrid,
             showTooltip: draft.showTooltip,
             showLegend: draft.showLegend,

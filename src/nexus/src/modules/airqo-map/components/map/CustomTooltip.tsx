@@ -352,7 +352,7 @@ const CompactClusterTooltipContent: React.FC<{
           </div>
           <div className="text-sm" style={{ color }}>
             AQI {formatAqiIndex(hasData ? avgAqiIndex : undefined)}
-            {hasData && avgConcentration > 0
+            {hasData
               ? ` · ${formatValue(avgConcentration)} µg/m³`
               : ' · No data for selected pollutant'}
           </div>

@@ -394,7 +394,7 @@ const ClientsAdminPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredPermissions={['SYSTEM_ADMIN']}
+      requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administrator permissions to manage API clients."
     >

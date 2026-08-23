@@ -182,6 +182,11 @@ export interface ChartContainerProps {
   selectedStandards?: StandardsType;
   autoSelectChart?: boolean;
   onAutoSelectToggle?: () => void;
+  /**
+   * Chart types offered in the toolbar selector; defaults to all except
+   * 'area', matching the More menu list.
+   */
+  chartTypeOptions?: { value: ChartType; label: string }[];
   showReferenceLines?: boolean;
   onReferenceLinesToggle?: (show: boolean) => void;
   /**

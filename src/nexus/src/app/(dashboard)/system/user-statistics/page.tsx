@@ -108,8 +108,13 @@ const UserStatisticsPage: React.FC = () => {
     mutate: mutateBreakdown,
   } = useUserStatsBreakdown(months);
 
-  const isLoading = statsLoading || breakdownLoading;
-  const error = statsError || breakdownError;
+  const isLoading =
+    (statsLoading && !statsResponse) ||
+    (breakdownLoading && !breakdownResponse);
+  const isRefreshing = statsLoading || breakdownLoading;
+  const error =
+    (statsError && !statsResponse) || (breakdownError && !breakdownResponse);
+  const hasStaleError = !error && Boolean(statsError || breakdownError);
 
   const stats = useMemo(() => {
     const s = statsResponse?.users_stats;
@@ -235,6 +240,15 @@ const UserStatisticsPage: React.FC = () => {
     }
   }, [mutateStats, mutateBreakdown]);
 
+  if (isForbiddenError(statsError || breakdownError)) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message="You do not have the required permissions to view user statistics."
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <LoadingState
@@ -245,14 +259,6 @@ const UserStatisticsPage: React.FC = () => {
   }
 
   if (error) {
-    if (isForbiddenError(error)) {
-      return (
-        <AccessDenied
-          title="Access Denied"
-          message="You do not have the required permissions to view user statistics."
-        />
-      );
-    }
     return (
       <div className="p-6 space-y-4">
         <ErrorBanner
@@ -262,7 +268,7 @@ const UserStatisticsPage: React.FC = () => {
         <Button
           onClick={handleRefresh}
           Icon={AqRefreshCw05}
-          loading={isLoading}
+          loading={isRefreshing}
         >
           Retry
         </Button>
@@ -272,6 +278,25 @@ const UserStatisticsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {hasStaleError && (
+        <div className="space-y-2">
+          <ErrorBanner
+            title="Failed to refresh user statistics"
+            message={
+              (statsError || breakdownError)?.message ||
+              'Showing the last successfully loaded data'
+            }
+          />
+          <Button
+            variant="outlined"
+            onClick={handleRefresh}
+            Icon={AqRefreshCw05}
+            loading={isRefreshing}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
       <PageHeading
         title="User Statistics"
         subtitle="High-level insights and analytics across all platform users"
@@ -297,7 +322,7 @@ const UserStatisticsPage: React.FC = () => {
               variant="outlined"
               onClick={handleRefresh}
               Icon={AqRefreshCw05}
-              loading={isLoading}
+              loading={isRefreshing}
             >
               Refresh
             </Button>
@@ -376,7 +401,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Account Status"
           subtitle="Active vs inactive users"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           <StatsPieChart data={statusData} />
@@ -386,7 +411,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Verification Status"
           subtitle="Verified vs unverified users"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           <StatsPieChart data={verificationData} />
@@ -396,7 +421,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Users by Organization"
           subtitle="Top organizations by user count"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {organizationData.length > 0 ? (
@@ -446,7 +471,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Login Activity"
           subtitle="Users grouped by login count"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {loginRangesData.some(d => d.value > 0) ? (
@@ -492,7 +517,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Signups Over Time"
           subtitle={`New users in the last ${months} months`}
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {signupsOverTimeData.length > 0 ? (
@@ -548,7 +573,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Top Groups"
           subtitle="Groups with the most members"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {topGroupsData.length > 0 ? (
@@ -598,7 +623,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Users by Role"
           subtitle="Users grouped by assigned role"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {rolesData.length > 0 ? (
@@ -644,7 +669,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Users by Country"
           subtitle="Top countries by user count"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {geographyData.length > 0 ? (
@@ -694,7 +719,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Verification Trend"
           subtitle="Verification rate by signup cohort"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {verificationTrendData.length > 0 ? (
@@ -750,7 +775,7 @@ const UserStatisticsPage: React.FC = () => {
           title="Unverified Backlog"
           subtitle="Unverified users by account age"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
           minContentHeight="300px"
         >
           {unverifiedAgingData.length > 0 ? (

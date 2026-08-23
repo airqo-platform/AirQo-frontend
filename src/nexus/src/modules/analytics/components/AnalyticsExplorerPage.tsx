@@ -48,19 +48,24 @@ type OverviewTab = 'trends' | 'comparison';
 const OVERVIEW_TAB_STORAGE_KEY = 'nexus:analytics:overview-tab';
 
 // The active page-level tab survives reloads too (mirrors the Rankings tab).
+// Comparison tab temporarily disabled — always return 'trends' so any stored
+// "comparison" value from before this change is neutralized.
 const readStoredOverviewTab = (): OverviewTab => {
   if (typeof window === 'undefined') return 'trends';
   try {
-    const stored = window.localStorage.getItem(OVERVIEW_TAB_STORAGE_KEY);
-    return stored === 'trends' || stored === 'comparison' ? stored : 'trends';
+    // Purge any legacy 'comparison' value so a future re-enable starts clean;
+    // the value is no longer honored, but leaving it would silently resurrect the tab.
+    window.localStorage.removeItem(OVERVIEW_TAB_STORAGE_KEY);
+    return 'trends';
   } catch {
     return 'trends';
   }
 };
 
+// Comparison tab temporarily disabled — re-enable by restoring the 'comparison'
+// option and allowing it in readStoredOverviewTab.
 const OVERVIEW_TAB_OPTIONS: { value: OverviewTab; label: string }[] = [
   { value: 'trends', label: 'Trends' },
-  { value: 'comparison', label: 'Comparison' },
 ];
 
 const TRENDS_LAYOUT_OPTIONS: {

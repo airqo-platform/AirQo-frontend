@@ -61,6 +61,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   currentChartType,
   autoSelectChart = true,
   onAutoSelectToggle,
+  chartTypeOptions,
   onFiltersChange,
   currentFilters,
   showReferenceLines: initialShowReferenceLines = true,
@@ -263,6 +264,92 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   const currentStandardsOrg: StandardsType =
     (currentStandards?.organization as StandardsType) || 'WHO';
 
+  // Toolbar chart-type selector: shown next to the period presets / toolbar
+  // content when a consumer wires chart-type control. When visible it
+  // replaces the More menu's chart-type section to avoid duplicate pickers;
+  // without a toolbar row to host it, the More menu keeps its own section.
+  const hasToolbarRow = Boolean(
+    toolbar || (periodPresets && periodPresets.length > 0 && onPeriodChange)
+  );
+  const toolbarChartTypeSelectorVisible = Boolean(
+    onChartTypeChange && currentChartType && hasToolbarRow
+  );
+  const resolvedChartTypeOptions =
+    chartTypeOptions ??
+    Object.entries(CHART_TYPE_LABELS)
+      .filter(([type]) => type !== 'area')
+      .map(([type, label]) => ({ value: type as ChartType, label }));
+
+  // Compact chart-type dropdown rendered inside the toolbar rows, next to
+  // the date range / period presets. It lives inside containers already
+  // marked data-export-ignore / data-html2canvas-ignore, so exports stay
+  // clean without extra attributes.
+  const renderToolbarChartTypeSelector = () => {
+    if (
+      !toolbarChartTypeSelectorVisible ||
+      !onChartTypeChange ||
+      !currentChartType
+    ) {
+      return null;
+    }
+
+    const handleSelect = (value: ChartType) => {
+      // A manual choice wins over auto-selection — mirror the More menu,
+      // where picking a type is only possible once auto mode is off.
+      if (autoSelectChart) onAutoSelectToggle?.();
+      onChartTypeChange(value);
+    };
+
+    const currentLabel =
+      resolvedChartTypeOptions.find(option => option.value === currentChartType)
+        ?.label ?? currentChartType;
+    // In auto mode no type is pinned, so surface the mode instead of a
+    // label that would be overwritten anyway.
+    const showAutoMode = Boolean(autoSelectChart && onAutoSelectToggle);
+
+    return (
+      <div>
+        <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
+          Chart type
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Chart type"
+              className={cn(
+                'flex h-9 items-center space-x-1 rounded-md border border-input bg-background px-3 text-sm font-medium text-muted-foreground shadow-sm',
+                'transition-colors hover:bg-muted hover:text-foreground',
+                'focus:outline-none focus:ring-2 focus:ring-primary/20'
+              )}
+            >
+              <span>{showAutoMode ? 'Auto' : currentLabel}</span>
+              <HiChevronDown className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="start" className="w-40">
+            {resolvedChartTypeOptions.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={cn(
+                  'flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors',
+                  currentChartType === option.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-muted'
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  };
+
   // The full "More" menu. Rendered in the header by default; when a toolbar
   // is provided it moves to the right side of the toolbar row instead.
   const renderMoreDropdown = () => (
@@ -367,8 +454,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             </button>
           )}
 
-          {/* Chart Type Selection */}
-          {onChartTypeChange && (
+          {/* Chart Type Selection — hidden while the toolbar selector is
+              visible so the same control isn't offered twice */}
+          {onChartTypeChange && !toolbarChartTypeSelectorVisible && (
             <>
               <div className="px-3 py-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -476,6 +564,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               />
             )}
             {toolbar}
+            {renderToolbarChartTypeSelector()}
           </div>
           <div className="flex items-center gap-4">
             {toolbarActions}
@@ -504,6 +593,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               value={activePeriod ?? periodPresets[0]?.value ?? ''}
               onChange={onPeriodChange}
             />
+            {renderToolbarChartTypeSelector()}
           </div>
         )}
 
