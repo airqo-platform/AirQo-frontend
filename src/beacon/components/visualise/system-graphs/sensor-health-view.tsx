@@ -195,8 +195,8 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
           )}
 
           <CardContent className="p-4 pt-5">
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-80 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <ScatterChart margin={{ top: 10, right: 30, left: 10, bottom: 25 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis
@@ -245,8 +245,8 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
             </Badge>
           </CardHeader>
           <CardContent className="p-4 pt-5">
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={errorMarginData} margin={{ top: 5, right: 30, left: 10, bottom: 20 }}>
                   <defs>
                     <linearGradient id="errorGrad" x1="0" y1="0" x2="0" y2="1">

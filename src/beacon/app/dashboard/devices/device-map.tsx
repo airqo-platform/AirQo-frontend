@@ -35,9 +35,9 @@ interface DeviceMapProps {
 
 export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const markersRef = useRef<L.Marker[]>([])
-  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
+  const geoJsonLayerRef = useRef<any>(null)
   const hasInitializedRef = useRef(false)
 
 

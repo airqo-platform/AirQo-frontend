@@ -6,10 +6,23 @@ import { AlertTriangle, Info } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { config } from '@/lib/config'
 
-export default function HealthTipsSection({ deviceId, readingKey, airQuality }) {
-  const [healthTips, setHealthTips] = useState([])
+interface HealthTip {
+  tip_id?: string
+  title: string
+  description: string
+  category: string
+}
+
+interface HealthTipsSectionProps {
+  deviceId?: string
+  readingKey?: string
+  airQuality?: string
+}
+
+export default function HealthTipsSection({ deviceId, readingKey, airQuality }: HealthTipsSectionProps) {
+  const [healthTips, setHealthTips] = useState<HealthTip[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchHealthTips = async () => {
@@ -49,9 +62,9 @@ export default function HealthTipsSection({ deviceId, readingKey, airQuality }) 
 
         const data = await response.json()
         setHealthTips(data.tips || [])
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching health tips:", err)
-        setError(err.message)
+        setError(err.message || "Failed to load health tips")
         setHealthTips([
           {
             title: "For Everyone",
@@ -85,7 +98,7 @@ export default function HealthTipsSection({ deviceId, readingKey, airQuality }) 
     }
   }
 
-  const renderTipBadge = (title) => {
+  const renderTipBadge = (title?: string | null) => {
     if (!title) return null
     const lowercase = title.toLowerCase()
     const bgColor =

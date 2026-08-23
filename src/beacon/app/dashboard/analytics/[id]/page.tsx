@@ -739,33 +739,31 @@ export default function AirQloudDetailPage() {
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        domain={[0, 100]}
-                        tick={{ fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <ChartTooltip
-                        content={<ChartTooltipContent />}
-                        formatter={(value: any) => [typeof value === 'number' ? `${value.toFixed(1)}%` : '0%', 'Uptime']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="uptime"
-                        stroke="var(--color-uptime)"
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <LineChart data={chartData}>
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value: any) => [typeof value === 'number' ? `${value.toFixed(1)}%` : '0%', 'Uptime']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="uptime"
+                      stroke="var(--color-uptime)"
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -779,30 +777,28 @@ export default function AirQloudDetailPage() {
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <ChartTooltip
-                        content={<ChartTooltipContent />}
-                        formatter={(value: any) => [typeof value === 'number' ? value.toFixed(2) : '0', 'Error Margin']}
-                      />
-                      <Bar
-                        dataKey="errorMargin"
-                        fill="var(--color-errorMargin)"
-                        radius={[2, 2, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <BarChart data={chartData}>
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <ChartTooltip
+                      content={<ChartTooltipContent />}
+                      formatter={(value: any) => [typeof value === 'number' ? value.toFixed(2) : '0', 'Error Margin']}
+                    />
+                    <Bar
+                      dataKey="errorMargin"
+                      fill="var(--color-errorMargin)"
+                      radius={[2, 2, 0, 0]}
+                    />
+                  </BarChart>
                 </ChartContainer>
               </CardContent>
             </Card>

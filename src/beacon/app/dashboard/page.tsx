@@ -868,9 +868,9 @@ function DashboardContent() {
                         <CardDescription>Daily average and minimum device online rates over the last 14 days</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80 w-full">
+                        <div className="h-80 w-full min-w-0">
                           {uptimeChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                               <LineChart data={uptimeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                                 <XAxis 
@@ -933,9 +933,9 @@ function DashboardContent() {
                         <CardDescription>Average online percentage by hour of day (EAT)</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80 w-full">
+                        <div className="h-80 w-full min-w-0">
                           {trendsChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                               <BarChart data={trendsChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                                 <XAxis 
@@ -1224,9 +1224,9 @@ function DashboardContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full min-w-0">
                   {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <BarChart 
                         data={(comparisonMode === 'network' ? breakdownData : cohortBreakdownData).map(item => ({
                           name: getItemName(item),

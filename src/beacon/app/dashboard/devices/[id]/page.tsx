@@ -118,6 +118,9 @@ interface DeviceDetail {
   lastActive: string
   lastRawData: string
 
+  // Status
+  transmissionStatus?: string
+
   // Groups & Tags
   cohorts: Array<{ _id: string; name: string }>
   grids: Array<{ _id: string; name: string }>
@@ -130,7 +133,7 @@ export default function DeviceDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const requestedReturnTo = searchParams.get("returnTo")
+  const requestedReturnTo = searchParams?.get("returnTo")
   const returnTo = requestedReturnTo?.startsWith("/")
     ? requestedReturnTo
     : "/dashboard/devices"
@@ -168,7 +171,7 @@ export default function DeviceDetailPage() {
       if (!params?.id) return
 
       const deviceId = params.id as string
-      const isMock = searchParams.get('mock') === 'true' || isMockMode()
+      const isMock = searchParams?.get('mock') === 'true' || isMockMode()
 
       if (isMock) {
         // Use dummy data for in-lab collocation devices

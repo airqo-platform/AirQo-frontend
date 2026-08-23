@@ -3,7 +3,7 @@ import { localAgent } from '../LocalAgentClient';
 
 export class ArduinoAdapter implements DeviceAdapter {
   private portName: string;
-  private logListener: ((data: any) => void) | null = null;
+  private logListener: (() => void) | null = null;
   private userLogCallback: ((data: string) => void) | null = null;
   private lastWrite: Promise<void> = Promise.resolve();
 

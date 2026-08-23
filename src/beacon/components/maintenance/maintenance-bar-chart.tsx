@@ -48,8 +48,8 @@ export default function MaintenanceBarChart({
     return (
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-            <div style={{ width: "100%", height }}>
-                <ResponsiveContainer>
+            <div style={{ width: "100%", height }} className="min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart
                         data={data}
                         margin={{

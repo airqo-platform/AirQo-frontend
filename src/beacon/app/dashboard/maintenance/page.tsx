@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
-import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight, Pentagon, Download } from "lucide-react"
+import { Map as MapIcon, CheckCircle2, Search, ChevronDown, ChevronLeft, X, ArrowRight, Pentagon, Download, Radio, Layers, Sparkles } from "lucide-react"
 import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
@@ -10,6 +10,17 @@ import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import dynamic from "next/dynamic"
 import { useGroup } from "@/lib/group-context"
+import { LoRaWANGatewayDialog } from "@/components/maintenance/lorawan-gateway-dialog"
+import { MapExportDialog } from "@/components/maintenance/map-export-dialog"
+import { LoRaWANGateway } from "@/types/lorawan.types"
+import {
+    loadGatewaysFromStorage,
+    saveGatewaysToStorage,
+    computeGatewayCoverageStats,
+    calculateDistance,
+    calculateSignalAttenuation,
+    KAMPALA_SAMPLE_GATEWAYS
+} from "@/utils/lorawan-utils"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
@@ -106,6 +117,32 @@ export default function MaintenancePage() {
     // --- POLYGON SELECTION STATE ---
     const [polygonSelectedDevices, setPolygonSelectedDevices] = useState<MaintenanceMapItem[]>([])
     const [polygonPanelOpen, setPolygonPanelOpen] = useState(true)
+
+    // --- LORAWAN GATEWAYS & EXPORT STATE ---
+    const [gateways, setGateways] = useState<LoRaWANGateway[]>([])
+    const [showGateways, setShowGateways] = useState(false)
+    const [highlightUncoveredDevices, setHighlightUncoveredDevices] = useState(false)
+    const [coverageFilter, setCoverageFilter] = useState<'all' | 'inside_radius' | 'outside_radius'>('all')
+    const [gatewayDialogOpen, setGatewayDialogOpen] = useState(false)
+    const [exportDialogOpen, setExportDialogOpen] = useState(false)
+
+    // Load gateways on mount (default to the 5 official AirQo gateways)
+    useEffect(() => {
+        const loaded = loadGatewaysFromStorage()
+        // If storage is empty or contains old sample seed, set to the 5 official gateways
+        const isOldSampleSeed = loaded && loaded.length === 8 && loaded.some(g => g.id === "gw-mak-01" || g.id === "gw-kol-02")
+        if (loaded && loaded.length > 0 && !isOldSampleSeed) {
+            setGateways(loaded)
+        } else {
+            setGateways(KAMPALA_SAMPLE_GATEWAYS)
+            saveGatewaysToStorage(KAMPALA_SAMPLE_GATEWAYS)
+        }
+    }, [])
+
+    const handleGatewaysChange = (updated: LoRaWANGateway[]) => {
+        setGateways(updated)
+        saveGatewaysToStorage(updated)
+    }
 
     // Tag toggle handler (mirrors analytics-filters pattern)
     const toggleTag = (tag: string) => {
@@ -206,14 +243,43 @@ export default function MaintenancePage() {
             });
         }
 
+        // 5. LoRaWAN Radius Coverage Filter (hides devices outside/inside radius)
+        if (coverageFilter !== 'all' && gateways.length > 0) {
+            filtered = filtered.filter(device => {
+                if (device.latitude == null || device.longitude == null) return false;
+                let isCovered = false;
+                for (const gw of gateways) {
+                    if (gw.enabled === false || gw.latitude == null || gw.longitude == null) continue;
+                    const dist = calculateDistance(device.latitude, device.longitude, gw.latitude, gw.longitude);
+                    const att = calculateSignalAttenuation(dist, gw);
+                    if (att.quality !== 'none') {
+                        isCovered = true;
+                        break;
+                    }
+                }
+                if (coverageFilter === 'inside_radius') return isCovered;
+                if (coverageFilter === 'outside_radius') return !isCovered;
+                return true;
+            });
+        }
+
         return filtered;
-    }, [mapData, offlineDaysFilter, selectedAirQloud, selectedGrid, uptimeFilter, errorMarginFilter]);
+    }, [mapData, offlineDaysFilter, selectedAirQloud, selectedGrid, uptimeFilter, errorMarginFilter, coverageFilter, gateways]);
 
     // Handlers
     const handleDeviceSelect = (id: string) => {
         setSelectedDeviceIds(prev =>
             prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
         )
+    }
+
+    const handleSelectAllPolygon = () => {
+        const ids = polygonSelectedDevices.map(d => d.device_id)
+        setSelectedDeviceIds(prev => Array.from(new Set([...prev, ...ids])))
+    }
+
+    const handleClearPolygon = () => {
+        setPolygonSelectedDevices([])
     }
 
     // Fetch cohort list (same endpoint as analytics-filters)
@@ -364,19 +430,38 @@ export default function MaintenancePage() {
             return str;
         };
 
-        const headers = ["Device Name", "Latitude", "Longitude", "Uptime (%)", "Error Margin"];
+        const headers = [
+            "Device Name",
+            "Device ID",
+            "Latitude",
+            "Longitude",
+            "Uptime (%)",
+            "Error Margin",
+            "Nearest LoRaWAN Gateway",
+            "Distance to Closest Gateway (km)",
+            "LoRaWAN Signal Quality",
+            "Coverage Status",
+            "Estimated RSSI (dBm)"
+        ];
         const rows = targetDevices.map(device => {
             const rawUptime = Number(device.uptime);
             const uptimePct = Number.isFinite(rawUptime) ? (rawUptime <= 1 ? rawUptime * 100 : rawUptime) : 0;
             const em = Number(device.error_margin);
             const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A";
+            const cov = coverageStats.deviceCoverageMap[device.device_id];
 
             return [
                 escapeCSV(device.device_name || device.device_id || ""),
+                escapeCSV(device.device_id || ""),
                 escapeCSV(device.latitude ?? ""),
                 escapeCSV(device.longitude ?? ""),
                 escapeCSV(uptimePct.toFixed(1)),
-                escapeCSV(errorMarginStr)
+                escapeCSV(errorMarginStr),
+                escapeCSV(cov?.nearestGatewayName || "None"),
+                escapeCSV(cov ? `${cov.distanceKm.toFixed(2)} km` : "N/A"),
+                escapeCSV(cov ? cov.signalQuality.toUpperCase() : "NONE"),
+                escapeCSV(cov && cov.signalQuality !== "none" ? "Inside Radius" : "Outside Radius (Blindspot)"),
+                escapeCSV(cov ? `${cov.estimatedRssiDbm} dBm` : "N/A")
             ];
         });
 
@@ -404,6 +489,11 @@ export default function MaintenancePage() {
     };
 
 
+    // Calculate LoRaWAN coverage stats against currently filtered devices
+    const coverageStats = useMemo(() => {
+        return computeGatewayCoverageStats(gateways, filteredMapData)
+    }, [gateways, filteredMapData])
+
     // Fetch map data when days or tags change
     useEffect(() => {
         let cancelled = false;
@@ -424,7 +514,28 @@ export default function MaintenancePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-col">
                         <h1 className="text-2xl font-bold text-gray-900">Maintenance Dashboard</h1>
-                        <p className="text-gray-500 text-sm">Monitor device health and plan maintenance routes</p>
+                        <p className="text-gray-500 text-sm">Monitor device health, LoRaWAN gateway coverage, and plan maintenance routes</p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            onClick={() => setGatewayDialogOpen(true)}
+                            className="flex items-center px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200 shadow-sm"
+                        >
+                            <Radio className="w-4 h-4 mr-1.5 text-indigo-600" />
+                            LoRaWAN Gateways
+                            <span className="ml-2 px-1.5 py-0.2 bg-indigo-100 text-indigo-800 text-[10px] rounded-full font-bold">
+                                {gateways.length}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setExportDialogOpen(true)}
+                            className="flex items-center px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 shadow-sm"
+                        >
+                            <Download className="w-4 h-4 mr-1.5 text-blue-600" />
+                            Export Map
+                        </button>
                     </div>
                 </div>
 
@@ -795,6 +906,54 @@ export default function MaintenancePage() {
                                     Grid: {selectedGridLabel}
                                 </span>
                             )}
+                            {gateways.length > 0 && (
+                                <div className="flex items-center gap-1.5 ml-2">
+                                    <button
+                                        onClick={() => setGatewayDialogOpen(true)}
+                                        className="px-2.5 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs rounded-full font-medium flex items-center gap-1.5 transition-colors"
+                                        title="Manage LoRaWAN Gateways"
+                                    >
+                                        <Radio className="w-3 h-3 text-indigo-600" />
+                                        {coverageStats.activeGateways} Gateways ({coverageStats.coveragePercentage}% Covered)
+                                    </button>
+
+                                    <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-md text-xs">
+                                        <button
+                                            onClick={() => setCoverageFilter('all')}
+                                            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                                                coverageFilter === 'all'
+                                                    ? 'bg-white text-gray-900 shadow-xs font-bold'
+                                                    : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                            title="Show all devices"
+                                        >
+                                            All
+                                        </button>
+                                        <button
+                                            onClick={() => setCoverageFilter('inside_radius')}
+                                            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                                                coverageFilter === 'inside_radius'
+                                                    ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                                                    : 'text-emerald-700 hover:text-emerald-900'
+                                            }`}
+                                            title="Only show devices inside gateway radius (hide devices out of radius)"
+                                        >
+                                            In Radius ({coverageStats.coveredDevices})
+                                        </button>
+                                        <button
+                                            onClick={() => setCoverageFilter('outside_radius')}
+                                            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                                                coverageFilter === 'outside_radius'
+                                                    ? 'bg-red-600 text-white shadow-xs font-bold'
+                                                    : 'text-red-700 hover:text-red-900'
+                                            }`}
+                                            title="Only show devices outside gateway radius (blindspots)"
+                                        >
+                                            Out Radius ({coverageStats.uncoveredDevices})
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -804,10 +963,20 @@ export default function MaintenancePage() {
                             </div>
 
                             <button
+                                onClick={() => setExportDialogOpen(true)}
+                                disabled={loadingMap || (!filteredMapData?.length && polygonSelectedDevices.length === 0)}
+                                className="flex items-center px-3 py-1.5 rounded-md text-xs font-semibold transition-colors bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 disabled:opacity-50 shadow-sm"
+                                title="Export map to PNG, PDF or GeoJSON"
+                            >
+                                <Download className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+                                Export Map
+                            </button>
+
+                            <button
                                 onClick={() => handleExportCSV()}
                                 disabled={loadingMap || (polygonSelectedDevices.length === 0 && !filteredMapData?.length)}
                                 className="flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 disabled:opacity-50 shadow-sm"
-                                title="Export device data to CSV"
+                                title="Export device data to CSV with gateway distances"
                             >
                                 <Download className="w-3.5 h-3.5 mr-1.5 text-gray-500" />
                                 Export CSV
@@ -838,35 +1007,33 @@ export default function MaintenancePage() {
                         {polygonSelectedDevices.length > 0 && polygonPanelOpen && (
                             <div className="w-[320px] flex-shrink-0 bg-white rounded-lg shadow-sm border border-blue-200 p-4 flex flex-col animate-in slide-in-from-left-2 duration-200">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
                                         <Pentagon className="w-4 h-4 text-blue-600" />
-                                        Polygon Selection
-                                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
+                                        <h3 className="text-sm font-bold text-gray-900">Area Selection</h3>
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-bold">
                                             {polygonSelectedDevices.length}
                                         </span>
-                                    </h3>
+                                    </div>
                                     <button
                                         onClick={() => setPolygonPanelOpen(false)}
-                                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                        className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors"
                                         title="Collapse panel"
                                     >
-                                        <X className="w-4 h-4" />
+                                        <ChevronLeft className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="mb-3 flex items-center gap-2">
+                                <div className="flex gap-2 mb-3">
                                     <button
-                                        onClick={() => calculateRoute(polygonSelectedDevices)}
-                                        className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                        onClick={handleSelectAllPolygon}
+                                        className="flex-1 text-xs py-1.5 px-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded font-medium transition-colors"
                                     >
-                                        Generate Route
+                                        Select All ({polygonSelectedDevices.length})
                                     </button>
                                     <button
-                                        onClick={() => handleExportCSV(polygonSelectedDevices)}
-                                        className="px-3 py-2 bg-white text-gray-700 border border-gray-200 text-xs rounded-md hover:bg-gray-50 transition-colors font-medium flex items-center gap-1.5 shadow-sm"
-                                        title="Export polygon devices to CSV"
+                                        onClick={handleClearPolygon}
+                                        className="text-xs py-1.5 px-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded font-medium transition-colors"
                                     >
-                                        <Download className="w-3.5 h-3.5 text-gray-500" />
-                                        Export CSV
+                                        Clear Area
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto border border-gray-100 rounded-md min-h-0">
@@ -924,6 +1091,16 @@ export default function MaintenancePage() {
                                     setPolygonSelectedDevices(devices);
                                     if (devices.length > 0) setPolygonPanelOpen(true);
                                 }}
+                                gateways={gateways}
+                                showGateways={showGateways}
+                                onToggleGateways={() => setShowGateways(!showGateways)}
+                                onOpenGatewayDialog={() => setGatewayDialogOpen(true)}
+                                onExportMap={() => setExportDialogOpen(true)}
+                                highlightUncoveredDevices={highlightUncoveredDevices}
+                                onToggleHighlightUncovered={() => setHighlightUncoveredDevices(!highlightUncoveredDevices)}
+                                coverageFilter={coverageFilter}
+                                onCoverageFilterChange={setCoverageFilter}
+                                mapContainerId="maintenance-map-container"
                             />
                         </div>
                     </div>
@@ -966,6 +1143,27 @@ export default function MaintenancePage() {
                     )}
                 </div>
             </div>
+
+            {/* LoRaWAN Gateway Dialog */}
+            <LoRaWANGatewayDialog
+                open={gatewayDialogOpen}
+                onOpenChange={setGatewayDialogOpen}
+                gateways={gateways}
+                onGatewaysChange={handleGatewaysChange}
+            />
+
+            {/* Map Export Dialog */}
+            <MapExportDialog
+                open={exportDialogOpen}
+                onOpenChange={setExportDialogOpen}
+                mapElementId="maintenance-map-container"
+                devices={filteredMapData || []}
+                gateways={gateways}
+                routePath={routePath}
+                selectedCohort={selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud}
+                selectedGrid={selectedGridLabel}
+                periodDays={selectedDays}
+            />
         </div>
     )
 }

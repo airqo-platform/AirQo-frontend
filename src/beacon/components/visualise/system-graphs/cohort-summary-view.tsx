@@ -520,8 +520,8 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-6">
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-72 w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart
                     data={[...deviceHealthData].sort((a, b) => (b.avgError || 0) - (a.avgError || 0))}
                     margin={{ top: 10, right: 20, left: 10, bottom: 40 }}
@@ -571,8 +571,8 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 pt-6 flex flex-col items-center justify-center">
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <PieChart>
                     <Tooltip
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}

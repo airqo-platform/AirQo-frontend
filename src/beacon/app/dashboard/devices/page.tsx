@@ -299,6 +299,25 @@ export default function DevicesPage() {
       : 0
   }, [])
 
+  const getDeviceLastSeenTimestamp = useCallback((device: UIDevice) => {
+    return device.reading_timestamp || device.last_updated || null
+  }, [])
+
+  // Helper to check if device is online based on "previous day" logic
+  const isDeviceOnline = useCallback((device: UIDevice) => {
+    const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
+    if (!lastSeenTimestamp) return false
+
+    const updatedDate = new Date(lastSeenTimestamp)
+    if (Number.isNaN(updatedDate.getTime())) return false
+
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - 1)
+    cutoffDate.setHours(0, 0, 0, 0)
+
+    return updatedDate >= cutoffDate
+  }, [getDeviceLastSeenTimestamp])
+
   const totalDevicesCount = deviceScope === "org"
     ? (devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices)
     : myDevices.length
@@ -330,25 +349,6 @@ export default function DevicesPage() {
     const networks = new Set(activeDevicesList.map(d => d.network).filter(Boolean))
     return Array.from(networks)
   }, [devices, myDevices, deviceScope])
-
-  const getDeviceLastSeenTimestamp = useCallback((device: UIDevice) => {
-    return device.reading_timestamp || device.last_updated || null
-  }, [])
-
-  // Helper to check if device is online based on "previous day" logic
-  const isDeviceOnline = useCallback((device: UIDevice) => {
-    const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
-    if (!lastSeenTimestamp) return false
-
-    const updatedDate = new Date(lastSeenTimestamp)
-    if (Number.isNaN(updatedDate.getTime())) return false
-
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - 1)
-    cutoffDate.setHours(0, 0, 0, 0)
-
-    return updatedDate >= cutoffDate
-  }, [getDeviceLastSeenTimestamp])
 
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {

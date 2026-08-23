@@ -307,7 +307,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
 
           <CardContent className="p-4 pt-5">
             <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart
                   data={chartData}
                   margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
@@ -488,7 +488,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
 
           <CardContent className="p-4 pt-5">
             <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart
                   data={chartData}
                   margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
@@ -642,7 +642,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
 
           <CardContent className="p-4 pt-5">
             <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart
                   data={chartData}
                   margin={{ top: 10, right: 30, left: 10, bottom: 20 }}
@@ -774,7 +774,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
           </CardHeader>
           <CardContent className="p-4 pt-5">
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart
                   data={chartData}
                   margin={{ top: 10, right: 30, left: 10, bottom: 20 }}

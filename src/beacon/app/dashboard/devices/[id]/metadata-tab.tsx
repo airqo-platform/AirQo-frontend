@@ -48,7 +48,7 @@ interface MetadataResponse {
 export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) {
   const { toast } = useToast()
   const searchParams = useSearchParams()
-  const isMock = searchParams.get('mock') === 'true'
+  const isMock = searchParams?.get('mock') === 'true'
   const [metadata, setMetadata] = useState<MetadataEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

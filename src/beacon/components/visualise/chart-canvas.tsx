@@ -333,8 +333,8 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
 
       {/* Main Chart Canvas Area */}
       <CardContent className="p-4 pt-6">
-        <div style={{ width: "100%", height: isFullscreen ? "75vh" : height }}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div style={{ width: "100%", height: isFullscreen ? "75vh" : height }} className="min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             {/* 1. Line Chart */}
             {config.chartType === "line" ? (
               <LineChart data={processedData} margin={{ top: 10, right: 30, left: 10, bottom: 25 }}>

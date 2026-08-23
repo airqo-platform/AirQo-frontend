@@ -33,9 +33,9 @@ interface AfricaMapProps {
 export default function AfricaMap({ devices = [], onDeviceSelect, selectedDeviceId }: AfricaMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const markersRef = useRef<L.Marker[]>([])
-  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
+  const geoJsonLayerRef = useRef<any>(null)
   const hasInitializedRef = useRef(false)
   const [apiDevices, setApiDevices] = useState<Device[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -71,7 +71,7 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       console.log("Received", data.length, "devices from API")
       
       // Transform API data to match the component's expected format
-      const transformedDevices = data.map(device => ({
+      const transformedDevices = data.map((device: any) => ({
         id: device.device_name,
         name: device.device_name,
         status: device.is_online ? "active" : "offline",
@@ -192,7 +192,7 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       
       try {
         // Create an array to store valid LatLng points
-        const validLatLngs: L.LatLng[] = []
+        const validLatLngs: any[] = []
         
         // Add markers
         normalizedDevices.forEach((device) => {

@@ -885,8 +885,8 @@ export default function SiteDetailsPage() {
           <CardDescription>Aggregate PM2.5 readings comparing the average Low Cost sensors to the Reference Monitor baseline.</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="h-[400px] w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[400px] w-full min-w-0 mt-4">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={summary.chartData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis 
