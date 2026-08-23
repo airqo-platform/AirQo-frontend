@@ -10,7 +10,9 @@ type SaveFormat = 'csv' | 'xlsx' | 'pdf';
 interface DownloadFormatDialogProps {
   isOpen: boolean;
   isSaving: boolean;
-  savingFormat: SaveFormat | null;
+  // 'json' is only used while a direct JSON download (chosen in the sidebar)
+  // is saving — it never matches a card in this dialog.
+  savingFormat: SaveFormat | 'json' | null;
   locationCount: number;
   onClose: () => void;
   onSave: (format: SaveFormat) => void;
