@@ -1,9 +1,9 @@
 ---
-sidebar_position: 10
-sidebar_label: 9. Network Technical Specifications
+sidebar_position: 11
+sidebar_label: 10. Network Technical Specifications
 ---
 
-# 9. Network Technical Specifications
+# 10. Network Technical Specifications
 
 ### AirQo Binos Monitor Specifications
 

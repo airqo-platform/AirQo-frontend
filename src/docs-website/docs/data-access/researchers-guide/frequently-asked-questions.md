@@ -1,9 +1,9 @@
 ---
-sidebar_position: 14
-sidebar_label: 13. Frequently Asked Questions
+sidebar_position: 15
+sidebar_label: 14. Frequently Asked Questions
 ---
 
-# 13. Frequently Asked Questions
+# 14. Frequently Asked Questions
 
 ### General Questions
 
@@ -34,7 +34,7 @@ Investigate extreme values before removal. Check for sensor malfunction periods,
 Yes, for epidemiological studies and exposure assessment. Use appropriate exposure assignment methods and account for measurement error.
 
 **Why doesn't my monitor appear in its exact location on the map?**
-Coordinates are intentionally offset by up to ~0.5km to protect the privacy of the institutions hosting monitors. See [Location Approximation](./spatial-disaggregation-and-geographic-filtering.md#31-location-approximation-for-monitor-coordinates) for the full policy and how to adjust proximity analysis for it.
+Coordinates are intentionally offset by up to ~0.5km to protect the privacy of the institutions hosting monitors. See [Location Approximation](./location-approximation.md) for the full policy and how to adjust proximity analysis for it.
 
 ### Device Ownership Questions
 

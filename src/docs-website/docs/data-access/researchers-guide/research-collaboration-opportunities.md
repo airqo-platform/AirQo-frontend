@@ -1,9 +1,9 @@
 ---
-sidebar_position: 15
-sidebar_label: 14. Research Collaboration
+sidebar_position: 16
+sidebar_label: 15. Research Collaboration
 ---
 
-# 14. Research Collaboration Opportunities
+# 15. Research Collaboration Opportunities
 
 AirQo welcomes research collaborations that advance air quality science and public health in Africa. We are particularly interested in: epidemiological studies linking air quality to health outcomes, exposure assessment, source apportionment, policy evaluation, air quality forecasting, sensor validation, machine learning applications, and environmental justice research.
 

@@ -118,7 +118,7 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city"
 ```
 
 :::info Coordinates are approximated
-`approximate_latitude` and `approximate_longitude` are intentionally offset by up to ~0.5km from each site's true physical location, to protect the privacy of hosting institutions. The offset is consistent per site, so it's safe for temporal and area-based analysis, but proximity queries should use a widened radius. See [Location Approximation](../../data-access/researchers-guide/spatial-disaggregation-and-geographic-filtering.md#31-location-approximation-for-monitor-coordinates) for the full policy and research best practices.
+`approximate_latitude` and `approximate_longitude` are intentionally offset by up to ~0.5km from each site's true physical location, to protect the privacy of hosting institutions. The offset is consistent per site, so it's safe for temporal and area-based analysis, but proximity queries should use a widened radius. See [Location Approximation](../../data-access/researchers-guide/location-approximation.md) for the full policy and research best practices.
 :::
 
 **Example — extract coordinates for mapping (JavaScript)**
