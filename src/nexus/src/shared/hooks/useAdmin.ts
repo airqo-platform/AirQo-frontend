@@ -246,6 +246,19 @@ export const useUserStatistics = () => {
   );
 };
 
+// Get pre-aggregated user statistics breakdown
+export const useUserStatsBreakdown = (months = 12, limit = 8) => {
+  return useSWR(
+    `admin/user-stats-breakdown?months=${months}&limit=${limit}`,
+    () => userService.getUserStatsBreakdown(months, limit),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+    }
+  );
+};
+
 // Get all users (optionally filtered by email)
 export const useUsers = (email?: string) => {
   return useSWR(
