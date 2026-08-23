@@ -6,8 +6,9 @@ import { Button } from '@/shared/components/ui/button';
 import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { AqWind01 } from '@airqo/icons-react';
 import {
-  getAirQualityInfo,
+  getAirQualityIcon,
   getAirQualityColor,
+  getAirQualityLabel,
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
 import { formatRoundedNumber } from '@/shared/lib/utils';
@@ -15,6 +16,7 @@ import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
+import { resolveReadingDisplayLevel } from '@/modules/airqo-map/utils/dataNormalization';
 import { getMonitorMetadata } from '@/modules/airqo-map/utils/monitorMetadata';
 
 // Types for location data
@@ -47,23 +49,45 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
       : ((mapReading as MapReading)?.pm10?.value ??
         (mapReading as AirQualityReading)?.pm10Value);
 
-  const airQualityInfo = React.useMemo(() => {
-    if (pollutantValue !== null && pollutantValue !== undefined) {
-      return getAirQualityInfo(
-        pollutantValue,
-        selectedPollutant,
+  // Classify ONCE so the AQI index number, its color, the icon and the label
+  // all come from the same source: prefer the API's `aqi_category` (the
+  // backend's classification of the very index displayed below), and only
+  // fall back to classifying the concentration via the configured AQI ranges
+  // when no category exists.
+  const displayInput = React.useMemo(() => {
+    const mr = mapReading as MapReading | undefined;
+    const aqr = mapReading as AirQualityReading | undefined;
+    return {
+      pm25Value: aqr?.pm25Value ?? mr?.pm2_5?.value ?? undefined,
+      pm10Value: aqr?.pm10Value ?? mr?.pm10?.value ?? undefined,
+      aqiCategory: aqr?.aqiCategory ?? mr?.aqi_category,
+      fullReadingData: aqr?.fullReadingData,
+    };
+  }, [mapReading]);
+
+  const { level: displayLevel } = React.useMemo(
+    () =>
+      resolveReadingDisplayLevel(displayInput, selectedPollutant, aqiConfig),
+    [displayInput, selectedPollutant, aqiConfig]
+  );
+
+  const hasAirQuality = displayLevel !== 'no-value';
+  const AirQualityIcon = hasAirQuality
+    ? getAirQualityIcon(displayLevel)
+    : undefined;
+  const airQualityLabel = hasAirQuality
+    ? getAirQualityLabel(
+        displayLevel,
         'WHO',
+        selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
         aqiConfig
-      );
-    }
-    return null;
-  }, [aqiConfig, pollutantValue, selectedPollutant]);
-  const AirQualityIcon = airQualityInfo?.icon;
+      )
+    : undefined;
   const aqiIndex =
     (mapReading as MapReading)?.aqi_index ??
     (mapReading as AirQualityReading)?.fullReadingData?.aqi_index;
-  const aqiColor = airQualityInfo
-    ? getAirQualityColor(airQualityInfo.level, aqiConfig)
+  const aqiColor = hasAirQuality
+    ? getAirQualityColor(displayLevel, aqiConfig)
     : undefined;
 
   // Helper function to extract city and country from location name
@@ -209,9 +233,9 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
             </div>
             <div
               className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate"
-              title={airQualityInfo?.label ?? undefined}
+              title={airQualityLabel ?? undefined}
             >
-              {airQualityInfo?.label ?? '--'}
+              {airQualityLabel ?? '--'}
             </div>
           </div>
 

@@ -276,7 +276,7 @@ const UserStatisticsPage: React.FC = () => {
         title="User Statistics"
         subtitle="High-level insights and analytics across all platform users"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Select
               label="Months"
               value={months}
@@ -377,6 +377,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Active vs inactive users"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           <StatsPieChart data={statusData} />
         </ChartContainer>
@@ -386,6 +387,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Verified vs unverified users"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           <StatsPieChart data={verificationData} />
         </ChartContainer>
@@ -395,6 +397,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Top organizations by user count"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {organizationData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -412,6 +415,10 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -440,6 +447,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Users grouped by login count"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {loginRangesData.some(d => d.value > 0) ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -485,6 +493,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle={`New users in the last ${months} months`}
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {signupsOverTimeData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -505,6 +514,7 @@ const UserStatisticsPage: React.FC = () => {
                   tickFormatter={value =>
                     formatWithPattern(String(value), 'MMM yyyy')
                   }
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   allowDecimals={false}
@@ -539,6 +549,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Groups with the most members"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {topGroupsData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -556,6 +567,10 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -584,6 +599,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Users grouped by assigned role"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {rolesData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -629,6 +645,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Top countries by user count"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {geographyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -646,6 +663,10 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -674,6 +695,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Verification rate by signup cohort"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {verificationTrendData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -694,6 +716,7 @@ const UserStatisticsPage: React.FC = () => {
                   tickFormatter={value =>
                     formatWithPattern(String(value), 'MMM yyyy')
                   }
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   domain={[0, 100]}
@@ -728,6 +751,7 @@ const UserStatisticsPage: React.FC = () => {
           subtitle="Unverified users by account age"
           showMoreButton={false}
           loading={isLoading}
+          minContentHeight="300px"
         >
           {unverifiedAgingData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>

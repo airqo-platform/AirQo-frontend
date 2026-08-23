@@ -25,7 +25,6 @@ import {
 } from '@/shared/components/ui';
 import Dialog from '@/shared/components/ui/dialog';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { useUser } from '@/shared/hooks';
 import { applicationEmailConfigService } from '@/shared/services';
 import type { ApplicationEmailConfiguration } from '@/shared/types/api';
 import { formatDate } from '@/shared/utils';
@@ -125,7 +124,6 @@ const renderEmailChips = (emails: string[], emptyLabel: string) => {
 };
 
 const EmailConfigContent: React.FC = () => {
-  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogState, setDialogState] = useState<{
@@ -555,9 +553,8 @@ const EmailConfigContent: React.FC = () => {
   return (
     <PermissionGuard
       requiredPermissions={['SUPER_ADMIN']}
-      customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the SUPER_ADMIN permission and an @airqo.net super-admin account to manage email configs."
+      accessDeniedMessage="You need the SUPER_ADMIN permission to manage email configs."
     >
       {isForbiddenError(error) ? (
         <AccessDenied

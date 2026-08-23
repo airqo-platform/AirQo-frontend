@@ -20,7 +20,6 @@ import { MapLoadingOverlay } from './MapLoadingOverlay';
 import { PollutantSelector } from './PollutantSelector';
 import { DataProviderFilter } from './DataProviderFilter';
 import { DATA_PROVIDER_ALL } from '@/modules/airqo-map/utils/dataProviders';
-import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
@@ -310,12 +309,6 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         const n = members.length;
         const avgLng = members.reduce((s, r) => s + r.longitude, 0) / n;
         const avgLat = members.reduce((s, r) => s + r.latitude, 0) / n;
-        const vals = members
-          .map(r => (selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value))
-          .filter((v): v is number => v != null && !isNaN(v));
-        const avgVal = vals.length
-          ? vals.reduce((a, b) => a + b, 0) / vals.length
-          : 0;
 
         result.push({
           id: `cluster-${members
@@ -326,23 +319,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           latitude: avgLat,
           pointCount: n,
           readings: members,
-          mostCommonLevel: getAirQualityLevel(
-            avgVal,
-            selectedPollutant,
-            aqiConfig
-          ),
         });
       }
     }
 
     return { clusters: result, clusterMemberIds: memberIds };
-  }, [
-    airQualityData,
-    aqiConfig,
-    clusterZoom,
-    viewState.zoom,
-    selectedPollutant,
-  ]);
+  }, [airQualityData, clusterZoom, viewState.zoom]);
 
   const soloReadings = useMemo(
     () => airQualityData.filter(r => !clusterMemberIds.has(r.id)),

@@ -7,6 +7,7 @@ import {
   Card,
   Dialog,
   ErrorBanner,
+  Input,
   LoadingState,
   PageHeading,
   Select,
@@ -464,13 +465,13 @@ const UserDetailPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Select Role *
                 </label>
-                <input
-                  type="text"
+                <Input
                   value={roleSearch}
                   onChange={e => setRoleSearch(e.target.value)}
                   placeholder="Search roles or groups..."
                   maxLength={SEARCH_TERM_MAX}
-                  className="w-full mb-2 px-3 py-2 border rounded-md text-sm"
+                  containerClassName="!mb-2"
+                  className="w-full"
                 />
                 <Select
                   value={selectedRoleId}

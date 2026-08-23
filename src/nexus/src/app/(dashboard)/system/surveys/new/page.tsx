@@ -45,7 +45,7 @@ const SurveyCreatePage: React.FC = () => {
     <PermissionGuard
       requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to create surveys."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role to create surveys."
     >
       <SurveyForm
         mode="create"

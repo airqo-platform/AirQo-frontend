@@ -411,7 +411,7 @@ const ClientsAdminPage: React.FC = () => {
           />
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant={statusFilter === 'all' ? 'filled' : 'outlined'}

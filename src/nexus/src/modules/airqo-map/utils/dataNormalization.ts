@@ -90,6 +90,7 @@ export function limitLocationsForDisplay(
 import type { MapReading } from '../../../shared/types/api';
 import type { AirQualityReading } from '../components/map/MapNodes';
 import {
+  type AirQualityLevel,
   type PollutantType,
   getAirQualityLevel,
   mapAqiCategoryToLevel,
@@ -189,34 +190,139 @@ export function normalizeMapReadings(
 }
 
 /**
- * Resolve the AQI level for a normalized reading.
- *
- * The configured AQI ranges (same service the backend classifies against) are
- * the primary source, so the emoji/color always match the app-wide AQI
- * utilities. When the config is still loading or unavailable, fall back to the
- * API-provided `aqi_category` so markers and tooltips never show a generic
- * "no data" state for a reading that actually has a category.
+ * Minimal shape needed to classify what a UI surface displays for one reading.
+ * Both raw `MapReading` data and normalized `AirQualityReading` data can be
+ * projected onto this shape.
  */
-export function getReadingAqiLevel(
-  reading: Pick<
-    AirQualityReading,
-    'pm25Value' | 'pm10Value' | 'aqiCategory'
-  > & {
-    fullReadingData?: { aqi_category?: string };
-  },
+export interface DisplayLevelInput {
+  pm25Value?: number;
+  pm10Value?: number;
+  aqiCategory?: string;
+  /** Raw API reading carrying the original `aqi_category`. */
+  fullReadingData?: Pick<MapReading, 'aqi_category'>;
+}
+
+/** Where a displayed classification came from. */
+export type DisplayLevelSource = 'aqi-category' | 'concentration';
+
+export interface ResolvedDisplayLevel {
+  level: AirQualityLevel;
+  source: DisplayLevelSource;
+}
+
+/**
+ * Resolve the AQI level to DISPLAY alongside the API's `aqi_index` number.
+ *
+ * The number shown to users is the backend-computed AQI index, and the
+ * backend's own classification of that index is `aqi_category`. Concentration
+ * bands (µg/m³) and AQI index bands (0–500) are different scales, so
+ * classifying the concentration while displaying the index can contradict the
+ * number on screen (e.g. index says "Unhealthy" while the color says
+ * "Moderate"). The API category is therefore authoritative whenever it maps to
+ * a known level; only when no category exists do we fall back to classifying
+ * the concentration through the configured AQI ranges (`getAirQualityLevel`).
+ *
+ * This is the SINGLE classification path for the map module — tooltips,
+ * sidebar cards and map nodes must all go through it so number, color, icon
+ * and label always agree.
+ */
+export function resolveReadingDisplayLevel(
+  reading: DisplayLevelInput,
   pollutantType: PollutantType = DEFAULT_POLLUTANT,
   aqiConfig?: AqiConfig | null
-): ReturnType<typeof getAirQualityLevel> {
-  const value =
-    pollutantType === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
-  const level = getAirQualityLevel(value, pollutantType, aqiConfig ?? null);
-  if (level !== 'no-value') {
-    return level;
-  }
-
-  return mapAqiCategoryToLevel(
+): ResolvedDisplayLevel {
+  const categoryLevel = mapAqiCategoryToLevel(
     reading.aqiCategory ?? reading.fullReadingData?.aqi_category
   );
+  if (categoryLevel !== 'no-value') {
+    return { level: categoryLevel, source: 'aqi-category' };
+  }
+
+  const value =
+    pollutantType === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
+  return {
+    level: getAirQualityLevel(value, pollutantType, aqiConfig ?? null),
+    source: 'concentration',
+  };
+}
+
+/**
+ * Convenience wrapper returning just the resolved level — see
+ * {@link resolveReadingDisplayLevel} for the classification priority.
+ */
+export function getReadingAqiLevel(
+  reading: DisplayLevelInput,
+  pollutantType: PollutantType = DEFAULT_POLLUTANT,
+  aqiConfig?: AqiConfig | null
+): AirQualityLevel {
+  return resolveReadingDisplayLevel(reading, pollutantType, aqiConfig).level;
+}
+
+/** Result of aggregating a cluster's members for display. */
+export interface ResolvedClusterDisplay extends ResolvedDisplayLevel {
+  /** True when at least one member has a value for the selected pollutant. */
+  hasData: boolean;
+  /** Mean concentration across members with values (0 when hasData is false). */
+  avgConcentration: number;
+  /** Mean API AQI index across members reporting one (undefined otherwise). */
+  avgAqiIndex?: number;
+}
+
+/**
+ * Aggregate a cluster's members into one consistent display classification.
+ *
+ * The cluster has no AQI index of its own — tooltips show the mean member
+ * index — so classification prefers the most common member `aqi_category`
+ * ({@link getClusterCategoryFallback}), then falls back to classifying the
+ * mean concentration via {@link resolveReadingDisplayLevel}.
+ */
+export function resolveClusterDisplay(
+  readings: Array<
+    Pick<
+      AirQualityReading,
+      'pm25Value' | 'pm10Value' | 'aqiCategory' | 'aqiIndex'
+    >
+  >,
+  pollutantType: PollutantType = DEFAULT_POLLUTANT,
+  aqiConfig?: AqiConfig | null
+): ResolvedClusterDisplay {
+  const validReadings = readings.filter(r => {
+    const val = pollutantType === 'pm2_5' ? r.pm25Value : r.pm10Value;
+    return val !== undefined && !isNaN(val);
+  });
+
+  const avgConcentration = validReadings.length
+    ? validReadings.reduce(
+        (sum, r) =>
+          sum + (pollutantType === 'pm2_5' ? r.pm25Value : r.pm10Value),
+        0
+      ) / validReadings.length
+    : 0;
+
+  const aqiValues = readings
+    .map(r => r.aqiIndex)
+    .filter((v): v is number => typeof v === 'number' && !isNaN(v));
+  const avgAqiIndex = aqiValues.length
+    ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
+    : undefined;
+
+  const { level, source } = resolveReadingDisplayLevel(
+    {
+      pm25Value: avgConcentration,
+      pm10Value: avgConcentration,
+      aqiCategory: getClusterCategoryFallback(readings),
+    },
+    pollutantType,
+    aqiConfig
+  );
+
+  return {
+    level,
+    source,
+    hasData: validReadings.length > 0,
+    avgConcentration,
+    avgAqiIndex,
+  };
 }
 
 /**

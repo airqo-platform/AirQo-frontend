@@ -83,6 +83,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   periodPresets,
   activePeriod,
   onPeriodChange,
+  minContentHeight = '400px',
 }) => {
   const posthog = usePostHog();
   const [isExporting, setIsExporting] = useState(false);
@@ -600,7 +601,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             !showTitle && !showMoreButton && 'pt-3'
           )}
         >
-          <div className="relative w-full min-h-[400px] min-w-0">
+          <div
+            className="relative w-full min-w-0"
+            style={{ minHeight: minContentHeight }}
+          >
             {error && (
               <div className="flex items-center justify-center h-64 text-destructive">
                 <div className="text-center">
@@ -620,7 +624,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             )}
 
             {!error && (
-              <div className="w-full h-full min-h-[400px] min-w-0">
+              <div
+                className="w-full h-full min-w-0"
+                style={{ minHeight: minContentHeight }}
+              >
                 {React.isValidElement(children)
                   ? React.cloneElement(
                       children as React.ReactElement<{

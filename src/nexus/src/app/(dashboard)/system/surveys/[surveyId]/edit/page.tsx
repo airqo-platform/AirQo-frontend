@@ -75,7 +75,7 @@ const SurveyEditPage: React.FC = () => {
     <PermissionGuard
       requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to edit surveys."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role to edit surveys."
     >
       {isLoading ? (
         <LoadingState

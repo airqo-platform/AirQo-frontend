@@ -6,7 +6,7 @@ import {
   getAirQualityIcon,
   getAirQualityColor,
 } from '@/shared/utils/airQuality';
-import { getReadingAqiLevel } from '@/modules/airqo-map/utils/dataNormalization';
+import { resolveReadingDisplayLevel } from '@/modules/airqo-map/utils/dataNormalization';
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
@@ -43,7 +43,6 @@ export interface ClusterData {
   latitude: number;
   pointCount: number;
   readings: AirQualityReading[];
-  mostCommonLevel?: string;
 }
 
 // ─── Module-level constants (never recreated on re-render) ────────────────────
@@ -131,9 +130,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
   const data = (cluster ?? reading) as
-    | AirQualityReading
-    | ClusterData
-    | undefined;
+    AirQualityReading | ClusterData | undefined;
 
   if (!data) return null;
 
@@ -176,10 +173,12 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       return val > worstVal ? r : worst;
     });
     const BestIcon = getAirQualityIcon(
-      getReadingAqiLevel(bestReading, selectedPollutant, aqiConfig)
+      resolveReadingDisplayLevel(bestReading, selectedPollutant, aqiConfig)
+        .level
     );
     const WorstIcon = getAirQualityIcon(
-      getReadingAqiLevel(worstReading, selectedPollutant, aqiConfig)
+      resolveReadingDisplayLevel(worstReading, selectedPollutant, aqiConfig)
+        .level
     );
 
     // Use rounded zoom for styling decisions — avoids visual thrash during animations
@@ -241,7 +240,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   if (reading) {
     const pollutantValue =
       selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
-    const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
+    const { level } = resolveReadingDisplayLevel(
+      reading,
+      selectedPollutant,
+      aqiConfig
+    );
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];

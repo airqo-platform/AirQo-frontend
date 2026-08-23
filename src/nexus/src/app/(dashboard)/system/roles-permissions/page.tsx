@@ -303,7 +303,7 @@ const RolesPermissionsContent: React.FC = () => {
         title="Roles & Permissions"
         subtitle="Manage system roles, view assignments, and configure permissions across the platform."
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="filled"
               size="sm"

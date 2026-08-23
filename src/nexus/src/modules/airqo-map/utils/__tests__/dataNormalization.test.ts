@@ -8,13 +8,74 @@ import {
   normalizeMapReadings,
   getReadingAqiLevel,
   getClusterCategoryFallback,
+  resolveReadingDisplayLevel,
+  resolveClusterDisplay,
   POLLUTANT_CONFIGS,
   DEFAULT_POLLUTANT,
 } from '../dataNormalization';
 import type { CountryData, MapReading } from '../../../../shared/types/api';
+import type { AqiConfig } from '../../../../shared/types/aqi';
 
 const makeCountryData = (country: string, flag = '🏳️'): CountryData =>
   ({ country, flag_url: flag }) as unknown as CountryData;
+
+const makeAqiConfig = (): AqiConfig => ({
+  pollutant: 'pm2_5',
+  standard: 'WHO',
+  source: 'test',
+  version: null,
+  effective_from: null,
+  ranges: [
+    {
+      key: 'good',
+      label: 'Good',
+      min_value: 0,
+      max_value: 5,
+      color: '#00e400',
+      display_order: 1,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      min_value: 5,
+      max_value: 15,
+      color: '#ffff00',
+      display_order: 2,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      min_value: 15,
+      max_value: 25,
+      color: '#ff7e00',
+      display_order: 3,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      min_value: 25,
+      max_value: 35,
+      color: '#ff0000',
+      display_order: 4,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      min_value: 35,
+      max_value: 75,
+      color: '#8f3f98',
+      display_order: 5,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      min_value: 75,
+      max_value: null,
+      color: '#7e0023',
+      display_order: 6,
+    },
+  ],
+});
 
 describe('normalizeCountries', () => {
   it('prepends All entry at index 0', () => {
@@ -346,6 +407,101 @@ describe('getReadingAqiLevel', () => {
       null
     );
     expect(level).toBe('no-value');
+  });
+
+  it('prefers the API category even when the concentration classifies differently', () => {
+    // 100 µg/m³ would classify as hazardous under the config, but the
+    // displayed number is the API AQI index whose own classification is
+    // 'Good' — the category must win so color/label match the number.
+    const level = getReadingAqiLevel(
+      { pm25Value: 100, pm10Value: 100, aqiCategory: 'Good' },
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(level).toBe('good');
+  });
+});
+
+describe('resolveReadingDisplayLevel', () => {
+  it('classifies from the API category first', () => {
+    const result = resolveReadingDisplayLevel(
+      { pm25Value: 100, aqiCategory: 'Good' },
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(result).toEqual({ level: 'good', source: 'aqi-category' });
+  });
+
+  it('uses fullReadingData.aqi_category when aqiCategory is absent', () => {
+    const result = resolveReadingDisplayLevel(
+      { fullReadingData: { aqi_category: 'Unhealthy' } },
+      'pm2_5',
+      null
+    );
+    expect(result).toEqual({ level: 'unhealthy', source: 'aqi-category' });
+  });
+
+  it('falls back to concentration classification without a category', () => {
+    const result = resolveReadingDisplayLevel(
+      { pm25Value: 100 },
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(result).toEqual({ level: 'hazardous', source: 'concentration' });
+  });
+
+  it('returns no-value when neither category nor concentration resolves', () => {
+    const result = resolveReadingDisplayLevel(
+      { pm25Value: NaN, aqiCategory: 'UnknownCategory' },
+      'pm2_5',
+      null
+    );
+    expect(result).toEqual({ level: 'no-value', source: 'concentration' });
+  });
+});
+
+describe('resolveClusterDisplay', () => {
+  it('classifies from the most common member category and aggregates averages', () => {
+    const result = resolveClusterDisplay(
+      [
+        { pm25Value: 10, pm10Value: 10, aqiCategory: 'Moderate', aqiIndex: 60 },
+        { pm25Value: 12, pm10Value: 12, aqiCategory: 'Moderate', aqiIndex: 62 },
+        { pm25Value: 11, pm10Value: 11, aqiCategory: 'Good', aqiIndex: 30 },
+      ],
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(result.level).toBe('moderate');
+    expect(result.source).toBe('aqi-category');
+    expect(result.hasData).toBe(true);
+    expect(result.avgConcentration).toBeCloseTo(11);
+    expect(result.avgAqiIndex).toBeCloseTo((60 + 62 + 30) / 3);
+  });
+
+  it('falls back to mean concentration when no member has a category', () => {
+    const result = resolveClusterDisplay(
+      [
+        { pm25Value: 4, pm10Value: 4, aqiIndex: 20 },
+        { pm25Value: 8, pm10Value: 8, aqiIndex: 40 },
+      ],
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(result.level).toBe('moderate');
+    expect(result.source).toBe('concentration');
+    expect(result.avgConcentration).toBe(6);
+    expect(result.avgAqiIndex).toBe(30);
+  });
+
+  it('reports hasData false and undefined averages without valid values', () => {
+    const result = resolveClusterDisplay(
+      [{ pm25Value: NaN, pm10Value: NaN }],
+      'pm2_5',
+      makeAqiConfig()
+    );
+    expect(result.hasData).toBe(false);
+    expect(result.avgConcentration).toBe(0);
+    expect(result.avgAqiIndex).toBeUndefined();
   });
 });
 

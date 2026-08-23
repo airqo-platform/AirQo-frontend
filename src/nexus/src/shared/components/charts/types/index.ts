@@ -236,6 +236,8 @@ export interface ChartContainerProps {
   activePeriod?: string;
   /** Called when the user selects a different period preset */
   onPeriodChange?: (period: string) => void;
+  /** Minimum height for the chart content area (default '400px') */
+  minContentHeight?: string;
 }
 
 // Dynamic chart props
