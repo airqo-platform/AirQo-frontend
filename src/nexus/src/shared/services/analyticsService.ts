@@ -354,7 +354,8 @@ export class AnalyticsService {
       try {
         const response = await this.postChartData(request, settledNow, signal);
         return response.data;
-      } catch {
+      } catch (caught) {
+        if (isCancellation(caught) || signal?.aborted) throw caught;
         throw originalError;
       }
     }
@@ -368,7 +369,8 @@ export class AnalyticsService {
         const { contract } = await chartContractNegotiation;
         const response = await this.postChartData(request, contract, signal);
         return response.data;
-      } catch {
+      } catch (caught) {
+        if (isCancellation(caught) || signal?.aborted) throw caught;
         throw originalError;
       }
     }
@@ -380,11 +382,14 @@ export class AnalyticsService {
         const response = await this.postChartData(request, alternate, signal);
         rememberChartDateContract(alternate);
         return { contract: alternate, data: response.data };
-      } catch {
+      } catch (caught) {
         // Alternate failed too — surface the ORIGINAL error so the caller
         // sees the primary failure, not a secondary symptom. This rejection
         // also fails the shared promise; joiners surface their OWN original
         // errors. Fail once; never loop.
+        // However, if the attempt was cancelled, propagate the cancellation
+        // so AbortError never surfaces as a user failure (AGENTS.md).
+        if (isCancellation(caught) || signal?.aborted) throw caught;
         throw originalError;
       }
     })();
@@ -460,8 +465,11 @@ export class AnalyticsService {
           const retried = await this.postChartData(request, alternate, signal);
           rememberChartDateContract(alternate);
           return { contract: alternate, data: retried.data };
-        } catch {
+        } catch (caught) {
           // The alternate contract failed too — surface the ORIGINAL error.
+          // But if the alternate attempt itself was cancelled, propagate
+          // the cancellation so AbortError never surfaces as a user failure.
+          if (isCancellation(caught) || signal?.aborted) throw caught;
           throw error;
         }
       }

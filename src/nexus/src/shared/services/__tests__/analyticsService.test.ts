@@ -729,6 +729,148 @@ describe('AnalyticsService.getChartData single-flight negotiation', () => {
   });
 });
 
+describe('AnalyticsService recovery cancellation propagation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetChartDateContract();
+  });
+
+  const axiosLikeError = (status: number, data: unknown) => {
+    const error = new Error(`Request failed with status code ${status}`);
+    (error as { response?: unknown }).response = { status, data };
+    return error;
+  };
+
+  const chartPayload = { status: 'success', data: [] };
+
+  const makeAbortError = () => {
+    const err = new Error('The operation was aborted.');
+    err.name = 'AbortError';
+    return err;
+  };
+
+  it('(c) fresh-probe alternate retry: AbortError from alternate propagates, not the primary contract-rejection error', async () => {
+    // Fresh session: primary keys fail with contract rejection, alternate
+    // retry is aborted. The AbortError must surface, NOT the original error.
+    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
+    const abortError = makeAbortError();
+    mockPost
+      .mockRejectedValueOnce(primaryError)
+      .mockRejectedValueOnce(abortError);
+
+    const controller = new AbortController();
+
+    await expect(
+      analyticsService.getChartData(
+        {
+          startDateTime: '2025-08-21',
+          endDateTime: '2025-08-21',
+        },
+        controller.signal
+      )
+    ).rejects.toThrow(abortError);
+
+    expect(mockPost).toHaveBeenCalledTimes(2);
+  });
+
+  it('(c) positive control: non-cancellation failure in alternate retry still surfaces the primary error', async () => {
+    // When the alternate retry fails with a non-cancellation error (e.g. 422),
+    // the PRIMARY contract-rejection error must still surface — designed joiner
+    // semantics: callers see the first failure, not a secondary symptom.
+    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
+    const secondaryError = axiosLikeError(422, {
+      message: 'Unprocessable Entity',
+    });
+    mockPost
+      .mockRejectedValueOnce(primaryError)
+      .mockRejectedValueOnce(secondaryError);
+
+    await expect(
+      analyticsService.getChartData({
+        startDateTime: '2025-08-21',
+        endDateTime: '2025-08-21',
+      })
+    ).rejects.toBe(primaryError);
+
+    expect(mockPost).toHaveBeenCalledTimes(2);
+  });
+
+  it('cancellation during fresh-session probe propagates AbortError (no retry)', async () => {
+    // Abort before the probe fires — AbortError surfaces immediately,
+    // never triggering the contract-rejection retry path.
+    const abortError = makeAbortError();
+    mockPost.mockRejectedValueOnce(abortError);
+
+    const controller = new AbortController();
+
+    await expect(
+      analyticsService.getChartData(
+        {
+          startDateTime: '2025-08-21',
+          endDateTime: '2025-08-21',
+        },
+        controller.signal
+      )
+    ).rejects.toThrow(abortError);
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+  });
+
+  it("owner shared re-probe: AbortError from the owner's alternate attempt propagates, not the original stale-contract error", async () => {
+    // What a startDate-contract request gets from a CURRENT-schema backend.
+    const CURRENT_SCHEMA_REJECTION_BODY = {
+      errors: [
+        {
+          type: 'missing',
+          loc: ['body', 'startDateTime'],
+          msg: 'Field required',
+        },
+        {
+          type: 'missing',
+          loc: ['body', 'endDateTime'],
+          msg: 'Field required',
+        },
+      ],
+    };
+
+    // Step 1: Settle the session on the legacy (startDate) contract.
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+      .mockResolvedValueOnce({ data: chartPayload });
+    await analyticsService.getChartData({
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    });
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDate');
+
+    // Step 2: The cached-contract attempt is rejected by the current schema,
+    // making this request the OWNER of the shared re-probe. The re-probe
+    // (alternate attempt) is then aborted — AbortError must propagate.
+    const abortError = makeAbortError();
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
+      .mockRejectedValueOnce(abortError);
+
+    const controller = new AbortController();
+
+    await expect(
+      analyticsService.getChartData(
+        {
+          startDateTime: '2025-08-15',
+          endDateTime: '2025-08-21',
+        },
+        controller.signal
+      )
+    ).rejects.toBe(abortError);
+
+    // Step 1 calls: 2 (fresh probe → LEGACY 400 → re-probe → success)
+    // Step 2 calls: 2 (cached-contract startDateTime → CURRENT 400 → owner re-probe → AbortError)
+    expect(mockPost).toHaveBeenCalledTimes(4);
+  });
+});
+
 describe('AnalyticsService.getRecentReadings', () => {
   beforeEach(() => {
     jest.clearAllMocks();

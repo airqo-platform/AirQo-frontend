@@ -52,6 +52,18 @@ describe('titleToOrgSlug', () => {
   it('lowercases the result', () => {
     expect(titleToOrgSlug('UPPER CASE')).toBe('upper-case');
   });
+
+  it('replaces forward slashes with hyphens (single path segment)', () => {
+    expect(titleToOrgSlug('East/West')).toBe('east-west');
+  });
+
+  it('replaces question marks, hash symbols, and percent signs with hyphens', () => {
+    expect(titleToOrgSlug('FAQ? #1 100%')).toBe('faq-1-100-');
+  });
+
+  it('collapses mixed spaces and slashes into a single hyphen', () => {
+    expect(titleToOrgSlug('East / West Branch')).toBe('east-west-branch');
+  });
 });
 
 describe('findGroupByOrgPathSlug', () => {
@@ -198,6 +210,16 @@ describe('findGroupByOrgPathSlug', () => {
     const result = findGroupByOrgPathSlug([groupEmptyTitle], 'something');
     expect(result).toBeNull();
   });
+
+  it('resolves a title-derived group whose title contains / via normalized slug', () => {
+    const slashGroup = makeGroup({
+      id: 'slash',
+      title: 'East/West',
+      organizationSlug: '',
+    });
+    const result = findGroupByOrgPathSlug([slashGroup], 'east-west');
+    expect(result?.id).toBe('slash');
+  });
 });
 
 describe('effectiveOrgSlug', () => {
@@ -270,5 +292,14 @@ describe('buildOrgDataExportPath', () => {
         makeGroup({ id: '3', title: '', organizationSlug: '' })
       )
     ).toBeNull();
+  });
+
+  it('builds a single-segment path for a title containing /', () => {
+    const path = buildOrgDataExportPath(
+      makeGroup({ id: 'slash', title: 'East/West', organizationSlug: '' })
+    );
+    expect(path).toBe('/org/east-west/data-export');
+    // Single segment: exactly 4 parts when split on '/'
+    expect(path!.split('/')).toHaveLength(4);
   });
 });

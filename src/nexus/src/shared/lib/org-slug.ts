@@ -3,13 +3,16 @@ import type { NormalizedGroup } from '@/shared/utils/userUtils';
 /**
  * Convert a group title to an org slug using the same rule Vertex uses
  * for fallback link generation: trim, lowercase, replace runs of
- * whitespace / underscores with a single hyphen.
+ * whitespace, underscores, and URL-reserved path characters (`/`, `?`,
+ * `#`, `%`) with a single hyphen. This ensures the result is always a
+ * single URL path segment — a title like `East/West` produces
+ * `east-west`, not a multi-segment path.
  */
 export function titleToOrgSlug(title: string): string {
   return title
     .trim()
     .toLowerCase()
-    .replace(/[\s_]+/g, '-');
+    .replace(/[\s_/?#%]+/g, '-');
 }
 
 /**
