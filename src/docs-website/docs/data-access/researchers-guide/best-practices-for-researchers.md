@@ -1,9 +1,9 @@
 ---
-sidebar_position: 12
-sidebar_label: 11. Best Practices for Researchers
+sidebar_position: 13
+sidebar_label: 12. Best Practices for Researchers
 ---
 
-# 11. Best Practices for Researchers
+# 12. Best Practices for Researchers
 
 ### Data Download and Processing Workflow
 

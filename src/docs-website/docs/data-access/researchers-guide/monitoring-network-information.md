@@ -1,9 +1,9 @@
 ---
-sidebar_position: 7
-sidebar_label: 6. Monitoring Network Information
+sidebar_position: 8
+sidebar_label: 7. Monitoring Network Information
 ---
 
-# 6. Monitoring Network Information
+# 7. Monitoring Network Information
 
 ### Network Size and Coverage
 
