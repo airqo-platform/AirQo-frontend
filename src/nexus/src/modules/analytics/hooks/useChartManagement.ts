@@ -26,6 +26,7 @@ import {
   DEFAULT_CHART_SIDECAR,
   isUnknownPlaceholder,
   type ExplorerChartDraft,
+  type ExplorerChartType,
 } from '../utils/chartConfig';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 
@@ -69,6 +70,15 @@ export interface UseChartManagementResult {
     draftId: string,
     title: string,
     subtitle?: string
+  ) => Promise<void>;
+  /**
+   * Persists a quick chart-type switch (card toolbar selector) through the
+   * same path as the draft-dialog save, so the API payload mapping stays
+   * identical (Line→line, Bar→bar, Area→sidecar + Line).
+   */
+  handleChartTypeChange: (
+    draftId: string,
+    chartType: ExplorerChartType
   ) => Promise<void>;
   handleNamesResolved: (names: Map<string, string>) => void;
 }
@@ -372,6 +382,22 @@ export const useChartManagement = (
     [charts, persistDraft, posthog, siteNames]
   );
 
+  // Quick chart-type switch from the card toolbar — persists via the SAME
+  // path as the draft dialog (persistDraft → draftToUpdateRequest), so the
+  // API payload mapping stays identical (Line→line, Bar→bar, Area→sidecar
+  // + Line). Errors propagate to the caller (the card reverts its override).
+  const handleChartTypeChange = useCallback(
+    async (draftId: string, chartType: ExplorerChartType) => {
+      const chartToUpdate = charts.find(chart => chart.id === draftId);
+      if (!chartToUpdate) return;
+
+      const updated: ExplorerChartDraft = { ...chartToUpdate, chartType };
+      const namesSnapshot = Object.fromEntries(siteNames);
+      await persistDraft(updated, namesSnapshot);
+    },
+    [charts, siteNames, persistDraft]
+  );
+
   // Duplicates the chart via the server copy endpoint (includes scope +
   // locationColors; new title ends with "(Copy)"), carries the client-side
   // sidecar over.
@@ -495,6 +521,7 @@ export const useChartManagement = (
     handleDuplicate,
     handleForecastToggle,
     handleEditTitle,
+    handleChartTypeChange,
     handleNamesResolved,
   };
 };

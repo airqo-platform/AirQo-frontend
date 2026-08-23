@@ -21,7 +21,9 @@ import {
   readChartSidecar,
   writeChartSidecar,
   toBackendChartType,
+  normalizeExplorerChartType,
   type ExplorerChartDraft,
+  type ExplorerChartType,
 } from '../../utils/chartConfig';
 import { resolveParsedNumber } from '@/shared/types/api';
 import { parseISO, format, addDays, addWeeks, addMonths } from 'date-fns';
@@ -53,6 +55,16 @@ interface AnalyticsChartCardProps {
     draftId: string,
     title: string,
     subtitle?: string
+  ) => Promise<void>;
+  /**
+   * Persists a quick chart-type switch to the saved chart configuration;
+   * when omitted (or `isFixed`), the switch is local-only. Fired with the
+   * capitalized ExplorerChartType so the payload maps exactly (Line→line,
+   * Bar→bar, Area→sidecar + Line).
+   */
+  onChartTypeChange?: (
+    draftId: string,
+    chartType: ExplorerChartType
   ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
   /** When true, hides edit/duplicate/delete menu items and inline title editing */
@@ -109,6 +121,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onEdit,
   onRequestDelete,
   onEditTitle,
+  onChartTypeChange,
   onDuplicate,
   isFixed = false,
   footerAction,
@@ -417,6 +430,23 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     void onDuplicate(draft);
   }, [draft, onDuplicate]);
 
+  // Quick chart-type switch from the toolbar selector: applies optimistically,
+  // then persists via `onChartTypeChange` (the same path as the dialog save).
+  // On failure the override reverts to the saved type so the UI never shows
+  // an unpersisted chart type.
+  const handleChartTypeChange = async (type: ChartType) => {
+    const next = normalizeExplorerChartType(type) as ExplorerChartType;
+    setChartTypeOverride(next.toLowerCase() as ChartType); // optimistic UI
+    if (isFixed || !onChartTypeChange) return;
+    try {
+      await onChartTypeChange(draft.id, next);
+    } catch (err) {
+      // Persist failed — revert so the UI never shows an unsaved type.
+      setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+      console.error('Failed to persist chart type', err);
+    }
+  };
+
   // Sync overrides when the draft changes (e.g. after a dialog save).
   useEffect(() => {
     setPollutantOverride(draft.pollutant);
@@ -474,9 +504,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         themeColors={themeColors}
-        // Quick-view chart-type switcher in the toolbar (local override
-        // only — persistence stays with the draft dialog).
-        onChartTypeChange={setChartTypeOverride}
+        // Quick-view chart-type switcher in the toolbar — persists via
+        // `onChartTypeChange` (same path as the dialog save) with optimistic
+        // UI + revert on failure; local-only when the prop is omitted.
+        onChartTypeChange={handleChartTypeChange}
         currentChartType={chartTypeOverride}
         autoSelectChart={false}
         chartTypeOptions={CHART_TYPE_OPTIONS}

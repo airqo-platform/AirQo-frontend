@@ -71,20 +71,69 @@ export const normalizeChartApiFrequency = (value: string): string =>
  * unknown fields), so on the FIRST chart request of a browser session the
  * primary key set is sent; if the response body matches the legacy rejection
  * signature, the request is retried ONCE with the alternate key set and the
- * winning contract is cached in module scope. Subsequent requests use the
- * cached contract directly — at most ONE extra request per session, never a
- * loop (AGENTS.md retry policy: fail once, no unbounded retries).
+ * winning contract is cached — in memory AND in localStorage so a hard
+ * reload skips the 400 probe entirely. Subsequent requests use the cached
+ * contract directly — at most ONE extra request per fresh session (and on
+ * the first session only), never a loop (AGENTS.md retry policy: fail once,
+ * no unbounded retries).
  */
 export type ChartDateContract = 'startDateTime' | 'startDate';
 
 const PRIMARY_CHART_DATE_CONTRACT: ChartDateContract = 'startDateTime';
 
-/** Module-scope cache: undefined = not negotiated yet this session. */
-let negotiatedChartDateContract: ChartDateContract | undefined;
+/** localStorage key for the persisted contract — survives hard reloads. */
+const CHART_DATE_CONTRACT_STORAGE_KEY = 'nexus:analytics:chart-date-contract';
 
-/** Test hook: resets the session-scoped contract negotiation. */
+const isChartDateContract = (value: unknown): value is ChartDateContract =>
+  value === 'startDateTime' || value === 'startDate';
+
+/**
+ * Read the previously-negotiated contract from localStorage. Synchronous,
+ * SSR-safe (returns undefined on the server), and tolerant of corrupt
+ * entries: anything that isn't a known contract value is treated as a
+ * fresh session and triggers the normal probe.
+ */
+const readPersistedChartDateContract = (): ChartDateContract | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const stored = window.localStorage.getItem(CHART_DATE_CONTRACT_STORAGE_KEY);
+    return isChartDateContract(stored) ? stored : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Persist the contract so the next page load skips the probe. Best-effort:
+ * storage may be unavailable (private mode, disabled cookies, quota), but
+ * the in-memory cache still keeps the session itself on the right keys.
+ */
+const writePersistedChartDateContract = (contract: ChartDateContract): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(CHART_DATE_CONTRACT_STORAGE_KEY, contract);
+  } catch {
+    // Storage unavailable — session-only cache still applies.
+  }
+};
+
+/**
+ * Module-scope cache, hydrated from localStorage on first import. The
+ * persisted value is preferred so a hard reload does NOT pay a 400 to
+ * re-probe a contract we already know.
+ */
+let negotiatedChartDateContract: ChartDateContract | undefined =
+  readPersistedChartDateContract();
+
+/** Test hook: resets the session-scoped contract negotiation + storage. */
 export const resetChartDateContract = (): void => {
   negotiatedChartDateContract = undefined;
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(CHART_DATE_CONTRACT_STORAGE_KEY);
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
 };
 
 /**
@@ -105,9 +154,10 @@ export const chartContractToRetryForErrorBody = (
   }
   if (!text.includes('Unknown field')) return null;
   // The observed legacy body lists all four keys: startDate/endDate missing
-  // plus startDateTime/endDateTime unknown. Require both pairs before
-  // switching so a coincidental "Unknown field" elsewhere never flips us.
-  if (!text.includes('startDateTime') || !text.includes('startDate')) {
+  // plus startDateTime/endDateTime unknown. Require both key families
+  // (endDateTime + startDate) before switching so a coincidental "Unknown
+  // field" elsewhere never flips us.
+  if (!text.includes('endDateTime') || !text.includes('startDate')) {
     return null;
   }
   return 'startDate';
@@ -173,6 +223,23 @@ export class AnalyticsService {
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
     const CHART_DATA_PATH = '/analytics/dashboard/chart/d3/data';
+
+    // Defensive guard: a request with missing/empty date strings is a
+    // client bug — BOTH schemas (current + legacy) require the date keys to
+    // carry a value. A draft that resolves to empty dates (corrupted
+    // sidecar, draft-construction regression) would otherwise fire, get
+    // 400'd, and burn the once-per-session retry on a request we already
+    // know is malformed. Surface a clear error instead.
+    if (!request.startDateTime?.trim() && !request.endDateTime?.trim()) {
+      throw new Error('Chart data request is missing start and end dates.');
+    }
+    if (!request.startDateTime?.trim()) {
+      throw new Error('Chart data request is missing a start date.');
+    }
+    if (!request.endDateTime?.trim()) {
+      throw new Error('Chart data request is missing an end date.');
+    }
+
     const contract = negotiatedChartDateContract ?? PRIMARY_CHART_DATE_CONTRACT;
 
     try {
@@ -182,6 +249,7 @@ export class AnalyticsService {
         { signal }
       );
       negotiatedChartDateContract = contract;
+      writePersistedChartDateContract(contract);
       return response.data;
     } catch (error) {
       // Aborted requests are never retried (AGENTS.md). Negotiation only
@@ -203,6 +271,7 @@ export class AnalyticsService {
       }
 
       negotiatedChartDateContract = retryContract;
+      writePersistedChartDateContract(retryContract);
       try {
         const response = await this.serverClient.post<AnalyticsChartResponse>(
           CHART_DATA_PATH,

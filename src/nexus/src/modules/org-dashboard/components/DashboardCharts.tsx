@@ -48,6 +48,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
     handleDuplicate,
     handleForecastToggle,
     handleEditTitle,
+    handleChartTypeChange,
     handleNamesResolved,
   } = chartMgmt;
 
@@ -87,6 +88,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
               onEdit={openEdit}
               onRequestDelete={handleRequestDelete}
               onEditTitle={handleEditTitle}
+              onChartTypeChange={handleChartTypeChange}
               onDuplicate={handleDuplicate}
             />
           ))}

@@ -335,6 +335,215 @@ describe('AnalyticsService.getChartData contract negotiation', () => {
       expect.objectContaining({ signal: controller.signal })
     );
   });
+
+  it('persists the winning contract to localStorage so a hard reload skips the 400 probe', async () => {
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+      .mockResolvedValueOnce({ data: chartPayload });
+
+    await analyticsService.getChartData({
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    });
+
+    // The legacy contract is now persisted. A simulated reload — fresh
+    // module instance, same localStorage — must use it on the FIRST
+    // request, with no 400 probe.
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDate');
+
+    // isolateModules runs the callback in a clean module registry: the
+    // analyticsService module re-initializes and re-reads localStorage on
+    // import. We return the in-flight promise so Jest awaits it before
+    // the test ends.
+    await new Promise<void>((resolve, reject) => {
+      jest.isolateModules(() => {
+        // The shared mock instance carries call history from outside the
+        // sandbox; clear it so the assertions below are scoped to the
+        // reloaded-module path.
+        mockPost.mockClear();
+        mockPost.mockResolvedValueOnce({ data: chartPayload });
+
+        const { analyticsService: reloadedService } =
+          // jest.isolateModules() requires a runtime require() — the only
+          // way to re-evaluate the module body inside the sandbox.
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('../analyticsService') as {
+            analyticsService: {
+              getChartData: (req: {
+                startDateTime: string;
+                endDateTime: string;
+              }) => Promise<unknown>;
+            };
+          };
+
+        reloadedService
+          .getChartData({
+            startDateTime: '2025-08-15',
+            endDateTime: '2025-08-21',
+          })
+          .then(() => {
+            try {
+              // One call only — no probe, no 400.
+              expect(mockPost).toHaveBeenCalledTimes(1);
+              expect(mockPost.mock.calls[0][1]).toEqual(
+                expect.objectContaining({
+                  startDate: '2025-08-15',
+                  endDate: '2025-08-21',
+                })
+              );
+              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
+                'startDateTime'
+              );
+              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
+                'endDateTime'
+              );
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          })
+          .catch(reject);
+      });
+    });
+  });
+
+  it('uses the persisted primary contract on reload — no probe, no 400', async () => {
+    // Simulate a user whose very first request succeeded with the current
+    // (DateTime) schema; that contract was persisted in a previous session.
+    window.localStorage.setItem(
+      'nexus:analytics:chart-date-contract',
+      'startDateTime'
+    );
+
+    await new Promise<void>((resolve, reject) => {
+      jest.isolateModules(() => {
+        mockPost.mockClear();
+        mockPost.mockResolvedValueOnce({ data: chartPayload });
+
+        const { analyticsService: reloadedService } =
+          // jest.isolateModules() requires a runtime require() — the only
+          // way to re-evaluate the module body inside the sandbox.
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('../analyticsService') as {
+            analyticsService: {
+              getChartData: (req: {
+                startDateTime: string;
+                endDateTime: string;
+              }) => Promise<unknown>;
+            };
+          };
+
+        reloadedService
+          .getChartData({
+            startDateTime: '2025-08-15',
+            endDateTime: '2025-08-21',
+          })
+          .then(() => {
+            try {
+              expect(mockPost).toHaveBeenCalledTimes(1);
+              expect(mockPost.mock.calls[0][1]).toEqual(
+                expect.objectContaining({
+                  startDateTime: '2025-08-15',
+                  endDateTime: '2025-08-21',
+                })
+              );
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          })
+          .catch(reject);
+      });
+    });
+  });
+
+  it('treats a corrupt localStorage value as a fresh session (re-probes)', async () => {
+    // Defensive: if a previous build or migration wrote something we don't
+    // recognize, fall back to the in-memory probe path instead of crashing
+    // or sending the wrong contract silently.
+    window.localStorage.setItem(
+      'nexus:analytics:chart-date-contract',
+      'not-a-real-contract'
+    );
+
+    await new Promise<void>((resolve, reject) => {
+      jest.isolateModules(() => {
+        mockPost.mockClear();
+        mockPost
+          .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+          .mockResolvedValueOnce({ data: chartPayload });
+
+        const { analyticsService: reloadedService } =
+          // jest.isolateModules() requires a runtime require() — the only
+          // way to re-evaluate the module body inside the sandbox.
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('../analyticsService') as {
+            analyticsService: {
+              getChartData: (req: {
+                startDateTime: string;
+                endDateTime: string;
+              }) => Promise<unknown>;
+            };
+          };
+
+        reloadedService
+          .getChartData({
+            startDateTime: '2025-08-15',
+            endDateTime: '2025-08-21',
+          })
+          .then(() => {
+            try {
+              // Probe + corrected retry, same as a brand-new session.
+              expect(mockPost).toHaveBeenCalledTimes(2);
+              expect(mockPost.mock.calls[0][1]).toEqual(
+                expect.objectContaining({ startDateTime: '2025-08-15' })
+              );
+              expect(mockPost.mock.calls[1][1]).toEqual(
+                expect.objectContaining({ startDate: '2025-08-15' })
+              );
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          })
+          .catch(reject);
+      });
+    });
+  });
+
+  it('refuses to fire when startDateTime is empty and never hits the network', async () => {
+    await expect(
+      analyticsService.getChartData({
+        startDateTime: '',
+        endDateTime: '2025-08-21',
+      })
+    ).rejects.toThrow(/missing a start date/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('refuses to fire when endDateTime is empty and never hits the network', async () => {
+    await expect(
+      analyticsService.getChartData({
+        startDateTime: '2025-08-15',
+        endDateTime: '',
+      })
+    ).rejects.toThrow(/missing an end date/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('refuses to fire when both dates are missing (undefined) and never hits the network', async () => {
+    await expect(
+      analyticsService.getChartData({
+        // Cast required because the type declares the keys as required, but
+        // a corrupted caller can still bypass the type system at runtime.
+        startDateTime: undefined as unknown as string,
+        endDateTime: undefined as unknown as string,
+      })
+    ).rejects.toThrow(/missing start and end dates/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
 });
 
 describe('AnalyticsService.getRecentReadings', () => {
