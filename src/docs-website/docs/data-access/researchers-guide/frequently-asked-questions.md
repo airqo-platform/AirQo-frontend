@@ -33,6 +33,20 @@ Investigate extreme values before removal. Check for sensor malfunction periods,
 **Is AirQo data suitable for health impact assessment?**
 Yes, for epidemiological studies and exposure assessment. Use appropriate exposure assignment methods and account for measurement error.
 
+**Why doesn't my monitor appear in its exact location on the map?**
+Coordinates are intentionally offset by up to ~0.5km to protect the privacy of the institutions hosting monitors. See [Location Approximation](./spatial-disaggregation-and-geographic-filtering.md#31-location-approximation-for-monitor-coordinates) for the full policy and how to adjust proximity analysis for it.
+
+### Device Ownership Questions
+
+**How do I claim a device that was shipped to me?**
+See the [Main Claiming Flow](../device-claiming-guide/main-claiming-flow.md) — scan the QR code or enter the Device Name and Claim Token from the printed label.
+
+**What uptime and data availability should I expect from my device?**
+See [Device Uptime Targets](../device-performance-guide/device-uptime-targets.md) and [Data Availability Targets](../device-performance-guide/data-availability-targets.md) — both depend on power source and firmware version.
+
+**Who is responsible for maintaining my device, and what does it cost?**
+AirQo covers the device and its software; you're responsible for your AirQloud's reliability. See [Maintenance Cost Options](../device-performance-guide/maintenance-and-support.md#maintenance-cost-options) for the knowledge-transfer vs. on-site maintenance choices.
+
 ### Data Access Questions
 
 **I need data urgently for a deadline.**

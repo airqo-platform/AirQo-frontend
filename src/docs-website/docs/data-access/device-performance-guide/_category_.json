@@ -1,0 +1,10 @@
+{
+  "label": "Device Performance & SLA Guide",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "data-access/device-performance-guide/index"
+  }
+}
