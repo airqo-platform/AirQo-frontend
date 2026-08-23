@@ -89,7 +89,7 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city"
 ```json
 {
   "success": true,
-  "message": "Successfull Operation",
+  "message": "Successfully retrieved grids",
   "grids": [
     {
       "_id": "67c96c4771c7b0001383dde1",
@@ -141,7 +141,7 @@ const stationCoordinates = data.grids
 
 ```python
 import requests
-import geopy.distance
+import geopy.distance  # pip install geopy
 
 response = requests.get('https://api.airqo.net/api/v2/devices/grids/summary')
 data = response.json()
