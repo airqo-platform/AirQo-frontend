@@ -86,12 +86,21 @@ export function AqiConfigProvider({
     }
   );
 
-  useEffect(
-    () => () => {
-      abortRef.current?.abort();
-    },
-    []
-  );
+  // NOTE: no abort-on-unmount here. This provider lives at the app root and
+  // React StrictMode double-mounts it in development; aborting the first
+  // in-flight fetch there leaves SWR serving an aborted (undefined) result
+  // and the app runs without an AQI config. A completed background fetch is
+  // harmless — SWR discards results from unmounted consumers safely.
+
+  // Belt-and-braces: if a fetch ever resolves undefined (e.g. aborted by the
+  // next fetch starting), re-trigger once so the app regains its AQI config.
+  const recoveredAbortRef = useRef(false);
+  useEffect(() => {
+    if (enabled && data === undefined && !recoveredAbortRef.current) {
+      recoveredAbortRef.current = true;
+      void mutate();
+    }
+  }, [data, enabled, mutate]);
 
   const fetchedConfig = data?.data ?? null;
 
@@ -225,12 +234,14 @@ export const useAqiConfig = (
       }
     );
 
-  useEffect(
-    () => () => {
-      abortRef.current?.abort();
-    },
-    []
-  );
+  // No abort-on-unmount (see the provider note above).
+  const recoveredAbortRef = useRef(false);
+  useEffect(() => {
+    if (context.enabled && data === undefined && !recoveredAbortRef.current) {
+      recoveredAbortRef.current = true;
+      void mutate();
+    }
+  }, [context.enabled, data, mutate]);
 
   useEffect(() => {
     if (!isDefaultPollutant) {

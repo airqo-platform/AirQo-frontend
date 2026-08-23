@@ -14,6 +14,25 @@ interface CustomTooltipProps extends TooltipData {
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
+  /**
+   * Display-label overrides keyed by series dataKey (the picker's names).
+   */
+  seriesLabels?: Record<string, string>;
+  /**
+   * Display-label overrides keyed by site_id (the picker's names) — used on
+   * the "Location:" line so it matches what the user selected.
+   */
+  locationLabels?: Record<string, string>;
+  /**
+   * When set, only entries of this series are shown — hover focus mode.
+   * The rest of the chart is blurred in DynamicChart to match.
+   */
+  focusedDataKey?: string | null;
+  /**
+   * Overrides the header date rendering (used when the x values are not ISO
+   * timestamps, e.g. year buckets in the rankings history chart).
+   */
+  tooltipDateFormatter?: (label: string | number) => string;
 }
 
 const formatTooltipDate = (
@@ -22,9 +41,16 @@ const formatTooltipDate = (
 ): string => {
   try {
     const date = parseISO(String(label));
-    // Show time only for hourly/raw frequencies
     if (frequency === 'raw' || frequency === 'hourly') {
       return format(date, 'MMM dd, yyyy HH:mm');
+    }
+    if (frequency === 'monthly') {
+      // Month buckets parse to the 1st — the day is meaningless for a month
+      // average, so drop it (mirrors the axis label).
+      return format(date, 'MMM yyyy');
+    }
+    if (frequency === 'weekly') {
+      return format(date, 'MMM dd, yyyy');
     }
     return format(date, 'MMM dd, yyyy');
   } catch {
@@ -41,15 +67,29 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   frequency,
   pollutant = 'pm2_5',
   aqiConfig = null,
+  focusedDataKey = null,
+  seriesLabels,
+  locationLabels,
+  tooltipDateFormatter,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
 
-  const primaryData = payload[0];
+  const visiblePayload = focusedDataKey
+    ? payload.filter(entry => String(entry.dataKey) === focusedDataKey)
+    : payload;
+
+  if (visiblePayload.length === 0) {
+    return null;
+  }
+
+  const primaryData = visiblePayload[0];
   const value = primaryData.value as number;
   const airQualityLevel = getAirQualityInfo(value, pollutant, 'WHO', aqiConfig);
-  const locationName = getChartLocationDisplayName(primaryData.payload);
+  const locationName =
+    locationLabels?.[String(primaryData.payload.site_id)] ??
+    getChartLocationDisplayName(primaryData.payload);
 
   return (
     <div
@@ -61,13 +101,15 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     >
       {/* Header with timestamp */}
       <div className="text-sm font-medium text-muted-foreground mb-2">
-        {formatTooltipDate(label || '', frequency)}
+        {tooltipDateFormatter
+          ? tooltipDateFormatter(label || '')
+          : formatTooltipDate(label || '', frequency)}
       </div>
 
       {/* Data entries */}
       <div className="space-y-2">
         {/* Display-only list — no stable ID available */}
-        {payload.map((entry, index) => (
+        {visiblePayload.map((entry, index) => (
           <div key={index} className="flex items-start justify-between gap-2">
             <div className="flex items-center space-x-2 min-w-0">
               <div
@@ -75,7 +117,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-sm font-medium text-foreground truncate max-w-[220px] block">
-                {String(entry.name || entry.dataKey || '').trim()}
+                {seriesLabels?.[String(entry.dataKey)] ??
+                  String(entry.name || entry.dataKey || '').trim()}
               </span>
             </div>
             <div className="text-right ml-2 flex-shrink-0">
@@ -91,7 +134,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
       {/* Air Quality Level (only for single value) */}
       {showAirQualityLevel &&
-        payload.length === 1 &&
+        visiblePayload.length === 1 &&
         typeof value === 'number' && (
           <div className="mt-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">

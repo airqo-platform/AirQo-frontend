@@ -3,8 +3,6 @@ import { analyticsService } from '../services/analyticsService';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
-  RecentReadingRequest,
-  RecentReadingsResponse,
   DataDownloadRequest,
   DataDownloadResponse,
 } from '../types/api';
@@ -22,19 +20,6 @@ export const useGetChartData = (keyParts?: unknown[]) => {
       { arg }: { arg: AnalyticsChartRequest }
     ): Promise<AnalyticsChartResponse> => {
       return await analyticsService.getChartData(arg);
-    }
-  );
-};
-
-// Get recent readings data
-export const useGetRecentReadings = () => {
-  return useSWRMutation(
-    'analytics/recent-readings',
-    async (
-      key,
-      { arg }: { arg: RecentReadingRequest }
-    ): Promise<RecentReadingsResponse> => {
-      return await analyticsService.getRecentReadings(arg);
     }
   );
 };

@@ -50,11 +50,15 @@ export const ChartFiltersComponent: React.FC<ChartFiltersProps> = ({
           onChange={handleFrequencyChange}
           className="w-32"
         >
-          {Object.entries(FREQUENCY_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
+          {Object.entries(FREQUENCY_LABELS)
+            // The backend never aggregates raw readings — mirror the other
+            // frequency surfaces (FilterBar, chart config) which exclude it.
+            .filter(([value]) => value !== 'raw')
+            .map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
         </Select>
       </div>
 

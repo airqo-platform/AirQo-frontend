@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useMediaQuery } from 'react-responsive';
+import { useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
 import { useMapReadings } from './hooks';
@@ -14,6 +15,12 @@ import type { RootState } from '../../shared/store';
 import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
 import { normalizeMapReadings } from './utils/dataNormalization';
+import {
+  DATA_PROVIDER_ALL,
+  extractDataProviders,
+  getDataProviderDisplayLabel,
+  readingMatchesDataProvider,
+} from './utils/dataProviders';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 import {
@@ -41,7 +48,9 @@ interface MapPageProps {
 // ─── Private org banner ───────────────────────────────────────────────────────
 
 const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="Map data unavailable"
       message={
@@ -65,7 +74,9 @@ const PrivateOrgBanner: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const EmptyCohortBanner: React.FC<{ className?: string }> = ({ className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="No data available"
       message={<>This cohort contains no deployed devices yet.</>}
@@ -78,13 +89,35 @@ const NoPollutantDataBanner: React.FC<{
   pollutant: PollutantType;
   className?: string;
 }> = ({ pollutant, className }) => (
-  <div className={`absolute top-4 left-4 right-4 z-[10000] ${className ?? ''}`}>
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
     <InfoBanner
       title="No readings for this pollutant"
       message={
         <>
           This map has readings, but none are available for{' '}
           {pollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} yet.
+        </>
+      }
+      className="shadow-lg bg-white/95 backdrop-blur-sm border-amber-200"
+    />
+  </div>
+);
+
+const NoProviderDataBanner: React.FC<{
+  provider: string;
+  className?: string;
+}> = ({ provider, className }) => (
+  <div
+    className={`absolute top-28 left-4 right-4 z-[10000] md:top-16 ${className ?? ''}`}
+  >
+    <InfoBanner
+      title="No stations from this provider"
+      message={
+        <>
+          No monitored stations report {getDataProviderDisplayLabel(provider)}{' '}
+          data on this map.
         </>
       }
       className="shadow-lg bg-white/95 backdrop-blur-sm border-amber-200"
@@ -135,6 +168,8 @@ const MapPage: React.FC<MapPageProps> = ({
   >(null);
   const [selectedPollutant, setSelectedPollutant] =
     React.useState<PollutantType>('pm2_5');
+  const [selectedDataProvider, setSelectedDataProvider] =
+    React.useState<string>(DATA_PROVIDER_ALL);
   const {
     config: selectedAqiConfig,
     isLoading: pollutantConfigLoading,
@@ -167,17 +202,58 @@ const MapPage: React.FC<MapPageProps> = ({
     };
   }, []);
 
+  const scheduleFlyToClear = React.useCallback(() => {
+    if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
+    flyToTimeoutRef.current = setTimeout(() => {
+      setFlyToLocation(undefined);
+      flyToTimeoutRef.current = null;
+    }, 1100);
+  }, []);
+
   React.useEffect(() => {
     dispatch(clearSelectedLocation());
     setSelectedLocationId(null);
     setFlyToLocation(undefined);
     setSelectedCountry(undefined);
+    setSelectedDataProvider(DATA_PROVIDER_ALL);
     setLocationDetailsLoading(false);
 
     return () => {
       dispatch(clearSelectedLocation());
     };
   }, [dispatch, selectionContextKey]);
+
+  // Read lat/lng/zoom from URL search params (e.g. analytics site details →
+  // map). Declared AFTER the reset effect above so the reset runs first —
+  // effects run in declaration order, and the reset would otherwise wipe the
+  // URL target before the map ever sees it.
+  const searchParams = useSearchParams();
+  const mapTarget = React.useMemo(() => {
+    const latitude = parseFloat(searchParams.get('lat') ?? '');
+    const longitude = parseFloat(searchParams.get('lng') ?? '');
+    const zoom = parseFloat(searchParams.get('zoom') ?? '');
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return undefined;
+    }
+
+    return {
+      latitude,
+      longitude,
+      zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : undefined,
+    };
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (mapTarget) {
+      setFlyToLocation({
+        ...mapTarget,
+      });
+      scheduleFlyToClear();
+    } else {
+      setFlyToLocation(undefined);
+    }
+  }, [mapTarget, scheduleFlyToClear]);
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -241,6 +317,22 @@ const MapPage: React.FC<MapPageProps> = ({
     return Array.from(dedupedReadings.values());
   }, [readings, selectedPollutant]);
 
+  // Data-provider filter options are derived from the loaded readings (never
+  // hard-coded), and filtering happens client-side — no extra API requests.
+  const dataProviders = React.useMemo(
+    () => extractDataProviders(normalizedReadings),
+    [normalizedReadings]
+  );
+
+  const providerFilteredReadings = React.useMemo(() => {
+    if (selectedDataProvider === DATA_PROVIDER_ALL) {
+      return normalizedReadings;
+    }
+    return normalizedReadings.filter(reading =>
+      readingMatchesDataProvider(reading, selectedDataProvider)
+    );
+  }, [normalizedReadings, selectedDataProvider]);
+
   const hasCohortError = Boolean(cohortError && !isCohortFetchCanceled);
 
   const hasNoMapData =
@@ -264,6 +356,12 @@ const MapPage: React.FC<MapPageProps> = ({
     !pollutantConfigLoading &&
     readings.length > 0 &&
     normalizedReadings.length === 0;
+
+  const showNoProviderDataState =
+    !mapDataLoading &&
+    selectedDataProvider !== DATA_PROVIDER_ALL &&
+    normalizedReadings.length > 0 &&
+    providerFilteredReadings.length === 0;
 
   const contentHeight = `calc(100dvh - ${navHeight}px)`;
   const isMdUp = useMediaQuery({ minWidth: 768 });
@@ -305,12 +403,13 @@ const MapPage: React.FC<MapPageProps> = ({
     });
   };
 
-  const scheduleFlyToClear = () => {
-    if (flyToTimeoutRef.current) clearTimeout(flyToTimeoutRef.current);
-    flyToTimeoutRef.current = setTimeout(() => {
-      setFlyToLocation(undefined);
-      flyToTimeoutRef.current = null;
-    }, 1100);
+  const handleDataProviderChange = (provider: string) => {
+    setSelectedDataProvider(provider);
+    trackMapInteraction(posthog, {
+      action: 'filter_apply',
+      filterType: 'data_provider',
+      filterValue: provider,
+    });
   };
 
   const handleLocationSelect = async (
@@ -327,25 +426,42 @@ const MapPage: React.FC<MapPageProps> = ({
 
       setSelectedLocationId(locationId);
 
+      // Try to find the corresponding reading in the loaded data so we can
+      // show the location details panel in the sidebar.
+      const matchedReading = readings.find(
+        r => r.site_id === locationId || r._id === locationId
+      );
+
+      if (matchedReading?.siteDetails) {
+        // Dispatch the reading into Redux so the sidebar switches to the
+        // details panel and the map flies to the site coordinates.
+        dispatch(
+          setSelectedLocation({
+            ...matchedReading,
+            lastUpdated:
+              matchedReading.updatedAt || new Date().toISOString(),
+          })
+        );
+      } else {
+        // External location (e.g. Photon search result) — clear any previous
+        // selection so the sidebar reverts to the list, then fly the map.
+        dispatch(clearSelectedLocation());
+      }
+
       const coords = locationData
         ? { longitude: locationData.longitude, latitude: locationData.latitude }
         : (() => {
-            const reading = readings.find(
-              r => r.site_id === locationId || r._id === locationId
-            );
-            if (!reading?.siteDetails) return null;
+            if (!matchedReading?.siteDetails) return null;
             return {
-              longitude: reading.siteDetails.approximate_longitude,
-              latitude: reading.siteDetails.approximate_latitude,
+              longitude: matchedReading.siteDetails.approximate_longitude,
+              latitude: matchedReading.siteDetails.approximate_latitude,
             };
           })();
 
       if (coords) {
-        setFlyToLocation({ ...coords, zoom: 10 });
+        setFlyToLocation({ ...coords, zoom: 12 });
         scheduleFlyToClear();
       }
-
-      dispatch(clearSelectedLocation());
     } catch (error) {
       console.error('Error flying to location:', error);
     }
@@ -379,7 +495,7 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Shared props ───────────────────────────────────────────────────────────
   const mapProps = {
-    airQualityData: normalizedReadings,
+    airQualityData: providerFilteredReadings,
     onNodeClick: handleNodeClick,
     onClusterClick: handleClusterClick,
     isLoading: mapDataLoading,
@@ -390,7 +506,11 @@ const MapPage: React.FC<MapPageProps> = ({
     isAqiConfigLoading: pollutantConfigLoading,
     aqiConfigError: pollutantConfigError,
     onPollutantChange: handlePollutantChange,
+    dataProviders,
+    selectedDataProvider,
+    onDataProviderChange: handleDataProviderChange,
     selectionContextKey,
+    enableHoverTooltip: isMdUp,
   };
 
   const sidebarProps = {
@@ -430,10 +550,14 @@ const MapPage: React.FC<MapPageProps> = ({
    *
    * MOBILE
    * ──────
-   * Map pane:     height = 40dvh  (explicit, not relative to anything)
-   * Sidebar pane: height = 60dvh  (explicit, not relative to anything)
+   * The overall layout container: height = 100dvh - navHeight (matches desktop)
+   * Map pane:     height = 55%  of the container (majority for map usability)
+   * Sidebar pane: height = 45%  of the container (scrollable location list)
    *               overflow: hidden (containment wall — nothing leaks out)
-   *               MapSidebar reads var(--sidebar-height) = 60dvh
+   *               MapSidebar reads var(--sidebar-height) = 100% of the pane
+   *
+   * Using percentages (not dvh) on mobile keeps map + sidebar + nav exactly
+   * viewport-height — no 64px overflow below the fold.
    *
    * CSS Custom Property approach:
    * We set --sidebar-height on the wrapper div that contains MapSidebar.
@@ -478,6 +602,8 @@ const MapPage: React.FC<MapPageProps> = ({
             <EmptyCohortBanner />
           ) : showNoPollutantDataState ? (
             <NoPollutantDataBanner pollutant={selectedPollutant} />
+          ) : showNoProviderDataState ? (
+            <NoProviderDataBanner provider={selectedDataProvider} />
           ) : null}
           {isMdUp && <EnhancedMap {...mapProps} />}
         </div>
@@ -485,24 +611,17 @@ const MapPage: React.FC<MapPageProps> = ({
 
       {/* ── Mobile layout (< md) ─────────────────────────────────────────
        *
-       *  Both panes use explicit dvh heights — independent of any parent.
-       *  No wrapper needs a height. No h-full chains anywhere.
-       *
-       *  Map pane:  40dvh, overflow-hidden
-       *    — map tiles/controls can't push the pane taller
-       *
-       *  Sidebar pane:  60dvh, overflow-hidden
-       *    — this is the CONTAINMENT WALL
-       *    — country list toggle: display change only, no height leak
-       *    — accordion expansion: scrolls inside MapSidebar, can't escape
-       *    — detail panel expansion: same
-       *    — sets --sidebar-height: 60dvh so MapSidebar fills it exactly
+       *  Map pane:  55% of viewport minus nav (majority for map usability)
+       *  Sidebar pane:  45% of viewport minus nav (scrollable location list)
        ──────────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:hidden">
-        {/* Map pane — 40dvh, absolutely fixed */}
+      <div
+        className="flex flex-col md:hidden"
+        style={{ height: contentHeight }}
+      >
+        {/* Map pane — 55% of remaining viewport space, explicitly fixed */}
         <div
-          className="relative overflow-hidden flex-none"
-          style={{ height: '40dvh' }}
+          className="relative overflow-hidden flex-none min-w-0"
+          style={{ height: '55%' }}
         >
           {hasNoMapData ? (
             <PrivateOrgBanner className="text-sm" />
@@ -513,17 +632,22 @@ const MapPage: React.FC<MapPageProps> = ({
               className="text-sm"
               pollutant={selectedPollutant}
             />
+          ) : showNoProviderDataState ? (
+            <NoProviderDataBanner
+              className="text-sm"
+              provider={selectedDataProvider}
+            />
           ) : null}
           {!isMdUp && <EnhancedMap {...mapProps} />}
         </div>
 
-        {/* Sidebar pane — 60dvh, containment wall */}
+        {/* Sidebar pane — 45% of remaining viewport space, containment wall */}
         <div
-          className="flex-none overflow-hidden"
+          className="flex-none overflow-hidden min-w-0"
           style={
             {
-              height: '60dvh',
-              '--sidebar-height': '60dvh',
+              height: '45%',
+              '--sidebar-height': '100%',
             } as React.CSSProperties
           }
         >

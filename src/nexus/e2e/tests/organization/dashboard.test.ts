@@ -4,7 +4,7 @@ import { createDriver, quitDriver, screenshotOnFailure } from '../../setup';
 import { DashboardPage } from '../../pages/dashboard.page';
 import { Config } from '../../config';
 
-describe('Organization Default Destination @organization', function () {
+describe('Organization Dashboard @organization', function () {
   let driver: WebDriver;
   let dashboardPage: DashboardPage;
 
@@ -32,10 +32,10 @@ describe('Organization Default Destination @organization', function () {
     }
   });
 
-  it('should default the org flow to data export @smoke', async function () {
-    await dashboardPage.navigateToOrgDefault();
+  it('should load the org dashboard @smoke', async function () {
+    await dashboardPage.navigateToOrgDashboard();
     await new Promise(r => setTimeout(r, 3000));
     const url = await dashboardPage.getCurrentUrl();
-    expect(url).to.include('/data-export');
+    expect(url).to.include('/dashboard');
   });
 });

@@ -1,0 +1,10 @@
+{
+  "label": "Device Claiming Guide",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "data-access/device-claiming-guide/index"
+  }
+}

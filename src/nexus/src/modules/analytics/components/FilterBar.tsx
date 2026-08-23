@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { HiChevronDown, HiCheck } from 'react-icons/hi';
-import { AqStar02, AqSettings01, AqRefreshCcw01 } from '@airqo/icons-react';
+import { AqSettings01, AqRefreshCcw01 } from '@airqo/icons-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { DatePicker } from '@/shared/components/calendar';
@@ -15,7 +15,6 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAnalyticsPreferences } from '../hooks';
-import type { QuickAccessLocationsProps } from '../types';
 import type {
   FrequencyType,
   PollutantType,
@@ -45,7 +44,7 @@ const POLLUTANT_OPTIONS = Object.entries(POLLUTANT_LABELS).map(
   })
 );
 
-type FilterBarProps = Pick<QuickAccessLocationsProps, 'onManageFavorites'> & {
+type FilterBarProps = {
   className?: string;
   showIcons?: boolean;
   onShowIconsChange?: (showIcons: boolean) => void;
@@ -54,7 +53,6 @@ type FilterBarProps = Pick<QuickAccessLocationsProps, 'onManageFavorites'> & {
 };
 
 export const FilterBar: React.FC<FilterBarProps> = ({
-  onManageFavorites,
   onRefresh,
   isRefreshing = false,
   className,
@@ -298,15 +296,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             Refresh
           </Button>
         )}
-
-        <button
-          onClick={onManageFavorites}
-          className="inline-flex dark:bg-[#1d1f20] items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-700 rounded-md bg-white shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-        >
-          <AqStar02 className="h-4 w-4" />
-          <span className="hidden sm:inline">Manage Favorites</span>
-          <span className="sm:hidden">Favorites</span>
-        </button>
 
         {canExportData && (
           <span title="Download openly available air quality data for your own use">

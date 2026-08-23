@@ -289,7 +289,9 @@ const DropdownMenuContent = ({
         {...attributes.popper}
         data-dropdown-content
         className={cn(
-          'z-40 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+          // Above dialogs (z-[10001]) so dropdowns opened inside a modal
+          // (e.g. the DatePicker in a chart-config dialog) stay visible.
+          'z-[10002] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
           !matchTriggerWidth && 'min-w-[8rem]',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',

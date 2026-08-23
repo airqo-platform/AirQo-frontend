@@ -2,7 +2,6 @@
 import {
   ApiClient,
   createAuthenticatedClient,
-  createServerClient,
   createOpenClient,
 } from './apiClient';
 import { syncClientSessionToken } from './sessionAuthToken';
@@ -27,12 +26,10 @@ import type {
 
 export class ClientService {
   private authenticatedClient: ApiClient;
-  private serverClient: ApiClient;
   private openClient: ApiClient;
 
   constructor() {
     this.authenticatedClient = createAuthenticatedClient();
-    this.serverClient = createServerClient();
     this.openClient = createOpenClient();
   }
 

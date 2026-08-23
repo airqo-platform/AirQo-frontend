@@ -32,5 +32,8 @@ export * from './utils';
 // Export constants
 export * from './constants';
 
+// Export color resolution (fixed palette vs active-theme shades)
+export * from './colors';
+
 // Export types
 export * from './types';

@@ -1,9 +1,9 @@
 ---
-sidebar_position: 18
-sidebar_label: 17. Terms of Use
+sidebar_position: 19
+sidebar_label: 18. Terms of Use
 ---
 
-# 17. Terms of Use
+# 18. Terms of Use
 
 ### Data Use Agreement
 

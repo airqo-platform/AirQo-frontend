@@ -7,9 +7,16 @@ import axios, {
 } from 'axios';
 import { getSession } from 'next-auth/react';
 import logger from '@/shared/lib/logger';
-import { buildServerApiUrl, normalizeApiBaseUrl } from '@/shared/lib/api-routing';
+import {
+  buildServerApiUrl,
+  normalizeApiBaseUrl,
+} from '@/shared/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/shared/lib/oauth-session';
 import { trackApiPerformance } from '@/shared/utils/enhancedAnalytics';
+import {
+  recordBackendResponded,
+  recordBackendUnreachable,
+} from '@/shared/lib/backendStatus';
 
 const UNAUTHORIZED_EVENT_NAME = 'auth:unauthorized';
 const UNAUTHORIZED_EVENT_COOLDOWN_MS = 1500;
@@ -229,7 +236,7 @@ const shouldNotifyApiFailure = (key: string): boolean => {
 export enum AuthType {
   NONE = 'none',
   JWT = 'jwt', // From next-auth session
-  API_TOKEN = 'api_token', // From env, proxied through /api/external
+  API_TOKEN = 'api_token', // From env, attached server-side via BFF
 }
 
 // Base API client class
@@ -254,9 +261,11 @@ export class ApiClient {
   }
 
   private buildBaseUrl(): string {
+    // API_TOKEN-mode requests go through the server-side BFF which attaches
+    // the token server-side. Use a relative URL so axios resolves it against
+    // the current origin (same Next.js app).
     if (this.authType === AuthType.API_TOKEN) {
-      // Token-authenticated requests are always proxied via Next.js route.
-      return '/api/external';
+      return '/api/data';
     }
 
     const baseUrl =
@@ -346,7 +355,8 @@ export class ApiClient {
 
           config.headers = headers;
         } else if (this.authType === AuthType.API_TOKEN) {
-          // API token endpoints must never receive Authorization headers.
+          // API token endpoints must never receive Authorization headers;
+          // the token is attached server-side by the BFF.
           const headers = AxiosHeaders.from(config.headers);
           headers.delete('Authorization');
           config.headers = headers;
@@ -374,6 +384,9 @@ export class ApiClient {
           duration,
           response.status
         );
+
+        // Any real HTTP response means the backend is reachable.
+        recordBackendResponded();
 
         // Log successful responses at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
@@ -427,6 +440,25 @@ export class ApiClient {
         if (isCanceledRequest) {
           logger.debug('API request canceled', errorContext);
           return Promise.reject(error);
+        }
+
+        // --- Backend-outage tracking (addition-only, no behavior change) ---
+        // AbortError / ERR_CANCELED are filtered above and must NOT count.
+        if (error.response) {
+          const s = error.response.status;
+          if (s === 502 || s === 503 || s === 504) {
+            // Gateway can't reach the upstream backend.
+            recordBackendUnreachable(`Gateway error ${s}`);
+          } else {
+            // Server answered — even 5xx means the backend is reachable.
+            recordBackendResponded();
+          }
+        } else if (
+          error.code === 'ERR_NETWORK' ||
+          error.code === 'ECONNABORTED' ||
+          error.name === 'TimeoutError'
+        ) {
+          recordBackendUnreachable('Network error');
         }
 
         if (
@@ -542,6 +574,7 @@ export class ApiClient {
 
           const shouldNotifySlack =
             status >= 405 && // Skip validation errors (400, 404 already handled)
+            status !== 422 && // Skip 422 validation errors (client payload issues)
             status !== 429; // Skip rate limiting (already handled)
 
           if (shouldNotifySlack) {

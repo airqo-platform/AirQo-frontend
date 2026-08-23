@@ -1,9 +1,9 @@
 ---
-sidebar_position: 8
-sidebar_label: 7. Data Access Channels
+sidebar_position: 9
+sidebar_label: 8. Data Access Channels
 ---
 
-# 7. Data Access Channels
+# 8. Data Access Channels
 
 ### Overview of Access Methods
 

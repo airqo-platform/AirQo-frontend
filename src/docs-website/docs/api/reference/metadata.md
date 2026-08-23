@@ -7,7 +7,7 @@ sidebar_label: Metadata API
 
 The Metadata API lets you browse the AirQo monitoring infrastructure — grids, cohorts, sites, devices, and geographic boundaries — so you can discover the right identifiers before querying measurement or forecast data.
 
-All endpoints require your `token` query parameter. See [Authentication →](../getting-started/authentication.md).
+All endpoints require your `token` query parameter, with one exception noted below. See [Authentication →](../getting-started/authentication.md).
 
 ---
 
@@ -62,23 +62,26 @@ Returns all publicly visible grids.
 ### Grid summary with site details
 
 ```http
-GET /api/v2/devices/grids/summary?token={SECRET_TOKEN}
+GET /api/v2/devices/grids/summary
 ```
 
 Returns grids with their constituent site details nested inside. This is the most useful endpoint for **discovering Grid IDs and the sites within them**.
+
+:::note No authentication required
+Unlike most endpoints on this page, grid summary is publicly accessible without a `token` — it's the recommended way to pull AirQo's monitoring station locations into a public research or mapping project.
+:::
 
 **Query parameters**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `token` | string | Required |
 | `admin_level` | string | Filter by level: `country`, `province`, `city`, `district`, `subcounty`, `county`, `division`, `parish` |
 | `id` | string | Filter by a specific Grid ID |
 
 **Example — filter to city-level grids**
 
 ```bash
-curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city&token=YOUR_SECRET_TOKEN"
+curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city"
 ```
 
 **Example response**
@@ -86,29 +89,74 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city&token=
 ```json
 {
   "success": true,
+  "message": "Successfully retrieved grids",
   "grids": [
     {
-      "_id": "64b7ac8fd7249f0029feca80",
-      "name": "nairobi_city",
-      "long_name": "Nairobi City",
+      "_id": "67c96c4771c7b0001383dde1",
+      "name": "kampala_city",
+      "long_name": "Kampala City",
       "admin_level": "city",
       "visibility": true,
       "network": "airqo",
-      "numberOfSites": 12,
-      "createdAt": "2023-07-19T10:25:00.000Z",
+      "createdAt": "2025-03-06T09:35:03.672Z",
       "sites": [
         {
-          "_id": "64f7b3e8c9d25a0013f2d456",
-          "name": "nairobi_road",
-          "long_name": "Nairobi Road, Nairobi",
-          "latitude": -1.2921,
-          "longitude": 36.8219,
-          "data_provider": "airqo"
+          "_id": "60d058c8048305120d2d6145",
+          "name": "Civic Centre, Kampala Central",
+          "country": "Uganda",
+          "district": "Kampala",
+          "city": "Kampala",
+          "formatted_name": "5 Jinja Road, Kampala, Uganda",
+          "approximate_latitude": 0.317725206350973,
+          "approximate_longitude": 32.5925094863702,
+          "data_provider": "AirQo"
         }
       ]
     }
   ]
 }
+```
+
+:::info Coordinates are approximated
+`approximate_latitude` and `approximate_longitude` are intentionally offset by up to ~0.5km from each site's true physical location, to protect the privacy of hosting institutions. The offset is consistent per site, so it's safe for temporal and area-based analysis, but proximity queries should use a widened radius. See [Location Approximation](../../data-access/researchers-guide/location-approximation.md) for the full policy and research best practices.
+:::
+
+**Example — extract coordinates for mapping (JavaScript)**
+
+```js
+const response = await fetch('https://api.airqo.net/api/v2/devices/grids/summary');
+const data = await response.json();
+
+const stationCoordinates = data.grids
+  .flatMap((grid) => grid.sites || [])
+  .map((site) => ({
+    id: site._id,
+    name: site.name,
+    lat: site.approximate_latitude,
+    lng: site.approximate_longitude,
+  }));
+```
+
+**Example — find stations near a point of interest, with an adjusted radius (Python)**
+
+```python
+import requests
+import geopy.distance  # pip install geopy
+
+response = requests.get('https://api.airqo.net/api/v2/devices/grids/summary')
+data = response.json()
+
+all_sites = [site for grid in data['grids'] for site in grid.get('sites', [])]
+
+poi = (0.33500, 32.57140)  # latitude, longitude
+
+# Use 500m rather than 100m to account for the ~0.5km coordinate offset
+nearby_sites = [
+    site for site in all_sites
+    if geopy.distance.distance(
+        poi, (site['approximate_latitude'], site['approximate_longitude'])
+    ).meters <= 500
+]
 ```
 
 ---

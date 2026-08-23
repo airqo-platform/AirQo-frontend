@@ -425,6 +425,8 @@ const OrganizationRequestsPage = () => {
               title="Requests"
               data={tableData}
               columns={columns}
+              loading={isLoading}
+              isRefreshing={isValidating}
               currentPage={currentPage}
               totalPages={totalPages}
               pageSize={pageSize}

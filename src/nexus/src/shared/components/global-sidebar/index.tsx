@@ -113,44 +113,43 @@ export const GlobalSidebar: React.FC = () => {
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
-    const basePath =
-      flow === 'organization' && orgSlug ? `/org/${orgSlug}` : '/user';
-    const homePath =
-      flow === 'organization' && orgSlug ? '/data-export' : '/home';
 
-    return config.flatMap(group =>
-      group.items
-        .filter(item => {
-          // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
-          if (item.id === 'system-management') {
-            return (
-              hasEmailDomain('@airqo.net') &&
-              hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
-            );
-          }
-          return true;
-        })
-        .map(item => {
-          let href = item.href;
-          // Keep system management href as is
-          if (item.id === 'system-management') {
-            href = item.href;
-          } else if (item.id === 'home') {
-            // Home redirects to the default destination for the active flow
-            href = `${basePath}${homePath}`;
-          }
+    return config
+      .flatMap(group => group.items)
+      .map(item => {
+        if (item.id === 'home') {
+          // Home redirects to the appropriate home/dashboard based on flow
           return {
             ...item,
-            href,
+            href:
+              flow === 'organization' && orgSlug
+                ? `/org/${orgSlug}/dashboard`
+                : '/user/home',
           };
-        })
-    );
-  }, [
-    flow,
-    orgSlug,
-    hasAnyPermissionInActiveGroup,
-    hasEmailDomain,
-  ]);
+        }
+        if (
+          (item.id === 'data-visualizer' || item.id === 'air-quality-rankings') &&
+          flow === 'organization' &&
+          orgSlug
+        ) {
+          return {
+            ...item,
+            href: item.href.replace('/user/', `/org/${orgSlug}/`),
+          };
+        }
+        return item;
+      })
+      .filter(item => {
+        // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
+        if (item.id === 'system-management') {
+          return (
+            hasEmailDomain('@airqo.net') &&
+            hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
+          );
+        }
+        return true;
+      });
+  }, [flow, orgSlug, hasAnyPermissionInActiveGroup, hasEmailDomain]);
   const isProtectedSidebarRoute =
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||
@@ -262,10 +261,7 @@ export const GlobalSidebar: React.FC = () => {
                       key={item.id}
                       item={item}
                       onClick={handleNavItemClick}
-                      enableSubroutes={
-                        item.id === 'admin-panel' ||
-                        item.id === 'system-management'
-                      }
+                      enableSubroutes={item.id === 'system-management'}
                     />
                   ))}
                 </div>

@@ -41,6 +41,7 @@ export {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from './dropdown-menu';
+export { SegmentedTabs, type SegmentedTabOption } from './segmented-tabs';
 
 // Calendar Components
 export {

@@ -1,9 +1,9 @@
 ---
-sidebar_position: 17
-sidebar_label: 16. Additional Resources
+sidebar_position: 18
+sidebar_label: 17. Additional Resources
 ---
 
-# 16. Additional Resources
+# 17. Additional Resources
 
 - **Research Repository** — AirQo maintains a repository of peer-reviewed publications using our data. Visit https://airqo.africa or request a bibliography from [support@airqo.net](mailto:support@airqo.net).
 - **Educational Materials** — Resources on air quality fundamentals, health effects, data visualisation techniques, and policy frameworks.

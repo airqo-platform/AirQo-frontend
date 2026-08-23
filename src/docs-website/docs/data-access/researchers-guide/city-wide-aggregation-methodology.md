@@ -1,9 +1,9 @@
 ---
-sidebar_position: 5
-sidebar_label: 4. City-Wide Aggregation Methodology
+sidebar_position: 6
+sidebar_label: 5. City-Wide Aggregation Methodology
 ---
 
-# 4. City-Wide Air Quality Aggregation Methodology
+# 5. City-Wide Air Quality Aggregation Methodology
 
 ### The Challenge of City-Level Averages
 

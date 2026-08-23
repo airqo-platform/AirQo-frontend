@@ -1,9 +1,9 @@
 ---
-sidebar_position: 9
-sidebar_label: 8. Data Quality & Accuracy
+sidebar_position: 10
+sidebar_label: 9. Data Quality & Accuracy
 ---
 
-# 8. Data Quality and Accuracy
+# 9. Data Quality and Accuracy
 
 ### Accuracy of AirQo Monitors
 

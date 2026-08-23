@@ -12,12 +12,15 @@ import {
   useChecklistActions,
 } from './hooks';
 import type { ChecklistStepItem } from './types';
+import { AqChevronDown } from '@airqo/icons-react';
 
 interface ChecklistProps {
   openVideoModal?: () => void;
   isAnalyticsModalOpen?: boolean;
   onCloseAnalyticsModal?: () => void;
 }
+
+const CHECKLIST_COLLAPSED_KEY = 'checklist_collapsed';
 
 const Checklist = ({
   openVideoModal,
@@ -31,6 +34,23 @@ const Checklist = ({
   const { user: reduxUser } = useUser();
   const [isInitializingLocal, setIsInitializingLocal] = useState(false);
   const [initializationCompleted, setInitializationCompleted] = useState(false);
+
+  // Collapsed state — persisted in localStorage so returning users see the
+  // checklist collapsed by default after the first visit.
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(CHECKLIST_COLLAPSED_KEY) === 'true';
+  });
+
+  const toggleCollapsed = useCallback(() => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CHECKLIST_COLLAPSED_KEY, String(next));
+      }
+      return next;
+    });
+  }, []);
 
   // Resolve user ID from session first, then Redux user as fallback.
   useEffect(() => {
@@ -411,54 +431,92 @@ const Checklist = ({
     return <ChecklistSkeleton />;
   }
 
+  // Detect reduced-motion preference so the collapse animation is skipped
+  // for users who prefer minimal motion.
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const collapseTransitionStyle = prefersReducedMotion
+    ? {}
+    : { transition: 'max-height 300ms ease-in-out, opacity 200ms ease-in-out' };
+
   return (
     <div>
-      {/* Header Section */}
-      <div className="flex flex-row justify-between items-center md:items-center mb-4">
+      {/* Header Section — always visible with collapse toggle */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 mb-4">
         <div className="w-full md:w-1/2 flex flex-col">
-          <h2 className="text-xl md:text-2xl font-medium text-foreground">
-            Onboarding Checklist
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl md:text-2xl font-medium text-foreground">
+              Onboarding Checklist
+            </h2>
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label={isCollapsed ? 'Expand onboarding checklist' : 'Collapse onboarding checklist'}
+            >
+              <span
+                className={prefersReducedMotion ? '' : 'transition-transform duration-200'}
+                style={{ display: 'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+              >
+                <AqChevronDown className="h-5 w-5" />
+              </span>
+            </button>
+          </div>
           <p className="text-sm md:text-base text-muted-foreground">
             {allCompleted
               ? 'Great job! You have completed all onboarding steps.'
-              : 'Continue with your onboarding journey.'}
+              : isCollapsed
+                ? 'Expand to view your onboarding progress.'
+                : 'Continue with your onboarding journey.'}
           </p>
         </div>
-        <div className="w-full md:w-1/2 mt-4 md:mt-0">
+        <div className="w-full md:w-1/2 md:mt-0">
           <StepProgress step={stepCount} totalSteps={totalSteps} />
         </div>
       </div>
 
-      {/* Checklist Grid */}
-      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-        {mergedSteps.map(stepItem => (
-          <ChecklistStepCard
-            key={`step-${stepItem.id}-${stepItem._id || 'new'}`}
-            stepItem={stepItem}
-            onClick={handleStepClick}
-          />
-        ))}
-      </div>
+      {/* Collapsible Checklist Grid */}
+      <div
+        role="region"
+        aria-hidden={isCollapsed}
+        style={{
+          maxHeight: isCollapsed ? '0px' : '2000px',
+          opacity: isCollapsed ? 0 : 1,
+          overflow: 'hidden',
+          ...collapseTransitionStyle,
+        }}
+      >
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+          {mergedSteps.map(stepItem => (
+            <ChecklistStepCard
+              key={`step-${stepItem.id}-${stepItem._id || 'new'}`}
+              stepItem={stepItem}
+              onClick={handleStepClick}
+            />
+          ))}
+        </div>
 
-      {/* Video Modal */}
-      <VideoModal
-        isOpen={isVideoModalOpen}
-        onClose={handleCloseVideoModal}
-        onVideoProgress={handleVideoProgress}
-        onVideoComplete={handleVideoComplete}
-        onVideoPause={handleVideoPause}
-      />
-
-      {/* Analytics Video Modal */}
-      {isAnalyticsModalOpen && (
+        {/* Video Modal */}
         <VideoModal
-          isOpen={isAnalyticsModalOpen}
-          onClose={onCloseAnalyticsModal || (() => {})}
-          onVideoProgress={handleAnalyticsProgress}
-          onVideoComplete={handleAnalyticsComplete}
+          isOpen={isVideoModalOpen}
+          onClose={handleCloseVideoModal}
+          onVideoProgress={handleVideoProgress}
+          onVideoComplete={handleVideoComplete}
+          onVideoPause={handleVideoPause}
         />
-      )}
+
+        {/* Analytics Video Modal */}
+        {isAnalyticsModalOpen && (
+          <VideoModal
+            isOpen={isAnalyticsModalOpen}
+            onClose={onCloseAnalyticsModal || (() => {})}
+            onVideoProgress={handleAnalyticsProgress}
+            onVideoComplete={handleAnalyticsComplete}
+          />
+        )}
+      </div>
     </div>
   );
 };

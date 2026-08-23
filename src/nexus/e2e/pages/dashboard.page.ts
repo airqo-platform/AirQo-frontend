@@ -7,9 +7,8 @@ export class DashboardPage extends BasePage {
     super(driver);
   }
 
-  async navigateToOrgDefault(orgSlug?: string): Promise<void> {
+  async navigateToOrgDashboard(orgSlug?: string): Promise<void> {
     const slug = orgSlug || Config.TEST_ORG_SLUG;
-    await this.navigateTo(`/org/${slug}`);
+    await this.navigateTo(`/org/${slug}/dashboard`);
   }
-
 }

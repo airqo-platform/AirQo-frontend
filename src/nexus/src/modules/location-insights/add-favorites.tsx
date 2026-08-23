@@ -37,12 +37,15 @@ const isCancellationError = (error: unknown) => {
   );
 };
 
-interface AddFavoritesProps {
+interface AddSavedLocationsProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
+const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -81,6 +84,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
   const {
     sites,
     isLoading,
+    isRefreshing: isTableRefreshing,
     error,
     retry,
     totalSites,
@@ -111,8 +115,8 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       );
 
       if (failures.length > 0) {
-        console.error('Failed to refresh favorites data:', failures);
-        setErrorMessage('Failed to refresh favorites. Please try again.');
+        console.error('Failed to refresh saved locations data:', failures);
+        setErrorMessage('Failed to refresh saved locations. Please try again.');
       }
     } finally {
       if (isMountedRef.current) {
@@ -129,25 +133,25 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     );
   }, [activeGroup?.id, preferences?.preferences]);
 
-  // Initialize selectedIds and cache with current favorite sites from preferences
+  // Initialize selectedIds and cache with current saved sites from preferences
   useEffect(() => {
     if (currentPreference?.selected_sites && isOpen) {
-      const favoriteSites = currentPreference.selected_sites as Site[];
-      const favoriteIds = favoriteSites.map(site => site._id);
+      const savedSites = currentPreference.selected_sites as Site[];
+      const savedSiteIds = savedSites.map(site => site._id);
 
       // Set selected IDs
       setSelectedIds(prev =>
-        areArraysEqual(prev, favoriteIds) ? prev : favoriteIds
+        areArraysEqual(prev, savedSiteIds) ? prev : savedSiteIds
       );
 
-      // Initialize cache with existing favorites
+      // Initialize cache with existing saved locations
       setSiteDataCache(prev => {
         const currentIds = Array.from(prev.keys());
-        if (areArraysEqual(currentIds, favoriteIds)) {
+        if (areArraysEqual(currentIds, savedSiteIds)) {
           return prev;
         }
 
-        return new Map(favoriteSites.map(site => [site._id, site]));
+        return new Map(savedSites.map(site => [site._id, site]));
       });
     }
   }, [currentPreference?.selected_sites, isOpen]);
@@ -191,16 +195,28 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           if (!newCache.has(id)) {
             const site = sites.find(s => s.id === id);
             if (site) {
+              const toNumber = (value: unknown): number | undefined =>
+                typeof value === 'number' && Number.isFinite(value)
+                  ? value
+                  : undefined;
               newCache.set(id, {
                 _id: site.id,
                 name: site.location,
                 search_name: site.location,
                 city: site.city,
                 country: site.country,
-                latitude: 0,
-                longitude: 0,
-                approximate_latitude: 0,
-                approximate_longitude: 0,
+                latitude:
+                  toNumber(site._raw?.latitude) ??
+                  toNumber(site._raw?.lat) ??
+                  toNumber(site._raw?.approximate_latitude),
+                longitude:
+                  toNumber(site._raw?.longitude) ??
+                  toNumber(site._raw?.lng) ??
+                  toNumber(site._raw?.approximate_longitude),
+                approximate_latitude: toNumber(site._raw?.approximate_latitude),
+                approximate_longitude: toNumber(
+                  site._raw?.approximate_longitude
+                ),
                 generated_name: site.location,
                 createdAt: new Date().toISOString(),
               });
@@ -210,15 +226,6 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
 
         return newCache;
       });
-
-      // Show warning if over limit, but allow the selection
-      if (newSelectedIds.length > 4) {
-        setErrorMessage(
-          `You have selected ${newSelectedIds.length} locations. Maximum allowed is 4. Please deselect ${newSelectedIds.length - 4} location(s) before saving.`
-        );
-      } else {
-        setErrorMessage('');
-      }
     },
     [sites]
   );
@@ -241,17 +248,13 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Check if we exceed the limit
-    if (selectedIds.length > 4) {
-      setErrorMessage(
-        `Cannot save ${selectedIds.length} locations. Maximum allowed is 4. Please deselect ${selectedIds.length - 4} location(s) first.`
-      );
-      return;
-    }
-
+    setErrorMessage('');
     try {
-      // Get selected sites data from cache
-      const sitesToSave: Site[] = Array.from(siteDataCache.values());
+      // Save exactly what is selected — never the whole cache (the cache is
+      // usually a mirror of the selection, but must not be trusted for it).
+      const sitesToSave: Site[] = selectedIds
+        .map(id => siteDataCache.get(id))
+        .filter((site): site is Site => site !== undefined);
 
       // Update user preferences
       await updatePreferences({
@@ -260,12 +263,12 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
         selected_sites: sitesToSave,
       });
 
-      posthog?.capture('favorites_updated', {
+      posthog?.capture('saved_locations_updated', {
         count: sitesToSave.length,
         site_ids: sitesToSave.map(s => s._id),
       });
 
-      trackEvent('favorites_updated', {
+      trackEvent('saved_locations_updated', {
         count: sitesToSave.length,
         site_ids: sitesToSave.map(s => s._id),
       });
@@ -284,13 +287,18 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       // Close dialog on success
       onClose();
     } catch (error) {
-      console.error('Failed to save favorites:', error);
-      setErrorMessage('Failed to save favorites. Please try again.');
+      // Log only the status/message — axios errors carry Authorization headers
+      console.error('Failed to save location selection:', {
+        status: (error as { response?: { status?: unknown } })?.response
+          ?.status,
+        message: (error as { message?: unknown })?.message,
+      });
+      setErrorMessage('Failed to save location selection. Please try again.');
     }
   }, [
     user?.id,
     activeGroup?.id,
-    selectedIds.length,
+    selectedIds,
     siteDataCache,
     updatePreferences,
     markLocationStepCompleted,
@@ -302,7 +310,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     <WideDialog
       isOpen={isOpen}
       onClose={onClose}
-      headerLeft={<h2 className="text-xl">Add Favorites</h2>}
+      headerLeft={<h2 className="text-xl">Add Saved Locations</h2>}
       headerRight={
         <Button
           variant="outlined"
@@ -319,15 +327,15 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
         <div className="h-full">
           {allSelectedLocations.length === 0 ? (
             <EmptyState
-              title="No favorites selected"
-              description="Select locations from the table to add them as favorites."
+              title="No saved locations selected"
+              description="Select locations from the table to save them to this organization."
               compact={true}
               className="h-auto"
             />
           ) : (
             <div className="space-y-2">
               <h3 className="text-sm font-medium dark:text-gray-100 mb-3">
-                Selected Favorites ({selectedIds.length}/4)
+                Selected Locations ({selectedIds.length})
               </h3>
               <AnimatePresence>
                 {allSelectedLocations.map(location => (
@@ -359,10 +367,9 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
         loading: isUpdating,
         label: isUpdating
           ? 'Saving...'
-          : `Save Favorites (${selectedIds.length})`,
+          : `Save Locations (${selectedIds.length})`,
         onClick: handleAddLocation,
-        disabled:
-          selectedIds.length === 0 || selectedIds.length > 4 || isUpdating,
+        disabled: selectedIds.length === 0 || isUpdating,
       }}
       onClear={handleClearAll}
       showClear={selectedIds.length > 0}
@@ -379,6 +386,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
           selectedItems={selectedIds}
           onSelectedItemsChange={handleTableSelectionChange}
           loading={isLoading}
+          isRefreshing={isTableRefreshing}
           error={error}
           // Server-side pagination props
           currentPage={currentPage}
@@ -396,4 +404,4 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddFavorites;
+export default AddSavedLocations;

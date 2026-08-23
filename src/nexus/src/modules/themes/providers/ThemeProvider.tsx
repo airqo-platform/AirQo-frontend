@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/shared/store';
 import { useTheme } from '@/modules/themes/hooks/useTheme';
@@ -32,10 +32,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     initializeTheme(activeGroup?.id);
   }, [activeGroup?.id]);
 
-  // Invalidate theme cache when active group changes to force refetch
+  // Invalidate theme cache when active group changes to force refetch.
+  // A ref tracks the previous id so we only invalidate on a real group
+  // switch, not on the initial mount resolution (undefined → value).
+  const prevGroupIdRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
-    if (activeGroup?.id) {
-      // Invalidate all theme-related SWR caches to force fresh data fetch
+    const prevId = prevGroupIdRef.current;
+    const nextId = activeGroup?.id;
+    prevGroupIdRef.current = nextId;
+
+    if (prevId !== undefined && nextId && prevId !== nextId) {
       mutate(
         key => typeof key === 'string' && key.startsWith('preferences/theme/')
       );
@@ -59,8 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const currentGroupKey = activeGroup?.id
         ? `${GROUP_THEME_STORAGE_PREFIX}${activeGroup.id}`
         : null;
-      const isCurrentGroupTheme =
-        isGroupTheme && event.key === currentGroupKey;
+      const isCurrentGroupTheme = isGroupTheme && event.key === currentGroupKey;
       const isFallbackTheme = isGeneralTheme && !currentGroupKey;
 
       if (!isCurrentGroupTheme && !isFallbackTheme) return;

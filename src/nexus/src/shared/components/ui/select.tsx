@@ -344,7 +344,9 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             ref={setPopperElement}
             style={{
               ...popperStyles.popper,
-              zIndex: 9999,
+              // Above dialogs (z-[10001]) so the dropdown stays visible
+              // when opened inside a modal.
+              zIndex: 10002,
               minWidth: referenceElement?.offsetWidth || 'auto',
               maxHeight: `${maxHeight}px`,
             }}

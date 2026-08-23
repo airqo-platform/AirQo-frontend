@@ -1110,6 +1110,11 @@ export interface Averages {
     currentWeek: number;
     previousWeek: number;
   };
+  /**
+   * True when the recent week had enough data for the averages to be
+   * meaningful. Optional: older backend deployments omit it.
+   */
+  hasSufficientData?: boolean;
 }
 
 export interface DeviceCategories {
@@ -1162,6 +1167,7 @@ export interface MapReading {
   aqi_category: string;
   aqi_color: string;
   aqi_color_name: string;
+  aqi_index: number;
   aqi_ranges: AQIRanges;
   averages: Averages;
   createdAt: string;
@@ -1189,6 +1195,109 @@ export interface MapReadingsResponse {
   success: boolean;
   message: string;
   measurements: MapReading[];
+}
+
+// Measurements v2 endpoints — /devices/measurements/{cohorts,sites,devices}/...
+// Response envelope is shared across recent / historical / averages routes:
+//   { success, isCache?, message, meta?, measurements }
+// `meta` is present on list-style responses (recent/historical) and absent on
+// the site-averages route (which returns an averages object instead).
+
+export interface MeasurementValue {
+  value: number | null;
+}
+
+export interface MeasurementPollutants {
+  pm2_5?: MeasurementValue;
+  pm10?: MeasurementValue;
+  no2?: MeasurementValue;
+}
+
+export interface MeasurementDeviceDetails {
+  _id: string;
+  name: string;
+  latitude?: number;
+  longitude?: number;
+  isOnline?: boolean;
+  lastRawData?: string;
+  rawOnlineStatus?: boolean;
+  latest_pm2_5?: {
+    raw?: { value?: number; time?: string };
+    calibrated?: {
+      value?: number;
+      time?: string;
+      uncertainty?: number | null;
+      standardDeviation?: number | null;
+    };
+  };
+  deployment_type?: string;
+  dateValidStatus?: string;
+}
+
+export interface MeasurementMeta {
+  total: number;
+  page: number;
+  pages: number;
+  limit: number;
+  skip: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startTime?: string;
+  endTime?: string;
+  optimized?: boolean;
+}
+
+export interface Measurement extends MeasurementPollutants {
+  device: string;
+  device_id: string;
+  site_id: string;
+  time: string;
+  frequency: string;
+  deviceDetails?: MeasurementDeviceDetails;
+  is_reading_primary?: boolean;
+  health_tips?: HealthTip[];
+  averages?: Averages;
+  siteDetails?: Partial<MapSiteDetails>;
+  [key: string]: unknown;
+}
+
+export interface MeasurementsResponse {
+  success: boolean;
+  isCache?: boolean;
+  message: string;
+  meta?: MeasurementMeta;
+  measurements: Measurement[] | null;
+}
+
+export interface SiteAverages {
+  dailyAverage: number | null;
+  overallAverage?: number | null;
+  percentageDifference?: number | null;
+  hasSufficientData?: boolean;
+  weeklyAverages?: {
+    currentWeek: number;
+    previousWeek: number;
+  };
+  isHistorical?: boolean;
+}
+
+export interface SiteAveragesResponse {
+  success: boolean;
+  isCache?: boolean;
+  message: string;
+  measurements: SiteAverages | SiteAverages[] | null;
+}
+
+export interface MeasurementsQueryParams {
+  startTime?: string;
+  endTime?: string;
+  frequency?: 'hourly' | 'daily' | 'raw' | 'minute';
+  format?: 'json' | 'csv';
+  limit?: number;
+  skip?: number;
+  metadata?: 'site' | 'site_id' | 'device' | 'device_id';
+  primary?: 'yes' | 'no';
+  recent?: 'yes' | 'no';
 }
 
 // Forecast types – Daily Forecasting API v2
@@ -1734,6 +1843,8 @@ export interface Site {
   _id: string;
   formatted_name?: string;
   search_name: string;
+  /** Canonical display-name chain member (search_name → location_name → …). */
+  location_name?: string;
   parish?: string;
   sub_county?: string;
   city?: string;
@@ -1759,6 +1870,9 @@ export interface Theme {
 
 export interface Period {
   label: string;
+  value?: string;
+  unitValue?: number;
+  unit?: string;
 }
 
 export interface UserPreference {
@@ -1846,8 +1960,8 @@ export interface UpdateOrganizationGroupThemeResponse {
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
-  startDate: string;
-  endDate: string;
+  startDateTime: string;
+  endDateTime: string;
   chartType: string;
   frequency: string;
   pollutant: string;
@@ -1855,12 +1969,25 @@ export interface AnalyticsChartRequest {
 }
 
 export interface ChartDataPoint {
-  site_id: string;
-  value: number;
-  time: string;
-  generated_name: string;
-  device_id: string;
-  name: string;
+  site_id?: string;
+  value?: number | string | { value?: number };
+  time?: string | number;
+  generated_name?: string;
+  device_id?: string;
+  name?: string;
+  search_name?: string;
+  location_name?: string;
+  formatted_name?: string;
+  date?: string;
+  timestamp?: string | number;
+  datetime?: string;
+  pm2_5?: number | string | { value?: number };
+  pm10?: number | string | { value?: number };
+  pm25?: number | string;
+  pm25Value?: number | string;
+  pm10Value?: number | string;
+  count?: number;
+  [key: string]: unknown;
 }
 
 export interface AnalyticsChartResponse {
@@ -1912,6 +2039,7 @@ export interface DataDownloadResponse {
 // Recent readings types
 export interface RecentReadingRequest {
   site_id: string; // comma-separated site IDs
+  site_ids?: string[];
 }
 
 export interface AQIRanges {
@@ -1930,6 +2058,11 @@ export interface Averages {
     currentWeek: number;
     previousWeek: number;
   };
+  /**
+   * True when the recent week had enough data for the averages to be
+   * meaningful. Optional: older backend deployments omit it.
+   */
+  hasSufficientData?: boolean;
 }
 
 export interface HealthTip {
@@ -1975,8 +2108,14 @@ export interface RecentReading {
   time: string;
   __v: number;
   aqi_category: string;
+  /**
+   * Hex color WITHOUT leading # (e.g. "ECAA06") — prepend # before use as
+   * CSS color.
+   */
   aqi_color: string;
   aqi_color_name: string;
+  /** Numeric AQI index (e.g. 72) shown alongside the category. */
+  aqi_index: number;
   aqi_ranges: AQIRanges;
   averages: Averages;
   createdAt: string;
@@ -2338,12 +2477,7 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    | 'active'
-    | 'inactive'
-    | 'past_due'
-    | 'cancelled'
-    | 'trialing'
-    | 'paused';
+    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2389,12 +2523,7 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      | 'active'
-      | 'inactive'
-      | 'past_due'
-      | 'cancelled'
-      | 'trialing'
-      | 'paused';
+      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -2585,4 +2714,177 @@ export interface UpdateTokenBypassResponse {
     bypass_compromise_detection?: boolean;
     bypass_ip_blacklist?: boolean;
   };
+}
+
+// Air quality rankings types (device-registry /devices/readings/rankings)
+export type RankingsLevel = 'country' | 'city';
+export type RankingsSort = 'best' | 'worst';
+
+export interface RankingsParams {
+  level?: RankingsLevel;
+  sort?: RankingsSort;
+  limit?: number;
+}
+
+export interface RankingsHistoryParams {
+  level?: RankingsLevel;
+  start_year: number;
+  end_year: number;
+}
+
+// AQI category strings as returned by the rankings API (snake_case keys,
+// e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
+export type RankingsAqiCategory =
+  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
+
+export interface RankingEntry {
+  rank: number;
+  name: string;
+  level: RankingsLevel;
+  country_code: string | null;
+  avg_pm2_5: number | null;
+  aqi_index: number | null;
+  aqi_category: RankingsAqiCategory | null;
+  site_count: number;
+  generated_at: string;
+}
+
+export interface RankingsResponse {
+  success: boolean;
+  message: string;
+  data: RankingEntry[];
+}
+
+export interface RankingYearValue {
+  year: number;
+  avg_pm2_5: number | null;
+  aqi_category: RankingsAqiCategory | null;
+  site_count: number;
+}
+
+export interface RankingHistoryEntry {
+  name: string;
+  level: RankingsLevel;
+  country_code: string | null;
+  values: RankingYearValue[];
+}
+
+export interface RankingsHistoryResponse {
+  success: boolean;
+  message: string;
+  data: RankingHistoryEntry[];
+}
+
+// User chart configuration types (auth-service
+// /users/preferences/charts). Contract verified live against staging: charts
+// are user-scoped flat documents carrying device_ids/site_ids, a chartConfig
+// (fieldId/title/subTitle/chartType/locationColors) and display settings in
+// one object; create wraps settings in a `chartConfig` object, updates are
+// sent as flat partial fields, and /:chartId/copy duplicates a chart.
+export interface GroupChartReferenceLine {
+  value: number;
+  label?: string;
+  color?: string;
+  style?: 'solid' | 'dashed' | 'dotted';
+}
+
+/** Per-location series color — `id` is a site_id or device_id. */
+export interface ChartLocationColor {
+  id: string;
+  color: string;
+}
+
+export interface UserChartConfig {
+  _id?: string;
+  fieldId: number;
+  title: string;
+  /** Display subtitle (persisted server-side since the v2 charts API) */
+  subTitle?: string;
+  chartType: string;
+  days?: number;
+  results?: number;
+  showLegend?: boolean;
+  showGrid?: boolean;
+  showTooltip?: boolean;
+  color?: string;
+  backgroundColor?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  referenceLines?: GroupChartReferenceLine[];
+  comparisonPeriod?: {
+    enabled?: boolean;
+    type?: string;
+  };
+  locationColors?: ChartLocationColor[];
+  /** Scope — stored alongside the config on the same document */
+  site_ids?: string[];
+  device_ids?: string[];
+  /** Snapshot display names persisted server-side (v2.1+). Legacy configs: []. */
+  sites?: { site_id: string; name: string }[];
+  /** Snapshot device display names persisted server-side (v2.1+). Legacy: []. */
+  devices?: { device_id: string; name: string }[];
+}
+
+export interface ChartListResponse {
+  success: boolean;
+  message: string;
+  data: UserChartConfig[];
+}
+
+export interface ChartDetailResponse {
+  success: boolean;
+  message: string;
+  data: UserChartConfig;
+}
+
+export interface CreateChartRequest {
+  group_id?: string;
+  tenant?: string;
+  period?: Period;
+  device_ids?: string[];
+  site_ids?: string[];
+  chartConfig: {
+    fieldId: number;
+    title: string;
+    subTitle?: string;
+    chartType: string;
+    days?: number;
+    color?: string;
+    locationColors?: ChartLocationColor[];
+    showLegend?: boolean;
+    showGrid?: boolean;
+    showTooltip?: boolean;
+    referenceLines?: GroupChartReferenceLine[];
+    /** Snapshot site names — MUST be inside chartConfig for POST (backend asymmetry) */
+    sites?: { site_id: string; name: string }[];
+    /** Snapshot device names — inside chartConfig for POST */
+    devices?: { device_id: string; name: string }[];
+  };
+}
+
+/** Partial update — fields go top-level (no chartConfig wrapper) */
+export interface UpdateChartRequest {
+  period?: Period;
+  title?: string;
+  subTitle?: string;
+  chartType?: string;
+  days?: number;
+  color?: string;
+  locationColors?: ChartLocationColor[];
+  showLegend?: boolean;
+  showGrid?: boolean;
+  showTooltip?: boolean;
+  referenceLines?: GroupChartReferenceLine[];
+  device_ids?: string[];
+  site_ids?: string[];
+  /** Snapshot site names — top level for PUT (backend asymmetry) */
+  sites?: { site_id: string; name: string }[];
+  /** Snapshot device names — top level for PUT */
+  devices?: { device_id: string; name: string }[];
+}
+
+export interface ChartMutationResponse {
+  success: boolean;
+  message: string;
+  data?: UserChartConfig;
 }

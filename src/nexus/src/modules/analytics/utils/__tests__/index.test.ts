@@ -176,6 +176,7 @@ const makeRecentReading = (
   aqi_category: 'Good',
   aqi_color: '#34C759',
   aqi_color_name: 'green',
+  aqi_index: 35,
   aqi_ranges: {
     good: { min: 0, max: 50 },
     moderate: { min: 51, max: 100 },

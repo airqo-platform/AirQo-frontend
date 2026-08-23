@@ -48,7 +48,6 @@ import {
 } from '@/shared/lib/oauth-session';
 import { useUserActions } from '@/shared/hooks';
 import { GroupSwitchOverlay } from '@/shared/components/ui/group-switch-overlay';
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import {
   isPublicAuthRoute,
   isAuthenticatedAccessiblePublicRoute,
@@ -143,9 +142,9 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // group context. The sync completes in a single effect tick (synchronous
   // Redux dispatch), so the overlay flicker is imperceptible.
   const isGroupSyncing = shouldSyncToUserGroup || shouldSyncToRouteOrgGroup;
-  useGlobalLoading(isGroupSyncing, { priority: 80 });
+  useGlobalLoading(isGroupSyncing, { priority: 80, delayMs: 0 });
 
-  if (isGroupSyncing) return <LoadingOverlay delayMs={0} />;
+  if (isGroupSyncing) return null;
 
   return <>{children}</>;
 }
@@ -710,7 +709,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     (status === 'loading' ||
       !session ||
       (status === 'authenticated' && !session.user));
-  useGlobalLoading(isAuthLoading, { priority: 90 });
+  useGlobalLoading(isAuthLoading, { priority: 90, delayMs: 0 });
 
   // For public routes, allow rendering even if unauthenticated
   if (isPublicRoute) {
@@ -720,7 +719,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   // For protected routes, require authentication with valid user data.
   // A session with user: null indicates an expired/invalid token — show
   // loading overlay while the logout effect above navigates away.
-  if (isAuthLoading) return <LoadingOverlay delayMs={0} />;
+  if (isAuthLoading) return null;
 
   return (
     <UserDataFetcher>
@@ -738,7 +737,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     BackendOAuthSession | null | undefined
   >(isPublicRoute ? null : undefined);
 
-  useGlobalLoading(bootstrapSession === undefined, { priority: 100 });
+  useGlobalLoading(bootstrapSession === undefined, {
+    priority: 100,
+    delayMs: 0,
+  });
 
   useEffect(() => {
     runClientCacheMaintenance();
@@ -852,7 +854,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (bootstrapSession === undefined) return <LoadingOverlay delayMs={0} />;
+  if (bootstrapSession === undefined) return null;
 
   return (
     <SessionProvider

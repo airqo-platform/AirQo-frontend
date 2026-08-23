@@ -3,10 +3,10 @@
 import React from 'react';
 import { cn, roundDecimals } from '@/shared/lib/utils';
 import {
-  getAirQualityLevel,
   getAirQualityIcon,
   getAirQualityColor,
 } from '@/shared/utils/airQuality';
+import { getReadingAqiLevel } from '@/modules/airqo-map/utils/dataNormalization';
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
@@ -30,6 +30,8 @@ export interface AirQualityReading {
   deploymentCategory?: string | null;
   aqiCategory?: string;
   aqiColor?: string;
+  /** US EPA-style AQI index (0–500) reported by the API */
+  aqiIndex?: number;
   pollutantValue?: number;
   pollutantType?: 'pm2_5' | 'pm10';
   fullReadingData?: import('../../../../shared/types/api').MapReading;
@@ -90,6 +92,13 @@ interface MapNodesProps {
    */
   zoomLevel?: number;
   isTooltipOpen?: boolean;
+  /**
+   * When false (mobile), the Flowbite hover tooltip is disabled entirely —
+   * on touch a tap fires mouseenter first, which would open the full-size
+   * hover tooltip and cover the filter controls. Tap users get the compact
+   * pinned bubble + the details panel instead.
+   */
+  enableHoverTooltip?: boolean;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -118,6 +127,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   aqiConfig = null,
   zoomLevel = 10,
   isTooltipOpen = false,
+  enableHoverTooltip = true,
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
   const data = (cluster ?? reading) as
@@ -153,16 +163,23 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 
     if (pollutantValues.length === 0) return null;
 
-    const sortedValues = [...pollutantValues].sort((a, b) => a - b);
+    const bestReading = cluster.readings.reduce((best, r) => {
+      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+      const bestVal =
+        selectedPollutant === 'pm2_5' ? best.pm25Value : best.pm10Value;
+      return val < bestVal ? r : best;
+    });
+    const worstReading = cluster.readings.reduce((worst, r) => {
+      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+      const worstVal =
+        selectedPollutant === 'pm2_5' ? worst.pm25Value : worst.pm10Value;
+      return val > worstVal ? r : worst;
+    });
     const BestIcon = getAirQualityIcon(
-      getAirQualityLevel(sortedValues[0], selectedPollutant, aqiConfig)
+      getReadingAqiLevel(bestReading, selectedPollutant, aqiConfig)
     );
     const WorstIcon = getAirQualityIcon(
-      getAirQualityLevel(
-        sortedValues[sortedValues.length - 1],
-        selectedPollutant,
-        aqiConfig
-      )
+      getReadingAqiLevel(worstReading, selectedPollutant, aqiConfig)
     );
 
     // Use rounded zoom for styling decisions — avoids visual thrash during animations
@@ -179,6 +196,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         aqiConfig={aqiConfig}
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
+        enableHoverTooltip={enableHoverTooltip}
       >
         <div
           role="button"
@@ -223,11 +241,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   if (reading) {
     const pollutantValue =
       selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
-    const level = getAirQualityLevel(
-      pollutantValue,
-      selectedPollutant,
-      aqiConfig
-    );
+    const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
@@ -285,6 +299,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         onTooltipAction={() => onClick?.(data)}
         onTooltipHoverChange={hovering => onHover?.(hovering ? data : null)}
         forceOpen={isTooltipOpen}
+        enableHoverTooltip={enableHoverTooltip}
       >
         <div
           role="button"

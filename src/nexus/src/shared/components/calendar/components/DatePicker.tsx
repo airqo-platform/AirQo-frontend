@@ -206,7 +206,7 @@ export function DatePicker({
     if (!open) return null;
 
     return createPortal(
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4">
         {/* Backdrop */}
         <div
           className="absolute inset-0 bg-black/40 dark:bg-black/80"

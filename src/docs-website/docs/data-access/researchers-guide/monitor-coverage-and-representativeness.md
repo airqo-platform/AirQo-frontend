@@ -1,9 +1,9 @@
 ---
-sidebar_position: 6
-sidebar_label: 5. Monitor Coverage & Representativeness
+sidebar_position: 7
+sidebar_label: 6. Monitor Coverage & Representativeness
 ---
 
-# 5. Monitor Coverage Area and Representativeness
+# 6. Monitor Coverage Area and Representativeness
 
 ### Spatial Representativeness
 

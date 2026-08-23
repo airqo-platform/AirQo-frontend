@@ -89,7 +89,12 @@ export function limitLocationsForDisplay(
 
 import type { MapReading } from '../../../shared/types/api';
 import type { AirQualityReading } from '../components/map/MapNodes';
-import { type PollutantType } from '../../../shared/utils/airQuality';
+import {
+  type PollutantType,
+  getAirQualityLevel,
+  mapAqiCategoryToLevel,
+} from '../../../shared/utils/airQuality';
+import type { AqiConfig } from '../../../shared/types/aqi';
 import { getMonitorMetadata } from './monitorMetadata';
 
 export interface PollutantConfig {
@@ -168,17 +173,80 @@ export function normalizeMapReadings(
         deploymentCategory: monitorMetadata.deploymentCategory,
         aqiCategory: reading.aqi_category,
         aqiColor: reading.aqi_color,
+        aqiIndex: reading.aqi_index,
         pollutantValue,
         pollutantType,
         fullReadingData: reading,
       } as AirQualityReading & {
         aqiCategory: string;
         aqiColor: string;
+        aqiIndex: number;
         pollutantValue: number;
         pollutantType: PollutantType;
         fullReadingData: MapReading;
       };
     });
+}
+
+/**
+ * Resolve the AQI level for a normalized reading.
+ *
+ * The configured AQI ranges (same service the backend classifies against) are
+ * the primary source, so the emoji/color always match the app-wide AQI
+ * utilities. When the config is still loading or unavailable, fall back to the
+ * API-provided `aqi_category` so markers and tooltips never show a generic
+ * "no data" state for a reading that actually has a category.
+ */
+export function getReadingAqiLevel(
+  reading: Pick<
+    AirQualityReading,
+    'pm25Value' | 'pm10Value' | 'aqiCategory'
+  > & {
+    fullReadingData?: { aqi_category?: string };
+  },
+  pollutantType: PollutantType = DEFAULT_POLLUTANT,
+  aqiConfig?: AqiConfig | null
+): ReturnType<typeof getAirQualityLevel> {
+  const value =
+    pollutantType === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
+  const level = getAirQualityLevel(value, pollutantType, aqiConfig ?? null);
+  if (level !== 'no-value') {
+    return level;
+  }
+
+  return mapAqiCategoryToLevel(
+    reading.aqiCategory ?? reading.fullReadingData?.aqi_category
+  );
+}
+
+/**
+ * Pick the most common API-provided aqi_category across a cluster's members.
+ * Used as the classification fallback for cluster markers/tooltips when the
+ * configured AQI ranges are unavailable, so a cluster never shows the generic
+ * "no data" state while its members do have categories. Ties are broken by
+ * whichever category appears first in member order (the map sorts readings
+ * geographically, so this is effectively the most prevalent one).
+ */
+export function getClusterCategoryFallback(
+  readings: Array<Pick<AirQualityReading, 'aqiCategory'>>
+): string | undefined {
+  const counts = new Map<string, number>();
+  readings.forEach(reading => {
+    const category = reading.aqiCategory;
+    if (category) {
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    }
+  });
+
+  let best: string | undefined;
+  let bestCount = 0;
+  counts.forEach((count, category) => {
+    if (count > bestCount) {
+      best = category;
+      bestCount = count;
+    }
+  });
+  return best;
 }
 
 // Calculates map bounds and center for auto-zoom functionality

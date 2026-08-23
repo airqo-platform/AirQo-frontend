@@ -3,6 +3,7 @@
 import React from 'react';
 import { DynamicChart } from '@/shared/components/charts';
 import { useSiteChartData } from '@/modules/airqo-map/hooks/useSiteChartData';
+import { toDateString } from '@/shared/services/analyticsService';
 import { useAnalytics } from '@/modules/analytics/hooks/useAnalytics';
 import { LoadingSpinner } from '@/shared/components/ui';
 import type { PollutantType } from '@/shared/components/charts/types';
@@ -42,8 +43,8 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
     startDate.setDate(endDate.getDate() - 7);
 
     return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
+      startDate: toDateString(startDate.toISOString()),
+      endDate: toDateString(endDate.toISOString()),
     };
   }, []);
 

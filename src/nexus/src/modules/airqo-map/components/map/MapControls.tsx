@@ -66,7 +66,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
       disabled={control.disabled}
       aria-label={control['aria-label']}
       className={cn(
-        'w-10 h-10 sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200 rounded-full',
+        'min-w-[44px] min-h-[44px] sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200 rounded-full',
         'shadow-md hover:shadow-lg transition-all duration-200',
         'flex items-center justify-center text-gray-700 hover:text-gray-900',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
@@ -90,7 +90,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
       disabled={control.disabled}
       aria-label={control['aria-label']}
       className={cn(
-        'w-10 h-10 sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200',
+        'min-w-[44px] min-h-[44px] sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200',
         'shadow-md hover:shadow-lg transition-all duration-200',
         'flex items-center justify-center text-gray-700 hover:text-gray-900',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
@@ -110,11 +110,12 @@ export const MapControls: React.FC<MapControlsProps> = ({
 
   return (
     <>
-      {/* Top right controls */}
+      {/* Top right controls — 2x2 grid on mobile so the stack never
+          towers over the (smaller) mobile map pane; column on sm+ */}
       <div
         className={cn(
-          'absolute top-4 right-4 z-[1100] flex flex-col gap-2',
-          'sm:top-6 sm:right-6',
+          'absolute top-4 right-4 z-[1100] grid grid-cols-2 gap-1.5',
+          'sm:top-6 sm:right-6 sm:flex sm:flex-col sm:gap-2',
           className
         )}
       >
@@ -167,12 +168,12 @@ export const MapControls: React.FC<MapControlsProps> = ({
       {/* Bottom right controls - grouped zoom controls */}
       <div
         className={cn(
-          'absolute bottom-4 right-4 z-[1100] flex flex-col',
+          'absolute bottom-6 right-4 z-[1100] flex flex-col',
           'sm:bottom-6 sm:right-6'
         )}
       >
         {/* Geolocation */}
-        <div className="mb-2">
+        <div className="mb-1.5 sm:mb-2">
           {renderControlButton(
             {
               icon: AqCompass01,

@@ -1,5 +1,7 @@
-import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
-
 export default function AppLoading() {
-  return <LoadingOverlay delayMs={200} />;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="SecondaryMainloader route-loader" aria-label="Loading" />
+    </div>
+  );
 }

@@ -42,7 +42,12 @@ export type AirQualityLevel =
 // TODO: Expand to support additional pollutants (no2, o3, co, so2) when needed
 export type PollutantType = AqiPollutant;
 
-export type StandardsOrganization = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
+export type StandardsOrganization =
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface AirQualityStandard {
   level: string;
@@ -418,12 +423,187 @@ export const NEMA_KENYA_PM10_STANDARDS: AirQualityStandard[] = [
 ];
 
 // ========================================
+// SOUTH AFRICA AIR QUALITY STANDARDS
+// ========================================
+// National Ambient Air Quality Standards under the National Environmental
+// Management: Air Quality Act (Act 39 of 2004) — Government Notices 1210 of
+// 2009 (PM10) and 486 of 2012 (PM2.5), current compliance phase (2016–2029).
+
+export const SOUTH_AFRICA_PM25_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 10 },
+    color: '#10B981', // green-500
+    description: 'Well below the SA annual standard - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 10, max: 20 },
+    color: '#F59E0B', // amber-500
+    description: 'Within the SA annual standard (20 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 20, max: 40 },
+    color: '#EF4444', // red-500
+    description: 'Above the SA annual but within 24-hour standard (40 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 40, max: 60 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above the SA 24-hour standard',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 60, max: 120 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above the SA standards',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 120, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+export const SOUTH_AFRICA_PM10_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 20 },
+    color: '#10B981', // green-500
+    description: 'Well below the SA annual standard - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 20, max: 40 },
+    color: '#F59E0B', // amber-500
+    description: 'Within the SA annual standard (40 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 40, max: 75 },
+    color: '#EF4444', // red-500
+    description: 'Above the SA annual but within 24-hour standard (75 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 75, max: 150 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above the SA 24-hour standard',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 150, max: 250 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above the SA standards',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 250, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+// ========================================
+// NIGERIA AIR QUALITY STANDARDS
+// ========================================
+// National Environmental (Air Quality Control) Regulations, 2021 (S.I. No. 88
+// of 2021, Official Gazette No. 161 of 2021) — National Environmental
+// Standards and Regulations Enforcement Agency (NESREA).
+
+export const NIGERIA_PM25_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 10 },
+    color: '#10B981', // green-500
+    description: 'Well below the NESREA annual standard - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 10, max: 20 },
+    color: '#F59E0B', // amber-500
+    description: 'Within the NESREA annual standard (20 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 20, max: 40 },
+    color: '#EF4444', // red-500
+    description: 'Above the NESREA annual but within 24-hour standard (40 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 40, max: 60 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above the NESREA 24-hour standard',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 60, max: 120 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above the NESREA standards',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 120, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+export const NIGERIA_PM10_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 30 },
+    color: '#10B981', // green-500
+    description: 'Well below the NESREA annual standard - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 30, max: 60 },
+    color: '#F59E0B', // amber-500
+    description: 'Within the NESREA annual standard (60 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 60, max: 150 },
+    color: '#EF4444', // red-500
+    description: 'Above the NESREA annual but within 24-hour standard (150 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 150, max: 225 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above the NESREA 24-hour standard',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 225, max: 300 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above the NESREA standards',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 300, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+// ========================================
 // STANDARD REFERENCE VALUES
 // ========================================
 
 /**
- * Standard values for reference lines in charts
- * Using WHO 2021 guidelines, NEMA Uganda, and NEMA Kenya standards
+ * Standard values for reference lines in charts.
+ * Verified against primary legal sources:
+ * - WHO 2021 Global Air Quality Guidelines (AQG values: PM2.5 5/15, PM10 15/45)
+ * - Uganda National Environment (Air Quality Standards) Regulations 2024 (SI 22 of 2024)
+ * - Kenya Environmental Management and Co-ordination (Air Quality) Regulations 2024 (LN 180 of 2024)
+ * - South Africa National Ambient Air Quality Standards (GN 1210 of 2009 + GN 486 of 2012, current phase)
+ * - Nigeria National Environmental (Air Quality Control) Regulations 2021 (SI 88 of 2021)
  */
 export const AQ_STANDARDS: Record<StandardsOrganization, StandardValues> = {
   WHO: {
@@ -431,12 +611,20 @@ export const AQ_STANDARDS: Record<StandardsOrganization, StandardValues> = {
     pm10: 15, // WHO 2021 annual guideline: 15 µg/m³
   },
   NEMA_UGANDA: {
-    pm2_5: 25, // NEMA Uganda annual limit: 25 µg/m³
-    pm10: 40, // NEMA Uganda annual limit: 40 µg/m³
+    pm2_5: 25, // Uganda SI 22/2024 annual limit: 25 µg/m³
+    pm10: 40, // Uganda SI 22/2024 annual limit: 40 µg/m³
   },
   NEMA_KENYA: {
-    pm2_5: 35, // NEMA Kenya annual limit (Legal Notice 180/2024): 35 µg/m³
-    pm10: 70, // NEMA Kenya annual limit (Legal Notice 180/2024): 70 µg/m³
+    pm2_5: 35, // Kenya LN 180/2024 annual limit: 35 µg/m³
+    pm10: 70, // Kenya LN 180/2024 annual limit: 70 µg/m³
+  },
+  SOUTH_AFRICA: {
+    pm2_5: 20, // SA GN 486/2012 annual standard (current phase): 20 µg/m³
+    pm10: 40, // SA GN 1210/2009 annual standard: 40 µg/m³
+  },
+  NIGERIA: {
+    pm2_5: 20, // Nigeria SI 88/2021 annual standard: 20 µg/m³
+    pm10: 60, // Nigeria SI 88/2021 annual standard: 60 µg/m³
   },
 } as const;
 
@@ -460,6 +648,18 @@ export const REFERENCE_LINES = {
     PM25_ANNUAL: 35,
     PM25_24HR: 75,
     PM10_ANNUAL: 70,
+    PM10_24HR: 150,
+  },
+  SOUTH_AFRICA: {
+    PM25_ANNUAL: 20,
+    PM25_24HR: 40,
+    PM10_ANNUAL: 40,
+    PM10_24HR: 75,
+  },
+  NIGERIA: {
+    PM25_ANNUAL: 20,
+    PM25_24HR: 40,
+    PM10_ANNUAL: 60,
     PM10_24HR: 150,
   },
 } as const;
@@ -665,6 +865,7 @@ export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
     case 'unhealthyforsensitivegroups':
     case 'unhealthyforsensitivegroup':
     case 'unhealthyforsensitive':
+    case 'u4sg':
       return 'unhealthy-sensitive-groups';
     case 'unhealthy':
       return 'unhealthy';
@@ -690,15 +891,23 @@ export const getStandardsByType = (
   organization: StandardsOrganization,
   pollutant: 'PM2.5' | 'PM10'
 ): AirQualityStandard[] => {
-  if (organization === 'WHO') {
-    return pollutant === 'PM10' ? WHO_PM10_STANDARDS : WHO_PM25_STANDARDS;
-  } else if (organization === 'NEMA_UGANDA') {
-    return pollutant === 'PM10' ? NEMA_PM10_STANDARDS : NEMA_PM25_STANDARDS;
-  } else {
-    // NEMA_KENYA
-    return pollutant === 'PM10'
-      ? NEMA_KENYA_PM10_STANDARDS
-      : NEMA_KENYA_PM25_STANDARDS;
+  switch (organization) {
+    case 'WHO':
+      return pollutant === 'PM10' ? WHO_PM10_STANDARDS : WHO_PM25_STANDARDS;
+    case 'NEMA_UGANDA':
+      return pollutant === 'PM10' ? NEMA_PM10_STANDARDS : NEMA_PM25_STANDARDS;
+    case 'NEMA_KENYA':
+      return pollutant === 'PM10'
+        ? NEMA_KENYA_PM10_STANDARDS
+        : NEMA_KENYA_PM25_STANDARDS;
+    case 'SOUTH_AFRICA':
+      return pollutant === 'PM10'
+        ? SOUTH_AFRICA_PM10_STANDARDS
+        : SOUTH_AFRICA_PM25_STANDARDS;
+    case 'NIGERIA':
+      return pollutant === 'PM10'
+        ? NIGERIA_PM10_STANDARDS
+        : NIGERIA_PM25_STANDARDS;
   }
 };
 
@@ -709,6 +918,8 @@ export const STANDARDS_ORGANIZATIONS = {
   WHO: 'WHO (World Health Organization)',
   NEMA_UGANDA: 'NEMA (Uganda)',
   NEMA_KENYA: 'NEMA (Kenya)',
+  SOUTH_AFRICA: 'South Africa (NEM:AQA)',
+  NIGERIA: 'Nigeria (NESREA)',
 } as const;
 
 /**
@@ -728,4 +939,129 @@ export const POLLUTANT_LABELS = {
  */
 export const getPollutantLabel = (pollutant: PollutantType): string => {
   return POLLUTANT_LABELS[pollutant] || pollutant.toUpperCase();
+};
+
+// ========================================
+// US EPA AQI CATEGORIES (24-HOUR)
+// ========================================
+
+/**
+ * Canonical US EPA AQI categories for 24-hour averaging — the authoritative
+ * breakpoint boundaries for each pollutant, including the AQI index range of
+ * every category. These are fixed public EPA values; they are NOT derived
+ * from the deployed aqi-ranges configuration (which may follow a different
+ * reference standard such as WHO).
+ */
+export interface EpaAqiCategory {
+  key: AqiRangeKey;
+  label: string;
+  /** Concentration band in μg/m³ (null max = open-ended) */
+  concMin: number;
+  concMax: number | null;
+  /** US EPA AQI index band (null max = open-ended) */
+  aqiMin: number;
+  aqiMax: number | null;
+}
+
+export const EPA_AQI_CATEGORIES: Record<'pm2_5' | 'pm10', EpaAqiCategory[]> = {
+  pm2_5: [
+    {
+      key: 'good',
+      label: 'Good',
+      concMin: 0,
+      concMax: 9.0,
+      aqiMin: 0,
+      aqiMax: 50,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      concMin: 9.1,
+      concMax: 35.4,
+      aqiMin: 51,
+      aqiMax: 100,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      concMin: 35.5,
+      concMax: 55.4,
+      aqiMin: 101,
+      aqiMax: 150,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      concMin: 55.5,
+      concMax: 125.4,
+      aqiMin: 151,
+      aqiMax: 200,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      concMin: 125.5,
+      concMax: 225.4,
+      aqiMin: 201,
+      aqiMax: 300,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      concMin: 225.5,
+      concMax: null,
+      aqiMin: 301,
+      aqiMax: null,
+    },
+  ],
+  pm10: [
+    {
+      key: 'good',
+      label: 'Good',
+      concMin: 0,
+      concMax: 54,
+      aqiMin: 0,
+      aqiMax: 50,
+    },
+    {
+      key: 'moderate',
+      label: 'Moderate',
+      concMin: 55,
+      concMax: 154,
+      aqiMin: 51,
+      aqiMax: 100,
+    },
+    {
+      key: 'u4sg',
+      label: 'Unhealthy for Sensitive Groups',
+      concMin: 155,
+      concMax: 254,
+      aqiMin: 101,
+      aqiMax: 150,
+    },
+    {
+      key: 'unhealthy',
+      label: 'Unhealthy',
+      concMin: 255,
+      concMax: 354,
+      aqiMin: 151,
+      aqiMax: 200,
+    },
+    {
+      key: 'very_unhealthy',
+      label: 'Very Unhealthy',
+      concMin: 355,
+      concMax: 424,
+      aqiMin: 201,
+      aqiMax: 300,
+    },
+    {
+      key: 'hazardous',
+      label: 'Hazardous',
+      concMin: 425,
+      concMax: null,
+      aqiMin: 301,
+      aqiMax: null,
+    },
+  ],
 };
