@@ -1,4 +1,9 @@
-import { titleToOrgSlug, findGroupByOrgPathSlug } from '../org-slug';
+import {
+  titleToOrgSlug,
+  findGroupByOrgPathSlug,
+  effectiveOrgSlug,
+  buildOrgDataExportPath,
+} from '../org-slug';
 import type { NormalizedGroup } from '@/shared/utils/userUtils';
 
 function makeGroup(
@@ -108,6 +113,16 @@ describe('findGroupByOrgPathSlug', () => {
     expect(result?.id).toBe('2');
   });
 
+  it('exact match normalizes a stored slug with surrounding whitespace and casing', () => {
+    // Regression: the stored value must be trimmed & lowercased too —
+    // stored ' AirQo ' has to match the path slug 'airqo' via exact match.
+    const sloppyGroups = [
+      makeGroup({ id: 'sloppy', title: 'AirQo', organizationSlug: ' AirQo ' }),
+    ];
+    const result = findGroupByOrgPathSlug(sloppyGroups, 'airqo');
+    expect(result?.id).toBe('sloppy');
+  });
+
   it('title-derived fallback matches when organizationSlug is empty', () => {
     // 'My  Organization' -> titleToOrgSlug -> 'my-organization'
     const result = findGroupByOrgPathSlug(groups, 'my-organization');
@@ -182,5 +197,78 @@ describe('findGroupByOrgPathSlug', () => {
     });
     const result = findGroupByOrgPathSlug([groupEmptyTitle], 'something');
     expect(result).toBeNull();
+  });
+});
+
+describe('effectiveOrgSlug', () => {
+  it('uses the stored organizationSlug when set', () => {
+    expect(
+      effectiveOrgSlug(
+        makeGroup({ id: '1', title: 'AirQo', organizationSlug: 'airqo' })
+      )
+    ).toBe('airqo');
+  });
+
+  it('trims the stored organizationSlug', () => {
+    expect(
+      effectiveOrgSlug(
+        makeGroup({ id: '1', title: 'AirQo', organizationSlug: '  airqo  ' })
+      )
+    ).toBe('airqo');
+  });
+
+  it('falls back to the title-derived slug when organizationSlug is empty', () => {
+    // Regression: title-fallback groups must still resolve to a usable
+    // org-path slug, otherwise redirects emit `/org//...`.
+    expect(
+      effectiveOrgSlug(
+        makeGroup({
+          id: '2',
+          title: 'My Organization',
+          organizationSlug: '',
+        })
+      )
+    ).toBe('my-organization');
+  });
+
+  it('prefers a whitespace-only organizationSlug fallback to the title slug', () => {
+    expect(
+      effectiveOrgSlug(
+        makeGroup({ id: '3', title: 'Space Org', organizationSlug: '   ' })
+      )
+    ).toBe('space-org');
+  });
+
+  it('returns an empty string when neither slug nor title is usable', () => {
+    expect(
+      effectiveOrgSlug(makeGroup({ id: '4', title: '', organizationSlug: '' }))
+    ).toBe('');
+  });
+});
+
+describe('buildOrgDataExportPath', () => {
+  it('builds the canonical data-export path from the stored slug', () => {
+    expect(
+      buildOrgDataExportPath(
+        makeGroup({ id: '1', title: 'AirQo', organizationSlug: 'airqo' })
+      )
+    ).toBe('/org/airqo/data-export');
+  });
+
+  it('builds the path from the title-derived slug when organizationSlug is empty', () => {
+    // Regression: this group previously produced `/org//data-export`.
+    expect(
+      buildOrgDataExportPath(
+        makeGroup({ id: '2', title: 'My Organization', organizationSlug: '' })
+      )
+    ).toBe('/org/my-organization/data-export');
+  });
+
+  it('returns null when the group has no usable slug at all', () => {
+    expect(
+      buildOrgDataExportPath(
+        makeGroup({ id: '3', title: '', organizationSlug: '' })
+      )
+    ).toBeNull();
   });
 });

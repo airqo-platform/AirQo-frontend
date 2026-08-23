@@ -30,9 +30,12 @@ export function findGroupByOrgPathSlug(
   const normalisedSlug = slug.trim().toLowerCase();
   if (!normalisedSlug) return null;
 
-  // 1. Exact match on organizationSlug (fast path).
+  // 1. Exact match on organizationSlug (fast path). Both sides are trimmed
+  //    and lowercased — stored slugs may carry stray whitespace or casing.
   const exactMatch = groups.find(
-    g => g.organizationSlug && g.organizationSlug === normalisedSlug
+    g =>
+      !!g.organizationSlug &&
+      g.organizationSlug.trim().toLowerCase() === normalisedSlug
   );
   if (exactMatch) return exactMatch;
 
@@ -43,4 +46,26 @@ export function findGroupByOrgPathSlug(
   });
 
   return fallbackMatch ?? null;
+}
+
+/**
+ * The slug that canonically represents a group in `/org/` URLs: the stored
+ * `organizationSlug` when non-empty, otherwise the title-derived slug.
+ *
+ * Groups can carry an empty `organizationSlug` (title-only groups), and URL
+ * construction must never emit `/org//...`, so every org-path comparison and
+ * redirect builds on this derived value instead of the raw stored field.
+ */
+export function effectiveOrgSlug(group: NormalizedGroup): string {
+  return group.organizationSlug?.trim() || titleToOrgSlug(group.title || '');
+}
+
+/**
+ * Canonical `/org/<slug>/data-export` path for a group, or `null` when the
+ * group has neither an `organizationSlug` nor a usable title — callers must
+ * skip the redirect rather than emit `/org//data-export`.
+ */
+export function buildOrgDataExportPath(group: NormalizedGroup): string | null {
+  const slug = effectiveOrgSlug(group);
+  return slug ? `/org/${slug}/data-export` : null;
 }

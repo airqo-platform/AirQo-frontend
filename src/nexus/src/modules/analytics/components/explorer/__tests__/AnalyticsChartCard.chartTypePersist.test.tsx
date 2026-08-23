@@ -156,4 +156,123 @@ describe('AnalyticsChartCard quick chart-type persistence', () => {
       screen.getByRole('button', { name: 'Chart type' })
     ).toHaveTextContent('Area Chart');
   });
+
+  describe('rapid selection race (controlled promises)', () => {
+    // The toolbar selector keeps the dropdown OPEN after a pick (options are
+    // plain buttons, not auto-closing menu items), so two rapid selections
+    // are one open followed by two consecutive option clicks.
+    const selectTypes = (...labels: string[]) => {
+      fireEvent.click(screen.getByRole('button', { name: 'Chart type' }));
+      labels.forEach(label => {
+        fireEvent.click(screen.getByRole('button', { name: label }));
+      });
+    };
+
+    it('keeps the newest selection when an older request fails after a newer one succeeded', async () => {
+      let rejectBar!: (reason?: unknown) => void;
+      let resolveArea!: () => void;
+      const barRequest = new Promise<void>((_, reject) => {
+        rejectBar = reject;
+      });
+      const areaRequest = new Promise<void>(resolve => {
+        resolveArea = resolve;
+      });
+      const onChartTypeChange = jest
+        .fn()
+        .mockImplementationOnce(() => barRequest)
+        .mockImplementationOnce(() => areaRequest);
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      try {
+        renderCard({ onChartTypeChange });
+
+        // Two rapid selections: Bar then Area. Both PUTs are in flight.
+        selectTypes('Bar Chart', 'Area Chart');
+        expect(onChartTypeChange).toHaveBeenCalledTimes(2);
+        expect(onChartTypeChange).toHaveBeenNthCalledWith(1, 'chart-1', 'Bar');
+        expect(onChartTypeChange).toHaveBeenNthCalledWith(2, 'chart-1', 'Area');
+
+        // Area (the NEWEST request) completes first, THEN the older Bar
+        // request fails — it must NOT revert the UI to Bar or Line.
+        resolveArea();
+        rejectBar(new Error('stale bar request failed'));
+        // The failure handler ran (it logs) ...
+        await waitFor(() => expect(consoleError).toHaveBeenCalled());
+        // ... but the override still shows the newer, successful selection.
+        expect(
+          screen.getByRole('button', { name: 'Chart type' })
+        ).toHaveTextContent('Area Chart');
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
+    it('keeps the newest optimistic selection when an older request resolves last', async () => {
+      let resolveBar!: () => void;
+      let resolveArea!: () => void;
+      const barRequest = new Promise<void>(resolve => {
+        resolveBar = resolve;
+      });
+      const areaRequest = new Promise<void>(resolve => {
+        resolveArea = resolve;
+      });
+      const onChartTypeChange = jest
+        .fn()
+        .mockImplementationOnce(() => barRequest)
+        .mockImplementationOnce(() => areaRequest);
+
+      renderCard({ onChartTypeChange });
+
+      selectTypes('Bar Chart', 'Area Chart');
+
+      // Reversed completion: Area settles first, Bar afterwards. Neither
+      // success touches the override, so the newest pick stays visible.
+      resolveArea();
+      resolveBar();
+      await Promise.all([barRequest, areaRequest]);
+
+      expect(
+        screen.getByRole('button', { name: 'Chart type' })
+      ).toHaveTextContent('Area Chart');
+    });
+
+    it('still reverts when the LATEST request fails', async () => {
+      let resolveBar!: () => void;
+      let rejectArea!: (reason?: unknown) => void;
+      const barRequest = new Promise<void>(resolve => {
+        resolveBar = resolve;
+      });
+      const areaRequest = new Promise<void>((_, reject) => {
+        rejectArea = reject;
+      });
+      const onChartTypeChange = jest
+        .fn()
+        .mockImplementationOnce(() => barRequest)
+        .mockImplementationOnce(() => areaRequest);
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      try {
+        renderCard({ onChartTypeChange });
+
+        selectTypes('Bar Chart', 'Area Chart');
+
+        // Bar succeeds; then the latest (Area) request fails — the guard
+        // must not swallow a legitimate revert of the newest selection.
+        resolveBar();
+        rejectArea(new Error('area persist failed'));
+
+        await waitFor(() =>
+          expect(
+            screen.getByRole('button', { name: 'Chart type' })
+          ).toHaveTextContent('Line Chart')
+        );
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+  });
 });

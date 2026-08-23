@@ -183,7 +183,7 @@ describe('chartContractToRetryForErrorBody', () => {
     );
   });
 
-  it('returns null for the current (pydantic) schema validation body', () => {
+  it('detects the current-schema pydantic rejection of a startDate request (mirror signature)', () => {
     const pydanticBody = {
       message: 'Validation error',
       status: 'error',
@@ -195,7 +195,9 @@ describe('chartContractToRetryForErrorBody', () => {
         },
       ],
     };
-    expect(chartContractToRetryForErrorBody(pydanticBody)).toBeNull();
+    expect(chartContractToRetryForErrorBody(pydanticBody)).toBe(
+      'startDateTime'
+    );
   });
 
   it('returns null for unrelated 400 bodies (no retry)', () => {
@@ -543,6 +545,187 @@ describe('AnalyticsService.getChartData contract negotiation', () => {
       })
     ).rejects.toThrow(/missing start and end dates/i);
     expect(mockPost).not.toHaveBeenCalled();
+  });
+});
+
+describe('AnalyticsService.getChartData single-flight negotiation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetChartDateContract();
+  });
+
+  const chartPayload = { status: 'success', data: [] };
+
+  const axiosLikeError = (status: number, data: unknown) => {
+    const error = new Error(`Request failed with status code ${status}`);
+    (error as { response?: unknown }).response = { status, data };
+    return error;
+  };
+
+  // What a startDate-contract request gets from a CURRENT-schema backend.
+  const CURRENT_SCHEMA_REJECTION_BODY = {
+    errors: [
+      {
+        type: 'missing',
+        loc: ['body', 'startDateTime'],
+        msg: 'Field required',
+      },
+      {
+        type: 'missing',
+        loc: ['body', 'endDateTime'],
+        msg: 'Field required',
+      },
+    ],
+  };
+
+  /** Drains pending microtasks so in-flight promise chains settle. */
+  const flushAsync = () => new Promise<void>(resolve => setTimeout(resolve, 0));
+
+  it('shares ONE probe pair across concurrent requests on a fresh session — no caller surfaces the 400', async () => {
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+      .mockResolvedValue({ data: chartPayload });
+
+    const request = {
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    };
+
+    const results = await Promise.all([
+      analyticsService.getChartData(request),
+      analyticsService.getChartData(request),
+      analyticsService.getChartData(request),
+    ]);
+
+    expect(results).toEqual([chartPayload, chartPayload, chartPayload]);
+
+    // Exactly ONE probe pair: call 0 probed the primary keys and absorbed
+    // the legacy 400; call 1 was that same caller's corrected retry. The
+    // two other callers joined the shared negotiation and each sent exactly
+    // once with the settled contract — they never saw a 400.
+    expect(mockPost).toHaveBeenCalledTimes(4);
+    const bodies = mockPost.mock.calls.map(call => call[1]);
+    expect(bodies[0]).toEqual(
+      expect.objectContaining({ startDateTime: '2025-08-15' })
+    );
+    for (let index = 1; index < bodies.length; index++) {
+      expect(bodies[index]).toEqual(
+        expect.objectContaining({ startDate: '2025-08-15' })
+      );
+      expect(bodies[index]).not.toHaveProperty('startDateTime');
+    }
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDate');
+  });
+
+  it('re-probes ONCE when the persisted startDate contract is rejected by a current-schema backend', async () => {
+    // Settle the session on the legacy contract first, as a previous visit
+    // would have persisted.
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+      .mockResolvedValueOnce({ data: chartPayload });
+    await analyticsService.getChartData({
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    });
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDate');
+
+    // The backend flapped to the CURRENT schema: the cached startDate keys
+    // now earn the pydantic mirror rejection; the startDateTime retry wins.
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
+      .mockResolvedValueOnce({ data: chartPayload });
+
+    await expect(
+      analyticsService.getChartData({
+        startDateTime: '2025-08-15',
+        endDateTime: '2025-08-21',
+      })
+    ).resolves.toEqual(chartPayload);
+
+    // Attempt 3 used the stale startDate keys and was rejected; attempt 4
+    // retried with startDateTime and succeeded — bounded at two attempts.
+    expect(mockPost).toHaveBeenCalledTimes(4);
+    expect(mockPost.mock.calls[2][1]).toEqual(
+      expect.objectContaining({ startDate: '2025-08-15' })
+    );
+    expect(mockPost.mock.calls[3][1]).toEqual(
+      expect.objectContaining({
+        startDateTime: '2025-08-15',
+        endDateTime: '2025-08-21',
+      })
+    );
+    expect(mockPost.mock.calls[3][1]).not.toHaveProperty('startDate');
+    // The recovered contract replaces the stale persisted one.
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDateTime');
+  });
+
+  it('runs ONE shared re-probe when concurrent requests hit a stale contract', async () => {
+    // Settle on the legacy contract first.
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
+      .mockResolvedValueOnce({ data: chartPayload });
+    await analyticsService.getChartData({
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    });
+
+    // All three cached-contract attempts are rejected by the current schema.
+    // The shared re-probe hangs on a deferred until we release it, so we can
+    // observe that NO other caller fires its own probe while it is in flight.
+    let releaseReProbe!: (value: { data: typeof chartPayload }) => void;
+    const reProbeResponse = new Promise<{ data: typeof chartPayload }>(
+      resolve => {
+        releaseReProbe = resolve;
+      }
+    );
+    mockPost
+      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
+      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
+      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
+      .mockReturnValueOnce(reProbeResponse)
+      .mockResolvedValue({ data: chartPayload });
+
+    const request = {
+      startDateTime: '2025-08-15',
+      endDateTime: '2025-08-21',
+    };
+    const allSettled = Promise.all([
+      analyticsService.getChartData(request),
+      analyticsService.getChartData(request),
+      analyticsService.getChartData(request),
+    ]);
+
+    await flushAsync();
+
+    // Calls 0-1 settled the session; calls 2-4 are the three stale attempts;
+    // call 5 is the SINGLE shared re-probe. The other two failures joined it
+    // instead of probing — nothing else fired while it hangs.
+    expect(mockPost).toHaveBeenCalledTimes(6);
+
+    releaseReProbe({ data: chartPayload });
+    await expect(allSettled).resolves.toEqual([
+      chartPayload,
+      chartPayload,
+      chartPayload,
+    ]);
+
+    // After release only the two joiners sent their own settled requests.
+    expect(mockPost).toHaveBeenCalledTimes(8);
+    // Calls 0-1 are the setup pair (probe + corrected retry); scope the
+    // key-family tally to the stale-contract phase: 3 stale startDate
+    // attempts + 1 shared re-probe + 2 joiner sends, all startDateTime.
+    const phaseBodies = mockPost.mock.calls.slice(2).map(call => call[1]);
+    expect(phaseBodies.filter(body => 'startDate' in body)).toHaveLength(3);
+    expect(phaseBodies.filter(body => 'startDateTime' in body)).toHaveLength(3);
+    expect(
+      window.localStorage.getItem('nexus:analytics:chart-date-contract')
+    ).toBe('startDateTime');
   });
 });
 

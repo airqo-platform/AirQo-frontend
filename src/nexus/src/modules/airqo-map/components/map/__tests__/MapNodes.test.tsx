@@ -60,9 +60,65 @@ const baseReading: AirQualityReading = {
   provider: 'airqo',
 };
 
-/** Minimal raw-API payload stub — display resolution only reads aqi_category. */
-const makeFullReadingData = (aqiCategory: string): MapReading =>
-  ({ aqi_category: aqiCategory }) as unknown as MapReading;
+/** Complete siteDetails stub (shape reused from selectedLocationSlice.test.ts). */
+const mockSiteDetails = {
+  _id: 'site-1',
+  formatted_name: 'Test Site',
+  location_name: 'Test Location',
+  search_name: 'test',
+  city: 'Kampala',
+  district: 'Central',
+  county: 'Uganda',
+  region: 'East',
+  country: 'Uganda',
+  name: 'Test',
+  approximate_latitude: 0.3476,
+  approximate_longitude: 32.5825,
+  bearing_in_radians: 0,
+  data_provider: 'airqo',
+  description: 'Test site',
+  site_category: { tags: ['test'], category: 'urban' },
+};
+
+/**
+ * Fully-typed raw-API reading stub — no casts. Display resolution only reads
+ * `aqi_category`; every other field is realistic filler so the fixture
+ * satisfies `MapReading` structurally.
+ */
+const makeFullReadingData = (aqiCategory: string): MapReading => ({
+  _id: 'reading-1',
+  site_id: 'site-1',
+  time: '2026-01-01T00:00:00Z',
+  aqi_category: aqiCategory,
+  aqi_color: '#34C759',
+  aqi_color_name: 'green',
+  aqi_index: 42,
+  aqi_ranges: {
+    good: { min: 0, max: 9.1 },
+    moderate: { min: 9.1, max: 35.49 },
+    u4sg: { min: 35.49, max: 55.49 },
+    unhealthy: { min: 55.49, max: 125.49 },
+    very_unhealthy: { min: 125.49, max: 225.49 },
+    hazardous: { min: 225.49, max: null },
+  },
+  averages: {
+    dailyAverage: 8,
+    percentageDifference: 0,
+    weeklyAverages: { currentWeek: 7, previousWeek: 6 },
+  },
+  createdAt: '2026-01-01T00:00:00Z',
+  device: 'device-1',
+  device_id: 'device-1',
+  frequency: 'hourly',
+  health_tips: [],
+  is_reading_primary: true,
+  no2: { value: null },
+  pm10: { value: 20 },
+  pm2_5: { value: 12 },
+  siteDetails: mockSiteDetails,
+  timeDifferenceHours: 1,
+  updatedAt: '2026-01-01T00:00:00Z',
+});
 
 describe('MapNodes memo comparator — category awareness', () => {
   it('re-renders an individual node when only aqiCategory changes', () => {
@@ -165,5 +221,124 @@ describe('MapNodes memo comparator — category awareness', () => {
     expect(
       view.container.querySelector('[data-testid="aqi-icon-moderate"]')
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('MapNodes memo comparator — cluster member exchanges', () => {
+  /**
+   * Regression tests for the CodeRabbit finding: the old additive fingerprint
+   * produced EQUAL sums when two members exchanged concentrations or
+   * categories between themselves, so areEqual returned true and the cluster
+   * kept stale icons. The cluster pill renders [BestIcon, WorstIcon] in that
+   * DOM order, so asserting icon order proves whether a re-render happened.
+   */
+  const renderedIconOrder = (container: HTMLElement): string[] =>
+    Array.from(container.querySelectorAll('[data-testid^="aqi-icon-"]')).map(
+      element => element.getAttribute('data-testid') ?? ''
+    );
+
+  const memberA: AirQualityReading = {
+    ...baseReading,
+    id: 'site-a',
+    siteId: 'site-a',
+    pm25Value: 5,
+    pm10Value: 8,
+  };
+  const memberB: AirQualityReading = {
+    ...baseReading,
+    id: 'site-b',
+    siteId: 'site-b',
+    pm25Value: 30,
+    pm10Value: 45,
+  };
+
+  it('re-renders a cluster when members exchange AQI categories', () => {
+    const clusterWithCategories = (
+      catA: string,
+      catB: string
+    ): ClusterData => ({
+      id: 'cluster-1',
+      longitude: 32.58,
+      latitude: 0.34,
+      pointCount: 2,
+      readings: [
+        { ...memberA, aqiCategory: catA },
+        { ...memberB, aqiCategory: catB },
+      ],
+    });
+
+    const view = render(
+      <MapNodes cluster={clusterWithCategories('good', 'unhealthy')} />
+    );
+
+    // best = site-a (pm25 5) → good; worst = site-b (pm25 30) → unhealthy.
+    expect(renderedIconOrder(view.container)).toEqual([
+      'aqi-icon-good',
+      'aqi-icon-unhealthy',
+    ]);
+
+    // Same ids, same concentrations — ONLY the categories swapped places.
+    view.rerender(
+      <MapNodes cluster={clusterWithCategories('unhealthy', 'good')} />
+    );
+
+    expect(renderedIconOrder(view.container)).toEqual([
+      'aqi-icon-unhealthy',
+      'aqi-icon-good',
+    ]);
+  });
+
+  it('re-renders a cluster when members exchange pm25/pm10 values', () => {
+    const lowMember: AirQualityReading = {
+      ...memberA,
+      aqiCategory: 'good',
+    };
+    const highMember: AirQualityReading = {
+      ...memberB,
+      pm25Value: 150,
+      pm10Value: 300,
+      aqiCategory: 'hazardous',
+    };
+
+    const view = render(
+      <MapNodes
+        cluster={{
+          id: 'cluster-1',
+          longitude: 32.58,
+          latitude: 0.34,
+          pointCount: 2,
+          readings: [lowMember, highMember],
+        }}
+      />
+    );
+
+    // best = lowMember (pm25 5) → good; worst = highMember (pm25 150) → hazardous.
+    expect(renderedIconOrder(view.container)).toEqual([
+      'aqi-icon-good',
+      'aqi-icon-hazardous',
+    ]);
+
+    // Exchange ALL concentration values between the same member ids;
+    // categories stay put. The additive sums are identical on both sides.
+    view.rerender(
+      <MapNodes
+        cluster={{
+          id: 'cluster-1',
+          longitude: 32.58,
+          latitude: 0.34,
+          pointCount: 2,
+          readings: [
+            { ...lowMember, pm25Value: 150, pm10Value: 300 },
+            { ...highMember, pm25Value: 5, pm10Value: 8 },
+          ],
+        }}
+      />
+    );
+
+    // best is now the second member (pm25 5) → hazardous; worst the first → good.
+    expect(renderedIconOrder(view.container)).toEqual([
+      'aqi-icon-hazardous',
+      'aqi-icon-good',
+    ]);
   });
 });

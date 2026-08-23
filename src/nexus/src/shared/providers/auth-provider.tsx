@@ -52,7 +52,11 @@ import {
   isPublicAuthRoute,
   isAuthenticatedAccessiblePublicRoute,
 } from '@/shared/lib/public-routes';
-import { findGroupByOrgPathSlug } from '@/shared/lib/org-slug';
+import {
+  buildOrgDataExportPath,
+  effectiveOrgSlug,
+  findGroupByOrgPathSlug,
+} from '@/shared/lib/org-slug';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -99,11 +103,19 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     isOrgPath &&
     !!groupForCurrentOrgPath &&
     activeGroup?.id !== groupForCurrentOrgPath.id;
+  // Canonical slug for the group the current org path resolves to. Groups
+  // matched via the title fallback carry an EMPTY organizationSlug; deriving
+  // the effective slug (stored slug, else title-derived) keeps them
+  // canonicalizable and keeps every redirect off the broken `/org//` shape.
+  const groupForCurrentOrgPathSlug = groupForCurrentOrgPath
+    ? effectiveOrgSlug(groupForCurrentOrgPath)
+    : '';
   const needsOrgPathCanonicalization =
     isOrgPath &&
     !!groupForCurrentOrgPath &&
-    !!groupForCurrentOrgPath.organizationSlug &&
-    rawOrgSlugFromPath !== groupForCurrentOrgPath.organizationSlug;
+    !!groupForCurrentOrgPathSlug &&
+    rawOrgSlugFromPath?.toLowerCase() !==
+      groupForCurrentOrgPathSlug.toLowerCase();
 
   useEffect(() => {
     if (shouldSyncToUserGroup && airqoGroup) {
@@ -122,14 +134,19 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
       const prefix = `/org/${rawOrgSlugFromPath}`;
       const rest = pathname.slice(prefix.length);
       const canonicalPath = rest
-        ? `/org/${groupForCurrentOrgPath.organizationSlug}${rest}`
-        : `/org/${groupForCurrentOrgPath.organizationSlug}`;
+        ? `/org/${groupForCurrentOrgPathSlug}${rest}`
+        : `/org/${groupForCurrentOrgPathSlug}`;
       const search = searchParams.toString();
       router.replace(search ? `${canonicalPath}?${search}` : canonicalPath);
       return;
     }
 
     if (!activeGroup) return;
+
+    // Null when the active group has neither an organizationSlug nor a
+    // usable title — in that case skip org redirects entirely rather than
+    // navigate to `/org//data-export`.
+    const activeGroupRedirectPath = buildOrgDataExportPath(activeGroup);
 
     if (isAirQoActiveGroup) {
       if (isOrgPath) {
@@ -139,18 +156,27 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (isUserPath && !isUserProfilePath) {
-      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
+      if (activeGroupRedirectPath) {
+        router.replace(activeGroupRedirectPath);
+      }
       return;
     }
 
-    if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
-      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
+    if (isOrgPath && orgSlugFromPath && activeGroupRedirectPath) {
+      // Compare against the EFFECTIVE slug: a title-fallback group matched
+      // its own title-derived path, which the raw stored slug (empty) would
+      // report as a mismatch and re-trigger the broken redirect forever.
+      const activeGroupCanonicalSlug = effectiveOrgSlug(activeGroup);
+      if (orgSlugFromPath !== activeGroupCanonicalSlug.toLowerCase()) {
+        router.replace(activeGroupRedirectPath);
+      }
     }
   }, [
     activeGroup,
     activeGroupSlug,
     airqoGroup,
     groupForCurrentOrgPath,
+    groupForCurrentOrgPathSlug,
     isAirQoActiveGroup,
     isOrgPath,
     isUserProfilePath,

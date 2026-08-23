@@ -240,7 +240,10 @@ const UserStatisticsPage: React.FC = () => {
     }
   }, [mutateStats, mutateBreakdown]);
 
-  if (isForbiddenError(statsError || breakdownError)) {
+  // FIX (CodeRabbit review): check each query's error separately —
+  // `statsError || breakdownError` masked a 403 from the breakdown query
+  // whenever the stats query failed with a non-403 error.
+  if (isForbiddenError(statsError) || isForbiddenError(breakdownError)) {
     return (
       <AccessDenied
         title="Access Denied"

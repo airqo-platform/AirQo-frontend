@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { toast } from '@/shared/components/ui/toast';
 import {
@@ -386,6 +386,45 @@ export const useChartManagement = (
   // path as the draft dialog (persistDraft → draftToUpdateRequest), so the
   // API payload mapping stays identical (Line→line, Bar→bar, Area→sidecar
   // + Line). Errors propagate to the caller (the card reverts its override).
+  //
+  // Persistences are SERIALIZED PER CHART: two rapid selections (Bar then
+  // Area) each fire a PUT, and without ordering an out-of-order completion
+  // could leave the server with a non-final type (last-writer-wins).
+  // Chaining per chartId guarantees the final selection is persisted last.
+  // Only this handler is queued — it is the only rapid-fire path; dialog
+  // save, title edit and duplicate are single-shot, user-paced actions.
+  const chartTypePersistQueueRef = useRef(new Map<string, Promise<unknown>>());
+
+  const enqueueChartTypePersist = useCallback(
+    (chartId: string, task: () => Promise<unknown>): Promise<unknown> => {
+      const queue = chartTypePersistQueueRef.current;
+      const previous = queue.get(chartId);
+      // A rejected predecessor must neither block nor fail this task — its
+      // error was already delivered to its own caller. The queue can never
+      // deadlock on a failure: the chained link always settles and runs.
+      const chained = previous
+        ? previous
+            .then(
+              () => undefined,
+              () => undefined
+            )
+            .then(task)
+        : task();
+      queue.set(chartId, chained);
+      // Release the slot once this link settles so the map cannot grow
+      // unbounded; both handlers are explicit so the tracked rejection never
+      // surfaces as unhandled.
+      const release = () => {
+        if (queue.get(chartId) === chained) {
+          queue.delete(chartId);
+        }
+      };
+      chained.then(release, release);
+      return chained;
+    },
+    []
+  );
+
   const handleChartTypeChange = useCallback(
     async (draftId: string, chartType: ExplorerChartType) => {
       const chartToUpdate = charts.find(chart => chart.id === draftId);
@@ -393,9 +432,11 @@ export const useChartManagement = (
 
       const updated: ExplorerChartDraft = { ...chartToUpdate, chartType };
       const namesSnapshot = Object.fromEntries(siteNames);
-      await persistDraft(updated, namesSnapshot);
+      await enqueueChartTypePersist(draftId, () =>
+        persistDraft(updated, namesSnapshot)
+      );
     },
-    [charts, siteNames, persistDraft]
+    [charts, siteNames, persistDraft, enqueueChartTypePersist]
   );
 
   // Duplicates the chart via the server copy endpoint (includes scope +

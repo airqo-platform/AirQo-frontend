@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
 import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
@@ -151,6 +157,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   }>({ startDate: draft.startDate, endDate: draft.endDate });
   const [chartTypeOverride, setChartTypeOverride] = useState<ChartType>(
     () => draft.chartType.toLowerCase() as ChartType
+  );
+  // Latest requested chart type, tracked by object identity: when a persist
+  // fails, only the request that is STILL the latest selection may revert
+  // the override — a late failure of an older request must never clobber a
+  // newer selection the user already made.
+  const chartTypeSelectionRef = useRef<{ type: ExplorerChartType } | null>(
+    null
   );
 
   const { config: aqiConfig } = useAqiConfig(pollutantOverride);
@@ -432,17 +445,23 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
 
   // Quick chart-type switch from the toolbar selector: applies optimistically,
   // then persists via `onChartTypeChange` (the same path as the dialog save).
-  // On failure the override reverts to the saved type so the UI never shows
-  // an unpersisted chart type.
+  // On failure the override reverts to the saved type ONLY when the failed
+  // request is still the latest selection — rapid Bar→Area switches leave the
+  // UI on Area even if the older Bar request fails afterwards.
   const handleChartTypeChange = async (type: ChartType) => {
     const next = normalizeExplorerChartType(type) as ExplorerChartType;
+    const selection = { type: next };
+    chartTypeSelectionRef.current = selection;
     setChartTypeOverride(next.toLowerCase() as ChartType); // optimistic UI
     if (isFixed || !onChartTypeChange) return;
     try {
       await onChartTypeChange(draft.id, next);
     } catch (err) {
-      // Persist failed — revert so the UI never shows an unsaved type.
-      setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+      // Persist failed — revert only if this failed request is still the
+      // latest selection; otherwise the newer selection owns the UI.
+      if (chartTypeSelectionRef.current === selection) {
+        setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+      }
       console.error('Failed to persist chart type', err);
     }
   };

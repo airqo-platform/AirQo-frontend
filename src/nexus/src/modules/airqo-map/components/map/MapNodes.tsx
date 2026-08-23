@@ -337,42 +337,60 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 // ─── Memo equality ─────────────────────────────────────────────────────────────
 
 /**
- * Cheap deterministic contribution of a category string to the fingerprint —
- * additive char-code sum (0 when absent). Approximate by design: collisions
- * are possible but categories are short and stable API enums.
+ * Runtime-safe member key. Readings are typed with a required `id`, but data
+ * arriving over the network has been observed to omit it — fall back to the
+ * array index for such members so they still participate in the comparison.
  */
-const categoryFingerprint = (category?: string | null): number => {
-  if (!category) return 0;
-  let sum = 0;
-  for (let i = 0; i < category.length; i++) {
-    sum += category.charCodeAt(i);
-  }
-  return sum;
-};
+const clusterMemberKey = (reading: AirQualityReading, index: number): string =>
+  typeof reading.id === 'string' && reading.id.length > 0
+    ? reading.id
+    : `__index_${index}`;
 
 /**
- * Cluster readings content fingerprint — detects changes in pm2.5/pm10 values
- * AND each member's effective AQI category even when the cluster ID and point
- * count are unchanged.
+ * Cluster readings content comparison — detects changes in each member's
+ * pm2.5/pm10 values AND effective AQI category even when the cluster ID and
+ * point count are unchanged.
  *
- * We compute a cheap numeric sum of pollutant values plus per-member category
- * fingerprints rather than doing a deep comparison or JSON serialisation;
- * this is O(n) but avoids allocation.
+ * FIX (CodeRabbit review): the previous additive fingerprint collided when
+ * members exchanged concentrations or categories between themselves (equal
+ * sums, different content), leaving stale cluster icons on screen. This
+ * comparison is order-independent and keyed by member id: one Map per side,
+ * O(n), no JSON serialisation.
  *
- * FIX (CodeRabbit review): best/worst cluster icons derive from member display
- * levels, which are authoritative from `aqiCategory` /
- * `fullReadingData.aqi_category` (see resolveReadingDisplayLevel). A member
- * whose only change is its category must therefore change the fingerprint.
+ * Best/worst cluster icons derive from member display levels, which are
+ * authoritative from `aqiCategory` / `fullReadingData.aqi_category` (see
+ * resolveReadingDisplayLevel). A member whose only change is its category
+ * must therefore invalidate the memo.
  */
-const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
-  let sum = 0;
-  for (const r of readings) {
-    // XOR-accumulate IDs' char codes for a fast structural check
-    sum += (r.pm25Value ?? 0) + (r.pm10Value ?? 0);
-    sum += categoryFingerprint(r.aqiCategory);
-    sum += categoryFingerprint(r.fullReadingData?.aqi_category);
+const clusterReadingsEqual = (
+  prev: AirQualityReading[],
+  next: AirQualityReading[]
+): boolean => {
+  if (prev.length !== next.length) return false;
+
+  const nextMembers = new Map<string, AirQualityReading>();
+  for (let i = 0; i < next.length; i++) {
+    nextMembers.set(clusterMemberKey(next[i], i), next[i]);
   }
-  return sum;
+
+  for (let i = 0; i < prev.length; i++) {
+    const prevMember = prev[i];
+    const nextMember = nextMembers.get(clusterMemberKey(prevMember, i));
+    if (!nextMember) return false;
+    if (
+      prevMember.pm25Value !== nextMember.pm25Value ||
+      prevMember.pm10Value !== nextMember.pm10Value ||
+      // Categories are the authoritative display classification
+      // (resolveReadingDisplayLevel) — a category-only change on any member
+      // must refresh the node's icon and color.
+      prevMember.aqiCategory !== nextMember.aqiCategory ||
+      prevMember.fullReadingData?.aqi_category !==
+        nextMember.fullReadingData?.aqi_category
+    )
+      return false;
+  }
+
+  return true;
 };
 
 /**
@@ -382,9 +400,10 @@ const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
  * are stable useCallback references from EnhancedMap — including them would
  * defeat memoisation entirely.
  *
- * FIX (CodeRabbit review): cluster.readings content is now checked via a
- * lightweight fingerprint so that updated pollutant values with unchanged
- * member IDs correctly invalidate the memo and trigger a re-render.
+ * FIX (CodeRabbit review): cluster.readings content is now checked via an
+ * order-independent, id-keyed structural comparison so that updated pollutant
+ * values with unchanged member IDs correctly invalidate the memo and trigger
+ * a re-render.
  *
  * FIX (CodeRabbit review): the individual-reading branch also compares
  * `aqiCategory` / `fullReadingData.aqi_category`, and the cluster fingerprint
@@ -433,17 +452,15 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
   )
     return false;
 
-  // FIX: Check cluster readings content so stale pollutant values are detected.
-  // Only run when both sides have readings (cluster identity already matched above).
-  if (prev.cluster?.readings && next.cluster?.readings) {
-    if (prev.cluster.readings.length !== next.cluster.readings.length)
-      return false;
-    if (
-      clusterReadingsFingerprint(prev.cluster.readings) !==
-      clusterReadingsFingerprint(next.cluster.readings)
-    )
-      return false;
-  }
+  // FIX: Check cluster readings content so stale pollutant values and
+  // per-member categories are detected. Only run when both sides have
+  // readings (cluster identity already matched above).
+  if (
+    prev.cluster?.readings &&
+    next.cluster?.readings &&
+    !clusterReadingsEqual(prev.cluster.readings, next.cluster.readings)
+  )
+    return false;
 
   return true;
 };

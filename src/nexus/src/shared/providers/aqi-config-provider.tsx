@@ -11,7 +11,10 @@ import {
 import useSWR from 'swr';
 import { aqiConfigService } from '@/shared/services/aqiConfigService';
 import { useGlobalLoading } from '@/shared/providers/global-loading-provider';
-import { setActiveAqiConfig } from '@/shared/utils/airQuality';
+import {
+  setActiveAqiConfig,
+  airQualityColorsMatchConfig,
+} from '@/shared/utils/airQuality';
 import type {
   AqiConfig,
   AqiPollutant,
@@ -201,38 +204,39 @@ export const useAqiConfig = (
   const [activePollutantConfig, setActivePollutantConfig] =
     useState<AqiConfig | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const { data, error, isLoading, isValidating, mutate } =
-    useSWR<AqiRangesResponse | undefined>(
-      context.enabled && !isDefaultPollutant
-        ? getAqiRangesCacheKey(pollutant)
-        : null,
-      async () => {
-        abortRef.current?.abort();
-        const controller = new AbortController();
-        abortRef.current = controller;
+  const { data, error, isLoading, isValidating, mutate } = useSWR<
+    AqiRangesResponse | undefined
+  >(
+    context.enabled && !isDefaultPollutant
+      ? getAqiRangesCacheKey(pollutant)
+      : null,
+    async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-        try {
-          return await aqiConfigService.getAqiRanges(
-            pollutant,
-            controller.signal
-          );
-        } catch (fetchError) {
-          if (isAbortError(fetchError)) return undefined;
-          throw fetchError;
-        } finally {
-          if (abortRef.current === controller) {
-            abortRef.current = null;
-          }
+      try {
+        return await aqiConfigService.getAqiRanges(
+          pollutant,
+          controller.signal
+        );
+      } catch (fetchError) {
+        if (isAbortError(fetchError)) return undefined;
+        throw fetchError;
+      } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
         }
-      },
-      {
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false,
-        revalidateIfStale: false,
-        shouldRetryOnError: false,
-        dedupingInterval: 1000 * 60 * 5,
       }
-    );
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      shouldRetryOnError: false,
+      dedupingInterval: 1000 * 60 * 5,
+    }
+  );
 
   // No abort-on-unmount (see the provider note above).
   const recoveredAbortRef = useRef(false);
@@ -250,6 +254,20 @@ export const useAqiConfig = (
       setActivePollutantConfig(nextConfig);
     }
   }, [data?.data, isDefaultPollutant]);
+
+  // FIX (CodeRabbit review): a pm10 consumer intentionally re-activates the
+  // shared color registry via setActiveAqiConfig (pm10 charts must classify
+  // with pm10 bands). When a default-pollutant consumer renders while the
+  // shared colors have drifted from its pm2_5 config, restore them so
+  // synchronous helpers (getAirQualityColor etc.) agree with the effective
+  // pollutant again. Guarded by an equality check — a no-op when the colors
+  // already match, so this never loops and never mutates state during render.
+  useEffect(() => {
+    if (!isDefaultPollutant) return;
+    const config = context.config;
+    if (!config || airQualityColorsMatchConfig(config)) return;
+    setActiveAqiConfig(config);
+  }, [context.config, isDefaultPollutant]);
 
   if (isDefaultPollutant) return context;
 
