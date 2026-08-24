@@ -4,10 +4,7 @@ import {
   AnimatePresence,
   motion,
   type PanInfo,
-  useMotionValue,
   useReducedMotion,
-  useSpring,
-  useTransform,
   type Variants,
 } from 'framer-motion';
 import Image from 'next/image';
@@ -51,12 +48,6 @@ const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const FACES_TITLE_PREFIX = 'Faces of';
 const FACES_TITLE_MAIN = 'Air Quality';
 const LEADERBOARD_TITLE = 'Air Quality Quiz Leaderboard';
-
-const SMOOTH_SPRING = {
-  stiffness: 150,
-  damping: 25,
-  mass: 0.9,
-};
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
 type DisplayStage = 'faces' | 'leaderboard';
@@ -354,15 +345,6 @@ function FaceCard({
   priority: boolean;
   reduceMotion: boolean | null;
 }) {
-  const pointerX = useMotionValue(0.5);
-  const pointerY = useMotionValue(0.5);
-
-  const transformedRotateX = useTransform(pointerY, [0, 1], [5, -5]);
-  const transformedRotateY = useTransform(pointerX, [0, 1], [-5, 5]);
-
-  const rotateX = useSpring(transformedRotateX, SMOOTH_SPRING);
-  const rotateY = useSpring(transformedRotateY, SMOOTH_SPRING);
-
   const displayName =
     submission.displayName?.trim() ||
     submission.locationName?.trim() ||
@@ -370,29 +352,6 @@ function FaceCard({
 
   const location =
     submission.locationName?.trim() || 'Pretoria, Gauteng, South Africa';
-
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
-      if (reduceMotion || event.pointerType !== 'mouse') {
-        return;
-      }
-
-      const cardBounds = event.currentTarget.getBoundingClientRect();
-
-      const relativeX = (event.clientX - cardBounds.left) / cardBounds.width;
-
-      const relativeY = (event.clientY - cardBounds.top) / cardBounds.height;
-
-      pointerX.set(Math.min(Math.max(relativeX, 0), 1));
-      pointerY.set(Math.min(Math.max(relativeY, 0), 1));
-    },
-    [pointerX, pointerY, reduceMotion],
-  );
-
-  const resetPointerPosition = useCallback(() => {
-    pointerX.set(0.5);
-    pointerY.set(0.5);
-  }, [pointerX, pointerY]);
 
   const handleDownload = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -410,34 +369,7 @@ function FaceCard({
         duration: reduceMotion ? 0 : 0.68,
         ease: [0.22, 1, 0.36, 1],
       }}
-      whileHover={
-        reduceMotion
-          ? undefined
-          : {
-              y: -8,
-              scale: 1.015,
-              transition: {
-                type: 'spring',
-                stiffness: 240,
-                damping: 24,
-              },
-            }
-      }
-      whileTap={
-        reduceMotion
-          ? undefined
-          : {
-              scale: 0.986,
-            }
-      }
-      onPointerMove={handlePointerMove}
-      onPointerLeave={resetPointerPosition}
-      style={{
-        rotateX: reduceMotion ? 0 : rotateX,
-        rotateY: reduceMotion ? 0 : rotateY,
-        transformPerspective: 1000,
-      }}
-      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)]"
     >
       <Image
         src={submission.imageUrl}
@@ -453,7 +385,7 @@ function FaceCard({
         type="button"
         onClick={handleDownload}
         aria-label={`Download ${displayName}'s selfie as PNG`}
-        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-all duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-transform duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
       >
         <FiDownload className="h-4 w-4" />
       </button>
