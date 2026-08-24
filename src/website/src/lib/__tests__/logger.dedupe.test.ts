@@ -78,6 +78,15 @@ describe('logger Slack dedupe', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('deduplicates equivalent contexts with different insertion orders', async () => {
+    logger.warn('same context in a different order', { alpha: 1, beta: 2 });
+    await flush();
+    logger.warn('same context in a different order', { beta: 2, alpha: 1 });
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('does not collapse logs whose circular contexts differ', async () => {
     // Regression: stableStringify used to return '' for unserializable
     // contexts, so unrelated errors with circular contexts shared one dedupe

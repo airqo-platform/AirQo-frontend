@@ -154,6 +154,7 @@ const ApiPage = () => {
         cardBackgroundClassName: 'bg-yellow-50',
         reverse: true,
       }}
+      childrenAfterSecondary
     >
       <section className="bg-blue-100 py-16 px-4 overflow-hidden">
         <div className={`${mainConfig.containerClass} space-y-8`}>

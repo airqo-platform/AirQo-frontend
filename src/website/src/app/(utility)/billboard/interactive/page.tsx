@@ -7,7 +7,7 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const billboardOgImage = optimizeCloudinaryUrl(
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-  { width: 1200 },
+  { width: 1200, height: 630, crop: 'fill' },
 );
 
 export const metadata: Metadata = {

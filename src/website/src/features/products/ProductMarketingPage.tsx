@@ -118,6 +118,10 @@ type ProductMarketingPageProps = {
   };
   /** Optional slot rendered after capabilities and before useCases. */
   children?: React.ReactNode;
+  /** Move the custom slot after the download section when needed. */
+  childrenAfterDownload?: boolean;
+  /** Move the custom slot after the secondary spotlight section when needed. */
+  childrenAfterSecondary?: boolean;
   useCases?: {
     title: React.ReactNode;
     description: string;
@@ -256,6 +260,8 @@ const ProductMarketingPage = ({
   primarySection,
   capabilities,
   children,
+  childrenAfterDownload = false,
+  childrenAfterSecondary = false,
   useCases,
   downloadSection,
   secondarySection,
@@ -379,7 +385,7 @@ const ProductMarketingPage = ({
         </div>
       </motion.section>
 
-      {children}
+      {!childrenAfterDownload && !childrenAfterSecondary ? children : null}
 
       {useCases ? (
         <motion.section
@@ -467,7 +473,11 @@ const ProductMarketingPage = ({
         </motion.section>
       ) : null}
 
+      {childrenAfterDownload ? children : null}
+
       <ProductSpotlight section={secondarySection} />
+
+      {childrenAfterSecondary ? children : null}
 
       {audiences ? (
         <motion.section

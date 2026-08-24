@@ -6,7 +6,7 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const packagesOgImage = optimizeCloudinaryUrl(
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
-  { width: 1200 },
+  { width: 1200, height: 630, crop: 'fill' },
 );
 
 export const metadata: Metadata = {

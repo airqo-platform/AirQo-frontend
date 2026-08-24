@@ -203,6 +203,7 @@ const MonitorPage = () => {
           },
         ],
       }}
+      childrenAfterDownload
       ctaSection={{
         eyebrow: 'AirQo Monitoring Solutions',
         title: 'Deploy air quality monitoring in your City',

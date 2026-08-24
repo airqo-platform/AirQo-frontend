@@ -29,10 +29,19 @@ const toPlainText = (html: string) =>
  */
 const getFaqJsonLd = async () => {
   try {
-    const response = await faqService.getFAQs({}, { page: 1, page_size: 100 });
-    const faqs: FAQ[] = (response?.results ?? []).filter(
-      (faq: FAQ) => faq.is_active,
+    const firstResponse = await faqService.getFAQs(
+      {},
+      { page: 1, page_size: 100 },
     );
+    const totalPages = Math.max(1, Number(firstResponse?.total_pages) || 1);
+    const responses = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        faqService.getFAQs({}, { page: index + 2, page_size: 100 }),
+      ),
+    );
+    const faqs: FAQ[] = [firstResponse, ...responses]
+      .flatMap((response) => response?.results ?? [])
+      .filter((faq: FAQ) => faq.is_active);
 
     const mainEntity = faqs
       .map((faq: FAQ) => ({
@@ -69,7 +78,9 @@ const Page = async () => {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
         />
       )}
       <MainLayout>

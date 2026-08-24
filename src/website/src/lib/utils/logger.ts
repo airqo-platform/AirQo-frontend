@@ -58,6 +58,15 @@ export function stableStringify(value: unknown): string {
           return '[Circular]';
         }
         visited.add(val);
+
+        if (!Array.isArray(val)) {
+          return Object.keys(val)
+            .sort()
+            .reduce<Record<string, unknown>>((sorted, key) => {
+              sorted[key] = val[key];
+              return sorted;
+            }, {});
+        }
       }
       return val;
     });

@@ -241,6 +241,34 @@ describe('ErrorBoundary', () => {
       expect(container.textContent).toContain('Try Again');
     });
 
+    it('recovers every boundary waiting on the same silent reload', () => {
+      const { container } = render(
+        <>
+          <ErrorBoundary>
+            <ChunkNameError />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <ChunkMessageError />
+          </ErrorBoundary>
+        </>,
+      );
+
+      expect(container.textContent).toBe('');
+
+      firePendingReload();
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(CHUNK_RELOAD_GRACE_MS + 100);
+      });
+
+      expect(
+        (container.textContent?.match(/Oops! Something went wrong/g) ?? [])
+          .length,
+      ).toBe(2);
+      expect(container.textContent).toContain('Try Again');
+    });
+
     it('shows the error UI (never a blank page) when a crash lands past the settle window with no reload in flight', () => {
       // First crash schedules the single allowed reload; it fires but the
       // navigation is blocked, leaving the user on the same page.

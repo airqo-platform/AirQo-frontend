@@ -75,7 +75,7 @@ let chunkReloadInFlight = false;
 // componentDidCatch registers a callback here and the grace timer below uses
 // it to clear the boundary's `chunkReloadPending` state when navigation never
 // happens.
-let pendingChunkReloadRecovery: (() => void) | null = null;
+const pendingChunkReloadRecoveries = new Set<() => void>();
 
 function scheduleChunkReload(now: number): void {
   chunkReloadInFlight = true;
@@ -90,9 +90,9 @@ function scheduleChunkReload(now: number): void {
     // standard error UI (retry/reload actions) renders. setState after
     // unmount is a safe no-op in React 18.
     setTimeout(() => {
-      const recovery = pendingChunkReloadRecovery;
-      pendingChunkReloadRecovery = null;
-      recovery?.();
+      const recoveries = Array.from(pendingChunkReloadRecoveries);
+      pendingChunkReloadRecoveries.clear();
+      recoveries.forEach((recover) => recover());
     }, CHUNK_RELOAD_GRACE_MS);
     window.location.reload();
   }, 0);
@@ -175,8 +175,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       // Register this boundary's recovery so the reload's grace timer can
       // clear `chunkReloadPending` if the silent reload never navigates.
       if (this.state.chunkReloadPending) {
-        pendingChunkReloadRecovery = () =>
-          this.setState({ chunkReloadPending: false });
+        pendingChunkReloadRecoveries.add(() =>
+          this.setState({ chunkReloadPending: false }),
+        );
       }
       logger.debug('ChunkLoadError handled by ErrorBoundary', {
         message: error.message,

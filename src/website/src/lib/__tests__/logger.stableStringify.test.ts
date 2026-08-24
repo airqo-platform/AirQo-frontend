@@ -35,6 +35,21 @@ describe('stableStringify', () => {
     expect(beta).toContain('beta');
   });
 
+  it('sorts object keys at every nesting level', () => {
+    const first = stableStringify({
+      beta: 2,
+      nested: { zulu: 3, alpha: 1 },
+      alpha: 1,
+    });
+    const second = stableStringify({
+      alpha: 1,
+      nested: { alpha: 1, zulu: 3 },
+      beta: 2,
+    });
+
+    expect(first).toBe(second);
+  });
+
   it('handles bigint and function values without throwing', () => {
     // Note: BigInt('...') from a string instead of an `n` literal — ts-jest
     // compiles with target es2017, where bigint literals are a syntax error,
