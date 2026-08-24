@@ -71,7 +71,7 @@ const PartnersPage = () => {
             <section className="py-8">
               <div className="flex flex-col md:flex-row md:space-x-8">
                 <div className="md:w-1/3 mb-4 md:mb-0">
-                  <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
+                  <h2 className="text-2xl font-bold text-gray-900">Partners</h2>
                 </div>
                 <div
                   className="md:w-2/3 space-y-4 prose-headings:text-gray-900 prose-p:text-gray-700"

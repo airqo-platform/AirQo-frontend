@@ -111,7 +111,6 @@ export default function AmbientBackground({
             : {
                 x: [-45, 120, -15, -45],
                 y: [0, 58, -26, 0],
-                opacity: [0.2, 0.5, 0.28, 0.2],
               }
         }
         transition={{

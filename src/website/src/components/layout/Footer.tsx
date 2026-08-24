@@ -18,7 +18,7 @@ const footerLinks = {
     { label: 'Binos Monitor', href: '/products/monitor' },
     { label: 'AirQo Nexus', href: '/products/nexus' },
     { label: 'Air Quality API', href: '/products/api' },
-    { label: 'Mobile App', href: '/products/mobile-app' },
+    { label: 'AirQo Mobile App', href: '/products/mobile-app' },
     { label: 'AirQalibrate', href: '/products/calibrate' },
     { label: 'AirQo Vertex', href: '/products/vertex' },
     { label: 'AirQo Beacon', href: '/products/beacon' },

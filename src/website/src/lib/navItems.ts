@@ -35,7 +35,7 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/nexus',
     },
     {
-      title: 'Mobile App',
+      title: 'AirQo Mobile App',
       description: 'Discover the quality of air around you',
       href: '/products/mobile-app',
     },

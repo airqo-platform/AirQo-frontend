@@ -50,7 +50,7 @@ const SectionDisplay: React.FC<{ section: SectionData }> = ({ section }) => {
               section.reverse_order ? 'order-2' : 'order-1'
             }`}
           >
-            <h1 className="text-2xl mt-4 font-bold">{section.title}</h1>
+            <h2 className="text-2xl mt-4 font-bold">{section.title}</h2>
           </div>
 
           {/* Content column (left or right, with .prose max-w-none) */}

@@ -16,7 +16,7 @@
     "e2e:headed": "cross-env TS_NODE_PROJECT=e2e/tsconfig.json HEADLESS=false mocha --config e2e/.mocharc.yml"
   },
   "dependencies": {
-    "@airqo/icons-react": "0.2.7",
+    "@airqo/icons-react": "0.2.10",
     "@eslint/config-array": "^0.19.0",
     "@eslint/object-schema": "^2.1.4",
     "@hcaptcha/react-hcaptcha": "^2.0.2",

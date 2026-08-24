@@ -4,6 +4,17 @@ import { headers } from 'next/headers';
 import MainLayout from '@/components/layout/MainLayout';
 import SingleEvent from '@/features/events/SingleEvent';
 import { buildSiteUrl } from '@/lib/siteUrl';
+import { eventsService } from '@/services/website';
+import type { EventV2 } from '@/types/api';
+
+const getEvent = async (id: string): Promise<EventV2 | null> => {
+  try {
+    return await eventsService.getEventDetails(id);
+  } catch {
+    // Never let metadata generation crash; fall back to generic metadata.
+    return null;
+  }
+};
 
 export async function generateMetadata({
   params,
@@ -19,12 +30,17 @@ export async function generateMetadata({
   );
   const iconUrl = buildSiteUrl('/icon.png', requestHost);
 
-  // You can fetch event details here if needed
-  // For now, providing generic metadata
+  const event = await getEvent(params.id);
+
+  const fallbackTitle = 'AirQo Event | Air Quality Community Engagement';
+  const fallbackDescription =
+    'Join this AirQo event focused on air quality monitoring, environmental health, and community engagement across African cities. Connect with experts and learn about clean air solutions.';
+  const title = event?.title?.trim() || fallbackTitle;
+  const description = event?.description?.trim() || fallbackDescription;
+
   return {
-    title: `AirQo Event | Air Quality Community Engagement`,
-    description:
-      'Join this AirQo event focused on air quality monitoring, environmental health, and community engagement across African cities. Connect with experts and learn about clean air solutions.',
+    title,
+    description,
     keywords:
       'AirQo event, air quality event, environmental workshop, clean air conference, community engagement, air pollution awareness, African environmental event',
     alternates: {
@@ -33,15 +49,16 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       url: canonicalUrl,
-      title: 'AirQo Event | Air Quality Community Engagement',
-      description:
-        'Join this AirQo event focused on air quality monitoring and community engagement across African cities.',
+      title,
+      description: event?.description?.trim()
+        ? description
+        : 'Join this AirQo event focused on air quality monitoring and community engagement across African cities.',
       images: [
         {
           url: iconUrl,
           width: 1200,
           height: 630,
-          alt: 'AirQo Event',
+          alt: title,
         },
       ],
       siteName: 'AirQo',
@@ -49,9 +66,10 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       site: '@AirQoProject',
-      title: 'AirQo Event | Air Quality Community Engagement',
-      description:
-        'Join this AirQo event focused on air quality monitoring and community engagement.',
+      title,
+      description: event?.description?.trim()
+        ? description
+        : 'Join this AirQo event focused on air quality monitoring and community engagement.',
       images: [iconUrl],
     },
     robots: {

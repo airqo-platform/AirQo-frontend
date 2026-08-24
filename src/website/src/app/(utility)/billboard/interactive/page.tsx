@@ -3,6 +3,12 @@ import { Suspense } from 'react';
 
 import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
 import BillboardSkeleton from '@/components/sections/AirQualityBillboard/skeletons/BillboardSkeleton';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const billboardOgImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+  { width: 1200, height: 630, crop: 'fill' },
+);
 
 export const metadata: Metadata = {
   title:
@@ -42,6 +48,14 @@ export const metadata: Metadata = {
     description:
       'Interactive billboard showing live PM2.5 data from 16+ African cities including Kampala, Nairobi, Lagos, Accra',
     type: 'website',
+    images: [
+      {
+        url: billboardOgImage,
+        width: 1200,
+        height: 630,
+        alt: 'Live Air Quality Billboard - Real-time PM2.5 Data Across African Cities',
+      },
+    ],
   },
 };
 

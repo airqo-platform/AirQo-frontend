@@ -40,12 +40,10 @@ const containerVariants: Variants = {
 
 const rowVariants: Variants = {
   hidden: {
-    opacity: 0,
     y: 14,
     scale: 0.97,
   },
   visible: {
-    opacity: 1,
     y: 0,
     scale: 1,
     transition: {
@@ -54,7 +52,6 @@ const rowVariants: Variants = {
     },
   },
   exit: {
-    opacity: 0,
     y: -10,
     scale: 0.98,
     transition: {

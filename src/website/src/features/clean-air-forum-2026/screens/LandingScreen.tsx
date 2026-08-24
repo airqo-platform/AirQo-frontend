@@ -94,9 +94,9 @@ export default function LandingScreen() {
   };
 
   return (
-    <Screen className="relative overflow-hidden">
+    <Screen className="relative overflow-x-hidden">
       <div
-        className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
+        className="relative min-h-[100svh] overflow-x-hidden"
         style={{
           background:
             'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
@@ -104,7 +104,7 @@ export default function LandingScreen() {
       >
         <AmbientBackground />
 
-        <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:min-h-[100svh] sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
+        <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
           <motion.header
             variants={headerContainerVariants}
             initial="hidden"

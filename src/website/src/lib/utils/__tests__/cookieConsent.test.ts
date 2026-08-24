@@ -124,7 +124,8 @@ describe('cookieConsent', () => {
     });
 
     it('sets timestamp to current time', () => {
-      const now = Date.now();
+      const now = 1_700_000_000_000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
       setConsentPreferences({
         necessary: true,
         analytics: false,

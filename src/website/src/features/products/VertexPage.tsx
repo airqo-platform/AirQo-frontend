@@ -187,22 +187,10 @@ const VertexPage = () => {
         ],
         quickLinks: [
           {
-            title: 'Import Your Devices',
-            description:
-              'Start onboarding monitors through the main AirQo Vertex workflow.',
-            href: getEnvironmentAwareUrl('https://vertex.airqo.net'),
-          },
-          {
             title: 'AirQo Vertex Docs',
             description:
               'Review setup and integration guidance for the deployment platform.',
             href: 'https://platform.airqo.net/docs/vertex/intro/',
-          },
-          {
-            title: 'IoT Kit Waitlist',
-            description:
-              'Join the early access path for the self-hostable AirQo Vertex core.',
-            href: 'https://forms.gle/9FKfbpGFxtYCmrui9',
           },
         ],
       }}
