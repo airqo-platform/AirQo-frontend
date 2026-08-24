@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import Link from 'next/link';
 import {
   Button,
   Card,
   LoadingState,
   PageHeading,
+  Select,
 } from '@/shared/components/ui';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { PermissionGuard } from '@/shared/components';
@@ -14,7 +15,10 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { isForbiddenError } from '@/shared/utils/errorMessages';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
-import { useUserStatistics, useUsers } from '@/shared/hooks/useAdmin';
+import {
+  useUserStatistics,
+  useUserStatsBreakdown,
+} from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { ChartContainer, StatsPieChart } from '@/shared/components/charts';
 import { getPrimaryColor } from '@/shared/components/charts/constants';
@@ -64,7 +68,32 @@ interface ChartDataPoint {
   [key: string]: string | number;
 }
 
+const MONTHS_OPTIONS = [3, 6, 12, 24];
+const DEFAULT_MONTHS = 12;
+
+interface GrowthBadge {
+  text: string;
+  className: string;
+}
+
+const formatGrowthBadge = (
+  percentChange: number | undefined
+): GrowthBadge | null => {
+  if (typeof percentChange !== 'number' || !Number.isFinite(percentChange)) {
+    return null;
+  }
+  const rounded = Math.round(percentChange);
+  if (rounded === 0) {
+    return { text: '0% vs last 30 days', className: 'text-muted-foreground' };
+  }
+  return rounded > 0
+    ? { text: `+${rounded}% vs last 30 days`, className: 'text-green-600' }
+    : { text: `${rounded}% vs last 30 days`, className: 'text-red-600' };
+};
+
 const UserStatisticsPage: React.FC = () => {
+  const [months, setMonths] = useState(DEFAULT_MONTHS);
+
   const {
     data: statsResponse,
     isLoading: statsLoading,
@@ -73,14 +102,19 @@ const UserStatisticsPage: React.FC = () => {
   } = useUserStatistics();
 
   const {
-    data: usersResponse,
-    isLoading: usersLoading,
-    error: usersError,
-    mutate: mutateUsers,
-  } = useUsers();
+    data: breakdownResponse,
+    isLoading: breakdownLoading,
+    error: breakdownError,
+    mutate: mutateBreakdown,
+  } = useUserStatsBreakdown(months);
 
-  const isLoading = statsLoading || usersLoading;
-  const error = statsError || usersError;
+  const isLoading =
+    (statsLoading && !statsResponse) ||
+    (breakdownLoading && !breakdownResponse);
+  const isRefreshing = statsLoading || breakdownLoading;
+  const error =
+    (statsError && !statsResponse) || (breakdownError && !breakdownResponse);
+  const hasStaleError = !error && Boolean(statsError || breakdownError);
 
   const stats = useMemo(() => {
     const s = statsResponse?.users_stats;
@@ -91,92 +125,112 @@ const UserStatisticsPage: React.FC = () => {
     };
   }, [statsResponse]);
 
-  const users = useMemo(() => usersResponse?.users ?? [], [usersResponse]);
-
-  const verifiedCount = useMemo(
-    () => users.filter(u => u.verified).length,
-    [users]
-  );
+  const breakdown = breakdownResponse?.data;
 
   const statusData: ChartDataPoint[] = useMemo(
     () => [
-      { name: 'Active', value: stats.active },
-      { name: 'Inactive', value: stats.total - stats.active },
+      { name: 'Active', value: breakdown?.accountStatus?.active ?? 0 },
+      { name: 'Inactive', value: breakdown?.accountStatus?.inactive ?? 0 },
     ],
-    [stats]
+    [breakdown]
   );
+
+  const verifiedCount = breakdown?.verificationStatus?.verified ?? 0;
 
   const verificationData: ChartDataPoint[] = useMemo(
     () => [
       { name: 'Verified', value: verifiedCount },
-      { name: 'Unverified', value: stats.total - verifiedCount },
+      {
+        name: 'Unverified',
+        value: breakdown?.verificationStatus?.unverified ?? 0,
+      },
     ],
-    [stats, verifiedCount]
+    [breakdown, verifiedCount]
   );
 
-  const organizationData: ChartDataPoint[] = useMemo(() => {
-    const counts = users.reduce<Record<string, number>>((acc, user) => {
-      const org = user.organization?.trim() || 'Unknown';
-      acc[org] = (acc[org] ?? 0) + 1;
-      return acc;
-    }, {});
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-  }, [users]);
+  const organizationData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.organizations ?? []).map(org => ({
+        name: org.organization,
+        value: org.count,
+      })),
+    [breakdown]
+  );
 
-  const loginRangesData: ChartDataPoint[] = useMemo(() => {
-    const ranges = [
-      { name: '0', min: 0, max: 0 },
-      { name: '1-5', min: 1, max: 5 },
-      { name: '6-10', min: 6, max: 10 },
-      { name: '11-20', min: 11, max: 20 },
-      { name: '21+', min: 21, max: Infinity },
-    ];
-    return ranges.map(range => ({
-      name: range.name,
-      value: users.filter(
-        u =>
-          (u.loginCount ?? 0) >= range.min &&
-          (range.max === Infinity || (u.loginCount ?? 0) <= range.max)
-      ).length,
-    }));
-  }, [users]);
+  const loginRangesData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.loginActivity ?? []).map(activity => ({
+        name: activity.range,
+        value: activity.count,
+      })),
+    [breakdown]
+  );
 
-  const signupsOverTimeData: ChartDataPoint[] = useMemo(() => {
-    const counts = users.reduce<Record<string, number>>((acc, user) => {
-      const date = user.createdAt
-        ? formatWithPattern(user.createdAt, 'yyyy-MM')
-        : 'Unknown';
-      acc[date] = (acc[date] ?? 0) + 1;
-      return acc;
-    }, {});
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(-12);
-  }, [users]);
+  const signupsOverTimeData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.signupsOverTime ?? []).map(signup => ({
+        name: signup.period,
+        value: signup.count,
+      })),
+    [breakdown]
+  );
 
-  const topGroupsData: ChartDataPoint[] = useMemo(() => {
-    const counts = users.reduce<Record<string, number>>((acc, user) => {
-      (user.groups ?? []).forEach(group => {
-        const title =
-          group.grp_title?.trim() || group.organization_slug || 'Unknown';
-        acc[title] = (acc[title] ?? 0) + 1;
-      });
-      return acc;
-    }, {});
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-  }, [users]);
+  const topGroupsData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.topGroups ?? []).map(group => ({
+        name: group.group,
+        value: group.count,
+      })),
+    [breakdown]
+  );
+
+  const rolesData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.roles ?? []).map(role => ({
+        name: role.role,
+        value: role.count,
+      })),
+    [breakdown]
+  );
+
+  const geographyData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.geography ?? []).map(country => ({
+        name: country.country,
+        value: country.count,
+      })),
+    [breakdown]
+  );
+
+  const verificationTrendData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.verificationFunnel?.byCohort ?? []).map(cohort => ({
+        name: cohort.period,
+        value: cohort.verificationRate,
+      })),
+    [breakdown]
+  );
+
+  const unverifiedAgingData: ChartDataPoint[] = useMemo(
+    () =>
+      (breakdown?.verificationFunnel?.unverifiedAging ?? []).map(aging => ({
+        name: aging.range,
+        value: aging.count,
+      })),
+    [breakdown]
+  );
+
+  const newUsersBadge = formatGrowthBadge(
+    breakdown?.growth?.newUsers?.percentChange
+  );
+  const activeUsersBadge = formatGrowthBadge(
+    breakdown?.growth?.activeUsers?.percentChange
+  );
 
   const handleRefresh = useCallback(async () => {
     try {
       await refreshWithToast(
-        () => Promise.all([mutateStats(), mutateUsers()]),
+        () => Promise.all([mutateStats(), mutateBreakdown()]),
         'User statistics refreshed successfully'
       );
     } catch (err) {
@@ -184,7 +238,19 @@ const UserStatisticsPage: React.FC = () => {
         err instanceof Error ? err.message : 'Unable to refresh user statistics'
       );
     }
-  }, [mutateStats, mutateUsers]);
+  }, [mutateStats, mutateBreakdown]);
+
+  // FIX (CodeRabbit review): check each query's error separately —
+  // `statsError || breakdownError` masked a 403 from the breakdown query
+  // whenever the stats query failed with a non-403 error.
+  if (isForbiddenError(statsError) || isForbiddenError(breakdownError)) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message="You do not have the required permissions to view user statistics."
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -196,14 +262,6 @@ const UserStatisticsPage: React.FC = () => {
   }
 
   if (error) {
-    if (isForbiddenError(error)) {
-      return (
-        <AccessDenied
-          title="Access Denied"
-          message="You do not have the required permissions to view user statistics."
-        />
-      );
-    }
     return (
       <div className="p-6 space-y-4">
         <ErrorBanner
@@ -213,7 +271,7 @@ const UserStatisticsPage: React.FC = () => {
         <Button
           onClick={handleRefresh}
           Icon={AqRefreshCw05}
-          loading={isLoading}
+          loading={isRefreshing}
         >
           Retry
         </Button>
@@ -223,16 +281,51 @@ const UserStatisticsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {hasStaleError && (
+        <div className="space-y-2">
+          <ErrorBanner
+            title="Failed to refresh user statistics"
+            message={
+              (statsError || breakdownError)?.message ||
+              'Showing the last successfully loaded data'
+            }
+          />
+          <Button
+            variant="outlined"
+            onClick={handleRefresh}
+            Icon={AqRefreshCw05}
+            loading={isRefreshing}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
       <PageHeading
         title="User Statistics"
         subtitle="High-level insights and analytics across all platform users"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              label="Months"
+              value={months}
+              onChange={event =>
+                setMonths(Number(event.target.value) || DEFAULT_MONTHS)
+              }
+              disabled={isLoading}
+              className="w-24"
+              containerClassName="!mb-0 w-24"
+            >
+              {MONTHS_OPTIONS.map(option => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
             <Button
               variant="outlined"
               onClick={handleRefresh}
               Icon={AqRefreshCw05}
-              loading={isLoading}
+              loading={isRefreshing}
             >
               Refresh
             </Button>
@@ -250,6 +343,13 @@ const UserStatisticsPage: React.FC = () => {
             <div>
               <p className="text-sm text-muted-foreground">Total Users</p>
               <p className="text-2xl font-bold mt-1">{stats.total}</p>
+              {newUsersBadge && (
+                <span
+                  className={`text-xs font-medium mt-1 block ${newUsersBadge.className}`}
+                >
+                  {newUsersBadge.text}
+                </span>
+              )}
             </div>
             <div className="p-2.5 rounded-full bg-blue-100 text-blue-700">
               <AqUsers01 className="w-5 h-5" />
@@ -261,6 +361,13 @@ const UserStatisticsPage: React.FC = () => {
             <div>
               <p className="text-sm text-muted-foreground">Active Users</p>
               <p className="text-2xl font-bold mt-1">{stats.active}</p>
+              {activeUsersBadge && (
+                <span
+                  className={`text-xs font-medium mt-1 block ${activeUsersBadge.className}`}
+                >
+                  {activeUsersBadge.text}
+                </span>
+              )}
             </div>
             <div className="p-2.5 rounded-full bg-green-100 text-green-700">
               <AqUsersCheck className="w-5 h-5" />
@@ -297,7 +404,8 @@ const UserStatisticsPage: React.FC = () => {
           title="Account Status"
           subtitle="Active vs inactive users"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           <StatsPieChart data={statusData} />
         </ChartContainer>
@@ -306,7 +414,8 @@ const UserStatisticsPage: React.FC = () => {
           title="Verification Status"
           subtitle="Verified vs unverified users"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           <StatsPieChart data={verificationData} />
         </ChartContainer>
@@ -315,7 +424,8 @@ const UserStatisticsPage: React.FC = () => {
           title="Users by Organization"
           subtitle="Top organizations by user count"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           {organizationData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -333,6 +443,10 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -360,7 +474,8 @@ const UserStatisticsPage: React.FC = () => {
           title="Login Activity"
           subtitle="Users grouped by login count"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           {loginRangesData.some(d => d.value > 0) ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -403,9 +518,10 @@ const UserStatisticsPage: React.FC = () => {
 
         <ChartContainer
           title="Signups Over Time"
-          subtitle="New users by month"
+          subtitle={`New users in the last ${months} months`}
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           {signupsOverTimeData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -426,6 +542,7 @@ const UserStatisticsPage: React.FC = () => {
                   tickFormatter={value =>
                     formatWithPattern(String(value), 'MMM yyyy')
                   }
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   allowDecimals={false}
@@ -459,7 +576,8 @@ const UserStatisticsPage: React.FC = () => {
           title="Top Groups"
           subtitle="Groups with the most members"
           showMoreButton={false}
-          loading={isLoading}
+          loading={isRefreshing}
+          minContentHeight="300px"
         >
           {topGroupsData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -477,6 +595,10 @@ const UserStatisticsPage: React.FC = () => {
                   tick={AXIS_STYLE.tick}
                   tickLine={AXIS_STYLE.tickLine}
                   axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis
                   allowDecimals={false}
@@ -493,6 +615,204 @@ const UserStatisticsPage: React.FC = () => {
                 />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar dataKey="value" fill={getPrimaryColor(3)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Users by Role"
+          subtitle="Users grouped by assigned role"
+          showMoreButton={false}
+          loading={isRefreshing}
+          minContentHeight="300px"
+        >
+          {rolesData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={rolesData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(4)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Users by Country"
+          subtitle="Top countries by user count"
+          showMoreButton={false}
+          loading={isRefreshing}
+          minContentHeight="300px"
+        >
+          {geographyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={geographyData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                  interval={0}
+                  angle={-30}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(5)} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Verification Trend"
+          subtitle="Verification rate by signup cohort"
+          showMoreButton={false}
+          loading={isRefreshing}
+          minContentHeight="300px"
+        >
+          {verificationTrendData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={verificationTrendData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                  tickFormatter={value =>
+                    formatWithPattern(String(value), 'MMM yyyy')
+                  }
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  label={{
+                    value: 'Verification Rate (%)',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={getPrimaryColor(6)}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoDataState />
+          )}
+        </ChartContainer>
+
+        <ChartContainer
+          title="Unverified Backlog"
+          subtitle="Unverified users by account age"
+          showMoreButton={false}
+          loading={isRefreshing}
+          minContentHeight="300px"
+        >
+          {unverifiedAgingData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={unverifiedAgingData}
+                margin={{ top: 8, right: 16, left: 20, bottom: 8 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgb(226, 232, 240)"
+                  strokeOpacity={0.5}
+                />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  label={{
+                    value: 'Users',
+                    angle: -90,
+                    position: 'insideLeft',
+                    offset: -10,
+                    style: AXIS_LABEL_STYLE,
+                  }}
+                  tick={AXIS_STYLE.tick}
+                  tickLine={AXIS_STYLE.tickLine}
+                  axisLine={AXIS_STYLE.axisLine}
+                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="value" fill={getPrimaryColor(7)} />
               </BarChart>
             </ResponsiveContainer>
           ) : (

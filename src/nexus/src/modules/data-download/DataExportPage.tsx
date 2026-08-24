@@ -220,9 +220,8 @@ const DataExportPage = () => {
   const [pendingDownload, setPendingDownload] =
     React.useState<PreparedDownloadResult | null>(null);
   const [saveFormatDialogOpen, setSaveFormatDialogOpen] = React.useState(false);
-  const [savingFormat, setSavingFormat] = React.useState<SaveFormat | null>(
-    null
-  );
+  const [savingFormat, setSavingFormat] =
+    React.useState<FinalSaveFormat | null>(null);
   const [downloadSuccess, setDownloadSuccess] = React.useState<{
     format: string;
     message: string;
@@ -925,12 +924,17 @@ const DataExportPage = () => {
         customSelectedGridSiteIds: nextSelectedGridSiteIds,
       });
 
-      // Store prepared download and open format dialog directly
+      // Store prepared download and open format dialog directly — unless
+      // JSON was chosen in the sidebar, in which case download immediately.
       if (preparedDownload) {
         setSiteSelectionDialogOpen(false);
         setSelectedGridForSites(null);
-        setPendingDownload(preparedDownload);
-        setSaveFormatDialogOpen(true);
+        if (fileType === 'json') {
+          void handleJsonDirectDownload(preparedDownload);
+        } else {
+          setPendingDownload(preparedDownload);
+          setSaveFormatDialogOpen(true);
+        }
       }
     } catch (error) {
       // Error is already handled in handleDownload
@@ -1081,16 +1085,27 @@ const DataExportPage = () => {
     }
   };
 
-  const handleSaveFormatSelection = async (format: SaveFormat) => {
+  // Shared download flow: prepare (or reuse a prepared) download, then save
+  // it in the given format. Used by the format dialog and by the direct JSON
+  // path, which skips the dialog entirely.
+  const runDownloadFlow = async (
+    format: FinalSaveFormat,
+    options: {
+      preparedDownload?: PreparedDownloadResult;
+      columnKeys?: string[];
+    } = {}
+  ) => {
     setSavingFormat(format);
 
     try {
-      // Use pendingDownload if already prepared (from grid site selection),
-      // otherwise make the API call now that user has chosen a format
+      // Use an already-prepared download (grid site selection) or the stored
+      // pending one, otherwise make the API call now.
       const preparedDownload =
+        options.preparedDownload ??
         pendingDownload ??
         (await handleDownload({
-          exportColumnKeys: pendingColumnKeys ?? undefined,
+          exportColumnKeys:
+            options.columnKeys ?? pendingColumnKeys ?? undefined,
         }));
 
       if (!preparedDownload) {
@@ -1113,6 +1128,18 @@ const DataExportPage = () => {
       setSavingFormat(null);
     }
   };
+
+  // Dialog path — user picks CSV / XLSX / PDF in the format dialog.
+  const handleSaveFormatSelection = (format: SaveFormat) =>
+    runDownloadFlow(format);
+
+  // JSON is chosen in the sidebar, so no format dialog: download immediately.
+  // columnKeys are passed explicitly (never via pendingColumnKeys) to avoid
+  // reading stale state right after setPendingColumnKeys.
+  const handleJsonDirectDownload = (
+    preparedDownload?: PreparedDownloadResult,
+    columnKeys?: string[]
+  ) => runDownloadFlow('json', { preparedDownload, columnKeys });
 
   const handleDismissHelpBanner = () => {
     setShowHelpBanner(false);
@@ -1339,9 +1366,15 @@ const DataExportPage = () => {
           isOpen={previewOpen}
           onClose={() => setPreviewOpen(false)}
           onConfirm={(selectedColumnKeys: string[]) => {
-            setPendingColumnKeys(selectedColumnKeys);
             setPreviewOpen(false);
-            setSaveFormatDialogOpen(true);
+            if (fileType === 'json') {
+              // JSON chosen in the sidebar — skip the format dialog and
+              // download directly with the columns selected in the preview.
+              void handleJsonDirectDownload(undefined, selectedColumnKeys);
+            } else {
+              setPendingColumnKeys(selectedColumnKeys);
+              setSaveFormatDialogOpen(true);
+            }
           }}
           onRetryPreview={handleOpenPreview}
           isDownloading={isDownloading}

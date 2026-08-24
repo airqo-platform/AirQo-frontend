@@ -52,11 +52,17 @@ import {
   isPublicAuthRoute,
   isAuthenticatedAccessiblePublicRoute,
 } from '@/shared/lib/public-routes';
+import {
+  buildOrgDataExportPath,
+  effectiveOrgSlug,
+  findGroupByOrgPathSlug,
+} from '@/shared/lib/org-slug';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   // Use the centralized user actions helper when switching groups so that
   // SWR caches related to the previous group are invalidated consistently.
   // Do NOT call `dispatch(setActiveGroup(...))` here directly because that
@@ -71,26 +77,45 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   const orgSlugFromPath = isOrgPath
     ? (pathname.split('/').filter(Boolean)[1]?.toLowerCase() ?? null)
     : null;
+  const rawOrgSlugFromPath = isOrgPath
+    ? (pathname.split('/').filter(Boolean)[1] ?? null)
+    : null;
   const airqoGroup = groups.find(group => {
     const title = group.title.trim().toLowerCase();
     const slug = group.organizationSlug.trim().toLowerCase();
     return title === 'airqo' || slug === 'airqo';
   });
-  const groupForCurrentOrgPath = orgSlugFromPath
-    ? groups.find(
-        group => group.organizationSlug.trim().toLowerCase() === orgSlugFromPath
-      )
-    : null;
+  const groupForCurrentOrgPath = findGroupByOrgPathSlug(
+    groups,
+    orgSlugFromPath
+  );
   const activeGroupSlug = activeGroup?.organizationSlug?.trim().toLowerCase();
   const activeGroupTitle = activeGroup?.title?.trim().toLowerCase();
+  const isUserProfilePath = normalizedPath === '/user/profile';
   const isAirQoActiveGroup =
     activeGroupTitle === 'airqo' || activeGroupSlug === 'airqo';
   const shouldSyncToUserGroup =
-    isUserPath && !!airqoGroup && activeGroup?.id !== airqoGroup.id;
+    isUserPath &&
+    !isUserProfilePath &&
+    !!airqoGroup &&
+    activeGroup?.id !== airqoGroup.id;
   const shouldSyncToRouteOrgGroup =
     isOrgPath &&
     !!groupForCurrentOrgPath &&
     activeGroup?.id !== groupForCurrentOrgPath.id;
+  // Canonical slug for the group the current org path resolves to. Groups
+  // matched via the title fallback carry an EMPTY organizationSlug; deriving
+  // the effective slug (stored slug, else title-derived) keeps them
+  // canonicalizable and keeps every redirect off the broken `/org//` shape.
+  const groupForCurrentOrgPathSlug = groupForCurrentOrgPath
+    ? effectiveOrgSlug(groupForCurrentOrgPath)
+    : '';
+  const needsOrgPathCanonicalization =
+    isOrgPath &&
+    !!groupForCurrentOrgPath &&
+    !!groupForCurrentOrgPathSlug &&
+    rawOrgSlugFromPath?.toLowerCase() !==
+      groupForCurrentOrgPathSlug.toLowerCase();
 
   useEffect(() => {
     if (shouldSyncToUserGroup && airqoGroup) {
@@ -105,7 +130,23 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (needsOrgPathCanonicalization && groupForCurrentOrgPath) {
+      const prefix = `/org/${rawOrgSlugFromPath}`;
+      const rest = pathname.slice(prefix.length);
+      const canonicalPath = rest
+        ? `/org/${groupForCurrentOrgPathSlug}${rest}`
+        : `/org/${groupForCurrentOrgPathSlug}`;
+      const search = searchParams.toString();
+      router.replace(search ? `${canonicalPath}?${search}` : canonicalPath);
+      return;
+    }
+
     if (!activeGroup) return;
+
+    // Null when the active group has neither an organizationSlug nor a
+    // usable title — in that case skip org redirects entirely rather than
+    // navigate to `/org//data-export`.
+    const activeGroupRedirectPath = buildOrgDataExportPath(activeGroup);
 
     if (isAirQoActiveGroup) {
       if (isOrgPath) {
@@ -114,24 +155,38 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isUserPath) {
-      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
+    if (isUserPath && !isUserProfilePath) {
+      if (activeGroupRedirectPath) {
+        router.replace(activeGroupRedirectPath);
+      }
       return;
     }
 
-    if (isOrgPath && orgSlugFromPath && orgSlugFromPath !== activeGroupSlug) {
-      router.replace(`/org/${activeGroup.organizationSlug}/data-export`);
+    if (isOrgPath && orgSlugFromPath && activeGroupRedirectPath) {
+      // Compare against the EFFECTIVE slug: a title-fallback group matched
+      // its own title-derived path, which the raw stored slug (empty) would
+      // report as a mismatch and re-trigger the broken redirect forever.
+      const activeGroupCanonicalSlug = effectiveOrgSlug(activeGroup);
+      if (orgSlugFromPath !== activeGroupCanonicalSlug.toLowerCase()) {
+        router.replace(activeGroupRedirectPath);
+      }
     }
   }, [
     activeGroup,
     activeGroupSlug,
     airqoGroup,
     groupForCurrentOrgPath,
+    groupForCurrentOrgPathSlug,
     isAirQoActiveGroup,
     isOrgPath,
+    isUserProfilePath,
     isUserPath,
+    needsOrgPathCanonicalization,
     orgSlugFromPath,
+    pathname,
+    rawOrgSlugFromPath,
     router,
+    searchParams,
     shouldSyncToRouteOrgGroup,
     shouldSyncToUserGroup,
     switchGroup,
@@ -141,7 +196,10 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   // This prevents dashboard components from making API calls with the wrong
   // group context. The sync completes in a single effect tick (synchronous
   // Redux dispatch), so the overlay flicker is imperceptible.
-  const isGroupSyncing = shouldSyncToUserGroup || shouldSyncToRouteOrgGroup;
+  const isGroupSyncing =
+    shouldSyncToUserGroup ||
+    shouldSyncToRouteOrgGroup ||
+    needsOrgPathCanonicalization;
   useGlobalLoading(isGroupSyncing, { priority: 80, delayMs: 0 });
 
   if (isGroupSyncing) return null;
@@ -311,8 +369,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   const getCurrentSessionUserIdentifier = useCallback((): string | null => {
     const currentUser = session?.user as
-      | { _id?: string; id?: string; email?: string }
-      | undefined;
+      { _id?: string; id?: string; email?: string } | undefined;
     // Check both _id and id — vertex sets account_deleted_user_identifier with id
     const userId =
       (typeof currentUser?._id === 'string' && currentUser._id.trim()) ||

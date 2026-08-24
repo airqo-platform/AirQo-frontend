@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
 import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
@@ -21,7 +27,9 @@ import {
   readChartSidecar,
   writeChartSidecar,
   toBackendChartType,
+  normalizeExplorerChartType,
   type ExplorerChartDraft,
+  type ExplorerChartType,
 } from '../../utils/chartConfig';
 import { resolveParsedNumber } from '@/shared/types/api';
 import { parseISO, format, addDays, addWeeks, addMonths } from 'date-fns';
@@ -33,6 +41,7 @@ import {
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
 import type {
+  ChartType,
   NormalizedChartData,
   PollutantType,
   StandardsType,
@@ -53,6 +62,16 @@ interface AnalyticsChartCardProps {
     title: string,
     subtitle?: string
   ) => Promise<void>;
+  /**
+   * Persists a quick chart-type switch to the saved chart configuration;
+   * when omitted (or `isFixed`), the switch is local-only. Fired with the
+   * capitalized ExplorerChartType so the payload maps exactly (Line→line,
+   * Bar→bar, Area→sidecar + Line).
+   */
+  onChartTypeChange?: (
+    draftId: string,
+    chartType: ExplorerChartType
+  ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
   /** When true, hides edit/duplicate/delete menu items and inline title editing */
   isFixed?: boolean;
@@ -67,6 +86,16 @@ const FORECAST_SERIES_PREFIX = 'Forecast · ';
 const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
   { value: 'pm2_5', label: 'PM2.5' },
   { value: 'pm10', label: 'PM10' },
+];
+
+// Toolbar chart-type options: the draft/backend contract only persists
+// Line | Area | Bar, and scatter/radar/pie misrepresent multi-site time
+// series (and could never persist), so the quick-view selector offers
+// exactly the three supported types.
+const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+  { value: 'line', label: 'Line Chart' },
+  { value: 'area', label: 'Area Chart' },
+  { value: 'bar', label: 'Bar Chart' },
 ];
 
 interface ForecastSeries {
@@ -98,6 +127,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onEdit,
   onRequestDelete,
   onEditTitle,
+  onChartTypeChange,
   onDuplicate,
   isFixed = false,
   footerAction,
@@ -115,8 +145,9 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => readChartSidecar(groupId, draft.id).themeColors ?? false
   );
 
-  // Local overrides — non-persistent quick-view tweaks for pollutant and
-  // date range, consistent with the card's existing local state pattern.
+  // Local overrides — non-persistent quick-view tweaks for pollutant, date
+  // range and chart type, consistent with the card's existing local state
+  // pattern.
   const [pollutantOverride, setPollutantOverride] = useState<PollutantType>(
     draft.pollutant
   );
@@ -124,6 +155,16 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     startDate: string;
     endDate: string;
   }>({ startDate: draft.startDate, endDate: draft.endDate });
+  const [chartTypeOverride, setChartTypeOverride] = useState<ChartType>(
+    () => draft.chartType.toLowerCase() as ChartType
+  );
+  // Latest requested chart type, tracked by object identity: when a persist
+  // fails, only the request that is STILL the latest selection may revert
+  // the override — a late failure of an older request must never clobber a
+  // newer selection the user already made.
+  const chartTypeSelectionRef = useRef<{ type: ExplorerChartType } | null>(
+    null
+  );
 
   const { config: aqiConfig } = useAqiConfig(pollutantOverride);
 
@@ -402,6 +443,29 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     void onDuplicate(draft);
   }, [draft, onDuplicate]);
 
+  // Quick chart-type switch from the toolbar selector: applies optimistically,
+  // then persists via `onChartTypeChange` (the same path as the dialog save).
+  // On failure the override reverts to the saved type ONLY when the failed
+  // request is still the latest selection — rapid Bar→Area switches leave the
+  // UI on Area even if the older Bar request fails afterwards.
+  const handleChartTypeChange = async (type: ChartType) => {
+    const next = normalizeExplorerChartType(type) as ExplorerChartType;
+    const selection = { type: next };
+    chartTypeSelectionRef.current = selection;
+    setChartTypeOverride(next.toLowerCase() as ChartType); // optimistic UI
+    if (isFixed || !onChartTypeChange) return;
+    try {
+      await onChartTypeChange(draft.id, next);
+    } catch (err) {
+      // Persist failed — revert only if this failed request is still the
+      // latest selection; otherwise the newer selection owns the UI.
+      if (chartTypeSelectionRef.current === selection) {
+        setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+      }
+      console.error('Failed to persist chart type', err);
+    }
+  };
+
   // Sync overrides when the draft changes (e.g. after a dialog save).
   useEffect(() => {
     setPollutantOverride(draft.pollutant);
@@ -413,6 +477,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
       endDate: draft.endDate,
     });
   }, [draft.startDate, draft.endDate]);
+
+  useEffect(() => {
+    setChartTypeOverride(draft.chartType.toLowerCase() as ChartType);
+  }, [draft.chartType]);
 
   // Stable reference for the DatePicker so it only re-syncs when dates change.
   const datePickerValue = useMemo(
@@ -455,6 +523,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
         themeColors={themeColors}
+        // Quick-view chart-type switcher in the toolbar — persists via
+        // `onChartTypeChange` (same path as the dialog save) with optimistic
+        // UI + revert on failure; local-only when the prop is omitted.
+        onChartTypeChange={handleChartTypeChange}
+        currentChartType={chartTypeOverride}
+        autoSelectChart={false}
+        chartTypeOptions={CHART_TYPE_OPTIONS}
         className="w-full"
         footerHint={
           <div className="flex items-center justify-between gap-3">
@@ -570,7 +645,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         <DynamicChart
           data={mergedData}
           config={{
-            type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
+            type: chartTypeOverride,
             showGrid: draft.showGrid,
             showTooltip: draft.showTooltip,
             showLegend: draft.showLegend,

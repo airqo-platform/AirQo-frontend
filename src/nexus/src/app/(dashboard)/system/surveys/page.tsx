@@ -195,7 +195,7 @@ const SurveyListPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredPermissions={['SYSTEM_ADMIN']}
+      requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administrator permissions to manage surveys."
     >
@@ -294,7 +294,7 @@ const SurveyListPage: React.FC = () => {
               }}
             />
           ) : (
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2">
               {surveys.map(renderSurveyCard)}
             </div>
           )}

@@ -31,6 +31,7 @@ import type {
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
   GetUserStatisticsResponse,
+  UserStatsBreakdownResponse,
   GetUsersResponse,
   AcceptEmailInvitationRequest,
   AcceptEmailInvitationResponse,
@@ -499,6 +500,27 @@ export class UserService {
     }
 
     return data as GetUserStatisticsResponse;
+  }
+
+  // Get pre-aggregated user statistics breakdown - authenticated endpoint
+  async getUserStatsBreakdown(
+    months = 12,
+    limit = 8,
+    signal?: AbortSignal
+  ): Promise<UserStatsBreakdownResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      UserStatsBreakdownResponse | ApiErrorResponse
+    >(`/users/stats/breakdown?months=${months}&limit=${limit}`, { signal });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(
+        data.message || 'Failed to get user statistics breakdown'
+      );
+    }
+
+    return data as UserStatsBreakdownResponse;
   }
 
   // Get users - authenticated endpoint (supports optional email filter)

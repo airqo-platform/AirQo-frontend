@@ -57,7 +57,7 @@ export const normalizeChartApiFrequency = (value: string): string =>
  * Date-key contract negotiation for the chart-data endpoint.
  *
  * The live backend has been observed speaking TWO schemas for the same URL
- * (2026-08-21 -> 2026-08-23, staging-analytics):
+ * (2026-08-21 -> 2026-08-23, staging-analytics AND production):
  *
  * - Current schema: requires `startDateTime` / `endDateTime` (pydantic-style
  *   errors: `{"errors":[{"loc":["body","startDateTime"],"msg":"Field
@@ -68,30 +68,140 @@ export const normalizeChartApiFrequency = (value: string): string =>
  *   "endDateTime":["Unknown field."],"startDateTime":["Unknown field."]}}`.
  *
  * No request body satisfies both schemas at once (the legacy one rejects
- * unknown fields), so on the FIRST chart request of a browser session the
- * primary key set is sent; if the response body matches the legacy rejection
- * signature, the request is retried ONCE with the alternate key set and the
- * winning contract is cached in module scope. Subsequent requests use the
- * cached contract directly — at most ONE extra request per session, never a
- * loop (AGENTS.md retry policy: fail once, no unbounded retries).
+ * unknown fields), so the key set is negotiated at runtime:
+ *
+ * - Single-flight probe: on a fresh session the FIRST in-flight request
+ *   doubles as the probe (primary keys; on a contract-specific rejection it
+ *   retries ONCE with the alternate key set). Every concurrent request joins
+ *   the shared negotiation promise and only sends AFTER the contract
+ *   settles — no caller ever surfaces the probe's 400, no matter how many
+ *   charts mount at once.
+ * - Stale-contract re-probe: a persisted contract the CURRENT backend
+ *   rejects is wiped (memory + localStorage) and re-negotiated ONCE with the
+ *   alternate key set, again single-flight. Persisted contracts are treated
+ *   as disposable hints, never authoritative.
+ * - Bounded: at most TWO HTTP attempts per getChartData call, and the
+ *   winning contract is persisted only on success (AGENTS.md retry policy:
+ *   fail once, no unbounded retries). Aborted requests are never retried.
  */
 export type ChartDateContract = 'startDateTime' | 'startDate';
 
 const PRIMARY_CHART_DATE_CONTRACT: ChartDateContract = 'startDateTime';
 
-/** Module-scope cache: undefined = not negotiated yet this session. */
-let negotiatedChartDateContract: ChartDateContract | undefined;
+/** localStorage key for the persisted contract — survives hard reloads. */
+const CHART_DATE_CONTRACT_STORAGE_KEY = 'nexus:analytics:chart-date-contract';
 
-/** Test hook: resets the session-scoped contract negotiation. */
-export const resetChartDateContract = (): void => {
-  negotiatedChartDateContract = undefined;
+const isChartDateContract = (value: unknown): value is ChartDateContract =>
+  value === 'startDateTime' || value === 'startDate';
+
+/**
+ * Read the previously-negotiated contract from localStorage. Synchronous,
+ * SSR-safe (returns undefined on the server), and tolerant of corrupt
+ * entries: anything that isn't a known contract value is treated as a
+ * fresh session and triggers the normal probe.
+ */
+const readPersistedChartDateContract = (): ChartDateContract | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const stored = window.localStorage.getItem(CHART_DATE_CONTRACT_STORAGE_KEY);
+    return isChartDateContract(stored) ? stored : undefined;
+  } catch {
+    return undefined;
+  }
 };
 
 /**
- * Pure decision helper: does this error body match the LEGACY contract's
- * rejection of `startDateTime`/`endDateTime`? Returns the contract to switch
- * to, or null for anything else (unrelated 400/422, network failure,
- * new-schema validation, ...). Exported for unit tests — no network involved.
+ * Persist the contract so the next page load skips the probe. Best-effort:
+ * storage may be unavailable (private mode, disabled cookies, quota), but
+ * the in-memory cache still keeps the session itself on the right keys.
+ */
+const writePersistedChartDateContract = (contract: ChartDateContract): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(CHART_DATE_CONTRACT_STORAGE_KEY, contract);
+  } catch {
+    // Storage unavailable — session-only cache still applies.
+  }
+};
+
+/**
+ * Module-scope cache, hydrated from localStorage on first import. The
+ * persisted value is preferred so a hard reload does NOT pay a 400 to
+ * re-probe a contract we already know.
+ */
+let negotiatedChartDateContract: ChartDateContract | undefined =
+  readPersistedChartDateContract();
+
+/**
+ * A settled negotiation round: the winning contract plus the response that
+ * proved it. `data` belongs to the request that RAN the probe — concurrent
+ * callers joining the shared promise must discard it and send their own
+ * request with `contract`.
+ */
+interface ChartContractNegotiation {
+  contract: ChartDateContract;
+  data: AnalyticsChartResponse;
+}
+
+/**
+ * Single-flight negotiation handle (initial probe AND stale-contract
+ * re-probe). Non-null while one probe is in flight; every concurrent
+ * getChartData call awaits this instead of firing its own probe, so at most
+ * ONE extra 400 is paid per round no matter how many charts mount at once.
+ */
+let chartContractNegotiation: Promise<ChartContractNegotiation> | null = null;
+
+const rememberChartDateContract = (contract: ChartDateContract): void => {
+  negotiatedChartDateContract = contract;
+  writePersistedChartDateContract(contract);
+};
+
+/** Wipes the in-memory AND persisted contract (stale-contract recovery). */
+const forgetChartDateContract = (): void => {
+  negotiatedChartDateContract = undefined;
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(CHART_DATE_CONTRACT_STORAGE_KEY);
+  } catch {
+    // Storage unavailable — nothing to clear.
+  }
+};
+
+/** Test hook: resets the session-scoped contract negotiation + storage. */
+export const resetChartDateContract = (): void => {
+  forgetChartDateContract();
+};
+
+/**
+ * Registers an in-flight negotiation so concurrent requests can share it,
+ * clearing the handle once the round settles — unless a newer round already
+ * replaced it.
+ */
+const trackNegotiation = (
+  negotiation: Promise<ChartContractNegotiation>
+): Promise<ChartContractNegotiation> => {
+  const tracked = negotiation.finally(() => {
+    if (chartContractNegotiation === tracked) {
+      chartContractNegotiation = null;
+    }
+  });
+  chartContractNegotiation = tracked;
+  return tracked;
+};
+
+/**
+ * Pure decision helper: does this error body match a CONTRACT-SPECIFIC
+ * rejection? Returns the contract to switch to, or null for anything else
+ * (unrelated 400/422, network failure, ...). Exported for unit tests — no
+ * network involved.
+ *
+ * Both rejection signatures are recognized so negotiation works in either
+ * backend direction:
+ * - legacy marshmallow body rejecting the `startDateTime`/`endDateTime`
+ *   keys ("Unknown field") → switch to `startDate`;
+ * - current-schema pydantic body reporting `startDateTime` as
+ *   "Field required" (what a `startDate`-contract request gets from a
+ *   CURRENT-schema backend) → switch to `startDateTime`.
  */
 export const chartContractToRetryForErrorBody = (
   body: unknown
@@ -103,14 +213,22 @@ export const chartContractToRetryForErrorBody = (
   } catch {
     return null;
   }
-  if (!text.includes('Unknown field')) return null;
-  // The observed legacy body lists all four keys: startDate/endDate missing
-  // plus startDateTime/endDateTime unknown. Require both pairs before
-  // switching so a coincidental "Unknown field" elsewhere never flips us.
-  if (!text.includes('startDateTime') || !text.includes('startDate')) {
-    return null;
+  // Legacy signature: the primary keys are rejected as unknown while
+  // startDate/endDate are reported missing. Require both key families so a
+  // coincidental "Unknown field" elsewhere never flips us.
+  if (
+    text.includes('Unknown field') &&
+    text.includes('endDateTime') &&
+    text.includes('startDate')
+  ) {
+    return 'startDate';
   }
-  return 'startDate';
+  // Mirror signature: a startDate-contract request against a CURRENT-schema
+  // backend reports the now-missing startDateTime key as "Field required".
+  if (text.includes('startDateTime') && text.includes('Field required')) {
+    return 'startDateTime';
+  }
+  return null;
 };
 
 /** Extracts the HTTP response body from an axios-like rejected error. */
@@ -155,6 +273,8 @@ const buildChartPayload = (
       };
 };
 
+const CHART_DATA_PATH = '/analytics/dashboard/chart/d3/data';
+
 export class AnalyticsService {
   private authenticatedClient: ApiClient;
   private serverClient: ApiClient;
@@ -167,56 +287,195 @@ export class AnalyticsService {
   private async ensureAuthenticated() {
     await syncClientSessionToken(this.authenticatedClient);
   }
+
+  private postChartData(
+    request: AnalyticsChartRequest,
+    contract: ChartDateContract,
+    signal?: AbortSignal
+  ) {
+    return this.serverClient.post<AnalyticsChartResponse>(
+      CHART_DATA_PATH,
+      buildChartPayload(request, contract),
+      { signal }
+    );
+  }
+
+  /**
+   * Sends with a known contract; if the response is a CONTRACT-SPECIFIC
+   * rejection (the backend flapped schemas since this contract was settled
+   * or persisted), hands off to the bounded single-flight recovery.
+   * Anything else — aborts, unrelated 400s, network errors — surfaces as-is.
+   */
+  private async sendWithContractRecovery(
+    request: AnalyticsChartRequest,
+    contract: ChartDateContract,
+    signal?: AbortSignal
+  ): Promise<AnalyticsChartResponse> {
+    try {
+      const response = await this.postChartData(request, contract, signal);
+      return response.data;
+    } catch (error) {
+      // Aborted requests are never retried (AGENTS.md).
+      if (isCancellation(error) || signal?.aborted) throw error;
+      const alternate = chartContractToRetryForErrorBody(
+        extractErrorResponseBody(error)
+      );
+      if (!alternate || alternate === contract) throw error;
+      return this.recoverFromContractRejection(
+        request,
+        contract,
+        alternate,
+        error,
+        signal
+      );
+    }
+  }
+
+  /**
+   * Bounded recovery after a request was rejected by the very contract it
+   * used. Wipes the stale contract from memory AND localStorage, then
+   * retries ONCE with the alternate key set — joining an in-flight
+   * negotiation when one exists so only ONE re-probe ever runs, no matter
+   * how many concurrent requests failed at the same moment. If the
+   * alternate attempt also fails, the ORIGINAL error is surfaced. At most
+   * two HTTP attempts per call; never a loop.
+   */
+  private async recoverFromContractRejection(
+    request: AnalyticsChartRequest,
+    sentContract: ChartDateContract,
+    alternate: ChartDateContract,
+    originalError: unknown,
+    signal?: AbortSignal
+  ): Promise<AnalyticsChartResponse> {
+    // A concurrent request may have renegotiated while ours was in flight —
+    // adopt the freshly settled contract instead of wiping it.
+    const settledNow = negotiatedChartDateContract;
+    if (settledNow !== undefined && settledNow !== sentContract) {
+      try {
+        const response = await this.postChartData(request, settledNow, signal);
+        return response.data;
+      } catch (caught) {
+        if (isCancellation(caught) || signal?.aborted) throw caught;
+        throw originalError;
+      }
+    }
+
+    forgetChartDateContract();
+
+    // Single-flight re-probe: another request already owns it — await the
+    // shared settlement and send with whatever contract won.
+    if (chartContractNegotiation) {
+      try {
+        const { contract } = await chartContractNegotiation;
+        const response = await this.postChartData(request, contract, signal);
+        return response.data;
+      } catch (caught) {
+        if (isCancellation(caught) || signal?.aborted) throw caught;
+        throw originalError;
+      }
+    }
+
+    // We own the shared re-probe: ONE alternate attempt whose settlement is
+    // shared with every concurrent caller.
+    const negotiation = (async (): Promise<ChartContractNegotiation> => {
+      try {
+        const response = await this.postChartData(request, alternate, signal);
+        rememberChartDateContract(alternate);
+        return { contract: alternate, data: response.data };
+      } catch (caught) {
+        // Alternate failed too — surface the ORIGINAL error so the caller
+        // sees the primary failure, not a secondary symptom. This rejection
+        // also fails the shared promise; joiners surface their OWN original
+        // errors. Fail once; never loop.
+        // However, if the attempt was cancelled, propagate the cancellation
+        // so AbortError never surfaces as a user failure (AGENTS.md).
+        if (isCancellation(caught) || signal?.aborted) throw caught;
+        throw originalError;
+      }
+    })();
+
+    return (await trackNegotiation(negotiation)).data;
+  }
+
   // Get chart data - direct backend call via API token
   async getChartData(
     request: AnalyticsChartRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsChartResponse> {
-    const CHART_DATA_PATH = '/analytics/dashboard/chart/d3/data';
-    const contract = negotiatedChartDateContract ?? PRIMARY_CHART_DATE_CONTRACT;
-
-    try {
-      const response = await this.serverClient.post<AnalyticsChartResponse>(
-        CHART_DATA_PATH,
-        buildChartPayload(request, contract),
-        { signal }
-      );
-      negotiatedChartDateContract = contract;
-      return response.data;
-    } catch (error) {
-      // Aborted requests are never retried (AGENTS.md). Negotiation only
-      // runs while the contract is unknown and ONLY on the legacy schema's
-      // exact rejection signature — anything else surfaces to the caller.
-      if (
-        negotiatedChartDateContract !== undefined ||
-        isCancellation(error) ||
-        signal?.aborted
-      ) {
-        throw error;
-      }
-
-      const retryContract = chartContractToRetryForErrorBody(
-        extractErrorResponseBody(error)
-      );
-      if (!retryContract) {
-        throw error;
-      }
-
-      negotiatedChartDateContract = retryContract;
-      try {
-        const response = await this.serverClient.post<AnalyticsChartResponse>(
-          CHART_DATA_PATH,
-          buildChartPayload(request, retryContract),
-          { signal }
-        );
-        return response.data;
-      } catch {
-        // The alternate contract failed too — surface the ORIGINAL error so
-        // the caller sees the primary failure, not a secondary symptom.
-        // Fail once; never loop.
-        throw error;
-      }
+    // Defensive guard: a request with missing/empty date strings is a
+    // client bug — BOTH schemas (current + legacy) require the date keys to
+    // carry a value. A draft that resolves to empty dates (corrupted
+    // sidecar, draft-construction regression) would otherwise fire, get
+    // 400'd, and burn the once-per-session retry on a request we already
+    // know is malformed. Surface a clear error instead.
+    if (!request.startDateTime?.trim() && !request.endDateTime?.trim()) {
+      throw new Error('Chart data request is missing start and end dates.');
     }
+    if (!request.startDateTime?.trim()) {
+      throw new Error('Chart data request is missing a start date.');
+    }
+    if (!request.endDateTime?.trim()) {
+      throw new Error('Chart data request is missing an end date.');
+    }
+
+    // Settled session: use the cached contract directly; a contract-specific
+    // rejection triggers the bounded re-probe inside the sender.
+    const settled = negotiatedChartDateContract;
+    if (settled !== undefined) {
+      return this.sendWithContractRecovery(request, settled, signal);
+    }
+
+    // Contract unknown — join any in-flight probe so concurrent chart
+    // requests share ONE negotiation instead of each paying a 400. No
+    // joiner ever surfaces the probe's 400.
+    if (chartContractNegotiation) {
+      let outcome: ChartContractNegotiation | null = null;
+      try {
+        outcome = await chartContractNegotiation;
+      } catch {
+        outcome = null; // shared probe failed — make our own bounded attempt
+      }
+      if (outcome) {
+        return this.sendWithContractRecovery(request, outcome.contract, signal);
+      }
+      // Fall through: we are now the first requester of a fresh round.
+    }
+
+    // Fresh-session probe: this request's first attempt doubles as probe
+    // step one (primary keys); on a contract-specific rejection it retries
+    // ONCE with the alternate key set. The settlement is shared with every
+    // caller that joined above; the winning contract is remembered only on
+    // success.
+    const negotiation = (async (): Promise<ChartContractNegotiation> => {
+      try {
+        const response = await this.postChartData(
+          request,
+          PRIMARY_CHART_DATE_CONTRACT,
+          signal
+        );
+        rememberChartDateContract(PRIMARY_CHART_DATE_CONTRACT);
+        return { contract: PRIMARY_CHART_DATE_CONTRACT, data: response.data };
+      } catch (error) {
+        if (isCancellation(error) || signal?.aborted) throw error;
+        const alternate = chartContractToRetryForErrorBody(
+          extractErrorResponseBody(error)
+        );
+        if (!alternate) throw error;
+        try {
+          const retried = await this.postChartData(request, alternate, signal);
+          rememberChartDateContract(alternate);
+          return { contract: alternate, data: retried.data };
+        } catch (caught) {
+          // The alternate contract failed too — surface the ORIGINAL error.
+          // But if the alternate attempt itself was cancelled, propagate
+          // the cancellation so AbortError never surfaces as a user failure.
+          if (isCancellation(caught) || signal?.aborted) throw caught;
+          throw error;
+        }
+      }
+    })();
+
+    return (await trackNegotiation(negotiation)).data;
   }
 
   // Download data - authenticated endpoint

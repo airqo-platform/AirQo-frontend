@@ -579,7 +579,7 @@ const SurveyDetailsPage: React.FC = () => {
       <PermissionGuard
         requireAirQoSuperAdmin={true}
         accessDeniedTitle="Access Restricted"
-        accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage surveys."
+        accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role to manage surveys."
       >
         <LoadingState
           className="min-h-[calc(100vh-220px)]"
@@ -594,7 +594,7 @@ const SurveyDetailsPage: React.FC = () => {
       <PermissionGuard
         requireAirQoSuperAdmin={true}
         accessDeniedTitle="Access Restricted"
-        accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage surveys."
+        accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role to manage surveys."
       >
         <div className="space-y-6">
           <Button variant="ghost" Icon={AqArrowLeft} onClick={handleBack}>
@@ -623,7 +623,7 @@ const SurveyDetailsPage: React.FC = () => {
     <PermissionGuard
       requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to manage surveys."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role to manage surveys."
     >
       <div className="space-y-6">
         <div className="flex justify-start">

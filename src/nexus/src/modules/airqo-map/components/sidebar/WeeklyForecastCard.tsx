@@ -3,9 +3,11 @@
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import {
-  getAirQualityInfo,
+  getAirQualityIcon,
   getAirQualityColor,
+  getAirQualityLabel,
 } from '@/shared/utils/airQuality';
+import { resolveReadingDisplayLevel } from '../../utils/dataNormalization';
 import { useForecast, type ForecastMode } from '../../hooks/useForecast';
 import { AqCloudOff } from '@airqo/icons-react';
 import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
@@ -122,15 +124,23 @@ const DailyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
-  const ForecastIcon = airInfo.icon;
-  const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
+  // Same classification path as the rest of the map module: the forecast's
+  // own `aqi_category` drives icon/color/label so they agree with the AQI
+  // text shown in the tooltip; concentration is only the fallback.
+  const { level } = resolveReadingDisplayLevel(
+    { pm25Value: pm25 ?? undefined, aqiCategory: aqiCategory || undefined },
+    'pm2_5',
+    aqiConfig
+  );
+  const ForecastIcon = getAirQualityIcon(level);
+  const aqiColor = getAirQualityColor(level, aqiConfig);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullDate(item.date)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span>{' '}
+        {aqiCategory || getAirQualityLabel(level, 'WHO', 'PM2.5', aqiConfig)}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>
@@ -240,15 +250,21 @@ const HourlyPill: React.FC<{
   const temp = resolveParsedNumber(item.met?.air_temperature);
   const humidity = resolveParsedNumber(item.met?.relative_humidity);
 
-  const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
-  const ForecastIcon = airInfo.icon;
-  const aqiColor = getAirQualityColor(airInfo.level, aqiConfig);
+  // Same classification path as the rest of the map module — see DailyPill.
+  const { level } = resolveReadingDisplayLevel(
+    { pm25Value: pm25 ?? undefined, aqiCategory: aqiCategory || undefined },
+    'pm2_5',
+    aqiConfig
+  );
+  const ForecastIcon = getAirQualityIcon(level);
+  const aqiColor = getAirQualityColor(level, aqiConfig);
 
   const tooltipContent = (
     <div className="max-w-[220px] space-y-1.5 text-left">
       <p className="font-semibold text-white">{getFullTime(item.timestamp)}</p>
       <p className="text-xs text-white">
-        <span className="font-medium">AQI:</span> {aqiCategory || airInfo.label}
+        <span className="font-medium">AQI:</span>{' '}
+        {aqiCategory || getAirQualityLabel(level, 'WHO', 'PM2.5', aqiConfig)}
       </p>
       {aqiLabel && (
         <p className="text-xs leading-snug text-gray-200">{aqiLabel}</p>

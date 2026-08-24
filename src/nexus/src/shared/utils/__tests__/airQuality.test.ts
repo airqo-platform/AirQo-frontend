@@ -8,6 +8,7 @@ import {
   mapAqiCategoryToLevel,
   getPollutantLabel,
   setActiveAqiConfig,
+  getActiveAqiConfig,
   AQ_STANDARDS,
   REFERENCE_LINES,
   AIR_QUALITY_COLORS,
@@ -396,5 +397,51 @@ describe('airQuality', () => {
         PM10_24HR: 150,
       });
     });
+  });
+});
+
+describe('setActiveAqiConfig pollutant transitions', () => {
+  // Regression test for the CodeRabbit finding: a pm10 consumer's activation
+  // overwrites the shared AIR_QUALITY_COLORS table (intentional), and
+  // returning to a pm2_5 consumer must restore the pm2_5 colors. The two
+  // configs below use DISTINCT good-band colors so restoration is provable —
+  // the file-level TEST_* configs share identical colors and would pass even
+  // when broken.
+  const withDistinctGoodColor = (
+    base: AqiConfig,
+    goodColor: string
+  ): AqiConfig => ({
+    ...base,
+    ranges: base.ranges.map(range =>
+      range.key === 'good' ? { ...range, color: goodColor } : range
+    ),
+  });
+
+  const PM25_DISTINCT = withDistinctGoodColor(TEST_AQI_CONFIG, '#00AA00');
+  const PM10_DISTINCT = withDistinctGoodColor(TEST_PM10_AQI_CONFIG, '#0000BB');
+
+  afterAll(() => {
+    // Restore the file-level default so any later assertions against the
+    // module-global color table stay consistent.
+    setActiveAqiConfig(TEST_AQI_CONFIG);
+  });
+
+  it('restores pm2_5 colors after a pm10 activation', () => {
+    setActiveAqiConfig(PM25_DISTINCT);
+    expect(AIR_QUALITY_COLORS.good).toBe('#00AA00');
+    expect(getActiveAqiConfig()).toBe(PM25_DISTINCT);
+
+    // A pm10 consumer activates its config — global colors follow (intentional).
+    setActiveAqiConfig(PM10_DISTINCT);
+    expect(AIR_QUALITY_COLORS.good).toBe('#0000BB');
+    expect(getActiveAqiConfig()).toBe(PM25_DISTINCT); // active pointer stays pm2_5
+
+    // Execution returns to a pm2_5 consumer — colors must be restored.
+    setActiveAqiConfig(PM25_DISTINCT);
+    expect(AIR_QUALITY_COLORS.good).toBe('#00AA00');
+    expect(AIR_QUALITY_COLORS.hazardous).toBe(
+      PM25_DISTINCT.ranges.find(range => range.key === 'hazardous')?.color
+    );
+    expect(getActiveAqiConfig()).toBe(PM25_DISTINCT);
   });
 });

@@ -394,7 +394,7 @@ const ClientsAdminPage: React.FC = () => {
 
   return (
     <PermissionGuard
-      requiredPermissions={['SYSTEM_ADMIN']}
+      requiredPermissions={['SYSTEM_ADMIN', 'SUPER_ADMIN']}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administrator permissions to manage API clients."
     >
@@ -411,7 +411,7 @@ const ClientsAdminPage: React.FC = () => {
           />
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant={statusFilter === 'all' ? 'filled' : 'outlined'}

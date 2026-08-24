@@ -29,11 +29,7 @@ export const GlobalSidebar: React.FC = () => {
   const pathname = usePathname();
   const { status: sessionStatus } = useSession();
   const { activeGroup, isLoading: userLoading } = useUserActions();
-  const {
-    hasAnyPermissionInActiveGroup,
-    hasEmailDomain,
-    isLoading: rbacLoading,
-  } = useRBAC();
+  const { hasAnyPermissionInActiveGroup, isLoading: rbacLoading } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
   const isLoading = userLoading || rbacLoading;
 
@@ -128,7 +124,8 @@ export const GlobalSidebar: React.FC = () => {
           };
         }
         if (
-          (item.id === 'data-visualizer' || item.id === 'air-quality-rankings') &&
+          (item.id === 'data-visualizer' ||
+            item.id === 'air-quality-rankings') &&
           flow === 'organization' &&
           orgSlug
         ) {
@@ -140,16 +137,13 @@ export const GlobalSidebar: React.FC = () => {
         return item;
       })
       .filter(item => {
-        // Only show system-management if user has @airqo.net email AND SYSTEM_ADMIN or SUPER_ADMIN permission in active group
+        // Only show system-management if user has SYSTEM_ADMIN or SUPER_ADMIN permission in active group
         if (item.id === 'system-management') {
-          return (
-            hasEmailDomain('@airqo.net') &&
-            hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
-          );
+          return hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN']);
         }
         return true;
       });
-  }, [flow, orgSlug, hasAnyPermissionInActiveGroup, hasEmailDomain]);
+  }, [flow, orgSlug, hasAnyPermissionInActiveGroup]);
   const isProtectedSidebarRoute =
     pathname.startsWith('/org/') ||
     pathname.startsWith('/system/') ||

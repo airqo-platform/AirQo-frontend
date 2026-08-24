@@ -47,5 +47,11 @@ export interface AqiRangeUpdate {
 export interface UpdateAqiRangesRequest {
   admin_secret: string;
   ranges: AqiRangeUpdate[];
+  pollutant: AqiPollutant;
   updated_by?: string;
+}
+
+export interface ResetAqiRangesRequest {
+  admin_secret: string;
+  pollutant: AqiPollutant;
 }

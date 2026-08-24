@@ -401,7 +401,7 @@ const UserManagementPage: React.FC = () => {
         title="User Management"
         subtitle="View, search, and manage platform users and their roles"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outlined"
               onClick={handleRefresh}

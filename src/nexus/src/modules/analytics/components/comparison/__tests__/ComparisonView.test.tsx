@@ -63,6 +63,16 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+jest.mock('@/shared/providers/aqi-config-provider', () => ({
+  useAqiConfig: () => ({
+    config: null,
+    enabled: true,
+    isLoading: false,
+    error: undefined,
+    refresh: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../hooks/useCohortSelection', () => ({
   useSitesForSelection: () => ({
     sites: [
@@ -364,5 +374,30 @@ describe('ComparisonView integration', () => {
       await screen.findByText(/unable to load the latest readings/i)
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+  });
+
+  it('renders the AQI legend pollutant switcher and toggling does not crash', async () => {
+    const user = userEvent.setup();
+    renderComparisonView();
+
+    const radiogroup = await screen.findByRole('radiogroup', {
+      name: /aqi legend pollutant/i,
+    });
+    expect(radiogroup).toBeInTheDocument();
+
+    const pm25Radio = screen.getByRole('radio', { name: 'PM2.5' });
+    const pm10Radio = screen.getByRole('radio', { name: 'PM10' });
+    expect(pm25Radio).toBeInTheDocument();
+    expect(pm10Radio).toBeInTheDocument();
+    expect(pm25Radio).toBeChecked();
+
+    // Configs are null in this test mock → legend shows "AQI scale unavailable"
+    expect(screen.getByText('AQI scale unavailable')).toBeInTheDocument();
+
+    // Switch to PM10 — should not crash
+    await user.click(pm10Radio);
+    expect(pm10Radio).toBeChecked();
+    expect(pm25Radio).not.toBeChecked();
+    expect(screen.getByText('AQI scale unavailable')).toBeInTheDocument();
   });
 });

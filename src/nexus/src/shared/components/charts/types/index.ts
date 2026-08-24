@@ -182,6 +182,11 @@ export interface ChartContainerProps {
   selectedStandards?: StandardsType;
   autoSelectChart?: boolean;
   onAutoSelectToggle?: () => void;
+  /**
+   * Chart types offered in the toolbar selector; defaults to all except
+   * 'area', matching the More menu list.
+   */
+  chartTypeOptions?: { value: ChartType; label: string }[];
   showReferenceLines?: boolean;
   onReferenceLinesToggle?: (show: boolean) => void;
   /**
@@ -236,6 +241,8 @@ export interface ChartContainerProps {
   activePeriod?: string;
   /** Called when the user selects a different period preset */
   onPeriodChange?: (period: string) => void;
+  /** Minimum height for the chart content area (default '400px') */
+  minContentHeight?: string;
 }
 
 // Dynamic chart props

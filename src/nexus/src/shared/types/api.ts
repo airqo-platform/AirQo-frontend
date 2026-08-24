@@ -2456,6 +2456,89 @@ export interface GetUserStatisticsResponse {
   users_stats: UserStatistics;
 }
 
+// User Statistics Breakdown Types (pre-aggregated analytics endpoint)
+export interface UserStatsBreakdownAccountStatus {
+  active: number;
+  inactive: number;
+}
+
+export interface UserStatsBreakdownVerificationStatus {
+  verified: number;
+  unverified: number;
+}
+
+export interface UserStatsBreakdownOrganization {
+  organization: string;
+  count: number;
+}
+
+export interface UserStatsBreakdownRangeCount {
+  range: string;
+  count: number;
+}
+
+export interface UserStatsBreakdownSignupPeriod {
+  period: string;
+  count: number;
+}
+
+export interface UserStatsBreakdownGroup {
+  group: string;
+  count: number;
+}
+
+export interface UserStatsGrowthMetric {
+  current: number;
+  previous: number;
+  percentChange: number;
+}
+
+export interface UserStatsBreakdownGrowth {
+  newUsers: UserStatsGrowthMetric;
+  activeUsers: UserStatsGrowthMetric;
+}
+
+export interface UserStatsBreakdownRole {
+  role: string;
+  count: number;
+}
+
+export interface UserStatsBreakdownCountry {
+  country: string;
+  count: number;
+}
+
+export interface UserStatsVerificationCohort {
+  period: string;
+  total: number;
+  verified: number;
+  verificationRate: number;
+}
+
+export interface UserStatsVerificationFunnel {
+  byCohort: UserStatsVerificationCohort[];
+  unverifiedAging: UserStatsBreakdownRangeCount[];
+}
+
+export interface UserStatsBreakdown {
+  accountStatus: UserStatsBreakdownAccountStatus;
+  verificationStatus: UserStatsBreakdownVerificationStatus;
+  organizations: UserStatsBreakdownOrganization[];
+  loginActivity: UserStatsBreakdownRangeCount[];
+  signupsOverTime: UserStatsBreakdownSignupPeriod[];
+  topGroups: UserStatsBreakdownGroup[];
+  growth: UserStatsBreakdownGrowth;
+  roles: UserStatsBreakdownRole[];
+  geography: UserStatsBreakdownCountry[];
+  verificationFunnel: UserStatsVerificationFunnel;
+}
+
+export interface UserStatsBreakdownResponse {
+  success: boolean;
+  message: string;
+  data: UserStatsBreakdown;
+}
+
 // Subscription Types
 export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
 
