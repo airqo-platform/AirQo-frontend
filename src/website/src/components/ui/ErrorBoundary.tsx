@@ -21,6 +21,7 @@ type ErrorBoundaryState = {
   error: Error | null;
   errorInfo: ErrorInfo | null;
   errorId: string | null;
+  chunkReloadPending?: boolean;
 };
 
 const GOOGLE_TRANSLATE_DOM_ERROR_PATTERNS = [
@@ -53,6 +54,40 @@ function canAttemptSilentReload(): boolean {
   return Date.now() - parseInt(lastReload, 10) > 10000;
 }
 
+const CHUNK_RELOAD_SESSION_KEY = 'chunk_reload_ts';
+const CHUNK_RELOAD_TTL_MS = 10000;
+
+// Tracks whether a silent chunk reload is actually scheduled and has not
+// fired yet. React may invoke getDerivedStateFromError more than once for a
+// single crash; the error UI stays suppressed only while this reload is in
+// flight — never on a time-based guess, so a blocked/stale reload can never
+// leave the user stranded on a blank page.
+let chunkReloadInFlight = false;
+
+function scheduleChunkReload(now: number): void {
+  chunkReloadInFlight = true;
+  setSessionStorageItem(CHUNK_RELOAD_SESSION_KEY, now.toString());
+  // Delay reload to avoid synchronous navigation during render
+  setTimeout(() => {
+    chunkReloadInFlight = false;
+    window.location.reload();
+  }, 0);
+}
+
+function isChunkLoadError(error: Error): boolean {
+  if (error.name === 'ChunkLoadError') return true;
+  return (
+    /Loading chunk \d+ failed/.test(error.message) ||
+    /Loading CSS chunk \d+ failed/.test(error.message)
+  );
+}
+
+function canAttemptChunkReload(): boolean {
+  const lastReload = getSessionStorageItem<string>(CHUNK_RELOAD_SESSION_KEY);
+  if (!lastReload) return true;
+  return Date.now() - parseInt(lastReload, 10) > CHUNK_RELOAD_TTL_MS;
+}
+
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -61,6 +96,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       error: null,
       errorInfo: null,
       errorId: null,
+      chunkReloadPending: false,
     };
   }
 
@@ -74,6 +110,26 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return {};
     }
 
+    // For ChunkLoadErrors (stale deploy chunks / bot caches), attempt ONE
+    // silent reload per TTL window. Never report these to Slack — they are
+    // transient deploy noise, not application errors.
+    if (isChunkLoadError(error)) {
+      const now = Date.now();
+      const canReload = canAttemptChunkReload();
+      if (canReload) {
+        scheduleChunkReload(now);
+      }
+      return {
+        hasError: true,
+        error,
+        errorId: `ERR_${now}_${Math.random().toString(36).substr(2, 9)}`,
+        // Render the blank placeholder only while a reload is actually
+        // scheduled; otherwise fall through to the standard error UI so the
+        // user always has a way to recover.
+        chunkReloadPending: canReload || chunkReloadInFlight,
+      };
+    }
+
     const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     return {
       hasError: true,
@@ -83,6 +139,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // ChunkLoadErrors are mitigated by the silent reload in
+    // getDerivedStateFromError. Never send them to Slack — that is what
+    // floods the alert channel after every deploy.
+    if (isChunkLoadError(error)) {
+      logger.debug('ChunkLoadError handled by ErrorBoundary', {
+        message: error.message,
+        silentReloadScheduled: this.state.chunkReloadPending ?? false,
+        url: typeof window !== 'undefined' ? window.location.href : 'SSR',
+      });
+      return;
+    }
+
     const errorId = this.state.errorId || 'UNKNOWN';
 
     logger.error('React Error Boundary caught an error', error, {
@@ -124,11 +192,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       error: null,
       errorInfo: null,
       errorId: null,
+      chunkReloadPending: false,
     });
   };
 
   render() {
     if (this.state.hasError) {
+      // Silent chunk reload in flight: keep the page blank for the instant
+      // before location.reload() fires instead of flashing the error UI.
+      if (this.state.chunkReloadPending) {
+        return null;
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }

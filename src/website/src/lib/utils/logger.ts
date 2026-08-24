@@ -16,6 +16,46 @@ export interface LogData {
   userId?: string;
 }
 
+// Slack dedupe: identical logs are suppressed within this window so bursts
+// (bots, stale-cache clients) don't flood the alert channel. First occurrence
+// still posts.
+const SLACK_DEDUPE_WINDOW_MS = 60 * 1000;
+// Exported for tests only: hard upper bound on distinct dedupe keys.
+export const SLACK_DEDUPE_MAX_KEYS = 200;
+
+const slackDedupeCache = new Map<string, number>();
+
+function stableStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '';
+  }
+}
+
+function getSlackDedupeKey(data: LogData): string {
+  return [
+    data.level,
+    data.message,
+    data.error?.name ?? '',
+    stableStringify(data.context ?? null),
+  ].join('|');
+}
+
+/**
+ * Test-only helper: clears the Slack dedupe window.
+ */
+export function resetSlackDedupeForTests(): void {
+  slackDedupeCache.clear();
+}
+
+/**
+ * Test-only helper: dedupe cache keys in insertion order (oldest first).
+ */
+export function getSlackDedupeKeysForTests(): string[] {
+  return Array.from(slackDedupeCache.keys());
+}
+
 class Logger {
   private isProduction: boolean = false;
 
@@ -28,6 +68,34 @@ class Logger {
     if (process.env.NODE_ENV !== 'production') {
       return;
     }
+
+    // Suppress duplicate Slack posts within the dedupe window so bursts of
+    // identical errors/warnings (bots, stale clients) don't flood the channel.
+    const now = Date.now();
+    const dedupeKey = getSlackDedupeKey(data);
+    const lastSentAt = slackDedupeCache.get(dedupeKey);
+    if (lastSentAt !== undefined && now - lastSentAt < SLACK_DEDUPE_WINDOW_MS) {
+      return;
+    }
+
+    // Keep the cache bounded: drop expired entries, then enforce a hard cap
+    // by evicting the oldest entries unconditionally. Without the hard cap,
+    // 200+ distinct errors inside a single dedupe window could grow the
+    // cache past the limit until the next prune pass.
+    if (slackDedupeCache.size >= SLACK_DEDUPE_MAX_KEYS) {
+      for (const [key, sentAt] of slackDedupeCache) {
+        if (now - sentAt >= SLACK_DEDUPE_WINDOW_MS) {
+          slackDedupeCache.delete(key);
+        }
+      }
+      while (slackDedupeCache.size >= SLACK_DEDUPE_MAX_KEYS) {
+        const oldestKey = slackDedupeCache.keys().next().value;
+        if (oldestKey === undefined) break;
+        slackDedupeCache.delete(oldestKey);
+      }
+    }
+
+    slackDedupeCache.set(dedupeKey, now);
 
     try {
       // Use our API route instead of direct Slack webhook

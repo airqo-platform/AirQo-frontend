@@ -1,14 +1,20 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
-import React from 'react';
-import { BiDownload } from 'react-icons/bi';
+import {
+  FiCpu,
+  FiGlobe,
+  FiMapPin,
+  FiSun,
+  FiTruck,
+  FiWifi,
+} from 'react-icons/fi';
 
-import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useImpactNumbers } from '@/hooks/useApiHooks';
 import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+import ProductMarketingPage from './ProductMarketingPage';
 
 const images = {
   hero: optimizeCloudinaryUrl(
@@ -33,216 +39,197 @@ const images = {
   ),
 };
 
-// Define motion variants for different animations
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      duration: 0.5,
-      ease: 'easeOut',
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5, ease: 'easeOut' },
-  },
-};
-
+const MAINTENANCE_MANUAL_URL =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038904/website/docs/Binos-Maintenance-Manual_agusuh.pdf';
+const INSTALLATION_GUIDE_URL =
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1749629721/website/docs/Device_installation_guide_AirQo_adaptations__NEW_ntc89p.pdf';
 const MONITORING_SOLUTIONS_DOC_URL =
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1773140737/website/docs/AirQo_Air_Quality_Monitoring_Solution_rtiz2c.pdf';
+
+const monitorTheme = {
+  accentTextClassName: 'text-blue-700',
+  heroBackgroundClassName: 'bg-blue-50',
+  capabilitiesBackgroundClassName: 'bg-[#EDF3FF]',
+  audiencesBackgroundClassName: 'bg-[#F5FAFF] border border-blue-100',
+  ctaBackgroundClassName:
+    'bg-gradient-to-br from-white via-blue-50 to-green-50',
+  quickLinksCardClassName: 'bg-white',
+} as const;
 
 const MonitorPage = () => {
   const { data: impactNumbersResponse } = useImpactNumbers();
   const impactNumbers = impactNumbersResponse?.[0] ?? null;
 
-  const openMonitoringSolutionsDoc = () => {
-    window.open(MONITORING_SOLUTIONS_DOC_URL, '_blank', 'noopener,noreferrer');
-  };
-
   return (
-    <div className="pb-16 flex flex-col w-full space-y-20">
-      {/* Hero Section */}
-      <motion.section
-        className="bg-blue-50 py-16 px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`${mainConfig.containerClass} grid grid-cols-1 md:grid-cols-2 gap-12 items-center`}
-        >
-          {/* Text Content */}
-          <motion.div className="space-y-6" variants={itemVariants}>
-            <p className="text-gray-500 mb-2 text-[14px]">
-              Our Products {'/'} Binos Monitor
-            </p>
-            <h1 className="text-[48px] leading-[56px] font-bold mb-6">
-              Built in Africa for African cities.
-            </h1>
-            <p className="text-[18px] text-gray-700">
-              Designed, manufactured, and calibrated to measure ambient air
-              quality and optimized to suit the African context.
-            </p>
-          </motion.div>
-
-          {/* Image */}
-          <motion.div
-            className="flex justify-center w-full"
-            variants={itemVariants}
-          >
-            <Image
-              src={images.hero}
-              alt="Air quality monitor installation"
-              width={500}
-              height={350}
-              style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
-            />
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Locally Built Section */}
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
-        >
-          {/* Card Section */}
-          <motion.div
-            className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-8 z-10"
-            variants={cardVariants}
-          >
-            <h3 className="font-bold text-2xl mb-4">Designed for Africa</h3>
-            <p className="text-lg text-gray-700 mb-4">
+    <ProductMarketingPage
+      theme={monitorTheme}
+      hero={{
+        breadcrumb: 'Our Products / Binos Monitor',
+        title: 'Built in Africa for African cities.',
+        description:
+          'Designed, manufactured, and calibrated to measure ambient air quality and optimized to suit the African context.',
+        image: {
+          src: images.hero,
+          alt: 'Air quality monitor installation',
+        },
+        actions: [
+          {
+            label: 'Explore Monitoring Plans',
+            href: MONITORING_SOLUTIONS_DOC_URL,
+          },
+          {
+            label: 'Installation Guide',
+            href: INSTALLATION_GUIDE_URL,
+            variant: 'secondary',
+          },
+        ],
+      }}
+      intro={{
+        title: (
+          <>
+            <span className={monitorTheme.accentTextClassName}>
+              Designed for Africa
+            </span>
+          </>
+        ),
+        description: (
+          <>
+            <p>
               The monitors are optimized with capabilities to cope with
               challenges like extreme weather conditions, including high levels
               of dust and heat, typical of the context of African cities. We
               apply AI-driven calibration systems to enhance the accuracy and
               reliability of the air quality data.
             </p>
-            <p className="text-lg text-gray-700 mb-6">
+            <p className="mt-4">
               Powered by either mains or solar, the device is optimized to work
               in settings characterized by unreliable power and intermittent
               internet connectivity. It runs on a 2G GSM network configuration
               for IoT SIM cards.
             </p>
-
-            <CustomButton
-              onClick={() =>
-                window.open(
-                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1716038904/website/docs/Binos-Maintenance-Manual_agusuh.pdf',
-                )
-              }
-              className="flex items-center justify-center bg-transparent text-gray-700 border border-black px-4 py-3 bg-none w-full font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Maintenance Manual
-              <BiDownload className="ml-2 text-xl" />
-            </CustomButton>
-          </motion.div>
-
-          {/* Image Section */}
-          <motion.div
-            className="mt-12 lg:mt-0 lg:ml-[300px] w-full"
-            variants={itemVariants}
-          >
-            <Image
-              src={images.locallyBuilt}
-              alt="Local Monitor"
-              width={741}
-              height={540}
-              style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
-            />
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Mobile Monitoring Section */}
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
-        >
-          {/* Image Section */}
-          <motion.div
-            className="order-2 lg:order-1 mt-12 lg:mt-0 lg:mr-[300px] w-full"
-            variants={itemVariants}
-          >
-            <Image
-              src={images.mobileMonitoring}
-              alt="Air quality monitor on a motorcycle"
-              width={741}
-              height={540}
-              style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
-            />
-          </motion.div>
-
-          {/* Card Section */}
-          <motion.div
-            className="bg-green-50 p-6 rounded-lg shadow-md relative top-0 lg:max-w-md lg:absolute lg:right-0 lg:top-16 z-10 w-full sm:w-auto md:w-[630px] md:-top-10 flex flex-col space-y-6"
-            variants={cardVariants}
-          >
-            <h3 className="font-bold text-2xl">Mobile Monitoring</h3>
-            <p className="text-lg text-gray-700">
-              The monitors are easy to install and can be placed on static
-              buildings or motorcycle taxis locally called
-              &apos;boda-bodas&apos; to improve spatial coverage and revolution.
-            </p>
-            <p className="text-lg text-gray-700">
-              Air quality data collection using motorcycle taxis has real
-              potential for high-resolution air quality monitoring in urban
-              spaces. Mobile monitoring enables us to close the gaps and spatial
-              limitations of fixed static monitoring.
-            </p>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Monitors in African Cities */}
-      <motion.section
-        className="py-16 px-4 bg-[#EDF3FF]"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
+          </>
+        ),
+      }}
+      primarySection={{
+        eyebrow: 'Locally built',
+        title: 'Designed for African cities',
+        description: [
+          'The monitors are optimized with capabilities to cope with challenges like extreme weather conditions, including high levels of dust and heat, typical of the context of African cities. We apply AI-driven calibration systems to enhance the accuracy and reliability of the air quality data.',
+          'Powered by either mains or solar, the device is optimized to work in settings characterized by unreliable power and intermittent internet connectivity.',
+        ],
+        image: {
+          src: images.locallyBuilt,
+          alt: 'Local Monitor',
+        },
+        cardBackgroundClassName: 'bg-green-50',
+      }}
+      capabilities={{
+        title: (
+          <>
+            Monitors in{' '}
+            <span className={monitorTheme.accentTextClassName}>
+              African Cities
+            </span>
+          </>
+        ),
+        description:
+          "We're providing an end-to-end air quality solution in major African cities leveraging the locally built low-cost monitors and existing expertise to advance air quality management.",
+        items: [
+          {
+            title: 'AI-driven calibration',
+            description:
+              'We apply AI-driven calibration systems to enhance the accuracy and reliability of the air quality data from the monitors.',
+            Icon: FiCpu,
+          },
+          {
+            title: 'Extreme weather resilience',
+            description:
+              'Optimized to cope with extreme weather conditions including high levels of dust and heat typical of African cities.',
+            Icon: FiSun,
+          },
+          {
+            title: 'Solar and mains powered',
+            description:
+              'Powered by either mains or solar, the device is optimized to work in settings characterized by unreliable power.',
+            Icon: FiWifi,
+          },
+          {
+            title: 'Flexible installation',
+            description:
+              'The monitors are easy to install and can be placed on static buildings or motorcycle taxis to improve spatial coverage.',
+            Icon: FiTruck,
+          },
+          {
+            title: 'End-to-end monitoring',
+            description:
+              'From hardware deployment to data access, we provide a complete monitoring solution including technical support.',
+            Icon: FiGlobe,
+          },
+          {
+            title: 'City-wide coverage',
+            description:
+              'Providing air quality data across major African cities to help tackle air pollution at scale.',
+            Icon: FiMapPin,
+          },
+        ],
+      }}
+      secondarySection={{
+        eyebrow: 'Mobile monitoring',
+        title: 'Revolutionizing spatial coverage',
+        description: [
+          "The monitors are easy to install and can be placed on static buildings or motorcycle taxis locally called 'boda-bodas' to improve spatial coverage and revolution.",
+          'Air quality data collection using motorcycle taxis has real potential for high-resolution air quality monitoring in urban spaces. Mobile monitoring enables us to close the gaps and spatial limitations of fixed static monitoring.',
+        ],
+        image: {
+          src: images.mobileMonitoring,
+          alt: 'Air quality monitor on a motorcycle',
+        },
+        cardBackgroundClassName: 'bg-green-50',
+        reverse: true,
+      }}
+      downloadSection={{
+        title: 'Monitor Installation',
+        description:
+          'This guide includes instructions and manuals on how to easily activate, install, operate and manage the Binos Air Quality Monitors.',
+        actions: [
+          {
+            label: 'Maintenance Manual',
+            href: MAINTENANCE_MANUAL_URL,
+          },
+          {
+            label: 'Installation Guide',
+            href: INSTALLATION_GUIDE_URL,
+            variant: 'secondary',
+          },
+        ],
+      }}
+      ctaSection={{
+        eyebrow: 'AirQo Monitoring Solutions',
+        title: 'Deploy air quality monitoring in your City',
+        description:
+          'AirQo provides scalable air quality monitoring solutions designed for cities, institutions, and communities seeking reliable air pollution data. From neighbourhood pilots to city-wide monitoring networks, our plans are built to support partners at every stage of deployment.',
+        actions: [
+          {
+            label: 'Explore Monitoring Plans',
+            href: MONITORING_SOLUTIONS_DOC_URL,
+          },
+        ],
+        quickLinks: [
+          {
+            title: 'Maintenance Manual',
+            description:
+              'Download the Binos monitor maintenance manual for setup and care guidance.',
+            href: MAINTENANCE_MANUAL_URL,
+          },
+        ],
+      }}
+    >
+      {/* Impact stats section – rendered via children slot */}
+      <section className="py-16 px-4 bg-[#EDF3FF]">
         <div
           className={`flex flex-col ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
         >
-          {/* Image Section */}
-          <motion.div
-            className="mt-12 lg:mt-0 lg:mr-[300px] w-full"
-            variants={itemVariants}
-          >
+          <div className="mt-12 lg:mt-0 lg:mr-[300px] w-full">
             <Image
               src={images.coverage}
               alt="Air Quality Monitors"
@@ -251,13 +238,9 @@ const MonitorPage = () => {
               style={{ objectFit: 'cover' }}
               className="rounded-lg w-full md:w-full"
             />
-          </motion.div>
+          </div>
 
-          {/* Card Section */}
-          <motion.div
-            className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:right-0 lg:top-24 z-10"
-            variants={cardVariants}
-          >
+          <div className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:right-0 lg:top-24 z-10">
             <h3 className="font-bold text-2xl mb-4">
               {impactNumbers?.deployed_monitors ?? 350}+ Air quality monitors
               installed in {impactNumbers?.african_cities ?? 8} major African
@@ -274,163 +257,10 @@ const MonitorPage = () => {
               existing expertise to advance air quality management, and
               implicitly, air quality improvement in these African cities.
             </p>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
-
-      {/* Monitoring Solutions Section */}
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-green-50 p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start`}
-        >
-          <motion.div className="space-y-5" variants={itemVariants}>
-            <p className="text-sm tracking-wide uppercase text-blue-700 font-semibold">
-              AirQo Monitoring Solutions
-            </p>
-            <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
-              Deploy air quality monitoring in your City
-            </h2>
-            <p className="text-lg text-gray-700">
-              AirQo provides scalable air quality monitoring solutions designed
-              for cities, institutions, and communities seeking reliable air
-              pollution data.
-            </p>
-            <p className="text-lg text-gray-700">
-              From neighbourhood pilots to city-wide monitoring networks, our
-              plans are built to support partners at every stage of deployment.
-            </p>
-            <ul className="space-y-3 text-gray-700">
-              <li className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
-                <span>Flexible plans ranging from 4 monitors to 40+.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
-                <span>
-                  Complete monitoring solutions including hardware, data access,
-                  and technical support.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-blue-700"></span>
-                <span>
-                  Designed for African cities and aligned with international
-                  monitoring standards.
-                </span>
-              </li>
-            </ul>
-          </motion.div>
-
-          <motion.div
-            className="bg-white border border-gray-200 rounded-xl p-6 lg:p-8 shadow-sm space-y-5"
-            variants={cardVariants}
-          >
-            <h3 className="text-2xl font-semibold text-gray-900">
-              Ready to find the right plan?
-            </h3>
-            <p className="text-gray-700">
-              Explore our monitoring plans, compare what&apos;s included, and
-              choose the option that fits your scale and implementation goals.
-            </p>
-            <CustomButton
-              onClick={openMonitoringSolutionsDoc}
-              className="w-full flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-semibold"
-            >
-              Explore Monitoring Plans
-            </CustomButton>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* Monitor Installation Guide Section */}
-      <motion.section
-        className={`px-4 ${mainConfig.containerClass} grid grid-cols-1 lg:grid-cols-2 gap-8`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <motion.h2
-          className="text-[40px] font-semibold mb-4"
-          variants={itemVariants}
-        >
-          <span className="text-blue-700">Monitor</span> Installation
-        </motion.h2>
-        <motion.p
-          className="text-lg text-gray-700 mb-6"
-          variants={itemVariants}
-        >
-          This guide includes instructions and manuals on how to easily
-          activate, install, operate and manage the Binos Air Quality Monitors.
-        </motion.p>
-      </motion.section>
-
-      {/* Monitor Installation Section */}
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`flex flex-col-reverse ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
-        >
-          {/* Card Section */}
-          <motion.div
-            className="bg-yellow-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:left-0 lg:top-16 z-10 space-y-6"
-            variants={cardVariants}
-          >
-            <h3 className="font-bold text-2xl">
-              Activate, install, operate, and manage the Binos Monitors
-            </h3>
-            <div className="text-lg text-gray-700 mb-4">
-              <p>In this guide, you will find recommendations:</p>
-              <ol className="list-disc list-inside pl-5 mt-2">
-                <li>Where to place the monitor</li>
-                <li>How to install the monitor</li>
-                <li>How to access the data using AirQo Nexus</li>
-              </ol>
-            </div>
-
-            <CustomButton
-              onClick={() =>
-                window.open(
-                  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1749629721/website/docs/Device_installation_guide_AirQo_adaptations__NEW_ntc89p.pdf',
-                )
-              }
-              className="flex items-center justify-center text-gray-700 bg-transparent border mt-6 border-black px-4 py-3 bg-none w-full font-semibold"
-            >
-              Installation Guide
-              <BiDownload className="ml-2 text-xl" />
-            </CustomButton>
-          </motion.div>
-
-          {/* Image Section */}
-          <motion.div
-            className="mt-12 lg:mt-0 lg:ml-[300px] md:h-[480px] w-full"
-            variants={itemVariants}
-          >
-            <Image
-              src={images.field}
-              alt="Two members in the field installing the monitor"
-              width={500}
-              height={400}
-              style={{
-                objectFit: 'cover',
-              }}
-              className="rounded-lg h-full w-full md:w-full"
-            />
-          </motion.div>
-        </div>
-      </motion.section>
-    </div>
+      </section>
+    </ProductMarketingPage>
   );
 };
 

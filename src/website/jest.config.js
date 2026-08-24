@@ -57,8 +57,13 @@ module.exports = {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
-        tsconfig: 'tsconfig.json',
-        jsx: 'react-jsx',
+        // Inline object merges over tsconfig.json; jsx must be overridden here
+        // because tsconfig.json uses Next's "jsx": "preserve", which leaves raw
+        // JSX in Jest's runtime output.
+        tsconfig: {
+          ...require('./tsconfig.json').compilerOptions,
+          jsx: 'react-jsx',
+        },
       },
     ],
   },

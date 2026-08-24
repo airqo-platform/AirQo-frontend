@@ -88,7 +88,9 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
   }
 
   if (!selectedEvent) {
-    logger.warn('No forum event found', { uniqueTitle });
+    // Debug only: crawlers hit invalid slugs constantly and this state already
+    // renders its own not-found UI — a warn here just floods Slack.
+    logger.debug('No forum event found', { uniqueTitle });
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">

@@ -114,6 +114,8 @@ type ProductMarketingPageProps = {
     description: string;
     items: ProductCapability[];
   };
+  /** Optional slot rendered after capabilities and before useCases. */
+  children?: React.ReactNode;
   useCases?: {
     title: React.ReactNode;
     description: string;
@@ -230,6 +232,7 @@ const ProductMarketingPage = ({
   intro,
   primarySection,
   capabilities,
+  children,
   useCases,
   downloadSection,
   secondarySection,
@@ -351,6 +354,8 @@ const ProductMarketingPage = ({
           </div>
         </div>
       </motion.section>
+
+      {children}
 
       {useCases ? (
         <motion.section
