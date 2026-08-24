@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: 'AirQo Packages',
   },
   description:
-    'Open source packages and developer tools from AirQo. Multi-framework icon libraries, SDKs, and more for building air quality applications.',
+    'Open source packages and developer tools from AirQo, including multi-framework icon libraries and Vertex IoT app scaffolding.',
   keywords: [
     'airqo packages',
     'open source',
@@ -19,12 +19,14 @@ export const metadata: Metadata = {
     'vue icons',
     'flutter icons',
     'air quality sdk',
+    'vertex iot',
+    'create vertex app',
     'npm packages',
   ],
   openGraph: {
     title: 'AirQo Packages - Open Source Developer Tools',
     description:
-      'Explore AirQo open source packages including multi-framework icon libraries, SDKs, and tools for air quality applications.',
+      'Explore AirQo open source packages including multi-framework icon libraries, Vertex IoT app scaffolding, SDKs, and developer tools.',
     type: 'website',
   },
 };

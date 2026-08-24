@@ -21,28 +21,26 @@ describe('packages.config', () => {
         expect(typeof pkg.name).toBe('string');
         expect(typeof pkg.displayName).toBe('string');
         expect(typeof pkg.description).toBe('string');
+        expect(['library', 'cli']).toContain(pkg.type);
         expect(typeof pkg.version).toBe('string');
         expect(typeof pkg.weeklyDownloads).toBe('string');
         expect(typeof pkg.totalDownloads).toBe('string');
-        expect(typeof pkg.iconCount).toBe('number');
-        expect(typeof pkg.categories).toBe('number');
-        expect(typeof pkg.repository).toBe('string');
+        expect(typeof pkg.installCommand).toBe('string');
+        expect(typeof pkg.usageExample).toBe('string');
         expect(typeof pkg.homepage).toBe('string');
         expect(typeof pkg.npmPackage).toBe('string');
         expect(typeof pkg.docsUrl).toBe('string');
-        expect(typeof pkg.bundleSize).toBe('string');
         expect(typeof pkg.license).toBe('string');
         expect(typeof pkg.lastPublished).toBe('string');
-        expect(typeof pkg.treeshakeable).toBe('boolean');
-        expect(typeof pkg.typescript).toBe('boolean');
-        expect(typeof pkg.ssr).toBe('boolean');
       });
     });
 
-    it('each package has a non-empty frameworks array', () => {
+    it('supports framework packages and standalone CLI packages', () => {
       packagesData.forEach((pkg) => {
-        expect(Array.isArray(pkg.frameworks)).toBe(true);
-        expect(pkg.frameworks.length).toBeGreaterThan(0);
+        expect(Array.isArray(pkg.frameworks ?? [])).toBe(true);
+        if (pkg.type === 'library') {
+          expect(pkg.frameworks?.length).toBeGreaterThan(0);
+        }
       });
     });
 
@@ -55,7 +53,7 @@ describe('packages.config', () => {
 
     it('each framework has required fields', () => {
       packagesData.forEach((pkg) => {
-        pkg.frameworks.forEach((fw) => {
+        (pkg.frameworks ?? []).forEach((fw) => {
           expect(['React', 'Vue', 'Flutter']).toContain(fw.name);
           expect(typeof fw.package).toBe('string');
           expect(typeof fw.displayName).toBe('string');
@@ -67,7 +65,9 @@ describe('packages.config', () => {
 
     it('all URLs are valid strings', () => {
       packagesData.forEach((pkg) => {
-        expect(pkg.repository).toMatch(/^https?:\/\//);
+        if (pkg.repository) {
+          expect(pkg.repository).toMatch(/^https?:\/\//);
+        }
         expect(pkg.homepage).toMatch(/^https?:\/\//);
         expect(pkg.npmPackage).toMatch(/^https?:\/\//);
         expect(pkg.docsUrl).toMatch(/^https?:\/\//);
@@ -86,6 +86,17 @@ describe('packages.config', () => {
       expect(pkg).toBeDefined();
       expect(pkg?.id).toBe('icons');
       expect(pkg?.name).toBe('icons');
+    });
+
+    it('includes the Vertex app scaffolding CLI', () => {
+      const pkg = getPackageById('create-vertex-app');
+
+      expect(pkg?.name).toBe('@airqo/create-vertex-app');
+      expect(pkg?.type).toBe('cli');
+      expect(pkg?.version).toBe('0.1.4');
+      expect(pkg?.installCommand).toContain(
+        'npx @airqo/create-vertex-app@latest',
+      );
     });
 
     it('returns undefined when not found', () => {

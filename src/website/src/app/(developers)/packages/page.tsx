@@ -12,11 +12,11 @@ const packagesOgImage = optimizeCloudinaryUrl(
 export const metadata: Metadata = {
   title: 'Open Source Packages',
   description:
-    'Discover AirQo open source packages and developer tools. Multi-framework icon libraries, SDKs, and components for building air quality applications.',
+    'Discover AirQo open source packages and developer tools, from multi-framework icon libraries to Vertex IoT app scaffolding.',
   openGraph: {
     title: 'AirQo Open Source Packages',
     description:
-      'Multi-framework icon libraries, SDKs, and developer tools for air quality applications. Available for React, Vue, Flutter, and more.',
+      'Multi-framework icon libraries and developer tools for air quality and IoT applications, including React, Vue, Flutter, and Vertex app scaffolding.',
     images: [
       {
         url: packagesOgImage,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'AirQo Open Source Packages',
     description:
-      'Multi-framework icon libraries and developer tools for air quality applications.',
+      'Multi-framework icon libraries and developer tools for air quality and IoT applications.',
   },
 };
 
