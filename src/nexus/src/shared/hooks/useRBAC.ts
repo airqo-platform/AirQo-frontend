@@ -261,24 +261,11 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user can access admin panel (@airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission in active group)
+   * Check if user can access admin panel (SYSTEM_ADMIN or SUPER_ADMIN permission in active group)
    */
   const canAccessAdminPanel = (): boolean => {
-    return (
-      hasEmailDomain('@airqo.net') &&
-      hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN'])
-    );
+    return hasAnyPermissionInActiveGroup(['SYSTEM_ADMIN', 'SUPER_ADMIN']);
   };
-
-  /**
-   * Check if user email ends with a specific domain
-   */
-  const hasEmailDomain = useCallback(
-    (domain: string): boolean => {
-      return !!user?.email?.toLowerCase().endsWith(domain.toLowerCase());
-    },
-    [user?.email]
-  );
 
   const isLoading = userLoading || rolesLoading;
 
@@ -313,7 +300,6 @@ export const useRBAC = () => {
     getUserGroups,
     getUserNetworks,
     canAccessAdminPanel,
-    hasEmailDomain,
 
     // Active group permission checks
     hasPermissionInActiveGroup,

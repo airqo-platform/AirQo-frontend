@@ -10,8 +10,8 @@ import {
   getPollutantLabel,
 } from '@/shared/utils/airQuality';
 import {
-  getReadingAqiLevel,
-  getClusterCategoryFallback,
+  resolveReadingDisplayLevel,
+  resolveClusterDisplay,
 } from '@/modules/airqo-map/utils/dataNormalization';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import type { PollutantType } from '@/shared/utils/airQuality';
@@ -75,12 +75,10 @@ const ClusterTooltipContent: React.FC<{
   aqiConfig?: AqiConfig | null;
   onTooltipAction?: (data: ClusterData) => void;
 }> = ({ cluster, selectedPollutant, aqiConfig, onTooltipAction }) => {
-  const validReadings = cluster.readings.filter(r => {
-    const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-    return val !== undefined && !isNaN(val);
-  });
+  const { level, hasData, avgConcentration, avgAqiIndex } =
+    resolveClusterDisplay(cluster.readings, selectedPollutant, aqiConfig);
 
-  if (validReadings.length === 0) {
+  if (!hasData) {
     return (
       <div className="p-2 min-w-[250px] max-w-[350px]">
         <div className="text-xs text-gray-500 mb-1">
@@ -96,28 +94,6 @@ const ClusterTooltipContent: React.FC<{
     );
   }
 
-  const avgValue =
-    validReadings.reduce((sum, r) => {
-      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-      return sum + val;
-    }, 0) / validReadings.length;
-
-  const aqiValues = cluster.readings
-    .map(r => r.aqiIndex)
-    .filter((v): v is number => typeof v === 'number' && !isNaN(v));
-  const avgAqiIndex = aqiValues.length
-    ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
-    : undefined;
-
-  const level = getReadingAqiLevel(
-    {
-      pm25Value: avgValue,
-      pm10Value: avgValue,
-      aqiCategory: getClusterCategoryFallback(cluster.readings),
-    },
-    selectedPollutant,
-    aqiConfig
-  );
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
   const label = getAirQualityLabel(
@@ -142,7 +118,8 @@ const ClusterTooltipContent: React.FC<{
             AQI {formatAqiIndex(avgAqiIndex)}
           </div>
           <div className="text-sm text-gray-900">
-            {formatValue(avgValue)} µg/m³ {getPollutantLabel(selectedPollutant)}
+            {formatValue(avgConcentration)} µg/m³{' '}
+            {getPollutantLabel(selectedPollutant)}
           </div>
         </div>
         <IconComponent className="w-9 h-9 flex-shrink-0" />
@@ -200,7 +177,11 @@ const ReadingTooltipContent: React.FC<{
     );
   }
 
-  const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
+  const { level } = resolveReadingDisplayLevel(
+    reading,
+    selectedPollutant,
+    aqiConfig
+  );
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
   const label = getAirQualityLabel(
@@ -318,7 +299,11 @@ const CompactReadingTooltipContent: React.FC<{
   const pollutantValue =
     selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
 
-  const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
+  const { level } = resolveReadingDisplayLevel(
+    reading,
+    selectedPollutant,
+    aqiConfig
+  );
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
 
@@ -349,36 +334,9 @@ const CompactClusterTooltipContent: React.FC<{
   selectedPollutant: PollutantType;
   aqiConfig?: AqiConfig | null;
 }> = ({ cluster, selectedPollutant, aqiConfig }) => {
-  const validReadings = cluster.readings.filter(r => {
-    const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-    return val !== undefined && !isNaN(val);
-  });
+  const { level, hasData, avgConcentration, avgAqiIndex } =
+    resolveClusterDisplay(cluster.readings, selectedPollutant, aqiConfig);
 
-  const avgValue = validReadings.length
-    ? validReadings.reduce((sum, r) => {
-        const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
-        return sum + (val as number);
-      }, 0) / validReadings.length
-    : 0;
-
-  const aqiValues = cluster.readings
-    .map(r => r.aqiIndex)
-    .filter((v): v is number => typeof v === 'number' && !isNaN(v));
-  const avgAqiIndex = aqiValues.length
-    ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
-    : undefined;
-
-  const hasData = validReadings.length > 0;
-
-  const level = getReadingAqiLevel(
-    {
-      pm25Value: avgValue,
-      pm10Value: avgValue,
-      aqiCategory: getClusterCategoryFallback(cluster.readings),
-    },
-    selectedPollutant,
-    aqiConfig
-  );
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level, aqiConfig);
 
@@ -394,8 +352,8 @@ const CompactClusterTooltipContent: React.FC<{
           </div>
           <div className="text-sm" style={{ color }}>
             AQI {formatAqiIndex(hasData ? avgAqiIndex : undefined)}
-            {hasData && avgValue > 0
-              ? ` · ${formatValue(avgValue)} µg/m³`
+            {hasData
+              ? ` · ${formatValue(avgConcentration)} µg/m³`
               : ' · No data for selected pollutant'}
           </div>
         </div>

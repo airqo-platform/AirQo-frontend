@@ -9,11 +9,15 @@ import { WeeklyForecastCard } from '@/modules/airqo-map/components/sidebar/Weekl
 import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/LocationDetailsSkeleton';
 import { SiteInsightsChart } from '@/modules/airqo-map/components/sidebar/SiteInsightsChart';
 import { AqXClose } from '@airqo/icons-react';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import {
+  getAirQualityLabel,
+  type AirQualityLevel,
+  type PollutantType,
+} from '@/shared/utils/airQuality';
+import { resolveReadingDisplayLevel } from '@/modules/airqo-map/utils/dataNormalization';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
-import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
 
 interface LocationData {
@@ -33,20 +37,26 @@ interface LocationDetailsPanelProps {
   aqiConfig?: AqiConfig | null;
 }
 
-const getHealthTip = (level: string): string => {
-  switch (level.toLowerCase()) {
+/**
+ * Health tip keyed by the STABLE `AirQualityLevel` union — never by the
+ * human-readable label, whose wording/casing comes from server config and can
+ * drift. 'no-value' (and anything unknown) gets the generic tip.
+ */
+const getHealthTip = (level: AirQualityLevel): string => {
+  switch (level) {
     case 'good':
       return 'Enjoy your day with confidence in clean air around you.';
     case 'moderate':
       return 'Air quality is acceptable. Sensitive individuals should consider limiting prolonged outdoor exertion.';
-    case 'unhealthy for sensitive groups':
+    case 'unhealthy-sensitive-groups':
       return 'Sensitive groups should reduce prolonged or heavy outdoor exertion.';
     case 'unhealthy':
       return 'Everyone should reduce prolonged or heavy exertion. Take more breaks during outdoor activities.';
-    case 'very unhealthy':
+    case 'very-unhealthy':
       return 'Everyone should avoid prolonged or heavy exertion. Move activities indoors or reschedule.';
     case 'hazardous':
       return 'Everyone should avoid all physical activities outdoors. Stay indoors and keep activity levels low.';
+    case 'no-value':
     default:
       return 'Check local air quality updates for the latest information.';
   }
@@ -108,26 +118,34 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
     return locationData;
   }, [mapReading, locationData]);
 
-  const pollutantValue =
-    selectedPollutant === 'pm2_5'
-      ? ((mapReading as MapReading)?.pm2_5?.value ??
-        (mapReading as AirQualityReading)?.pm25Value ??
-        (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value)
-      : ((mapReading as MapReading)?.pm10?.value ??
-        (mapReading as AirQualityReading)?.pm10Value ??
-        (mapReading as AirQualityReading)?.fullReadingData?.pm10?.value);
+  // Classify through the module's single resolution path so this panel agrees
+  // with the CurrentAirQualityCard above it: the API `aqi_category` (the
+  // backend's classification of the displayed AQI index) wins, and only a
+  // missing category falls back to classifying the concentration.
+  const { level: displayLevel } = React.useMemo(() => {
+    const mr = mapReading as MapReading | undefined;
+    const aqr = mapReading as AirQualityReading | undefined;
+    return resolveReadingDisplayLevel(
+      {
+        pm25Value: aqr?.pm25Value ?? mr?.pm2_5?.value ?? undefined,
+        pm10Value: aqr?.pm10Value ?? mr?.pm10?.value ?? undefined,
+        aqiCategory: aqr?.aqiCategory ?? mr?.aqi_category,
+        fullReadingData: aqr?.fullReadingData,
+      },
+      selectedPollutant,
+      aqiConfig
+    );
+  }, [mapReading, selectedPollutant, aqiConfig]);
 
-  const airQualityInfo = React.useMemo(() => {
-    if (pollutantValue != null) {
-      return getAirQualityInfo(
-        pollutantValue,
-        selectedPollutant,
-        'WHO',
-        aqiConfig
-      );
-    }
-    return null;
-  }, [aqiConfig, pollutantValue, selectedPollutant]);
+  const airQualityLabel =
+    displayLevel !== 'no-value'
+      ? getAirQualityLabel(
+          displayLevel,
+          'WHO',
+          selectedPollutant === 'pm10' ? 'PM10' : 'PM2.5',
+          aqiConfig
+        )
+      : undefined;
 
   const healthTips =
     (mapReading as MapReading)?.health_tips ||
@@ -254,12 +272,11 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
                   </div>
                 ))}
               </div>
-            ) : airQualityInfo ? (
+            ) : airQualityLabel ? (
               <div className="p-3 bg-green-50 rounded-lg">
                 <p className="text-sm font-medium text-green-800">
                   {currentLocationData.name}&apos;s Air Quality is{' '}
-                  {airQualityInfo.label} for breathing.{' '}
-                  {getHealthTip(airQualityInfo.label)}
+                  {airQualityLabel} for breathing. {getHealthTip(displayLevel)}
                 </p>
               </div>
             ) : (

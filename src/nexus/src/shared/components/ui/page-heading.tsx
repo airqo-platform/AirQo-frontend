@@ -21,7 +21,7 @@ const PageHeading: React.FC<PageHeadingProps> = ({
 }) => {
   return (
     <div className={`${infoLine ? 'mb-4' : 'mb-6'} ${className}`}>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1">
           <h1 className="text-2xl">{title}</h1>
           {infoLine && <InfoBanner title={infoLine} className="mt-3" />}
@@ -29,7 +29,7 @@ const PageHeading: React.FC<PageHeadingProps> = ({
             <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        {action && <div className="flex-shrink-0">{action}</div>}
+        {action && <div className="sm:flex-shrink-0">{action}</div>}
       </div>
       {children && <div className="mt-4">{children}</div>}
     </div>

@@ -6,7 +6,7 @@ import {
   getAirQualityIcon,
   getAirQualityColor,
 } from '@/shared/utils/airQuality';
-import { getReadingAqiLevel } from '@/modules/airqo-map/utils/dataNormalization';
+import { resolveReadingDisplayLevel } from '@/modules/airqo-map/utils/dataNormalization';
 import { CustomTooltip } from './CustomTooltip';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
@@ -43,7 +43,6 @@ export interface ClusterData {
   latitude: number;
   pointCount: number;
   readings: AirQualityReading[];
-  mostCommonLevel?: string;
 }
 
 // ─── Module-level constants (never recreated on re-render) ────────────────────
@@ -131,9 +130,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
   const data = (cluster ?? reading) as
-    | AirQualityReading
-    | ClusterData
-    | undefined;
+    AirQualityReading | ClusterData | undefined;
 
   if (!data) return null;
 
@@ -176,10 +173,12 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       return val > worstVal ? r : worst;
     });
     const BestIcon = getAirQualityIcon(
-      getReadingAqiLevel(bestReading, selectedPollutant, aqiConfig)
+      resolveReadingDisplayLevel(bestReading, selectedPollutant, aqiConfig)
+        .level
     );
     const WorstIcon = getAirQualityIcon(
-      getReadingAqiLevel(worstReading, selectedPollutant, aqiConfig)
+      resolveReadingDisplayLevel(worstReading, selectedPollutant, aqiConfig)
+        .level
     );
 
     // Use rounded zoom for styling decisions — avoids visual thrash during animations
@@ -241,7 +240,11 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   if (reading) {
     const pollutantValue =
       selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
-    const level = getReadingAqiLevel(reading, selectedPollutant, aqiConfig);
+    const { level } = resolveReadingDisplayLevel(
+      reading,
+      selectedPollutant,
+      aqiConfig
+    );
     const IconComponent = getAirQualityIcon(level);
     const sizeClass = SIZE_CLASSES[size];
     const iconClass = ICON_CLASSES[size];
@@ -334,19 +337,60 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 // ─── Memo equality ─────────────────────────────────────────────────────────────
 
 /**
- * Cluster readings content fingerprint — detects changes in pm2.5/pm10 values
- * even when the cluster ID and point count are unchanged.
- *
- * We compute a cheap numeric sum of pollutant values rather than doing a deep
- * comparison or JSON serialisation; this is O(n) but avoids allocation.
+ * Runtime-safe member key. Readings are typed with a required `id`, but data
+ * arriving over the network has been observed to omit it — fall back to the
+ * array index for such members so they still participate in the comparison.
  */
-const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
-  let sum = 0;
-  for (const r of readings) {
-    // XOR-accumulate IDs' char codes for a fast structural check
-    sum += (r.pm25Value ?? 0) + (r.pm10Value ?? 0);
+const clusterMemberKey = (reading: AirQualityReading, index: number): string =>
+  typeof reading.id === 'string' && reading.id.length > 0
+    ? reading.id
+    : `__index_${index}`;
+
+/**
+ * Cluster readings content comparison — detects changes in each member's
+ * pm2.5/pm10 values AND effective AQI category even when the cluster ID and
+ * point count are unchanged.
+ *
+ * FIX (CodeRabbit review): the previous additive fingerprint collided when
+ * members exchanged concentrations or categories between themselves (equal
+ * sums, different content), leaving stale cluster icons on screen. This
+ * comparison is order-independent and keyed by member id: one Map per side,
+ * O(n), no JSON serialisation.
+ *
+ * Best/worst cluster icons derive from member display levels, which are
+ * authoritative from `aqiCategory` / `fullReadingData.aqi_category` (see
+ * resolveReadingDisplayLevel). A member whose only change is its category
+ * must therefore invalidate the memo.
+ */
+const clusterReadingsEqual = (
+  prev: AirQualityReading[],
+  next: AirQualityReading[]
+): boolean => {
+  if (prev.length !== next.length) return false;
+
+  const nextMembers = new Map<string, AirQualityReading>();
+  for (let i = 0; i < next.length; i++) {
+    nextMembers.set(clusterMemberKey(next[i], i), next[i]);
   }
-  return sum;
+
+  for (let i = 0; i < prev.length; i++) {
+    const prevMember = prev[i];
+    const nextMember = nextMembers.get(clusterMemberKey(prevMember, i));
+    if (!nextMember) return false;
+    if (
+      prevMember.pm25Value !== nextMember.pm25Value ||
+      prevMember.pm10Value !== nextMember.pm10Value ||
+      // Categories are the authoritative display classification
+      // (resolveReadingDisplayLevel) — a category-only change on any member
+      // must refresh the node's icon and color.
+      prevMember.aqiCategory !== nextMember.aqiCategory ||
+      prevMember.fullReadingData?.aqi_category !==
+        nextMember.fullReadingData?.aqi_category
+    )
+      return false;
+  }
+
+  return true;
 };
 
 /**
@@ -356,9 +400,16 @@ const clusterReadingsFingerprint = (readings: AirQualityReading[]): number => {
  * are stable useCallback references from EnhancedMap — including them would
  * defeat memoisation entirely.
  *
- * FIX (CodeRabbit review): cluster.readings content is now checked via a
- * lightweight fingerprint so that updated pollutant values with unchanged
- * member IDs correctly invalidate the memo and trigger a re-render.
+ * FIX (CodeRabbit review): cluster.readings content is now checked via an
+ * order-independent, id-keyed structural comparison so that updated pollutant
+ * values with unchanged member IDs correctly invalidate the memo and trigger
+ * a re-render.
+ *
+ * FIX (CodeRabbit review): the individual-reading branch also compares
+ * `aqiCategory` / `fullReadingData.aqi_category`, and the cluster fingerprint
+ * includes each member's effective category — these are the AUTHORITATIVE
+ * display classification (resolveReadingDisplayLevel), so a category-only
+ * change must refresh the node's icon and color.
  *
  * FIX (glitching): zoomLevel is compared as Math.round() so fractional zoom
  * changes during smooth pan/zoom animations don't cause constant re-renders.
@@ -385,7 +436,12 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
     prev.reading?.id !== next.reading?.id ||
     prev.reading?.pm25Value !== next.reading?.pm25Value ||
     prev.reading?.pm10Value !== next.reading?.pm10Value ||
-    prev.reading?.status !== next.reading?.status
+    prev.reading?.status !== next.reading?.status ||
+    // FIX: category is the authoritative display classification — a
+    // category-only change must invalidate the memo (icon/color refresh).
+    prev.reading?.aqiCategory !== next.reading?.aqiCategory ||
+    prev.reading?.fullReadingData?.aqi_category !==
+      next.reading?.fullReadingData?.aqi_category
   )
     return false;
 
@@ -396,17 +452,15 @@ const areEqual = (prev: MapNodesProps, next: MapNodesProps): boolean => {
   )
     return false;
 
-  // FIX: Check cluster readings content so stale pollutant values are detected.
-  // Only run when both sides have readings (cluster identity already matched above).
-  if (prev.cluster?.readings && next.cluster?.readings) {
-    if (prev.cluster.readings.length !== next.cluster.readings.length)
-      return false;
-    if (
-      clusterReadingsFingerprint(prev.cluster.readings) !==
-      clusterReadingsFingerprint(next.cluster.readings)
-    )
-      return false;
-  }
+  // FIX: Check cluster readings content so stale pollutant values and
+  // per-member categories are detected. Only run when both sides have
+  // readings (cluster identity already matched above).
+  if (
+    prev.cluster?.readings &&
+    next.cluster?.readings &&
+    !clusterReadingsEqual(prev.cluster.readings, next.cluster.readings)
+  )
+    return false;
 
   return true;
 };

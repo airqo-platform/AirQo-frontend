@@ -11,6 +11,11 @@ import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import {
+  getAirQualityLevel,
+  getAirQualityColor,
+} from '@/shared/utils/airQuality';
+import type { AqiConfig } from '@/shared/types/aqi';
+import {
   sortComparisonRows,
   type ComparisonRow,
   type ComparisonSortDir,
@@ -26,85 +31,11 @@ interface ComparisonTableViewProps {
   hasSelection: boolean;
   onRetry: () => void;
   className?: string;
+  /** Live PM2.5 AQI ranges config — drives the color strip on PM2.5 values. */
+  pm25Config?: AqiConfig | null;
+  /** Live PM10 AQI ranges config — drives the color strip on PM10 values. */
+  pm10Config?: AqiConfig | null;
 }
-
-const COLUMNS: DataTableColumn<ComparisonRow>[] = [
-  {
-    key: 'name',
-    label: 'Site',
-    cellClassName: 'font-medium text-foreground',
-    render: row => (
-      <span className="block max-w-[220px] truncate">{row.siteName}</span>
-    ),
-  },
-  {
-    key: 'aqi',
-    label: 'AQI',
-    render: row =>
-      row.hasReading ? (
-        <span className="flex items-center gap-2">
-          <span
-            className="inline-flex min-w-[2.75rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-            style={{ backgroundColor: row.aqiColor ?? undefined }}
-          >
-            {row.aqiIndex ?? '—'}
-          </span>
-          {row.aqiCategory && (
-            <span className="text-xs text-muted-foreground">
-              {row.aqiCategory}
-            </span>
-          )}
-        </span>
-      ) : (
-        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-          No reading
-        </span>
-      ),
-  },
-  {
-    key: 'pm2_5',
-    label: 'PM2.5',
-    unit: 'µg/m³',
-    cellClassName: 'tabular-nums text-foreground',
-    render: row => formatPollutantCell(row.pm2_5),
-  },
-  {
-    key: 'pm10',
-    label: 'PM10',
-    unit: 'µg/m³',
-    cellClassName: 'tabular-nums text-foreground',
-    render: row => formatPollutantCell(row.pm10),
-  },
-  {
-    key: 'no2',
-    label: 'NO2',
-    unit: 'µg/m³',
-    headerClassName: 'hidden sm:table-cell',
-    cellClassName: 'hidden sm:table-cell tabular-nums text-foreground',
-    render: row => formatPollutantCell(row.no2),
-  },
-  {
-    key: 'time',
-    label: 'Last reading',
-    cellClassName: 'text-muted-foreground',
-    render: row => row.lastReadingLabel,
-  },
-  {
-    key: 'freshness',
-    label: 'Freshness',
-    sortable: false,
-    render: row => (
-      <span
-        className={cn(
-          'text-xs font-medium',
-          row.hasReading ? 'text-foreground' : 'text-muted-foreground'
-        )}
-      >
-        {row.freshnessLabel}
-      </span>
-    ),
-  },
-];
 
 const DEFAULT_DIR_BY_KEY: Record<
   Exclude<ComparisonSortKey, 'time'>,
@@ -122,7 +53,33 @@ const formatPollutantCell = (value: number | null): string =>
   value === null ? '—' : value.toFixed(1);
 
 /**
- * The "Compare locations" table: Site | AQI badge | PM2.5 | PM10 | NO2 |
+ * Renders a pollutant value with a small color strip whose color is derived
+ * from the live AQI ranges for that pollutant.
+ */
+const PollutantCell: React.FC<{
+  value: number | null;
+  pollutant: 'pm2_5' | 'pm10';
+  config: AqiConfig | null;
+}> = ({ value, pollutant, config }) => {
+  if (value === null) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  const level = getAirQualityLevel(value, pollutant, config);
+  const color = getAirQualityColor(level, config);
+  return (
+    <span className="inline-flex items-center gap-1.5 tabular-nums text-foreground">
+      <span
+        className="inline-block h-1.5 w-6 rounded-full"
+        style={{ backgroundColor: color || '#6B7280' }}
+        aria-hidden="true"
+      />
+      {value.toFixed(1)}
+    </span>
+  );
+};
+
+/**
+ * The "Compare locations" table: Site | AQI value | PM2.5 | PM10 | NO2 |
  * Last reading | Freshness. Worst-AQI-first by default ("league table"),
  * click-to-sort headers (local state only), sticky header inside an
  * overflow-x-auto wrapper, NO2 hidden below `sm`. Locations without a
@@ -135,9 +92,101 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   hasSelection,
   onRetry,
   className,
+  pm25Config = null,
+  pm10Config = null,
 }) => {
   const [sortKey, setSortKey] = useState<ComparisonSortKey>('aqi');
   const [sortDir, setSortDir] = useState<ComparisonSortDir>('desc');
+
+  const columns = useMemo<DataTableColumn<ComparisonRow>[]>(
+    () => [
+      {
+        key: 'name',
+        label: 'Site',
+        cellClassName: 'font-medium text-foreground',
+        render: row => (
+          <span className="block max-w-[220px] truncate">{row.siteName}</span>
+        ),
+      },
+      {
+        key: 'aqi',
+        label: 'AQI',
+        render: row =>
+          row.hasReading ? (
+            <span className="flex items-center gap-2">
+              <span className="min-w-[2.75rem] text-xs font-semibold tabular-nums text-foreground">
+                {row.aqiIndex ?? '—'}
+              </span>
+              {row.aqiCategory && (
+                <span className="text-xs text-muted-foreground">
+                  {row.aqiCategory}
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              No reading
+            </span>
+          ),
+      },
+      {
+        key: 'pm2_5',
+        label: 'PM2.5',
+        unit: 'µg/m³',
+        cellClassName: 'tabular-nums text-foreground',
+        render: row => (
+          <PollutantCell
+            value={row.pm2_5}
+            pollutant="pm2_5"
+            config={pm25Config}
+          />
+        ),
+      },
+      {
+        key: 'pm10',
+        label: 'PM10',
+        unit: 'µg/m³',
+        cellClassName: 'tabular-nums text-foreground',
+        render: row => (
+          <PollutantCell
+            value={row.pm10}
+            pollutant="pm10"
+            config={pm10Config}
+          />
+        ),
+      },
+      {
+        key: 'no2',
+        label: 'NO2',
+        unit: 'µg/m³',
+        headerClassName: 'hidden sm:table-cell',
+        cellClassName: 'hidden sm:table-cell tabular-nums text-foreground',
+        render: row => formatPollutantCell(row.no2),
+      },
+      {
+        key: 'time',
+        label: 'Last reading',
+        cellClassName: 'text-muted-foreground',
+        render: row => row.lastReadingLabel,
+      },
+      {
+        key: 'freshness',
+        label: 'Freshness',
+        sortable: false,
+        render: row => (
+          <span
+            className={cn(
+              'text-xs font-medium',
+              row.hasReading ? 'text-foreground' : 'text-muted-foreground'
+            )}
+          >
+            {row.freshnessLabel}
+          </span>
+        ),
+      },
+    ],
+    [pm25Config, pm10Config]
+  );
 
   const sortedRows = useMemo(
     () => sortComparisonRows(rows, sortKey, sortDir),
@@ -193,7 +242,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       <CardContent className="p-0">
         <DataTable
           data={sortedRows}
-          columns={COLUMNS}
+          columns={columns}
           rowKey={row => row.siteId}
           sortKey={sortKey}
           sortDir={sortDir}

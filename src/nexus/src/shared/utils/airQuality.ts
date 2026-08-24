@@ -43,11 +43,7 @@ export type AirQualityLevel =
 export type PollutantType = AqiPollutant;
 
 export type StandardsOrganization =
-  | 'WHO'
-  | 'NEMA_UGANDA'
-  | 'NEMA_KENYA'
-  | 'SOUTH_AFRICA'
-  | 'NIGERIA';
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface AirQualityStandard {
   level: string;
@@ -140,6 +136,28 @@ export const getActiveAqiConfig = (): AqiConfig | null => activeAqiConfig;
 export const getActiveAqiConfigForPollutant = (
   pollutant: PollutantType
 ): AqiConfig | null => activeAqiConfigs.get(pollutant) ?? null;
+
+/**
+ * True when AIR_QUALITY_COLORS currently holds exactly the colors
+ * `setActiveAqiConfig(config)` would write. Read-only drift detector: lets
+ * default-pollutant consumers notice that another pollutant (e.g. pm10)
+ * re-activated the shared color table — the per-pollutant registry entry is
+ * left intact by such an activation, so only this color comparison can
+ * detect it. Mirrors the write loop in setActiveAqiConfig.
+ */
+export const airQualityColorsMatchConfig = (
+  config: AqiConfig | null
+): boolean => {
+  for (const level of Object.keys(AQI_RANGE_KEY_BY_LEVEL) as Array<
+    Exclude<AirQualityLevel, 'no-value'>
+  >) {
+    const range = config?.ranges.find(
+      item => item.key === AQI_RANGE_KEY_BY_LEVEL[level]
+    );
+    if (AIR_QUALITY_COLORS[level] !== (range?.color ?? '')) return false;
+  }
+  return true;
+};
 
 export const AQI_RANGE_KEY_BY_LEVEL: Record<
   Exclude<AirQualityLevel, 'no-value'>,
@@ -531,7 +549,8 @@ export const NIGERIA_PM25_STANDARDS: AirQualityStandard[] = [
     level: 'Unhealthy for Sensitive Groups',
     range: { min: 20, max: 40 },
     color: '#EF4444', // red-500
-    description: 'Above the NESREA annual but within 24-hour standard (40 µg/m³)',
+    description:
+      'Above the NESREA annual but within 24-hour standard (40 µg/m³)',
   },
   {
     level: 'Unhealthy',
@@ -570,7 +589,8 @@ export const NIGERIA_PM10_STANDARDS: AirQualityStandard[] = [
     level: 'Unhealthy for Sensitive Groups',
     range: { min: 60, max: 150 },
     color: '#EF4444', // red-500
-    description: 'Above the NESREA annual but within 24-hour standard (150 µg/m³)',
+    description:
+      'Above the NESREA annual but within 24-hour standard (150 µg/m³)',
   },
   {
     level: 'Unhealthy',

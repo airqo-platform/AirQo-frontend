@@ -384,7 +384,7 @@ const OrganizationRequestsPage = () => {
           <div className="space-y-6">
             {/* Tab Navigation */}
             <div className="flex items-center justify-between gap-3">
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant={activeTab === 'pending' ? 'filled' : 'outlined'}

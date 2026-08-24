@@ -13,9 +13,14 @@ import {
 } from '@/shared/components/ui';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { AqRefreshCw05 } from '@airqo/icons-react';
+import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { aqiConfigService } from '@/shared/services/aqiConfigService';
-import { AQI_RANGE_KEYS, type AqiRangeUpdate } from '@/shared/types/aqi';
+import {
+  AQI_RANGE_KEYS,
+  type AqiPollutant,
+  type AqiRangeUpdate,
+} from '@/shared/types/aqi';
 import {
   getUserFriendlyErrorMessage,
   isForbiddenError,
@@ -23,8 +28,20 @@ import {
 
 const EMPTY_SECRET = '';
 
+const POLLUTANT_OPTIONS: { value: AqiPollutant; label: string }[] = [
+  { value: 'pm2_5', label: 'PM2.5' },
+  { value: 'pm10', label: 'PM10' },
+];
+
+const POLLUTANT_DISPLAY_LABEL: Record<AqiPollutant, string> = {
+  pm2_5: 'PM2.5',
+  pm10: 'PM10',
+};
+
 const AqiRangesPage: React.FC = () => {
-  const { config, isLoading, error, refresh } = useAqiConfig();
+  const [selectedPollutant, setSelectedPollutant] =
+    useState<AqiPollutant>('pm2_5');
+  const { config, isLoading, error, refresh } = useAqiConfig(selectedPollutant);
   const [adminSecret, setAdminSecret] = useState(EMPTY_SECRET);
   const [updatedBy, setUpdatedBy] = useState('');
   const [draft, setDraft] = useState<AqiRangeUpdate[]>([]);
@@ -135,6 +152,7 @@ const AqiRangesPage: React.FC = () => {
       await aqiConfigService.updateAqiRanges({
         admin_secret: adminSecret.trim(),
         ranges: draft,
+        pollutant: selectedPollutant,
         ...(updatedBy.trim() ? { updated_by: updatedBy.trim() } : {}),
       });
       setAdminSecret(EMPTY_SECRET);
@@ -159,7 +177,10 @@ const AqiRangesPage: React.FC = () => {
     setIsResetConfirmOpen(false);
     setIsResetting(true);
     try {
-      await aqiConfigService.resetAqiRanges(adminSecret.trim());
+      await aqiConfigService.resetAqiRanges(
+        adminSecret.trim(),
+        selectedPollutant
+      );
       setAdminSecret(EMPTY_SECRET);
       await revalidateAfterMutation('AQI ranges reset to the server defaults.');
     } catch (resetError) {
@@ -199,6 +220,35 @@ const AqiRangesPage: React.FC = () => {
             }
           />
 
+          <Card className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">
+                  Active configuration
+                  {config && (
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">
+                      — {POLLUTANT_DISPLAY_LABEL[config.pollutant]}
+                    </span>
+                  )}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {config?.standard || 'AQI standard provided by the API'}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <SegmentedTabs
+                  options={POLLUTANT_OPTIONS}
+                  value={selectedPollutant}
+                  onChange={setSelectedPollutant}
+                  ariaLabel="AQI pollutant"
+                />
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                  Source: {config?.source || 'unknown'}
+                </span>
+              </div>
+            </div>
+          </Card>
+
           {isLoading && !config ? (
             <LoadingState
               className="min-h-[420px]"
@@ -222,21 +272,6 @@ const AqiRangesPage: React.FC = () => {
                   has changed since it was loaded.
                 </Card>
               )}
-              <Card className="p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-base font-semibold text-foreground">
-                      Active configuration
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {config?.standard || 'AQI standard provided by the API'}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-                    Source: {config?.source || 'unknown'}
-                  </span>
-                </div>
-              </Card>
 
               <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
