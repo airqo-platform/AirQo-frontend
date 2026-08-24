@@ -180,7 +180,6 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
             : {
                 x: [-45, 120, -15, -45],
                 y: [0, 58, -26, 0],
-                opacity: [0.2, 0.5, 0.28, 0.2],
               }
         }
         transition={{
@@ -208,13 +207,11 @@ function SkeletonCard({
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 24,
               scale: 0.96,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
@@ -275,17 +272,14 @@ function SkeletonCard({
 
 const cardVariants: Variants = {
   enter: {
-    opacity: 0,
     y: 28,
     scale: 0.94,
   },
   center: {
-    opacity: 1,
     y: 0,
     scale: 1,
   },
   exit: {
-    opacity: 0,
     y: -16,
     scale: 0.96,
   },
@@ -363,7 +357,6 @@ function FaceCard({
 
   return (
     <motion.article
-      layout
       variants={cardVariants}
       transition={{
         duration: reduceMotion ? 0 : 0.68,
@@ -400,18 +393,15 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 26,
               scale: 0.96,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
       exit={{
-        opacity: 0,
         y: -16,
         scale: 0.97,
       }}
@@ -428,7 +418,6 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
               className="absolute inset-0 rounded-full border border-white/25"
               animate={{
                 scale: [1, 1.65],
-                opacity: [0.55, 0],
               }}
               transition={{
                 duration: 2.6,
@@ -441,7 +430,6 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
               className="absolute inset-0 rounded-full border border-[#39BFC7]/30"
               animate={{
                 scale: [1, 1.45],
-                opacity: [0.45, 0],
               }}
               transition={{
                 duration: 2.6,
@@ -496,18 +484,15 @@ function ErrorState({
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 22,
               scale: 0.97,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
       exit={{
-        opacity: 0,
         y: -14,
         scale: 0.98,
       }}
@@ -698,11 +683,9 @@ const headerContainerVariants: Variants = {
 
 const headerItemVariants: Variants = {
   hidden: {
-    opacity: 0,
     y: -20,
   },
   visible: {
-    opacity: 1,
     y: 0,
     transition: {
       duration: 0.78,
@@ -993,14 +976,12 @@ export default function FacesOfCleanAirPage() {
             ? 9
             : -9
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.92 : 0.96,
     }),
 
     center: {
       x: 0,
       rotateY: 0,
-      opacity: 1,
       scale: 1,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.82 : 0.74,
@@ -1027,7 +1008,6 @@ export default function FacesOfCleanAirPage() {
             ? -8
             : 8
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.94 : 0.972,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.56 : 0.46,
@@ -1198,20 +1178,6 @@ export default function FacesOfCleanAirPage() {
           >
             <motion.div
               key={displayStage}
-              initial={
-                shouldReduceMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                    }
-              }
-              animate={{
-                opacity: 1,
-              }}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.45,
-                ease: [0.22, 1, 0.36, 1],
-              }}
               className={
                 displayStage === 'faces' && isMobile
                   ? 'flex h-full min-h-0 flex-col items-center justify-center'
@@ -1223,15 +1189,6 @@ export default function FacesOfCleanAirPage() {
               {displayStage === 'faces' && isInitialLoading && (
                 <motion.div
                   key="loading"
-                  initial={{
-                    opacity: 0,
-                  }}
-                  animate={{
-                    opacity: 1,
-                  }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0 : 0.64,
-                  }}
                   className={
                     isMobile
                       ? 'flex h-full min-h-0 items-center justify-center'
