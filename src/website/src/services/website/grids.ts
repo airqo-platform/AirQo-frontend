@@ -1,4 +1,8 @@
-import { BaseApiService, ServiceOptions } from '@/services/api';
+import {
+  BaseApiService,
+  type EnhancedApiError,
+  type ServiceOptions,
+} from '@/services/api';
 import {
   GridMeasurementsResponse,
   GridRepresentativeReadingResponse,
@@ -85,9 +89,12 @@ class GridsService extends BaseApiService {
       return response.data;
     }
 
-    throw new Error(
-      response.data?.message || 'Failed to fetch representative reading',
-    );
+    const error = new Error(
+      response.message || 'Failed to fetch representative reading',
+    ) as EnhancedApiError;
+    error.statusCode = response.statusCode;
+    error.retryable = response.statusCode === 500 ? false : true;
+    throw error;
   }
 
   /**

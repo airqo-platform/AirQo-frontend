@@ -9,5 +9,5 @@ type CleanAirForum2026LayoutProps = {
 export default function CleanAirForum2026Layout({
   children,
 }: CleanAirForum2026LayoutProps) {
-  return children;
+  return <div className="min-h-screen overflow-x-hidden">{children}</div>;
 }

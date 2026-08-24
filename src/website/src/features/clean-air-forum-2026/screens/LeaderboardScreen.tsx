@@ -258,7 +258,7 @@ export default function LeaderboardScreen() {
 
   return (
     <div
-      className="relative min-h-[100svh] overflow-hidden"
+      className="relative min-h-[100svh] overflow-x-hidden"
       style={{
         background:
           'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
@@ -321,7 +321,7 @@ export default function LeaderboardScreen() {
           </motion.div>
         </motion.header>
 
-        <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center overflow-hidden pt-6 sm:pt-10">
+        <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center pt-6 sm:pt-10">
           {status === 'error' && entries.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}

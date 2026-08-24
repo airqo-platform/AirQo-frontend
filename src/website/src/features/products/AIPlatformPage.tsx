@@ -167,12 +167,6 @@ const AIPlatformPage = () => {
               'Interpret sites through environmental characteristics and surrounding context.',
             href: 'https://ai.airqo.net/categorize',
           },
-          {
-            title: 'Reports',
-            description:
-              'Access summaries and reporting outputs for decision support and communication.',
-            href: 'https://ai.airqo.net/reports',
-          },
         ],
       }}
     />

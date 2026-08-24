@@ -53,9 +53,9 @@ const GlossaryPage = () => {
           <div className="flex flex-col md:flex-row py-6 md:space-x-8">
             {/* Left column: Heading */}
             <div className="md:w-1/3 mb-4 md:mb-0">
-              <h1 className="text-2xl mt-4 font-semibold">
+              <h2 className="text-2xl mt-4 font-semibold">
                 Africa Clean Air Forum Events
-              </h1>
+              </h2>
             </div>
             {/* Right column: List of event links */}
             <div className="md:w-2/3">
@@ -88,9 +88,9 @@ const GlossaryPage = () => {
               <div className="flex flex-col py-6 md:flex-row md:space-x-8">
                 {/* Left column: Heading */}
                 <div className="md:w-1/3 mb-4 md:mb-0">
-                  <h1 className="text-2xl mt-4 font-bold text-gray-900">
+                  <h2 className="text-2xl mt-4 font-bold text-gray-900">
                     Clean Air Glossary
-                  </h1>
+                  </h2>
                 </div>
                 {/* Right column: Glossary content */}
                 <div

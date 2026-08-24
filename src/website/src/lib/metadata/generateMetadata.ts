@@ -141,7 +141,7 @@ export function generateMetadata(
       'theme-color': DEFAULT_METADATA.themeColor,
       'mobile-web-app-capable': 'yes',
       'application-name': 'AirQo',
-      referrer: 'origin-when-cross-origin',
+      referrer: 'strict-origin-when-cross-origin',
       'format-detection': 'telephone=no',
     }),
 

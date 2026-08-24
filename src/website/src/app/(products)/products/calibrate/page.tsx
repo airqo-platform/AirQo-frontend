@@ -1,3 +1,4 @@
+import ProductJsonLd from '@/components/ProductJsonLd';
 import CalibratePage from '@/features/products/CalibratePage';
 import {
   generateMetadata as createMetadata,
@@ -11,6 +12,7 @@ export const viewport = generateViewport();
 const page = () => {
   return (
     <div>
+      <ProductJsonLd config={METADATA_CONFIGS.calibrate} />
       <CalibratePage />
     </div>
   );

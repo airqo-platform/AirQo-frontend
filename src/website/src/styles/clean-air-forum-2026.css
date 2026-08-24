@@ -98,7 +98,7 @@
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
   .caf-2026-quiz-stage {
     min-height: 100dvh;
-    overflow: hidden;
+    overflow: visible;
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
   }
@@ -112,7 +112,7 @@
     justify-content: space-between;
     margin-top: 2rem;
     gap: 1.5rem;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .caf-2026-quiz-question-block {

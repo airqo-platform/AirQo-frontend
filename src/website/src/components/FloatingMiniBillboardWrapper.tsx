@@ -19,6 +19,8 @@ interface BillboardData {
 }
 
 const INITIAL_BILLBOARD_FETCH_DELAY_MS = 6000;
+const MAX_BILLBOARD_GRIDS = 8;
+const REPRESENTATIVE_BATCH_SIZE = 4;
 
 const reportFloatingBillboardIssue = (
   message: string,
@@ -120,12 +122,18 @@ export default function FloatingMiniBillboardWrapper() {
           return 0; // Keep original order for others
         });
 
-        // Step 3: Fetch readings for all grids in batches
-        const batchSize = 10;
+        // Step 3: Fetch a bounded sample of readings in small batches. The
+        // billboard is decorative, so it should never fan out into one API
+        // request per country/grid on every page view.
+        const gridsToRead = sortedGrids.slice(0, MAX_BILLBOARD_GRIDS);
         const allReadings: BillboardData[] = [];
 
-        for (let i = 0; i < sortedGrids.length; i += batchSize) {
-          const batch = sortedGrids.slice(i, i + batchSize);
+        for (
+          let i = 0;
+          i < gridsToRead.length;
+          i += REPRESENTATIVE_BATCH_SIZE
+        ) {
+          const batch = gridsToRead.slice(i, i + REPRESENTATIVE_BATCH_SIZE);
 
           const batchPromises = batch.map(async (grid) => {
             try {
@@ -153,7 +161,7 @@ export default function FloatingMiniBillboardWrapper() {
           allReadings.push(...batchResults);
 
           // Small delay between batches to avoid rate limiting
-          if (i + batchSize < sortedGrids.length) {
+          if (i + REPRESENTATIVE_BATCH_SIZE < gridsToRead.length) {
             await new Promise((resolve) => setTimeout(resolve, 500));
           }
         }

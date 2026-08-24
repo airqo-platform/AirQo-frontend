@@ -1,3 +1,4 @@
+import ProductJsonLd from '@/components/ProductJsonLd';
 import VertexPage from '@/features/products/VertexPage';
 import {
   generateMetadata as createMetadata,
@@ -11,6 +12,7 @@ export const viewport = generateViewport();
 const page = () => {
   return (
     <div>
+      <ProductJsonLd config={METADATA_CONFIGS.vertex} />
       <VertexPage />
     </div>
   );

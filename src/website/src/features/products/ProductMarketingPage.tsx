@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 import type { IconType } from 'react-icons';
 import { BiLinkExternal } from 'react-icons/bi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
+import { cn } from '@/lib/utils';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -114,6 +116,12 @@ type ProductMarketingPageProps = {
     description: string;
     items: ProductCapability[];
   };
+  /** Optional slot rendered after capabilities and before useCases. */
+  children?: React.ReactNode;
+  /** Move the custom slot after the download section when needed. */
+  childrenAfterDownload?: boolean;
+  /** Move the custom slot after the secondary spotlight section when needed. */
+  childrenAfterSecondary?: boolean;
   useCases?: {
     title: React.ReactNode;
     description: string;
@@ -126,7 +134,7 @@ type ProductMarketingPageProps = {
     description: string;
     items: string[];
   };
-  ctaSection: {
+  ctaSection?: {
     eyebrow: string;
     title: React.ReactNode;
     description: string;
@@ -139,17 +147,37 @@ const openExternalLink = (href: string) => {
   window.open(href, '_blank', 'noopener,noreferrer');
 };
 
+/** Internal links navigate in the same tab; external links open a new tab. */
+const isInternalHref = (href: string): boolean => href.startsWith('/');
+
+const productActionButtonBaseClassName =
+  'inline-flex items-center px-6 py-4 text-sm font-medium transition-transform duration-300 active:scale-95 shadow-none focus:outline-none';
+
 const ProductActionButton = ({ action }: { action: ProductAction }) => {
-  const className =
+  const variantClassName =
     action.variant === 'secondary'
       ? 'border border-black bg-transparent text-gray-800 hover:bg-gray-100'
       : 'bg-blue-700 text-white hover:bg-blue-800';
+
+  const className = `flex items-center justify-center ${variantClassName}`;
+
+  if (isInternalHref(action.href)) {
+    return (
+      <Link
+        href={action.href}
+        className={cn(productActionButtonBaseClassName, className)}
+      >
+        {action.label}
+        <BiLinkExternal className="ml-2 text-lg" aria-hidden="true" />
+      </Link>
+    );
+  }
 
   return (
     <CustomButton
       type="button"
       onClick={() => openExternalLink(action.href)}
-      className={`flex items-center justify-center ${className}`}
+      className={className}
     >
       {action.label}
       <BiLinkExternal className="ml-2 text-lg" aria-hidden="true" />
@@ -188,6 +216,7 @@ const ProductSpotlight = ({
             alt={section.image.alt}
             width={section.image.width ?? 741}
             height={section.image.height ?? 540}
+            sizes="(min-width: 1056px) 724px, (min-width: 1024px) calc(100vw - 332px), calc(100vw - 2rem)"
             style={{ objectFit: 'cover' }}
             className="rounded-lg w-full md:w-full"
           />
@@ -230,6 +259,9 @@ const ProductMarketingPage = ({
   intro,
   primarySection,
   capabilities,
+  children,
+  childrenAfterDownload = false,
+  childrenAfterSecondary = false,
   useCases,
   downloadSection,
   secondarySection,
@@ -279,6 +311,7 @@ const ProductMarketingPage = ({
               alt={hero.image.alt}
               width={hero.image.width ?? 500}
               height={hero.image.height ?? 350}
+              sizes="(min-width: 1056px) 488px, (min-width: 768px) 50vw, calc(100vw - 2rem)"
               style={{ objectFit: 'cover' }}
               className="rounded-lg w-full md:w-full"
               priority
@@ -351,6 +384,8 @@ const ProductMarketingPage = ({
           </div>
         </div>
       </motion.section>
+
+      {!childrenAfterDownload && !childrenAfterSecondary ? children : null}
 
       {useCases ? (
         <motion.section
@@ -438,7 +473,11 @@ const ProductMarketingPage = ({
         </motion.section>
       ) : null}
 
+      {childrenAfterDownload ? children : null}
+
       <ProductSpotlight section={secondarySection} />
+
+      {childrenAfterSecondary ? children : null}
 
       {audiences ? (
         <motion.section
@@ -478,69 +517,89 @@ const ProductMarketingPage = ({
         </motion.section>
       ) : null}
 
-      <motion.section
-        className="px-4 pt-16 lg:pt-24"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center`}
+      {ctaSection ? (
+        <motion.section
+          className="px-4 pt-16 lg:pt-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
         >
-          <motion.div className="space-y-5" variants={itemVariants}>
-            <p
-              className={`text-sm tracking-wide uppercase font-semibold ${theme.accentTextClassName}`}
-            >
-              {ctaSection.eyebrow}
-            </p>
-            <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
-              {ctaSection.title}
-            </h2>
-            <p className="text-lg text-gray-700">{ctaSection.description}</p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              {ctaSection.actions.map((action) => (
-                <ProductActionButton key={action.label} action={action} />
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            className={`rounded-xl border border-gray-200 p-6 shadow-sm ${theme.quickLinksCardClassName}`}
-            variants={cardVariants}
+          <div
+            className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center`}
           >
-            <h3 className="text-2xl font-semibold text-gray-900 mb-5">
-              Explore more
-            </h3>
-            <div className="grid grid-cols-1 gap-4">
-              {ctaSection.quickLinks.map((link) => (
-                <a
-                  key={link.title}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-4 text-left transition-colors hover:border-blue-200 hover:bg-blue-50"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {link.title}
-                      </p>
-                      <p className="mt-1 text-sm leading-6 text-gray-700">
-                        {link.description}
-                      </p>
-                    </div>
-                    <BiLinkExternal
-                      className="mt-1 h-5 w-5 flex-shrink-0 text-slate-500"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </a>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </motion.section>
+            <motion.div className="space-y-5" variants={itemVariants}>
+              <p
+                className={`text-sm tracking-wide uppercase font-semibold ${theme.accentTextClassName}`}
+              >
+                {ctaSection.eyebrow}
+              </p>
+              <h2 className="text-[32px] lg:text-[40px] leading-tight font-semibold text-gray-900">
+                {ctaSection.title}
+              </h2>
+              <p className="text-lg text-gray-700">{ctaSection.description}</p>
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                {ctaSection.actions.map((action) => (
+                  <ProductActionButton key={action.label} action={action} />
+                ))}
+              </div>
+            </motion.div>
+
+            {ctaSection.quickLinks.length > 0 && (
+              <motion.div
+                className={`rounded-xl border border-gray-200 p-6 shadow-sm ${theme.quickLinksCardClassName}`}
+                variants={cardVariants}
+              >
+                <h3 className="text-2xl font-semibold text-gray-900 mb-5">
+                  Explore more
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {ctaSection.quickLinks.map((link) => {
+                    const linkClassName =
+                      'w-full rounded-xl border border-slate-200 bg-white px-4 py-4 text-left transition-colors hover:border-blue-200 hover:bg-blue-50';
+                    const linkContent = (
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {link.title}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-gray-700">
+                            {link.description}
+                          </p>
+                        </div>
+                        <BiLinkExternal
+                          className="mt-1 h-5 w-5 flex-shrink-0 text-slate-500"
+                          aria-hidden="true"
+                        />
+                      </div>
+                    );
+
+                    return isInternalHref(link.href) ? (
+                      <Link
+                        key={link.title}
+                        href={link.href}
+                        className={linkClassName}
+                      >
+                        {linkContent}
+                      </Link>
+                    ) : (
+                      <a
+                        key={link.title}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={linkClassName}
+                      >
+                        {linkContent}
+                      </a>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </motion.section>
+      ) : null}
     </div>
   );
 };

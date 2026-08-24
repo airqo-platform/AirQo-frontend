@@ -4,10 +4,7 @@ import {
   AnimatePresence,
   motion,
   type PanInfo,
-  useMotionValue,
   useReducedMotion,
-  useSpring,
-  useTransform,
   type Variants,
 } from 'framer-motion';
 import Image from 'next/image';
@@ -51,12 +48,6 @@ const EVENT_LOCATION_AND_YEAR = 'Pretoria 2026';
 const FACES_TITLE_PREFIX = 'Faces of';
 const FACES_TITLE_MAIN = 'Air Quality';
 const LEADERBOARD_TITLE = 'Air Quality Quiz Leaderboard';
-
-const SMOOTH_SPRING = {
-  stiffness: 150,
-  damping: 25,
-  mass: 0.9,
-};
 
 type FetchState = 'idle' | 'loading' | 'success' | 'error';
 type DisplayStage = 'faces' | 'leaderboard';
@@ -189,7 +180,6 @@ function AmbientBackground({ reduceMotion }: { reduceMotion: boolean | null }) {
             : {
                 x: [-45, 120, -15, -45],
                 y: [0, 58, -26, 0],
-                opacity: [0.2, 0.5, 0.28, 0.2],
               }
         }
         transition={{
@@ -217,13 +207,11 @@ function SkeletonCard({
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 24,
               scale: 0.96,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
@@ -284,17 +272,14 @@ function SkeletonCard({
 
 const cardVariants: Variants = {
   enter: {
-    opacity: 0,
     y: 28,
     scale: 0.94,
   },
   center: {
-    opacity: 1,
     y: 0,
     scale: 1,
   },
   exit: {
-    opacity: 0,
     y: -16,
     scale: 0.96,
   },
@@ -354,15 +339,6 @@ function FaceCard({
   priority: boolean;
   reduceMotion: boolean | null;
 }) {
-  const pointerX = useMotionValue(0.5);
-  const pointerY = useMotionValue(0.5);
-
-  const transformedRotateX = useTransform(pointerY, [0, 1], [5, -5]);
-  const transformedRotateY = useTransform(pointerX, [0, 1], [-5, 5]);
-
-  const rotateX = useSpring(transformedRotateX, SMOOTH_SPRING);
-  const rotateY = useSpring(transformedRotateY, SMOOTH_SPRING);
-
   const displayName =
     submission.displayName?.trim() ||
     submission.locationName?.trim() ||
@@ -370,29 +346,6 @@ function FaceCard({
 
   const location =
     submission.locationName?.trim() || 'Pretoria, Gauteng, South Africa';
-
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
-      if (reduceMotion || event.pointerType !== 'mouse') {
-        return;
-      }
-
-      const cardBounds = event.currentTarget.getBoundingClientRect();
-
-      const relativeX = (event.clientX - cardBounds.left) / cardBounds.width;
-
-      const relativeY = (event.clientY - cardBounds.top) / cardBounds.height;
-
-      pointerX.set(Math.min(Math.max(relativeX, 0), 1));
-      pointerY.set(Math.min(Math.max(relativeY, 0), 1));
-    },
-    [pointerX, pointerY, reduceMotion],
-  );
-
-  const resetPointerPosition = useCallback(() => {
-    pointerX.set(0.5);
-    pointerY.set(0.5);
-  }, [pointerX, pointerY]);
 
   const handleDownload = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -404,40 +357,12 @@ function FaceCard({
 
   return (
     <motion.article
-      layout
       variants={cardVariants}
       transition={{
         duration: reduceMotion ? 0 : 0.68,
         ease: [0.22, 1, 0.36, 1],
       }}
-      whileHover={
-        reduceMotion
-          ? undefined
-          : {
-              y: -8,
-              scale: 1.015,
-              transition: {
-                type: 'spring',
-                stiffness: 240,
-                damping: 24,
-              },
-            }
-      }
-      whileTap={
-        reduceMotion
-          ? undefined
-          : {
-              scale: 0.986,
-            }
-      }
-      onPointerMove={handlePointerMove}
-      onPointerLeave={resetPointerPosition}
-      style={{
-        rotateX: reduceMotion ? 0 : rotateX,
-        rotateY: reduceMotion ? 0 : rotateY,
-        transformPerspective: 1000,
-      }}
-      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)] [transform-style:preserve-3d] will-change-transform"
+      className="group relative aspect-square w-full overflow-hidden rounded-xl border border-white/15 bg-[#005257] shadow-[0_20px_50px_-25px_rgba(2,6,23,0.7)] sm:shadow-[0_12px_36px_-12px_rgba(2,6,23,0.5)] lg:shadow-[0_6px_24px_-6px_rgba(2,6,23,0.35)]"
     >
       <Image
         src={submission.imageUrl}
@@ -453,7 +378,7 @@ function FaceCard({
         type="button"
         onClick={handleDownload}
         aria-label={`Download ${displayName}'s selfie as PNG`}
-        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-all duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        className="absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-black/40 text-white opacity-100 backdrop-blur-md transition-transform duration-200 hover:bg-black/60 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
       >
         <FiDownload className="h-4 w-4" />
       </button>
@@ -468,18 +393,15 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 26,
               scale: 0.96,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
       exit={{
-        opacity: 0,
         y: -16,
         scale: 0.97,
       }}
@@ -496,7 +418,6 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
               className="absolute inset-0 rounded-full border border-white/25"
               animate={{
                 scale: [1, 1.65],
-                opacity: [0.55, 0],
               }}
               transition={{
                 duration: 2.6,
@@ -509,7 +430,6 @@ function EmptyState({ reduceMotion }: { reduceMotion: boolean | null }) {
               className="absolute inset-0 rounded-full border border-[#39BFC7]/30"
               animate={{
                 scale: [1, 1.45],
-                opacity: [0.45, 0],
               }}
               transition={{
                 duration: 2.6,
@@ -564,18 +484,15 @@ function ErrorState({
         reduceMotion
           ? false
           : {
-              opacity: 0,
               y: 22,
               scale: 0.97,
             }
       }
       animate={{
-        opacity: 1,
         y: 0,
         scale: 1,
       }}
       exit={{
-        opacity: 0,
         y: -14,
         scale: 0.98,
       }}
@@ -766,11 +683,9 @@ const headerContainerVariants: Variants = {
 
 const headerItemVariants: Variants = {
   hidden: {
-    opacity: 0,
     y: -20,
   },
   visible: {
-    opacity: 1,
     y: 0,
     transition: {
       duration: 0.78,
@@ -1061,14 +976,12 @@ export default function FacesOfCleanAirPage() {
             ? 9
             : -9
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.92 : 0.96,
     }),
 
     center: {
       x: 0,
       rotateY: 0,
-      opacity: 1,
       scale: 1,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.82 : 0.74,
@@ -1095,7 +1008,6 @@ export default function FacesOfCleanAirPage() {
             ? -8
             : 8
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.94 : 0.972,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.56 : 0.46,
@@ -1151,7 +1063,7 @@ export default function FacesOfCleanAirPage() {
 
   return (
     <div
-      className="relative h-[100svh] overflow-hidden sm:h-auto sm:min-h-[100svh]"
+      className="relative min-h-[100svh] overflow-x-hidden"
       style={{
         background:
           'linear-gradient(180deg, #005257 0%, #39BFC7 50%, #FFFFFF 100%)',
@@ -1159,7 +1071,7 @@ export default function FacesOfCleanAirPage() {
     >
       <AmbientBackground reduceMotion={shouldReduceMotion} />
 
-      <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:min-h-[100svh] sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
+      <div className="relative mx-auto flex min-h-[100svh] w-full max-w-[1400px] flex-col px-4 pb-3 pt-4 sm:px-8 sm:pb-12 sm:pt-8 lg:px-12">
         <motion.header
           variants={headerContainerVariants}
           initial={shouldReduceMotion ? false : 'hidden'}
@@ -1241,7 +1153,7 @@ export default function FacesOfCleanAirPage() {
                 : 'Air quality quiz leaderboard carousel'
             }
             aria-roledescription="carousel"
-            className="flex h-full w-full min-h-0 flex-col justify-center overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
+            className="flex h-full w-full min-h-0 flex-col justify-center overflow-visible rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto sm:overflow-hidden"
             onKeyDown={handleCarouselKeyDown}
             onMouseEnter={() => {
               if (!isMobile) {
@@ -1266,20 +1178,6 @@ export default function FacesOfCleanAirPage() {
           >
             <motion.div
               key={displayStage}
-              initial={
-                shouldReduceMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                    }
-              }
-              animate={{
-                opacity: 1,
-              }}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.45,
-                ease: [0.22, 1, 0.36, 1],
-              }}
               className={
                 displayStage === 'faces' && isMobile
                   ? 'flex h-full min-h-0 flex-col items-center justify-center'
@@ -1291,15 +1189,6 @@ export default function FacesOfCleanAirPage() {
               {displayStage === 'faces' && isInitialLoading && (
                 <motion.div
                   key="loading"
-                  initial={{
-                    opacity: 0,
-                  }}
-                  animate={{
-                    opacity: 1,
-                  }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0 : 0.64,
-                  }}
                   className={
                     isMobile
                       ? 'flex h-full min-h-0 items-center justify-center'
@@ -1319,7 +1208,7 @@ export default function FacesOfCleanAirPage() {
                       style={
                         isMobile
                           ? {
-                              width: 'min(86vw, calc(100svh - 205px), 360px)',
+                              width: 'min(86vw, 360px)',
                             }
                           : undefined
                       }
@@ -1406,8 +1295,7 @@ export default function FacesOfCleanAirPage() {
                               style={
                                 isMobile
                                   ? {
-                                      width:
-                                        'min(86vw, calc(100svh - 205px), 360px)',
+                                      width: 'min(86vw, 360px)',
                                     }
                                   : undefined
                               }

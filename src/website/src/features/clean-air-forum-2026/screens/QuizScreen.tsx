@@ -423,7 +423,7 @@ export default function QuizScreen() {
     !currentActivity
   ) {
     return (
-      <Screen className="caf-2026-screen relative overflow-hidden">
+      <Screen className="caf-2026-screen relative overflow-x-hidden">
         <AmbientBackground variant="quiz" />
         <motion.header
           variants={headerContainerVariants}
@@ -478,13 +478,40 @@ export default function QuizScreen() {
             </p>
           </motion.div>
         </motion.header>
+
+        <div className="relative z-10 mx-auto mt-16 w-full max-w-[32rem] rounded-2xl border border-white/20 bg-white/15 px-5 py-8 text-center text-[#072b31] shadow-[0_20px_60px_rgba(7,43,49,0.12)] backdrop-blur-xl sm:mt-20 sm:px-8 sm:py-10">
+          {quizSetup.status === 'error' &&
+          quizSetup.errorMessage !== 'participant session required' ? (
+            <>
+              <h1 className="text-xl font-bold">Unable to load the quiz</h1>
+              <p className="mt-2 text-sm text-[#0d4f57]/80">
+                {quizSetup.errorMessage ||
+                  'Please check your connection and try again.'}
+              </p>
+              <Button
+                type="button"
+                className="mt-5 rounded-[1.2rem] px-6 py-2.5 text-sm font-semibold"
+                onClick={() => setSetupResetKey((key) => key + 1)}
+              >
+                Try again
+              </Button>
+            </>
+          ) : (
+            <p
+              className="text-lg font-semibold text-[#072b31]"
+              aria-live="polite"
+            >
+              Loading quiz...
+            </p>
+          )}
+        </div>
       </Screen>
     );
   }
 
   if (screenStage === 'results') {
     return (
-      <Screen className="caf-2026-screen relative overflow-hidden">
+      <Screen className="caf-2026-screen relative overflow-x-hidden">
         <AmbientBackground variant="quiz" />
         <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1200px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
           <div className="flex w-full flex-col items-center">
@@ -592,7 +619,7 @@ export default function QuizScreen() {
   }
 
   return (
-    <Screen className="caf-2026-screen relative overflow-hidden">
+    <Screen className="caf-2026-screen relative overflow-x-hidden">
       <AmbientBackground variant="quiz" />
       <section className="relative z-10 caf-2026-quiz-stage mx-auto flex min-h-screen w-full max-w-[1200px] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:px-16 lg:py-16">
         <div className="caf-2026-quiz-shell flex w-full flex-col items-center">

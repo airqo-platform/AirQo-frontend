@@ -1,3 +1,4 @@
+import ProductJsonLd from '@/components/ProductJsonLd';
 import AnalyticsPage from '@/features/products/AnalyticsPage';
 import {
   generateMetadata as createMetadata,
@@ -11,6 +12,7 @@ export const viewport = generateViewport();
 const page = () => {
   return (
     <div>
+      <ProductJsonLd config={METADATA_CONFIGS.nexus} />
       <AnalyticsPage />
     </div>
   );
