@@ -39,9 +39,9 @@ const SponsorshipPage = () => {
             <div>
               <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
               <div className="py-6">
-                <h1 className="text-2xl font-bold">
+                <h2 className="text-2xl font-bold">
                   Sponsorship opportunities
-                </h1>
+                </h2>
                 <div
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(mainSponsorshipHTML),
@@ -65,9 +65,9 @@ const SponsorshipPage = () => {
               <div>
                 <div className="flex flex-col md:flex-row md:space-x-8 py-6">
                   <div className="md:w-1/3 mb-4 md:mb-0">
-                    <h1 className="text-2xl mt-0 font-bold text-gray-900">
+                    <h2 className="text-2xl mt-0 font-bold text-gray-900">
                       Sponsors
-                    </h1>
+                    </h2>
                   </div>
                   <PaginatedSection
                     noClick={true}

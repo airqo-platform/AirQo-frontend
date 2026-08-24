@@ -25,11 +25,47 @@ export const SLACK_DEDUPE_MAX_KEYS = 200;
 
 const slackDedupeCache = new Map<string, number>();
 
-function stableStringify(value: unknown): string {
+/**
+ * Deterministic, circular-safe serializer used to build Slack dedupe keys.
+ *
+ * A bare JSON.stringify throws on circular structures and bigints, and the
+ * old catch-all fallback returned '' — collapsing every unserializable
+ * context into a single dedupe key so unrelated alerts suppressed each
+ * other for the whole window. This replacer-based variant:
+ * - marks revisited objects as '[Circular]' instead of throwing;
+ * - serializes bigints via String() instead of throwing;
+ * - replaces functions/symbols with fixed markers instead of omitting the
+ *   keys, so contexts that differ only in such fields still produce
+ *   distinct keys.
+ * It never returns an empty string.
+ */
+// Exported for tests only.
+export function stableStringify(value: unknown): string {
+  const visited = new WeakSet<object>();
   try {
-    return JSON.stringify(value);
+    const serialized = JSON.stringify(value, (_key, val) => {
+      if (typeof val === 'bigint') {
+        return String(val);
+      }
+      if (typeof val === 'function') {
+        return '[Function]';
+      }
+      if (typeof val === 'symbol') {
+        return '[Symbol]';
+      }
+      if (val !== null && typeof val === 'object') {
+        if (visited.has(val)) {
+          return '[Circular]';
+        }
+        visited.add(val);
+      }
+      return val;
+    });
+    // JSON.stringify returns undefined for top-level undefined values
+    return serialized ?? `[unserializable:${typeof value}]`;
   } catch {
-    return '';
+    // Last resort: non-empty deterministic fallback that varies by type.
+    return `[unserializable:${typeof value}]`;
   }
 }
 
@@ -38,6 +74,7 @@ function getSlackDedupeKey(data: LogData): string {
     data.level,
     data.message,
     data.error?.name ?? '',
+    data.error?.message ?? '',
     stableStringify(data.context ?? null),
   ].join('|');
 }
@@ -117,9 +154,18 @@ class Logger {
       });
 
       if (!response.ok) {
+        // Delivery failed: undo this request's dedupe entry so an identical
+        // error can retry instead of being suppressed for the whole window.
+        // Only remove if a newer concurrent request has not re-recorded it.
+        if (slackDedupeCache.get(dedupeKey) === now) {
+          slackDedupeCache.delete(dedupeKey);
+        }
         console.error('Failed to send log to Slack:', response.statusText);
       }
     } catch (err) {
+      if (slackDedupeCache.get(dedupeKey) === now) {
+        slackDedupeCache.delete(dedupeKey);
+      }
       console.error('Error sending log to Slack:', err);
     }
   }

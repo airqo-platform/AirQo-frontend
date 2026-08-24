@@ -1,3 +1,4 @@
+import ProductJsonLd from '@/components/ProductJsonLd';
 import AIPlatformPage from '@/features/products/AIPlatformPage';
 import {
   generateMetadata as createMetadata,
@@ -11,6 +12,7 @@ export const viewport = generateViewport();
 const page = () => {
   return (
     <div>
+      <ProductJsonLd config={METADATA_CONFIGS.aiPlatform} />
       <AIPlatformPage />
     </div>
   );

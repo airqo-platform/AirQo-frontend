@@ -197,14 +197,6 @@ const BeaconPage = () => {
               'https://beacon.airqo.net/dashboard/analytics?analysis=cohorts',
             ),
           },
-          {
-            title: 'Automatic Reports',
-            description:
-              'Use recurring health and performance reports to maintain operational awareness over time.',
-            href: getEnvironmentAwareUrl(
-              'https://beacon.airqo.net/dashboard/reports',
-            ),
-          },
         ],
       }}
     />

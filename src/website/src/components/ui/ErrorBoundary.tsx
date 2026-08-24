@@ -56,6 +56,12 @@ function canAttemptSilentReload(): boolean {
 
 const CHUNK_RELOAD_SESSION_KEY = 'chunk_reload_ts';
 const CHUNK_RELOAD_TTL_MS = 10000;
+// Grace period after a silent chunk reload attempt: if navigation has not
+// happened by then (blocked reloads, popup blockers, failed navigation), the
+// pending boundary falls back to the standard error UI instead of rendering
+// a blank page forever.
+// Exported for tests only.
+export const CHUNK_RELOAD_GRACE_MS = 2000;
 
 // Tracks whether a silent chunk reload is actually scheduled and has not
 // fired yet. React may invoke getDerivedStateFromError more than once for a
@@ -64,12 +70,30 @@ const CHUNK_RELOAD_TTL_MS = 10000;
 // leave the user stranded on a blank page.
 let chunkReloadInFlight = false;
 
+// Recovery hook for the boundary instance waiting on the in-flight silent
+// chunk reload. getDerivedStateFromError is static (no `this`), so
+// componentDidCatch registers a callback here and the grace timer below uses
+// it to clear the boundary's `chunkReloadPending` state when navigation never
+// happens.
+let pendingChunkReloadRecovery: (() => void) | null = null;
+
 function scheduleChunkReload(now: number): void {
   chunkReloadInFlight = true;
   setSessionStorageItem(CHUNK_RELOAD_SESSION_KEY, now.toString());
   // Delay reload to avoid synchronous navigation during render
   setTimeout(() => {
     chunkReloadInFlight = false;
+    // Bounded recovery: register the grace timer before attempting
+    // navigation so it also covers a reload() that throws or is blocked.
+    // If navigation succeeds the page unloads before the timer fires;
+    // otherwise the pending boundary drops its blank placeholder and the
+    // standard error UI (retry/reload actions) renders. setState after
+    // unmount is a safe no-op in React 18.
+    setTimeout(() => {
+      const recovery = pendingChunkReloadRecovery;
+      pendingChunkReloadRecovery = null;
+      recovery?.();
+    }, CHUNK_RELOAD_GRACE_MS);
     window.location.reload();
   }, 0);
 }
@@ -85,7 +109,12 @@ function isChunkLoadError(error: Error): boolean {
 function canAttemptChunkReload(): boolean {
   const lastReload = getSessionStorageItem<string>(CHUNK_RELOAD_SESSION_KEY);
   if (!lastReload) return true;
-  return Date.now() - parseInt(lastReload, 10) > CHUNK_RELOAD_TTL_MS;
+  const parsed = Number.parseInt(lastReload, 10);
+  // Corrupted/invalid stored values must not disable reloads forever:
+  // treat them as absent — the reload attempt overwrites them with a
+  // valid timestamp.
+  if (!Number.isFinite(parsed)) return true;
+  return Date.now() - parsed > CHUNK_RELOAD_TTL_MS;
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -122,7 +151,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return {
         hasError: true,
         error,
-        errorId: `ERR_${now}_${Math.random().toString(36).substr(2, 9)}`,
+        errorId: `ERR_${now}_${Math.random().toString(36).slice(2, 11)}`,
         // Render the blank placeholder only while a reload is actually
         // scheduled; otherwise fall through to the standard error UI so the
         // user always has a way to recover.
@@ -130,7 +159,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       };
     }
 
-    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const errorId = `ERR_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     return {
       hasError: true,
       error,
@@ -143,6 +172,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // getDerivedStateFromError. Never send them to Slack — that is what
     // floods the alert channel after every deploy.
     if (isChunkLoadError(error)) {
+      // Register this boundary's recovery so the reload's grace timer can
+      // clear `chunkReloadPending` if the silent reload never navigates.
+      if (this.state.chunkReloadPending) {
+        pendingChunkReloadRecovery = () =>
+          this.setState({ chunkReloadPending: false });
+      }
       logger.debug('ChunkLoadError handled by ErrorBoundary', {
         message: error.message,
         silentReloadScheduled: this.state.chunkReloadPending ?? false,

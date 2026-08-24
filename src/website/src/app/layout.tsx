@@ -304,7 +304,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* DM Mono (used on the For Communities page) loaded non-blocking */}
         <NonBlockingFontLink href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap" />
 
-        <meta name="referrer" content="no-referrer" />
+        <meta name="referrer" content="origin-when-cross-origin" />
 
         {/* Structured data */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static JSON-LD data, not user input */}

@@ -78,6 +78,24 @@ describe('logger Slack dedupe', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('does not collapse logs whose circular contexts differ', async () => {
+    // Regression: stableStringify used to return '' for unserializable
+    // contexts, so unrelated errors with circular contexts shared one dedupe
+    // key and suppressed each other for the whole window.
+    const makeContext = (detail: string) => {
+      const context: Record<string, unknown> = { detail };
+      context.self = context; // circular reference
+      return context;
+    };
+
+    logger.warn('circular context failure', makeContext('alpha'));
+    await flush();
+    logger.warn('circular context failure', makeContext('beta'));
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('sends different messages separately', async () => {
     logger.warn('first message');
     await flush();
@@ -108,6 +126,62 @@ describe('logger Slack dedupe', () => {
     await flush();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('treats errors with the same name but different messages as distinct', async () => {
+    const firstError = new Error('first failure detail');
+    firstError.name = 'ChunkLoadError';
+    const secondError = new Error('second failure detail');
+    secondError.name = 'ChunkLoadError';
+
+    logger.error('React Error Boundary caught an error', firstError);
+    await flush();
+    logger.error('React Error Boundary caught an error', secondError);
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries after a failed (non-ok) Slack delivery within the window', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    fetchMock.mockResolvedValue({ ok: false, statusText: 'Server Error' });
+
+    logger.warn('flaky delivery');
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // The failed delivery's dedupe entry was cleaned up
+    expect(getSlackDedupeKeysForTests()).toHaveLength(0);
+
+    // An identical call inside the 60s window still posts
+    logger.warn('flaky delivery');
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(getSlackDedupeKeysForTests()).toHaveLength(0);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('retries after a rejected Slack delivery within the window', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    fetchMock.mockRejectedValue(new Error('network down'));
+
+    logger.error('network blip');
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // The rejected delivery's dedupe entry was cleaned up
+    expect(getSlackDedupeKeysForTests()).toHaveLength(0);
+
+    // An identical call inside the 60s window still posts
+    logger.error('network blip');
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(getSlackDedupeKeysForTests()).toHaveLength(0);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('re-sends after the 60s window expires', async () => {

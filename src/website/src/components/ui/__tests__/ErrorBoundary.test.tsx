@@ -1,4 +1,5 @@
 import { act, render } from '@testing-library/react';
+import type { ReactNode } from 'react';
 
 const mockIsGoogleTranslationActive = jest.fn().mockReturnValue(false);
 
@@ -22,14 +23,15 @@ jest.mock('@/components/ui/CustomButton', () => ({
     children,
     onClick,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     onClick?: () => void;
   }) => <button onClick={onClick}>{children}</button>,
 }));
 
 import logger from '@/lib/utils/logger';
+import { setSessionStorageItem } from '@/lib/utils/storageUtils';
 
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary, { CHUNK_RELOAD_GRACE_MS } from '../ErrorBoundary';
 
 const mockLogger = logger as jest.MockedObject<typeof logger>;
 
@@ -65,7 +67,7 @@ const GoogleTranslateDomError = () => {
  * Mounts the boundary with a healthy child, then swaps in the crashing child —
  * mirroring how a lazy chunk fails at runtime.
  */
-const renderThenCrash = (crasher: React.ReactNode) => {
+const renderThenCrash = (crasher: ReactNode) => {
   const utils = render(
     <ErrorBoundary>
       <SteadyChild />
@@ -186,6 +188,57 @@ describe('ErrorBoundary', () => {
         'Oops! Something went wrong',
       );
       expect(mockLogger.debug).toHaveBeenCalled();
+    });
+
+    it('still schedules a silent reload when the stored chunk_reload_ts is corrupted', () => {
+      // Stored the way production stores values (JSON-encoded), but not a
+      // numeric timestamp: parseInt used to yield NaN, making
+      // `Date.now() - NaN > TTL` permanently false and silently disabling
+      // chunk reloads until storage was cleared.
+      setSessionStorageItem(CHUNK_RELOAD_KEY, 'abc123');
+
+      renderThenCrash(<ChunkNameError />);
+      firePendingReload();
+
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+      // The reload attempt overwrote the corrupted value with a valid
+      // timestamp (setSessionStorageItem stores it JSON-encoded)
+      expect(sessionStorage.getItem(CHUNK_RELOAD_KEY)).toMatch(/^"\d+"$/);
+    });
+
+    it('still schedules a silent reload when the stored chunk_reload_ts is raw garbage', () => {
+      // Raw non-JSON value: the safe storage wrapper returns null for it,
+      // which must behave like an absent timestamp.
+      sessionStorage.setItem(CHUNK_RELOAD_KEY, 'garbage');
+
+      renderThenCrash(<ChunkNameError />);
+      firePendingReload();
+
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the error UI when the silent reload does not navigate', () => {
+      const { container } = renderThenCrash(<ChunkNameError />);
+
+      // Blank placeholder while the silent reload is pending
+      expect(container.textContent).toBe('');
+
+      // Reload attempt fires but navigation is blocked (mocked no-op)
+      firePendingReload();
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+      expect(container.textContent).toBe('');
+
+      // Past the grace period without navigation: bounded recovery clears
+      // the blank placeholder so the standard error UI renders again —
+      // never a permanent blank page.
+      act(() => {
+        jest.advanceTimersByTime(CHUNK_RELOAD_GRACE_MS + 100);
+      });
+
+      // Still exactly one reload attempt; the grace path must not retry.
+      expect(reloadMock).toHaveBeenCalledTimes(1);
+      expect(container.textContent).toContain('Oops! Something went wrong');
+      expect(container.textContent).toContain('Try Again');
     });
 
     it('shows the error UI (never a blank page) when a crash lands past the settle window with no reload in flight', () => {

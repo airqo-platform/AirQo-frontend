@@ -77,3 +77,92 @@ export function generateWebsiteSchema(siteUrl: string): StructuredData {
     image: DEFAULT_METADATA.defaultImage.url,
   };
 }
+
+interface ProductStructuredData {
+  '@context': string;
+  '@type': string;
+  name: string;
+  description: string;
+  image?: string;
+  brand: {
+    '@type': string;
+    name: string;
+  };
+  offers: {
+    '@type': string;
+    price: string;
+    priceCurrency: string;
+    availability: string;
+  };
+}
+
+/**
+ * Extract a display name from a page title by dropping the SEO suffix
+ * after the first "|" separator (e.g. "AirQo Vertex | Open Data Platform"
+ * -> "AirQo Vertex").
+ */
+export function getProductDisplayName(title: string): string {
+  return title.split('|')[0]?.trim() ?? title.trim();
+}
+
+export function generateProductSchema(
+  config: MetadataConfig,
+  siteUrl: string,
+): ProductStructuredData {
+  const base = siteUrl.replace(/\/+$/, '');
+  const image = config.image || DEFAULT_METADATA.defaultImage;
+  const imageUrl = image.url.startsWith('http')
+    ? image.url
+    : `${base}${image.url}`;
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: getProductDisplayName(config.title),
+    description: config.description,
+    image: imageUrl,
+    brand: {
+      '@type': 'Brand',
+      name: 'AirQo',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
+  };
+}
+
+export interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+interface BreadcrumbListStructuredData {
+  '@context': string;
+  '@type': string;
+  itemListElement: {
+    '@type': string;
+    position: number;
+    name: string;
+    item: string;
+  }[];
+}
+
+export function generateBreadcrumbSchema(
+  items: BreadcrumbItem[],
+  siteUrl: string,
+): BreadcrumbListStructuredData {
+  const base = siteUrl.replace(/\/+$/, '');
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url.startsWith('http') ? item.url : `${base}${item.url}`,
+    })),
+  };
+}

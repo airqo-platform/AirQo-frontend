@@ -177,9 +177,9 @@ const SpeakersPage = () => {
                 <>
                   <Divider className="bg-black/60 p-0 m-0 h-[1px] w-full" />
                   <section className="py-10">
-                    <h1 className="text-2xl font-bold mb-6">
+                    <h2 className="text-2xl font-bold mb-6">
                       Keynote Speakers
-                    </h1>
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {' '}
                       {displayedKeyNoteSpeakers.map((person: any) => (

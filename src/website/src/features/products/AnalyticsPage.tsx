@@ -183,7 +183,7 @@ const AnalyticsPage = () => {
             title: 'Contact Us',
             description:
               'Get in touch with the AirQo team for support or partnership enquiries.',
-            href: 'https://airqo.net',
+            href: '/contact',
           },
         ],
       }}

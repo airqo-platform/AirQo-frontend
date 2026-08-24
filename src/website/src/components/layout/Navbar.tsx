@@ -8,7 +8,7 @@ import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
 import { CustomButton } from '@/components/ui';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import mainConfig from '@/config/site.config';
 import { useDispatch } from '@/hooks';
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
@@ -254,6 +254,9 @@ const Navbar: React.FC = () => {
           aria-label="Site navigation"
           className={`!fixed !inset-y-0 !left-0 !top-0 !z-[100001] !flex !h-[100svh] !max-h-[100svh] !translate-x-0 !translate-y-0 w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl md:hidden transition-transform duration-300 ease-in-out`}
         >
+          {/* Accessible dialog title (visually hidden) — required by Radix Dialog */}
+          <DialogTitle className="sr-only">Menu</DialogTitle>
+
           {/* Drawer Header */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">
             <Link href={mainConfig.homePageUrl} onClick={handleLinkClick}>

@@ -2,6 +2,12 @@ import { Metadata } from 'next';
 import React from 'react';
 
 import IconsPackagePage from '@/features/packages/IconsPackagePage';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+
+const iconsOgImage = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
+  { width: 1200 },
+);
 
 export const metadata: Metadata = {
   title: 'AirQo Icons',
@@ -21,7 +27,14 @@ export const metadata: Metadata = {
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
       '1,383+ beautiful icons for React, Vue, and Flutter. Fully customizable with TypeScript support and tree-shakable imports.',
-    // TODO: Add OG image at /assets/images/icons-package-og.png (1200x630)
+    images: [
+      {
+        url: iconsOgImage,
+        width: 1200,
+        height: 630,
+        alt: 'AirQo Icons - Multi-Framework Icon Library for React, Vue, and Flutter',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',

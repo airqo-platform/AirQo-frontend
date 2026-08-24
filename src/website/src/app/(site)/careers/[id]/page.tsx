@@ -4,11 +4,22 @@ import { headers } from 'next/headers';
 import DetailsPage from '@/features/careers/DetailsPage';
 import { buildSiteUrl } from '@/lib/siteUrl';
 import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+import { careersService } from '@/services/website';
+import type { Career } from '@/types/api';
 
 const careerOgImage = optimizeCloudinaryUrl(
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
   { width: 1200 },
 );
+
+const getCareer = async (id: string): Promise<Career | null> => {
+  try {
+    return await careersService.getCareerDetails(id);
+  } catch {
+    // Never let metadata generation crash; fall back to generic metadata.
+    return null;
+  }
+};
 
 export async function generateMetadata({
   params,
@@ -23,12 +34,17 @@ export async function generateMetadata({
     requestHost,
   );
 
-  // You can fetch career details here if needed
-  // For now, providing generic metadata
+  const career = await getCareer(params.id);
+
+  const fallbackTitle = 'Career Opportunity | AirQo Careers';
+  const fallbackDescription =
+    'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities through innovative technology and community engagement.';
+  const title = career?.title?.trim() || fallbackTitle;
+  const description = career?.description?.trim() || fallbackDescription;
+
   return {
-    title: `Career Opportunity | AirQo Careers`,
-    description:
-      'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities through innovative technology and community engagement.',
+    title,
+    description,
     keywords:
       'AirQo career opportunity, job opening, environmental careers, air quality jobs, tech jobs Africa, AirQo employment',
     alternates: {
@@ -37,15 +53,14 @@ export async function generateMetadata({
     openGraph: {
       type: 'website',
       url: canonicalUrl,
-      title: 'Career Opportunity | AirQo Careers',
-      description:
-        'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities.',
+      title,
+      description,
       images: [
         {
           url: careerOgImage,
           width: 1200,
           height: 630,
-          alt: 'AirQo Career Opportunity',
+          alt: title,
         },
       ],
       siteName: 'AirQo',
