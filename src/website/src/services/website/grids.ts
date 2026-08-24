@@ -93,7 +93,7 @@ class GridsService extends BaseApiService {
       response.message || 'Failed to fetch representative reading',
     ) as EnhancedApiError;
     error.statusCode = response.statusCode;
-    error.retryable = false;
+    error.retryable = response.statusCode === 500 ? false : true;
     throw error;
   }
 

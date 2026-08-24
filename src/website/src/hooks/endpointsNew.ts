@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import { apiQueryKeys } from '@/queries/query-keys';
+import { shouldRetryQuery } from '@/queries/retry-policy';
 import {
   africanCountriesService,
   blogService,
@@ -604,9 +605,7 @@ export const useGridRepresentativeReading = (
       enabled: !!gridId,
       staleTime: 5 * 60 * 1000,
       refetchInterval: 5 * 60 * 1000,
-      // A 500 from this endpoint is an upstream data problem. Retrying the
-      // same failing grid adds load without improving the result.
-      retry: false,
+      retry: shouldRetryQuery,
       ...queryOptions,
     },
   );

@@ -1153,7 +1153,7 @@ export default function FacesOfCleanAirPage() {
                 : 'Air quality quiz leaderboard carousel'
             }
             aria-roledescription="carousel"
-            className="flex h-full w-full min-h-0 flex-col justify-center overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
+            className="flex h-full w-full min-h-0 flex-col justify-center overflow-visible rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto sm:overflow-hidden"
             onKeyDown={handleCarouselKeyDown}
             onMouseEnter={() => {
               if (!isMobile) {

@@ -8,8 +8,11 @@ import { FiBox, FiCheckCircle, FiDownload, FiTerminal } from 'react-icons/fi';
 
 import FrameworkTabs from '@/components/packages/FrameworkTabs';
 import StatCard from '@/components/packages/StatCard';
-import { CustomButton } from '@/components/ui';
 import { getAllPackages, Package } from '@/config/packages.config';
+import { cn } from '@/lib/utils';
+
+const packageActionClassName =
+  'inline-flex items-center px-6 py-4 text-sm font-medium transition-transform duration-300 active:scale-95 bg-blue-600 text-white shadow-none focus:outline-none';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -98,20 +101,27 @@ export default function PackagesPage() {
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 {packageIsInternal ? (
-                  <Link href={packageHref} prefetch={false}>
-                    <CustomButton className="px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50">
-                      Explore {activePackage.displayName}
-                    </CustomButton>
+                  <Link
+                    href={packageHref}
+                    prefetch={false}
+                    className={cn(
+                      packageActionClassName,
+                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50',
+                    )}
+                  >
+                    Explore {activePackage.displayName}
                   </Link>
                 ) : (
                   <a
                     href={packageHref}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className={cn(
+                      packageActionClassName,
+                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50',
+                    )}
                   >
-                    <CustomButton className="px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50">
-                      View {activePackage.displayName} on npm
-                    </CustomButton>
+                    View {activePackage.displayName} on npm
                   </a>
                 )}
                 {activePackage.repository && (
@@ -119,10 +129,12 @@ export default function PackagesPage() {
                     href={activePackage.repository}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className={cn(
+                      packageActionClassName,
+                      'px-5 py-3 text-[13px] bg-blue-700 text-white hover:bg-blue-800',
+                    )}
                   >
-                    <CustomButton className="px-5 py-3 text-[13px] bg-blue-700 text-white hover:bg-blue-800">
-                      View on GitHub
-                    </CustomButton>
+                    View on GitHub
                   </a>
                 )}
               </div>
@@ -200,11 +212,12 @@ export default function PackagesPage() {
                     type="button"
                     aria-pressed={isActive}
                     onClick={() => setActivePackageId(pkg.id)}
-                    className={`text-left rounded-lg border p-4 transition-colors ${
+                    className={cn(
+                      'text-left rounded-lg border p-4 transition-colors',
                       isActive
                         ? 'border-blue-600 bg-blue-50/60'
-                        : 'border-[#e4e4e7] hover:border-[#a1a1aa]'
-                    }`}
+                        : 'border-[#e4e4e7] hover:border-[#a1a1aa]',
+                    )}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0">
@@ -268,20 +281,27 @@ export default function PackagesPage() {
                   ))}
                 </div>
                 {packageIsInternal ? (
-                  <Link href={packageHref} prefetch={false}>
-                    <CustomButton className="px-5 py-3 text-[13px]">
-                      Explore package
-                    </CustomButton>
+                  <Link
+                    href={packageHref}
+                    prefetch={false}
+                    className={cn(
+                      packageActionClassName,
+                      'px-5 py-3 text-[13px]',
+                    )}
+                  >
+                    Explore package
                   </Link>
                 ) : (
                   <a
                     href={packageHref}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className={cn(
+                      packageActionClassName,
+                      'px-5 py-3 text-[13px]',
+                    )}
                   >
-                    <CustomButton className="px-5 py-3 text-[13px]">
-                      View package on npm
-                    </CustomButton>
+                    View package on npm
                   </a>
                 )}
               </div>
@@ -400,10 +420,9 @@ export default function PackagesPage() {
               href="https://github.com/airqo-platform"
               target="_blank"
               rel="noopener noreferrer"
+              className={cn(packageActionClassName, 'px-5 py-3 text-[13px]')}
             >
-              <CustomButton className="px-5 py-3 text-[13px]">
-                Follow on GitHub
-              </CustomButton>
+              Follow on GitHub
             </a>
           </motion.div>
         </motion.div>

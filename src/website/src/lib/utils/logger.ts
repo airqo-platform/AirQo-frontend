@@ -62,10 +62,13 @@ export function stableStringify(value: unknown): string {
         if (!Array.isArray(val)) {
           return Object.keys(val)
             .sort()
-            .reduce<Record<string, unknown>>((sorted, key) => {
-              sorted[key] = val[key];
-              return sorted;
-            }, {});
+            .reduce<Record<string, unknown>>(
+              (sorted, key) => {
+                sorted[key] = val[key];
+                return sorted;
+              },
+              Object.create(null) as Record<string, unknown>,
+            );
         }
       }
       return val;

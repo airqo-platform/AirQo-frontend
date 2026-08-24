@@ -158,13 +158,11 @@ export default function SelfiesScreen() {
             ? 9
             : -9
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.92 : 0.96,
     }),
     center: {
       x: 0,
       rotateY: 0,
-      opacity: 1,
       scale: 1,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.82 : 0.74,
@@ -190,7 +188,6 @@ export default function SelfiesScreen() {
             ? -8
             : 8
           : 0,
-      opacity: 0,
       scale: isMobile ? 0.94 : 0.972,
       transition: {
         duration: shouldReduceMotion ? 0 : isMobile ? 0.56 : 0.46,
@@ -285,7 +282,7 @@ export default function SelfiesScreen() {
             tabIndex={0}
             aria-label="Faces of Air Quality selfie carousel"
             aria-roledescription="carousel"
-            className="flex h-full w-full min-h-0 flex-col justify-center overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto"
+            className="flex h-full w-full min-h-0 flex-col justify-center overflow-visible focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-transparent sm:block sm:h-auto sm:overflow-hidden"
             onKeyDown={handleCarouselKeyDown}
             onMouseEnter={() => !isMobile && setIsPaused(true)}
             onMouseLeave={() => !isMobile && setIsPaused(false)}
@@ -296,9 +293,8 @@ export default function SelfiesScreen() {
               {isInitialLoading && (
                 <motion.div
                   key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, scale: 0.985 }}
+                  initial={false}
+                  exit={{ scale: 0.985 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.64 }}
                   className={
                     isMobile
@@ -349,9 +345,9 @@ export default function SelfiesScreen() {
               {!isInitialLoading && !showError && !showEmpty ? (
                 <motion.div
                   key="content"
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
+                  initial={shouldReduceMotion ? false : { y: 18 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: -12 }}
                   transition={{
                     duration: shouldReduceMotion ? 0 : 0.68,
                     ease: [0.22, 1, 0.36, 1],

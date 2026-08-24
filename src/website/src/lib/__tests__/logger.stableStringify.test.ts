@@ -50,6 +50,21 @@ describe('stableStringify', () => {
     expect(first).toBe(second);
   });
 
+  it('preserves an own __proto__ property while sorting keys', () => {
+    const context = JSON.parse(
+      '{"__proto__":{"polluted":true},"safe":1}',
+    ) as Record<string, unknown>;
+
+    const serialized = stableStringify(context);
+    const parsed = JSON.parse(serialized) as Record<string, unknown>;
+
+    expect(Object.prototype.hasOwnProperty.call(parsed, '__proto__')).toBe(
+      true,
+    );
+    expect(parsed.__proto__).toEqual({ polluted: true });
+    expect(({} as { polluted?: boolean }).polluted).toBeUndefined();
+  });
+
   it('handles bigint and function values without throwing', () => {
     // Note: BigInt('...') from a string instead of an `n` literal — ts-jest
     // compiles with target es2017, where bigint literals are a syntax error,
