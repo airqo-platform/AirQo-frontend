@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import GoogleMaps
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -9,6 +10,12 @@ import GoogleMaps
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GMSServices.provideAPIKey(Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String ?? "")
+
+    WorkmanagerPlugin.registerLaunchHandlers()
+    WorkmanagerPlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

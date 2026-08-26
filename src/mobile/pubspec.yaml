@@ -95,6 +95,7 @@ dependencies:
   path_provider: ^2.1.5
   pasteboard: ^0.5.0
   gal: ^2.3.0
+  workmanager: ^0.10.8
 
 
 dev_dependencies:
