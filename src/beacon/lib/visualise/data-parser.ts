@@ -788,7 +788,7 @@ export function aggregateDataset({
   xColumn,
   yColumns,
   aggregation,
-  groupByColumn,
+  groupByColumn: _groupByColumn,
 }: {
   data: Record<string, any>[]
   xColumn: string
