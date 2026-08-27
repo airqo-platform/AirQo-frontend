@@ -49,6 +49,8 @@ export interface GatewayDeviceCoverage {
   estimatedRssiDbm: number;
 }
 
+// Backward-compatible alias for existing imports
+export type GatewayCoverageDeviceMapItem = GatewayDeviceCoverage;
 export interface GatewayCoverageStats {
   totalGateways: number;
   activeGateways: number;
