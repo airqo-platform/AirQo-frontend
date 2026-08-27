@@ -64,7 +64,7 @@ const HomePage = () => {
         subtitle="AirQo Nexus"
         description="Access and visualise real-time and historical air quality information across Africa through our easy-to-use AirQo Nexus."
         buttonText="Learn more"
-        buttonLink="/products/analytics"
+        buttonLink="/products/nexus"
         imageUrl={images.analyticsHome}
         backgroundColor="bg-[#EDF3FF]"
         subtitleColor="text-black"
