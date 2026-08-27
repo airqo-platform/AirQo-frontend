@@ -446,7 +446,7 @@ const PerformanceAnalysis = ({ devices }: { devices: InlabBatchDeviceWithPerform
         <CardContent>
           <div className="h-[350px] w-full bg-white p-2">
             {combinedData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={combinedData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis 
@@ -493,7 +493,7 @@ const PerformanceAnalysis = ({ devices }: { devices: InlabBatchDeviceWithPerform
         <CardContent>
           <div className="h-[350px] w-full bg-white p-2">
             {combinedData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={combinedData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis 
@@ -549,7 +549,7 @@ const PerformanceAnalysis = ({ devices }: { devices: InlabBatchDeviceWithPerform
         <CardContent>
           <div className="h-[350px] w-full bg-white p-2">
             {combinedData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={combinedData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis 
@@ -624,7 +624,7 @@ const ReportChartsForCapture = ({
       <div ref={errorMarginRef} className="bg-white p-2">
         <ReportChartCard title="Sensor Error Margin (All Devices)">
           {combinedData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={combinedData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
@@ -660,7 +660,7 @@ const ReportChartsForCapture = ({
       <div ref={pm25Ref} className="bg-white p-2 mt-6">
         <ReportChartCard title="Mean Daily PM2.5 Readings">
           {combinedData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={combinedData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
@@ -705,7 +705,7 @@ const ReportChartsForCapture = ({
       <div ref={correlationRef} className="bg-white p-2 mt-6">
         <ReportChartCard title="Inter-sensor Correlation">
           {combinedData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={combinedData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis

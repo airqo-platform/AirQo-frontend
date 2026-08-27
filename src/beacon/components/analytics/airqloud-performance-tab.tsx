@@ -643,8 +643,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium">{deviceUptime.deviceName}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <ResponsiveContainer width="100%" height={250}>
+                        <CardContent className="min-w-0">
+                          <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                             <BarChart data={deviceUptime.dailyUptimeData}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis
@@ -700,8 +700,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <ResponsiveContainer width="100%" height={250}>
+                        <CardContent className="min-w-0">
+                          <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                             <LineChart data={deviceData.chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis
@@ -796,8 +796,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                           <CardHeader className="pb-2">
                             <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <ResponsiveContainer width="100%" height={250}>
+                          <CardContent className="min-w-0">
+                            <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                               {sensorHealthMode === "correlation" ? (
                                 <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -909,8 +909,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium">{deviceData.deviceName}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <ResponsiveContainer width="100%" height={250}>
+                        <CardContent className="min-w-0">
+                          <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                             <LineChart data={deviceData.chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis

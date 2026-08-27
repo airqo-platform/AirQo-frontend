@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Activity, AlertTriangle, Battery, Clock, RefreshCw, Signal, Timer } from "lucide-react";
 
-const DevicePerformanceMetrics = ({ deviceId = "device-001" }) => {
+const DevicePerformanceMetrics = ({ deviceId = "device-001" }: { deviceId?: string }) => {
   const [data, setData] = useState({
     uptime: 93.7,
     batteryHealth: 87.2,
@@ -14,10 +14,10 @@ const DevicePerformanceMetrics = ({ deviceId = "device-001" }) => {
     statusDuration: 45
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Format percentages with proper precision
-  const formatPercentage = (value) => {
+  const formatPercentage = (value: number | string | null | undefined) => {
     if (value === undefined || value === null) return "N/A";
     return `${Number(value).toFixed(1)}%`;
   };
@@ -32,14 +32,14 @@ const DevicePerformanceMetrics = ({ deviceId = "device-001" }) => {
   };
 
   // Get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     if (status === "active") return "bg-green-500";
     if (status === "maintenance") return "bg-yellow-500";
     return "bg-red-500";
   };
 
   // Get metric color 
-  const getMetricColor = (value) => {
+  const getMetricColor = (value: number) => {
     if (value >= 80) return "text-green-500";
     if (value >= 60) return "text-yellow-500";
     return "text-red-500";

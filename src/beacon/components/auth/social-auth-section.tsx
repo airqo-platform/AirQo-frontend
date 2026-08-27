@@ -108,7 +108,15 @@ export default function SocialAuthSection({
   );
 
   return (
-    <div className={`w-full space-y-4 ${className}`}>
+    <div className={`w-full space-y-3.5 ${className}`}>
+      <div className="flex items-center gap-4">
+        <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+        <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+          Or
+        </span>
+        <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+      </div>
+
       <div className="grid grid-cols-4 gap-2">
         {orderedProviders.map(({ provider, label, Icon, iconClassName }) => {
           const isLastUsed = provider === lastUsedProvider;
@@ -121,10 +129,10 @@ export default function SocialAuthSection({
               onClick={() => handleSocialAuth(provider)}
               aria-label={`${actionLabel} ${label}`}
               title={`${actionLabel} ${label}`}
-              className={`relative flex h-10 items-center justify-center overflow-hidden rounded-md border bg-white px-1.5 text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-white disabled:text-gray-400 ${
+              className={`relative flex h-10 items-center justify-center overflow-hidden rounded-md border bg-white px-1.5 text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-white disabled:text-gray-400 dark:bg-transparent dark:text-gray-100 dark:disabled:border-slate-700 dark:disabled:bg-transparent dark:disabled:text-gray-500 cursor-pointer ${
                 isLastUsed
-                  ? 'border-blue-500/50 bg-blue-50 hover:bg-blue-100'
-                  : 'border-slate-300 hover:bg-slate-50 hover:text-gray-900'
+                  ? 'border-primary/50 bg-primary/10 hover:bg-primary/20 dark:border-primary/50 dark:bg-slate-900'
+                  : 'border-slate-300 hover:bg-slate-50 hover:text-gray-900 dark:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-gray-100'
               }`}
             >
               <Icon
@@ -133,7 +141,7 @@ export default function SocialAuthSection({
                 }`}
               />
               {isLastUsed ? (
-                <span className="absolute right-1 top-1 rounded-full bg-blue-100 px-1 py-0 text-[8px] font-semibold uppercase tracking-[0.08em] text-blue-600">
+                <span className="absolute right-1 top-1 rounded-full bg-primary/10 px-1 py-0 text-[8px] font-semibold uppercase tracking-[0.08em] text-primary dark:bg-primary/20 dark:text-primary">
                   Last used
                 </span>
               ) : null}
@@ -141,14 +149,6 @@ export default function SocialAuthSection({
             </button>
           );
         })}
-      </div>
-      
-      <div className="flex items-center gap-4">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-          Or
-        </span>
-        <span className="h-px flex-1 bg-border" />
       </div>
     </div>
   );

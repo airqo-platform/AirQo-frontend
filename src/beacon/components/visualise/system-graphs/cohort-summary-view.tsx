@@ -439,29 +439,29 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
         </Card>
 
         {/* 3. Best Sensor Agreement (Lowest Error Margin) */}
-        <Card className="border-blue-200 bg-blue-50/30 shadow-xs">
-          <CardHeader className="pb-2 pt-3.5 px-4 border-b border-blue-100">
-            <CardTitle className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center justify-between">
+        <Card className="border-primary/20 bg-primary/10 shadow-xs">
+          <CardHeader className="pb-2 pt-3.5 px-4 border-b border-primary/20">
+            <CardTitle className="text-xs font-bold text-primary uppercase tracking-wider flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                 Best Sensor Agreement
               </span>
-              <Badge variant="outline" className="text-[10px] bg-blue-100/80 text-blue-800 border-blue-300 font-mono">
+              <Badge variant="outline" className="text-[10px] bg-primary/20 text-primary border-primary/30 font-mono">
                 |S1 - S2| Min
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 space-y-2">
             {rankings.bestError.map((d, i) => (
-              <div key={d.device} className="flex items-center justify-between p-2 rounded-lg bg-white border border-blue-100 text-xs">
+              <div key={d.device} className="flex items-center justify-between p-2 rounded-lg bg-white border border-primary/20 text-xs">
                 <div className="flex items-center gap-2 truncate">
-                  <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold flex items-center justify-center">
+                  <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
                     {i + 1}
                   </span>
                   <span className="font-mono font-semibold text-slate-800 truncate max-w-[120px]">{d.device}</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                  <span className="font-bold text-blue-700">±{d.avgError} µg/m³</span>
+                  <span className="font-bold text-primary">±{d.avgError} µg/m³</span>
                 </div>
               </div>
             ))}
@@ -520,8 +520,8 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-6">
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-72 w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <BarChart
                     data={[...deviceHealthData].sort((a, b) => (b.avgError || 0) - (a.avgError || 0))}
                     margin={{ top: 10, right: 20, left: 10, bottom: 40 }}
@@ -571,8 +571,8 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-4 pt-6 flex flex-col items-center justify-center">
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <PieChart>
                     <Tooltip
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
@@ -628,37 +628,37 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold select-none">
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600" onClick={() => handleSort("device")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary" onClick={() => handleSort("device")}>
                   <div className="flex items-center gap-1">
                     <span>Station / Device</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600" onClick={() => handleSort("healthStatus")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary" onClick={() => handleSort("healthStatus")}>
                   <div className="flex items-center gap-1">
                     <span>Health Status</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600 text-right" onClick={() => handleSort("uptimePct")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary text-right" onClick={() => handleSort("uptimePct")}>
                   <div className="flex items-center justify-end gap-1">
                     <span>Uptime %</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600 text-right" onClick={() => handleSort("avgError")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary text-right" onClick={() => handleSort("avgError")}>
                   <div className="flex items-center justify-end gap-1">
                     <span>Avg Error (|S1 - S2|)</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600 text-right" onClick={() => handleSort("maxError")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary text-right" onClick={() => handleSort("maxError")}>
                   <div className="flex items-center justify-end gap-1">
                     <span>Max Error</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />
                   </div>
                 </th>
-                <th className="py-3 px-4 cursor-pointer hover:text-blue-600 text-right" onClick={() => handleSort("avgBattery")}>
+                <th className="py-3 px-4 cursor-pointer hover:text-primary text-right" onClick={() => handleSort("avgBattery")}>
                   <div className="flex items-center justify-end gap-1">
                     <span>Battery (Avg/Min)</span>
                     <ArrowUpDown className="w-3 h-3 text-slate-400" />

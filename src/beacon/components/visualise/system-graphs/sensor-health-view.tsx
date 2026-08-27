@@ -155,7 +155,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
           <CardHeader className="pb-2 pt-4 px-6 flex flex-row items-center justify-between border-b border-slate-100">
             <div>
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-blue-600" />
+                <Calculator className="w-4 h-4 text-primary" />
                 Inter-Sensor Agreement (Sensor 1 vs Sensor 2 PM2.5)
               </CardTitle>
               <CardDescription className="text-xs text-slate-500">
@@ -167,7 +167,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
                 <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-bold text-xs">
                   R² = {stats.r2}
                 </Badge>
-                <Badge variant="outline" className="text-xs text-blue-600 font-mono">
+                <Badge variant="outline" className="text-xs text-primary font-mono border-primary/20 bg-primary/10">
                   r = {stats.r}
                 </Badge>
               </div>
@@ -177,7 +177,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
           {/* Quick Metrics Bar */}
           {stats && (
             <div className="bg-slate-50 px-6 py-2 border-b border-slate-100 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-700">
-              <span className="font-semibold text-blue-700">
+              <span className="font-semibold text-primary">
                 Fit: y = {stats.slope}x {stats.intercept >= 0 ? `+ ${stats.intercept}` : `- ${Math.abs(stats.intercept)}`}
               </span>
               <span>MAE: ±{stats.mae} µg/m³</span>
@@ -195,8 +195,8 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
           )}
 
           <CardContent className="p-4 pt-5">
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-80 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <ScatterChart margin={{ top: 10, right: 30, left: 10, bottom: 25 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis
@@ -245,8 +245,8 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
             </Badge>
           </CardHeader>
           <CardContent className="p-4 pt-5">
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={errorMarginData} margin={{ top: 5, right: 30, left: 10, bottom: 20 }}>
                   <defs>
                     <linearGradient id="errorGrad" x1="0" y1="0" x2="0" y2="1">

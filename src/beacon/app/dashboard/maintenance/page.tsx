@@ -1,971 +1,851 @@
 "use client"
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
-import { Map as MapIcon, CheckCircle2, Search, ChevronDown, X, ArrowRight, Pentagon, Download } from "lucide-react"
+import dynamic from "next/dynamic"
 import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
 import { calculateNearestNeighborRoute, Coordinates } from "@/utils/routing-utils"
 import { useToast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
-import dynamic from "next/dynamic"
 import { useGroup } from "@/lib/group-context"
+import { LoRaWANGatewayDialog } from "@/components/maintenance/lorawan-gateway-dialog"
+import { MapExportDialog } from "@/components/maintenance/map-export-dialog"
+import { MapSidebar } from "@/components/maintenance/map/map-sidebar"
+import { MapTopFilters } from "@/components/maintenance/map/map-top-filters"
+import { LoRaWANGateway } from "@/types/lorawan.types"
+import {
+  loadGatewaysFromStorage,
+  saveGatewaysToStorage,
+  computeGatewayCoverageStats,
+  calculateDistance,
+  calculateSignalAttenuation,
+  KAMPALA_SAMPLE_GATEWAYS,
+} from "@/utils/lorawan-utils"
+import { CheckCircle2, ArrowRight, X, PanelLeftOpen, PanelLeftClose, Map as MapIcon, List, ChevronUp, ChevronDown } from "lucide-react"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
-    loading: () => <div className="h-[600px] w-full bg-gray-100 animate-pulse rounded-lg flex items-center justify-center text-gray-400">Loading Map...</div>,
-    ssr: false
+  loading: () => (
+    <div className="h-full w-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl flex items-center justify-center text-gray-400 text-xs font-semibold">
+      Loading Map Canvas...
+    </div>
+  ),
+  ssr: false,
 })
 
-const DAYS_OPTIONS = [7, 14, 30, 60]
-const OFFLINE_DAYS_OPTIONS = [
-    { label: "All Devices", value: null },
-    { label: "Offline ≥ 1 day", value: 1 },
-    { label: "Offline ≥ 3 days", value: 3 },
-    { label: "Offline ≥ 7 days", value: 7 },
-    { label: "Offline ≥ 14 days", value: 14 },
-    { label: "Offline ≥ 30 days", value: 30 },
-]
-const AVAILABLE_TAGS = ["hardware", "duplicate", "organizational", "inlab", "misc"]
-
-const UPTIME_OPTIONS: { label: string; value: 'all' | 'good' | 'moderate' | 'critical' | 'offline' }[] = [
-    { label: "All Uptime", value: 'all' },
-    { label: "Good (≥ 85%)", value: 'good' },
-    { label: "Moderate (50–85%)", value: 'moderate' },
-    { label: "Critical (< 50%)", value: 'critical' },
-    { label: "Offline (0%)", value: 'offline' },
-]
-
-const ERROR_MARGIN_OPTIONS: { label: string; value: 'all' | 'good' | 'moderate' | 'critical' }[] = [
-    { label: "All Error Margin", value: 'all' },
-    { label: "Good (≤ 10)", value: 'good' },
-    { label: "Moderate (10–20)", value: 'moderate' },
-    { label: "Critical (> 20)", value: 'critical' },
-]
-
-const GRID_ADMIN_LEVEL_OPTIONS: { label: string; value: GridAdminLevel }[] = [
-    { label: 'Municipality', value: 'Municipality' },
-    { label: 'county', value: 'county' },
-    { label: 'division', value: 'division' },
-    { label: 'city', value: 'city' },
-    { label: 'country', value: 'country' },
-    { label: 'state', value: 'state' },
-    { label: 'metropolitanmunicipality', value: 'metropolitanmunicipality' },
-    { label: 'province', value: 'province' },
-    { label: 'region', value: 'region' },
-    { label: 'district', value: 'district' },
-]
-
-const getGridLabel = (grid: SyncedGrid) => grid.long_name || grid.name
+const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office (Kampala)" }
 
 export default function MaintenancePage() {
-    const { toast } = useToast()
-    const { activeGroup, loading: groupLoading } = useGroup()
+  const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
 
-    // --- FILTER STATE ---
-    const [selectedDays, setSelectedDays] = useState(14)
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
+  // --- FILTER STATE ---
+  const [selectedDays, setSelectedDays] = useState(14)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [offlineDaysFilter, setOfflineDaysFilter] = useState<number | null>(null)
+  const [uptimeFilter, setUptimeFilter] = useState<"all" | "good" | "moderate" | "critical" | "offline">("all")
+  const [errorMarginFilter, setErrorMarginFilter] = useState<"all" | "good" | "moderate" | "critical">("all")
+  const [selectedAirQloud, setSelectedAirQloud] = useState<string>("all")
+  const [selectedGrid, setSelectedGrid] = useState<string>("all")
 
-    // --- COHORT LIST ---
-    const [cohorts, setCohorts] = useState<AirQloudBasic[]>([])
-    const [loadingAirQlouds, setLoadingAirQlouds] = useState(false)
+  // --- COHORT & GRID LISTS ---
+  const [cohorts, setCohorts] = useState<AirQloudBasic[]>([])
+  const [loadingAirQlouds, setLoadingAirQlouds] = useState(false)
+  const [cohortSearch, setCohortSearch] = useState("")
 
-    // --- GRID LIST ---
-    const [grids, setGrids] = useState<SyncedGrid[]>([])
-    const [loadingGrids, setLoadingGrids] = useState(false)
+  const [grids, setGrids] = useState<SyncedGrid[]>([])
+  const [loadingGrids, setLoadingGrids] = useState(false)
+  const [gridSearch, setGridSearch] = useState("")
+  const [gridAdminLevelFilter, setGridAdminLevelFilter] = useState<"all" | GridAdminLevel>("all")
 
-    // --- SELECTION STATE ---
-    const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
+  // --- DATA & SELECTION STATE ---
+  const [mapData, setMapData] = useState<MaintenanceMapItem[] | null>(null)
+  const [loadingMap, setLoadingMap] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<MaintenanceMapItem | null>(null)
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
+  const [flyToLocation, setFlyToLocation] = useState<{ latitude: number; longitude: number; zoom?: number } | null>(null)
 
-    // --- MAP VIEW STATE ---
-    const [mapData, setMapData] = useState<MaintenanceMapItem[] | null>(null)
-    const [loadingMap, setLoadingMap] = useState(false)
-    const [offlineDaysFilter, setOfflineDaysFilter] = useState<number | null>(null)
-    const [uptimeFilter, setUptimeFilter] = useState<'all' | 'good' | 'moderate' | 'critical' | 'offline'>('all')
-    const [errorMarginFilter, setErrorMarginFilter] = useState<'all' | 'good' | 'moderate' | 'critical'>('all')
-    const [selectedAirQloud, setSelectedAirQloud] = useState<string>('all')
-    const [selectedGrid, setSelectedGrid] = useState<string>('all')
+  // --- ROUTING STATE ---
+  const [routePath, setRoutePath] = useState<MaintenanceMapItem[]>([])
+  const [isRouting, setIsRouting] = useState(false)
+  const [homeLocation] = useState<Coordinates & { name?: string }>(DEFAULT_HOME_LOCATION)
 
-    // --- COHORT DROPDOWN STATE ---
-    const [cohortSearch, setCohortSearch] = useState('')
-    const [cohortDropdownOpen, setCohortDropdownOpen] = useState(false)
-    const cohortDropdownRef = useRef<HTMLDivElement>(null)
+  // --- POLYGON SELECTION STATE ---
+  const [polygonSelectedDevices, setPolygonSelectedDevices] = useState<MaintenanceMapItem[]>([])
 
-    // --- GRID DROPDOWN STATE ---
-    const [gridSearch, setGridSearch] = useState('')
-    const [gridAdminLevelFilter, setGridAdminLevelFilter] = useState<'all' | GridAdminLevel>('all')
-    const [gridDropdownOpen, setGridDropdownOpen] = useState(false)
-    const gridDropdownRef = useRef<HTMLDivElement>(null)
+  // --- LORAWAN GATEWAYS & EXPORT STATE ---
+  const [gateways, setGateways] = useState<LoRaWANGateway[]>([])
+  const [showGateways, setShowGateways] = useState(false)
+  const [showDeviceNames, setShowDeviceNames] = useState(false)
+  const [highlightUncoveredDevices, setHighlightUncoveredDevices] = useState(false)
+  const [coverageFilter, setCoverageFilter] = useState<"all" | "inside_radius" | "outside_radius">("all")
+  const [gatewayDialogOpen, setGatewayDialogOpen] = useState(false)
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
-    // --- ROUTING STATE ---
-    const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office" };
-    const [routePath, setRoutePath] = useState<MaintenanceMapItem[]>([])
-    const [isRouting, setIsRouting] = useState(false)
-    const [homeLocation] = useState<Coordinates & { name?: string }>(DEFAULT_HOME_LOCATION)
+  // --- COLLAPSE & VIEW MODE STATE ---
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [mobileViewMode, setMobileViewMode] = useState<"split" | "map-expanded" | "list-expanded">("split")
 
-    // --- POLYGON SELECTION STATE ---
-    const [polygonSelectedDevices, setPolygonSelectedDevices] = useState<MaintenanceMapItem[]>([])
-    const [polygonPanelOpen, setPolygonPanelOpen] = useState(true)
+  // Load gateways on mount
+  useEffect(() => {
+    const loaded = loadGatewaysFromStorage()
+    const isOldSampleSeed =
+      loaded &&
+      loaded.length === 8 &&
+      loaded.some((g) => g.id === "gw-mak-01" || g.id === "gw-kol-02")
 
-    // Tag toggle handler (mirrors analytics-filters pattern)
-    const toggleTag = (tag: string) => {
-        setSelectedTags(prev =>
-            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-        )
+    if (loaded && loaded.length > 0 && !isOldSampleSeed) {
+      setGateways(loaded)
+    } else {
+      setGateways(KAMPALA_SAMPLE_GATEWAYS)
+      saveGatewaysToStorage(KAMPALA_SAMPLE_GATEWAYS)
     }
+  }, [])
 
-    // Close cohort dropdown on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (cohortDropdownRef.current && !cohortDropdownRef.current.contains(e.target as Node)) {
-                setCohortDropdownOpen(false)
-            }
-            if (gridDropdownRef.current && !gridDropdownRef.current.contains(e.target as Node)) {
-                setGridDropdownOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
+  const handleGatewaysChange = (updated: LoRaWANGateway[]) => {
+    setGateways(updated)
+    saveGatewaysToStorage(updated)
+  }
 
-    const selectedGridItem = grids.find(item => item.name === selectedGrid)
-    const selectedGridLabel = selectedGrid === 'all'
-        ? 'All Grids'
-        : getGridLabel(selectedGridItem || { grid_id: selectedGrid, name: selectedGrid })
-
-    // Filtered cohort list for the dropdown
-    const filteredCohorts = useMemo(() => {
-        if (!cohorts.length) return []
-        if (!cohortSearch.trim()) return cohorts
-        const q = cohortSearch.toLowerCase()
-        return cohorts.filter(aq => aq.name.toLowerCase().includes(q))
-    }, [cohorts, cohortSearch])
-
-    // Grid list is already filtered by the synced grids endpoint when searching.
-    const filteredGrids = grids
-
-    // Filtered Map Data
-    const filteredMapData = useMemo(() => {
-        if (!mapData) return [];
-
-        let filtered = mapData;
-
-        // 1. Cohort Filter
-        if (selectedAirQloud !== 'all') {
-            filtered = filtered.filter(d => d.cohorts.includes(selectedAirQloud));
-        }
-
-        // 1b. Grid Filter
-        if (selectedGrid !== 'all') {
-            filtered = filtered.filter(device => {
-                const deviceGrids = Array.isArray(device.grids) ? device.grids : [];
-                return deviceGrids.some(grid => String(grid).toLowerCase() === selectedGrid.toLowerCase());
-            });
-        }
-
-        // 2. Offline Days Filter
-        if (offlineDaysFilter !== null) {
-            const now = Date.now();
-            const thresholdMs = offlineDaysFilter * 86400000; // days to milliseconds
-            filtered = filtered.filter(device => {
-                if (!device.last_active) return true; // show devices with no last_active data
-                const offlineDuration = now - new Date(device.last_active).getTime();
-                return offlineDuration >= thresholdMs;
-            });
-        }
-
-        // 3. Uptime Filter (normalize 0..1 fractions to 0..100 percent)
-        if (uptimeFilter !== 'all') {
-            filtered = filtered.filter(device => {
-                const raw = Number(device.uptime);
-                let pct = 0;
-                if (Number.isFinite(raw)) {
-                    pct = raw <= 1 ? raw * 100 : raw;
-                }
-                switch (uptimeFilter) {
-                    case 'offline': return pct === 0;
-                    case 'good': return pct >= 85;
-                    case 'moderate': return pct >= 50 && pct < 85;
-                    case 'critical': return pct > 0 && pct < 50;
-                    default: return true;
-                }
-            });
-        }
-
-        // 4. Error Margin Filter
-        if (errorMarginFilter !== 'all') {
-            filtered = filtered.filter(device => {
-                const em = Number(device.error_margin);
-                if (!Number.isFinite(em)) return false;
-                switch (errorMarginFilter) {
-                    case 'good': return em <= 10;
-                    case 'moderate': return em > 10 && em <= 20;
-                    case 'critical': return em > 20;
-                    default: return true;
-                }
-            });
-        }
-
-        return filtered;
-    }, [mapData, offlineDaysFilter, selectedAirQloud, selectedGrid, uptimeFilter, errorMarginFilter]);
-
-    // Handlers
-    const handleDeviceSelect = (id: string) => {
-        setSelectedDeviceIds(prev =>
-            prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
-        )
+  const handleToggleGateways = (visible: boolean) => {
+    setShowGateways(visible)
+    if (!visible) {
+      setCoverageFilter("all")
+      setHighlightUncoveredDevices(false)
     }
+  }
 
-    // Fetch cohort list (same endpoint as analytics-filters)
-    useEffect(() => {
-        let cancelled = false
-        const fetchCohorts = async () => {
-            if (groupLoading || !activeGroup) return
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+  }
 
-            setLoadingAirQlouds(true)
-            try {
-                const tagsParam = selectedTags.length > 0 ? selectedTags.join(',') : undefined
-                const response = await airQloudService.getAirQloudsBasic({
-                    search: cohortSearch || undefined,
-                    tags: tagsParam,
-                    limit: 100,
-                    group: activeGroup,
-                })
-                if (!cancelled) {
-                    const items = Array.isArray(response) ? response : (response as any).airqlouds || []
-                    setCohorts(items)
-                }
-            } catch (error) {
-                console.error('Failed to fetch cohorts', error)
-            } finally {
-                if (!cancelled) setLoadingAirQlouds(false)
-            }
-        }
-
-        const timer = setTimeout(fetchCohorts, 300) // debounce for search
-        return () => { cancelled = true; clearTimeout(timer) }
-    }, [selectedTags, cohortSearch, activeGroup, groupLoading])
-
-    // Fetch grid list from synced grids endpoint
-    useEffect(() => {
-        let cancelled = false
-        const fetchGrids = async () => {
-            if (groupLoading || !activeGroup) return
-
-            setLoadingGrids(true)
-            try {
-                const items = await getSyncedGrids({
-                    skip: 0,
-                    limit: 20,
-                    search: gridSearch || undefined,
-                    admin_level: gridAdminLevelFilter === 'all' ? undefined : gridAdminLevelFilter,
-                    group: activeGroup,
-                })
-                if (!cancelled) setGrids(items)
-            } catch (error) {
-                console.error('Failed to fetch grids', error)
-            } finally {
-                if (!cancelled) setLoadingGrids(false)
-            }
-        }
-
-        const timer = setTimeout(fetchGrids, 300)
-        return () => { cancelled = true; clearTimeout(timer) }
-    }, [gridSearch, gridAdminLevelFilter, activeGroup, groupLoading])
-
-    // Fetch Map Data (re-fetch when days or tags change)
-    const fetchMapData = useCallback(async () => {
-        if (groupLoading || !activeGroup) return null
-
-        setLoadingMap(true)
-        try {
-            const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
-            const response = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
-            return response
-        } catch (error) {
-            console.error("Failed to fetch Map data", error)
-            return null
-        } finally {
-            setLoadingMap(false)
-        }
-    }, [selectedDays, selectedTags, activeGroup, groupLoading])
-
-    // --- ROUTING LOGIC ---
-    const calculateRoute = (devices?: MaintenanceMapItem[]) => {
-        const source = devices || filteredMapData;
-        if (!source || source.length === 0) return;
-
-        setIsRouting(true);
-        toast({
-            title: "Calculating Route...",
-            description: `Optimizing route for ${source.length} devices.`,
-        });
-
-        const validDevices: MaintenanceMapItem[] = source.filter(item =>
-            item.latitude !== undefined && item.longitude !== undefined &&
-            item.latitude !== null && item.longitude !== null
-        );
-
-        if (validDevices.length === 0) {
-            setIsRouting(false);
-            toast({
-                title: "Routing Error",
-                description: "No devices with valid coordinates found in this view.",
-                variant: "destructive"
-            });
-            return;
-        }
-
-        const routePoints = validDevices.map(d => ({
-            ...d,
-            id: d.device_id,
-            latitude: d.latitude,
-            longitude: d.longitude
-        }));
-
-        const optimizedPoints = calculateNearestNeighborRoute(homeLocation, routePoints);
-        setRoutePath(optimizedPoints as unknown as MaintenanceMapItem[]);
-
-        toast({
-            title: "Route Calculated",
-            description: `Optimal route found for ${optimizedPoints.length} stops.`,
-        });
-    };
-
-    const clearRoute = () => {
-        setIsRouting(false);
-        setRoutePath([]);
-    }
-
-    const handleExportCSV = (devicesToExport?: MaintenanceMapItem[]) => {
-        const targetDevices = devicesToExport || (polygonSelectedDevices.length > 0 ? polygonSelectedDevices : filteredMapData);
-
-        if (!targetDevices || targetDevices.length === 0) {
-            toast({
-                title: "Export Error",
-                description: "No devices available to export.",
-                variant: "destructive"
-            });
-            return;
-        }
-
-        const escapeCSV = (val: any): string => {
-            if (val === null || val === undefined) return '""';
-            let str = String(val);
-
-            // Prevent CSV/Excel formula injection
-            if (/^[=+\-@]/.test(str)) {
-                str = `'${str}`;
-            }
-
-            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-        };
-
-        const headers = ["Device Name", "Latitude", "Longitude", "Uptime (%)", "Error Margin"];
-        const rows = targetDevices.map(device => {
-            const rawUptime = Number(device.uptime);
-            const uptimePct = Number.isFinite(rawUptime) ? (rawUptime <= 1 ? rawUptime * 100 : rawUptime) : 0;
-            const em = Number(device.error_margin);
-            const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A";
-
-            return [
-                escapeCSV(device.device_name || device.device_id || ""),
-                escapeCSV(device.latitude ?? ""),
-                escapeCSV(device.longitude ?? ""),
-                escapeCSV(uptimePct.toFixed(1)),
-                escapeCSV(errorMarginStr)
-            ];
-        });
-
-        const csvContent = [
-            headers.join(","),
-            ...rows.map(row => row.join(","))
-        ].join("\n");
-
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `maintenance-devices-${new Date().toISOString().split("T")[0]}.csv`;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            window.URL.revokeObjectURL(url);
-            a.remove();
-        }, 0);
-        toast({
-            title: "CSV Exported",
-            description: `Exported ${targetDevices.length} devices to CSV.`,
-        });
-    };
-
-
-    // Fetch map data when days or tags change
-    useEffect(() => {
-        let cancelled = false;
-        // Clear stale route when the underlying dataset changes
-        setIsRouting(false);
-        setRoutePath([]);
-        fetchMapData().then((res) => {
-            if (!cancelled && res) setMapData(res)
+  // Fetch Cohorts
+  useEffect(() => {
+    let cancelled = false
+    const fetchCohorts = async () => {
+      if (groupLoading || !activeGroup) return
+      setLoadingAirQlouds(true)
+      try {
+        const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
+        const response = await airQloudService.getAirQloudsBasic({
+          search: cohortSearch || undefined,
+          tags: tagsParam,
+          limit: 100,
+          group: activeGroup,
         })
-        return () => { cancelled = true; }
-    }, [fetchMapData])
+        if (!cancelled) {
+          const items = Array.isArray(response) ? response : (response as any).airqlouds || []
+          setCohorts(items)
+        }
+      } catch (error) {
+        console.error("Failed to fetch cohorts", error)
+      } finally {
+        if (!cancelled) setLoadingAirQlouds(false)
+      }
+    }
 
-    return (
-        <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    const timer = setTimeout(fetchCohorts, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [selectedTags, cohortSearch, activeGroup, groupLoading])
 
-            {/* Header & Quick Filters */}
-            <div className="flex flex-col gap-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex flex-col">
-                        <h1 className="text-2xl font-bold text-gray-900">Maintenance Dashboard</h1>
-                        <p className="text-gray-500 text-sm">Monitor device health and plan maintenance routes</p>
-                    </div>
-                </div>
+  // Fetch Grids
+  useEffect(() => {
+    let cancelled = false
+    const fetchGrids = async () => {
+      if (groupLoading || !activeGroup) return
+      setLoadingGrids(true)
+      try {
+        const items = await getSyncedGrids({
+          skip: 0,
+          limit: 20,
+          search: gridSearch || undefined,
+          admin_level: gridAdminLevelFilter === "all" ? undefined : gridAdminLevelFilter,
+          group: activeGroup,
+        })
+        if (!cancelled) setGrids(items)
+      } catch (error) {
+        console.error("Failed to fetch grids", error)
+      } finally {
+        if (!cancelled) setLoadingGrids(false)
+      }
+    }
 
-                {/* Days & Tags Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
-                    {/* Days Selector */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Period:</span>
-                        <select
-                            value={selectedDays}
-                            onChange={(e) => setSelectedDays(Number(e.target.value))}
-                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {DAYS_OPTIONS.map(d => (
-                                <option key={d} value={d}>{d} days</option>
-                            ))}
-                        </select>
-                    </div>
+    const timer = setTimeout(fetchGrids, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [gridSearch, gridAdminLevelFilter, activeGroup, groupLoading])
 
-                    {/* Separator */}
-                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+  // Fetch Maintenance Map Data
+  const fetchMapData = useCallback(async () => {
+    if (groupLoading || !activeGroup) return null
+    setLoadingMap(true)
+    try {
+      const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
+      const response = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
+      return response
+    } catch (error) {
+      console.error("Failed to fetch Map data", error)
+      return null
+    } finally {
+      setLoadingMap(false)
+    }
+  }, [selectedDays, selectedTags, activeGroup, groupLoading])
 
-                    {/* Tags */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-gray-700">Tags:</span>
-                        {AVAILABLE_TAGS.map(tag => (
-                            <Badge
-                                key={tag}
-                                variant={selectedTags.includes(tag) ? "default" : "outline"}
-                                className={`cursor-pointer transition-colors ${selectedTags.includes(tag)
-                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                    : 'hover:bg-gray-100 text-gray-600'
-                                    }`}
-                                onClick={() => toggleTag(tag)}
-                            >
-                                {tag}
-                            </Badge>
-                        ))}
-                        {selectedTags.length > 0 && (
-                            <button
-                                onClick={() => setSelectedTags([])}
-                                className="text-xs text-gray-400 hover:text-gray-600 underline ml-1"
-                            >
-                                Clear
-                            </button>
-                        )}
-                    </div>
-                </div>
+  // Filtered Map Data (computes active items based on active filters)
+  const filteredMapData = useMemo(() => {
+    if (!mapData) return []
 
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center pb-2">
-                    {/* Offline Days Dropdown */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Show Devices:</span>
-                        <select
-                            value={offlineDaysFilter === null ? '' : String(offlineDaysFilter)}
-                            onChange={(e) => setOfflineDaysFilter(e.target.value === '' ? null : Number(e.target.value))}
-                            className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {OFFLINE_DAYS_OPTIONS.map(opt => (
-                                <option key={String(opt.value)} value={opt.value === null ? '' : String(opt.value)}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+    let filtered = mapData
 
-                    {/* Separator */}
-                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+    // 1. Cohort Filter
+    if (selectedAirQloud !== "all") {
+      filtered = filtered.filter((d) => d.cohorts && d.cohorts.includes(selectedAirQloud))
+    }
 
-                    {/* Uptime + Error Margin Filters */}
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Device Uptime:</span>
-                            <select
-                                value={uptimeFilter}
-                                onChange={(e) => { setUptimeFilter(e.target.value as typeof uptimeFilter); clearRoute() }}
-                                className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {UPTIME_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
+    // 2. Grid Filter
+    if (selectedGrid !== "all") {
+      filtered = filtered.filter((device) => {
+        const deviceGrids = Array.isArray(device.grids) ? device.grids : []
+        return deviceGrids.some((grid) => String(grid).toLowerCase() === selectedGrid.toLowerCase())
+      })
+    }
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Error Margin:</span>
-                            <select
-                                value={errorMarginFilter}
-                                onChange={(e) => { setErrorMarginFilter(e.target.value as typeof errorMarginFilter); clearRoute() }}
-                                className="px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {ERROR_MARGIN_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+    // 3. Offline Days Filter
+    if (offlineDaysFilter !== null) {
+      const now = Date.now()
+      const thresholdMs = offlineDaysFilter * 86400000
+      filtered = filtered.filter((device) => {
+        if (!device.last_active) return true
+        const offlineDuration = now - new Date(device.last_active).getTime()
+        return offlineDuration >= thresholdMs
+      })
+    }
 
-                    {/* Separator */}
-                    <div className="hidden sm:block w-px h-6 bg-gray-200" />
+    // 4. Uptime Filter
+    if (uptimeFilter !== "all") {
+      filtered = filtered.filter((device) => {
+        const raw = Number(device.uptime)
+        let pct = 0
+        if (Number.isFinite(raw)) {
+          pct = raw <= 1 ? raw * 100 : raw
+        }
+        switch (uptimeFilter) {
+          case "offline":
+            return pct === 0
+          case "good":
+            return pct >= 85
+          case "moderate":
+            return pct >= 50 && pct < 85
+          case "critical":
+            return pct > 0 && pct < 50
+          default:
+            return true
+        }
+      })
+    }
 
-                    {/* Grid + Cohort Dropdowns */}
-                    <div className="flex flex-col gap-2">
-                        {/* Grid Dropdown with Search */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Grid:</span>
-                            <div className="relative" ref={gridDropdownRef}>
-                                <button
-                                    onClick={() => setGridDropdownOpen(!gridDropdownOpen)}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
-                                >
-                                    <span className="truncate flex-1 text-left">
-                                        {selectedGridLabel}
-                                    </span>
-                                    {selectedGrid === 'all' ? (
-                                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                    ) : (
-                                        <X
-                                            className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setSelectedGrid('all')
-                                                clearRoute()
-                                            }}
-                                        />
-                                    )}
-                                </button>
+    // 5. Error Margin Filter
+    if (errorMarginFilter !== "all") {
+      filtered = filtered.filter((device) => {
+        const em = Number(device.error_margin)
+        if (!Number.isFinite(em)) return false
+        switch (errorMarginFilter) {
+          case "good":
+            return em <= 10
+          case "moderate":
+            return em > 10 && em <= 20
+          case "critical":
+            return em > 20
+          default:
+            return true
+        }
+      })
+    }
 
-                                {gridDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                                        {/* Search Input */}
-                                        <div className="p-2 border-b border-gray-100">
-                                            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
-                                                <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Search grids..."
-                                                    value={gridSearch}
-                                                    onChange={(e) => setGridSearch(e.target.value)}
-                                                    className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
-                                                    autoFocus
-                                                />
-                                                {gridSearch && (
-                                                    <button onClick={() => setGridSearch('')}>
-                                                        <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-                                                    </button>
-                                                )}
-                                            </div>
+    // 6. LoRaWAN Radius Coverage Filter
+    if (coverageFilter !== "all" && gateways.length > 0) {
+      filtered = filtered.filter((device) => {
+        if (device.latitude == null || device.longitude == null) return false
+        let isCovered = false
+        for (const gw of gateways) {
+          if (gw.enabled === false || gw.latitude == null || gw.longitude == null) continue
+          const dist = calculateDistance(device.latitude, device.longitude, gw.latitude, gw.longitude)
+          const att = calculateSignalAttenuation(dist, gw)
+          if (att.quality !== "none") {
+            isCovered = true
+            break
+          }
+        }
+        if (coverageFilter === "inside_radius") return isCovered
+        if (coverageFilter === "outside_radius") return !isCovered
+        return true
+      })
+    }
 
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <span className="text-[11px] text-gray-500">Admin level:</span>
-                                                <select
-                                                    value={gridAdminLevelFilter}
-                                                    onChange={(e) => setGridAdminLevelFilter(e.target.value as 'all' | GridAdminLevel)}
-                                                    className="flex-1 px-2 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                >
-                                                    <option value="all">All levels</option>
-                                                    {GRID_ADMIN_LEVEL_OPTIONS.map(opt => (
-                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
+    return filtered
+  }, [
+    mapData,
+    offlineDaysFilter,
+    selectedAirQloud,
+    selectedGrid,
+    uptimeFilter,
+    errorMarginFilter,
+    coverageFilter,
+    gateways,
+  ])
 
-                                        {/* Options List */}
-                                        <div className="max-h-[240px] overflow-y-auto">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedGrid('all')
-                                                    clearRoute()
-                                                    setGridDropdownOpen(false)
-                                                    setGridSearch('')
-                                                }}
-                                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedGrid === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                                    }`}
-                                            >
-                                                All Grids
-                                                {selectedGrid === 'all' && (
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                                                )}
-                                            </button>
+  // Coverage statistics computed against filtered map items
+  const coverageStats = useMemo(() => {
+    return computeGatewayCoverageStats(gateways, filteredMapData)
+  }, [gateways, filteredMapData])
 
-                                            {loadingGrids && (
-                                                <div className="p-3 space-y-2">
-                                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
-                                                </div>
-                                            )}
+  // Route calculation
+  const calculateRoute = (devices?: MaintenanceMapItem[]) => {
+    const source = devices || (selectedDeviceIds.length > 0
+      ? filteredMapData.filter((d) => selectedDeviceIds.includes(d.device_id))
+      : filteredMapData)
 
-                                            {loadingGrids === false && filteredGrids.length === 0 && (
-                                                <div className="p-3 text-xs text-gray-400 text-center">No grids found</div>
-                                            )}
+    if (!source || source.length === 0) {
+      toast({
+        title: "Routing Error",
+        description: "No devices available to plan a route.",
+        variant: "destructive",
+      })
+      return
+    }
 
-                                            {loadingGrids === false && filteredGrids.length > 0 && (
-                                                filteredGrids.map((grid: SyncedGrid) => (
-                                                    <button
-                                                        key={grid.grid_id || grid.name}
-                                                        onClick={() => {
-                                                            setSelectedGrid(grid.name)
-                                                            clearRoute()
-                                                            setGridDropdownOpen(false)
-                                                            setGridSearch('')
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedGrid === grid.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                            }`}
-                                                    >
-                                                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                                                            <span className={`truncate ${selectedGrid === grid.name ? 'font-medium' : ''}`}>{getGridLabel(grid)}</span>
-                                                            <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                                                                {grid.admin_level && <span>{grid.admin_level}</span>}
-                                                                {typeof grid.number_of_sites === 'number' && <span>{grid.number_of_sites} sites</span>}
-                                                            </div>
-                                                        </div>
-                                                        {selectedGrid === grid.name && (
-                                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                                        )}
-                                                    </button>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Cohort Dropdown with Search */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700">Cohort:</span>
-                            <div className="relative" ref={cohortDropdownRef}>
-                                <button
-                                    onClick={() => setCohortDropdownOpen(!cohortDropdownOpen)}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[180px]"
-                                >
-                                    <span className="truncate flex-1 text-left">
-                                        {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud}
-                                    </span>
-                                    {selectedAirQloud === 'all' ? (
-                                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                    ) : (
-                                        <X
-                                            className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setSelectedAirQloud('all')
-                                                clearRoute()
-                                            }}
-                                        />
-                                    )}
-                                </button>
-
-                                {cohortDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-1 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                                        {/* Search Input */}
-                                        <div className="p-2 border-b border-gray-100">
-                                            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-gray-50 border border-gray-200">
-                                                <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Search cohorts..."
-                                                    value={cohortSearch}
-                                                    onChange={(e) => setCohortSearch(e.target.value)}
-                                                    className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
-                                                    autoFocus
-                                                />
-                                                {cohortSearch && (
-                                                    <button onClick={() => setCohortSearch('')}>
-                                                        <X className="w-3 h-3 text-gray-400 hover:text-gray-600" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Options List */}
-                                        <div className="max-h-[240px] overflow-y-auto">
-                                            {/* All Cohorts option */}
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedAirQloud('all')
-                                                    clearRoute()
-                                                    setCohortDropdownOpen(false)
-                                                    setCohortSearch('')
-                                                }}
-                                                className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between ${selectedAirQloud === 'all' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                                    }`}
-                                            >
-                                                All Cohorts
-                                                {selectedAirQloud === 'all' && (
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                                                )}
-                                            </button>
-
-                                            {loadingAirQlouds && (
-                                                <div className="p-3 space-y-2">
-                                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
-                                                </div>
-                                            )}
-
-                                            {loadingAirQlouds === false && filteredCohorts.length === 0 && (
-                                                <div className="p-3 text-xs text-gray-400 text-center">No cohorts found</div>
-                                            )}
-
-                                            {loadingAirQlouds === false && filteredCohorts.length > 0 && (
-                                                filteredCohorts.map((aq: AirQloudBasic) => (
-                                                    <button
-                                                        key={aq.id || aq.name}
-                                                        onClick={() => {
-                                                            setSelectedAirQloud(aq.name)
-                                                            clearRoute()
-                                                            setCohortDropdownOpen(false)
-                                                            setCohortSearch('')
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 ${selectedAirQloud === aq.name ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                                                            }`}
-                                                    >
-                                                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                                                            <span className={`truncate ${selectedAirQloud === aq.name ? 'font-medium' : ''}`}>{aq.name}</span>
-                                                            <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                                                                <span>{aq.device_count} devices</span>
-                                                            </div>
-                                                        </div>
-                                                        {selectedAirQloud === aq.name && (
-                                                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                                                        )}
-                                                    </button>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* --- MAP VIEW --- */}
-            <div className="flex flex-col gap-4 h-[calc(100vh-16rem)] animate-in fade-in duration-300">
-                {/* Map & Route Controls */}
-                <div className="flex flex-col gap-4 h-full overflow-hidden">
-                    <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <MapIcon className="w-4 h-4 text-gray-500" />
-                            <span className="font-medium text-sm">
-                                {selectedAirQloud === 'all' ? 'All Cohorts' : selectedAirQloud.toUpperCase()}
-                            </span>
-                            <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
-                                {filteredMapData.length} {filteredMapData.length === 1 ? 'device' : 'devices'}
-                                {mapData && mapData.length !== filteredMapData.length && (
-                                    <span className="text-blue-500/70"> / {mapData.length}</span>
-                                )}
-                            </span>
-                            {offlineDaysFilter !== null && (
-                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                    Offline ≥ {offlineDaysFilter}d
-                                </span>
-                            )}
-                            {uptimeFilter !== 'all' && (
-                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
-                                    Uptime: {uptimeFilter}
-                                </span>
-                            )}
-                            {errorMarginFilter !== 'all' && (
-                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
-                                    Error: {errorMarginFilter}
-                                </span>
-                            )}
-                            {selectedGrid !== 'all' && (
-                                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                    Grid: {selectedGridLabel}
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:flex items-center text-xs border rounded-md px-2 py-1 bg-gray-50">
-                                <span className="text-gray-500 mr-2">Home:</span>
-                                <span className="font-medium">{homeLocation.name}</span>
-                            </div>
-
-                            <button
-                                onClick={() => handleExportCSV()}
-                                disabled={loadingMap || (polygonSelectedDevices.length === 0 && !filteredMapData?.length)}
-                                className="flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 disabled:opacity-50 shadow-sm"
-                                title="Export device data to CSV"
-                            >
-                                <Download className="w-3.5 h-3.5 mr-1.5 text-gray-500" />
-                                Export CSV
-                                {polygonSelectedDevices.length > 0 && (
-                                    <span className="ml-1.5 px-1.5 py-0.2 bg-blue-50 text-blue-700 text-[10px] rounded-full font-semibold">
-                                        Polygon ({polygonSelectedDevices.length})
-                                    </span>
-                                )}
-                            </button>
-
-                            <button
-                                onClick={isRouting ? clearRoute : () => calculateRoute()}
-                                disabled={loadingMap || !filteredMapData?.length}
-                                className={`flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${isRouting
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600 disabled:opacity-50'
-                                    }`}
-                            >
-                                <MapIcon className="w-3 h-3 mr-1.5" />
-                                {isRouting ? 'Clear Route' : 'Generate Route'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Map + Polygon Sidebar Layout */}
-                    <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
-                        {/* Polygon Selection Sidebar (Left) */}
-                        {polygonSelectedDevices.length > 0 && polygonPanelOpen && (
-                            <div className="w-[320px] flex-shrink-0 bg-white rounded-lg shadow-sm border border-blue-200 p-4 flex flex-col animate-in slide-in-from-left-2 duration-200">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                        <Pentagon className="w-4 h-4 text-blue-600" />
-                                        Polygon Selection
-                                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
-                                            {polygonSelectedDevices.length}
-                                        </span>
-                                    </h3>
-                                    <button
-                                        onClick={() => setPolygonPanelOpen(false)}
-                                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                                        title="Collapse panel"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="mb-3 flex items-center gap-2">
-                                    <button
-                                        onClick={() => calculateRoute(polygonSelectedDevices)}
-                                        className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors font-medium"
-                                    >
-                                        Generate Route
-                                    </button>
-                                    <button
-                                        onClick={() => handleExportCSV(polygonSelectedDevices)}
-                                        className="px-3 py-2 bg-white text-gray-700 border border-gray-200 text-xs rounded-md hover:bg-gray-50 transition-colors font-medium flex items-center gap-1.5 shadow-sm"
-                                        title="Export polygon devices to CSV"
-                                    >
-                                        <Download className="w-3.5 h-3.5 text-gray-500" />
-                                        Export CSV
-                                    </button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto border border-gray-100 rounded-md min-h-0">
-                                    <table className="w-full text-xs">
-                                        <thead className="bg-gray-50 sticky top-0">
-                                            <tr>
-                                                <th className="text-left px-3 py-2 font-semibold text-gray-600">Device</th>
-                                                <th className="text-center px-2 py-2 font-semibold text-gray-600">Up%</th>
-                                                <th className="text-center px-2 py-2 font-semibold text-gray-600">Err</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {polygonSelectedDevices.map((device) => {
-                                                const raw = Number(device.uptime);
-                                                const uptimePct = Number.isFinite(raw) ? (raw <= 1 ? raw * 100 : raw) : 0;
-                                                const uptimeColor = uptimePct === 0 ? 'text-gray-400' : uptimePct >= 85 ? 'text-green-600' : uptimePct >= 50 ? 'text-yellow-600' : 'text-red-600';
-                                                const em = Number(device.error_margin);
-                                                const errorColor = !Number.isFinite(em) ? 'text-gray-400' : em <= 10 ? 'text-green-600' : em <= 20 ? 'text-yellow-600' : 'text-red-600';
-                                                return (
-                                                    <tr key={device.device_id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                                                        <td className="px-3 py-1.5 font-medium text-gray-800 truncate max-w-[140px]" title={device.device_name}>{device.device_name}</td>
-                                                        <td className={`px-2 py-1.5 text-center font-bold ${uptimeColor}`}>{uptimePct.toFixed(0)}%</td>
-                                                        <td className={`px-2 py-1.5 text-center font-bold ${errorColor}`}>{Number.isFinite(em) ? em.toFixed(1) : '–'}</td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Collapsed Polygon Panel Reopen Button */}
-                        {polygonSelectedDevices.length > 0 && !polygonPanelOpen && (
-                            <button
-                                onClick={() => setPolygonPanelOpen(true)}
-                                className="flex-shrink-0 self-start bg-blue-600 text-white rounded-lg px-2 py-3 shadow-md hover:bg-blue-700 transition-colors flex flex-col items-center gap-1 animate-in fade-in duration-200"
-                                title="Show polygon selection"
-                            >
-                                <Pentagon className="w-4 h-4" />
-                                <span className="text-[10px] font-bold">{polygonSelectedDevices.length}</span>
-                            </button>
-                        )}
-
-                        {/* Map Container */}
-                        <div className="flex-1 relative rounded-lg border border-gray-200 overflow-hidden shadow-sm bg-gray-100 min-w-0">
-                            <MaintenanceMap
-                                data={filteredMapData || []}
-                                loading={loadingMap}
-                                selectedDeviceIds={selectedDeviceIds}
-                                onDeviceSelect={handleDeviceSelect}
-                                routePath={routePath}
-                                homeLocation={homeLocation}
-                                onPolygonSelect={(devices) => {
-                                    setPolygonSelectedDevices(devices);
-                                    if (devices.length > 0) setPolygonPanelOpen(true);
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {isRouting && routePath.length > 0 && (
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 overflow-hidden animate-in slide-in-from-bottom-2">
-                            <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center uppercase tracking-wider">
-                                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-green-600" />
-                                Route Itinerary
-                            </h3>
-                            <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin">
-                                <div className="flex flex-col items-center min-w-[60px]">
-                                    <span className="text-[10px] font-bold text-gray-400 mb-1">START</span>
-                                    <div className="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px]">H</div>
-                                </div>
-
-                                <ArrowRight className="w-3 h-3 text-gray-300" />
-
-                                {routePath.map((stop, idx) => (
-                                    <React.Fragment key={stop.device_id}>
-                                        <div className="flex flex-col items-center min-w-[80px] max-w-[100px]">
-                                            <span className="text-[10px] font-bold text-gray-400 mb-1">STOP {idx + 1}</span>
-                                            <div className="w-full bg-blue-50 border border-blue-100 rounded px-2 py-1 text-center">
-                                                <div className="text-[10px] font-medium text-blue-700 truncate" title={stop.device_name}>{stop.device_name}</div>
-                                            </div>
-                                        </div>
-                                        {idx < routePath.length - 1 && (
-                                            <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                                        )}
-                                    </React.Fragment>
-                                ))}
-
-                                <ArrowRight className="w-3 h-3 text-gray-300" />
-                                <div className="flex flex-col items-center min-w-[60px]">
-                                    <span className="text-[10px] font-bold text-gray-400 mb-1">END</span>
-                                    <div className="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px]">H</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+    setIsRouting(true)
+    const validDevices = source.filter(
+      (item) => item.latitude != null && item.longitude != null
     )
+
+    if (validDevices.length === 0) {
+      setIsRouting(false)
+      toast({
+        title: "Routing Error",
+        description: "No devices with valid coordinates found in this view.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const routePoints = validDevices.map((d) => ({
+      ...d,
+      id: d.device_id,
+      latitude: d.latitude!,
+      longitude: d.longitude!,
+    }))
+
+    const optimized = calculateNearestNeighborRoute(homeLocation, routePoints)
+    setRoutePath(optimized as unknown as MaintenanceMapItem[])
+
+    toast({
+      title: "Route Optimized",
+      description: `Optimized itinerary generated for ${optimized.length} stops.`,
+    })
+  }
+
+  const clearRoute = () => {
+    setIsRouting(false)
+    setRoutePath([])
+  }
+
+  const handleToggleRouteDevice = (device: MaintenanceMapItem) => {
+    setSelectedDeviceIds((prev) =>
+      prev.includes(device.device_id)
+        ? prev.filter((id) => id !== device.device_id)
+        : [...prev, device.device_id]
+    )
+  }
+
+  const handleFocusMapDevice = (device: MaintenanceMapItem) => {
+    const lat = Number(device.latitude)
+    const lng = Number(device.longitude)
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setFlyToLocation({
+        latitude: lat,
+        longitude: lng,
+        zoom: 14,
+      })
+    }
+  }
+
+  const handleSelectAllPolygon = () => {
+    const ids = polygonSelectedDevices.map((d) => d.device_id)
+    setSelectedDeviceIds((prev) => Array.from(new Set([...prev, ...ids])))
+    toast({
+      title: "Devices Selected",
+      description: `${ids.length} area devices added to route selection.`,
+    })
+  }
+
+  const handleClearPolygon = () => {
+    setPolygonSelectedDevices([])
+  }
+
+  // Export CSV Helper
+  const handleExportCSV = (devicesToExport?: MaintenanceMapItem[]) => {
+    const targetDevices =
+      devicesToExport ||
+      (polygonSelectedDevices.length > 0 ? polygonSelectedDevices : filteredMapData)
+
+    if (!targetDevices || targetDevices.length === 0) {
+      toast({
+        title: "Export Error",
+        description: "No devices available to export.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const escapeCSV = (val: any): string => {
+      if (val === null || val === undefined) return '""'
+      let str = String(val)
+      if (/^[=+\-@]/.test(str)) str = `'${str}`
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
+    const headers = [
+      "Device Name",
+      "Device Number",
+      "Device ID",
+      "Latitude",
+      "Longitude",
+      "Uptime (%)",
+      "Error Margin",
+      "Nearest LoRaWAN Gateway",
+      "Distance to Gateway (km)",
+      "LoRaWAN Signal Quality",
+      "Coverage Status",
+      "Estimated RSSI (dBm)",
+    ]
+
+    const rows = targetDevices.map((device) => {
+      const rawUptime = Number(device.uptime)
+      const uptimePct = Number.isFinite(rawUptime)
+        ? rawUptime <= 1
+          ? rawUptime * 100
+          : rawUptime
+        : 0
+      const em = Number(device.error_margin)
+      const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A"
+      const cov = coverageStats.deviceCoverageMap[device.device_id]
+
+      return [
+        escapeCSV(device.device_name || device.device_id || ""),
+        escapeCSV(device.device_number ?? (device as any).deviceNumber ?? ""),
+        escapeCSV(device.device_id || ""),
+        escapeCSV(device.latitude ?? ""),
+        escapeCSV(device.longitude ?? ""),
+        escapeCSV(uptimePct.toFixed(1)),
+        escapeCSV(errorMarginStr),
+        escapeCSV(cov?.nearestGatewayName || "None"),
+        escapeCSV(cov ? `${cov.distanceKm.toFixed(2)} km` : "N/A"),
+        escapeCSV(cov ? cov.signalQuality.toUpperCase() : "NONE"),
+        escapeCSV(cov && cov.signalQuality !== "none" ? "Inside Radius" : "Blindspot"),
+        escapeCSV(cov ? `${cov.estimatedRssiDbm} dBm` : "N/A"),
+      ]
+    })
+
+    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `maintenance-devices-${new Date().toISOString().split("T")[0]}.csv`
+    a.style.display = "none"
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+      a.remove()
+    }, 0)
+
+    toast({
+      title: "CSV Exported",
+      description: `Exported ${targetDevices.length} devices to CSV.`,
+    })
+  }
+
+  // Fetch map data on filter update
+  useEffect(() => {
+    let cancelled = false
+    setIsRouting(false)
+    setRoutePath([])
+    fetchMapData().then((res) => {
+      if (!cancelled && res) setMapData(res)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [fetchMapData])
+
+  const handleRefreshData = useCallback(async () => {
+    const res = await fetchMapData()
+    if (res) {
+      setMapData(res)
+    }
+  }, [fetchMapData])
+
+  const selectedGridItem = grids.find((item) => item.name === selectedGrid)
+  const selectedGridLabel =
+    selectedGrid === "all"
+      ? "All Grids"
+      : selectedGridItem?.long_name || selectedGridItem?.name || selectedGrid
+
+  return (
+    <div className="flex flex-col h-full w-full overflow-hidden">
+      {/* Desktop Layout (md+) */}
+      <div className="hidden md:flex gap-3 overflow-hidden h-full flex-1">
+        {/* Left Floating Sidebar */}
+        <div
+          className={`flex-none transition-all duration-300 ease-in-out ${
+            isSidebarCollapsed
+              ? "w-0 opacity-0 -translate-x-4 pointer-events-none overflow-hidden"
+              : "w-80 lg:w-96 opacity-100 translate-x-0"
+          }`}
+          style={
+            {
+              "--sidebar-height": "100%",
+            } as React.CSSProperties
+          }
+        >
+          <MapSidebar
+            devices={filteredMapData}
+            loading={loadingMap}
+            selectedDevice={selectedDevice}
+            onSelectDevice={setSelectedDevice}
+            coverageStats={coverageStats}
+            showLoRaWAN={showGateways}
+            polygonDevices={polygonSelectedDevices}
+            onClearPolygon={handleClearPolygon}
+            onSelectAllPolygonForRoute={handleSelectAllPolygon}
+            onExportPolygonCSV={() => handleExportCSV(polygonSelectedDevices)}
+            selectedDeviceIds={selectedDeviceIds}
+            onToggleRouteDevice={handleToggleRouteDevice}
+            onFocusMapDevice={handleFocusMapDevice}
+            onCollapse={() => setIsSidebarCollapsed(true)}
+          />
+        </div>
+
+        {/* Map Canvas & Floating Overlays */}
+        <div className="flex-1 min-w-0 relative h-full rounded-xl overflow-hidden border border-gray-200/80 dark:border-gray-800 shadow-md">
+          {/* Leaflet Map Component with Unified Top Controls */}
+          <MaintenanceMap
+            data={filteredMapData}
+            loading={loadingMap}
+            selectedDevice={selectedDevice}
+            onDeviceSelect={setSelectedDevice}
+            selectedDeviceIds={selectedDeviceIds}
+            routePath={routePath}
+            homeLocation={homeLocation}
+            onPolygonSelect={setPolygonSelectedDevices}
+            gateways={gateways}
+            showGateways={showGateways}
+            onToggleGateways={handleToggleGateways}
+            showDeviceNames={showDeviceNames}
+            onToggleDeviceNames={setShowDeviceNames}
+            onOpenGatewayDialog={() => setGatewayDialogOpen(true)}
+            onExportMap={() => setExportDialogOpen(true)}
+            onExportCSV={() => handleExportCSV()}
+            onToggleRoute={isRouting || routePath.length > 0 ? clearRoute : () => calculateRoute()}
+            isRouting={isRouting}
+            highlightUncoveredDevices={highlightUncoveredDevices}
+            onToggleHighlightUncovered={setHighlightUncoveredDevices}
+            isSidebarCollapsed={isSidebarCollapsed}
+            onToggleSidebarCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            coverageFilter={coverageFilter}
+            onCoverageFilterChange={setCoverageFilter}
+            onRefreshData={handleRefreshData}
+            isRefreshing={loadingMap}
+            flyToLocation={flyToLocation}
+            topFilters={
+              <>
+                {/* Floating Expand Sidebar Button (when sidebar is collapsed) */}
+                {isSidebarCollapsed && (
+                  <button
+                    onClick={() => setIsSidebarCollapsed(false)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-full shadow-md border border-gray-200/80 dark:border-gray-800 text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 transition-all flex-shrink-0"
+                    title="Show Device List & Search Sidebar"
+                  >
+                    <PanelLeftOpen className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Devices</span>
+                    <span className="px-1.5 py-0.2 bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-full text-[10px] font-bold">
+                      {filteredMapData.length}
+                    </span>
+                  </button>
+                )}
+
+                {/* Top Filter Toolbar */}
+                <MapTopFilters
+                  selectedDays={selectedDays}
+                  onDaysChange={setSelectedDays}
+                  offlineDaysFilter={offlineDaysFilter}
+                  onOfflineDaysChange={setOfflineDaysFilter}
+                  uptimeFilter={uptimeFilter}
+                  onUptimeChange={(val) => {
+                    setUptimeFilter(val)
+                    clearRoute()
+                  }}
+                  errorMarginFilter={errorMarginFilter}
+                  onErrorMarginChange={(val) => {
+                    setErrorMarginFilter(val)
+                    clearRoute()
+                  }}
+                  selectedCohort={selectedAirQloud}
+                  onCohortChange={(val) => {
+                    setSelectedAirQloud(val)
+                    clearRoute()
+                  }}
+                  cohorts={cohorts}
+                  loadingCohorts={loadingAirQlouds}
+                  cohortSearch={cohortSearch}
+                  onCohortSearchChange={setCohortSearch}
+                  selectedGrid={selectedGrid}
+                  onGridChange={(val) => {
+                    setSelectedGrid(val)
+                    clearRoute()
+                  }}
+                  grids={grids}
+                  loadingGrids={loadingGrids}
+                  gridSearch={gridSearch}
+                  onGridSearchChange={setGridSearch}
+                  gridAdminLevelFilter={gridAdminLevelFilter}
+                  onGridAdminLevelChange={setGridAdminLevelFilter}
+                  selectedTags={selectedTags}
+                  onToggleTag={toggleTag}
+                  onClearTags={() => setSelectedTags([])}
+                  coverageFilter={coverageFilter}
+                  onCoverageFilterChange={setCoverageFilter}
+                  totalCount={mapData?.length}
+                  filteredCount={filteredMapData.length}
+                  hasGateways={gateways.length > 0}
+                  showLoRaWAN={showGateways}
+                  coveragePercentage={coverageStats.coveragePercentage}
+                />
+              </>
+            }
+          />
+
+          {/* Route Itinerary Bottom Strip */}
+          {routePath.length > 0 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-3 animate-in slide-in-from-bottom-4 duration-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
+                    Route Itinerary ({routePath.length} stops)
+                  </span>
+                </div>
+                <button
+                  onClick={clearRoute}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-600"
+                  title="Close route"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0">
+                  <span className="text-[9px] font-bold text-gray-400 mb-0.5">START</span>
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
+                    H
+                  </div>
+                </div>
+
+                <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+
+                {routePath.map((stop, idx) => (
+                  <React.Fragment key={stop.device_id}>
+                    <div
+                      onClick={() => handleFocusMapDevice(stop)}
+                      className="flex flex-col items-center min-w-[80px] max-w-[100px] flex-shrink-0 cursor-pointer group"
+                    >
+                      <span className="text-[9px] font-bold text-gray-400 mb-0.5">
+                        STOP {idx + 1}
+                      </span>
+                      <div className="w-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 rounded-md px-1.5 py-1 text-center group-hover:bg-blue-100 transition-colors">
+                        <div
+                          className="text-[10px] font-bold text-blue-700 dark:text-blue-300 truncate"
+                          title={stop.device_name || stop.device_id}
+                        >
+                          {stop.device_name || stop.device_id}
+                        </div>
+                      </div>
+                    </div>
+                    {idx < routePath.length - 1 && (
+                      <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                    )}
+                  </React.Fragment>
+                ))}
+
+                <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0">
+                  <span className="text-[9px] font-bold text-gray-400 mb-0.5">END</span>
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
+                    H
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Layout (< md) */}
+      <div className="flex flex-col md:hidden h-full">
+        {/* Map Pane on Top */}
+        <div
+          className="relative overflow-hidden flex-none transition-all duration-300 ease-in-out"
+          style={{
+            height:
+              mobileViewMode === "map-expanded"
+                ? "78dvh"
+                : mobileViewMode === "list-expanded"
+                ? "18dvh"
+                : "40dvh",
+          }}
+        >
+          <MaintenanceMap
+            data={filteredMapData}
+            loading={loadingMap}
+            selectedDevice={selectedDevice}
+            onDeviceSelect={setSelectedDevice}
+            selectedDeviceIds={selectedDeviceIds}
+            routePath={routePath}
+            homeLocation={homeLocation}
+            onPolygonSelect={setPolygonSelectedDevices}
+            gateways={gateways}
+            showGateways={showGateways}
+            onToggleGateways={handleToggleGateways}
+            showDeviceNames={showDeviceNames}
+            onToggleDeviceNames={setShowDeviceNames}
+            onOpenGatewayDialog={() => setGatewayDialogOpen(true)}
+            onExportMap={() => setExportDialogOpen(true)}
+            onExportCSV={() => handleExportCSV()}
+            onToggleRoute={isRouting || routePath.length > 0 ? clearRoute : () => calculateRoute()}
+            isRouting={isRouting}
+            highlightUncoveredDevices={highlightUncoveredDevices}
+            onToggleHighlightUncovered={setHighlightUncoveredDevices}
+            coverageFilter={coverageFilter}
+            onCoverageFilterChange={setCoverageFilter}
+            onRefreshData={handleRefreshData}
+            isRefreshing={loadingMap}
+            flyToLocation={flyToLocation}
+          />
+        </div>
+
+        {/* Mobile View Mode Switcher Divider */}
+        <div className="flex-none bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between z-10 shadow-xs">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 dark:text-gray-200">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span>{filteredMapData.length} Devices</span>
+          </div>
+
+          <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-full text-[11px] font-semibold">
+            <button
+              onClick={() => setMobileViewMode("map-expanded")}
+              className={`px-2.5 py-0.5 rounded-full transition-all flex items-center gap-1 ${
+                mobileViewMode === "map-expanded"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 shadow-xs font-bold"
+                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              <MapIcon className="w-3 h-3" />
+              <span>Map</span>
+            </button>
+            <button
+              onClick={() => setMobileViewMode("split")}
+              className={`px-2.5 py-0.5 rounded-full transition-all ${
+                mobileViewMode === "split"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 shadow-xs font-bold"
+                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              Split
+            </button>
+            <button
+              onClick={() => setMobileViewMode("list-expanded")}
+              className={`px-2.5 py-0.5 rounded-full transition-all flex items-center gap-1 ${
+                mobileViewMode === "list-expanded"
+                  ? "bg-white dark:bg-gray-700 text-blue-600 shadow-xs font-bold"
+                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              <List className="w-3 h-3" />
+              <span>List</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar Pane on Bottom */}
+        <div
+          className="flex-none overflow-hidden transition-all duration-300 ease-in-out"
+          style={
+            {
+              height:
+                mobileViewMode === "map-expanded"
+                  ? "18dvh"
+                  : mobileViewMode === "list-expanded"
+                  ? "78dvh"
+                  : "56dvh",
+              "--sidebar-height":
+                mobileViewMode === "map-expanded"
+                  ? "18dvh"
+                  : mobileViewMode === "list-expanded"
+                  ? "78dvh"
+                  : "56dvh",
+            } as React.CSSProperties
+          }
+        >
+          <MapSidebar
+            devices={filteredMapData}
+            loading={loadingMap}
+            selectedDevice={selectedDevice}
+            onSelectDevice={setSelectedDevice}
+            coverageStats={coverageStats}
+            showLoRaWAN={showGateways}
+            polygonDevices={polygonSelectedDevices}
+            onClearPolygon={handleClearPolygon}
+            onSelectAllPolygonForRoute={handleSelectAllPolygon}
+            onExportPolygonCSV={() => handleExportCSV(polygonSelectedDevices)}
+            selectedDeviceIds={selectedDeviceIds}
+            onToggleRouteDevice={handleToggleRouteDevice}
+            onFocusMapDevice={handleFocusMapDevice}
+            className="rounded-none border-x-0 border-b-0"
+          />
+        </div>
+      </div>
+
+      {/* LoRaWAN Gateway Dialog */}
+      <LoRaWANGatewayDialog
+        open={gatewayDialogOpen}
+        onOpenChange={setGatewayDialogOpen}
+        gateways={gateways}
+        onGatewaysChange={handleGatewaysChange}
+      />
+
+      {/* Map Export Dialog */}
+      <MapExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        mapElementId="maintenance-map-container"
+        devices={filteredMapData || []}
+        gateways={gateways}
+        routePath={routePath}
+        selectedCohort={selectedAirQloud === "all" ? "All Cohorts" : selectedAirQloud}
+        selectedGrid={selectedGridLabel}
+        periodDays={selectedDays}
+      />
+    </div>
+  )
 }

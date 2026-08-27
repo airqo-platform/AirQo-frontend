@@ -67,7 +67,7 @@ interface ConfigData {
 export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTabProps) {
   const { toast } = useToast()
   const searchParams = useSearchParams()
-  const isMock = searchParams.get('mock') === 'true'
+  const isMock = searchParams?.get('mock') === 'true'
   const [configData, setConfigData] = useState<ConfigData>({})
   const [configHistory, setConfigHistory] = useState<ConfigHistoryItem[]>([])
   const [loading, setLoading] = useState(true)

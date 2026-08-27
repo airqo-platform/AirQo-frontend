@@ -4,6 +4,7 @@ import { SessionProvider, signIn, useSession } from 'next-auth/react';
 import { useEffect, useState, ReactNode } from 'react';
 import { consumeOAuthTokenHandoffFromUrl } from '@/lib/oauth-session';
 import authService from '@/services/api-service';
+import { LoadingOverlay } from '@/components/ui/loading-overlay';
 
 function AuthEffect({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
@@ -67,12 +68,12 @@ function AuthEffect({ children }: { children: ReactNode }) {
 
   if (isHandlingHandoff || (status === 'unauthenticated' && typeof window !== 'undefined' && window.location.hash.includes('token='))) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <div className="w-16 h-16 border-4 border-blue-200 rounded-full mb-4 relative">
-          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-        </div>
-        <div className="text-gray-900 text-xl font-semibold mb-2">Completing sign in...</div>
-      </div>
+      <LoadingOverlay
+        isVisible
+        delayMs={0}
+        title="Completing sign in..."
+        description="Setting up your authenticated session..."
+      />
     );
   }
 

@@ -46,17 +46,16 @@ export const calculateCriticalityScore = (device: MaintenanceMapItem): number =>
     let score = 0;
 
     // Uptime contribution (0-50 pts)
-    // Uptime is in hours (0-24). Convert to percentage (0-100).
-    // Low uptime = high score
-    const uptimePercent = (device.avg_uptime / 24) * 100;
+    // Normalize raw uptime (0-1 fraction or 0-100 percentage)
+    const rawUptime = Number(device.uptime);
+    const uptimePercent = Number.isFinite(rawUptime) ? (rawUptime <= 1 ? rawUptime * 100 : rawUptime) : 0;
     const uptimeScore = Math.max(0, 100 - uptimePercent); // 0% uptime = 100 raw, 100% uptime = 0 raw
     score += uptimeScore * 0.5;
 
     // Error margin contribution (0-50 pts)
     // High error = high score
-    // User says > 10 is worrying. Let's scale it so 10 is significant but not max, and, say, 50 is max penalty.
-    // If error is 0-10, small penalty. If > 10, ramps up.
-    const errorScore = Math.min(100, device.avg_error_margin * 2); // 10 margin -> 20 pts, 25 margin -> 50 pts
+    const errorMargin = Number.isFinite(Number(device.error_margin)) ? Number(device.error_margin) : 0;
+    const errorScore = Math.min(100, errorMargin * 2); // 10 margin -> 20 pts, 25 margin -> 50 pts
     score += errorScore * 0.5;
 
     return Math.min(100, Math.max(0, score));
@@ -112,8 +111,10 @@ export const optimizeRoute = (
 
             const criticality = calculateCriticalityScore(candidate);
 
-            // AirQloud match? (1 if shares at least one airqloud, 0 otherwise)
-            const sameAirQloud = current.airqlouds.some(aq => candidate.airqlouds.includes(aq)) ? 1 : 0;
+            // Cohort / AirQloud match? (1 if shares at least one cohort, 0 otherwise)
+            const currentCohorts = Array.isArray(current.cohorts) ? current.cohorts : [];
+            const candidateCohorts = Array.isArray(candidate.cohorts) ? candidate.cohorts : [];
+            const sameAirQloud = currentCohorts.some(aq => candidateCohorts.includes(aq)) ? 1 : 0;
 
             // Normalize distance score (inverse distance, closer is better)
             // Cap max distance impact at say 500km to avoid near-zero comparisons for far items

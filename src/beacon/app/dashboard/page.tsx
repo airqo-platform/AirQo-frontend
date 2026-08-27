@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/ui/loading-state"
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,15 @@ import {
   SlidersHorizontal,
   ServerCrash
 } from "lucide-react"
+import {
+  AqSignal01,
+  AqCheckCircle,
+  AqAlertTriangle,
+  AqServer03,
+  AqLayersThree01,
+  AqRefreshCw01,
+} from "@airqo/icons-react"
+import { SummaryCard } from "@/components/dashboard/summary-card"
 import {
   BarChart,
   Bar,
@@ -449,14 +459,7 @@ function DashboardContent() {
   }))
 
   if (groupsLoading || isAuthorized === null) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="flex flex-col items-center gap-2">
-          <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-sm text-slate-500">Checking authorization...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState text="Checking authorization..." className="min-h-[50vh]" />
   }
 
   const handleFilterChange = (filterVal: string) => {
@@ -721,129 +724,91 @@ function DashboardContent() {
           ) : (
             <>
               {/* KPI Dashboard Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Status KPI Card */}
-                <Card className={`hover:shadow-md transition-all duration-200 border-l-4 ${activeStatus ? getUptimeBorderClass(activeStatus.onlinePercentage) : 'border-l-blue-500'} rounded-xl relative overflow-hidden`}>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Current Status {selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : '(Combined)'}
-                    </CardDescription>
-                    {summaryError && (
-                      <Badge variant="outline" className="text-[8px] font-black border-red-200 text-red-700 bg-red-50 animate-pulse uppercase px-1.5 py-0.5">
-                        API Error
-                      </Badge>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    {activeStatus ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(activeStatus.status)}
-                          <span className="text-xl font-bold">{activeStatus.status}</span>
-                        </div>
-                        <div className={`text-2xl font-black ${getUptimeColorClass(activeStatus.onlinePercentage)}`}>
-                          {activeStatus.onlinePercentage.toFixed(1)}% <span className="text-xs font-normal text-slate-500">online</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                          {activeStatus.message} <span className="text-[10px] opacity-70 block mt-1">({activeStatus.offlinePercentage.toFixed(1)}% offline)</span>
-                        </p>
-                        {summaryError && (
-                          <Button 
-                            size="sm" 
-                            variant="link" 
-                            className="text-blue-600 hover:text-blue-800 p-0 h-auto text-[10px] flex items-center gap-1 mt-1 font-semibold" 
-                            onClick={fetchData}
-                          >
-                            <RefreshCw className="h-2.5 w-2.5" /> Retry Sync
-                          </Button>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No data loaded</p>
-                    )}
-                  </CardContent>
-                </Card>
-     
+                <SummaryCard
+                  title={`Current Status ${selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : "(Combined)"}`}
+                  value={activeStatus ? activeStatus.status : "No Data"}
+                  icon={activeStatus?.status === "OK" ? AqCheckCircle : AqAlertTriangle}
+                  iconVariant={
+                    activeStatus?.status === "OK"
+                      ? "emerald"
+                      : activeStatus?.status === "WARNING"
+                      ? "amber"
+                      : "rose"
+                  }
+                  secondaryLabel="online rate"
+                  secondaryValue={activeStatus ? `${activeStatus.onlinePercentage.toFixed(1)}%` : "--"}
+                  progressPercentage={activeStatus ? activeStatus.onlinePercentage : 0}
+                  progressVariant={
+                    activeStatus?.status === "OK"
+                      ? "emerald"
+                      : activeStatus?.status === "WARNING"
+                      ? "amber"
+                      : "rose"
+                  }
+                  badge={
+                    summaryError
+                      ? {
+                          text: "API Error",
+                          variant: "destructive",
+                          className: "animate-pulse",
+                        }
+                      : undefined
+                  }
+                  subtext={
+                    activeStatus
+                      ? `${activeStatus.offlinePercentage.toFixed(1)}% offline (${activeStatus.not_transmitting_devices_count || 0}/${activeStatus.total_deployed_devices || 0} devices)`
+                      : "No data loaded"
+                  }
+                />
+
                 {/* Average Uptime KPI Card */}
-                <Card className={`hover:shadow-md transition-all duration-200 border-l-4 ${stats ? getUptimeBorderClass(100 - stats.avg_not_transmitting_percentage) : ''} rounded-xl`}>
-                  <CardHeader className="pb-2">
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Average Online Rate {selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : '(Combined)'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {stats ? (
-                      <div className="space-y-1">
-                        <div className={`text-3xl font-black flex items-baseline gap-1 ${getUptimeColorClass(100 - stats.avg_not_transmitting_percentage)}`}>
-                          {(100 - stats.avg_not_transmitting_percentage).toFixed(1)}%
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          Min Online: <span className="font-semibold text-slate-700 dark:text-slate-300">{(100 - stats.max_not_transmitting_percentage).toFixed(1)}%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                          Based on last {stats.totalAlerts} checks <span className="text-[10px] opacity-70 block mt-0.5">({stats.avg_not_transmitting_percentage.toFixed(1)}% avg offline)</span>
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No statistics available</p>
-                    )}
-                  </CardContent>
-                </Card>
-    
+                <SummaryCard
+                  title={`Average Online Rate ${selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : "(Combined)"}`}
+                  value={stats ? `${(100 - stats.avg_not_transmitting_percentage).toFixed(1)}%` : "--"}
+                  icon={AqSignal01}
+                  iconVariant="blue"
+                  secondaryLabel="min online"
+                  secondaryValue={
+                    stats ? `${(100 - stats.max_not_transmitting_percentage).toFixed(1)}%` : undefined
+                  }
+                  progressPercentage={stats ? 100 - stats.avg_not_transmitting_percentage : 0}
+                  progressVariant="blue"
+                  subtext={
+                    stats
+                      ? `Based on last ${stats.totalAlerts} checks (${stats.avg_not_transmitting_percentage.toFixed(1)}% avg offline)`
+                      : "No statistics available"
+                  }
+                />
+
                 {/* Warnings and critical events KPI Card */}
-                <Card className="hover:shadow-md transition-all duration-200 rounded-xl">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Incidents (14d) {selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : '(Combined)'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1.5 text-slate-500">
-                          <AlertTriangle className="h-4 w-4 text-amber-500" /> Warnings
-                        </span>
-                        <Badge variant="outline" className="font-bold border-amber-200 text-amber-750 bg-amber-50 rounded-lg">
-                          {activeWarningCount}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1.5 text-slate-500">
-                          <ServerCrash className="h-4 w-4 text-red-500" /> Critical Events
-                        </span>
-                        <Badge variant="outline" className="font-bold border-red-200 text-red-755 bg-red-50 rounded-lg">
-                          {activeCriticalCount}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-    
+                <SummaryCard
+                  title={`Incidents (14d) ${selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : "(Combined)"}`}
+                  value={activeWarningCount + activeCriticalCount}
+                  icon={AqAlertTriangle}
+                  iconVariant={
+                    activeCriticalCount > 0
+                      ? "rose"
+                      : activeWarningCount > 0
+                      ? "amber"
+                      : "emerald"
+                  }
+                  secondaryLabel="critical events"
+                  secondaryValue={`${activeCriticalCount}`}
+                  subtext={`${activeWarningCount} warnings & ${activeCriticalCount} critical events recorded`}
+                />
+
                 {/* Active devices counts KPI Card */}
-                <Card className="hover:shadow-md transition-all duration-200 rounded-xl">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Active Fleet Count {selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : '(Combined)'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="text-3xl font-black text-slate-800 dark:text-slate-100 flex items-baseline gap-1">
-                        {activeOperational}
-                      </div>
-                      <div className="text-xs text-slate-500 leading-snug">
-                        {selectedNetwork ? "Devices currently operational and sending data" : "Average operational devices transmitting live data"}
-                      </div>
-                      <div className="flex gap-2 text-[10px] text-muted-foreground mt-2 font-medium">
-                        <span>Tx Feed: {activeTransmitting}</span>
-                        <span>·</span>
-                        <span>Stale Tx: {activeDataAvailable}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SummaryCard
+                  title={`Active Fleet Count ${selectedNetwork ? `(${getNetworkDisplayName(selectedNetwork)})` : "(Combined)"}`}
+                  value={activeOperational}
+                  icon={AqServer03}
+                  iconVariant="primary"
+                  secondaryLabel="tx feed"
+                  secondaryValue={`${activeTransmitting}`}
+                  subtext={`Feed Tx: ${activeTransmitting} · Stale Tx: ${activeDataAvailable}`}
+                />
               </div>
 
               {isEmptyState ? (
@@ -868,9 +833,9 @@ function DashboardContent() {
                         <CardDescription>Daily average and minimum device online rates over the last 14 days</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80 w-full">
+                        <div className="h-80 w-full min-w-0">
                           {uptimeChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                               <LineChart data={uptimeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                                 <XAxis 
@@ -933,9 +898,9 @@ function DashboardContent() {
                         <CardDescription>Average online percentage by hour of day (EAT)</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-80 w-full">
+                        <div className="h-80 w-full min-w-0">
                           {trendsChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                               <BarChart data={trendsChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                                 <XAxis 
@@ -1127,86 +1092,100 @@ function DashboardContent() {
           </div>
 
           {/* Comparison KPI Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  {comparisonMode === 'network' ? 'Monitored Fleets' : 'Monitored Cohorts'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-slate-850 dark:text-slate-100">
-                  {comparisonMode === 'network' ? breakdownData.length : cohortBreakdownData.length}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  {comparisonMode === 'network' ? 'Active manufacturer fleets' : 'Active device cohorts in staging'}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SummaryCard
+              title={comparisonMode === "network" ? "Monitored Fleets" : "Monitored Cohorts"}
+              value={comparisonMode === "network" ? breakdownData.length : cohortBreakdownData.length}
+              icon={AqLayersThree01}
+              iconVariant="primary"
+              subtext={
+                comparisonMode === "network"
+                  ? "Active manufacturer fleets"
+                  : "Active device cohorts in staging"
+              }
+            />
 
-            <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Deployed</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-slate-855 dark:text-slate-100">
-                  {comparisonMode === 'network'
-                    ? Math.round(breakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0))
-                    : Math.round(cohortBreakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0))}
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Total devices active across monitored groups</p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800 border-l-4 border-l-green-500">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Best Performing</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
-                  (() => {
-                    const data = comparisonMode === 'network' ? breakdownData : cohortBreakdownData;
-                    const sorted = [...data].sort((a, b) => a.avg_not_transmitting_percentage - b.avg_not_transmitting_percentage);
-                    const best = sorted[0];
-                    const name = getItemName(best);
-                    return (
-                      <div className="space-y-1">
-                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{name}</div>
-                        <div className="text-2xl font-black text-green-600">{(100 - best.avg_not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-slate-400">online</span></div>
-                      </div>
+            <SummaryCard
+              title="Total Deployed"
+              value={
+                comparisonMode === "network"
+                  ? Math.round(
+                      breakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0)
                     )
-                  })()
-                ) : (
-                  <p className="text-sm text-slate-400">N/A</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-all duration-200 rounded-xl border border-slate-200/50 dark:border-slate-800 border-l-4 border-l-red-500">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Needs Attention</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
-                  (() => {
-                    const data = comparisonMode === 'network' ? breakdownData : cohortBreakdownData;
-                    const sorted = [...data].sort((a, b) => b.avg_not_transmitting_percentage - a.avg_not_transmitting_percentage);
-                    const worst = sorted[0];
-                    const name = getItemName(worst);
-                    return (
-                      <div className="space-y-1">
-                        <div className="text-lg font-bold text-slate-800 dark:text-slate-100 truncate">{name}</div>
-                        <div className="text-2xl font-black text-red-650">{(100 - worst.avg_not_transmitting_percentage).toFixed(1)}% <span className="text-xs font-normal text-slate-400">online</span></div>
-                      </div>
+                  : Math.round(
+                      cohortBreakdownData.reduce((sum, item) => sum + item.avg_total_monitors, 0)
                     )
-                  })()
-                ) : (
-                  <p className="text-sm text-slate-400">N/A</p>
-                )}
-              </CardContent>
-            </Card>
+              }
+              icon={AqServer03}
+              iconVariant="blue"
+              subtext="Total devices active across monitored groups"
+            />
 
+            {(() => {
+              const data = comparisonMode === "network" ? breakdownData : cohortBreakdownData
+              if (data.length > 0) {
+                const sorted = [...data].sort(
+                  (a, b) => a.avg_not_transmitting_percentage - b.avg_not_transmitting_percentage
+                )
+                const best = sorted[0]
+                const name = getItemName(best)
+                return (
+                  <SummaryCard
+                    title="Best Performing"
+                    value={`${(100 - best.avg_not_transmitting_percentage).toFixed(1)}%`}
+                    icon={AqCheckCircle}
+                    iconVariant="emerald"
+                    secondaryLabel="fleet"
+                    secondaryValue={name}
+                    progressPercentage={100 - best.avg_not_transmitting_percentage}
+                    progressVariant="emerald"
+                    subtext="Highest average online transmission rate"
+                  />
+                )
+              }
+              return (
+                <SummaryCard
+                  title="Best Performing"
+                  value="N/A"
+                  icon={AqCheckCircle}
+                  iconVariant="emerald"
+                  subtext="No comparison data available"
+                />
+              )
+            })()}
+
+            {(() => {
+              const data = comparisonMode === "network" ? breakdownData : cohortBreakdownData
+              if (data.length > 0) {
+                const sorted = [...data].sort(
+                  (a, b) => b.avg_not_transmitting_percentage - a.avg_not_transmitting_percentage
+                )
+                const worst = sorted[0]
+                const name = getItemName(worst)
+                return (
+                  <SummaryCard
+                    title="Needs Attention"
+                    value={`${(100 - worst.avg_not_transmitting_percentage).toFixed(1)}%`}
+                    icon={AqAlertTriangle}
+                    iconVariant="rose"
+                    secondaryLabel="fleet"
+                    secondaryValue={name}
+                    progressPercentage={100 - worst.avg_not_transmitting_percentage}
+                    progressVariant="rose"
+                    subtext="Lowest average online transmission rate"
+                  />
+                )
+              }
+              return (
+                <SummaryCard
+                  title="Needs Attention"
+                  value="N/A"
+                  icon={AqAlertTriangle}
+                  iconVariant="rose"
+                  subtext="No comparison data available"
+                />
+              )
+            })()}
           </div>
 
           {/* Comparison Content Grid */}
@@ -1224,9 +1203,9 @@ function DashboardContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full min-w-0">
                   {((comparisonMode === 'network' ? breakdownData : cohortBreakdownData).length > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <BarChart 
                         data={(comparisonMode === 'network' ? breakdownData : cohortBreakdownData).map(item => ({
                           name: getItemName(item),
@@ -1349,14 +1328,7 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="flex flex-col items-center gap-2">
-          <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-sm text-slate-500">Loading status dashboard...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingState text="Loading status dashboard..." className="min-h-[50vh]" />}>
       <DashboardContent />
     </Suspense>
   )

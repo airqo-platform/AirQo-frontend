@@ -471,6 +471,7 @@ export interface DeviceMaintenanceStatsResponse {
 export interface MaintenanceMapItem {
   device_id: string
   device_name: string
+  device_number?: number | string | null
   latitude: number
   longitude: number
   last_active: string | null

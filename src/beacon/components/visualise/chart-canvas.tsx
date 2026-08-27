@@ -270,7 +270,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
             disabled={isExporting}
             className="h-8 text-xs gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
           >
-            {isExporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5 text-blue-600" />}
+            {isExporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5 text-primary" />}
             PNG
           </Button>
 
@@ -333,8 +333,8 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
 
       {/* Main Chart Canvas Area */}
       <CardContent className="p-4 pt-6">
-        <div style={{ width: "100%", height: isFullscreen ? "75vh" : height }}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div style={{ width: "100%", height: isFullscreen ? "75vh" : height }} className="min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             {/* 1. Line Chart */}
             {config.chartType === "line" ? (
               <LineChart data={processedData} margin={{ top: 10, right: 30, left: 10, bottom: 25 }}>
