@@ -79,8 +79,7 @@ export default function DeviceDiagnosticInspectorPage() {
         context: { cloud_cover_percentage: 15.0 },
       });
 
-      setSnapshot((prev) => ({
-        ...prev,
+      setSnapshot({
         id: `snap_${Date.now()}`,
         device_id: deviceId,
         timestamp: result.timestamp,
@@ -91,7 +90,7 @@ export default function DeviceDiagnosticInspectorPage() {
         detected_symptoms: result.detected_symptoms,
         top_diagnoses: result.top_diagnoses,
         evaluated_window_hours: result.evaluated_window_hours,
-      }));
+      });
 
       toast({
         title: "Diagnostic Re-evaluation Complete",
