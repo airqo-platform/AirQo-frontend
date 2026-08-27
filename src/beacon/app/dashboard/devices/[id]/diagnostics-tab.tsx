@@ -28,18 +28,23 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
   const [history, setHistory] = useState<DeviceHealthSnapshot[]>([]);
   const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchDiagnosticData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [healthData, histData] = await Promise.all([
         diagnosticsService.getDeviceHealth(deviceId),
         diagnosticsService.getDeviceHealthHistory(deviceId, 30),
       ]);
       setSnapshot(healthData);
       setHistory(histData);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching diagnostics tab data:", err);
+      setError(err?.message || "Device health telemetry is currently unavailable.");
+      setSnapshot(null);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
@@ -111,6 +116,27 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
     );
   }
 
+  if (error && !snapshot) {
+    return (
+      <Card className="border border-dashed border-gray-300 p-8 text-center bg-gray-50/50">
+        <Stethoscope className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+        <h4 className="text-base font-semibold text-gray-800">Telemetry Data Unavailable</h4>
+        <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+          {error}
+        </p>
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <Button onClick={fetchDiagnosticData} variant="outline" size="sm">
+            Retry Connection
+          </Button>
+          <Button onClick={handleReevaluate} size="sm" disabled={isEvaluating} className="gap-2">
+            <Sparkles className={`w-3.5 h-3.5 ${isEvaluating ? "animate-spin" : ""}`} />
+            Run On-Demand Evaluation
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
   if (!snapshot) {
     return null;
   }
@@ -149,6 +175,7 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
         lastEvaluated={new Date(snapshot.timestamp).toLocaleTimeString()}
         onReevaluate={handleReevaluate}
         isEvaluating={isEvaluating}
+        isSimulated={snapshot.is_simulated}
       />
 
       {/* 2. Subsystem Breakdown & Active Evidences */}

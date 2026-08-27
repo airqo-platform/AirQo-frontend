@@ -118,6 +118,7 @@ export default function DiagnosticTemplatesPage() {
 
   const handleOpenEdit = (tpl: DiagnosticTemplate) => {
     setIsEditing(true);
+    setSelectedTemplate(tpl);
     setFormName(tpl.name);
     setFormCategory(tpl.category);
     setFormVersion(tpl.version);
@@ -191,6 +192,7 @@ export default function DiagnosticTemplatesPage() {
 
     try {
       const payload: Partial<DiagnosticTemplate> = {
+        ...(isEditing && selectedTemplate?.id ? { id: selectedTemplate.id } : {}),
         name: formName,
         category: formCategory,
         version: formVersion,
@@ -202,7 +204,10 @@ export default function DiagnosticTemplatesPage() {
 
       const saved = await diagnosticsService.createTemplate(payload);
       setSelectedTemplate(saved);
-      toast({ title: "Template Saved", description: `Diagnostic pack ${saved.name} saved.` });
+      toast({
+        title: isEditing ? "Template Updated" : "Template Saved",
+        description: `Diagnostic pack ${saved.name} ${isEditing ? "updated" : "saved"}.`,
+      });
       setModalOpen(false);
       loadTemplates();
     } catch (err: any) {

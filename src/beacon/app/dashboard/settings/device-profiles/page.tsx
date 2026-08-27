@@ -231,7 +231,11 @@ export default function DeviceProfilesPage() {
   const handleDeleteProfile = async (id: string) => {
     if (!confirm("Are you sure you want to delete this device profile?")) return;
     try {
-      await diagnosticsService.deleteProfile(id);
+      const res = await diagnosticsService.deleteProfile(id);
+      if (res && !res.success) {
+        toast({ title: "Delete Error", description: "Failed to delete profile from server", variant: "destructive" });
+        return;
+      }
       toast({ title: "Profile Deleted", description: "Device profile removed successfully." });
       loadProfiles();
     } catch (err: any) {

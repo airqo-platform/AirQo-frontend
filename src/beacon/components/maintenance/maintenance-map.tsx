@@ -50,9 +50,9 @@ function isPointInPolygon(lat: number, lng: number, polygon: LatLngPoint[]): boo
   return inside
 }
 
-function escapeHtml(str: string): string {
-  if (!str) return ""
-  return str
+function escapeHtml(str: string | number | undefined | null): string {
+  if (str === null || str === undefined) return ""
+  return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -266,11 +266,12 @@ export default function MaintenanceMap({
 
     const bgClass = isRural ? "bg-emerald-600" : isSuburban ? "bg-blue-600" : "bg-indigo-600"
     const pingColor = isRural ? "bg-emerald-400" : isSuburban ? "bg-blue-400" : "bg-indigo-400"
+    const titleText = `${gateway.name || "Gateway"} (${ENVIRONMENT_PROFILES[env]?.label || env})`
 
     return L.divIcon({
       className: "custom-div-icon bg-transparent",
       html: `
-        <div class="relative group cursor-pointer" title="${gateway.name} (${ENVIRONMENT_PROFILES[env].label})">
+        <div class="relative group cursor-pointer" title="${escapeHtml(titleText)}">
           <div class="w-8 h-8 rounded-full ${bgClass} border-2 border-white shadow-xl flex items-center justify-center text-white hover:scale-110 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
@@ -490,15 +491,15 @@ export default function MaintenanceMap({
           <div class="p-2 min-w-[220px]">
             <div class="flex items-center gap-1.5 mb-1">
               <span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]">LoRaWAN Tower</span>
-              <span class="text-[10px] text-gray-500 font-mono">${gw.eui || gw.id}</span>
+              <span class="text-[10px] text-gray-500 font-mono">${escapeHtml(gw.eui || gw.id)}</span>
             </div>
-            <h4 class="font-bold text-xs text-gray-900">${gw.name}</h4>
-            <p class="text-[11px] text-gray-600 mb-2">${gw.description || "AirQo Gateway"}</p>
+            <h4 class="font-bold text-xs text-gray-900">${escapeHtml(gw.name)}</h4>
+            <p class="text-[11px] text-gray-600 mb-2">${escapeHtml(gw.description || "AirQo Gateway")}</p>
             <div class="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-50 p-1.5 rounded border border-slate-200">
-              <div><span class="text-gray-500">Profile:</span> <span class="font-semibold capitalize text-indigo-900">${env}</span></div>
-              <div><span class="text-gray-500">Antenna:</span> <span class="font-semibold">${gw.antenna_height_m || 25}m</span></div>
-              <div><span class="text-gray-500">Inner:</span> <span class="font-semibold text-emerald-700">≤ ${gw.inner_strong_radius_km || 2} km</span></div>
-              <div><span class="text-gray-500">Max Reach:</span> <span class="font-semibold text-red-700">≤ ${gw.max_range_km || 10} km</span></div>
+              <div><span class="text-gray-500">Profile:</span> <span class="font-semibold capitalize text-indigo-900">${escapeHtml(env)}</span></div>
+              <div><span class="text-gray-500">Antenna:</span> <span class="font-semibold">${escapeHtml(gw.antenna_height_m || 25)}m</span></div>
+              <div><span class="text-gray-500">Inner:</span> <span class="font-semibold text-emerald-700">≤ ${escapeHtml(gw.inner_strong_radius_km || 2)} km</span></div>
+              <div><span class="text-gray-500">Max Reach:</span> <span class="font-semibold text-red-700">≤ ${escapeHtml(gw.max_range_km || 10)} km</span></div>
             </div>
           </div>
         `)
@@ -594,7 +595,7 @@ export default function MaintenanceMap({
           icon: homeIcon,
           zIndexOffset: 1200,
         })
-          .bindPopup(homeLocation?.name || "Home Location")
+          .bindPopup(escapeHtml(homeLocation?.name || "Home Location"))
           .addTo(map.current!)
       }
 

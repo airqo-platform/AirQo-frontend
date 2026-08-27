@@ -102,6 +102,7 @@ export interface DeviceHealthSnapshot {
   detected_symptoms?: string[];
   top_diagnoses?: DiagnosisResult[];
   evaluated_window_hours: number;
+  is_simulated?: boolean;
 }
 
 export interface DiagnosticFeedbackCreate {

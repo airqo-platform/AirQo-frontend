@@ -53,9 +53,11 @@ export default function DeviceDiagnosticInspectorPage() {
       setHistory(histData);
     } catch (err: any) {
       console.error("Error fetching diagnostics:", err);
+      setSnapshot(null);
+      setHistory([]);
       toast({
-        title: "Diagnostic Load Warning",
-        description: "Failed to connect to backend diagnostics engine. Running simulation fallback.",
+        title: "Telemetry Unavailable",
+        description: err?.message || "Device health telemetry is currently unavailable.",
         variant: "destructive",
       });
     } finally {
@@ -188,6 +190,7 @@ export default function DeviceDiagnosticInspectorPage() {
             lastEvaluated={new Date(snapshot.timestamp).toLocaleTimeString()}
             onReevaluate={handleReevaluate}
             isEvaluating={isEvaluating}
+            isSimulated={snapshot.is_simulated}
           />
 
           {/* 2. Subsystem Breakdown & Active Evidences Side-by-Side */}

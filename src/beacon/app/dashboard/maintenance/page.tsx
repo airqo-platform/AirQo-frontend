@@ -488,6 +488,13 @@ export default function MaintenancePage() {
     }
   }, [fetchMapData])
 
+  const handleRefreshData = useCallback(async () => {
+    const res = await fetchMapData()
+    if (res) {
+      setMapData(res)
+    }
+  }, [fetchMapData])
+
   const selectedGridItem = grids.find((item) => item.name === selectedGrid)
   const selectedGridLabel =
     selectedGrid === "all"
@@ -557,7 +564,7 @@ export default function MaintenancePage() {
             onToggleSidebarCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             coverageFilter={coverageFilter}
             onCoverageFilterChange={setCoverageFilter}
-            onRefreshData={fetchMapData}
+            onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
             topFilters={
@@ -731,7 +738,7 @@ export default function MaintenancePage() {
             onToggleHighlightUncovered={setHighlightUncoveredDevices}
             coverageFilter={coverageFilter}
             onCoverageFilterChange={setCoverageFilter}
-            onRefreshData={fetchMapData}
+            onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
           />

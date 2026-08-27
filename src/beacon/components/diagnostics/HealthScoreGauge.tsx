@@ -12,6 +12,7 @@ interface HealthScoreGaugeProps {
   lastEvaluated?: string;
   onReevaluate?: () => void;
   isEvaluating?: boolean;
+  isSimulated?: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -112,6 +113,7 @@ export const HealthScoreGauge: React.FC<HealthScoreGaugeProps> = ({
   lastEvaluated,
   onReevaluate,
   isEvaluating = false,
+  isSimulated = false,
   size = "lg",
   className = "",
 }) => {
@@ -185,6 +187,12 @@ export const HealthScoreGauge: React.FC<HealthScoreGaugeProps> = ({
               <Clock className="w-3 h-3 text-slate-400" />
               Window: {evaluatedWindowHours}h
             </span>
+            {isSimulated && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                Simulated Telemetry
+              </span>
+            )}
           </div>
 
           <h3 className="text-xl font-bold text-gray-900 tracking-tight">

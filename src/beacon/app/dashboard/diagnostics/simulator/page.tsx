@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { diagnosticsService, DEFAULT_PROFILES } from "@/services/diagnosticsService";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LoadingState } from "@/components/ui/loading-state";
 import { toast } from "@/components/ui/use-toast";
 import {
   Sliders,
@@ -116,13 +117,13 @@ const SIMULATOR_PRESETS = [
   },
 ];
 
-export default function DiagnosticSimulatorPage() {
+function DiagnosticSimulatorContent() {
   const searchParams = useSearchParams();
-  const initDeviceId = searchParams?.get("device_id") || "AQ_BENCH_TEST_01";
+  const queryDeviceId = searchParams?.get("device_id");
 
   const [profiles, setProfiles] = useState<DeviceProfile[]>(DEFAULT_PROFILES);
   const [selectedPreset, setSelectedPreset] = useState<string>("preset_battery_collapse");
-  const [deviceId, setDeviceId] = useState<string>(initDeviceId);
+  const [deviceId, setDeviceId] = useState<string>(queryDeviceId || SIMULATOR_PRESETS[0].deviceId);
   const [profileId, setProfileId] = useState<string>("prof_airqo_v5_dualpm");
   const [windowHours, setWindowHours] = useState<number>(24);
   const [jsonTelemetry, setJsonTelemetry] = useState<string>("");
@@ -130,22 +131,22 @@ export default function DiagnosticSimulatorPage() {
   const [evaluating, setEvaluating] = useState<boolean>(false);
   const [result, setResult] = useState<DiagnosticEvaluationResult | null>(null);
 
-  // Initialize with preset 0
-  useEffect(() => {
-    loadPreset(SIMULATOR_PRESETS[0]);
-    diagnosticsService.getProfiles().then((p) => {
-      if (p && p.length > 0) setProfiles(p);
-    });
-  }, []);
-
-  const loadPreset = (preset: (typeof SIMULATOR_PRESETS)[0]) => {
+  const loadPreset = (preset: (typeof SIMULATOR_PRESETS)[0], customDeviceId?: string | null) => {
     setSelectedPreset(preset.id);
-    setDeviceId(preset.deviceId);
+    setDeviceId(customDeviceId || preset.deviceId);
     setProfileId(preset.profileId);
     setWindowHours(preset.windowHours);
     setJsonTelemetry(JSON.stringify(preset.telemetry, null, 2));
     setJsonContext(JSON.stringify(preset.context || {}, null, 2));
   };
+
+  // Initialize with preset 0 while preserving searchParams device_id if provided
+  useEffect(() => {
+    loadPreset(SIMULATOR_PRESETS[0], queryDeviceId);
+    diagnosticsService.getProfiles().then((p) => {
+      if (p && p.length > 0) setProfiles(p);
+    });
+  }, [queryDeviceId]);
 
   const handlePresetSelect = (id: string) => {
     const found = SIMULATOR_PRESETS.find((p) => p.id === id);
@@ -427,5 +428,19 @@ export default function DiagnosticSimulatorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DiagnosticSimulatorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+          <LoadingState text="Loading diagnostic simulator..." className="min-h-[50vh]" />
+        </div>
+      }
+    >
+      <DiagnosticSimulatorContent />
+    </Suspense>
   );
 }

@@ -15,10 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSession } from "next-auth/react";
 import { DiagnosisResult, DiagnosticFeedbackCreate } from "@/types/diagnostics";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import { toast } from "@/components/ui/use-toast";
-import { MessageSquarePlus, CheckCircle2, XCircle, Wrench, ShieldCheck, Loader2 } from "lucide-react";
+import { MessageSquarePlus, CheckCircle2, XCircle, Wrench, ShieldCheck, Loader2, User } from "lucide-react";
 
 interface TechnicianFeedbackModalProps {
   open: boolean;
@@ -37,12 +38,26 @@ export const TechnicianFeedbackModal: React.FC<TechnicianFeedbackModalProps> = (
   diagnosis,
   onFeedbackSubmitted,
 }) => {
+  const { data: session } = useSession();
+  const sessionUserId =
+    (session?.user as any)?.id ||
+    (session?.user as any)?._id ||
+    session?.user?.email ||
+    (session?.user as any)?.userName ||
+    "";
+
   const [accurate, setAccurate] = useState<string>("yes");
   const [confirmedCause, setConfirmedCause] = useState<string>("");
   const [actionsTaken, setActionsTaken] = useState<string>("");
   const [technicianNotes, setTechnicianNotes] = useState<string>("");
-  const [technicianUserId, setTechnicianUserId] = useState<string>("tech_field_01");
+  const [technicianUserId, setTechnicianUserId] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (sessionUserId) {
+      setTechnicianUserId(sessionUserId);
+    }
+  }, [sessionUserId]);
 
   useEffect(() => {
     if (diagnosis) {
@@ -61,12 +76,22 @@ export const TechnicianFeedbackModal: React.FC<TechnicianFeedbackModalProps> = (
       return;
     }
 
+    const finalTechId = technicianUserId.trim() || sessionUserId;
+    if (!finalTechId) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide your technician ID or email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
       const payload: DiagnosticFeedbackCreate = {
         snapshot_id: snapshotId,
         device_id: deviceId,
-        technician_user_id: technicianUserId,
+        technician_user_id: finalTechId,
         confirmed_cause_code: confirmedCause,
         was_prediction_accurate: accurate === "yes",
         actions_taken: actionsTaken,
@@ -109,6 +134,31 @@ export const TechnicianFeedbackModal: React.FC<TechnicianFeedbackModalProps> = (
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          {/* Technician Identity */}
+          {sessionUserId ? (
+            <div className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+              <span className="text-gray-500 flex items-center gap-1.5 font-medium">
+                <User className="w-3.5 h-3.5 text-blue-600" />
+                Technician:
+              </span>
+              <span className="font-mono text-gray-800 font-semibold">{technicianUserId || sessionUserId}</span>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="technician-id" className="text-xs font-semibold text-gray-700">
+                Technician ID / Email <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="technician-id"
+                placeholder="e.g. technician@airqo.net or tech_field_12"
+                value={technicianUserId}
+                onChange={(e) => setTechnicianUserId(e.target.value)}
+                required
+                className="h-9 text-xs"
+              />
+            </div>
+          )}
+
           {/* Active Diagnostic Hypothesis */}
           {diagnosis && (
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">

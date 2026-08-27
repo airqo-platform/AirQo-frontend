@@ -1,5 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchWithAuth } from "@/lib/api-client";
+import { isMockMode } from "@/lib/mock-data";
 import {
   DeviceHealthSnapshot,
   DiagnosticEvaluationResult,
@@ -385,6 +386,7 @@ export const generateMockSnapshot = (deviceId: string): DeviceHealthSnapshot => 
         },
       ],
       evaluated_window_hours: 24,
+      is_simulated: true,
     };
   }
 
@@ -427,6 +429,7 @@ export const generateMockSnapshot = (deviceId: string): DeviceHealthSnapshot => 
         },
       ],
       evaluated_window_hours: 24,
+      is_simulated: true,
     };
   }
 
@@ -468,6 +471,7 @@ export const generateMockSnapshot = (deviceId: string): DeviceHealthSnapshot => 
         },
       ],
       evaluated_window_hours: 24,
+      is_simulated: true,
     };
   }
 
@@ -527,6 +531,7 @@ export const generateMockSnapshot = (deviceId: string): DeviceHealthSnapshot => 
       },
     ],
     evaluated_window_hours: 24,
+    is_simulated: true,
   };
 };
 
@@ -554,6 +559,7 @@ export const generateMockHistory = (deviceId: string, count: number = 30): Devic
         "Connectivity": Math.min(100, Math.round(95 + Math.sin(i) * 3)),
       },
       evaluated_window_hours: 24,
+      is_simulated: true,
     });
   }
 
@@ -570,19 +576,20 @@ export const diagnosticsService = {
    * GET /api/v1/diagnostics/devices/{device_id}/health
    */
   async getDeviceHealth(deviceId: string): Promise<DeviceHealthSnapshot> {
-    try {
-      const baseUrl = getBaseUrl();
-      const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health`, {
-        headers: getAuthHeaders(),
-      });
-
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch (e) {
-      console.warn("API unavailable, generating fallback diagnostic snapshot for:", deviceId, e);
+    if (isMockMode()) {
+      return generateMockSnapshot(deviceId);
     }
-    return generateMockSnapshot(deviceId);
+
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Device health unavailable (${res.status} ${res.statusText})`);
+    }
+
+    return await res.json();
   },
 
   /**
@@ -590,19 +597,20 @@ export const diagnosticsService = {
    * GET /api/v1/diagnostics/devices/{device_id}/health/history?limit=30
    */
   async getDeviceHealthHistory(deviceId: string, limit: number = 30): Promise<DeviceHealthSnapshot[]> {
-    try {
-      const baseUrl = getBaseUrl();
-      const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health/history?limit=${limit}`, {
-        headers: getAuthHeaders(),
-      });
-
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch (e) {
-      console.warn("API unavailable, generating fallback health trajectory for:", deviceId, e);
+    if (isMockMode()) {
+      return generateMockHistory(deviceId, limit);
     }
-    return generateMockHistory(deviceId, limit);
+
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health/history?limit=${limit}`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Device health history unavailable (${res.status} ${res.statusText})`);
+    }
+
+    return await res.json();
   },
 
   /**
@@ -827,12 +835,24 @@ export const diagnosticsService = {
   async deleteProfile(id: string): Promise<{ success: boolean }> {
     try {
       const baseUrl = getBaseUrl();
-      await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(id)}`, {
+      const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(id)}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
+
+      if (res.ok) {
+        if (typeof window !== "undefined") {
+          const current = await this.getProfiles();
+          const updated = current.filter((p) => p.id !== id);
+          localStorage.setItem("beacon_custom_device_profiles", JSON.stringify(updated));
+        }
+        return { success: true };
+      }
+
+      console.warn("Delete profile API responded with non-OK status:", res.status);
+      return { success: false };
     } catch (e) {
-      console.warn("Delete profile API error:", e);
+      console.warn("Delete profile API error, falling back to local deletion:", e);
     }
 
     if (typeof window !== "undefined") {
