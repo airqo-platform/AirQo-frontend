@@ -204,7 +204,7 @@ export default function UpdateDeviceDialog({
       // Use config to determine correct endpoint
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? "/api/v1" : "/api/v1/beacon")
       const endpoint = `${prefix}/devices/`
-      const url = `${baseUrl}${endpoint}${device.device_id}/details`
+      const url = `${config.apiUrl}${endpoint}${device.device_id}/details`
 
       let payload: any = {}
 

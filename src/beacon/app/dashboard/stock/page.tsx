@@ -464,7 +464,7 @@ const StockPage = () => {
           <Dialog open={newItemDialog} onOpenChange={setNewItemDialog}>
             <Button
               onClick={() => setNewItemDialog(true)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <PlusCircle className="h-4 w-4 mr-2" /> Add Item
             </Button>
@@ -523,7 +523,7 @@ const StockPage = () => {
                 <Button
                   onClick={handleCreateItem}
                   disabled={isCreating}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {isCreating ? "Creating..." : "Create Item"}
                 </Button>
@@ -599,7 +599,7 @@ const StockPage = () => {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="cursor-help">
-                              <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                              <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary">
                                 +{item.last_stock_addition.toLocaleString()}
                               </Badge>
                             </div>
@@ -781,7 +781,7 @@ const StockPage = () => {
             <Button
               onClick={handleUpdateItem}
               disabled={isUpdating}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isUpdating ? "Updating..." : "Update Stock"}
             </Button>
@@ -798,7 +798,7 @@ const StockPage = () => {
                 <p className="text-sm text-gray-600">Total Items</p>
                 <p className="text-2xl font-bold text-gray-800">{stockData.total}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Package className="h-8 w-8 text-primary" />
             </div>
           </div>
 

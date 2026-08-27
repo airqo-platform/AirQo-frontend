@@ -575,6 +575,7 @@ export function getMockMaintenanceMapData() {
   return getMockDevices().map(d => ({
     device_id: d._id,
     device_name: d.name,
+    device_number: d.device_number || (d as any).deviceNumber || (1500000 + Math.floor(Math.random() * 90000)),
     latitude: d.latitude,
     longitude: d.longitude,
     last_active: d.lastActive,

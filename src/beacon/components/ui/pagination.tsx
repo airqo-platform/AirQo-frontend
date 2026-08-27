@@ -94,10 +94,7 @@ const Pagination = ({
                 variant={isActive ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(pageNumber)}
-                className={cn(
-                  "h-8 w-8 p-0",
-                  isActive && "bg-blue-600 hover:bg-blue-700 text-white"
-                )}
+                className="h-8 w-8 p-0"
               >
                 {pageNumber}
               </Button>

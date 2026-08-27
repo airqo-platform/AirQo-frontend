@@ -20,4 +20,4 @@ This is the happy path: your device shipped with a printed claim label attached.
 QR codes remove the risk of mistyping a claim token (letters vs. digits, e.g. `0` vs `O`). Scan the label whenever your device has a camera-readable code available.
 :::
 
-Once your device is claimed, its readings become available through the same channels covered in the [Data Access Guide for Researchers](../researchers-guide/data-access-channels.md) — mobile app, Analytics Platform, and API.
+Once your device is claimed, its readings become available through the same channels covered in the [Data Access Guide for Researchers](../researchers-guide/data-access-channels.md) — mobile app, AirQo Nexus, and API.

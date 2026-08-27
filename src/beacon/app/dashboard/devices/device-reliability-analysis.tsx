@@ -17,24 +17,26 @@ import {
 import { format, subDays, differenceInHours, differenceInDays } from "date-fns";
 
 // This component displays device uptime analysis only
-export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }) {
+export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }: { devices?: any[]; isLoading?: boolean }) {
   // Calculate device reliability metrics
   const calculateReliabilityMetrics = () => {
     if (!devices || devices.length === 0) return null;
 
     // Group maintenance events by device for analysis
-    const deviceMaintenanceMap = {};
+    const deviceMaintenanceMap: Record<string, any> = {};
     let totalOfflineEvents = 0;
     let totalRestoredEvents = 0;
     
-    devices.forEach(device => {
+    devices.forEach((device: any) => {
       const events = device.maintenance_history || [];
+      const devId = device.device?.id || device.device_id || device.id;
+      const devName = device.device?.name || device.device_name || device.name;
       
-      if (events.length > 0) {
-        if (!deviceMaintenanceMap[device.device.id]) {
-          deviceMaintenanceMap[device.device.id] = {
-            deviceId: device.device.id,
-            deviceName: device.device.name,
+      if (events.length > 0 && devId) {
+        if (!deviceMaintenanceMap[devId]) {
+          deviceMaintenanceMap[devId] = {
+            deviceId: devId,
+            deviceName: devName,
             events: [],
             offlineCount: 0,
             restoredCount: 0,
@@ -45,21 +47,21 @@ export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }
         
         // Sort events by timestamp
         const sortedEvents = [...events].sort(
-          (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+          (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
         
-        deviceMaintenanceMap[device.device.id].events = sortedEvents;
+        deviceMaintenanceMap[devId].events = sortedEvents;
         
         // Count offline and restored events
-        let lastOffline = null;
+        let lastOffline: Date | null = null;
         
-        sortedEvents.forEach(event => {
+        sortedEvents.forEach((event: any) => {
           if (event.maintenance_type === "Offline") {
-            deviceMaintenanceMap[device.device.id].offlineCount++;
+            deviceMaintenanceMap[devId].offlineCount++;
             totalOfflineEvents++;
             lastOffline = new Date(event.timestamp);
           } else if (event.maintenance_type === "Restored") {
-            deviceMaintenanceMap[device.device.id].restoredCount++;
+            deviceMaintenanceMap[devId].restoredCount++;
             totalRestoredEvents++;
             
             // Calculate downtime if we have a matching offline event
@@ -67,8 +69,8 @@ export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }
               const restoredTime = new Date(event.timestamp);
               const downtimeHours = differenceInHours(restoredTime, lastOffline);
               
-              deviceMaintenanceMap[device.device.id].downtime += downtimeHours;
-              deviceMaintenanceMap[device.device.id].downtimePeriods.push({
+              deviceMaintenanceMap[devId].downtime += downtimeHours;
+              deviceMaintenanceMap[devId].downtimePeriods.push({
                 start: lastOffline,
                 end: restoredTime,
                 hours: downtimeHours
@@ -82,7 +84,7 @@ export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }
     });
 
     // Calculate uptime percentage for each device with events
-    Object.values(deviceMaintenanceMap).forEach(device => {
+    Object.values(deviceMaintenanceMap).forEach((device: any) => {
       if (device.events.length > 0) {
         // Calculate monitoring period
         const firstEvent = new Date(device.events[0].timestamp);
@@ -106,25 +108,25 @@ export default function DeviceUptimeAnalysis({ devices = [], isLoading = false }
 
     // Convert to array and sort by uptime percentage
     const deviceMetrics = Object.values(deviceMaintenanceMap)
-      .filter(device => device.events.length > 0)
-      .sort((a, b) => a.uptimePercentage - b.uptimePercentage);
+      .filter((device: any) => device.events.length > 0)
+      .sort((a: any, b: any) => a.uptimePercentage - b.uptimePercentage);
 
     // Calculate average metrics across all devices
     const avgUptimePercentage = deviceMetrics.length > 0
-      ? deviceMetrics.reduce((sum, device) => sum + device.uptimePercentage, 0) / deviceMetrics.length
+      ? deviceMetrics.reduce((sum: number, device: any) => sum + device.uptimePercentage, 0) / deviceMetrics.length
       : 0;
     
     const avgDowntimeDuration = deviceMetrics.length > 0
-      ? deviceMetrics.reduce((sum, device) => sum + device.avgDowntimeDuration, 0) / deviceMetrics.length
+      ? deviceMetrics.reduce((sum: number, device: any) => sum + device.avgDowntimeDuration, 0) / deviceMetrics.length
       : 0;
     
     const avgMtbf = deviceMetrics.length > 0
-      ? deviceMetrics.reduce((sum, device) => sum + device.mtbf, 0) / deviceMetrics.length
+      ? deviceMetrics.reduce((sum: number, device: any) => sum + device.mtbf, 0) / deviceMetrics.length
       : 0;
 
     // Identify devices with most frequent failures
     const worstPerformers = [...deviceMetrics]
-      .sort((a, b) => b.offlineCount - a.offlineCount)
+      .sort((a: any, b: any) => b.offlineCount - a.offlineCount)
       .slice(0, 5);
 
     return {

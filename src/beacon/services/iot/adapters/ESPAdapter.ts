@@ -1,7 +1,7 @@
 import { DeviceAdapter, DeviceInfo, FlashProgress } from '@/types/iot';
 
 export class ESPAdapter implements DeviceAdapter {
-  private port: SerialPort | null = null;
+  private port: any = null;
   private reader: ReadableStreamDefaultReader | null = null;
   private writer: WritableStreamDefaultWriter | null = null;
   private logCallback: ((data: string) => void) | null = null;
@@ -9,12 +9,12 @@ export class ESPAdapter implements DeviceAdapter {
   private lastWrite: Promise<void> = Promise.resolve();
 
   async connect(): Promise<void> {
-    if (!('serial' in navigator)) {
+    if (typeof navigator === 'undefined' || !('serial' in navigator)) {
       throw new Error('Web Serial API is not supported in this browser.');
     }
 
     try {
-      this.port = await navigator.serial.requestPort();
+      this.port = await (navigator as any).serial.requestPort();
       await this.port.open({ baudRate: 115200 });
       
       // Start reading loop

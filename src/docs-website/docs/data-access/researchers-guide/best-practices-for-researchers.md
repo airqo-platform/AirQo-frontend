@@ -9,7 +9,7 @@ sidebar_label: 12. Best Practices for Researchers
 
 1. **Define your study period and geographic region.** Identify monitor boundaries and consider seasonal data availability.
 2. **Use calibrated (not raw) data.** Always download calibrated data for research analysis and document the calibration version.
-3. **Download data in quarterly batches** via the Analytics Platform or use the API for automated access. Save raw downloaded files as backup.
+3. **Download data in quarterly batches** via the AirQo Nexus or use the API for automated access. Save raw downloaded files as backup.
 4. **Assess data quality.** Calculate completeness for each monitor and time period. Flag monitors with consistent low uptime.
 5. **Apply quality control filters.** Implement the 50% completeness threshold (or justify an alternative). Remove obvious outliers with documentation.
 6. **Document everything.** Record all data processing steps, inclusion/exclusion criteria, and maintain metadata on monitor locations and characteristics.

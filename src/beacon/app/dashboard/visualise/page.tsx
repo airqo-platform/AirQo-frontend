@@ -213,12 +213,12 @@ export default function VisualisePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Visualise</h1>
-              <p className="text-sm text-slate-500">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Device Data Analysis</h1>
+              <p className="text-sm text-muted-foreground">
                 Universal air quality data exploration, multi-sensor calibration, heatmaps, maps, and custom graphs
               </p>
             </div>
@@ -234,9 +234,9 @@ export default function VisualisePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMappingDialogOpen(true)}
-                className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+                className="gap-2 border-border text-foreground hover:bg-muted"
               >
-                <Sliders className="w-4 h-4 text-purple-600" />
+                <Sliders className="w-4 h-4 text-primary" />
                 Map Columns
               </Button>
 
@@ -245,9 +245,9 @@ export default function VisualisePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowUploaderModal(!showUploaderModal)}
-                className="gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+                className="gap-2 border-border text-foreground hover:bg-muted"
               >
-                <UploadCloud className="w-4 h-4 text-blue-600" />
+                <UploadCloud className="w-4 h-4 text-primary" />
                 {showUploaderModal ? "Hide Uploader" : "Upload New Dataset"}
               </Button>
             </>

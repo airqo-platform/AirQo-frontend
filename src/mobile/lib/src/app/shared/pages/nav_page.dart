@@ -1,16 +1,23 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
+import 'package:airqo/src/app/shared/services/local_notification_bootstrap.dart';
+import 'package:airqo/src/app/shared/services/notification_helper.dart';
+import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NavPage extends StatefulWidget {
   const NavPage({super.key});
@@ -37,14 +44,40 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       ? ['dashboard', 'map', 'exposure', 'learn']
       : ['dashboard', 'map', 'learn'];
 
+  static const _permissionPromptShownKey = 'notification_permission_prompt_shown';
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_initializeLocalNotifications());
+    });
+  }
+
+  Future<void> _initializeLocalNotifications() async {
+    await LocalNotificationBootstrap.instance.ensureInitialized();
+    await _maybePromptNotificationPermission();
+
     if (_surveysEnabled) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<SurveyBloc>().add(const LoadSurveys());
-      });
+      if (!mounted) return;
+      context.read<SurveyBloc>().add(const LoadSurveys());
+      await SurveyTriggerService().initialize();
     }
+  }
+
+  Future<void> _maybePromptNotificationPermission() async {
+    if (!mounted) return;
+
+    final hasPermission = await PushNotificationService().hasPermission();
+    if (hasPermission) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_permissionPromptShownKey) == true) return;
+
+    await prefs.setBool(_permissionPromptShownKey, true);
+    if (!mounted) return;
+
+    await NotificationHelper().checkAndShowPermissionPrompt(context);
   }
 
   Future<void> _updateBadgeCount() async {
@@ -131,7 +164,12 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     // When surveys are enabled, listen for badge updates
     return BlocListener<SurveyBloc, SurveyState>(
       listener: (context, state) {
-        if (state is SurveysLoaded) _updateBadgeCount();
+        if (state is SurveysLoaded) {
+          _updateBadgeCount();
+          if (_surveysEnabled) {
+            SurveyTriggerService().setActiveSurveys(state.surveys);
+          }
+        }
       },
       child: body,
     );

@@ -807,8 +807,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                         <CardTitle className="text-sm font-medium text-gray-700">Daily Uptime</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <ResponsiveContainer width="100%" height={250}>
+                    <CardContent className="p-4 min-w-0">
+                      <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                         <BarChart data={deviceUptime.dailyUptimeData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                           <XAxis
@@ -858,8 +858,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                         <CardTitle className="text-sm font-medium text-gray-700">Data Frequency</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <ResponsiveContainer width="100%" height={250}>
+                    <CardContent className="p-4 min-w-0">
+                      <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                         <LineChart data={deviceData.chartData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                           <XAxis
@@ -943,8 +943,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <ResponsiveContainer width="100%" height={250}>
+                    <CardContent className="p-4 min-w-0">
+                      <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                         {sensorHealthMode === "correlation" ? (
                           <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1053,8 +1053,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                         <CardTitle className="text-sm font-medium text-gray-700">Battery Voltage</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <ResponsiveContainer width="100%" height={250}>
+                    <CardContent className="p-4 min-w-0">
+                      <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
                         <LineChart data={deviceData.chartData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                           <XAxis

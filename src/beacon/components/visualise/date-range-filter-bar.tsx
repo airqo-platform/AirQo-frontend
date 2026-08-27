@@ -178,7 +178,7 @@ export function DateRangeFilterBar({
         {/* Left Side: Time Period Presets */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1 flex items-center gap-1">
-            <CalendarIcon className="w-3.5 h-3.5 text-blue-600" />
+            <CalendarIcon className="w-3.5 h-3.5 text-primary" />
             Period:
           </span>
 
@@ -197,9 +197,9 @@ export function DateRangeFilterBar({
                 key={p}
                 type="button"
                 onClick={() => handlePresetSelect(p)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -250,7 +250,7 @@ export function DateRangeFilterBar({
                   size="sm"
                   className="h-7 text-xs gap-1.5 bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 max-w-[200px]"
                 >
-                  <Monitor className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <Monitor className="w-3.5 h-3.5 text-primary flex-shrink-0" />
                   <span className="truncate">{deviceButtonLabel}</span>
                   <ChevronDown className="w-3 h-3 text-slate-400 flex-shrink-0 ml-auto" />
                 </Button>
@@ -263,7 +263,7 @@ export function DateRangeFilterBar({
                       <button
                         type="button"
                         onClick={handleSelectAllDevices}
-                        className="text-[11px] text-blue-600 hover:underline font-medium"
+                        className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
                       >
                         All
                       </button>
@@ -271,9 +271,9 @@ export function DateRangeFilterBar({
                       <button
                         type="button"
                         onClick={handleClearAllDevices}
-                        className="text-[11px] text-slate-500 hover:underline"
+                        className="text-[11px] text-slate-500 hover:underline cursor-pointer"
                       >
-                        Reset
+                        Clear
                       </button>
                     </div>
                   </div>
@@ -348,9 +348,9 @@ export function DateRangeFilterBar({
             variant="outline"
             size="sm"
             onClick={onOpenColumnMapper}
-            className="h-7 text-xs gap-1.5 border-blue-200 bg-blue-50/60 text-blue-700 hover:bg-blue-100"
+            className="h-7 text-xs gap-1.5 border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
           >
-            <Sliders className="w-3.5 h-3.5 text-blue-600" />
+            <Sliders className="w-3.5 h-3.5 text-primary" />
             Map Columns
           </Button>
         </div>

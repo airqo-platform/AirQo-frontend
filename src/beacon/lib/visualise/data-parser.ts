@@ -788,11 +788,13 @@ export function aggregateDataset({
   xColumn,
   yColumns,
   aggregation,
+  groupByColumn: _groupByColumn,
 }: {
   data: Record<string, any>[]
   xColumn: string
   yColumns: string[]
   aggregation: AggregationType
+  groupByColumn?: string
 }): Record<string, any>[] {
   if (!xColumn || yColumns.length === 0) return []
 

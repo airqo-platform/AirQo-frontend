@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 import ChunkErrorHandler from "@/components/chunk-error-handler"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { getThemeScript } from "@/lib/theme-utils"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,19 +28,22 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
         <link rel="shortcut icon" href="/icons/favicon.ico" />
+        <script
+          id="theme-script"
+          dangerouslySetInnerHTML={{ __html: getThemeScript() }}
+        />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light" disableTransitionOnChange>
-          <AuthProvider>
+        <AuthProvider>
+          <ThemeProvider>
             <QueryProvider>
               <ChunkErrorHandler />
               {children}
               <Toaster />
             </QueryProvider>
-          </AuthProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )
 }
-

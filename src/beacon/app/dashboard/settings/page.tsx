@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/ui/loading-state"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
@@ -264,11 +265,7 @@ export default function SettingsPage() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <RefreshCw className="animate-spin h-8 w-8" />
-      </div>
-    )
+    return <LoadingState text="Loading profile settings..." className="min-h-[50vh]" />
   }
 
   // Show authentication error with login button

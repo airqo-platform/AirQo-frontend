@@ -10,6 +10,7 @@ import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 import 'package:loggy/loggy.dart';
 
 /// Helper class to integrate push notifications with in-app notifications
@@ -50,16 +51,17 @@ class NotificationHelper with UiLoggy {
     );
   }
 
-  /// Initialize notification handling
+  /// Register OS notification tap routing (no [BuildContext] required).
+  void configureTapHandling() {
+    PushNotificationService().onNotificationTap = _handleNotificationTap;
+  }
+
+  /// Wire FCM foreground handlers when server push is enabled later.
   void initialize(BuildContext context) {
-    // Handle foreground messages by showing in-app notifications
+    configureTapHandling();
+
     PushNotificationService().onForegroundMessage = (RemoteMessage message) {
       _handleForegroundMessage(context, message);
-    };
-
-    // Handle notification taps for navigation
-    PushNotificationService().onNotificationTap = (Map<String, dynamic> data) {
-      _handleNotificationTap(context, data);
     };
   }
 
@@ -85,17 +87,17 @@ class NotificationHelper with UiLoggy {
   }
 
   /// Handle notification taps (when user taps notification)
-  void _handleNotificationTap(BuildContext context, Map<String, dynamic> data) {
+  void _handleNotificationTap(Map<String, dynamic> data) {
     loggy.info('Handling notification tap');
 
     final type = data['type'] as String?;
 
     switch (type) {
       case 'survey':
-        _navigateToSurvey(context, data);
+        _navigateToSurvey(data);
         break;
       case 'air_quality_alert':
-        _navigateToAirQuality(context, data);
+        _navigateToAirQuality(data);
         break;
       default:
         loggy.info('No specific action for notification type: $type');
@@ -159,7 +161,7 @@ class NotificationHelper with UiLoggy {
   }
 
   /// Navigate to survey page
-  Future<void> _navigateToSurvey(BuildContext context, Map<String, dynamic> data) async {
+  Future<void> _navigateToSurvey(Map<String, dynamic> data) async {
     final surveyId = data['survey_id'] as String?;
 
     if (surveyId == null) {
@@ -182,12 +184,81 @@ class NotificationHelper with UiLoggy {
   }
 
   /// Navigate to air quality page (returns to dashboard root)
-  void _navigateToAirQuality(BuildContext context, Map<String, dynamic> data) {
+  void _navigateToAirQuality(Map<String, dynamic> data) {
     final location = data['location'] as String?;
 
     loggy.info('Navigating to air quality: $location');
 
     NavigationService().popUntil((route) => route.isFirst);
+  }
+
+  /// Dashboard hook: nearby AQ OS alert + survey trigger inputs.
+  Future<void> onDashboardMeasurementsLoaded(
+    List<Measurement>? measurements,
+  ) async {
+    if (measurements == null || measurements.isEmpty) return;
+
+    await checkNearbyAirQuality(measurements);
+    await _feedSurveyTriggers(measurements);
+  }
+
+  Future<void> _feedSurveyTriggers(List<Measurement> measurements) async {
+    try {
+      Position? position = await Geolocator.getLastKnownPosition();
+      position ??= await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+
+      SurveyTriggerService().updateLocation(position);
+
+      final closest = _findClosestMeasurement(measurements, position);
+      if (closest == null) return;
+
+      SurveyTriggerService().updateAirQuality({
+        'pm2_5': closest.pm25?.value,
+        'category': closest.aqiCategory,
+        'location': closest.siteDetails?.name ??
+            closest.siteDetails?.formattedName ??
+            'your area',
+      });
+    } catch (e) {
+      loggy.warning('Could not feed survey triggers from dashboard: $e');
+    }
+  }
+
+  Measurement? _findClosestMeasurement(
+    List<Measurement> measurements,
+    Position position,
+  ) {
+    Measurement? closest;
+    var minDistance = double.infinity;
+
+    for (final measurement in measurements) {
+      final siteDetails = measurement.siteDetails;
+      if (siteDetails == null) continue;
+
+      final lat = siteDetails.approximateLatitude ??
+          siteDetails.siteCategory?.latitude;
+      final lon = siteDetails.approximateLongitude ??
+          siteDetails.siteCategory?.longitude;
+      if (lat == null || lon == null) continue;
+
+      final distance = _haversineDistance(
+        position.latitude,
+        position.longitude,
+        lat,
+        lon,
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = measurement;
+      }
+    }
+
+    return closest;
   }
 
   /// Request notification permission with user-friendly prompt
@@ -315,11 +386,22 @@ class NotificationHelper with UiLoggy {
 
   /// Check nearby air quality and fire a local notification if unhealthy+.
   /// Respects a 6-hour cooldown stored in Hive cache.
+  /// OS alerts are only dispatched when notification permission is granted.
   Future<void> checkNearbyAirQuality(List<Measurement>? measurements) async {
     if (measurements == null || measurements.isEmpty) return;
 
+    final pushService = PushNotificationService();
+    if (!pushService.isInitialized) {
+      loggy.info('Local notifications not initialized — skipping AQ check');
+      return;
+    }
+
+    if (!await pushService.hasPermission()) {
+      loggy.info('Notification permission not granted — skipping AQ OS alert');
+      return;
+    }
+
     try {
-      // 1. Get user position (prefer last-known for speed)
       Position? position = await Geolocator.getLastKnownPosition();
       position ??= await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -328,24 +410,7 @@ class NotificationHelper with UiLoggy {
         ),
       );
 
-      // 2. Find closest measurement using Haversine distance
-      Measurement? closest;
-      double minDistance = double.infinity;
-
-      for (final m in measurements) {
-        final lat = m.siteDetails?.approximateLatitude;
-        final lon = m.siteDetails?.approximateLongitude;
-        if (lat == null || lon == null) continue;
-
-        final d = _haversineDistance(
-          position.latitude, position.longitude, lat, lon,
-        );
-        if (d < minDistance) {
-          minDistance = d;
-          closest = m;
-        }
-      }
-
+      final closest = _findClosestMeasurement(measurements, position);
       if (closest == null) {
         loggy.info('No measurement with coordinates found');
         return;
@@ -357,26 +422,28 @@ class NotificationHelper with UiLoggy {
         return;
       }
 
-      // 3. Check 6-hour cooldown
       final cooldown = await HiveRepository.getCache(_aqAlertCooldownKey);
       if (cooldown != null) {
         loggy.info('Air quality alert cooldown active — skipping');
         return;
       }
 
-      // 4. Show local notification
       final locationName = closest.siteDetails?.name ??
           closest.siteDetails?.formattedName ??
           'your area';
 
-      await PushNotificationService().showLocalNotification(
+      await pushService.showLocalNotification(
         id: _aqAlertCooldownKey.hashCode,
         title: 'Air Quality Alert',
         body: 'Air quality near $locationName is $category. '
             'Consider reducing outdoor activities.',
+        payload: {
+          'type': 'air_quality_alert',
+          'location': locationName,
+          'category': category,
+        },
       );
 
-      // 5. Save cooldown (6 hours)
       await HiveRepository.saveCache(
         _aqAlertCooldownKey,
         true,

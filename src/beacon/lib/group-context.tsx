@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { useSession } from "next-auth/react"
+import { themeService } from "@/services/theme-service"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -245,6 +246,17 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null
   }, [activeGroup, availableGroups])
+
+  // Sync group-specific theme on active group change
+  useEffect(() => {
+    if (activeGroupData?._id) {
+      themeService.fetchUserTheme(
+        activeGroupData._id,
+        (session?.user as any)?.id || (session?.user as any)?._id,
+        (session as any)?.accessToken || (session?.user as any)?.accessToken
+      ).catch(() => {})
+    }
+  }, [activeGroupData?._id, session])
 
   const isActiveGroupAdmin = useMemo(() => {
     return isGroupAdmin(activeGroupData)

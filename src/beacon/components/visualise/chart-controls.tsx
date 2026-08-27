@@ -152,9 +152,9 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
     <div className="space-y-5">
       {/* Quick Presets for AirQo Data */}
       {(s1pm25 && s2pm25) && (
-        <Card className="border-blue-200 bg-blue-50/50 shadow-xs">
+        <Card className="border-primary/20 bg-primary/10 shadow-xs">
           <CardHeader className="pb-2 pt-3 px-4">
-            <CardTitle className="text-xs uppercase font-semibold text-blue-800 tracking-wider flex items-center gap-1.5">
+            <CardTitle className="text-xs uppercase font-semibold text-primary tracking-wider flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               AirQo Quick Analysis Presets
             </CardTitle>
@@ -173,7 +173,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
                     aggregation: "none",
                   })
                 }
-                className="px-2 py-1 rounded bg-white border border-blue-200 text-[11px] font-medium text-blue-700 hover:bg-blue-100/70 transition-colors"
+                className="px-2 py-1 rounded bg-white border border-primary/20 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 🔬 Sensor 1 vs Sensor 2 (R²)
               </button>
@@ -192,7 +192,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
                     aggregation: dataset.rawRowCount > 5000 ? "hourly" : "none",
                   })
                 }
-                className="px-2 py-1 rounded bg-white border border-blue-200 text-[11px] font-medium text-blue-700 hover:bg-blue-100/70 transition-colors"
+                className="px-2 py-1 rounded bg-white border border-primary/20 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 📈 S1 & S2 Time Series
               </button>
@@ -211,7 +211,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
                     aggregation: dataset.rawRowCount > 5000 ? "hourly" : "none",
                   })
                 }
-                className="px-2 py-1 rounded bg-white border border-blue-200 text-[11px] font-medium text-blue-700 hover:bg-blue-100/70 transition-colors"
+                className="px-2 py-1 rounded bg-white border border-primary/20 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 ⚡ Error Margin Trend
               </button>
@@ -230,7 +230,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
                     aggregation: "none",
                   })
                 }
-                className="px-2 py-1 rounded bg-white border border-blue-200 text-[11px] font-medium text-blue-700 hover:bg-blue-100/70 transition-colors"
+                className="px-2 py-1 rounded bg-white border border-primary/20 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 🔋 Battery Voltage
               </button>
@@ -243,7 +243,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
       <Card className="border-slate-200 shadow-sm">
         <CardHeader className="pb-3 pt-4 px-4">
           <CardTitle className="text-xs uppercase font-semibold text-slate-500 tracking-wider flex items-center gap-1.5">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
             Chart Type
           </CardTitle>
         </CardHeader>
@@ -252,22 +252,22 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
             <button
               type="button"
               onClick={() => update("chartType", "line")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "line"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <TrendingUp className="w-4 h-4 mb-1 text-blue-600" />
+              <TrendingUp className="w-4 h-4 mb-1 text-primary" />
               Line
             </button>
 
             <button
               type="button"
               onClick={() => update("chartType", "area")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "area"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -278,9 +278,9 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
             <button
               type="button"
               onClick={() => update("chartType", "bar")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "bar"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -291,9 +291,9 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
             <button
               type="button"
               onClick={() => update("chartType", "scatter")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "scatter"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -304,9 +304,9 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
             <button
               type="button"
               onClick={() => update("chartType", "pie")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "pie"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -317,9 +317,9 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
             <button
               type="button"
               onClick={() => update("chartType", "histogram")}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all ${
+              className={`flex flex-col items-center justify-center p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                 config.chartType === "histogram"
-                  ? "border-blue-600 bg-blue-50/80 text-blue-700 font-semibold shadow-sm"
+                  ? "border-primary bg-primary/10 text-primary font-semibold shadow-sm"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >

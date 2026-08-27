@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/ui/loading-state"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -252,11 +253,7 @@ export default function UsersPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <RefreshCw className="animate-spin h-8 w-8" />
-      </div>
-    )
+    return <LoadingState text="Loading users..." className="min-h-[50vh]" />
   }
 
   // Show authentication error with login button
