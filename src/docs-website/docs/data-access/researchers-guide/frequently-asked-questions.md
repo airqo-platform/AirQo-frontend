@@ -25,7 +25,7 @@ Ensure consistent QC criteria across cities, account for differences in monitor 
 Monitor coordinates are provided in WGS84 (latitude/longitude). Verify in the metadata when downloading.
 
 **Can I access raw 10-minute data?**
-Yes. The Analytics Platform provides pre-aggregated hourly/daily data. The API can provide 10-minute resolution.
+Yes. The AirQo Nexus provides pre-aggregated hourly/daily data. The API can provide 10-minute resolution.
 
 **How do I handle outliers?**
 Investigate extreme values before removal. Check for sensor malfunction periods, genuine extreme pollution events, and data transmission errors. Document your approach transparently.
@@ -50,7 +50,7 @@ AirQo covers the device and its software; you're responsible for your AirQloud's
 ### Data Access Questions
 
 **I need data urgently for a deadline.**
-Data is immediately available through the Analytics Platform and API. For large custom requests, plan ahead and allow additional time.
+Data is immediately available through the AirQo Nexus and API. For large custom requests, plan ahead and allow additional time.
 
 **My download failed or seems incomplete.**
 Contact [support@airqo.net](mailto:support@airqo.net) with the time and date of your download attempt, monitors and date range requested, platform used, and any error messages.

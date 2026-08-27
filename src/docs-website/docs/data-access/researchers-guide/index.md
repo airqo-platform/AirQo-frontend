@@ -33,7 +33,7 @@ Equitable access means every user — from a PhD student in Kampala to a governm
 
 ## How Equitable Access Works in Practice
 
-The most visible manifestation of our fair usage policy is the download batch limit on the Analytics Platform: single data exports are capped at approximately three months of data per query. This is not a bug, a temporary limitation, or something that will be removed upon request. It is an intentional engineering decision.
+The most visible manifestation of our fair usage policy is the download batch limit on the AirQo Nexus: single data exports are capped at approximately three months of data per query. This is not a bug, a temporary limitation, or something that will be removed upon request. It is an intentional engineering decision.
 
 The rationale is straightforward: a single query for six years of hourly data across 50+ monitors could request tens of millions of database rows, consuming significant server memory, CPU time, and bandwidth. If this were permitted without restriction, it would degrade service for every other concurrent user.
 

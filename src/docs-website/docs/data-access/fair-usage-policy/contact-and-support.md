@@ -12,7 +12,7 @@ AirQo is committed to supporting researchers and will gladly provide guidance on
 | **General Enquiries & Support** | [support@airqo.net](mailto:support@airqo.net) |
 | **Website** | https://airqo.africa |
 | **API Documentation** | [AirQo API →](../../api/intro.md) |
-| **Analytics Platform** | https://airqo.africa/products/analytics |
+| **AirQo Nexus** | https://airqo.africa/products/nexus |
 | **Network Coverage** | https://airqo.net/solutions/network-coverage |
 | **Response Time** | 3–5 business days (mark urgent requests in the subject line) |
 

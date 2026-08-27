@@ -13,7 +13,7 @@ For privacy and security reasons, all monitoring station coordinates provided th
 |---|---|
 | **Offset Range** | Approximately 0.5 kilometres from actual physical locations |
 | **Consistency** | Approximated coordinates remain consistent across all queries |
-| **Affected Platforms** | All data access methods: Analytics Platform, API, mobile app |
+| **Affected Platforms** | All data access methods: AirQo Nexus, API, mobile app |
 
 ## Implications for Research
 
