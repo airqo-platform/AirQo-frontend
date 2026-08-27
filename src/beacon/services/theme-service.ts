@@ -1,4 +1,4 @@
-import { config, buildPlatformApiUrl } from '@/lib/config'
+import { buildPlatformApiUrl } from '@/lib/config'
 import authService from './api-service'
 import {
   ThemeData,
