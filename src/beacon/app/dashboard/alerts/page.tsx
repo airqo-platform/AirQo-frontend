@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
+import { LoadingState } from "@/components/ui/loading-state"
 import { 
   AlertCircle, 
   AlertTriangle, 
@@ -457,11 +458,8 @@ export default function AlertsPage() {
       <div className="space-y-4">
         {isLoading ? (
           <Card>
-            <CardContent className="p-12">
-              <div className="flex items-center justify-center">
-                <RefreshCw className="h-8 w-8 text-gray-400 animate-spin mr-3" />
-                <p className="text-gray-600">Loading alerts...</p>
-              </div>
+            <CardContent className="p-8">
+              <LoadingState text="Loading alerts..." className="py-6" />
             </CardContent>
           </Card>
         ) : currentAlerts.length === 0 ? (

@@ -159,7 +159,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
         <CardHeader className="pb-3 pt-4 px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100">
           <div>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-600" />
+              <Clock className="w-4 h-4 text-primary" />
               Device Hourly Reporting Heatmap (24-Hour Grid)
             </CardTitle>
             <CardDescription className="text-xs text-slate-500">
@@ -296,7 +296,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
             {dailySummary.map((d) => (
               <div
                 key={d.date}
-                className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between space-y-1 hover:border-blue-300 transition-all"
+                className="p-3 rounded-lg border border-slate-200/80 bg-slate-50/50 flex flex-col justify-between space-y-1 hover:border-primary/40 transition-all"
               >
                 <span className="text-[11px] font-bold text-slate-700 truncate">{d.date}</span>
                 <div className="flex items-baseline justify-between pt-1">

@@ -271,6 +271,7 @@ export function MapExportDialog({
 
       const headers = [
         "Device Name",
+        "Device Number",
         "Device ID",
         "Latitude",
         "Longitude",
@@ -294,6 +295,7 @@ export function MapExportDialog({
 
         return [
           escapeCSV(device.device_name || ""),
+          escapeCSV(device.device_number ?? (device as any).deviceNumber ?? ""),
           escapeCSV(device.device_id || ""),
           escapeCSV(device.latitude ?? ""),
           escapeCSV(device.longitude ?? ""),

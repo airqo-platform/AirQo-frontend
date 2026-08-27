@@ -206,7 +206,7 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
           <CardHeader className="pb-3 pt-4 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100">
             <div>
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-blue-600" />
+                <Activity className="w-4 h-4 text-primary" />
                 Particulate Matter PM2.5 (Sensor 1 vs Sensor 2 & Error Margin)
               </CardTitle>
               <CardDescription className="text-xs text-slate-500">
@@ -226,9 +226,9 @@ export function SensorTelemetryView({ records, aggregation = "none" }: SensorTel
                 onClick={() =>
                   setPm25Visibility((prev) => ({ ...prev, s1: !prev.s1 }))
                 }
-                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
                   pm25Visibility.s1
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-xs"
                     : "bg-slate-200/80 text-slate-400 line-through opacity-70"
                 }`}
               >

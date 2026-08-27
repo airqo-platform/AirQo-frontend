@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { LoadingState } from "@/components/ui/loading-state"
 import {
   Tooltip,
   TooltipContent,
@@ -658,12 +659,7 @@ export default function SiteDetailsPage() {
 
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-24 text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Loading site details for {id}...</p>
-      </div>
-    )
+    return <LoadingState text={`Loading site details for ${id}...`} className="p-24" />
   }
 
   if (error && siteData.length === 0) {

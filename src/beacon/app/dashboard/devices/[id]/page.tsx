@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LoadingState } from "@/components/ui/loading-state"
 import {
   RefreshCw,
   AlertTriangle,
@@ -17,6 +18,7 @@ import {
   Edit,
   ArrowLeft,
   TerminalIcon,
+  Stethoscope,
 } from "lucide-react"
 import { config } from "@/lib/config"
 import { fetchWithAuth } from "@/lib/api-client"
@@ -29,6 +31,7 @@ import MetadataTab from "./metadata-tab"
 import ConfigTab from "./config-tab"
 import PerformanceTab from "./performance-tab"
 import DeviceDetailsTab from "./device-details-tab"
+import DiagnosticsTab from "./diagnostics-tab"
 import dynamic from "next/dynamic"
 
 const RemoteTerminalTab = dynamic(() => import("./remote-terminal-tab"), {
@@ -303,14 +306,7 @@ export default function DeviceDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center">
-          <RefreshCw className="h-8 w-8 text-primary animate-spin mb-2" />
-          <p>Loading device information...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState text="Loading device information..." className="h-full min-h-[50vh]" />
   }
 
   if (error || !device) {
@@ -348,10 +344,14 @@ export default function DeviceDetailPage() {
       {/* Tabs for Device Information */}
       <Tabs defaultValue="device-details" className="mt-2">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+          <TabsList className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="device-details" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
               Device Details
+            </TabsTrigger>
+            <TabsTrigger value="diagnostics" className="flex items-center text-blue-700 font-medium">
+              <Stethoscope className="mr-2 h-4 w-4 text-blue-600" />
+              Diagnostics
             </TabsTrigger>
             {/* <TabsTrigger value="sensor-data" className="flex items-center">
             <Activity className="mr-2 h-4 w-4" />
@@ -393,6 +393,13 @@ export default function DeviceDetailPage() {
             copiedKey={copiedKey}
             copyToClipboard={copyToClipboard}
             setUpdateDialogOpen={setUpdateDialogOpen}
+          />
+        </TabsContent>
+
+        <TabsContent value="diagnostics" className="mt-4">
+          <DiagnosticsTab
+            deviceId={device.name}
+            deviceName={device.long_name || device.name}
           />
         </TabsContent>
 

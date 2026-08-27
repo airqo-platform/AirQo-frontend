@@ -226,7 +226,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
         onDrop={handleDrop}
         className={`border-2 border-dashed transition-all duration-200 ${
           isDragging
-            ? "border-blue-500 bg-blue-50/50 scale-[0.99]"
+            ? "border-primary bg-primary/10 scale-[0.99]"
             : "border-slate-300 hover:border-slate-400 bg-white"
         } shadow-sm`}
       >
@@ -239,7 +239,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             onChange={handleFileInputChange}
           />
 
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-4 shadow-inner">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner">
             {isProcessing ? (
               <RefreshCw className="w-8 h-8 animate-spin" />
             ) : (
@@ -248,7 +248,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
           </div>
 
           <h3 className="text-xl font-bold text-slate-800">
-            {currentDatasetName ? "Replace or Upload New Dataset" : "Upload your dataset to start visualising"}
+            {currentDatasetName ? "Replace or Upload New Dataset" : "Upload your dataset to start analyzing"}
           </h3>
           <p className="text-sm text-slate-500 max-w-lg mt-1.5">
             Drag and drop your file here, or click to browse. Handles files of any size (including gigabyte-scale sensor logs) with fast in-browser streaming.
@@ -283,7 +283,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <Button
               type="button"
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 px-6 shadow-sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-6 shadow-sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessing}
             >
@@ -308,10 +308,10 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             <div className="w-full max-w-md mt-6 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono text-slate-600">
                 <span className="flex items-center gap-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
                   Streaming {formatBytes(streamProgress.bytesRead)} / {formatBytes(streamProgress.totalBytes)}
                 </span>
-                <span className="font-bold text-blue-600">{streamProgress.percent}%</span>
+                <span className="font-bold text-primary">{streamProgress.percent}%</span>
               </div>
               <Progress value={streamProgress.percent} className="h-2 bg-slate-100" />
               <p className="text-[11px] text-slate-400">
@@ -356,7 +356,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
           <DialogHeader>
             <DialogTitle>Paste Raw Data</DialogTitle>
             <DialogDescription>
-              Paste CSV rows or a JSON array directly from your clipboard to visualise instantly.
+              Paste CSV rows or a JSON array directly from your clipboard to analyze instantly.
             </DialogDescription>
           </DialogHeader>
 
@@ -389,7 +389,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
             <Button variant="outline" onClick={() => setIsPasteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handlePasteSubmit} disabled={isProcessing} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handlePasteSubmit} disabled={isProcessing} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               {isProcessing ? "Processing..." : "Parse & Visualise Data"}
             </Button>
           </DialogFooter>

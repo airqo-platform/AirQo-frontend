@@ -270,7 +270,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
             disabled={isExporting}
             className="h-8 text-xs gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
           >
-            {isExporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5 text-blue-600" />}
+            {isExporting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5 text-primary" />}
             PNG
           </Button>
 

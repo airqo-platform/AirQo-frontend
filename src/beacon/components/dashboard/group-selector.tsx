@@ -19,8 +19,7 @@ function getGroupInitial(grpTitle: string): string {
 
 /**
  * GroupSelector — badge in the header bar that opens a centered modal listing
- * all available groups. Mirrors the "A AIRQO 🔲" pattern from the AirQo
- * platform screenshot.
+ * all available groups. Uses semantic dynamic theme tokens.
  */
 export default function GroupSelector() {
   const { activeGroup, availableGroups, setActiveGroup, loading } = useGroup()
@@ -43,9 +42,9 @@ export default function GroupSelector() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50">
-        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-        <span className="text-sm text-gray-400">Loading...</span>
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-muted/50">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Loading...</span>
       </div>
     )
   }
@@ -55,22 +54,22 @@ export default function GroupSelector() {
       {/* Badge Button — shown in the header */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer shadow-sm"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card hover:bg-muted hover:border-border/80 transition-all cursor-pointer shadow-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         title={`Active group: ${activeGroup}`}
       >
         {/* Group initial avatar */}
-        <div className="h-6 w-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+        <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-bold transition-colors">
           {getGroupInitial(activeGroup || "G")}
         </div>
 
         {/* Group name */}
-        <span className="text-sm font-semibold text-gray-700 tracking-wide hidden sm:inline-block">
+        <span className="text-sm font-semibold text-foreground tracking-wide hidden sm:inline-block">
           {displayName}
         </span>
 
-        {/* Grid icon (matches the screenshot) */}
+        {/* Grid icon */}
         <svg
-          className="h-4 w-4 text-gray-400"
+          className="h-4 w-4 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -85,23 +84,23 @@ export default function GroupSelector() {
 
       {/* Centered Modal — lists all available groups */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-[420px] rounded-xl border border-border bg-card">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
+            <DialogTitle className="text-lg font-semibold text-foreground">
               Switch Group
             </DialogTitle>
           </DialogHeader>
 
           {/* Search */}
           {availableGroups.length > 3 && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 mb-2">
-              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/60 border border-border mb-2">
+              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Search groups..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
+                className="bg-transparent text-sm text-foreground placeholder-muted-foreground outline-none w-full"
                 autoFocus
               />
             </div>
@@ -110,7 +109,7 @@ export default function GroupSelector() {
           {/* Group List */}
           <div className="max-h-[320px] overflow-y-auto space-y-1">
             {filteredGroups.length === 0 ? (
-              <div className="p-4 text-center text-sm text-gray-400">
+              <div className="p-4 text-center text-sm text-muted-foreground">
                 No groups found
               </div>
             ) : (
@@ -120,18 +119,18 @@ export default function GroupSelector() {
                   <button
                     key={group._id}
                     onClick={() => handleSelect(group)}
-                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors ${
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors cursor-pointer ${
                       isActive
-                        ? "bg-blue-50 border border-blue-200"
-                        : "hover:bg-gray-50 border border-transparent"
+                        ? "bg-primary/10 border border-primary/20"
+                        : "hover:bg-muted border border-transparent"
                     }`}
                   >
                     {/* Group avatar */}
                     <div
-                      className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                      className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${
                         isActive
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-200 text-gray-600"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {getGroupInitial(group.grp_title)}
@@ -141,13 +140,13 @@ export default function GroupSelector() {
                     <div className="flex-1 min-w-0">
                       <div
                         className={`text-sm font-medium truncate ${
-                          isActive ? "text-blue-700" : "text-gray-800"
+                          isActive ? "text-primary font-semibold" : "text-foreground"
                         }`}
                       >
                         {group.grp_title}
                       </div>
                       {group.role?.role_name && (
-                        <div className="text-xs text-gray-400 truncate">
+                        <div className="text-xs text-muted-foreground truncate">
                           {group.role.role_name
                             .replaceAll("_", " ")
                             .toLowerCase()}
@@ -157,7 +156,7 @@ export default function GroupSelector() {
 
                     {/* Active indicator */}
                     {isActive && (
-                      <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                     )}
                   </button>
                 )

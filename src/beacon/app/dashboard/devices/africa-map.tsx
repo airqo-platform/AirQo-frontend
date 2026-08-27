@@ -337,7 +337,7 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       {isLoading && (
         <div className="absolute top-2 right-2 bg-white rounded-md shadow-md px-2 py-1 z-[1000]">
           <div className="flex items-center">
-            <div className="h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+            <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
             <span className="text-xs">Loading data...</span>
           </div>
         </div>

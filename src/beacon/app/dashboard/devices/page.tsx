@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/ui/loading-state"
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +25,14 @@ import {
   Package,
   List
 } from "lucide-react"
+import {
+  AqMonitor,
+  AqMarkerPin01,
+  AqSignal01,
+  AqAlertTriangle,
+  AqServer03,
+} from "@airqo/icons-react"
+import { SummaryCard } from "@/components/dashboard/summary-card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
@@ -551,92 +560,56 @@ export default function DevicesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total & Tracked Devices */}
-        <Card className="overflow-hidden border-l-4 border-l-primary hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Package className="mr-2 h-5 w-5 text-primary" />
-              Total Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex justify-between items-end">
-              <div>
-                <div className="text-3xl font-bold">
-                  {isDataLoading && !hasInitialData ? '...' : totalDevicesCount}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Registered devices</p>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-primary">
-                  {isDataLoading && !hasInitialData ? '...' : trackedDevicesCount}
-                </div>
-                <p className="text-xs text-muted-foreground">Tracked ({trackedPercentage}%)</p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: `${trackedPercentage}%` }}></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SummaryCard
+          title="Total Devices"
+          value={isDataLoading && !hasInitialData ? "..." : totalDevicesCount}
+          icon={AqServer03}
+          iconVariant="primary"
+          secondaryLabel={`Tracked (${trackedPercentage}%)`}
+          secondaryValue={isDataLoading && !hasInitialData ? "..." : trackedDevicesCount}
+          progressPercentage={trackedPercentage}
+          progressVariant="primary"
+          isLoading={isDataLoading && !hasInitialData}
+        />
 
         {/* Deployed Devices */}
-        <Card className="overflow-hidden border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <MapPin className="mr-2 h-5 w-5 text-blue-500" />
-              Deployed
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isDataLoading && !hasInitialData ? '...' : deployedDevicesCount}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${deployedPercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{deployedPercentage}% of total</span>
-            </div>
-          </CardContent>
-        </Card>
+        <SummaryCard
+          title="Deployed Devices"
+          value={isDataLoading && !hasInitialData ? "..." : deployedDevicesCount}
+          icon={AqMarkerPin01}
+          iconVariant="blue"
+          secondaryLabel="of total devices"
+          secondaryValue={`${deployedPercentage}%`}
+          progressPercentage={deployedPercentage}
+          progressVariant="blue"
+          isLoading={isDataLoading && !hasInitialData}
+        />
 
         {/* Online Devices */}
-        <Card className="overflow-hidden border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Wifi className="mr-2 h-5 w-5 text-green-500" />
-              Online (Tracked)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isDataLoading && !hasInitialData ? '...' : onlineDevicesCount}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-green-500 rounded-full" style={{ width: `${onlinePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{onlinePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
+        <SummaryCard
+          title="Online (Tracked)"
+          value={isDataLoading && !hasInitialData ? "..." : onlineDevicesCount}
+          icon={AqSignal01}
+          iconVariant="emerald"
+          secondaryLabel="transmission rate"
+          secondaryValue={`${onlinePercentage}%`}
+          progressPercentage={onlinePercentage}
+          progressVariant="emerald"
+          isLoading={isDataLoading && !hasInitialData}
+        />
 
         {/* Offline Devices */}
-        <Card className="overflow-hidden border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <WifiOff className="mr-2 h-5 w-5 text-red-500" />
-              Offline (Tracked)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold">
-              {isDataLoading && !hasInitialData ? '...' : offlineDevicesCount}
-            </div>
-            <div className="flex items-center mt-1">
-              <div className="h-2 bg-red-500 rounded-full" style={{ width: `${offlinePercentage}%` }}></div>
-              <span className="text-xs text-muted-foreground ml-2">{offlinePercentage}%</span>
-            </div>
-          </CardContent>
-        </Card>
+        <SummaryCard
+          title="Offline (Tracked)"
+          value={isDataLoading && !hasInitialData ? "..." : offlineDevicesCount}
+          icon={AqAlertTriangle}
+          iconVariant="rose"
+          secondaryLabel="offline rate"
+          secondaryValue={`${offlinePercentage}%`}
+          progressPercentage={offlinePercentage}
+          progressVariant="rose"
+          isLoading={isDataLoading && !hasInitialData}
+        />
       </div>
 
       {/* Device List Section with Tabs */}
@@ -709,10 +682,7 @@ export default function DevicesPage() {
             </div>
 
             {isDataLoading && !hasInitialData ? (
-              <div className="py-8 flex justify-center items-center">
-                <RefreshCw className="h-10 w-10 text-primary animate-spin" />
-                <span className="ml-4 text-lg">Loading devices...</span>
-              </div>
+              <LoadingState text="Loading devices..." className="py-8" />
             ) : currentItems.length === 0 ? (
               <div className="py-8 text-center text-gray-500">
                 <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
