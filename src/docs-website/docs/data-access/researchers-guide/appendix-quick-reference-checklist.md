@@ -8,10 +8,10 @@ sidebar_label: "Appendix: Quick Reference Checklist"
 ### Before Starting Your Research
 
 - [ ] Review AirQo calibration methodology paper.
-- [ ] Identify monitors in your study area using the Analytics Platform map.
+- [ ] Identify monitors in your study area using the AirQo Nexus map.
 - [ ] Check data availability for your study period.
 - [ ] Plan your download batches (quarterly recommended for multi-year studies).
-- [ ] Determine appropriate data access method (Analytics Platform vs. API).
+- [ ] Determine appropriate data access method (AirQo Nexus vs. API).
 - [ ] Register for API access if needed.
 - [ ] Review WHO guidelines for your pollutants of interest.
 

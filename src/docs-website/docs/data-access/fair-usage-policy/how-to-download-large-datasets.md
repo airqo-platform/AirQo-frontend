@@ -7,11 +7,11 @@ sidebar_label: 3. How to Download Large Datasets
 
 Obtaining multi-year datasets is entirely possible. It simply requires breaking up your requests into manageable batches, which is standard practice in data-intensive research and reflects good data management hygiene.
 
-### 3.1 Recommended Approach: Batch Downloads via the Analytics Platform
+### 3.1 Recommended Approach: Batch Downloads via the AirQo Nexus
 
-For most academic and public health researchers, the Analytics Platform is the simplest and most accessible option. Follow this workflow:
+For most academic and public health researchers, the AirQo Nexus is the simplest and most accessible option. Follow this workflow:
 
-1. Navigate to the AirQo Analytics Platform: https://airqo.africa/products/analytics
+1. Navigate to the AirQo Nexus: https://airqo.africa/products/nexus
 2. Select your study area (e.g., Kampala) and the monitors of interest.
 3. Choose a data frequency (hourly is recommended for seasonal analysis).
 4. Set your date range to a three-month window (e.g., January – March 2019).
