@@ -46,7 +46,7 @@ For other cities, use the [Metadata API](./metadata.md) to browse all available 
 A Site ID identifies a specific physical monitoring location.
 
 **How to find Site IDs:**
-- Call the [grid generate endpoint](./metadata.md#get-all-site-and-device-ids-for-a-grid) (`GET /api/v2/devices/grids/{GRID_ID}/generate`) to list every site (and its devices) within a grid
+- Call the [grid generate endpoint](./metadata.md#get-all-site-and-device-ids-for-a-grid) (`GET /api/v2/devices/grids/{GRID_ID}/generate`) to list every site ID and device ID within a grid
 - Call the [Metadata API — List all sites](./metadata.md#list-all-public-sites) to browse all public monitoring sites
 - Or call the [recent measurements endpoint](../for-cities/recent-measurements.md) for your Grid and collect the `site_id` field from each measurement record
 
@@ -60,8 +60,9 @@ A Device ID uniquely identifies a sensor unit. Device names follow the pattern `
 
 **How to find Device IDs:**
 - Call any measurements endpoint and look at the `device_id` and `device` fields in each measurement record
-- The `device` field (e.g. `airqo_bx2847`) is the **device name** used in Analytics API requests
-- The `device_id` field (e.g. `65c8d4a2f1b45c0012a3e789`) is used for forecast requests
+- The `device` field (e.g. `airqo_bx2847`) is the **device name** — pass it as `device_names` in Analytics API requests
+- The `device_id` field (e.g. `65c8d4a2f1b45c0012a3e789`) can be passed as `device_ids` in Analytics API requests
+- Forecasts are scoped by **Site ID** (`site_id`), not Device ID — see [Forecast API →](../forecasts/overview.md)
 
 ---
 

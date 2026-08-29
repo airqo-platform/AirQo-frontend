@@ -21,12 +21,11 @@ Used by: Site ID, Device ID, Cohort ID, and Grid ID recent measurement endpoints
   "meta": {
     "total": 168,
     "skip": 0,
-    "limit": 50,
+    "limit": 30,
     "page": 1,
-    "pages": 4,
+    "pages": 6,
     "startTime": "2025-09-21T11:00:00.000Z",
-    "endTime": "2025-09-28T11:00:00.000Z",
-    "optimized": true
+    "endTime": "2025-09-28T11:00:00.000Z"
   },
   "measurements": [
     {
@@ -81,7 +80,6 @@ Used by: Site ID, Device ID, Cohort ID, and Grid ID recent measurement endpoints
 | `pages` | number | Total pages |
 | `startTime` | string | Query start (ISO 8601) |
 | `endTime` | string | Query end (ISO 8601) |
-| `optimized` | boolean | `true` when the query used an optimized execution path (e.g. index scan, caching, or approximation) |
 
 **Measurement record**
 
@@ -101,7 +99,7 @@ Used by: Site ID, Device ID, Cohort ID, and Grid ID recent measurement endpoints
 |-------|------|-------------|
 | `isOnline` | boolean | Whether device is currently active |
 | `status` | string | `"deployed"`, `"maintenance"`, etc. |
-| `category` | string | `"lowcost"` or `"reference"` |
+| `category` | string | `"lowcost"`, `"bam"`, or `"gas"` |
 | `latitude` | number | Device latitude |
 | `longitude` | number | Device longitude |
 | `lastActive` | string | Last calibrated reading timestamp |
@@ -140,6 +138,8 @@ Used by: `raw-data` and `data-download` endpoints.
 }
 ```
 
+The `data` array above is abbreviated to one record for readability — a real page returns up to `total_count` records.
+
 **Top-level**
 
 | Field | Type | Description |
@@ -153,7 +153,7 @@ Used by: `raw-data` and `data-download` endpoints.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `total_count` | number | Total matching records |
+| `total_count` | number | Number of records included in this response (page) — not the total across your full date range |
 | `has_more` | boolean | Whether additional pages exist |
 | `next` | string or null | Cursor for the next page (pass as `cursor` parameter) |
 
@@ -212,7 +212,7 @@ See [Forecast API →](../forecasts/overview.md) for the full response schema, f
           {
             "date": "2026-06-03",
             "forecast": { "pm2_5_mean": 28.4, "forecast_confidence": 84.5 },
-            "aqi": { "category": "Moderate", "label": "Air quality is acceptable for most people." },
+            "aqi": { "aqi_category": "Moderate", "label": "Air quality is acceptable for most people." },
             "met": { "air_temperature": 24.7, "relative_humidity": 72.1 }
           }
         ]
@@ -222,4 +222,4 @@ See [Forecast API →](../forecasts/overview.md) for the full response schema, f
 }
 ```
 
-**Hourly forecasting** uses the same envelope but with `start_timestamp`, `end_timestamp`, `hours`, and pagination fields (`page`, `pages`). Individual forecast items use `timestamp` instead of `date` and include `pm2_5_q10` / `pm2_5_q90` uncertainty bounds instead of `pm2_5_low` / `pm2_5_high`.
+**Hourly forecasting** uses the same envelope but with `start_timestamp`, `end_timestamp`, `hours`, and pagination fields (`page`, `limit`, `total`, `total_pages`). Individual forecast items use `timestamp` instead of `date` and include `pm2_5_q10` / `pm2_5_q90` uncertainty bounds instead of `pm2_5_low` / `pm2_5_high`.

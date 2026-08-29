@@ -68,11 +68,11 @@ If a secret is compromised, an administrator can regenerate it from the admin pa
 
 ### What it is
 
-IP whitelisting restricts which source IP addresses are allowed to call the API using a given client's token. Requests arriving from an IP not on the list will be rejected.
+IP whitelisting lets you restrict which source IP addresses are allowed to call the API using a given client's token.
 
-### When you need it
+### When to use it
 
-This control is **required for all server-side integrations**. Without it, requests from server IPs may return empty data or an unauthorised error even with a valid token.
+This is a useful extra layer of access control for server-side integrations, alongside your access token. Configure it whenever your servers have a known, stable set of egress IPs.
 
 ### How to configure it
 
@@ -109,7 +109,7 @@ This is the browser-equivalent of IP whitelisting: it prevents other websites fr
 
 **Token level (fine-grained per-token origins):**
 
-You can also set allowed origins per token inside the **Token Security** dialog. Token-level origins take precedence when set.
+You can also set allowed origins per token inside the **Token Security** dialog. Token-level origins are combined with client-level origins — a request is allowed if it matches either list.
 
 1. Click the **shield** icon on the token row.
 2. Enter origins under **Allowed origins** in the Token Security dialog.
@@ -164,7 +164,7 @@ This is useful for service accounts that should only operate during business hou
 2. Click the **shield** icon on the token row.
 3. In the Token Security dialog, check **Access schedule** to enable it.
 4. Select the **Allowed days** (Sun–Sat checkboxes). Leaving all days unchecked allows requests every day.
-5. Set **Start hour UTC** and **End hour UTC** (0–23). The range is inclusive of the start hour and exclusive at the end.
+5. Set **Start hour UTC** and **End hour UTC** (0–23). The range is inclusive of both the start and end hour.
 6. Click **Save changes**.
 
 ### Example
@@ -175,7 +175,7 @@ To allow access only on weekdays between 06:00 and 20:00 UTC:
 - Start hour UTC: 6
 - End hour UTC: 20
 
-Any request arriving outside this window — including on Saturday or Sunday — will be rejected.
+Requests are allowed from 06:00 UTC through the end of the 20:00 UTC hour. Anything outside that window — including all day Saturday or Sunday — is rejected.
 
 :::note All times are UTC
 The access schedule uses UTC for all hour values. Convert to the local time zone of your integration when planning the window.

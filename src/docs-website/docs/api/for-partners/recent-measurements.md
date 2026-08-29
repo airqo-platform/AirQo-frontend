@@ -84,9 +84,9 @@ for measurement in data['measurements']:
   "meta": {
     "total": 168,
     "skip": 0,
-    "limit": 50,
+    "limit": 30,
     "page": 1,
-    "pages": 4,
+    "pages": 6,
     "startTime": "2025-09-21T11:00:00.000Z",
     "endTime": "2025-09-28T11:00:00.000Z"
   },
@@ -161,11 +161,11 @@ for measurement in data['measurements']:
 
 ## Pagination
 
-If your Cohort has many devices, results are paginated. Use `skip` and `limit` to page through:
+If your Cohort has many devices, results are paginated. Use `skip` and `limit` (default 30, max 80) to page through:
 
 ```bash
-# Page 2: skip the first 50 records
-curl "https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=50&skip=50"
+# Page 2: skip the first 30 records
+curl "https://api.airqo.net/api/v2/devices/measurements/cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=30&skip=30"
 ```
 
 See [Pagination reference →](../reference/pagination.md) for a full walkthrough.

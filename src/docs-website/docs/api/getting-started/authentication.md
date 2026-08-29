@@ -75,11 +75,9 @@ Rotate your token before it expires. After generating a new token, update it in 
 
 ## IP whitelisting
 
-If you are making API calls from a server (as opposed to a browser), you must whitelist your server's public IP address on your API client.
+Each API client can optionally be configured with a list of allowed public IP addresses — an additional layer of access control worth setting up for server-side integrations with a known, stable set of egress IPs.
 
-**Without IP whitelisting, requests from server IPs will return empty data or an unauthorised error**, even when a valid token is supplied.
-
-To whitelist your IP:
+To configure it:
 
 1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.

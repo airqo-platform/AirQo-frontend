@@ -17,19 +17,19 @@ Add `limit` and `skip` as query parameters:
 
 | Parameter | Default | Max | Description |
 |-----------|---------|-----|-------------|
-| `limit` | 100 | 300 | Records per page |
+| `limit` | 30 | 80 | Records per page |
 | `skip` | 0 | — | Records to skip |
-| `sortBy` | `createdAt` | — | Field to sort by |
-| `order` | `desc` | — | `"asc"` or `"desc"` |
+
+Results are sorted by reading time, most recent first — sort order isn't currently configurable.
 
 ### Example
 
 ```bash
-# Page 1 (records 1–100)
-GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=100&skip=0
+# Page 1 (records 1–30)
+GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=30&skip=0
 
-# Page 2 (records 101–200)
-GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=100&skip=100
+# Page 2 (records 31–60)
+GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=30&skip=30
 ```
 
 ### Pagination response shape
@@ -38,10 +38,10 @@ GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=100&skip=100
 {
   "meta": {
     "total": 5250,
-    "limit": 100,
+    "limit": 80,
     "skip": 0,
     "page": 1,
-    "pages": 53
+    "pages": 66
   }
 }
 ```
@@ -52,7 +52,7 @@ Use `meta.pages` to know when you have reached the last page.
 
 ```js
 async function fetchAllMeasurements(cohortId, token) {
-  const limit = 100;
+  const limit = 80;
   let skip = 0;
   let allMeasurements = [];
   let totalPages = 1;
@@ -79,6 +79,14 @@ async function fetchAllMeasurements(cohortId, token) {
 Used by: `raw-data` and `data-download` endpoints.
 
 The first request has no cursor. If `metadata.has_more` is `true`, pass the value of `metadata.next` as `cursor` in the next request.
+
+:::caution Cursors expire in a few minutes
+Request the next page promptly — a `cursor` is only valid for a short window after it's issued. If you wait too long between requests (e.g. while processing a very large page), the cursor expires and you'll need to resume from a fresh `startDateTime`.
+:::
+
+:::note Rate limit
+`raw-data` and `data-download` each accept at most 10 requests per minute per client — pace your pagination loop accordingly.
+:::
 
 ### Response shape
 
@@ -157,8 +165,8 @@ async function fetchAllPages(basePayload, token) {
 
 | Scenario | Recommended `limit` |
 |----------|-------------------|
-| Interactive dashboards | 50–100 |
-| Background data sync | 200–300 |
-| One-off bulk export | Max (300) |
+| Interactive dashboards | 20–30 |
+| Background data sync | 50–80 |
+| One-off bulk export | Max (80) |
 
 For Analytics API cursor pagination, the page size is determined server-side. Keep re-requesting until `has_more` is `false`.

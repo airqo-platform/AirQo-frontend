@@ -87,9 +87,9 @@ for m in data['measurements']:
   "meta": {
     "total": 420,
     "skip": 0,
-    "limit": 50,
+    "limit": 30,
     "page": 1,
-    "pages": 9,
+    "pages": 14,
     "startTime": "2025-09-21T11:00:00.000Z",
     "endTime": "2025-09-28T11:00:00.000Z"
   },
@@ -154,11 +154,11 @@ for m in data['measurements']:
 
 ## Pagination
 
-Large city Grids can return hundreds of measurements. Use `limit` and `skip` to page through:
+Large city Grids can return hundreds of measurements. Use `limit` (default 30, max 80) and `skip` to page through:
 
 ```bash
-# Get next page (records 51–100)
-curl "https://api.airqo.net/api/v2/devices/measurements/grids/{GRID_ID}?token={SECRET_TOKEN}&limit=50&skip=50"
+# Get next page (records 31–60)
+curl "https://api.airqo.net/api/v2/devices/measurements/grids/{GRID_ID}?token={SECRET_TOKEN}&limit=30&skip=30"
 ```
 
 ---

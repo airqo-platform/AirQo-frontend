@@ -15,7 +15,7 @@ The AirQo API is available on three tiers. Start for free and upgrade as your ne
 |---------|------|----------|---------|
 | Recent hourly measurements (last 7 days) | ✅ | ✅ | ✅ |
 | Spatial heatmaps | ✅ | ✅ | ✅ |
-| Historical data (multi-year; ~2 months per request) | ❌ | ✅ | ✅ |
+| Historical data (multi-year; up to 365 days per request) | ❌ | ✅ | ✅ |
 | Raw sensor data | ❌ | ✅ | ✅ |
 | Daily aggregations | ❌ | ✅ | ✅ |
 | Bulk data exports | ❌ | ✅ | ✅ |
@@ -50,7 +50,7 @@ Best for research projects, NGOs, small businesses, and applications that need h
 
 **What you get:**
 - Everything in the Free Tier
-- Full historical data access (multi-year history; each request covers ~2 months, use batches for longer ranges)
+- Full historical data access (multi-year history; each request covers up to 365 days, use batches for longer ranges)
 - Raw sensor readings via the Analytics API
 - Daily and weekly aggregated data
 - Bulk data export functionality
