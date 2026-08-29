@@ -138,6 +138,8 @@ Used by: `raw-data` and `data-download` endpoints.
 }
 ```
 
+The `data` array above is abbreviated to one record for readability — a real page returns up to `total_count` records.
+
 **Top-level**
 
 | Field | Type | Description |
@@ -220,4 +222,4 @@ See [Forecast API →](../forecasts/overview.md) for the full response schema, f
 }
 ```
 
-**Hourly forecasting** uses the same envelope but with `start_timestamp`, `end_timestamp`, `hours`, and pagination fields (`page`, `total_pages`). Individual forecast items use `timestamp` instead of `date` and include `pm2_5_q10` / `pm2_5_q90` uncertainty bounds instead of `pm2_5_low` / `pm2_5_high`.
+**Hourly forecasting** uses the same envelope but with `start_timestamp`, `end_timestamp`, `hours`, and pagination fields (`page`, `limit`, `total`, `total_pages`). Individual forecast items use `timestamp` instead of `date` and include `pm2_5_q10` / `pm2_5_q90` uncertainty bounds instead of `pm2_5_low` / `pm2_5_high`.

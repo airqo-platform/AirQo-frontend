@@ -35,7 +35,7 @@ Content-Type: application/json
 | `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start timestamp (ISO 8601) |
 | `endDateTime` | string | Yes | End timestamp (ISO 8601) |
-| `pollutants` | array | Yes | Pollutants to retrieve — `["pm2_5", "pm10"]` |
+| `pollutants` | array | Yes | Any subset of `pm2_5`, `pm10` (e.g. `["pm2_5"]` or `["pm2_5", "pm10"]`) |
 | `device_category` | string | No | Filter by device type, e.g. `"lowcost"` |
 | `device_names` | array | No\* | Filter to specific device identifiers |
 | `device_ids` | array | No\* | Filter to specific device IDs (as returned by the Metadata API) |
@@ -166,6 +166,8 @@ const data = await response.json();
   }
 }
 ```
+
+The `data` array above is abbreviated to one record for readability — a real page returns up to `total_count` records.
 
 ---
 

@@ -152,20 +152,21 @@ Other error conditions on this API (no forecast available, an unresolved grid/co
 
 ### 429 Too Many Requests
 
-**Cause:** You have exceeded the rate limit for your tier, or the Analytics API's 10-requests-per-minute limit on `raw-data` and `data-download`.
+**Cause — GET endpoints** (measurements, metadata): you have exceeded the rate limit for your tier.
 
-**Solution:**
-1. Implement exponential backoff — wait before retrying.
-2. Cache responses to avoid repeating identical queries.
-3. Upgrade to a higher tier for increased rate limits.
+**Solution:** Implement exponential backoff, cache responses to avoid repeating identical queries, or upgrade to a higher tier for increased limits.
+
+**Cause — `raw-data` and `data-download`:** these two endpoints enforce a fixed limit of 10 requests per minute per client, regardless of tier.
+
+**Solution:** Pace your pagination loop with a short delay between requests — upgrading tiers doesn't raise this particular limit.
 
 ```python
 import time
 import requests
 
-def request_with_retry(url, params, max_retries=3):
+def request_with_retry(method, url, max_retries=3, **kwargs):
     for attempt in range(max_retries):
-        response = requests.get(url, params=params)
+        response = requests.request(method, url, **kwargs)
         if response.status_code == 429:
             wait = 2 ** attempt  # 1s, 2s, 4s
             print(f"Rate limited. Retrying in {wait}s...")
@@ -173,6 +174,12 @@ def request_with_retry(url, params, max_retries=3):
         else:
             return response
     raise Exception("Max retries exceeded")
+
+# GET endpoint
+request_with_retry("GET", url, params=params)
+
+# POST endpoint (raw-data, data-download)
+request_with_retry("POST", url, params={"token": token}, json=payload)
 ```
 
 ---

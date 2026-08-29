@@ -38,10 +38,10 @@ GET .../cohorts/{COHORT_ID}?token={SECRET_TOKEN}&limit=30&skip=30
 {
   "meta": {
     "total": 5250,
-    "limit": 100,
+    "limit": 80,
     "skip": 0,
     "page": 1,
-    "pages": 53
+    "pages": 66
   }
 }
 ```

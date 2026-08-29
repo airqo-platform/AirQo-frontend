@@ -119,6 +119,10 @@ Returns hourly PM2.5 forecasts beginning from the current forecast hour.
 
 Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
 
+:::note What `page`/`limit` paginate
+For a single `site_id` request, `page`/`limit` paginate the hourly forecast items for that site — `total`/`total_pages` reflect the count of hourly records across the full horizon. For a `grid_id`/`cohort_id` request, they instead paginate the **sites** in that scope — `total`/`total_pages` reflect the number of matching sites, and each page returns the full hourly horizon for the sites on that page.
+:::
+
 ### Key Features
 
 - Default forecast horizon: **168 hours (7 days)**
@@ -136,8 +140,9 @@ Only one of `site_id`, `grid_id`, or `cohort_id` may be provided per request.
     "start_timestamp": "2026-06-07T10:00:00+00:00",
     "end_timestamp": "2026-06-14T10:00:00+00:00",
     "hours": 168,
-    "total": 10,
     "page": 1,
+    "limit": 10,
+    "total": 168,
     "total_pages": 17,
     "units": {
       "pm2_5": "ug/m3",
@@ -297,12 +302,12 @@ Forecasts include an AQI category derived from the predicted PM2.5 mean value.
 
 | Category | PM2.5 range (µg/m³) | Color |
 |----------|---------------------|-------|
-| Good | 0 – 9.1 | Green (`#00e400`) |
-| Moderate | 9.101 – 35.49 | Yellow (`#ffff00`) |
-| Unhealthy for Sensitive Groups | 35.491 – 55.49 | Orange (`#ff7e00`) |
-| Unhealthy | 55.491 – 125.49 | Red (`#ff0000`) |
-| Very Unhealthy | 125.491 – 225.49 | Purple (`#8f3f97`) |
-| Hazardous | 225.491+ | Maroon (`#7e0023`) |
+| Good | ≤ 9.1 | Green (`#00e400`) |
+| Moderate | > 9.1 – 35.49 | Yellow (`#ffff00`) |
+| Unhealthy for Sensitive Groups | > 35.49 – 55.49 | Orange (`#ff7e00`) |
+| Unhealthy | > 55.49 – 125.49 | Red (`#ff0000`) |
+| Very Unhealthy | > 125.49 – 225.49 | Purple (`#8f3f97`) |
+| Hazardous | > 225.49 | Maroon (`#7e0023`) |
 
 ---
 

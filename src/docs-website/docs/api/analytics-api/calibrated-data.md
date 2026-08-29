@@ -64,6 +64,7 @@ curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=
     "startDateTime": "2025-01-01T00:00:00Z",
     "endDateTime": "2025-01-02T00:00:00Z",
     "device_category": "lowcost",
+    "sites": ["64f7b3e8c9d25a0013f2d456"],
     "pollutants": ["pm2_5", "pm10"],
     "metaDataFields": ["latitude", "longitude"],
     "weatherFields": ["temperature", "humidity"],
@@ -84,6 +85,7 @@ payload = {
     "downloadType": "json",
     "startDateTime": "2025-01-01T00:00:00Z",
     "endDateTime": "2025-01-31T23:59:59Z",
+    "sites": ["64f7b3e8c9d25a0013f2d456"],
     "pollutants": ["pm2_5", "pm10"],
     "metaDataFields": ["latitude", "longitude"],
     "frequency": "hourly"
@@ -115,6 +117,7 @@ const response = await fetch(
       downloadType: 'json',
       startDateTime: '2025-01-01T00:00:00Z',
       endDateTime: '2025-01-31T23:59:59Z',
+      sites: ['64f7b3e8c9d25a0013f2d456'],
       pollutants: ['pm2_5', 'pm10'],
       metaDataFields: ['latitude', 'longitude'],
       frequency: 'hourly'
@@ -154,6 +157,8 @@ const data = await response.json();
   }
 }
 ```
+
+The `data` array above is abbreviated to one record for readability — a real page returns up to `total_count` records.
 
 ---
 

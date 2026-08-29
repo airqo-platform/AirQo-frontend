@@ -59,6 +59,8 @@ Content-Type: application/json
 
 ## Example request — hourly calibrated data
 
+The example below uses `device_ids`, matching the identifiers returned by the Cohort workaround above. If you already have device names from another endpoint (e.g. the `device` field in [Recent Measurements](./recent-measurements.md)), pass those as `device_names` instead — just don't mix the two in one request.
+
 ```bash
 curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=YOUR_SECRET_TOKEN" \
   -H "Content-Type: application/json" \
@@ -68,7 +70,7 @@ curl -X POST "https://api.airqo.net/api/v3/public/analytics/data-download?token=
     "downloadType": "json",
     "startDateTime": "2025-01-01T00:00:00Z",
     "endDateTime": "2025-01-31T23:59:59Z",
-    "device_names": ["airqo_bx2847", "airqo_cy1523"],
+    "device_ids": ["65c8d4a2f1b45c0012a3e789"],
     "pollutants": ["pm2_5", "pm10"],
     "metaDataFields": ["latitude", "longitude"],
     "frequency": "hourly"
@@ -88,7 +90,7 @@ payload = {
     "downloadType": "json",
     "startDateTime": "2025-01-01T00:00:00Z",
     "endDateTime": "2025-01-31T23:59:59Z",
-    "device_names": ["airqo_bx2847", "airqo_cy1523"],
+    "device_ids": ["65c8d4a2f1b45c0012a3e789"],
     "pollutants": ["pm2_5", "pm10"],
     "metaDataFields": ["latitude", "longitude"],
     "frequency": "hourly"
@@ -119,7 +121,7 @@ const response = await fetch(
       downloadType: 'json',
       startDateTime: '2025-01-01T00:00:00Z',
       endDateTime: '2025-01-31T23:59:59Z',
-      device_names: ['airqo_bx2847', 'airqo_cy1523'],
+      device_ids: ['65c8d4a2f1b45c0012a3e789'],
       pollutants: ['pm2_5', 'pm10'],
       metaDataFields: ['latitude', 'longitude'],
       frequency: 'hourly'
