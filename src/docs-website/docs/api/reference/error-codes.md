@@ -5,47 +5,47 @@ sidebar_label: Error Codes
 
 # Error Codes
 
-AirQo API endpoints use two different error response formats depending on the API family. Match your error handling to the endpoint you are calling.
+Most AirQo API endpoints share one error response format; the Forecast API has one additional validation-specific shape. Match your error handling to the endpoint you are calling.
 
 ---
 
 ## Error response formats
 
-### Devices and Analytics API
+### Devices, Analytics, and Metadata API
 
 Used by: measurement endpoints (`/api/v2/devices/...`), Analytics API (`/api/v3/public/analytics/...`), and metadata endpoints (`/api/v2/devices/metadata/...`).
 
 ```json
 {
-  "status": "error",
+  "success": false,
   "message": "Detailed error message",
-  "code": "ERROR_CODE"
+  "errors": {
+    "message": "More specific detail, or a field-by-field validation breakdown"
+  }
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `status` | string | `"error"` on failure |
-| `message` | string | Human-readable description |
-| `code` | string | Machine-readable error code (e.g. `"NOT_FOUND"`, `"UNAUTHORIZED"`) |
+| `success` | boolean | `false` on failure |
+| `message` | string | Human-readable summary |
+| `errors` | object | Additional detail — often `{ "message": "..." }`, or one entry per invalid field on a validation error |
 
 ### Forecast API
 
 Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-forecasting/`.
 
+The validation error unique to this API — providing more than one of `site_id`, `grid_id`, or `cohort_id` — returns:
+
 ```json
 {
   "success": false,
-  "message": "Detailed error message",
-  "error": "Unauthorized"
+  "message": "Please specify only one of site_id, grid_id, or cohort_id.",
+  "data": { "forecasts": [] }
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `success` | boolean | Always `false` on error |
-| `message` | string | Human-readable description |
-| `error` | string | HTTP status phrase (e.g. `"Unauthorized"`, `"Forbidden"`) |
+Other error conditions on this API (no forecast available, an unresolved grid/cohort, or the service being temporarily unavailable) follow the same `{success, message}` shape with a `data` object appropriate to the failure.
 
 ---
 
@@ -69,9 +69,12 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 
 **Symptom:** Response is `200 OK` with `"measurements": []` or `"data": []`.
 
-**Most likely cause:** Your server's public IP is not whitelisted.
+**Possible causes:**
+- No data exists for the requested device(s), site(s), or date range
+- The device was offline for the entire period
+- The ID you provided doesn't match an active resource
 
-**Solution:** Log in to [nexus.airqo.net](https://nexus.airqo.net) → **Profile → API**, click **Edit** on the relevant client, and add the public IP your server uses under **IP Addresses**.
+**Solution:** Verify the ID using the [Finding IDs guide](./finding-ids.md), and try a shorter or more recent date range. If a client has IP restrictions configured, confirm your server's address is included. If the problem persists, contact [network@airqo.net](mailto:network@airqo.net).
 
 ---
 
@@ -99,7 +102,7 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 {
   "success": false,
   "message": "Invalid authentication",
-  "error": "Unauthorized"
+  "errors": { "message": "Token is missing, invalid, or expired" }
 }
 ```
 
@@ -118,8 +121,7 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 {
   "success": false,
   "message": "Forecast access requires Premium Tier subscription",
-  "error": "Forbidden",
-  "upgrade_url": "https://nexus.airqo.net/account/subscription"
+  "errors": { "message": "Upgrade your subscription to access this feature" }
 }
 ```
 
@@ -133,9 +135,9 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 
 ```json
 {
-  "status": "error",
+  "success": false,
   "message": "No data found for the requested device(s) or time range",
-  "code": "NOT_FOUND"
+  "errors": { "message": "Not found" }
 }
 ```
 
@@ -150,7 +152,7 @@ Used by: `/api/v2/predict/daily-forecasting/` and `/api/v2/predict/hourly-foreca
 
 ### 429 Too Many Requests
 
-**Cause:** You have exceeded the rate limit for your tier.
+**Cause:** You have exceeded the rate limit for your tier, or the Analytics API's 10-requests-per-minute limit on `raw-data` and `data-download`.
 
 **Solution:**
 1. Implement exponential backoff — wait before retrying.

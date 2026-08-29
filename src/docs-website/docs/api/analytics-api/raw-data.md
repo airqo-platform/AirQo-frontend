@@ -13,8 +13,10 @@ Requires a **Standard Tier** subscription or above.
 
 ---
 
-:::caution Grid and Cohort ID filtering — coming soon
-This endpoint does not yet accept `grid_id` or `cohort_id` as parameters. Filter by `device_names` (array of device names) instead. Use the [Metadata API](../reference/metadata.md) to discover device identifiers for your Grid or Cohort.
+:::caution Cohort ID filtering — coming soon
+This endpoint does not yet accept `cohort_id` as a parameter. Filter by `device_names` or `device_ids` (arrays of device identifiers) instead. Use the [Metadata API](../reference/metadata.md) to discover device identifiers for your Cohort.
+
+Grid ID filtering is supported via `grid_ids`, currently limited to a single Grid ID per request.
 :::
 
 ## Endpoint
@@ -30,30 +32,38 @@ Content-Type: application/json
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `network` | string | Yes | Always `"airqo"` |
+| `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start timestamp (ISO 8601) |
 | `endDateTime` | string | Yes | End timestamp (ISO 8601) |
-| `pollutants` | array | Yes | Pollutants to retrieve (e.g. `["pm2_5", "pm10", "no2"]`) |
-| `device_category` | string | No | Filter by device type, e.g. `"lowcost"` or `"mobile"` |
-| `device_names` | array | No | Filter to specific device identifiers |
+| `pollutants` | array | Yes | Pollutants to retrieve — `["pm2_5", "pm10"]` |
+| `device_category` | string | No | Filter by device type, e.g. `"lowcost"` |
+| `device_names` | array | No\* | Filter to specific device identifiers |
+| `device_ids` | array | No\* | Filter to specific device IDs (as returned by the Metadata API) |
+| `grid_ids` | array | No\* | Filter to a Grid ID — currently limited to one per request |
 | `metaDataFields` | array | No | Additional metadata (e.g. `["latitude", "longitude"]`) |
 | `weatherFields` | array | No | Weather data (e.g. `["temperature", "humidity"]`) |
-| `frequency` | string | No | `"raw"` (default) or `"aggregated"` |
+| `frequency` | string | No | Always `"raw"` for this endpoint |
 | `cursor` | string | No | Pagination cursor from previous response |
+
+\* Provide exactly one of `device_names`, `device_ids`, or `grid_ids`.
 
 ---
 
 ## Available pollutants
 
+Only `pm2_5` and `pm10` can be requested via the `pollutants` parameter.
+
 | Pollutant field | Description |
 |----------------|-------------|
-| `pm2_5` | Fine particulate matter (calibrated channel 1) |
+| `pm2_5` | Fine particulate matter |
 | `pm10` | Coarse particulate matter |
-| `no2` | Nitrogen dioxide |
-| `s1_pm2_5` | Raw sensor channel 1 PM2.5 |
-| `s2_pm2_5` | Raw sensor channel 2 PM2.5 |
-| `s1_pm10` | Raw sensor channel 1 PM10 |
-| `s2_pm10` | Raw sensor channel 2 PM10 |
+
+For `lowcost` devices, the response also automatically includes the raw dual-channel readings behind each requested pollutant — these aren't requested separately:
+
+| Field | Description |
+|-------|-------------|
+| `s1_pm2_5` / `s2_pm2_5` | Raw sensor channel 1 / 2 PM2.5 |
+| `s1_pm10` / `s2_pm10` | Raw sensor channel 1 / 2 PM10 |
 
 ---
 
@@ -67,7 +77,7 @@ curl -X POST "https://api.airqo.net/api/v3/public/analytics/raw-data?token=YOUR_
     "startDateTime": "2025-01-01T00:00:00Z",
     "endDateTime": "2025-01-01T06:00:00Z",
     "device_names": ["airqo_bx2847"],
-    "pollutants": ["pm2_5", "pm10", "no2"],
+    "pollutants": ["pm2_5", "pm10"],
     "metaDataFields": ["latitude", "longitude"],
     "weatherFields": ["temperature", "humidity"],
     "frequency": "raw"
@@ -202,10 +212,14 @@ while True:
     cursor = response['metadata']['next']
 ```
 
+:::caution Cursors expire quickly
+A `cursor` is only valid for a few minutes. If processing between pages is slow, request the next page promptly rather than resuming later — an expired cursor returns an error and you'll need to restart pagination for the remaining range.
+:::
+
 ---
 
 ## Tips
 
 - **Limit date ranges** — raw data is high-volume. Use windows of 1–6 hours for exploratory queries.
 - **Specify only the pollutants you need** — omitting unused fields speeds up the response.
-- **Use mobile category** (`"device_category": "mobile"`) to query data from mobile monitoring units.
+- **Watch the rate limit** — this endpoint accepts at most 10 requests per minute per client. Pace pagination loops accordingly.

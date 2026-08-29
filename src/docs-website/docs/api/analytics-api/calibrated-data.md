@@ -13,8 +13,10 @@ Requires a **Standard Tier** subscription or above.
 
 ---
 
-:::caution Grid and Cohort ID filtering — coming soon
-This endpoint does not yet accept `grid_id` or `cohort_id` as parameters. Filter by `sites` (array of Site IDs) or `device_names` (array of device names) instead. Use the [Metadata API](../reference/metadata.md) to discover identifiers for your Grid or Cohort.
+:::caution Cohort ID filtering — coming soon
+This endpoint does not yet accept `cohort_id` as a parameter. Filter by `sites`, `device_names`, or `device_ids` instead. Use the [Metadata API](../reference/metadata.md) to discover identifiers for your Cohort.
+
+Grid ID filtering is supported via `grid_ids`, currently limited to a single Grid ID per request.
 :::
 
 ## Endpoint
@@ -30,19 +32,23 @@ Content-Type: application/json
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `network` | string | Yes | Always `"airqo"` |
+| `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start timestamp (ISO 8601) |
 | `endDateTime` | string | Yes | End timestamp (ISO 8601) |
-| `datatype` | string | Yes | Must be `"calibrated"` |
-| `downloadType` | string | Yes | Must be `"json"` |
-| `frequency` | string | Yes | `"hourly"` or `"daily"` |
+| `datatype` | string | No | `"calibrated"` (default) for quality-controlled data |
+| `downloadType` | string | No | `"json"` (default) or `"csv"` |
+| `frequency` | string | No | `"hourly"` or `"daily"` (default) |
 | `device_category` | string | No | Filter by device type (e.g. `"lowcost"`) |
-| `device_names` | array | No | Specific device identifiers |
-| `sites` | array | No | Specific Site IDs |
+| `device_names` | array | No\* | Specific device identifiers |
+| `device_ids` | array | No\* | Specific device IDs (as returned by the Metadata API) |
+| `sites` | array | No\* | Specific Site IDs |
+| `grid_ids` | array | No\* | A Grid ID — currently limited to one per request |
 | `pollutants` | array | No | e.g. `["pm2_5", "pm10"]` |
 | `metaDataFields` | array | No | e.g. `["latitude", "longitude"]` |
 | `weatherFields` | array | No | e.g. `["temperature", "humidity"]` |
 | `cursor` | string | No | Pagination cursor from previous response |
+
+\* Provide exactly one of `sites`, `device_names`, `device_ids`, or `grid_ids`.
 
 ---
 
@@ -184,3 +190,7 @@ const data = await response.json();
 ## Pagination
 
 Use cursor-based pagination for large date ranges. See [Pagination →](../reference/pagination.md) for a complete walkthrough.
+
+:::note Rate limit
+This endpoint accepts at most 10 requests per minute per client.
+:::

@@ -5,16 +5,16 @@ sidebar_label: Historical Data
 
 # Historical Data — Partners
 
-Access the full history of calibrated air quality measurements for the devices in your Cohort. Historical data is retrieved through the Analytics API using a `POST` request. Each individual request is capped at approximately **2 months of data** — use batched requests with pagination to retrieve longer periods.
+Access the full history of calibrated air quality measurements for the devices in your Cohort. Historical data is retrieved through the Analytics API using a `POST` request. Each individual request can span up to **365 days** — use batched requests with pagination if you need multiple years of history in one export.
 
 :::info Tier requirement
 Historical data access requires a **Standard Tier** subscription or above.
 :::
 
 :::caution Cohort ID direct filtering — coming soon
-The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual **device names** (`device_names`) in the request body instead.
+The Analytics API does not yet accept `cohort_id` as a request parameter. You must supply individual device identifiers in the request body instead.
 
-**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve the `device_name` values for your Cohort, then pass them as the `device_names` parameter in your Analytics API request.
+**Workaround:** Call the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve the `device_ids` for your Cohort, then pass them as the `device_ids` parameter in your Analytics API request.
 
 Direct Cohort ID filtering will be added to the Analytics API in a future release.
 :::
@@ -23,7 +23,7 @@ Direct Cohort ID filtering will be added to the Analytics API in a future releas
 
 ## Overview
 
-Historical data for your Cohort is fetched via the Analytics API by specifying the device names that belong to your Cohort. Use the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve all device names for your Cohort.
+Historical data for your Cohort is fetched via the Analytics API by specifying the device IDs that belong to your Cohort. Use the [Metadata API](../reference/metadata.md#get-all-site-and-device-ids-for-a-cohort) (`GET /api/v2/devices/cohorts/{COHORT_ID}/generate`) to retrieve all device IDs for your Cohort.
 
 ---
 
@@ -40,17 +40,20 @@ Content-Type: application/json
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `network` | string | Yes | Always `"airqo"` |
+| `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start of range (ISO 8601) |
 | `endDateTime` | string | Yes | End of range (ISO 8601) |
-| `datatype` | string | Yes | `"calibrated"` for quality-controlled data |
-| `downloadType` | string | Yes | `"json"` |
-| `frequency` | string | Yes | `"hourly"` or `"daily"` |
-| `device_names` | array | No | Filter to specific devices in your Cohort |
+| `datatype` | string | No | `"calibrated"` (default) for quality-controlled data |
+| `downloadType` | string | No | `"json"` (default) or `"csv"` |
+| `frequency` | string | No | `"hourly"` or `"daily"` (default) |
+| `device_ids` | array | No\* | Device IDs in your Cohort (from the Metadata API) |
+| `device_names` | array | No\* | Device names in your Cohort |
 | `pollutants` | array | No | e.g. `["pm2_5", "pm10"]` |
 | `metaDataFields` | array | No | e.g. `["latitude", "longitude"]` |
 | `weatherFields` | array | No | e.g. `["temperature", "humidity"]` |
 | `cursor` | string | No | Pagination cursor from previous response |
+
+\* Provide exactly one of `device_ids` or `device_names`.
 
 ---
 
@@ -214,6 +217,7 @@ print(f"Total records fetched: {len(all_records)}")
 
 ## Tips
 
-- **Break requests into ~2-month batches** — each request is capped at approximately 2 months of data. For best performance on large device networks, use 30-day windows per batch.
+- **Break multi-year exports into yearly batches** — each request can span up to 365 days.
 - **Request only the pollutants you need** — omitting unused fields reduces response size.
 - **Cache results** on your side to avoid repeating identical queries.
+- **Watch the rate limit** — this endpoint accepts at most 10 requests per minute per client.

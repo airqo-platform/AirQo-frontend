@@ -16,7 +16,7 @@ Before you begin, make sure you have:
 - [ ] An AirQo account at [nexus.airqo.net](https://nexus.airqo.net)
 - [ ] An API client created under **Profile → API**
 - [ ] A `SECRET TOKEN` (access token) generated for that client
-- [ ] Your server's IP address whitelisted on the client (if calling from a server)
+- [ ] Your server's IP address added to the client's allowlist, if you want this extra layer of access control
 - [ ] A Cohort ID or Grid ID to query (see [Finding IDs →](../reference/finding-ids.md))
 
 :::tip More security options
@@ -52,9 +52,9 @@ A successful response looks like this:
   "meta": {
     "total": 168,
     "skip": 0,
-    "limit": 50,
+    "limit": 30,
     "page": 1,
-    "pages": 4
+    "pages": 6
   },
   "measurements": [
     {
