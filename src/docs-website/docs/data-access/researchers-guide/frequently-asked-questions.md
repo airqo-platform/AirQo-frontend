@@ -50,12 +50,12 @@ AirQo covers the device and its software; you're responsible for your AirQloud's
 ### Device Visibility Questions
 
 **How long does it take for a newly deployed device to appear on the map?**
-Once a device is actively transmitting data, it typically appears on the AirQo Nexus map within **1–6 hours**. There's no manual step on our end — the pipeline is fully automated — but it runs on scheduled cycles rather than instantly, so some wait is normal. Here's where that time goes:
+Once a device is deployed, it typically appears on the AirQo Nexus map within **1–6 hours of starting to transmit data**. There's no manual step on our end — the pipeline is fully automated — but it runs on scheduled cycles rather than instantly, so some wait is normal. Here's where that time goes:
 
 | Stage | Typical time added |
 |---|---|
 | Device recorded as deployed | Immediate |
-| Device starts transmitting (hardware/network-dependent) | Varies — outside the pipeline's control |
+| Device starts transmitting (hardware/network-dependent) | Varies — happens before the 1–6 hour window begins |
 | Pipeline recognises the new device | Up to ~3 hours |
 | Readings collected, calibrated, and processed | Up to ~1–2 hours |
 | Processed readings made queryable | Up to ~1 hour |
