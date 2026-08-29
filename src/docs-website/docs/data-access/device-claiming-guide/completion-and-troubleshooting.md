@@ -11,7 +11,7 @@ Claiming has succeeded once:
 
 - ✅ Device shows up under "My Devices" with status "claimed."
 - ✅ Device is attached to a cohort/group (either the one you chose, your personal default, or completed later via "Complete Device Setup").
-- ✅ You can see incoming readings once the device starts transmitting.
+- ✅ You can see incoming readings once the device starts transmitting — see [How long does it take for a newly deployed device to appear on the map?](../researchers-guide/frequently-asked-questions.md#device-visibility-questions) for typical timing.
 
 ## Troubleshooting
 
