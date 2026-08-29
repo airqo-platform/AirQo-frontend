@@ -47,6 +47,31 @@ See [Device Uptime Targets](../device-performance-guide/device-uptime-targets.md
 **Who is responsible for maintaining my device, and what does it cost?**
 AirQo covers the device and its software; you're responsible for your AirQloud's reliability. See [Maintenance Cost Options](../device-performance-guide/maintenance-and-support.md#maintenance-cost-options) for the knowledge-transfer vs. on-site maintenance choices.
 
+### Device Visibility Questions
+
+**How long does it take for a newly deployed device to appear on the map?**
+Once a device is deployed, it typically appears on the AirQo Nexus map within **1–6 hours of starting to transmit data**. There's no manual step on our end — the pipeline is fully automated — but it runs on scheduled cycles rather than instantly, so some wait is normal. Here's where that time goes:
+
+| Stage | Typical time added |
+|---|---|
+| Device recorded as deployed | Immediate |
+| Device starts transmitting (hardware/network-dependent) | Varies — happens before the 1–6 hour window begins |
+| Pipeline recognises the new device | Up to ~3 hours |
+| Readings collected, calibrated, and processed | Up to ~1–2 hours |
+| Processed readings made queryable | Up to ~1 hour |
+| Map displays the device | Near-instant; refresh the map if a view was already open |
+
+**Why isn't my new device showing up yet?**
+The most common causes, roughly in order of likelihood:
+- **Cycle timing** — the pipeline runs on periodic (hourly/multi-hourly) cycles, not continuously. A device deployed just after a cycle has run waits almost a full cycle for the next one. This is the most common cause, and isn't a fault.
+- **Not transmitting yet** — power, SIM/connectivity, or wiring issues at the deployment site mean there's no data yet to process. This is a field/hardware issue, not a pipeline delay — see [Factors Affecting Performance](../device-performance-guide/factors-affecting-performance.md).
+- **Missing or incorrect site coordinates** — the map only shows devices whose site has valid location data. Data can be flowing correctly and still never appear on the map until the site's coordinates are corrected.
+- **Browser/map caching** — if the map was already open, it may be showing a snapshot from a few minutes earlier. Refresh before assuming a backend delay.
+- **Recalled or deactivated devices** — stop appearing on the map within the same processing cycles above; this is expected behaviour, not a fault.
+
+**When should I escalate a device that hasn't appeared on the map?**
+If the device has been confirmed to be actively transmitting for more than **6 hours** and its site's location data is verified correct, it's reasonable to contact [support@airqo.net](mailto:support@airqo.net) rather than continue waiting.
+
 ### Data Access Questions
 
 **I need data urgently for a deadline.**
