@@ -24,9 +24,9 @@ For a complete walkthrough of every security control available on the platform, 
 
 ## IP whitelisting
 
-- **Whitelist all egress IPs** your application uses. If you use load balancers or NAT gateways, whitelist those IPs too.
+- **Whitelist all egress IPs** your application uses, as an additional layer of access control. If you use load balancers or NAT gateways, whitelist those IPs too.
 - **Use a static egress IP** where possible to avoid maintaining a changing whitelist.
-- If you receive `200 OK` with empty `measurements`, check your whitelist first — this is the most common cause.
+- If you receive `200 OK` with empty `measurements`, double-check your date range and IDs first — see [Error Codes →](./error-codes.md#empty-measurements-array) for the full troubleshooting list.
 
 ---
 
@@ -54,7 +54,7 @@ For a complete walkthrough of every security control available on the platform, 
 | Recent hourly measurements | 30–60 minutes |
 | Historical calibrated data | 24 hours (data does not change) |
 | Heatmap images | 30–60 minutes |
-| Forecasts | 1–3 hours (updated every 6 hours) |
+| Forecasts | About 1 hour (forecasts are regenerated once daily) |
 
 ---
 
@@ -88,7 +88,8 @@ def api_request_with_backoff(url, token, payload, max_retries=4):
 
 - **Use the cursor-based Analytics API** (v3) for bulk exports rather than looping through the GET measurement endpoints.
 - **Process pages as you receive them** rather than loading everything into memory first.
-- **Break quarterly or annual exports into monthly chunks** to stay within timeout limits.
+- **Break multi-year exports into yearly chunks** — each request can span up to 365 days.
+- **Respect the rate limit** — `raw-data` and `data-download` each accept at most 10 requests per minute per client. Pace your pagination loop with a short delay between requests.
 
 ---
 

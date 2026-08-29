@@ -75,8 +75,12 @@ Unlike most endpoints on this page, grid summary is publicly accessible without 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `admin_level` | string | Filter by level: `country`, `province`, `city`, `district`, `subcounty`, `county`, `division`, `parish` |
+| `admin_level` | string | Filter by level: `country`, `province`, `city`, `district`, `subcounty`, `county`, `division`, `parish`, and other administrative levels defined for your region |
 | `id` | string | Filter by a specific Grid ID |
+
+:::note
+`admin_level` isn't a fixed list — it reflects whatever administrative levels exist for the regions AirQo covers, so you may encounter values beyond the ones listed above.
+:::
 
 **Example — filter to city-level grids**
 
@@ -177,25 +181,18 @@ Returns full details for one grid.
 GET /api/v2/devices/grids/{GRID_ID}/generate?token={SECRET_TOKEN}
 ```
 
-Returns every site and device ID belonging to the grid. Use this to build a list of `site_id` or `device_id` values for measurement and forecast queries.
+Returns every site ID and device ID belonging to the grid, as two flat lists. Use these to build `sites`/`grid_ids` and `device_ids` filters for Analytics API queries.
 
 **Example response**
 
 ```json
 {
   "success": true,
-  "sites": [
-    {
-      "site_id": "64f7b3e8c9d25a0013f2d456",
-      "site_name": "Nairobi Road",
-      "devices": [
-        {
-          "device_id": "65c8d4a2f1b45c0012a3e789",
-          "device_name": "airqo_bx2847"
-        }
-      ]
-    }
-  ]
+  "message": "Successfully returned the Site IDs and the Device IDs",
+  "sites_and_devices": {
+    "site_ids": ["64f7b3e8c9d25a0013f2d456"],
+    "device_ids": ["65c8d4a2f1b45c0012a3e789"]
+  }
 }
 ```
 
@@ -278,25 +275,18 @@ Returns full details for one cohort.
 GET /api/v2/devices/cohorts/{COHORT_ID}/generate?token={SECRET_TOKEN}
 ```
 
-Returns every site and device ID belonging to the cohort. The structure matches the grid generate endpoint.
+Returns every site ID and device ID belonging to the cohort, as two flat lists. The structure matches the grid generate endpoint.
 
 **Example response**
 
 ```json
 {
   "success": true,
-  "sites": [
-    {
-      "site_id": "64f7b3e8c9d25a0013f2d456",
-      "site_name": "Kampala Central",
-      "devices": [
-        {
-          "device_id": "65c8d4a2f1b45c0012a3e789",
-          "device_name": "airqo_bx2847"
-        }
-      ]
-    }
-  ]
+  "message": "Successfully returned the Site IDs and the Device IDs",
+  "sites_and_devices": {
+    "site_ids": ["64f7b3e8c9d25a0013f2d456"],
+    "device_ids": ["65c8d4a2f1b45c0012a3e789"]
+  }
 }
 ```
 
@@ -337,7 +327,7 @@ Returns all publicly visible monitoring sites.
       "longitude": 32.5825,
       "network": "airqo",
       "visibility": true,
-      "online_status": "online"
+      "isOnline": true
     }
   ],
   "meta": {
@@ -444,7 +434,7 @@ GET /api/v2/devices/locations?token={SECRET_TOKEN}
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `admin_level` | string | Filter by level: `country`, `province`, `state`, `district`, `county`, `subcounty`, `division`, `parish`, `village` |
+| `admin_level` | string | Filter by level: `country`, `province`, `state`, `district`, `county`, `subcounty`, `division`, `parish`, `village`, and other administrative levels defined for your region (not an exhaustive list) |
 | `name` | string | Filter by location name (partial match) |
 | `limit` | integer | Max results per page |
 | `skip` | integer | Records to skip |
@@ -484,12 +474,12 @@ curl "https://api.airqo.net/api/v2/devices/metadata/sites?limit=100&skip=100&tok
 ### Find all Site IDs in your Grid
 
 1. Call `GET /api/v2/devices/grids/{GRID_ID}/generate`
-2. Collect the `site_id` from each entry in the `sites` array
+2. Use the `sites_and_devices.site_ids` array directly
 
 ### Find all Device IDs in your Cohort
 
 1. Call `GET /api/v2/devices/cohorts/{COHORT_ID}/generate`
-2. For each site, collect `device_id` values from the nested `devices` array
+2. Use the `sites_and_devices.device_ids` array directly
 
 ---
 
