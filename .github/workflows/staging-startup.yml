@@ -6,10 +6,16 @@ on:
     - cron: '0 6 * * 6,0'    # 9AM EAT (06:00 UTC) Sat-Sun
   workflow_dispatch:
 
+concurrency:
+  group: staging-lifecycle
+  cancel-in-progress: false
+
+permissions: {}
+
 env:
   STAGING_CLUSTER_NAME: airqo-aks-staging
   STAGING_HAPROXY_VM: haproxy-staging
-  RESOURCE_GROUP: airqo-main-rg
+  RESOURCE_GROUP: airqo-main-rg  
 
 jobs:
   start-staging:
@@ -22,11 +28,11 @@ jobs:
 
       - name: Start HAProxy staging VM
         run: |
-          echo "Starting haproxy-staging VM..."
+          echo "Starting ${{ env.STAGING_HAPROXY_VM }}..."
           az vm start \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.STAGING_HAPROXY_VM }}
-          echo "haproxy-staging started"
+          echo "VM started"
 
       - name: Scale up AKS workload nodes
         run: |
@@ -38,16 +44,19 @@ jobs:
             --node-count 2
           echo "Workload nodes scaled to 2"
 
-      - name: Wait for nodes to be ready
+      - name: Get AKS credentials
         run: |
           az aks get-credentials \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.STAGING_CLUSTER_NAME }} \
             --overwrite-existing
+
+      - name: Wait for workload nodes to be ready
+        run: |
           echo "Waiting for workload nodes to be Ready..."
           kubectl wait node \
             --for=condition=Ready \
-            --selector=agentpool=workload \
+            --selector=kubernetes.azure.com/agentpool=workload \
             --timeout=300s
           echo "Workload nodes ready"
 
@@ -59,17 +68,33 @@ jobs:
             --timeout=120s
           echo "nginx-ingress ready"
 
-      - name: Wait for staging pods to come up
+      - name: Wait for staging deployments to be ready
         run: |
-          echo "Waiting 90s for staging services to reschedule..."
-          sleep 90
+          echo "Waiting for all staging deployments to be available..."
+          FAILED=()
+
+          for DEPLOY in $(kubectl get deployments -n staging \
+            --no-headers -o custom-columns="NAME:.metadata.name"); do
+            echo "Checking $DEPLOY..."
+            kubectl rollout status deployment/$DEPLOY \
+              -n staging \
+              --timeout=180s || FAILED+=("$DEPLOY")
+          done
+
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "ERROR: The following deployments did not become ready:"
+            printf '  %s\n' "${FAILED[@]}"
+            exit 1
+          fi
+
+          echo "All staging deployments ready"
 
       - name: Summary
         run: |
           echo "=== Startup Summary ==="
           echo "Time: $(date)"
           echo ""
-          echo "--- Node Status ---"
+          echo "--- Nodes ---"
           kubectl get nodes
           echo ""
           echo "--- Staging Pods ---"
@@ -79,7 +104,7 @@ jobs:
           RUNNING=$(kubectl get pods -n staging \
             --field-selector=status.phase=Running \
             --no-headers | wc -l)
-          echo "Running pods in staging namespace: $RUNNING"
+          echo "Running pods in staging: $RUNNING"
           echo ""
           echo "--- nginx-ingress ---"
           kubectl get pods -n nginx-ingress
