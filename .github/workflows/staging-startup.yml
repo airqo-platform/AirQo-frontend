@@ -73,13 +73,25 @@ jobs:
           echo "Waiting for all staging deployments to be available..."
           FAILED=()
 
-          for DEPLOY in $(kubectl get deployments -n staging \
-            --no-headers -o custom-columns="NAME:.metadata.name"); do
+          # Capture deployment list and fail if the command errors or returns nothing
+          DEPLOYMENTS=$(kubectl get deployments -n staging \
+            --no-headers -o custom-columns="NAME:.metadata.name" 2>&1) || {
+            echo "ERROR: Failed to list deployments in staging namespace"
+            echo "$DEPLOYMENTS"
+            exit 1
+          }
+
+          if [ -z "$DEPLOYMENTS" ]; then
+            echo "ERROR: No deployments found in staging namespace — aborting to avoid false success"
+            exit 1
+          fi
+
+          while IFS= read -r DEPLOY; do
             echo "Checking $DEPLOY..."
-            kubectl rollout status deployment/$DEPLOY \
+            kubectl rollout status deployment/"$DEPLOY" \
               -n staging \
               --timeout=180s || FAILED+=("$DEPLOY")
-          done
+          done <<< "$DEPLOYMENTS"
 
           if [ ${#FAILED[@]} -gt 0 ]; then
             echo "ERROR: The following deployments did not become ready:"
