@@ -1,0 +1,60 @@
+name: Staging Shutdown
+
+on:
+  schedule:
+    - cron: '0 21 * * 1-5'   # Midnight EAT (21:00 UTC) Mon-Fri
+    - cron: '0 15 * * 6,0'   # 6PM EAT (15:00 UTC) Sat-Sun
+  workflow_dispatch:
+
+env:
+  STAGING_CLUSTER_NAME: airqo-aks-staging
+  STAGING_HAPROXY_VM: haproxy-staging
+  RESOURCE_GROUP: airqo-main-rg
+
+jobs:
+  shutdown-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Scale down AKS workload nodes
+        run: |
+          echo "Scaling workload node pool to 0..."
+          az aks nodepool scale \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --node-count 0
+          echo "Workload nodes scaled to 0"
+
+      - name: Stop HAProxy staging VM
+        run: |
+          echo "Deallocating haproxy-staging VM..."
+          az vm deallocate \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_HAPROXY_VM }} \
+            --no-wait
+          echo "Deallocation initiated"
+
+      - name: Summary
+        run: |
+          echo "=== Shutdown Summary ==="
+          echo "Time: $(date)"
+          echo ""
+          echo "--- AKS Node Pool Status ---"
+          az aks nodepool show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --query "{name:name, count:count, state:provisioningState}" \
+            -o table
+          echo ""
+          echo "--- VM Status ---"
+          az vm show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_HAPROXY_VM }} \
+            --query "{name:name, state:provisioningState}" \
+            -o table

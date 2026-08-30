@@ -1,0 +1,85 @@
+name: Staging Startup
+
+on:
+  schedule:
+    - cron: '0 3 * * 1-5'    # 6AM EAT (03:00 UTC) Mon-Fri
+    - cron: '0 6 * * 6,0'    # 9AM EAT (06:00 UTC) Sat-Sun
+  workflow_dispatch:
+
+env:
+  STAGING_CLUSTER_NAME: airqo-aks-staging
+  STAGING_HAPROXY_VM: haproxy-staging
+  RESOURCE_GROUP: airqo-main-rg
+
+jobs:
+  start-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Start HAProxy staging VM
+        run: |
+          echo "Starting haproxy-staging VM..."
+          az vm start \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_HAPROXY_VM }}
+          echo "haproxy-staging started"
+
+      - name: Scale up AKS workload nodes
+        run: |
+          echo "Scaling workload node pool to 2..."
+          az aks nodepool scale \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --node-count 2
+          echo "Workload nodes scaled to 2"
+
+      - name: Wait for nodes to be ready
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --overwrite-existing
+          echo "Waiting for workload nodes to be Ready..."
+          kubectl wait node \
+            --for=condition=Ready \
+            --selector=agentpool=workload \
+            --timeout=300s
+          echo "Workload nodes ready"
+
+      - name: Wait for nginx-ingress
+        run: |
+          echo "Waiting for nginx-ingress DaemonSet..."
+          kubectl rollout status daemonset/nginx-ingress \
+            -n nginx-ingress \
+            --timeout=120s
+          echo "nginx-ingress ready"
+
+      - name: Wait for staging pods to come up
+        run: |
+          echo "Waiting 90s for staging services to reschedule..."
+          sleep 90
+
+      - name: Summary
+        run: |
+          echo "=== Startup Summary ==="
+          echo "Time: $(date)"
+          echo ""
+          echo "--- Node Status ---"
+          kubectl get nodes
+          echo ""
+          echo "--- Staging Pods ---"
+          kubectl get pods -n staging
+          echo ""
+          echo "--- Running Pod Count ---"
+          RUNNING=$(kubectl get pods -n staging \
+            --field-selector=status.phase=Running \
+            --no-headers | wc -l)
+          echo "Running pods in staging namespace: $RUNNING"
+          echo ""
+          echo "--- nginx-ingress ---"
+          kubectl get pods -n nginx-ingress
