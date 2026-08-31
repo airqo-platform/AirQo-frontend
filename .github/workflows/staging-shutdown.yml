@@ -15,7 +15,7 @@ permissions: {}
 env:
   STAGING_CLUSTER_NAME: airqo-aks-staging
   STAGING_HAPROXY_VM: haproxy-staging
-  RESOURCE_GROUP: airqo-main-rg  
+  RESOURCE_GROUP: airqo-main-rg
 
 jobs:
   shutdown-staging:
@@ -43,21 +43,31 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.STAGING_HAPROXY_VM }}
 
-          echo "Verifying power state..."
-          POWER_STATE=$(az vm get-instance-view \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.STAGING_HAPROXY_VM }} \
-            --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
-            -o tsv)
+          echo "Polling for VM deallocated state (max 5 minutes)..."
+          TIMEOUT=300
+          INTERVAL=15
+          ELAPSED=0
 
-          echo "Power state: $POWER_STATE"
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            POWER_STATE=$(az vm get-instance-view \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.STAGING_HAPROXY_VM }} \
+              --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+              -o tsv)
 
-          if [ "$POWER_STATE" != "VM deallocated" ]; then
-            echo "ERROR: VM did not reach deallocated state. Current: $POWER_STATE"
-            exit 1
-          fi
+            echo "Power state: $POWER_STATE (${ELAPSED}s elapsed)"
 
-          echo "VM successfully deallocated"
+            if [ "$POWER_STATE" = "VM deallocated" ]; then
+              echo "VM successfully deallocated"
+              exit 0
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "ERROR: VM did not reach deallocated state within ${TIMEOUT}s. Last state: $POWER_STATE"
+          exit 1
 
       - name: Summary
         run: |

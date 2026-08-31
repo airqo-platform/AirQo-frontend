@@ -15,7 +15,7 @@ permissions: {}
 env:
   STAGING_CLUSTER_NAME: airqo-aks-staging
   STAGING_HAPROXY_VM: haproxy-staging
-  RESOURCE_GROUP: airqo-main-rg  
+  RESOURCE_GROUP: airqo-main-rg
 
 jobs:
   start-staging:
@@ -73,11 +73,11 @@ jobs:
           echo "Waiting for all staging deployments to be available..."
           FAILED=()
 
-          # Capture deployment list and fail if the command errors or returns nothing
+          # Capture only stdout; print stderr separately on error
           DEPLOYMENTS=$(kubectl get deployments -n staging \
-            --no-headers -o custom-columns="NAME:.metadata.name" 2>&1) || {
+            --no-headers -o custom-columns="NAME:.metadata.name") || {
             echo "ERROR: Failed to list deployments in staging namespace"
-            echo "$DEPLOYMENTS"
+            kubectl get deployments -n staging || true
             exit 1
           }
 
