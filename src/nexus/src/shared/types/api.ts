@@ -1582,6 +1582,13 @@ export interface Client {
 export interface GetClientsResponse {
   success: boolean;
   message: string;
+  meta: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    pages: number;
+  };
   clients: Client[];
 }
 
