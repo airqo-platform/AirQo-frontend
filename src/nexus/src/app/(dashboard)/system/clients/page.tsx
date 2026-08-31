@@ -417,7 +417,7 @@ const ClientsAdminPage: React.FC = () => {
               variant={statusFilter === 'all' ? 'filled' : 'outlined'}
               onClick={() => setStatusFilter('all')}
             >
-              All ({clients.length})
+              All ({clientsResponse?.meta?.total ?? clients.length})
             </Button>
             <Button
               size="sm"

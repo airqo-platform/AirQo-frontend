@@ -8,6 +8,8 @@ import { syncClientSessionToken } from './sessionAuthToken';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
+  ComparisonReadingsResponse,
+  ComparisonSiteReading,
   DataDownloadRequest,
   DataDownloadResponse,
   RecentReadingsResponse,
@@ -524,6 +526,38 @@ export class AnalyticsService {
     }
 
     return Array.isArray(payload.measurements) ? payload.measurements : [];
+  }
+
+  /**
+   * Latest reading per site for the Comparison tab — POST
+   * /devices/readings/comparisons.
+   *
+   * Mirrors `getRecentReadings` exactly: server client (API_TOKEN via the BFF),
+   * empty input short-circuits to `[]` without a network call, `success: false`
+   * throws a fixed safe message, aborted requests propagate as cancellations.
+   */
+  async getComparisonReadings(
+    siteIds: string[],
+    signal?: AbortSignal
+  ): Promise<ComparisonSiteReading[]> {
+    const trimmedSiteIds = siteIds.map(siteId => siteId.trim()).filter(Boolean);
+
+    if (trimmedSiteIds.length === 0) {
+      return [];
+    }
+
+    const response = await this.serverClient.post<ComparisonReadingsResponse>(
+      '/devices/readings/comparisons',
+      { site_ids: trimmedSiteIds },
+      { signal }
+    );
+
+    const payload = response.data;
+    if (!payload?.success) {
+      throw new Error('Failed to fetch the latest readings.');
+    }
+
+    return Array.isArray(payload.readings) ? payload.readings : [];
   }
 }
 
