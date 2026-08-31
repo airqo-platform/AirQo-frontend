@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { useUser } from '@/shared/hooks/useUser';
 import { comparisonsService } from '@/shared/services/comparisonsService';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 import type {
   CreateSavedComparisonRequest,
   SavedComparison,
@@ -220,7 +221,10 @@ export const useSavedComparisons = ({
     comparisons: data ?? [],
     isLoading,
     isMutating,
-    error: error ? 'Failed to load saved comparisons.' : null,
+    error:
+      error && !isAbortError(error)
+        ? 'Failed to load saved comparisons.'
+        : null,
     refresh: () => void mutate(),
     createComparison,
     renameComparison,

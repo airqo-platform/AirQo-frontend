@@ -147,6 +147,23 @@ describe('useSavedComparisons', () => {
     expect(result.current.error).toBe('Failed to load saved comparisons.');
   });
 
+  it('does not surface an aborted request as a load failure', async () => {
+    mockList.mockRejectedValue(
+      Object.assign(new Error('canceled'), {
+        name: 'CanceledError',
+        code: 'ERR_CANCELED',
+      })
+    );
+
+    const { result } = renderHook(
+      () => useSavedComparisons({ groupId: 'group-1' }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.error).toBeNull();
+  });
+
   it('createComparison calls the service and revalidates', async () => {
     mockList.mockResolvedValue({
       success: true,

@@ -8,6 +8,7 @@ import type {
   ApiErrorResponse,
 } from '../types/api';
 import { syncClientSessionToken } from './sessionAuthToken';
+import { isAbortError } from '../lib/retryPolicy';
 
 interface EnhancedError extends Error {
   status: number;
@@ -43,6 +44,13 @@ export class ComparisonsService {
     error: unknown,
     defaultMessage: string
   ): EnhancedError {
+    // Cancellations (AbortController/ERR_CANCELED) must propagate as-is — never
+    // be normalized into a 500-style failure (AGENTS.md: AbortError must never
+    // surface as a user-facing failure).
+    if (isAbortError(error)) {
+      throw error;
+    }
+
     // Check if it's already an EnhancedError
     if (
       error &&
@@ -95,6 +103,7 @@ export class ComparisonsService {
 
       return data as SavedComparisonListResponse;
     } catch (error: unknown) {
+      if (signal?.aborted) throw error;
       throw this.handleApiError(error, 'Failed to get saved comparisons');
     }
   }

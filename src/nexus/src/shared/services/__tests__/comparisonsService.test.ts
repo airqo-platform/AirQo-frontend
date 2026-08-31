@@ -41,7 +41,10 @@ const {
 
 const { comparisonsService } = jest.requireActual('../comparisonsService') as {
   comparisonsService: {
-    list: (params: unknown) => Promise<{ comparisons: unknown[] }>;
+    list: (
+      params: unknown,
+      signal?: AbortSignal
+    ) => Promise<{ comparisons: unknown[] }>;
     get: (id: string) => Promise<{ comparison: unknown }>;
     create: (payload: unknown) => Promise<{ comparison: unknown }>;
     update: (id: string, payload: unknown) => Promise<{ comparison: unknown }>;
@@ -129,6 +132,21 @@ describe('ComparisonsService', () => {
       await expect(
         comparisonsService.list({ group_id: 'group-1' })
       ).rejects.toThrow('nope');
+    });
+
+    it('propagates AbortSignal cancellations as-is (never wrapped in an EnhancedError)', async () => {
+      const canceledError = Object.assign(new Error('canceled'), {
+        name: 'CanceledError',
+        code: 'ERR_CANCELED',
+      });
+      mockGet.mockRejectedValueOnce(canceledError);
+
+      await expect(
+        comparisonsService.list(
+          { group_id: 'group-1' },
+          new AbortController().signal
+        )
+      ).rejects.toBe(canceledError);
     });
   });
 
