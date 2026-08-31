@@ -1,0 +1,90 @@
+name: Staging Shutdown
+
+on:
+  schedule:
+    - cron: '0 21 * * 1-5'   # Midnight EAT (21:00 UTC) Mon-Fri
+    - cron: '0 15 * * 6,0'   # 6PM EAT (15:00 UTC) Sat-Sun
+  workflow_dispatch:
+
+concurrency:
+  group: staging-lifecycle
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  STAGING_CLUSTER_NAME: airqo-aks-staging
+  STAGING_HAPROXY_VM: haproxy-staging
+  RESOURCE_GROUP: airqo-main-rg
+
+jobs:
+  shutdown-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Scale down AKS workload nodes
+        run: |
+          echo "Scaling workload node pool to 0..."
+          az aks nodepool scale \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --node-count 0
+          echo "Workload nodes scaled to 0"
+
+      - name: Stop HAProxy staging VM and wait for deallocation
+        run: |
+          echo "Deallocating ${{ env.STAGING_HAPROXY_VM }}..."
+          az vm deallocate \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_HAPROXY_VM }}
+
+          echo "Polling for VM deallocated state (max 5 minutes)..."
+          TIMEOUT=300
+          INTERVAL=15
+          ELAPSED=0
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            POWER_STATE=$(az vm get-instance-view \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.STAGING_HAPROXY_VM }} \
+              --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+              -o tsv)
+
+            echo "Power state: $POWER_STATE (${ELAPSED}s elapsed)"
+
+            if [ "$POWER_STATE" = "VM deallocated" ]; then
+              echo "VM successfully deallocated"
+              exit 0
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "ERROR: VM did not reach deallocated state within ${TIMEOUT}s. Last state: $POWER_STATE"
+          exit 1
+
+      - name: Summary
+        run: |
+          echo "=== Shutdown Summary ==="
+          echo "Time: $(date)"
+          echo ""
+          echo "--- AKS Node Pool ---"
+          az aks nodepool show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --query "{name:name, count:count, state:provisioningState}" \
+            -o table
+          echo ""
+          echo "--- VM Power State ---"
+          az vm get-instance-view \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_HAPROXY_VM }} \
+            --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+            -o tsv
