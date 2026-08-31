@@ -20,6 +20,7 @@ export const revalidate = 0;
 // Only paths matching one of these prefixes may be forwarded.
 // This prevents SSRF against arbitrary backend endpoints.
 const ALLOWED_PATH_PREFIXES = [
+  'devices/readings/comparisons',
   'devices/readings/recent',
   'devices/readings/rankings',
   'devices/readings/map',
@@ -35,7 +36,9 @@ const ALLOWED_PATH_PREFIXES = [
 
 function isPathAllowed(pathSegments: string[]): boolean {
   const joined = pathSegments.join('/');
-  return ALLOWED_PATH_PREFIXES.some(prefix => joined === prefix || joined.startsWith(prefix + '/'));
+  return ALLOWED_PATH_PREFIXES.some(
+    prefix => joined === prefix || joined.startsWith(prefix + '/')
+  );
 }
 
 // ── Shared handler ────────────────────────────────────────────────────────
@@ -53,10 +56,7 @@ async function forwardRequest(
 
   // 2. Allowlist check
   if (!isPathAllowed(pathSegments)) {
-    return NextResponse.json(
-      { error: 'Path not allowed' },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: 'Path not allowed' }, { status: 403 });
   }
 
   // 3. API_TOKEN must be configured
@@ -148,10 +148,7 @@ async function forwardRequest(
       );
     }
     // Network failure or other fetch error – never leak URLs or tokens
-    return NextResponse.json(
-      { error: 'Bad gateway' },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: 'Bad gateway' }, { status: 502 });
   } finally {
     clearTimeout(timeoutId);
   }

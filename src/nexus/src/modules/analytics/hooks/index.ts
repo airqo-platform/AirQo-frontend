@@ -34,12 +34,6 @@ export {
   type UseRecentReadingsResult,
 } from './useRecentReadings';
 
-export {
-  useComparisonSelection,
-  type UseComparisonSelectionOptions,
-  type UseComparisonSelectionResult,
-} from './useComparisonSelection';
-
 type PreferenceSite = Partial<Site> & {
   id?: string;
   site_id?: string;
