@@ -3,7 +3,6 @@ import type {
   RecentReading,
   SiteDetails,
 } from '@/shared/types/api';
-import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 
 /**
  * One row of the "Compare locations" table. Rows exist for EVERY selected
@@ -86,13 +85,24 @@ export const getFreshnessLabel = (hours: number | null | undefined): string => {
  * Display name for the comparison table. Precedence: `search_name` (the
  * site-level alias, e.g. "3rd Street, Ibex Hill"), then `location_name`
  * (the city/area label, e.g. "Lusaka Central, Zambia") — user requirement.
- * Falls back to the shared precedence, then to the site id.
+ * Falls back to the site id.
+ *
+ * Unlike the shared `getSiteDisplayName`, this does NOT end in the generic
+ * "Unknown Location" sentinel: an omitted name must never masquerade as a
+ * real location in the comparison table, so we fall back to the site id.
  */
 export const getComparisonSiteDisplayName = (
   siteDetails: SiteDetails | null | undefined
 ): string => {
   if (!siteDetails) return '';
-  return getSiteDisplayName(siteDetails) || siteDetails._id || '';
+  return (
+    siteDetails.search_name?.trim() ||
+    siteDetails.location_name?.trim() ||
+    siteDetails.name?.trim() ||
+    siteDetails.formatted_name?.trim() ||
+    siteDetails._id ||
+    ''
+  );
 };
 
 /** Local-time label for a reading timestamp, e.g. "14:05 · Aug 22". */
@@ -196,7 +206,9 @@ export const mapComparisonSiteReadingToRecentReading = (
     no2: { value: reading.pollutants?.no2?.value ?? null },
     pm10: { value: reading.pollutants?.pm10?.value ?? null },
     pm2_5: { value: reading.pollutants?.pm2_5?.value ?? null },
-    timeDifferenceHours: reading.time_difference_hours ?? 0,
+    // NaN sentinel: an omitted freshness must never masquerade as a fresh
+    // '<1h ago' reading — getFreshnessLabel treats non-finite as unknown.
+    timeDifferenceHours: reading.time_difference_hours ?? Number.NaN,
     updatedAt: '',
     siteDetails: {
       _id: reading.site_id,
@@ -215,8 +227,10 @@ export const mapComparisonSiteReadingToRecentReading = (
       description: '',
       location_name: site?.location_name ?? '',
       search_name: '',
-      approximate_latitude: site?.latitude ?? 0,
-      approximate_longitude: site?.longitude ?? 0,
+      // NaN sentinel: a missing coordinate must never fabricate (0,0) —
+      // downstream toFiniteNumber in ComparisonView treats non-finite as absent.
+      approximate_latitude: site?.latitude ?? Number.NaN,
+      approximate_longitude: site?.longitude ?? Number.NaN,
       data_provider: '',
       site_category: { tags: [], category: '' },
     } as RecentReading['siteDetails'],

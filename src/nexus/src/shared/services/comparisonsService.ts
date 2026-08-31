@@ -69,7 +69,8 @@ export class ComparisonsService {
 
   // List saved comparisons for a group
   async list(
-    params: SavedComparisonListParams
+    params: SavedComparisonListParams,
+    signal?: AbortSignal
   ): Promise<SavedComparisonListResponse> {
     await this.ensureAuthenticated();
     try {
@@ -82,7 +83,7 @@ export class ComparisonsService {
 
       const response = await this.authenticatedClient.get<
         SavedComparisonListResponse | ApiErrorResponse
-      >('/users/comparisons', { params: queryParams });
+      >('/users/comparisons', { params: queryParams, signal });
       const data = response.data;
 
       if ('success' in data && !data.success) {
@@ -183,15 +184,16 @@ export class ComparisonsService {
       );
       return { success: true };
     } catch (error: unknown) {
-      // An axios error whose response is 204 or 404 means the comparison is
-      // gone — treat as success.
+      // axios only rejects on non-2xx, so a 204 resolves normally through the
+      // try block above. Only a 404 (already deleted) reaches here — treat it
+      // as success.
       const axiosError = error as {
         response?: { status?: number; data?: unknown };
         message?: string;
         isAxiosError?: boolean;
       };
       const status = axiosError?.response?.status;
-      if (status === 204 || status === 404) {
+      if (status === 404) {
         return { success: true };
       }
       throw this.handleApiError(error, 'Failed to delete saved comparison');

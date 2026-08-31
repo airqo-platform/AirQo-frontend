@@ -156,6 +156,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   // group only in the brief window after a group switch, before the selection
   // is dropped.
   const selectionGroupRef = useRef<string>(resolvedGroupId);
+  // The group whose mutations are still "in flight". Captured before each await
+  // so a completion belonging to a departed group can be discarded.
+  const activeGroupRef = useRef(resolvedGroupId);
 
   // The currently-loaded saved comparison (drives dirty check + save mode).
   const [loadedComparison, setLoadedComparison] =
@@ -173,6 +176,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   //    clobbers it.
   useEffect(() => {
     const group = resolvedGroupId;
+    activeGroupRef.current = group;
     if (selectionGroupRef.current !== group) {
       selectionGroupRef.current = group;
       setPickerIds([]);
@@ -327,10 +331,14 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   const updateLoadedComparison = useCallback(
     async (snapshot: SavedComparisonSite[]): Promise<boolean> => {
       if (!loadedComparison) return false;
+      const groupAtStart = activeGroupRef.current;
       const updated = await updateComparison(loadedComparison.id, {
         site_ids: pickerIds,
         sites: snapshot,
       });
+      // The mutation belonged to a group the user has left — its result must
+      // never restore group-A state into the current group (AGENTS.md).
+      if (activeGroupRef.current !== groupAtStart) return false;
       if (updated) {
         setLoadedComparison(updated);
         return true;
@@ -342,6 +350,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
 
   const handleSaveSelection = useCallback(async () => {
     if (!isDirty || pickerIds.length === 0) return;
+    const groupAtStart = activeGroupRef.current;
 
     // Updating an existing loaded comparison — PATCH its site_ids/sites,
     // keep the name unchanged.
@@ -355,6 +364,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         namesBySite
       );
       const updated = await updateLoadedComparison(snapshot);
+      // The save belonged to a group the user has left — don't flash "Saved"
+      // or surface a misleading error for a departed group (AGENTS.md).
+      if (activeGroupRef.current !== groupAtStart) return;
       if (updated) {
         flashSavedIndicator();
       } else {
@@ -379,7 +391,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   ]);
 
   const handleConfirmSave = useCallback(async () => {
-    if (!saveName.trim()) return;
+    // Block saving an empty selection — the picker may have been cleared by a
+    // group switch while the dialog was open.
+    if (!saveName.trim() || pickerIds.length === 0) return;
     setSaveDialogOpen(false);
     setSaveError(null);
     const snapshot = buildComparisonSitesSnapshot(
@@ -389,12 +403,16 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       readingsBySiteId,
       namesBySite
     );
+    const groupAtStart = activeGroupRef.current;
     const created = await createComparison({
       group_id: resolvedGroupId,
       name: saveName.trim(),
       site_ids: pickerIds,
       sites: snapshot,
     });
+    // The save belonged to a group the user has left — its result must never
+    // restore group-A state into the current group (AGENTS.md).
+    if (activeGroupRef.current !== groupAtStart) return;
     if (created) {
       setLoadedComparison(created);
       flashSavedIndicator();
@@ -534,7 +552,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         primaryAction={{
           label: 'Save',
           onClick: () => void handleConfirmSave(),
-          disabled: !saveName.trim(),
+          disabled: !saveName.trim() || pickerIds.length === 0,
         }}
         secondaryAction={{
           label: 'Cancel',

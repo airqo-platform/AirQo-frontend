@@ -241,7 +241,7 @@ describe('mapComparisonSiteReadingToRecentReading', () => {
 
     expect(result.site_id).toBe('site-1');
     expect(result.time).toBe('');
-    expect(result.timeDifferenceHours).toBe(0);
+    expect(Number.isNaN(result.timeDifferenceHours)).toBe(true);
     expect(result.aqi_index).toBe(0);
     expect(result.aqi_color).toBe('');
     expect(result.aqi_color_name).toBe('');
@@ -253,7 +253,7 @@ describe('mapComparisonSiteReadingToRecentReading', () => {
     expect(result.siteDetails.search_name).toBe('');
   });
 
-  it('handles a null site object with empty siteDetails strings', () => {
+  it('handles a null site object with empty siteDetails strings and NaN geo', () => {
     const reading = makeReading({ site: null });
     const result = mapComparisonSiteReadingToRecentReading(reading);
 
@@ -261,8 +261,8 @@ describe('mapComparisonSiteReadingToRecentReading', () => {
     expect(result.siteDetails.search_name).toBe('');
     expect(result.siteDetails.city).toBe('');
     expect(result.siteDetails.country).toBe('');
-    expect(result.siteDetails.approximate_latitude).toBe(0);
-    expect(result.siteDetails.approximate_longitude).toBe(0);
+    expect(Number.isNaN(result.siteDetails.approximate_latitude)).toBe(true);
+    expect(Number.isNaN(result.siteDetails.approximate_longitude)).toBe(true);
   });
 });
 
@@ -305,19 +305,20 @@ describe('getComparisonSiteDisplayName', () => {
     expect(result).toBe('3rd Street, Ibex Hill');
   });
 
-  it('falls back to name when location_name is empty', () => {
+  it('falls back to name when location_name and search_name are empty', () => {
     const result = getComparisonSiteDisplayName(
-      makeSiteDetails({ location_name: '' })
+      makeSiteDetails({ location_name: '', search_name: '', name: 'Ibex Hill' })
     );
-    expect(result).toBe('3rd Street, Ibex Hill');
+    expect(result).toBe('Ibex Hill');
   });
 
-  it('falls back to shared getSiteDisplayName then _id when location_name is empty', () => {
+  it('falls back to the site id when all named fields are empty', () => {
     const result = getComparisonSiteDisplayName(
       makeSiteDetails({ location_name: '', name: '', search_name: '' })
     );
-    // getSiteDisplayName returns 'Unknown Location' as its final fallback
-    expect(result).toBe('Unknown Location');
+    // No generic "Unknown Location" sentinel — an omitted name falls back to
+    // the site id so it never masquerades as a real location.
+    expect(result).toBe('site-1');
   });
 
   it('returns empty string for null/undefined siteDetails', () => {
@@ -384,6 +385,49 @@ describe('buildComparisonRow via mapComparisonSiteReadingToRecentReading', () =>
     expect(row.freshnessLabel).toBe('<1h ago');
     expect(row.lastReadingLabel).not.toBe('—');
     expect(row.siteId).toBe('site-nr');
+  });
+
+  it('renders "No reading" freshness when has_reading is true but freshness is omitted', () => {
+    // A real reading (valid time/aqi) whose time_difference_hours is null must
+    // NOT render "<1h ago" — the omitted freshness is unknown, not fresh.
+    const mapped = mapComparisonSiteReadingToRecentReading(
+      makeComparisonSiteReading({
+        has_reading: true,
+        time: '2026-08-22T09:05:00Z',
+        time_difference_hours: null,
+        aqi: {
+          index: 72,
+          category: 'Moderate',
+          color_name: 'yellow',
+          color: 'ECAA06',
+        },
+        pollutants: {
+          pm2_5: { value: 12.3 },
+          pm10: { value: 15 },
+          no2: { value: 3 },
+        },
+      })
+    );
+    const row = buildComparisonRow(mapped);
+    expect(row.hasReading).toBe(true);
+    expect(row.aqiIndex).toBe(72);
+    expect(row.freshnessLabel).toBe('No reading');
+  });
+
+  it('maps a null-coordinate site to NaN approximate_latitude/longitude', () => {
+    const reading = makeComparisonSiteReading({
+      site: {
+        name: 'No Reading Site',
+        location_name: 'Kampala',
+        city: 'Kampala',
+        country: 'Uganda',
+        latitude: null,
+        longitude: null,
+      },
+    });
+    const result = mapComparisonSiteReadingToRecentReading(reading);
+    expect(Number.isNaN(result.siteDetails.approximate_latitude)).toBe(true);
+    expect(Number.isNaN(result.siteDetails.approximate_longitude)).toBe(true);
   });
 });
 

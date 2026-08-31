@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { useUser } from '@/shared/hooks/useUser';
 import { comparisonsService } from '@/shared/services/comparisonsService';
@@ -43,12 +43,16 @@ export const buildSavedComparisonsKey = (
   groupId: string | undefined
 ): string[] => ['saved-comparisons', groupId ?? 'no-active-group'];
 
+// Fetch once per group, revalidate after mutations (mutate()), and never
+// refetch on remount while cached data exists. There is no staleTime: SWR
+// revalidates stale keys on mount by default, so revalidateIfStale:false is
+// what actually suppresses the remount refetch.
 const SWR_STABLE_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
+  revalidateIfStale: false,
   shouldRetryOnError: false,
   dedupingInterval: 10000,
-  staleTime: 60000,
 } as const;
 
 const sortByUpdatedAtDesc = (
@@ -63,6 +67,23 @@ const sortByUpdatedAtDesc = (
     if (Number.isNaN(timeB)) return -1;
     return timeB - timeA;
   });
+
+const logMutationFailure = (operation: string, error: unknown): void => {
+  // Only the numeric status code is whitelisted for logs — never the error
+  // message/data, which can carry sensitive API payload content (AGENTS.md).
+  const status =
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof (error as { status?: unknown }).status === 'number'
+      ? (error as { status: number }).status
+      : undefined;
+  if (status === undefined) {
+    console.error(`Failed to ${operation} comparison`);
+  } else {
+    console.error(`Failed to ${operation} comparison`, { status });
+  }
+};
 
 /**
  * SWR-backed saved-comparisons list for the active group, plus sanitized
@@ -83,12 +104,28 @@ export const useSavedComparisons = ({
     [shouldFetch, groupId]
   );
 
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    // Abort the previous group's in-flight list request when the group
+    // changes or the hook unmounts — a group-A response must never resolve
+    // after the group-B query starts (AGENTS.md).
+    return () => abortRef.current?.abort();
+  }, [groupId]);
+
   const fetcher = useCallback(async (): Promise<SavedComparison[]> => {
-    const response = await comparisonsService.list({
-      group_id: groupId as string,
-      limit: 100,
-    });
-    return sortByUpdatedAtDesc(response.comparisons ?? []);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    try {
+      const response = await comparisonsService.list(
+        { group_id: groupId as string, limit: 100 },
+        controller.signal
+      );
+      return sortByUpdatedAtDesc(response.comparisons ?? []);
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
+    }
   }, [groupId]);
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -109,10 +146,7 @@ export const useSavedComparisons = ({
         await mutate();
         return response.comparison;
       } catch (err) {
-        console.error(
-          'Failed to create comparison:',
-          err instanceof Error ? err.message : err
-        );
+        logMutationFailure('create', err);
         return null;
       } finally {
         setIsMutating(false);
@@ -134,10 +168,7 @@ export const useSavedComparisons = ({
         await mutate();
         return response.comparison;
       } catch (err) {
-        console.error(
-          'Failed to rename comparison:',
-          err instanceof Error ? err.message : err
-        );
+        logMutationFailure('rename', err);
         return null;
       } finally {
         setIsMutating(false);
@@ -157,10 +188,7 @@ export const useSavedComparisons = ({
         await mutate();
         return response.comparison;
       } catch (err) {
-        console.error(
-          'Failed to update comparison:',
-          err instanceof Error ? err.message : err
-        );
+        logMutationFailure('update', err);
         return null;
       } finally {
         setIsMutating(false);
@@ -179,10 +207,7 @@ export const useSavedComparisons = ({
         }
         return response.success;
       } catch (err) {
-        console.error(
-          'Failed to delete comparison:',
-          err instanceof Error ? err.message : err
-        );
+        logMutationFailure('delete', err);
         return false;
       } finally {
         setIsMutating(false);
@@ -195,9 +220,7 @@ export const useSavedComparisons = ({
     comparisons: data ?? [],
     isLoading,
     isMutating,
-    error: error
-      ? (error.message ?? 'Failed to load saved comparisons.')
-      : null,
+    error: error ? 'Failed to load saved comparisons.' : null,
     refresh: () => void mutate(),
     createComparison,
     renameComparison,

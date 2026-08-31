@@ -12,7 +12,11 @@ import cohortReducer from '@/shared/store/cohortSlice';
 import mapSettingsReducer from '@/shared/store/mapSettingsSlice';
 import selectedLocationReducer from '@/shared/store/selectedLocationSlice';
 import analyticsReducer from '@/modules/analytics/store/analyticsSlice';
-import type { RecentReading, SavedComparison } from '@/shared/types/api';
+import type {
+  RecentReading,
+  SavedComparison,
+  SavedComparisonResponse,
+} from '@/shared/types/api';
 
 // ── Mock the saved-comparisons service ──────────────────────────────────────
 const comparisonsService = {
@@ -266,6 +270,33 @@ const renderComparisonView = (groupId = 'group-1') => {
     </Provider>
   );
   return { ...utils, queryClient };
+};
+
+// Builds the full provider tree for a given group, used by the rerender
+// pattern in the stale-completion and empty-selection guard tests below.
+const buildView = (groupId: string) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const store = configureStore({
+    reducer: {
+      theme: themeReducer,
+      ui: uiReducer,
+      user: userReducer,
+      insights: insightsReducer,
+      cohorts: cohortReducer,
+      mapSettings: mapSettingsReducer,
+      selectedLocation: selectedLocationReducer,
+      analytics: analyticsReducer,
+    },
+  });
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <ComparisonView groupId={groupId} />
+      </QueryClientProvider>
+    </Provider>
+  );
 };
 
 const listResponse = (comparisons: SavedComparison[]) => ({
@@ -673,5 +704,112 @@ describe('ComparisonView integration (saved comparisons)', () => {
         displayName: expect.any(String),
       })
     );
+  });
+
+  it('discards a completed save that belongs to a group the user has left (stale-completion guard)', async () => {
+    const user = userEvent.setup();
+    // Group A has a saved comparison with site-1.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+        site_ids: ['site-1'],
+        group_id: 'group-A',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    // Make the PATCH hang until we explicitly resolve it.
+    let deferredResolve!: (value: SavedComparisonResponse) => void;
+    comparisonsService.update.mockReturnValueOnce(
+      new Promise<SavedComparisonResponse>(resolve => {
+        deferredResolve = resolve;
+      })
+    );
+
+    const { rerender } = render(buildView('group-A'));
+
+    // Auto-loads site-1 for group A.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+    expect(
+      await screen.findByText('Saved · Saved comparison')
+    ).toBeInTheDocument();
+
+    // Make the selection dirty, then save — the PATCH starts and stays pending.
+    await user.click(screen.getByLabelText('Select item site-2'));
+    const saveButton = screen.getByRole('button', { name: /save selection/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    // Switch to group B (which has its own saved comparison) while the PATCH
+    // is still in flight.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-b',
+        name: 'Group B Pick',
+        site_ids: ['site-2'],
+        group_id: 'group-B',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    rerender(buildView('group-B'));
+
+    // Group B auto-loads; its name is shown.
+    expect(await screen.findByText('Saved · Group B Pick')).toBeInTheDocument();
+
+    // Now the in-flight group-A PATCH resolves. Its result must NOT overwrite
+    // group B's loaded comparison.
+    deferredResolve({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+      }),
+    });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    // Group B's name is still shown; the stale group-A name never appears.
+    expect(screen.getByText('Saved · Group B Pick')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Saved · Saved comparison')
+    ).not.toBeInTheDocument();
+  });
+
+  it('disables the dialog Save button after a group switch clears the selection', async () => {
+    const user = userEvent.setup();
+    // Group A starts empty.
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    const { rerender } = render(buildView('group-A'));
+
+    // Pick site-1, then open the name dialog via Save selection.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+    const saveButton = screen.getByRole('button', { name: /save selection/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    expect(await screen.findByText('Save comparison')).toBeInTheDocument();
+    const nameInput = screen.getByLabelText('Comparison name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'My Group A Pick');
+
+    // With a name typed and a selection present, Save is enabled.
+    const dialogSaveButton = screen.getByRole('button', { name: 'Save' });
+    expect(dialogSaveButton).not.toBeDisabled();
+
+    // Switch to group B (empty list). The picker clears but the dialog stays open.
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+    rerender(buildView('group-B'));
+
+    // The selection was cleared by the group switch, so Save is now disabled
+    // and cannot create a comparison.
+    expect(dialogSaveButton).toBeDisabled();
+    expect(comparisonsService.create).not.toHaveBeenCalled();
   });
 });

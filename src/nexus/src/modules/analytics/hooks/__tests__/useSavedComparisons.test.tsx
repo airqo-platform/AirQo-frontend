@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { SWRConfig } from 'swr';
+import type { SavedComparisonListResponse } from '@/shared/types/api';
 
 const mockList = jest.fn();
 const mockCreate = jest.fn();
@@ -103,7 +104,8 @@ describe('useSavedComparisons', () => {
       'old',
     ]);
     expect(mockList).toHaveBeenCalledWith(
-      expect.objectContaining({ group_id: 'group-1', limit: 100 })
+      expect.objectContaining({ group_id: 'group-1', limit: 100 }),
+      expect.any(AbortSignal)
     );
   });
 
@@ -141,7 +143,8 @@ describe('useSavedComparisons', () => {
     );
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
-    expect(result.current.error).toBe('Request failed with status 401');
+    // The raw axios message never reaches the UI — only the fixed public text.
+    expect(result.current.error).toBe('Failed to load saved comparisons.');
   });
 
   it('createComparison calls the service and revalidates', async () => {
@@ -264,5 +267,83 @@ describe('useSavedComparisons', () => {
     // Sanitized: resolves null instead of throwing the raw axios error.
     expect(created).toBeNull();
     expect(result.current.isMutating).toBe(false);
+  });
+
+  it('does not refetch on remount while cached data exists (revalidateIfStale: false)', async () => {
+    // A shared cache Map so the cached data survives unmount — proving the
+    // remount reuses it instead of refetching.
+    const sharedCache = new Map();
+    const cachedWrapper = ({ children }: { children: React.ReactNode }) => (
+      <SWRConfig value={{ provider: () => sharedCache, dedupingInterval: 0 }}>
+        {children}
+      </SWRConfig>
+    );
+
+    mockList.mockResolvedValue({
+      success: true,
+      message: 'ok',
+      comparisons: [makeComparison({ id: 'cached' })],
+      meta: { total: 1, total_pages: 1, page: 1, skip: 0, limit: 100 },
+    });
+
+    const { result, unmount } = renderHook(
+      () => useSavedComparisons({ groupId: 'group-1' }),
+      { wrapper: cachedWrapper }
+    );
+
+    await waitFor(() =>
+      expect(result.current.comparisons.length).toBeGreaterThan(0)
+    );
+    expect(mockList).toHaveBeenCalledTimes(1);
+
+    // Unmount and remount — the cached data must be reused, not refetched.
+    unmount();
+
+    const { result: result2 } = renderHook(
+      () => useSavedComparisons({ groupId: 'group-1' }),
+      { wrapper: cachedWrapper }
+    );
+
+    await waitFor(() =>
+      expect(result2.current.comparisons.length).toBeGreaterThan(0)
+    );
+    expect(mockList).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts the in-flight list request when the group switches', async () => {
+    // First call never resolves until we let it — keeps a request in flight.
+    let resolveFirst!: (value: SavedComparisonListResponse) => void;
+    mockList.mockImplementationOnce(
+      () =>
+        new Promise<SavedComparisonListResponse>(resolve => {
+          resolveFirst = resolve;
+        })
+    );
+
+    const { rerender } = renderHook(
+      (props: { groupId: string }) => useSavedComparisons(props),
+      { wrapper, initialProps: { groupId: 'group-1' } }
+    );
+
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1));
+
+    // The fetcher passes an AbortSignal as the second argument.
+    const signalArg = mockList.mock.calls[0][1];
+    expect(signalArg).toBeInstanceOf(AbortSignal);
+
+    // Switching groups aborts the group-1 request.
+    rerender({ groupId: 'group-2' });
+
+    expect(signalArg.aborted).toBe(true);
+
+    resolveFirst({
+      success: true,
+      message: 'ok',
+      comparisons: [],
+      meta: { total: 0, total_pages: 0, page: 1, skip: 0, limit: 100 },
+    });
+
+    // A fresh request fires for group-2.
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(2));
   });
 });
