@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { HiChevronRight } from 'react-icons/hi';
+import { HiInformationCircle } from 'react-icons/hi2';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import {
@@ -35,6 +37,8 @@ interface ComparisonTableViewProps {
   pm25Config?: AqiConfig | null;
   /** Live PM10 AQI ranges config — drives the color strip on PM10 values. */
   pm10Config?: AqiConfig | null;
+  /** Opens the reusable site-details dialog for this row. */
+  onSiteClick?: (row: ComparisonRow) => void;
 }
 
 const DEFAULT_DIR_BY_KEY: Record<
@@ -94,6 +98,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   className,
   pm25Config = null,
   pm10Config = null,
+  onSiteClick,
 }) => {
   const [sortKey, setSortKey] = useState<ComparisonSortKey>('aqi');
   const [sortDir, setSortDir] = useState<ComparisonSortDir>('desc');
@@ -104,24 +109,32 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
         key: 'name',
         label: 'Site',
         cellClassName: 'font-medium text-foreground',
-        render: row => (
-          <span className="block max-w-[220px] truncate">{row.siteName}</span>
-        ),
+        render: row =>
+          onSiteClick ? (
+            <button
+              type="button"
+              onClick={() => onSiteClick(row)}
+              className="group flex max-w-[240px] items-center gap-1 text-left font-medium text-foreground transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              title={`View details for ${row.siteName}`}
+              aria-label={`View details for ${row.siteName}`}
+            >
+              <span className="truncate">{row.siteName}</span>
+              <HiChevronRight
+                className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                aria-hidden="true"
+              />
+            </button>
+          ) : (
+            <span className="block max-w-[220px] truncate">{row.siteName}</span>
+          ),
       },
       {
         key: 'aqi',
         label: 'AQI',
         render: row =>
           row.hasReading ? (
-            <span className="flex items-center gap-2">
-              <span className="min-w-[2.75rem] text-xs font-semibold tabular-nums text-foreground">
-                {row.aqiIndex ?? '—'}
-              </span>
-              {row.aqiCategory && (
-                <span className="text-xs text-muted-foreground">
-                  {row.aqiCategory}
-                </span>
-              )}
+            <span className="inline-flex min-w-[2.75rem] text-xs font-semibold tabular-nums text-foreground">
+              {row.aqiIndex ?? '—'}
             </span>
           ) : (
             <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -185,7 +198,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
         ),
       },
     ],
-    [pm25Config, pm10Config]
+    [pm25Config, pm10Config, onSiteClick]
   );
 
   const sortedRows = useMemo(
@@ -240,6 +253,15 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   return (
     <Card className={className}>
       <CardContent className="p-0">
+        {onSiteClick && (
+          <p className="flex items-center gap-1.5 border-b border-border/50 px-4 pb-2.5 pt-3 text-xs text-muted-foreground">
+            <HiInformationCircle
+              className="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            />
+            Click a site to view its details
+          </p>
+        )}
         <DataTable
           data={sortedRows}
           columns={columns}

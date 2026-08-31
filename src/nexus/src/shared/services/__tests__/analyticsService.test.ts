@@ -57,6 +57,10 @@ const {
       siteIds: string[],
       signal?: AbortSignal
     ) => Promise<unknown[]>;
+    getComparisonReadings: (
+      siteIds: string[],
+      signal?: AbortSignal
+    ) => Promise<unknown[]>;
   };
   chartContractToRetryForErrorBody: (body: unknown) => string | null;
   resetChartDateContract: () => void;
@@ -935,6 +939,78 @@ describe('AnalyticsService.getRecentReadings', () => {
 
     expect(mockPost).toHaveBeenCalledWith(
       '/devices/readings/recent',
+      expect.anything(),
+      expect.objectContaining({ signal: controller.signal })
+    );
+  });
+});
+
+describe('AnalyticsService.getComparisonReadings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('POSTs the trimmed site_ids to /devices/readings/comparisons and returns readings', async () => {
+    const readings = [
+      { site_id: 'site-1', has_reading: true, aqi: { index: 72 } },
+    ];
+    mockPost.mockResolvedValueOnce({
+      data: { success: true, message: 'ok', readings },
+    });
+
+    await expect(
+      analyticsService.getComparisonReadings([' site-1 ', '', 'site-2'])
+    ).resolves.toEqual(readings);
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/devices/readings/comparisons',
+      { site_ids: ['site-1', 'site-2'] },
+      expect.anything()
+    );
+  });
+
+  it('short-circuits to [] without a network call when no valid ids remain', async () => {
+    await expect(
+      analyticsService.getComparisonReadings(['', '   '])
+    ).resolves.toEqual([]);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('throws a fixed safe message on success:false (does not leak backend wording)', async () => {
+    mockPost.mockResolvedValueOnce({
+      data: {
+        success: false,
+        message: 'site_ids must be valid',
+        readings: [],
+      },
+    });
+
+    await expect(
+      analyticsService.getComparisonReadings(['bad-id'])
+    ).rejects.toThrow('Failed to fetch the latest readings.');
+  });
+
+  it('returns [] for a successful empty payload', async () => {
+    mockPost.mockResolvedValueOnce({
+      data: { success: true, message: 'ok', readings: [] },
+    });
+
+    await expect(
+      analyticsService.getComparisonReadings(['site-x'])
+    ).resolves.toEqual([]);
+  });
+
+  it('forwards the abort signal', async () => {
+    const controller = new AbortController();
+    mockPost.mockResolvedValueOnce({
+      data: { success: true, message: 'ok', readings: [] },
+    });
+
+    await analyticsService.getComparisonReadings(['site-1'], controller.signal);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/devices/readings/comparisons',
       expect.anything(),
       expect.objectContaining({ signal: controller.signal })
     );

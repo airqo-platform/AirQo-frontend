@@ -1582,6 +1582,13 @@ export interface Client {
 export interface GetClientsResponse {
   success: boolean;
   message: string;
+  meta: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    pages: number;
+  };
   clients: Client[];
 }
 
@@ -2137,6 +2144,98 @@ export interface RecentReadingsResponse {
   success: boolean;
   message: string;
   measurements: RecentReading[];
+}
+
+export interface ComparisonSiteReading {
+  site_id: string;
+  site: {
+    name: string;
+    location_name: string;
+    city: string;
+    country: string;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
+  has_reading: boolean;
+  time: string | null;
+  time_difference_hours: number | null;
+  aqi: {
+    index: number;
+    category: string;
+    color_name: string;
+    color: string;
+  } | null;
+  pollutants: {
+    pm2_5: { value: number | null } | null;
+    pm10: { value: number | null } | null;
+    no2: { value: number | null } | null;
+  } | null;
+}
+
+export interface ComparisonReadingsResponse {
+  success: boolean;
+  message: string;
+  readings: ComparisonSiteReading[];
+}
+
+export interface SavedComparisonSite {
+  id: string;
+  name?: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export interface SavedComparison {
+  id: string;
+  user_id: string;
+  group_id: string;
+  name: string;
+  site_ids: string[];
+  sites: SavedComparisonSite[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedComparisonListParams {
+  group_id: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+}
+
+export interface SavedComparisonListResponse {
+  success: boolean;
+  message: string;
+  comparisons: SavedComparison[];
+  meta: {
+    total: number;
+    total_pages: number;
+    page: number;
+    skip: number;
+    limit: number;
+  };
+}
+
+export interface SavedComparisonResponse {
+  success: boolean;
+  message: string;
+  comparison: SavedComparison;
+}
+
+export interface CreateSavedComparisonRequest {
+  group_id: string;
+  name: string;
+  site_ids: string[];
+  sites?: SavedComparisonSite[];
+}
+
+export interface UpdateSavedComparisonRequest {
+  name?: string;
+  site_ids?: string[];
+  sites?: SavedComparisonSite[];
 }
 
 // Organization Request Types

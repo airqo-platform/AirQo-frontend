@@ -12,27 +12,75 @@ import cohortReducer from '@/shared/store/cohortSlice';
 import mapSettingsReducer from '@/shared/store/mapSettingsSlice';
 import selectedLocationReducer from '@/shared/store/selectedLocationSlice';
 import analyticsReducer from '@/modules/analytics/store/analyticsSlice';
-import type { RecentReading } from '@/shared/types/api';
+import type {
+  RecentReading,
+  SavedComparison,
+  SavedComparisonResponse,
+} from '@/shared/types/api';
 
-const mockGetRecentReadings = jest.fn();
-const mockGetUserPreferencesList = jest.fn();
-const mockUpdateUserPreferences = jest.fn();
+// ── Mock the saved-comparisons service ──────────────────────────────────────
+const comparisonsService = {
+  list: jest.fn(),
+  get: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+};
 
-jest.mock('@/shared/services/analyticsService', () => ({
-  analyticsService: {
-    getChartData: jest.fn(),
-    downloadData: jest.fn(),
-    getRecentReadings: (...args: unknown[]) =>
-      mockGetRecentReadings(...(args as [string[]])),
-  },
+jest.mock('@/shared/services/comparisonsService', () => ({
+  comparisonsService,
 }));
 
-jest.mock('@/shared/services/preferencesService', () => ({
-  preferencesService: {
-    getUserPreferencesList: (...args: unknown[]) =>
-      mockGetUserPreferencesList(...(args as [string, string])),
-    updateUserPreferences: (...args: unknown[]) =>
-      mockUpdateUserPreferences(...(args as [unknown])),
+// ── Controllable mock state for useSavedComparisons ─────────────────────────
+let mockComparisons: SavedComparison[] = [];
+let mockIsLoading = false;
+let mockIsMutating = false;
+let mockSavedError: string | null = null;
+const mockRefresh = jest.fn();
+
+jest.mock('@/modules/analytics/hooks/useSavedComparisons', () => ({
+  useSavedComparisons: () => ({
+    comparisons: mockComparisons,
+    isLoading: mockIsLoading,
+    isMutating: mockIsMutating,
+    error: mockSavedError,
+    refresh: mockRefresh,
+    createComparison: async (payload: unknown) => {
+      const r = await comparisonsService.create(payload);
+      return r.comparison;
+    },
+    renameComparison: async (id: string, name: string) => {
+      const r = await comparisonsService.update(id, { name });
+      return r.comparison;
+    },
+    updateComparison: async (id: string, payload: unknown) => {
+      const r = await comparisonsService.update(id, payload);
+      return r.comparison;
+    },
+    deleteComparison: async (id: string) => {
+      const r = await comparisonsService.remove(id);
+      return r.success;
+    },
+  }),
+}));
+
+// ── Controllable mock state for useRecentReadings ───────────────────────────
+let mockReadings: RecentReading[] = [];
+let mockReadingsLoading = false;
+let mockReadingsError: Error | null = null;
+const mockRefetchReadings = jest.fn();
+const mockUseRecentReadings = jest.fn();
+
+jest.mock('@/modules/analytics/hooks/useRecentReadings', () => ({
+  useRecentReadings: (...args: unknown[]) => {
+    mockUseRecentReadings(...args);
+    return {
+      readings: mockReadings,
+      isLoading: mockReadingsLoading,
+      isFetching: false,
+      error: mockReadingsError,
+      refetch: mockRefetchReadings,
+    };
   },
 }));
 
@@ -44,17 +92,14 @@ jest.mock('@/shared/hooks/useUser', () => ({
   }),
 }));
 
-// flowbite-react ships ESM-only transitive deps (debounce) that jest's
-// CJS transform cannot parse; the render tree only needs the component
-// surface, never a real tooltip.
 jest.mock('flowbite-react', () => ({
   Tooltip: () => null,
 }));
 
-// The shared Button reads the App Router context; jsdom has none.
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockPush,
     replace: jest.fn(),
     prefetch: jest.fn(),
     back: jest.fn(),
@@ -71,6 +116,27 @@ jest.mock('@/shared/providers/aqi-config-provider', () => ({
     error: undefined,
     refresh: jest.fn(),
   }),
+}));
+
+const mockToSiteSlug = jest.fn(
+  (name: string) =>
+    name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'location'
+);
+jest.mock('@/modules/data-download/utils/siteDetails', () => ({
+  toSiteSlug: (name: string) => mockToSiteSlug(name),
+}));
+
+const mockRememberSiteSlug = jest.fn();
+jest.mock('@/modules/data-download/hooks/useResolveSiteByName', () => ({
+  rememberSiteSlug: (
+    slug: string,
+    entry: { siteId: string; displayName: string }
+  ) => mockRememberSiteSlug(slug, entry),
 }));
 
 jest.mock('../../../hooks/useCohortSelection', () => ({
@@ -158,39 +224,32 @@ const makeReading = (
     ...overrides,
   }) as unknown as RecentReading;
 
-const makePreference = (groupId: string, siteIds: string[]) => ({
-  _id: `pref-${groupId}`,
-  pollutant: 'pm2_5',
-  frequency: 'hourly',
-  startDate: '',
-  endDate: '',
-  chartType: 'line',
-  chartTitle: '',
-  chartSubTitle: '',
-  airqloud_id: '',
-  grid_id: '',
-  network_id: '',
-  group_id: groupId,
-  site_ids: siteIds,
-  device_ids: [],
+const makeSavedComparison = (
+  overrides: Partial<SavedComparison> = {}
+): SavedComparison => ({
+  id: 'comp-1',
   user_id: 'user-1',
-  period: {},
-  selected_sites: siteIds.map(siteId => ({
-    _id: siteId,
-    search_name: siteId === 'site-1' ? 'Kampala Site' : 'Jinja Site',
-  })),
-  createdAt: '2026-08-01T00:00:00Z',
-  updatedAt: '2026-08-01T00:00:00Z',
-  __v: 0,
-  lastAccessed: '2026-08-22T00:00:00Z',
+  group_id: 'group-1',
+  name: 'Saved comparison',
+  site_ids: ['site-1'],
+  sites: [
+    {
+      id: 'site-1',
+      name: 'Kampala Site',
+      location: 'Kampala Site',
+      city: 'Kampala',
+      country: 'Uganda',
+    },
+  ],
+  created_at: '2026-08-01T00:00:00Z',
+  updated_at: '2026-08-22T00:00:00Z',
+  ...overrides,
 });
 
 const renderComparisonView = (groupId = 'group-1') => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  // The shared UI primitives (Card, table) read Redux theme state — mirror
-  // the production reducer set without the redux-persist wrappers.
   const store = configureStore({
     reducer: {
       theme: themeReducer,
@@ -213,171 +272,280 @@ const renderComparisonView = (groupId = 'group-1') => {
   return { ...utils, queryClient };
 };
 
-describe('ComparisonView integration', () => {
+// Builds the full provider tree for a given group, used by the rerender
+// pattern in the stale-completion and empty-selection guard tests below.
+const buildView = (groupId: string) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const store = configureStore({
+    reducer: {
+      theme: themeReducer,
+      ui: uiReducer,
+      user: userReducer,
+      insights: insightsReducer,
+      cohorts: cohortReducer,
+      mapSettings: mapSettingsReducer,
+      selectedLocation: selectedLocationReducer,
+      analytics: analyticsReducer,
+    },
+  });
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <ComparisonView groupId={groupId} />
+      </QueryClientProvider>
+    </Provider>
+  );
+};
+
+const listResponse = (comparisons: SavedComparison[]) => ({
+  success: true,
+  message: 'ok',
+  comparisons,
+  meta: {
+    total: comparisons.length,
+    total_pages: 1,
+    page: 1,
+    skip: 0,
+    limit: 100,
+  },
+});
+
+describe('ComparisonView integration (saved comparisons)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetUserPreferencesList.mockImplementation(
-      (_userId: string, groupId: string) =>
-        Promise.resolve({
-          success: true,
-          message: 'ok',
-          preferences:
-            groupId === 'group-2'
-              ? [makePreference('group-2', ['site-2'])]
-              : [makePreference('group-1', ['site-1'])],
-        })
+    mockPush.mockReset();
+    mockRememberSiteSlug.mockReset();
+    mockToSiteSlug.mockImplementation(
+      (name: string) =>
+        name
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '') || 'location'
     );
-    mockGetRecentReadings.mockResolvedValue([
-      makeReading({ site_id: 'site-1' }),
-    ]);
-    mockUpdateUserPreferences.mockResolvedValue({
+    mockComparisons = [];
+    mockIsLoading = false;
+    mockIsMutating = false;
+    mockSavedError = null;
+    mockReadings = [];
+    mockReadingsLoading = false;
+    mockReadingsError = null;
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+    comparisonsService.create.mockResolvedValue({
       success: true,
       message: 'ok',
+      comparison: makeSavedComparison({ id: 'new-comp' }),
     });
+    comparisonsService.update.mockResolvedValue({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({}),
+    });
+    comparisonsService.remove.mockResolvedValue({ success: true });
+    mockReadings = [makeReading({ site_id: 'site-1' })];
   });
 
-  it('pre-checks the persisted selection once the preference loads and shows its readings', async () => {
+  it('auto-loads the most recent saved comparison once per group when the list resolves', async () => {
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'recent',
+        name: 'Recent Pick',
+        site_ids: ['site-1'],
+        sites: [
+          {
+            id: 'site-1',
+            name: 'Kampala Site',
+            location: 'Kampala Site',
+            city: 'Kampala',
+            country: 'Uganda',
+          },
+        ],
+      }),
+      makeSavedComparison({
+        id: 'older',
+        site_ids: ['site-2'],
+        updated_at: '2026-08-01T00:00:00Z',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
     renderComparisonView();
 
-    // Saved site is checked...
+    // The most recent comparison's site is pre-checked...
     const savedCheckbox = await screen.findByLabelText('Select item site-1');
     await waitFor(() => expect(savedCheckbox).toBeChecked());
 
-    // ...and the comparison table renders its reading plus an honest
-    // no-data row for the unselected-but-listed case is NOT shown here
-    // (only selected locations get rows).
+    // ...its readings render in the table...
     expect(await screen.findByText('72')).toBeInTheDocument();
-    expect(screen.getByText('yellow')).toBeInTheDocument();
-    expect(screen.getByText('2h ago')).toBeInTheDocument();
-    expect(mockGetRecentReadings).toHaveBeenCalledWith(
-      ['site-1'],
-      expect.anything()
-    );
+
+    // ...and the header chip shows "Saved · <name>".
+    expect(await screen.findByText('Saved · Recent Pick')).toBeInTheDocument();
   });
 
-  it('builds Site objects from picker rows and persists them on Save, then shows Saved', async () => {
-    const user = userEvent.setup();
+  it('starts empty (honest empty picker) when there are no saved comparisons', async () => {
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
     renderComparisonView();
 
-    await screen.findByLabelText('Select item site-1');
+    // No site is pre-checked.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(checkbox).not.toBeChecked());
+  });
 
-    const secondCheckbox = screen.getByLabelText('Select item site-2');
-    await user.click(secondCheckbox);
+  it('opens the name dialog on Save with no loaded comparison, then creates and shows Saved', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView();
+
+    // Pick a location (no auto-load since the list is empty).
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
 
     const saveButton = screen.getByRole('button', { name: /save selection/i });
-    expect(saveButton).not.toBeDisabled();
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
 
     await user.click(saveButton);
 
-    await waitFor(() =>
-      expect(mockUpdateUserPreferences).toHaveBeenCalledTimes(1)
-    );
-    expect(mockUpdateUserPreferences).toHaveBeenCalledWith({
-      user_id: 'user-1',
-      group_id: 'group-1',
-      selected_sites: [
-        expect.objectContaining({ _id: 'site-1', search_name: 'Kampala Site' }),
-        expect.objectContaining({
-          _id: 'site-2',
-          search_name: 'Jinja Site',
-          city: 'Jinja',
-          country: 'Uganda',
-        }),
-      ],
+    // Name dialog opens.
+    expect(await screen.findByText('Save comparison')).toBeInTheDocument();
+    const nameInput = screen.getByLabelText('Comparison name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'My named comparison');
+
+    // Confirm.
+    const confirmButton = screen.getByRole('button', { name: 'Save' });
+    comparisonsService.create.mockResolvedValueOnce({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({
+        id: 'new-comp',
+        name: 'My named comparison',
+      }),
     });
+    await user.click(confirmButton);
+
+    // comparisonsService.create called with the full snapshot.
+    await waitFor(() =>
+      expect(comparisonsService.create).toHaveBeenCalledTimes(1)
+    );
+    expect(comparisonsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        group_id: 'group-1',
+        name: 'My named comparison',
+        site_ids: ['site-1'],
+        sites: expect.arrayContaining([
+          expect.objectContaining({ id: 'site-1' }),
+        ]),
+      })
+    );
 
     expect(await screen.findByText('Saved')).toBeInTheDocument();
   });
 
-  it('marks the view dirty after a local change and disables Save when clean', async () => {
+  it('updates the loaded comparison (PATCH) on Save when the selection is dirty, then shows Saved', async () => {
     const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        site_ids: ['site-1'],
+        sites: [
+          {
+            id: 'site-1',
+            name: 'Kampala Site',
+            location: 'Kampala Site',
+            city: 'Kampala',
+            country: 'Uganda',
+          },
+        ],
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1 (loaded comparison).
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // User adds site-2 → dirty.
+    await user.click(screen.getByLabelText('Select item site-2'));
+
+    const saveButton = screen.getByRole('button', { name: /save selection/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+
+    comparisonsService.update.mockResolvedValueOnce({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({ id: 'loaded' }),
+    });
+    await user.click(saveButton);
+
+    // PATCH update with the new site_ids.
+    await waitFor(() =>
+      expect(comparisonsService.update).toHaveBeenCalledTimes(1)
+    );
+    expect(comparisonsService.update).toHaveBeenCalledWith(
+      'loaded',
+      expect.objectContaining({
+        site_ids: ['site-1', 'site-2'],
+        sites: expect.arrayContaining([
+          expect.objectContaining({ id: 'site-1' }),
+        ]),
+      })
+    );
+
+    expect(await screen.findByText('Saved')).toBeInTheDocument();
+  });
+
+  it('disables Save when the selection is clean or empty', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({ id: 'loaded', site_ids: ['site-1'] }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
     renderComparisonView();
 
     const saveButton = await screen.findByRole('button', {
       name: /save selection/i,
     });
+
+    // Auto-loaded selection matches the saved one → clean → disabled.
     await waitFor(() => expect(saveButton).toBeDisabled());
 
+    // Make it dirty → enabled.
     await user.click(await screen.findByLabelText('Select item site-2'));
     await waitFor(() => expect(saveButton).not.toBeDisabled());
   });
 
-  it('renders an honest No reading row for a selected site without measurements', async () => {
-    const user = userEvent.setup();
-    renderComparisonView();
-
-    await screen.findByLabelText('Select item site-1');
-    await user.click(screen.getByLabelText('Select item site-2'));
-
-    // Live preview covers BOTH selected sites; only site-1 has a reading.
-    await waitFor(() =>
-      expect(mockGetRecentReadings).toHaveBeenCalledWith(
-        ['site-1', 'site-2'],
-        expect.anything()
-      )
-    );
-    // The no-data row renders "No reading" twice: AQI badge pill + freshness.
-    expect(await screen.findAllByText('No reading')).toHaveLength(2);
-    // Jinja Site appears as a chip AND a table row.
-    expect(screen.getAllByText('Jinja Site').length).toBeGreaterThan(0);
-  });
-
-  it('resets the picker to the new group’s persisted selection on group switch', async () => {
-    const user = userEvent.setup();
-    const first = renderComparisonView('group-1');
-
-    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
-    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
-
-    // User picks something extra before switching groups.
-    await user.click(screen.getByLabelText('Select item site-2'));
-
-    const secondStore = configureStore({
-      reducer: {
-        theme: themeReducer,
-        ui: uiReducer,
-        user: userReducer,
-        insights: insightsReducer,
-        cohorts: cohortReducer,
-        mapSettings: mapSettingsReducer,
-        selectedLocation: selectedLocationReducer,
-        analytics: analyticsReducer,
-      },
-    });
-    first.unmount();
-    render(
-      <Provider store={secondStore}>
-        <QueryClientProvider
-          client={
-            new QueryClient({
-              defaultOptions: { queries: { retry: false } },
-            })
-          }
-        >
-          <ComparisonView groupId="group-2" />
-        </QueryClientProvider>
-      </Provider>
-    );
-
-    // Group-2's preference selects site-2 only — site-1 must NOT stay checked
-    // (no cross-group bleed).
-    const nextSiteTwo = await screen.findByLabelText('Select item site-2');
-    await waitFor(() => expect(nextSiteTwo).toBeChecked());
-    expect(screen.getByLabelText('Select item site-1')).not.toBeChecked();
-  });
-
   it('shows the error state with retry when the readings request fails', async () => {
-    mockGetRecentReadings.mockRejectedValue(new Error('Backend unreachable'));
+    mockComparisons = [
+      makeSavedComparison({ id: 'loaded', site_ids: ['site-1'] }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    mockReadings = [];
+    mockReadingsError = new Error('Unable to load the latest readings');
+
     renderComparisonView();
 
+    // Title and description resolve to the same string → assert at least one match.
     expect(
-      await screen.findByText(/unable to load the latest readings/i)
-    ).toBeInTheDocument();
+      await screen.findAllByText(/unable to load the latest readings/i)
+    ).not.toHaveLength(0);
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
   it('renders the AQI legend pollutant switcher and toggling does not crash', async () => {
     const user = userEvent.setup();
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
     renderComparisonView();
 
     const radiogroup = await screen.findByRole('radiogroup', {
@@ -391,13 +559,257 @@ describe('ComparisonView integration', () => {
     expect(pm10Radio).toBeInTheDocument();
     expect(pm25Radio).toBeChecked();
 
-    // Configs are null in this test mock → legend shows "AQI scale unavailable"
     expect(screen.getByText('AQI scale unavailable')).toBeInTheDocument();
 
-    // Switch to PM10 — should not crash
     await user.click(pm10Radio);
     expect(pm10Radio).toBeChecked();
     expect(pm25Radio).not.toBeChecked();
     expect(screen.getByText('AQI scale unavailable')).toBeInTheDocument();
+  });
+
+  it('drops stale selection immediately on group switch and auto-loads when group B has saved comparisons', async () => {
+    // Group A has a saved comparison with site-1.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-a',
+        name: 'Group A Pick',
+        site_ids: ['site-1'],
+        group_id: 'group-A',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    // Render with group A first.
+    const { rerender } = render(
+      (() => {
+        const queryClient = new QueryClient({
+          defaultOptions: { queries: { retry: false } },
+        });
+        const store = configureStore({
+          reducer: {
+            theme: themeReducer,
+            ui: uiReducer,
+            user: userReducer,
+            insights: insightsReducer,
+            cohorts: cohortReducer,
+            mapSettings: mapSettingsReducer,
+            selectedLocation: selectedLocationReducer,
+            analytics: analyticsReducer,
+          },
+        });
+        return (
+          <Provider store={store}>
+            <QueryClientProvider client={queryClient}>
+              <ComparisonView groupId="group-A" />
+            </QueryClientProvider>
+          </Provider>
+        );
+      })()
+    );
+
+    // Wait for auto-load on group A.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Ensure the chip shows the group A comparison name.
+    expect(await screen.findByText('Saved · Group A Pick')).toBeInTheDocument();
+
+    // Now switch to group B which has a different saved comparison.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-b',
+        name: 'Group B Pick',
+        site_ids: ['site-2'],
+        group_id: 'group-B',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    // Re-render with group B. The stale group-A selection must be dropped.
+    rerender(
+      (() => {
+        const queryClient = new QueryClient({
+          defaultOptions: { queries: { retry: false } },
+        });
+        const store = configureStore({
+          reducer: {
+            theme: themeReducer,
+            ui: uiReducer,
+            user: userReducer,
+            insights: insightsReducer,
+            cohorts: cohortReducer,
+            mapSettings: mapSettingsReducer,
+            selectedLocation: selectedLocationReducer,
+            analytics: analyticsReducer,
+          },
+        });
+        return (
+          <Provider store={store}>
+            <QueryClientProvider client={queryClient}>
+              <ComparisonView groupId="group-B" />
+            </QueryClientProvider>
+          </Provider>
+        );
+      })()
+    );
+
+    // After the group switch, the group B comparison should auto-load.
+    const siteTwoCheckbox = await screen.findByLabelText('Select item site-2');
+    await waitFor(() => expect(siteTwoCheckbox).toBeChecked());
+
+    // site-1 should NOT be checked (stale group-A selection was dropped).
+    await waitFor(() =>
+      expect(screen.getByLabelText('Select item site-1')).not.toBeChecked()
+    );
+
+    // The chip should show the group B comparison name.
+    expect(await screen.findByText('Saved · Group B Pick')).toBeInTheDocument();
+  });
+
+  it('navigates to a sub-route on site click, writing the slug index', async () => {
+    const user = userEvent.setup();
+    mockReadings = [makeReading({ site_id: 'site-1' })];
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView();
+
+    // Pick a location so the table renders.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+
+    // Wait for the reading to show in the table.
+    expect(await screen.findByText('72')).toBeInTheDocument();
+
+    // Click the site name button.
+    const siteButton = screen.getByRole('button', {
+      name: /view details for kampala site/i,
+    });
+    await user.click(siteButton);
+
+    // router.push was called with the expected sub-route.
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    const pushUrl: string = mockPush.mock.calls[0][0];
+    expect(pushUrl).toContain('/user/air-quality/analytics/sites/');
+    expect(pushUrl).toContain('site_id=site-1');
+
+    // rememberSiteSlug was called with the slug + metadata.
+    expect(mockRememberSiteSlug).toHaveBeenCalledTimes(1);
+    const [slug, entry] = mockRememberSiteSlug.mock.calls[0];
+    expect(typeof slug).toBe('string');
+    expect(slug.length).toBeGreaterThan(0);
+    expect(entry).toEqual(
+      expect.objectContaining({
+        siteId: 'site-1',
+        displayName: expect.any(String),
+      })
+    );
+  });
+
+  it('discards a completed save that belongs to a group the user has left (stale-completion guard)', async () => {
+    const user = userEvent.setup();
+    // Group A has a saved comparison with site-1.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+        site_ids: ['site-1'],
+        group_id: 'group-A',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    // Make the PATCH hang until we explicitly resolve it.
+    let deferredResolve!: (value: SavedComparisonResponse) => void;
+    comparisonsService.update.mockReturnValueOnce(
+      new Promise<SavedComparisonResponse>(resolve => {
+        deferredResolve = resolve;
+      })
+    );
+
+    const { rerender } = render(buildView('group-A'));
+
+    // Auto-loads site-1 for group A.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+    expect(
+      await screen.findByText('Saved · Saved comparison')
+    ).toBeInTheDocument();
+
+    // Make the selection dirty, then save — the PATCH starts and stays pending.
+    await user.click(screen.getByLabelText('Select item site-2'));
+    const saveButton = screen.getByRole('button', { name: /save selection/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    // Switch to group B (which has its own saved comparison) while the PATCH
+    // is still in flight.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-b',
+        name: 'Group B Pick',
+        site_ids: ['site-2'],
+        group_id: 'group-B',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    rerender(buildView('group-B'));
+
+    // Group B auto-loads; its name is shown.
+    expect(await screen.findByText('Saved · Group B Pick')).toBeInTheDocument();
+
+    // Now the in-flight group-A PATCH resolves. Its result must NOT overwrite
+    // group B's loaded comparison.
+    deferredResolve({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+      }),
+    });
+
+    await new Promise(r => setTimeout(r, 50));
+
+    // Group B's name is still shown; the stale group-A name never appears.
+    expect(screen.getByText('Saved · Group B Pick')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Saved · Saved comparison')
+    ).not.toBeInTheDocument();
+  });
+
+  it('disables the dialog Save button after a group switch clears the selection', async () => {
+    const user = userEvent.setup();
+    // Group A starts empty.
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    const { rerender } = render(buildView('group-A'));
+
+    // Pick site-1, then open the name dialog via Save selection.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+    const saveButton = screen.getByRole('button', { name: /save selection/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    expect(await screen.findByText('Save comparison')).toBeInTheDocument();
+    const nameInput = screen.getByLabelText('Comparison name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'My Group A Pick');
+
+    // With a name typed and a selection present, Save is enabled.
+    const dialogSaveButton = screen.getByRole('button', { name: 'Save' });
+    expect(dialogSaveButton).not.toBeDisabled();
+
+    // Switch to group B (empty list). The picker clears but the dialog stays open.
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+    rerender(buildView('group-B'));
+
+    // The selection was cleared by the group switch, so Save is now disabled
+    // and cannot create a comparison.
+    expect(dialogSaveButton).toBeDisabled();
+    expect(comparisonsService.create).not.toHaveBeenCalled();
   });
 });

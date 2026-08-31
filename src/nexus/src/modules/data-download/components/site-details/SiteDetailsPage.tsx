@@ -24,6 +24,8 @@ interface SiteDetailsPageProps {
   backHref: string;
   /** Map route for the current account context (user or organization). */
   mapHref?: string;
+  /** Breadcrumb label for the back link (defaults to the Data Export page name). */
+  backLabel?: string;
   className?: string;
 }
 
@@ -38,6 +40,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   siteId: siteIdFromRoute,
   backHref,
   mapHref = '/user/map',
+  backLabel = 'Data Export',
   className,
 }) => {
   // Background resolution: slug → real site id + authoritative display name
@@ -134,7 +137,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
               href={backHref}
               className="transition-colors hover:text-foreground"
             >
-              Data Export
+              {backLabel}
             </Link>
           </li>
           <li className="flex items-center gap-1.5" aria-hidden="true">
