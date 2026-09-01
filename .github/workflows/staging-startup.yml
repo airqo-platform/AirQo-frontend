@@ -41,6 +41,7 @@ jobs:
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
             --name workload \
+            --update-cluster-autoscaler \
             --min-count 2 \
             --max-count 4
           echo "Autoscaler bounds restored — nodes will scale up"
