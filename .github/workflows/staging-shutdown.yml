@@ -28,13 +28,14 @@ jobs:
 
       - name: Scale down AKS workload nodes
         run: |
-          echo "Scaling workload node pool to 0..."
-          az aks nodepool scale \
+          echo "Setting autoscaler min/max to 0 to force scale down..."
+          az aks nodepool update \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
             --name workload \
-            --node-count 0
-          echo "Workload nodes scaled to 0"
+            --min-count 0 \
+            --max-count 0
+          echo "Autoscaler bounds set to 0 — nodes will terminate"
 
       - name: Stop HAProxy staging VM and wait for deallocation
         run: |
