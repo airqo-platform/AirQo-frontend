@@ -28,7 +28,7 @@ jobs:
 
       - name: Scale down AKS workload nodes
         run: |
-          echo "Setting autoscaler min-count to 0 to force scale down..."
+          echo "Setting autoscaler min-count to 0 to allow scale down..."
           az aks nodepool update \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
@@ -36,7 +36,15 @@ jobs:
             --update-cluster-autoscaler \
             --min-count 0 \
             --max-count 4
-          echo "Autoscaler bounds updated — nodes will begin terminating"
+          echo "Autoscaler bounds updated"
+
+          echo "Explicitly scaling node pool to 0..."
+          az aks nodepool scale \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --node-count 0
+          echo "Node pool scaling to 0 initiated"
 
           echo "Polling until workload nodes reach 0 (max 10 minutes)..."
           TIMEOUT=600
