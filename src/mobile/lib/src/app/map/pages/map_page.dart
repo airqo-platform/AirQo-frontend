@@ -4,6 +4,7 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
+import 'package:airqo/src/app/map/utils/map_content_status.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
 import 'package:airqo/src/app/map/widgets/map_aq_card_layer.dart';
 import 'package:airqo/src/app/map/widgets/map_controls.dart';
@@ -15,6 +16,8 @@ import 'package:airqo/src/app/map/widgets/map_search_sheet.dart';
 import 'package:airqo/src/app/map/widgets/map_style_picker.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,6 +49,7 @@ class _MapScreenState extends State<MapScreen>
 
   Set<Marker> _mapMarkers = {};
   bool isInitializing = true;
+  bool hasLoadError = false;
   bool isRetrying = false;
   late GooglePlacesBloc googlePlacesBloc;
 
@@ -163,8 +167,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Future<void> addMarkers(AirQualityResponse response) async {
-    if (response.measurements == null || response.measurements!.isEmpty) return;
-    await _refreshMarkers(response.measurements!);
+    await _refreshMarkers(response.validMeasurements);
   }
 
   Future<void> _refreshMarkers([List<Measurement>? source]) async {
@@ -287,13 +290,14 @@ class _MapScreenState extends State<MapScreen>
 
   void populateMeasurements(List<Measurement> measurements) {
     final valid = measurements.where((m) => m.siteDetails != null).toList();
+    if (mounted) {
+      setState(() {
+        allMeasurements = valid;
+        isInitializing = false;
+        hasLoadError = false;
+      });
+    }
     if (valid.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          allMeasurements = valid;
-          isInitializing = false;
-        });
-      }
       _updateNearbyMeasurements();
     }
   }
@@ -305,7 +309,13 @@ class _MapScreenState extends State<MapScreen>
 
   Future<void> _retryLoading() async {
     if (isRetrying) return;
-    if (mounted) setState(() => isRetrying = true);
+    if (mounted) {
+      setState(() {
+        isRetrying = true;
+        hasLoadError = false;
+        isInitializing = true;
+      });
+    }
     context.read<MapBloc>().add(LoadMap(forceRefresh: true));
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => isRetrying = false);
@@ -313,8 +323,7 @@ class _MapScreenState extends State<MapScreen>
 
   void _loadDataFromAvailableSources() {
     final state = context.read<DashboardBloc>().state;
-    if (state is DashboardLoaded &&
-        state.response.measurements?.isNotEmpty == true) {
+    if (state is DashboardLoaded) {
       _initializeWithData(state.response);
     }
     context.read<MapBloc>().add(LoadMap());
@@ -388,25 +397,53 @@ class _MapScreenState extends State<MapScreen>
       listeners: [
         BlocListener<DashboardBloc, DashboardState>(
           listener: (context, state) {
-            if (state is DashboardLoaded &&
-                state.response.measurements?.isNotEmpty == true &&
-                (_mapMarkers.isEmpty || allMeasurements.isEmpty)) {
+            if (state is DashboardLoadingError) {
+              if (mounted) {
+                setState(() {
+                  isInitializing = false;
+                  hasLoadError = true;
+                  allMeasurements = [];
+                  nearbyMeasurements = [];
+                  _mapMarkers = {};
+                  _selectedCardMeasurement = null;
+                });
+              }
+              return;
+            }
+            if (state is DashboardLoaded && state is! DashboardLoadedWithError) {
               _initializeWithData(state.response);
             }
           },
         ),
         BlocListener<MapBloc, MapState>(
           listener: (context, state) {
+            if (state is MapLoadingError) {
+              if (mounted) {
+                setState(() {
+                  isInitializing = false;
+                  hasLoadError = true;
+                  allMeasurements = [];
+                  nearbyMeasurements = [];
+                  _mapMarkers = {};
+                  _selectedCardMeasurement = null;
+                });
+              }
+              return;
+            }
+            if (state is MapLoadedWithError) {
+              if (mounted) {
+                setState(() {
+                  isInitializing = false;
+                  hasLoadError = true;
+                });
+              }
+              return;
+            }
             if (state is MapLoaded || state is MapLoadedFromCache) {
               final response = state is MapLoaded
                   ? state.response
                   : (state as MapLoadedFromCache).response;
-              if (response.measurements?.isNotEmpty == true &&
-                  (_mapMarkers.isEmpty || allMeasurements.isEmpty)) {
-                _initializeWithData(response);
-              }
-            } else if (state is MapLoadingError) {
-              if (mounted) setState(() => isInitializing = false);
+              _initializeWithData(response);
             }
           },
         ),
@@ -436,19 +473,32 @@ class _MapScreenState extends State<MapScreen>
       ],
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: isInitializing && _mapMarkers.isEmpty && allMeasurements.isEmpty
-            ? const MapLoadingView()
-            : (!isInitializing &&
-                    _mapMarkers.isEmpty &&
-                    allMeasurements.isEmpty &&
-                    !isRetrying)
-                ? MapErrorView(onRetry: _retryLoading, isOffline: !CacheManager().isConnected)
-                : _buildMapView(),
+        body: _buildBody(),
       ),
     );
   }
 
-  Widget _buildMapView() {
+  Widget _buildBody() {
+    final status = resolveMapContent(
+      isInitializing: isInitializing,
+      hasLoadError: hasLoadError,
+      hasMeasurements: allMeasurements.isNotEmpty,
+    );
+    switch (status) {
+      case MapContentStatus.loading:
+        return const MapLoadingView();
+      case MapContentStatus.error:
+        return MapErrorView(
+          onRetry: _retryLoading,
+          isOffline: !CacheManager().isConnected,
+        );
+      case MapContentStatus.empty:
+      case MapContentStatus.ready:
+        return _buildMapView(showEmptyOverlay: status == MapContentStatus.empty);
+    }
+  }
+
+  Widget _buildMapView({bool showEmptyOverlay = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBottom = MediaQuery.of(context).size.height * _sheetPeekSize + 14;
 
@@ -519,6 +569,26 @@ class _MapScreenState extends State<MapScreen>
           onViewForecast: () =>
               _showForecastModal(_selectedCardMeasurement!),
         ),
+        if (showEmptyOverlay)
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: cardBottom + 8,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(16),
+              color: Theme.of(context).cardColor,
+              child: EmptyStateView(
+                compact: true,
+                icon: SystemGlyph.emptyPlace(context, size: 40),
+                title: 'No air quality stations available',
+                message:
+                    "We couldn't find any stations right now. Please try again.",
+                actionLabel: 'Try Again',
+                onAction: _retryLoading,
+              ),
+            ),
+          ),
         if (_showControlsTour)
           MapControlsTour(
             steps: _controlsTourSteps(),

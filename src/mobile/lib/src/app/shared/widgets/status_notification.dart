@@ -1,4 +1,4 @@
-
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:flutter/material.dart';
 
 class StatusNotification extends StatefulWidget {
@@ -68,16 +68,24 @@ class _StatusNotificationState extends State<StatusNotification> with SingleTick
   @override
   Widget build(BuildContext context) {
     Color bgColor;
-    IconData iconData;
+    Widget icon;
     if (widget.isInfo) {
       bgColor = Colors.blue.shade700;
-      iconData = Icons.notifications_outlined;
+      icon = const Icon(
+        Icons.notifications_outlined,
+        color: Colors.white,
+        size: 24,
+      );
     } else if (widget.isSuccess) {
       bgColor = Colors.green.shade800;
-      iconData = Icons.check_circle;
+      icon = const Icon(
+        Icons.check_circle,
+        color: Colors.white,
+        size: 24,
+      );
     } else {
       bgColor = Colors.red.shade800;
-      iconData = Icons.error;
+      icon = SystemGlyph.error(context, size: 24, color: Colors.white);
     }
 
     return SlideTransition(
@@ -101,11 +109,7 @@ class _StatusNotificationState extends State<StatusNotification> with SingleTick
         ),
         child: Row(
           children: [
-            Icon(
-              iconData,
-              color: Colors.white,
-              size: 24,
-            ),
+            icon,
             const SizedBox(width: 12),
             Expanded(
               child: Text(

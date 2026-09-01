@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/declared_places_repository.dart';
 import 'package:airqo/src/app/exposure/repository/hourly_readings_repository.dart';
@@ -17,18 +19,42 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
   })  : _placesRepo = placesRepo,
         _readingsRepo = readingsRepo,
         super(DeclaredPlacesInitial()) {
+    if (kDebugMode) {
+      DebugApiOverride.instance.addListener(_onDebugOverrideChanged);
+    }
     _load();
   }
 
-  Future<void> _load() async {
+  void _onDebugOverrideChanged() {
+    reload(forceRefresh: true, showLoader: false);
+  }
+
+  @override
+  Future<void> close() {
+    if (kDebugMode) {
+      DebugApiOverride.instance.removeListener(_onDebugOverrideChanged);
+    }
+    return super.close();
+  }
+
+  Future<void> _load({
+    bool forceRefresh = false,
+    bool showLoader = true,
+  }) async {
     try {
-      final places = await _placesRepo.getDeclaredPlaces();
+      if (showLoader && state is! DeclaredPlacesInitial) {
+        emit(DeclaredPlacesInitial());
+      }
+      final places =
+          await _placesRepo.getDeclaredPlaces(forceRefresh: forceRefresh);
       if (isClosed) return;
       emit(DeclaredPlacesLoaded(places: places));
       _fetchReadings(places);
     } catch (e) {
       loggy.error('Failed to load declared places: $e');
-      if (!isClosed) emit(const DeclaredPlacesLoaded(places: []));
+      if (!isClosed) {
+        emit(DeclaredPlacesError(e.toString().replaceFirst('Exception: ', '')));
+      }
     }
   }
 
@@ -66,7 +92,11 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
     _placesRepo.saveDeclaredPlaces(updated);
   }
 
-  void reload() => _load();
+  Future<void> reload({
+    bool forceRefresh = false,
+    bool showLoader = true,
+  }) =>
+      _load(forceRefresh: forceRefresh, showLoader: showLoader);
 
   DeclaredPlace? forSite(String siteId) {
     try {

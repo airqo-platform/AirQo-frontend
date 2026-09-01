@@ -14,10 +14,14 @@ import 'package:airqo/src/app/exposure/repository/hourly_readings_repository_imp
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
+import 'package:airqo/src/app/exposure/utils/exposure_load_status.dart';
 import 'package:airqo/src/app/exposure/widgets/declared_place_card.dart';
 import 'package:airqo/src/app/exposure/widgets/entry_place_card.dart';
 import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
 import 'package:airqo/src/app/exposure/widgets/place_card_tour.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
+import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 // ---------------------------------------------------------------------------
@@ -79,6 +83,16 @@ class _ExposureBodyState extends State<_ExposureBody> {
     });
   }
 
+  Future<void> _refreshMyPlaces() async {
+    context.read<DashboardBloc>().add(
+          const LoadUserPreferences(forceRefresh: true),
+        );
+    await context.read<DeclaredPlacesCubit>().reload(
+          forceRefresh: true,
+          showLoader: false,
+        );
+  }
+
   Future<void> _dismissTour() async {
     setState(() => _showTour = false);
     final prefs = await SharedPreferences.getInstance();
@@ -112,10 +126,29 @@ class _ExposureBodyState extends State<_ExposureBody> {
           final untagged =
               favourites.where((s) => !declaredIds.contains(s.id)).toList();
 
-          final showEmptyMyPlaces = loaded != null &&
-              _myPlacesSelected &&
-              declared.isEmpty &&
-              untagged.isEmpty;
+          final isDashboardFirstLoad = dashState is DashboardInitial ||
+              (dashState is DashboardLoading && dashState.previousState == null);
+          final dashboardLoadFailed = dashState is DashboardLoadingError;
+          final prefsLoadFailed =
+              dashState is DashboardLoaded && dashState.prefsLoadFailed;
+          final placesLoadFailed = placeState is DeclaredPlacesError;
+          final savedPlacesFailed = placesLoadFailed || prefsLoadFailed;
+
+          final showPlacesLoader = shouldShowExposurePlacesLoader(
+            isPlacesInitial: placeState is DeclaredPlacesInitial,
+            isDashboardFirstLoad: isDashboardFirstLoad,
+            hasDeclaredPlaces: declared.isNotEmpty,
+            placesLoadFailed: savedPlacesFailed,
+          );
+
+          final placesStatus = resolveSavedPlacesContent(
+            isLoading: showPlacesLoader,
+            loadFailed: savedPlacesFailed,
+            hasPlaces: declared.isNotEmpty || untagged.isNotEmpty,
+          );
+
+          final showEmptyMyPlaces = _myPlacesSelected &&
+              placesStatus == SavedPlacesContentStatus.empty;
 
           /// Single "day of view" for cards (weekday vs weekend windows). Replace with
           /// calendar/date-picker state when historical days are supported.
@@ -125,6 +158,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
           _maybeShowTour(declared.length);
 
           final scrollView = CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               const SliverToBoxAdapter(child: DashboardHeader()),
               SliverToBoxAdapter(
@@ -137,36 +171,79 @@ class _ExposureBodyState extends State<_ExposureBody> {
               ),
               if (!_myPlacesSelected)
                 SliverFillRemaining(
-                  child: MyTripsView(savedSites: favourites),
+                  child: MyTripsView(
+                    savedSites: favourites,
+                    isDashboardLoading: isDashboardFirstLoad,
+                    hasDashboardError: dashboardLoadFailed || prefsLoadFailed,
+                    onRetry: () {
+                      context
+                          .read<DashboardBloc>()
+                          .add(LoadDashboard(forceRefresh: true));
+                    },
+                    onAddPlaces: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          settings: const RouteSettings(name: 'location_selection'),
+                          builder: (_) => LocationSelectionScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 )
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      ...declared.asMap().entries.map((entry) {
-                        final i = entry.key;
-                        final p = entry.value;
-                        final readings = loaded?.readings[p.siteId] ??
-                            List.generate(24, (h) => HourlyReading(hour: h));
-                        final avg = ExposurePlaceReadings.averagePm25ForCard(
-                          place: p,
-                          readings: readings,
-                          dayOfView: dayOfView,
-                        );
-                        return DeclaredPlaceCard(
-                          // Attach key to first card so the tour can locate it.
-                          key: i == 0 ? _firstCardKey : null,
-                          place: p,
-                          exposureLevel: avg != null
-                              ? ExposureLevelExtension.fromPm25(avg)
-                              : null,
-                          hourlyReadings: readings,
-                          dayOfView: dayOfView,
-                        );
-                      }),
-                      ...untagged.map((s) => EntryPlaceCard(site: s)),
-                      if (showEmptyMyPlaces) const _EmptyState(),
+                      if (showPlacesLoader)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (placesStatus == SavedPlacesContentStatus.error)
+                        EmptyStateView(
+                          icon: SystemGlyph.error(context),
+                          title: 'Unable to load places',
+                          message:
+                              "We couldn't load your places right now. Please try again.",
+                          actionLabel: 'Try Again',
+                          onAction: () {
+                            context.read<DeclaredPlacesCubit>().reload(
+                                  forceRefresh: true,
+                                );
+                            context.read<DashboardBloc>().add(
+                                  const LoadUserPreferences(forceRefresh: true),
+                                );
+                          },
+                        )
+                      else ...[
+                        ...declared.asMap().entries.map((entry) {
+                          final i = entry.key;
+                          final p = entry.value;
+                          final readings = loaded?.readings[p.siteId] ??
+                              List.generate(24, (h) => HourlyReading(hour: h));
+                          final avg = ExposurePlaceReadings.averagePm25ForCard(
+                            place: p,
+                            readings: readings,
+                            dayOfView: dayOfView,
+                          );
+                          return DeclaredPlaceCard(
+                            // Attach key to first card so the tour can locate it.
+                            key: i == 0 ? _firstCardKey : null,
+                            place: p,
+                            exposureLevel: avg != null
+                                ? ExposureLevelExtension.fromPm25(avg)
+                                : null,
+                            hourlyReadings: readings,
+                            dayOfView: dayOfView,
+                          );
+                        }),
+                        ...untagged.map((s) => EntryPlaceCard(site: s)),
+                        if (showEmptyMyPlaces) const _EmptyState(),
+                      ],
                     ]),
                   ),
                 ),
@@ -175,7 +252,15 @@ class _ExposureBodyState extends State<_ExposureBody> {
 
           return Stack(
             children: [
-              scrollView,
+              _myPlacesSelected
+                  ? RefreshIndicator(
+                      onRefresh: _refreshMyPlaces,
+                      color: AppColors.primaryColor,
+                      backgroundColor:
+                          Theme.of(context).scaffoldBackgroundColor,
+                      child: scrollView,
+                    )
+                  : scrollView,
               if (_showTour)
                 PlaceCardTour(
                   cardKey: _firstCardKey,

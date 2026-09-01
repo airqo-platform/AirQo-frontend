@@ -7,9 +7,10 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
-import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 
 @GenerateMocks([DashboardBloc])
 import 'nearby_view_test.mocks.dart';
@@ -27,6 +28,9 @@ void main() {
         home: MultiBlocProvider(
           providers: [
             BlocProvider<DashboardBloc>.value(value: mockDashboardBloc),
+            BlocProvider<LanguageBloc>(
+              create: (context) => LanguageBloc(),
+            ),
             BlocProvider<ForecastBloc>(
               create: (context) => ForecastBloc(ForecastImpl()),
             ),
@@ -38,7 +42,7 @@ void main() {
       );
     }
 
-    testWidgets('shows loading indicator when getting location',
+    testWidgets('shows loading skeletons while dashboard is still loading',
         (WidgetTester tester) async {
       when(mockDashboardBloc.state).thenReturn(DashboardLoading());
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
@@ -46,12 +50,11 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text('Getting your location...'), findsOneWidget);
+      expect(find.byType(NearbyMeasurementCardLoader), findsWidgets);
     });
 
     testWidgets(
-        'shows location services disabled message when services are off',
+        'shows source-empty state for empty API even before location resolves',
         (WidgetTester tester) async {
       when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
@@ -59,20 +62,42 @@ void main() {
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
       await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pump();
+
+      expect(find.byType(EmptyStateView), findsOneWidget);
+      expect(find.text('No air quality stations available'), findsOneWidget);
     });
 
-    testWidgets('shows empty state when location permission is denied',
+    testWidgets('shows load error when dashboard fetch failed',
         (WidgetTester tester) async {
-      when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
-        AirQualityResponse(success: true, measurements: []),
-      ));
+      when(mockDashboardBloc.state).thenReturn(
+        DashboardLoadingError('Network error', isOffline: true),
+      );
       when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
 
       await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pump();
 
-      expect(find.byType(NearbyViewEmptyState), findsAtLeastNWidgets(0));
+      expect(find.text("Couldn't load air quality data"), findsOneWidget);
+      expect(find.text('No air quality stations available'), findsNothing);
+    });
+
+    testWidgets(
+        'keeps source-empty state while refreshing an empty dashboard',
+        (WidgetTester tester) async {
+      final emptyLoaded = DashboardLoaded(
+        AirQualityResponse(success: true, measurements: []),
+      );
+      when(mockDashboardBloc.state).thenReturn(
+        DashboardLoading(previousState: emptyLoaded),
+      );
+      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
+
+      expect(find.text('No air quality stations available'), findsOneWidget);
+      expect(find.byType(NearbyMeasurementCard), findsNothing);
     });
 
     testWidgets(
@@ -122,15 +147,15 @@ void main() {
 
       // Act
       await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Assert - Note: The widget will need valid location permissions to show measurements
       // In a real test environment, this would require more complex setup
     });
 
-    testWidgets('shows no nearby stations message when no measurements found',
+    testWidgets(
+        'shows source-empty state when the API returns no measurements',
         (WidgetTester tester) async {
-      // Arrange
       final dashboardState = DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
       );
@@ -139,13 +164,14 @@ void main() {
       when(mockDashboardBloc.stream)
           .thenAnswer((_) => Stream.value(dashboardState));
 
-      // Act
       await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle(const Duration(seconds: 5));
+      await tester.pump();
 
-      // Assert - Should eventually show no stations message
-      expect(find.text('No air quality stations found nearby'),
-          findsAtLeastNWidgets(0));
+      expect(find.byType(EmptyStateView), findsOneWidget);
+      expect(find.text('No air quality stations available'), findsOneWidget);
+      expect(find.text('Try Again'), findsOneWidget);
+      expect(find.text('Explore Available Cities'), findsNothing);
+      expect(find.byType(NearbyMeasurementCardLoader), findsNothing);
     });
 
     testWidgets('displays user location coordinates when available',

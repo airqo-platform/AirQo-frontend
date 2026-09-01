@@ -40,7 +40,7 @@ class AirQualityBackgroundTask with UiLoggy {
         networkType: NetworkType.connected,
         requiresBatteryNotLow: true,
       ),
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+      existingWorkPolicy: ExistingWorkPolicy.keep,
     );
     Loggy('AirQualityBackgroundTask').info(
       'Scheduled periodic AQ background check (requested every ${checkInterval.inHours}h; iOS timing is best-effort)',

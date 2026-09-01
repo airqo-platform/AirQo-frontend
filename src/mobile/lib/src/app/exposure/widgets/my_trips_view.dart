@@ -2,7 +2,10 @@ import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository_impl.dart';
+import 'package:airqo/src/app/exposure/utils/exposure_load_status.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_level_chip.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -10,10 +13,18 @@ class MyTripsView extends StatefulWidget {
   const MyTripsView({
     super.key,
     required this.savedSites,
+    this.isDashboardLoading = false,
+    this.hasDashboardError = false,
+    this.onRetry,
+    this.onAddPlaces,
     RouteExposureRepository? repository,
   }) : repository = repository ?? const _RouteExposureRepositoryFactory();
 
   final List<SelectedSite> savedSites;
+  final bool isDashboardLoading;
+  final bool hasDashboardError;
+  final VoidCallback? onRetry;
+  final VoidCallback? onAddPlaces;
   final RouteExposureRepository repository;
 
   @override
@@ -113,38 +124,35 @@ class _MyTripsViewState extends State<MyTripsView> {
   @override
   Widget build(BuildContext context) {
     final sites = _eligibleSites;
-    final titleColor = AppTextColors.headline(context);
-    final bodyColor = AppTextColors.muted(context);
+    final tripsStatus = resolveExposureTripsContent(
+      isDashboardFirstLoad: widget.isDashboardLoading,
+      dashboardLoadFailed: widget.hasDashboardError,
+      eligibleSiteCount: sites.length,
+    );
 
-    if (sites.length < 2) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Add at least two saved places to analyze a trip.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: titleColor,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'My Trips uses your existing saved AirQo locations as route endpoints.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: bodyColor,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
+    if (tripsStatus == ExposureTripsContentStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (tripsStatus == ExposureTripsContentStatus.error) {
+      return EmptyStateView(
+        icon: SystemGlyph.error(context),
+        title: 'Unable to load trips',
+        message: "We couldn't load your saved places right now. Please try again.",
+        actionLabel: 'Try Again',
+        onAction: widget.onRetry,
+      );
+    }
+
+    if (tripsStatus == ExposureTripsContentStatus.empty) {
+      return EmptyStateView(
+        icon: SystemGlyph.emptyTrip(context),
+        title: 'No trips to analyze',
+        message:
+            'Add at least two saved places to analyze a trip. My Trips uses your saved AirQo locations as route endpoints.',
+        actionLabel: widget.onAddPlaces != null ? 'Add a place' : 'Try Again',
+        actionIcon: widget.onAddPlaces != null ? SystemGlyph.add() : null,
+        onAction: widget.onAddPlaces ?? widget.onRetry,
       );
     }
 
