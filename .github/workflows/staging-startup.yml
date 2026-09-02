@@ -44,15 +44,7 @@ jobs:
             --update-cluster-autoscaler \
             --min-count 2 \
             --max-count 4
-          echo "Autoscaler bounds restored"
-
-          echo "Explicitly scaling node pool to 2 to trigger immediate provisioning..."
-          az aks nodepool scale \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --node-count 2
-          echo "Node pool scaling to 2 initiated"
+          echo "Autoscaler bounds restored — autoscaler will provision nodes"
 
       - name: Get AKS credentials
         run: |
@@ -61,9 +53,50 @@ jobs:
             --name ${{ env.STAGING_CLUSTER_NAME }} \
             --overwrite-existing
 
-      - name: Wait for workload nodes to be ready
+      - name: Wait for workload nodes to appear and be ready
         run: |
-          echo "Waiting for workload nodes to be Ready..."
+          echo "Waiting for at least 2 workload nodes to appear (max 8 minutes)..."
+          EXPECTED_NODES=2
+          TIMEOUT=480
+          INTERVAL=20
+          DEADLINE=$(( $(date +%s) + TIMEOUT ))
+
+          while true; do
+            NOW=$(date +%s)
+            REMAINING=$(( DEADLINE - NOW ))
+
+            if [ $REMAINING -le 0 ]; then
+              echo "ERROR: Expected $EXPECTED_NODES workload nodes but only $NODE_COUNT appeared within ${TIMEOUT}s"
+              exit 1
+            fi
+
+            # Bound the kubectl request itself so a stalled API call
+            # does not silently consume the entire deadline
+            REQUEST_TIMEOUT=$(( REMAINING < 30 ? REMAINING : 30 ))
+
+            if ! NODES=$(kubectl get nodes \
+              --selector=kubernetes.azure.com/agentpool=workload \
+              --no-headers \
+              --request-timeout="${REQUEST_TIMEOUT}s" 2>&1); then
+              echo "ERROR: Failed to list workload nodes — check AKS credentials and API connectivity"
+              echo "$NODES"
+              exit 1
+            fi
+
+            NODE_COUNT=$(printf '%s\n' "$NODES" | grep -c . || true)
+
+            if [ "$NODE_COUNT" -ge "$EXPECTED_NODES" ]; then
+              echo "Workload nodes appearing ($NODE_COUNT/$EXPECTED_NODES)"
+              break
+            fi
+
+            # Cap sleep to remaining time so we never overshoot the deadline
+            SLEEP=$(( INTERVAL < REMAINING ? INTERVAL : REMAINING ))
+            echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${REMAINING}s remaining)..."
+            sleep "$SLEEP"
+          done
+
+          echo "Waiting for Ready state..."
           kubectl wait node \
             --for=condition=Ready \
             --selector=kubernetes.azure.com/agentpool=workload \
@@ -83,7 +116,6 @@ jobs:
           echo "Waiting for all staging deployments to be available..."
           FAILED=()
 
-          # Capture only stdout; print stderr separately on error
           DEPLOYMENTS=$(kubectl get deployments -n staging \
             --no-headers -o custom-columns="NAME:.metadata.name") || {
             echo "ERROR: Failed to list deployments in staging namespace"
