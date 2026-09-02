@@ -56,16 +56,30 @@ jobs:
       - name: Wait for workload nodes to appear and be ready
         run: |
           echo "Waiting for at least 2 workload nodes to appear (max 8 minutes)..."
+          EXPECTED_NODES=2
           TIMEOUT=480
           INTERVAL=20
-          ELAPSED=0
-          EXPECTED_NODES=2
+          DEADLINE=$(( $(date +%s) + TIMEOUT ))
 
           while true; do
+            NOW=$(date +%s)
+            REMAINING=$(( DEADLINE - NOW ))
+
+            if [ $REMAINING -le 0 ]; then
+              echo "ERROR: Expected $EXPECTED_NODES workload nodes but only $NODE_COUNT appeared within ${TIMEOUT}s"
+              exit 1
+            fi
+
+            # Bound the kubectl request itself so a stalled API call
+            # does not silently consume the entire deadline
+            REQUEST_TIMEOUT=$(( REMAINING < 30 ? REMAINING : 30 ))
+
             if ! NODES=$(kubectl get nodes \
               --selector=kubernetes.azure.com/agentpool=workload \
-              --no-headers); then
+              --no-headers \
+              --request-timeout="${REQUEST_TIMEOUT}s" 2>&1); then
               echo "ERROR: Failed to list workload nodes — check AKS credentials and API connectivity"
+              echo "$NODES"
               exit 1
             fi
 
@@ -76,14 +90,10 @@ jobs:
               break
             fi
 
-            echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${ELAPSED}s elapsed)..."
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-
-            if [ $ELAPSED -ge $TIMEOUT ]; then
-              echo "ERROR: Expected $EXPECTED_NODES workload nodes but only $NODE_COUNT appeared within ${TIMEOUT}s"
-              exit 1
-            fi
+            # Cap sleep to remaining time so we never overshoot the deadline
+            SLEEP=$(( INTERVAL < REMAINING ? INTERVAL : REMAINING ))
+            echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${REMAINING}s remaining)..."
+            sleep "$SLEEP"
           done
 
           echo "Waiting for Ready state..."
@@ -106,7 +116,6 @@ jobs:
           echo "Waiting for all staging deployments to be available..."
           FAILED=()
 
-          # Capture only stdout; print stderr separately on error
           DEPLOYMENTS=$(kubectl get deployments -n staging \
             --no-headers -o custom-columns="NAME:.metadata.name") || {
             echo "ERROR: Failed to list deployments in staging namespace"
