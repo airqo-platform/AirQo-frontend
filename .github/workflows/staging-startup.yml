@@ -60,19 +60,30 @@ jobs:
           INTERVAL=20
           ELAPSED=0
 
-          until kubectl get nodes \
-            --selector=kubernetes.azure.com/agentpool=workload \
-            --no-headers 2>/dev/null | grep -q .; do
+          while true; do
+            if ! NODES=$(kubectl get nodes \
+              --selector=kubernetes.azure.com/agentpool=workload \
+              --no-headers); then
+              echo "ERROR: Failed to list workload nodes — check AKS credentials and API connectivity"
+              exit 1
+            fi
+
+            if [ -n "$NODES" ]; then
+              echo "Workload nodes appearing"
+              break
+            fi
+
             echo "No workload nodes yet (${ELAPSED}s elapsed)..."
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
+
             if [ $ELAPSED -ge $TIMEOUT ]; then
               echo "ERROR: No workload nodes appeared within ${TIMEOUT}s"
               exit 1
             fi
           done
 
-          echo "Workload nodes appearing — waiting for Ready state..."
+          echo "Waiting for Ready state..."
           kubectl wait node \
             --for=condition=Ready \
             --selector=kubernetes.azure.com/agentpool=workload \
