@@ -53,7 +53,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       DashboardLoading(:final previousState) => previousState?.response,
       _ => null,
     };
-    return response != null && !response.hasMeasurements;
+    return response != null && response.validMeasurements.isEmpty;
   }
 
   @override
@@ -262,7 +262,8 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   Future<void> _updateNearbyLocations() async {
     final state = context.read<DashboardBloc>().state;
-    if (state is DashboardLoaded && !state.response.hasMeasurements) {
+    if (state is DashboardLoaded &&
+        state.response.validMeasurements.isEmpty) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -578,7 +579,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           if (_nearbyMeasurementsWithDistance.isEmpty) {
             if (!_isSourceEmpty(state) &&
                 state is DashboardLoaded &&
-                state.response.hasMeasurements) {
+                state.response.validMeasurements.isNotEmpty) {
               _expandFromCache();
             }
 

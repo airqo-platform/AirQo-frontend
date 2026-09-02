@@ -68,6 +68,24 @@ void main() {
       expect(find.text('No air quality stations available'), findsOneWidget);
     });
 
+    testWidgets(
+        'shows source-empty when measurements exist but none have site details',
+        (WidgetTester tester) async {
+      when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
+        AirQualityResponse(
+          success: true,
+          measurements: [Measurement(id: 'orphan')],
+        ),
+      ));
+      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pump();
+
+      expect(find.text('No air quality stations available'), findsOneWidget);
+      expect(find.byType(NearbyMeasurementCardLoader), findsNothing);
+    });
+
     testWidgets('shows load error when dashboard fetch failed',
         (WidgetTester tester) async {
       when(mockDashboardBloc.state).thenReturn(
