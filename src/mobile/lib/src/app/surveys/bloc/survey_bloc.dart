@@ -36,10 +36,13 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   }
 
   Future<void> _onLoadSurveys(LoadSurveys event, Emitter<SurveyState> emit) async {
+    final previousResponses = state is SurveysLoaded
+        ? (state as SurveysLoaded).userResponses
+        : const <SurveyResponse>[];
     emit(SurveyLoading());
     try {
       final surveys = await repository.getSurveys(forceRefresh: event.forceRefresh);
-      emit(SurveysLoaded(surveys));
+      emit(SurveysLoaded(surveys, userResponses: previousResponses));
       loggy.info('Loaded ${surveys.length} surveys');
 
       try {

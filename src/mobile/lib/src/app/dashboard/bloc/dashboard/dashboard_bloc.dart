@@ -279,7 +279,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
             userPreferences: prefsData,
             isOffline: currentState.isOffline,
             lastUpdated: currentState.lastUpdated,
-            prefsAuthError: currentState.prefsAuthError,
+            prefsAuthError: false,
             prefsLoadFailed: false,
           ));
         } else if (event.forceRefresh) {
@@ -288,19 +288,20 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
             userPreferences: currentState.userPreferences,
             isOffline: currentState.isOffline,
             lastUpdated: currentState.lastUpdated,
-            prefsAuthError: currentState.prefsAuthError,
+            prefsAuthError: false,
             prefsLoadFailed: true,
           ));
         }
       } else {
         loggy.warning('Failed to load user preferences: ${response['message']}');
+        final isAuthError = response['auth_error'] == true;
         emit(DashboardLoaded(
           currentState.response,
           userPreferences: currentState.userPreferences,
           isOffline: currentState.isOffline,
           lastUpdated: currentState.lastUpdated,
-          prefsAuthError: currentState.prefsAuthError,
-          prefsLoadFailed: true,
+          prefsAuthError: isAuthError,
+          prefsLoadFailed: !isAuthError,
         ));
       }
     } catch (e) {
@@ -312,7 +313,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           userPreferences: currentState.userPreferences,
           isOffline: currentState.isOffline,
           lastUpdated: currentState.lastUpdated,
-          prefsAuthError: currentState.prefsAuthError,
+          prefsAuthError: false,
           prefsLoadFailed: true,
         ));
       }

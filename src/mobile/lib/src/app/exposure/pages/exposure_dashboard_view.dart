@@ -34,6 +34,18 @@ const String _kEmptyStateWorkIconAsset = 'assets/icons/place_type_work_tab.svg';
 
 // ---------------------------------------------------------------------------
 
+@visibleForTesting
+List<SelectedSite> favouritesFromDashboardState(DashboardState state) {
+  final DashboardLoaded? loaded = switch (state) {
+    DashboardLoaded s => s,
+    DashboardLoading(:final previousState) => previousState,
+    _ => null,
+  };
+  return List<SelectedSite>.from(
+    loaded?.userPreferences?.selectedSites ?? const <SelectedSite>[],
+  );
+}
+
 class ExposureDashboardView extends StatelessWidget {
   const ExposureDashboardView({super.key});
 
@@ -120,9 +132,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
 
           // Read favourites from DashboardBloc — already loaded, no extra API call.
           final dashState = context.watch<DashboardBloc>().state;
-          final favourites = dashState is DashboardLoaded
-              ? (dashState.userPreferences?.selectedSites ?? <SelectedSite>[])
-              : <SelectedSite>[];
+          final favourites = favouritesFromDashboardState(dashState);
           final untagged =
               favourites.where((s) => !declaredIds.contains(s.id)).toList();
 

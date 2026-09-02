@@ -12,6 +12,7 @@ part 'declared_places_state.dart';
 class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
   final DeclaredPlacesRepository _placesRepo;
   final HourlyReadingsRepository _readingsRepo;
+  int _loadGeneration = 0;
 
   DeclaredPlacesCubit({
     required DeclaredPlacesRepository placesRepo,
@@ -41,24 +42,25 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
     bool forceRefresh = false,
     bool showLoader = true,
   }) async {
+    final generation = ++_loadGeneration;
     try {
       if (showLoader && state is! DeclaredPlacesInitial) {
         emit(DeclaredPlacesInitial());
       }
       final places =
           await _placesRepo.getDeclaredPlaces(forceRefresh: forceRefresh);
-      if (isClosed) return;
+      if (isClosed || generation != _loadGeneration) return;
       emit(DeclaredPlacesLoaded(places: places));
-      _fetchReadings(places);
+      _fetchReadings(places, generation);
     } catch (e) {
       loggy.error('Failed to load declared places: $e');
-      if (!isClosed) {
+      if (!isClosed && generation == _loadGeneration) {
         emit(DeclaredPlacesError(e.toString().replaceFirst('Exception: ', '')));
       }
     }
   }
 
-  Future<void> _fetchReadings(List<DeclaredPlace> places) async {
+  Future<void> _fetchReadings(List<DeclaredPlace> places, int generation) async {
     if (places.isEmpty) return;
     final today = DateTime.now();
     final results = await Future.wait(
@@ -66,7 +68,9 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
           .fetchHourlyReadings(p.siteId, today)
           .then((r) => MapEntry(p.siteId, r))),
     );
-    if (!isClosed && state is DeclaredPlacesLoaded) {
+    if (!isClosed &&
+        generation == _loadGeneration &&
+        state is DeclaredPlacesLoaded) {
       emit((state as DeclaredPlacesLoaded).withReadings(Map.fromEntries(results)));
     }
   }

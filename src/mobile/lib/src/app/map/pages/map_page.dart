@@ -51,6 +51,7 @@ class _MapScreenState extends State<MapScreen>
   bool isInitializing = true;
   bool hasLoadError = false;
   bool isRetrying = false;
+  bool _mapBlocReady = false;
   late GooglePlacesBloc googlePlacesBloc;
 
   final MapMarkerBuilder _markerBuilder = MapMarkerBuilder();
@@ -295,6 +296,10 @@ class _MapScreenState extends State<MapScreen>
         allMeasurements = valid;
         isInitializing = false;
         hasLoadError = false;
+        if (valid.isEmpty) {
+          nearbyMeasurements = [];
+          _selectedCardMeasurement = null;
+        }
       });
     }
     if (valid.isNotEmpty) {
@@ -397,6 +402,7 @@ class _MapScreenState extends State<MapScreen>
       listeners: [
         BlocListener<DashboardBloc, DashboardState>(
           listener: (context, state) {
+            if (_mapBlocReady) return;
             if (state is DashboardLoadingError) {
               if (mounted) {
                 setState(() {
@@ -431,6 +437,7 @@ class _MapScreenState extends State<MapScreen>
               return;
             }
             if (state is MapLoadedWithError) {
+              _mapBlocReady = true;
               if (mounted) {
                 setState(() {
                   isInitializing = false;
@@ -440,6 +447,7 @@ class _MapScreenState extends State<MapScreen>
               return;
             }
             if (state is MapLoaded || state is MapLoadedFromCache) {
+              _mapBlocReady = true;
               final response = state is MapLoaded
                   ? state.response
                   : (state as MapLoadedFromCache).response;

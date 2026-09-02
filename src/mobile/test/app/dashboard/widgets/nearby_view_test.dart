@@ -7,6 +7,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
+import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
@@ -167,8 +168,16 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
-      // Assert - Note: The widget will need valid location permissions to show measurements
-      // In a real test environment, this would require more complex setup
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is NearbyMeasurementCard ||
+              widget is NearbyMeasurementCardLoader ||
+              widget is EmptyStateView ||
+              widget is NearbyViewEmptyState,
+        ),
+        findsWidgets,
+      );
     });
 
     testWidgets(
