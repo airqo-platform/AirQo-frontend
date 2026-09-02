@@ -55,10 +55,11 @@ jobs:
 
       - name: Wait for workload nodes to appear and be ready
         run: |
-          echo "Waiting for at least one workload node to appear (max 8 minutes)..."
+          echo "Waiting for at least 2 workload nodes to appear (max 8 minutes)..."
           TIMEOUT=480
           INTERVAL=20
           ELAPSED=0
+          EXPECTED_NODES=2
 
           while true; do
             if ! NODES=$(kubectl get nodes \
@@ -68,17 +69,19 @@ jobs:
               exit 1
             fi
 
-            if [ -n "$NODES" ]; then
-              echo "Workload nodes appearing"
+            NODE_COUNT=$(printf '%s\n' "$NODES" | grep -c . || true)
+
+            if [ "$NODE_COUNT" -ge "$EXPECTED_NODES" ]; then
+              echo "Workload nodes appearing ($NODE_COUNT/$EXPECTED_NODES)"
               break
             fi
 
-            echo "No workload nodes yet (${ELAPSED}s elapsed)..."
+            echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${ELAPSED}s elapsed)..."
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
 
             if [ $ELAPSED -ge $TIMEOUT ]; then
-              echo "ERROR: No workload nodes appeared within ${TIMEOUT}s"
+              echo "ERROR: Expected $EXPECTED_NODES workload nodes but only $NODE_COUNT appeared within ${TIMEOUT}s"
               exit 1
             fi
           done
