@@ -115,6 +115,10 @@ void main() {
     );
 
     expect(find.text('Unable to load trips'), findsOneWidget);
+    expect(
+      find.text("We couldn't load your trips right now. Please try again."),
+      findsOneWidget,
+    );
     expect(find.text('Try Again'), findsOneWidget);
   });
 }

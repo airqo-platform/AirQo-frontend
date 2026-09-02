@@ -138,7 +138,7 @@ class _MyTripsViewState extends State<MyTripsView> {
       return EmptyStateView(
         icon: SystemGlyph.error(context),
         title: 'Unable to load trips',
-        message: "We couldn't load your saved places right now. Please try again.",
+        message: "We couldn't load your trips right now. Please try again.",
         actionLabel: 'Try Again',
         onAction: widget.onRetry,
       );

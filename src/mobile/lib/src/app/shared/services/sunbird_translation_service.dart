@@ -214,7 +214,7 @@ class SunbirdTranslationService with UiLoggy {
     'Unable to load favorites',
     "We couldn't load your saved places right now. Please try again.",
     'Unable to load trips',
-    "We couldn't load your saved places right now. Please try again.",
+    "We couldn't load your trips right now. Please try again.",
     'No trips to analyze',
     'Add at least two saved places to analyze a trip. My Trips uses your saved AirQo locations as route endpoints.',
     'Add a place',
