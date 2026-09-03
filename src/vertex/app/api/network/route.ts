@@ -5,6 +5,7 @@ import logger from "@/lib/logger";
 import { CreateNetworkPayload, CreateNetworkResponse } from "@/core/apis/networks";
 import axios from "axios";
 import { networkFormSchema } from "@/components/features/networks/schema";
+import { buildServerApiUrl } from "@/lib/api-routing";
 
 /**
  * Retrieves the access token from the server-side session.
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
 
     const payload: CreateNetworkPayload = { ...networkData, admin_secret: adminSecret };
 
-    const backendApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/networks`;
+    const backendApiUrl = buildServerApiUrl('/devices/networks');
 
     const apiResponse = await axios.post<CreateNetworkResponse>(backendApiUrl, payload, {
       headers: {
