@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const payload: CreateNetworkPayload = { ...networkData, admin_secret: adminSecret };
 
-    const backendApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/networks`;
+    const backendApiUrl = `${process.env.NEXT_PUBLIC_API_URL}/devices/networks`;
 
     const apiResponse = await axios.post<CreateNetworkResponse>(backendApiUrl, payload, {
       headers: {
