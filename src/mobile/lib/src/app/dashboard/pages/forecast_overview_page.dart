@@ -11,6 +11,8 @@ import 'package:airqo/src/app/dashboard/widgets/forecast_hourly_section.dart';
 import 'package:airqo/src/app/dashboard/widgets/forecast_time_scope_selector.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/app/shared/widgets/retry_button.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -527,11 +529,9 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isNetwork ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
-              size: 56,
-              color: AppTextColors.muted(context),
-            ),
+            isNetwork
+                ? SystemGlyph.offline(context, size: 56)
+                : SystemGlyph.error(context, size: 56),
             const SizedBox(height: 16),
             Text(
               isNetwork ? 'No connection' : 'Could not load forecast',
@@ -545,16 +545,11 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            RetryButton(
               onPressed: () => context
                   .read<ForecastBloc>()
                   .add(RefreshForecast(widget.siteId)),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-              ),
+              label: 'Retry',
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:airqo/src/app/auth/widgets/social_login_button.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -255,15 +256,28 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
+                                  color: AppAlertColors.errorBackground(context),
                                   borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  error!,
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
+                                  border: Border.all(
+                                    color: AppAlertColors.errorBorder(context),
                                   ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SystemGlyph.error(context, size: 20),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        error!,
+                                        style: TextStyle(
+                                          color: AppAlertColors.errorForeground(
+                                            context,
+                                          ),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

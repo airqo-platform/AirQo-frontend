@@ -1,5 +1,7 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -42,6 +44,17 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   int? _lastMeasurementsHash;
   late CacheManager _cacheManager;
   static const String _cachedNearbyLocationsKey = 'nearby_locations';
+
+  /// Live (or in-flight refresh) payload has no stations. Nearby Hive
+  /// cache must not refill the cards in that case.
+  bool _isSourceEmpty(DashboardState state) {
+    final AirQualityResponse? response = switch (state) {
+      DashboardLoaded(:final response) => response,
+      DashboardLoading(:final previousState) => previousState?.response,
+      _ => null,
+    };
+    return response != null && response.validMeasurements.isEmpty;
+  }
 
   @override
   void initState() {
@@ -162,6 +175,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   // Load cached nearby locations from previous sessions
   Future<void> _loadCachedNearbyLocations() async {
     try {
+      if (_isSourceEmpty(context.read<DashboardBloc>().state)) {
+        return;
+      }
       final cachedData = await _cacheManager.get<List<dynamic>>(
         boxName: CacheBoxName.location,
         key: _cachedNearbyLocationsKey,
@@ -245,20 +261,24 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   }
 
   Future<void> _updateNearbyLocations() async {
+    final state = context.read<DashboardBloc>().state;
+    if (state is DashboardLoaded &&
+        state.response.validMeasurements.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _nearbyMeasurementsWithDistance = [];
+        });
+      }
+      return;
+    }
+
     if (_userPosition == null) {
       loggy.info('Skipping nearby filter: position not yet available');
       return;
     }
-    
-    final state = context.read<DashboardBloc>().state;
+
     if (state is! DashboardLoaded || state.response.measurements == null) {
-      // Dashboard loaded but has no measurements: nothing to filter, stop
-      // showing the loading skeleton so the empty state can render.
-      if (state is DashboardLoaded && mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
       return;
     }
     
@@ -340,6 +360,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   }
   
   Future<void> _expandFromCache() async {
+    if (_isSourceEmpty(context.read<DashboardBloc>().state)) {
+      return;
+    }
     if (_nearbyMeasurementsWithDistance.length >= _maxNearbyLocations || 
         _userPosition == null) {
       return;
@@ -431,8 +454,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       listener: (context, state) {
         if (state is DashboardLoaded) {
           _updateNearbyLocations();
-          
-          if (_nearbyMeasurementsWithDistance.length < 2) {
+
+          if (!_isSourceEmpty(state) &&
+              _nearbyMeasurementsWithDistance.length < 2) {
             _expandFromCache();
           }
         }
@@ -458,6 +482,40 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               (state is DashboardLoadingError ? state.message : null) ??
                   _errorMessage;
 
+          if (state is DashboardLoadingError) {
+            return EmptyStateView(
+              icon: state.isOffline
+                  ? SystemGlyph.offline(context)
+                  : SystemGlyph.error(context),
+              title: "Couldn't load air quality data",
+              message:
+                  "Something went wrong. Please try again later",
+              actionLabel: 'Try Again',
+              onAction: () {
+                context
+                    .read<DashboardBloc>()
+                    .add(LoadDashboard(forceRefresh: true));
+                _retry();
+              },
+            );
+          }
+
+          if (_isSourceEmpty(state)) {
+            return EmptyStateView(
+              icon: SystemGlyph.emptyPlace(context),
+              title: 'No air quality stations available',
+              message:
+                  "We couldn't find any stations right now. Please try again.",
+              actionLabel: 'Try Again',
+              onAction: () {
+                context
+                    .read<DashboardBloc>()
+                    .add(LoadDashboard(forceRefresh: true));
+                _retry();
+              },
+            );
+          }
+
           if (error != null && error.contains('permission') && _nearbyMeasurementsWithDistance.isEmpty) {
             return NearbyViewEmptyState(
               errorMessage: error,
@@ -472,7 +530,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.location_off, color: Colors.amber, size: 48),
+                    SystemGlyph.emptyPlace(context, size: 48),
                     const SizedBox(height: 16),
                     TranslatedText(
                       "Location Services Disabled",
@@ -519,48 +577,23 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           }
 
           if (_nearbyMeasurementsWithDistance.isEmpty) {
-            _expandFromCache();
-            
+            if (!_isSourceEmpty(state) &&
+                state is DashboardLoaded &&
+                state.response.validMeasurements.isNotEmpty) {
+              _expandFromCache();
+            }
+
             if (_nearbyMeasurementsWithDistance.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.location_off, color: Colors.amber, size: 48),
-                      const SizedBox(height: 16),
-                      TranslatedText(
-                        "No air quality stations found nearby",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.headlineMedium?.color,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TranslatedText(
-                        "AirQo covers 15 African cities. Browse and explore air quality data from any of them.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: widget.onExploreCities ?? widget.onNavigateToFavorites ?? _retry,
-                        icon: const Icon(Icons.explore, color: Colors.white),
-                        label: const TranslatedText("Explore Available Cities"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return EmptyStateView(
+                icon: SystemGlyph.emptyPlace(context),
+                title: 'No air quality stations found nearby',
+                message:
+                    'AirQo covers 15 African cities. Browse and explore air quality data from any of them.',
+                actionLabel: 'Explore Available Cities',
+                actionIcon: SystemGlyph.explore(),
+                onAction: widget.onExploreCities ??
+                    widget.onNavigateToFavorites ??
+                    _retry,
               );
             }
           }

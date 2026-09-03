@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class SurveyProgressIndicator extends StatelessWidget {
@@ -182,12 +183,10 @@ class SurveyCompletionIndicator extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.red.withValues(alpha: 0.1),
+                color: AppAlertColors.errorBackground(context),
               ),
-              child: Icon(
-                Icons.error,
-                size: 24,
-                color: Colors.red,
+              child: Center(
+                child: SystemGlyph.error(context, size: 24),
               ),
             ),
           

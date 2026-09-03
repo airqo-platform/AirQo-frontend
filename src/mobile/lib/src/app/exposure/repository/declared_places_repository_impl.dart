@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/declared_places_repository.dart';
 
@@ -17,11 +18,22 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
       : _prefsRepo = prefsRepo ?? UserPreferencesImpl();
 
   @override
-  Future<List<DeclaredPlace>> getDeclaredPlaces() async {
+  Future<List<DeclaredPlace>> getDeclaredPlaces({bool forceRefresh = false}) async {
+    if (DebugApiOverride.instance.forceFailPlaces) {
+      throw Exception('DEBUG: simulated places API failure');
+    }
+    if (DebugApiOverride.instance.forceEmptyPlaces) {
+      loggy.warning('DEBUG: returning empty declared places');
+      return [];
+    }
+
     final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
     if (userId != null) {
       try {
-        final response = await _prefsRepo.getUserPreferences(userId);
+        final response = await _prefsRepo.getUserPreferences(
+          userId,
+          forceRefresh: forceRefresh,
+        );
         if (response['success'] == true) {
           final data = _extractPrefsData(response);
           if (data != null) {
@@ -29,9 +41,25 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
             await _cacheToHive(places);
             return places;
           }
+          if (forceRefresh) {
+            await _cacheToHive([]);
+          }
+          return [];
         }
+        if (!forceRefresh) {
+          final cached = await _loadFromHive();
+          if (cached.isNotEmpty) return cached;
+        }
+        throw Exception(
+          response['message'] ?? 'Failed to load places',
+        );
       } catch (e) {
         loggy.warning('Could not fetch declared places from API, using cache: $e');
+        if (!forceRefresh) {
+          final cached = await _loadFromHive();
+          if (cached.isNotEmpty) return cached;
+        }
+        rethrow;
       }
     }
     return _loadFromHive();

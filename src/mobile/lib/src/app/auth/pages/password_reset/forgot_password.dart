@@ -6,6 +6,7 @@ import 'package:airqo/src/app/auth/pages/password_reset/reset_link_sent.dart';
 
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/spinner.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -144,24 +145,22 @@ class _ForgotPasswordPage extends State<ForgotPasswordPage> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      border: Border.all(color: Colors.red.shade200),
+                      color: AppAlertColors.errorBackground(context),
+                      border: Border.all(
+                        color: AppAlertColors.errorBorder(context),
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red.shade600,
-                          size: 20,
-                        ),
+                        SystemGlyph.error(context, size: 20),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             error!,
                             style: TextStyle(
-                              color: Colors.red.shade700,
+                              color: AppAlertColors.errorForeground(context),
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
