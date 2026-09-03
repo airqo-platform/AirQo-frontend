@@ -43,7 +43,6 @@ describe("usePermissions", () => {
           user: { 
             userDetails: mockUser,
             activeGroup: { _id: "org-1" },
-            activeNetwork: { _id: "net-1" },
           } 
         },
       });
@@ -54,7 +53,6 @@ describe("usePermissions", () => {
         PERMISSIONS.DEVICE.VIEW, 
         expect.objectContaining({
           activeOrganization: { _id: "org-1" },
-          activeNetwork: { _id: "net-1" }
         })
       );
     });
