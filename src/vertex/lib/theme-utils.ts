@@ -313,6 +313,7 @@ export function getThemeScript(): string {
           var primaryColor = (typeof themeData.primaryColor === 'string' && themeData.primaryColor.trim()) ? themeData.primaryColor.trim() : '#145FFF';
 
           var hex = primaryColor.replace('#', '');
+          if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
             hex = '145FFF';
           }
           var r = parseInt(hex.substring(0, 2), 16);
