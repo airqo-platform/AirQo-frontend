@@ -18,6 +18,12 @@ class AirQualityResponse {
       _$AirQualityResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$AirQualityResponseToJson(this);
+
+  bool get hasMeasurements =>
+      measurements != null && measurements!.isNotEmpty;
+
+  List<Measurement> get validMeasurements =>
+      (measurements ?? []).where((m) => m.siteDetails != null).toList();
 }
 
 @JsonSerializable(explicitToJson: true)

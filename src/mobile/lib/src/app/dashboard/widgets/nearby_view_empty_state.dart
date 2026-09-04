@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:loggy/loggy.dart';
 
 class NearbyViewEmptyState extends StatefulWidget {
@@ -253,19 +254,20 @@ class _NearbyViewEmptyStateState extends State<NearbyViewEmptyState> with UiLogg
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: AppAlertColors.errorBackground(context),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppAlertColors.errorBorder(context)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  SystemGlyph.error(context, size: 20),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       widget.errorMessage!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.red,
+                        color: AppAlertColors.errorForeground(context),
                       ),
                     ),
                   ),

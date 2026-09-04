@@ -25,6 +25,7 @@ export default function ClientLayout({
   return (
     <body
       className="min-h-screen bg-background antialiased"
+      suppressHydrationWarning
     >
       <DesktopTitleBar />
       <Providers session={session}>{children}</Providers>

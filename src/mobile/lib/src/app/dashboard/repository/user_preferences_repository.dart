@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:http/http.dart' as http;
@@ -5,13 +6,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/auth/services/auth_token_storage.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 
 abstract class UserPreferencesRepository {
   Future<Map<String, dynamic>> getUserPreferences(String userId,
-      {String? groupId});
+      {String? groupId, bool forceRefresh = false});
   Future<Map<String, dynamic>> replacePreference(Map<String, dynamic> data);
 }
 
@@ -103,7 +105,25 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
   @override
   Future<Map<String, dynamic>> getUserPreferences(String userId,
-      {String? groupId}) async {
+      {String? groupId, bool forceRefresh = false}) async {
+    if (DebugApiOverride.instance.forceFailPlaces) {
+      loggy.warning('DEBUG: simulating user preferences API failure');
+      return {
+        'success': false,
+        'message': 'DEBUG: simulated places API failure',
+      };
+    }
+    if (DebugApiOverride.instance.forceEmptyPlaces) {
+      loggy.warning('DEBUG: returning empty user preferences');
+      return {
+        'success': true,
+        'data': {
+          'selected_sites': <dynamic>[],
+          'declared_places': <dynamic>[],
+        },
+      };
+    }
+
     String url = '$apiBaseUrl$preferencesEndpoint/$userId';
 
     if (groupId != null && groupId.isNotEmpty) {
@@ -115,45 +135,56 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
       if (groupId != null) loggy.info('With group ID: $groupId');
 
       final headers = await _getHeaders();
-      final response = await http.get(Uri.parse(url), headers: headers);
+      final response = await http
+          .get(Uri.parse(url), headers: headers)
+          .timeout(const Duration(seconds: 15));
 
       loggy.info('Response status code: ${response.statusCode}');
 
       if (response.statusCode == 401) {
         _handleUnauthorized('GET preferences');
-        final cached = await _getCachedPreferences(userId, groupId ?? '');
-        if (cached != null) return cached;
-        return {
-          'success': false,
-          'message': 'Authentication failed. Please log in again.',
-          'auth_error': true
-        };
+        return await _prefsFailure(
+          userId,
+          groupId ?? '',
+          forceRefresh,
+          {
+            'success': false,
+            'message': 'Authentication failed. Please log in again.',
+            'auth_error': true
+          },
+        );
       }
 
       if (response.body.trim().startsWith('<') ||
           response.body.trim() == 'Unauthorized') {
         loggy.error(
             'Received non-JSON response: ${response.body.substring(0, min(50, response.body.length))}');
-        final cached = await _getCachedPreferences(userId, groupId ?? '');
-        if (cached != null) return cached;
-        return {
-          'success': false,
-          'message':
-              'Server returned invalid response. Please try again later.',
-          'auth_error': response.statusCode == 401
-        };
+        return await _prefsFailure(
+          userId,
+          groupId ?? '',
+          forceRefresh,
+          {
+            'success': false,
+            'message':
+                'Server returned invalid response. Please try again later.',
+            'auth_error': response.statusCode == 401
+          },
+        );
       }
 
       final Map<String, dynamic> data = json.decode(response.body);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        final cached = await _getCachedPreferences(userId, groupId ?? '');
-        if (cached != null) return cached;
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Failed to fetch user preferences',
-          'auth_error': response.statusCode == 401
-        };
+        return await _prefsFailure(
+          userId,
+          groupId ?? '',
+          forceRefresh,
+          {
+            'success': false,
+            'message': data['message'] ?? 'Failed to fetch user preferences',
+            'auth_error': response.statusCode == 401
+          },
+        );
       }
 
       await _handleSuccessHeaders(response);
@@ -162,19 +193,34 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
     } catch (e) {
       loggy.error('Error fetching user preferences: $e');
 
-      final cached = await _getCachedPreferences(userId, groupId ?? '');
-      if (cached != null) return cached;
-
       final bool isAuthError = e.toString().contains('401') ||
           e.toString().contains('Unauthorized') ||
           (e is FormatException && e.toString().contains('Unauthorized'));
 
-      return {
-        'success': false,
-        'message': 'Error: ${e.toString()}',
-        'auth_error': isAuthError
-      };
+      return await _prefsFailure(
+        userId,
+        groupId ?? '',
+        forceRefresh,
+        {
+          'success': false,
+          'message': 'Error: ${e.toString()}',
+          'auth_error': isAuthError
+        },
+      );
     }
+  }
+
+  Future<Map<String, dynamic>> _prefsFailure(
+    String userId,
+    String groupId,
+    bool forceRefresh,
+    Map<String, dynamic> fallback,
+  ) async {
+    if (!forceRefresh) {
+      final cached = await _getCachedPreferences(userId, groupId);
+      if (cached != null) return cached;
+    }
+    return fallback;
   }
 
   int min(int a, int b) => a < b ? a : b;

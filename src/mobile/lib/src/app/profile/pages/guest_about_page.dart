@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/debug/debug_version_tap_target.dart';
 import 'package:airqo/src/app/profile/pages/guest_account_access_page.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
@@ -61,13 +62,15 @@ class _GuestAboutPageState extends State<GuestAboutPage> {
                     ),
                     const SizedBox(height: 14),
                     if (_appVersion.isNotEmpty)
-                      Text(
-                        'Version $_appVersion',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDarkMode
-                              ? Colors.grey[400]
-                              : Colors.grey[600],
+                      DebugVersionTapTarget(
+                        child: Text(
+                          'Version $_appVersion',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDarkMode
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                          ),
                         ),
                       ),
                     const SizedBox(height: 4),

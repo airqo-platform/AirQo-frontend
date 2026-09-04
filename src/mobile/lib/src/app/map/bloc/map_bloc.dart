@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/map/repository/map_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -28,7 +29,13 @@ class MapBloc extends Bloc<MapEvent, MapState> with UiLoggy {
       emit(MapLoaded(response));
     } catch (e) {
       loggy.error('Error loading map: $e');
-      
+
+      if (event.forceRefresh ||
+          DebugApiOverride.instance.forceFailAirQuality) {
+        emit(MapLoadingError(e.toString()));
+        return;
+      }
+
       if (state is MapLoading && (state as MapLoading).previousState != null) {
         final previousState = (state as MapLoading).previousState!;
         emit(MapLoadedWithError(
@@ -65,11 +72,7 @@ class MapBloc extends Bloc<MapEvent, MapState> with UiLoggy {
       emit(MapLoaded(response));
     } catch (e) {
       loggy.error('Error refreshing map: $e');
-
-      emit(MapLoadedWithError(
-        currentState.response, 
-        errorMessage: e.toString(),
-      ));
+      emit(MapLoadingError(e.toString()));
     }
   }
 }

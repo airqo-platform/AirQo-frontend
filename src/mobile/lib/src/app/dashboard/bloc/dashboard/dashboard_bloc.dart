@@ -4,6 +4,7 @@ import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -61,12 +62,16 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       UserPreferencesModel? preferences;
       bool prefsAuthError = false;
+      bool prefsLoadFailed = false;
 
       try {
         final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
         if (userId != null) {
           loggy.info('Loading preferences during dashboard load for user: $userId');
-          final prefsResponse = await preferencesRepo.getUserPreferences(userId);
+          final prefsResponse = await preferencesRepo.getUserPreferences(
+            userId,
+            forceRefresh: event.forceRefresh,
+          );
 
           if (prefsResponse['auth_error'] == true) {
             prefsAuthError = true;
@@ -100,17 +105,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
               if (preferences == null) {
                 loggy.warning('Unable to parse preferences from response');
+                prefsLoadFailed = true;
               }
             } catch (parseError) {
               loggy.error('Error parsing preference data: $parseError');
               loggy.error('Problematic data structure: $prefsResponse');
+              prefsLoadFailed = true;
             }
           } else {
+            prefsLoadFailed = true;
             loggy.warning(
                 'Failed to load user preferences during dashboard load: ${prefsResponse['message']}');
           }
         }
       } catch (e) {
+        prefsLoadFailed = true;
         loggy.error('Error loading preferences during dashboard load: $e');
       }
 
@@ -121,15 +130,25 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         isOffline: !_cacheManager.isConnected,
         lastUpdated: DateTime.now(),
         prefsAuthError: prefsAuthError,
+        prefsLoadFailed: prefsLoadFailed,
       ));
 
-      if (preferences == null && !prefsAuthError) {
+      if (preferences == null && !prefsAuthError && !prefsLoadFailed) {
         loggy.info('Preferences not loaded initially, retrying as separate event');
         add(LoadUserPreferences());
       }
     } catch (e) {
       loggy.error('Error loading dashboard: $e');
-      
+
+      if (event.forceRefresh ||
+          DebugApiOverride.instance.forceFailAirQuality) {
+        emit(DashboardLoadingError(
+          e.toString(),
+          isOffline: !_cacheManager.isConnected,
+        ));
+        return;
+      }
+
       // If we were in a loaded state before, keep that state but mark as error
       if (state is DashboardLoading && (state as DashboardLoading).previousState != null) {
         final previousState = (state as DashboardLoading).previousState!;
@@ -138,6 +157,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           userPreferences: previousState.userPreferences,
           isOffline: !_cacheManager.isConnected,
           lastUpdated: previousState.lastUpdated,
+          prefsAuthError: previousState.prefsAuthError,
+          prefsLoadFailed: previousState.prefsLoadFailed,
           errorMessage: e.toString(),
         ));
       } else {
@@ -162,6 +183,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         userPreferences: currentState.userPreferences,
         isOffline: !_cacheManager.isConnected,
         lastUpdated: currentState.lastUpdated,
+        prefsAuthError: currentState.prefsAuthError,
+        prefsLoadFailed: currentState.prefsLoadFailed,
       ));
       
       final response = await repository.fetchAirQualityReadings(forceRefresh: true);
@@ -171,6 +194,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         userPreferences: currentState.userPreferences,
         isOffline: !_cacheManager.isConnected,
         lastUpdated: DateTime.now(),
+        prefsAuthError: currentState.prefsAuthError,
+        prefsLoadFailed: currentState.prefsLoadFailed,
       ));
       
       add(LoadUserPreferences());
@@ -184,6 +209,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           userPreferences: refreshingState.userPreferences,
           isOffline: !_cacheManager.isConnected,
           lastUpdated: refreshingState.lastUpdated,
+          prefsAuthError: refreshingState.prefsAuthError,
+          prefsLoadFailed: refreshingState.prefsLoadFailed,
           errorMessage: e.toString(),
         ));
       } else if (state is DashboardLoaded) {
@@ -193,6 +220,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
           userPreferences: loadedState.userPreferences,
           isOffline: !_cacheManager.isConnected,
           lastUpdated: loadedState.lastUpdated,
+          prefsAuthError: loadedState.prefsAuthError,
+          prefsLoadFailed: loadedState.prefsLoadFailed,
           errorMessage: e.toString(),
         ));
       } else {
@@ -219,7 +248,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       }
 
       loggy.info('Loading preferences for user: $userId');
-      final response = await preferencesRepo.getUserPreferences(userId);
+      final response = await preferencesRepo.getUserPreferences(
+        userId,
+        forceRefresh: event.forceRefresh,
+      );
 
       UserPreferencesModel? prefsData;
       if (response['success'] == true) {
@@ -247,13 +279,44 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
             userPreferences: prefsData,
             isOffline: currentState.isOffline,
             lastUpdated: currentState.lastUpdated,
+            prefsAuthError: false,
+            prefsLoadFailed: false,
+          ));
+        } else if (event.forceRefresh) {
+          emit(DashboardLoaded(
+            currentState.response,
+            userPreferences: currentState.userPreferences,
+            isOffline: currentState.isOffline,
+            lastUpdated: currentState.lastUpdated,
+            prefsAuthError: false,
+            prefsLoadFailed: true,
           ));
         }
       } else {
         loggy.warning('Failed to load user preferences: ${response['message']}');
+        final isAuthError = response['auth_error'] == true;
+        emit(DashboardLoaded(
+          currentState.response,
+          userPreferences: currentState.userPreferences,
+          isOffline: currentState.isOffline,
+          lastUpdated: currentState.lastUpdated,
+          prefsAuthError: isAuthError,
+          prefsLoadFailed: !isAuthError,
+        ));
       }
     } catch (e) {
       loggy.error('Error loading user preferences: $e');
+      if (state is DashboardLoaded) {
+        final currentState = state as DashboardLoaded;
+        emit(DashboardLoaded(
+          currentState.response,
+          userPreferences: currentState.userPreferences,
+          isOffline: currentState.isOffline,
+          lastUpdated: currentState.lastUpdated,
+          prefsAuthError: false,
+          prefsLoadFailed: true,
+        ));
+      }
     }
   }
 
@@ -428,6 +491,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       userPreferences: currentState.userPreferences,
       isOffline: currentState.isOffline,
       lastUpdated: DateTime.now(),
+      prefsAuthError: currentState.prefsAuthError,
+      prefsLoadFailed: currentState.prefsLoadFailed,
     ));
 
     add(LoadUserPreferences());
@@ -446,6 +511,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         userPreferences: currentState.userPreferences,
         isOffline: currentState.isOffline,
         lastUpdated: DateTime.now(),
+        prefsAuthError: currentState.prefsAuthError,
+        prefsLoadFailed: currentState.prefsLoadFailed,
       ));
     }
   }

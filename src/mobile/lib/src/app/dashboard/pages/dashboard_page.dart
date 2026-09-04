@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
-import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -232,131 +233,121 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
         if (state is DashboardLoadingError && !state.hasCache) {
           final isOffline = state.isOffline;
-          return SliverToBoxAdapter(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isOffline ? Icons.cloud_off : Icons.error_outline,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  TranslatedText(
-                    isOffline
-                        ? "Couldn't connect to the internet"
-                        : "Couldn't load air quality data",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.headlineMedium?.color,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  TranslatedText(
-                    isOffline
-                        ? "Please check your connection and try again"
-                        : "Something went wrong. Please try again later",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      context
-                          .read<DashboardBloc>()
-                          .add(LoadDashboard(forceRefresh: true));
-                    },
-                    icon: Icon(Icons.refresh),
-                    label: TranslatedText('Try Again'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyStateView(
+              icon: isOffline
+                  ? SystemGlyph.offline(context)
+                  : SystemGlyph.error(context),
+              title: isOffline
+                  ? "Couldn't connect to the internet"
+                  : "Couldn't load air quality data",
+              message: isOffline
+                  ? "Please check your connection and try again"
+                  : "Something went wrong. Please try again later",
+              actionLabel: 'Try Again',
+              onAction: () {
+                context
+                    .read<DashboardBloc>()
+                    .add(LoadDashboard(forceRefresh: true));
+              },
             ),
           );
         }
 
-        if (state is DashboardLoaded) {
-          switch (currentView) {
-            case DashboardView.favorites:
-              loggy.info(
-                  'Dashboard loaded with preferences: ${state.userPreferences != null}');
-              if (state.userPreferences != null) {
-                loggy.info(
-                    'User has ${state.selectedLocationIds.length} selected locations');
-              }
+        final DashboardLoaded? loaded = switch (state) {
+          DashboardLoaded s => s,
+          DashboardLoading s => s.previousState,
+          DashboardAuthenticationError s => s.previousState,
+          _ => null,
+        };
 
-              return SliverToBoxAdapter(
-                child: MyPlacesView(
-                  userPreferences: state.userPreferences,
-                  tourKeys: _activeCardTourKeys,
-                  onTourTargetReady:
-                      kMeasurementCardGesturesTourEnabled
-                          ? _maybeShowCardGesturesTour
-                          : null,
-                ),
-              );
-
-            case DashboardView.nearYou:
-              return SliverToBoxAdapter(
-                child: NearbyView(
-                  onNavigateToFavorites: () =>
-                      setView(DashboardView.favorites),
-                  onExploreCities: isGuest
-                      ? () => setView(DashboardView.explore)
-                      : null,
-                  tourKeys: _activeCardTourKeys,
-                  onTourTargetReady:
-                      kMeasurementCardGesturesTourEnabled
-                          ? _maybeShowCardGesturesTour
-                          : null,
-                ),
-              );
-
-            case DashboardView.country:
-              final countryMeasurements =
-                  (state.response.measurements ?? [])
-                      .where((m) => m.siteDetails?.country == selectedCountry)
-                      .toList();
-
-              return MeasurementsList(
-                measurements: countryMeasurements,
-                tourKeys: _activeCardTourKeys,
-                onTourTargetReady:
-                    kMeasurementCardGesturesTourEnabled
-                        ? _maybeShowCardGesturesTour
-                        : null,
-              );
-
-            case DashboardView.explore:
-              return SliverToBoxAdapter(
-                child: ExploreCountriesView(
-                  measurements: state.response.measurements ?? [],
-                ),
-              );
-
-            default:
-              return MeasurementsList(
-                measurements:
-                    (state.response.measurements ?? []).take(5).toList(),
-                tourKeys: _activeCardTourKeys,
-                onTourTargetReady:
-                    kMeasurementCardGesturesTourEnabled
-                        ? _maybeShowCardGesturesTour
-                        : null,
-              );
-          }
+        if (loaded != null) {
+          return _buildLoadedView(loaded, isGuest: isGuest);
         }
 
         return const SliverToBoxAdapter(child: DashboardLoadingPage());
       },
     );
+  }
+
+  Widget _buildLoadedView(DashboardLoaded state, {bool isGuest = false}) {
+    void retry() {
+      context.read<DashboardBloc>().add(LoadDashboard(forceRefresh: true));
+    }
+
+    switch (currentView) {
+      case DashboardView.favorites:
+        loggy.info(
+            'Dashboard loaded with preferences: ${state.userPreferences != null}');
+        if (state.userPreferences != null) {
+          loggy.info(
+              'User has ${state.selectedLocationIds.length} selected locations');
+        }
+
+        return SliverToBoxAdapter(
+          child: MyPlacesView(
+            userPreferences: state.userPreferences,
+            prefsLoadFailed: state.prefsLoadFailed,
+            tourKeys: _activeCardTourKeys,
+            onTourTargetReady:
+                kMeasurementCardGesturesTourEnabled
+                    ? _maybeShowCardGesturesTour
+                    : null,
+          ),
+        );
+
+      case DashboardView.nearYou:
+        return SliverToBoxAdapter(
+          child: NearbyView(
+            onNavigateToFavorites: () =>
+                setView(DashboardView.favorites),
+            onExploreCities: isGuest
+                ? () => setView(DashboardView.explore)
+                : null,
+            tourKeys: _activeCardTourKeys,
+            onTourTargetReady:
+                kMeasurementCardGesturesTourEnabled
+                    ? _maybeShowCardGesturesTour
+                    : null,
+          ),
+        );
+
+      case DashboardView.country:
+        final countryMeasurements =
+            (state.response.measurements ?? [])
+                .where((m) => m.siteDetails?.country == selectedCountry)
+                .toList();
+
+        return MeasurementsList(
+          measurements: countryMeasurements,
+          tourKeys: _activeCardTourKeys,
+          onTourTargetReady:
+              kMeasurementCardGesturesTourEnabled
+                  ? _maybeShowCardGesturesTour
+                  : null,
+          onRetry: retry,
+        );
+
+      case DashboardView.explore:
+        return SliverToBoxAdapter(
+          child: ExploreCountriesView(
+            measurements: state.response.measurements ?? [],
+            onRetry: retry,
+          ),
+        );
+
+      default:
+        return MeasurementsList(
+          measurements:
+              (state.response.measurements ?? []).take(5).toList(),
+          tourKeys: _activeCardTourKeys,
+          onTourTargetReady:
+              kMeasurementCardGesturesTourEnabled
+                  ? _maybeShowCardGesturesTour
+                  : null,
+          onRetry: retry,
+        );
+    }
   }
 }

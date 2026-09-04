@@ -1,11 +1,10 @@
-import { UserDetails, Network, Group } from "@/app/types/users";
+import { UserDetails, Group } from "@/app/types/users";
 import { PERMISSIONS, Permission, mapLegacyPermission } from "./constants";
 
 // Access context for permission checking
 export interface AccessContext {
   user: UserDetails;
   activeOrganization?: Group;
-  activeNetwork?: Network;
   userRoles?: string[];
   requestedPermission: Permission;
   resourceContext?: {
@@ -124,13 +123,6 @@ class PermissionService {
       mapped.forEach((p) => permissions.add(p));
     };
 
-    // From user's networks
-    if (user.networks) {
-      user.networks.forEach((network) => {
-        network.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
-      });
-    }
-
     // From user's groups
     if (user.groups) {
       user.groups.forEach((group) => {
@@ -181,15 +173,7 @@ class PermissionService {
    * Get user's role in specific organization
    */
   getUserRole(user: UserDetails, organizationId?: string): string | undefined {
-    if (!user.networks && !user.groups) return undefined;
-
-    // Check networks first
-    if (user.networks) {
-      const networkRole = user.networks.find((network) => network._id === organizationId);
-      if (networkRole?.role?.role_name) {
-        return networkRole.role.role_name;
-      }
-    }
+    if (!user.groups) return undefined;
 
     // Check groups
     if (user.groups) {
@@ -206,19 +190,14 @@ class PermissionService {
    * Check if user is super admin
    */
   isSuperAdmin(user: UserDetails): boolean {
-    if (!user.networks && !user.groups) return false;
-
-    // Check if user has SUPER_ADMIN permission in any network
-    const hasSuperAdminNetwork = !!user.networks?.some((network) =>
-      network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
-    );
+    if (!user.groups) return false;
 
     // Check if user has SUPER_ADMIN permission in any group
     const hasSuperAdminGroup = !!user.groups?.some((group) =>
       group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
     );
 
-    return hasSuperAdminNetwork || hasSuperAdminGroup;
+    return hasSuperAdminGroup;
   }
 
   /**
@@ -261,18 +240,6 @@ class PermissionService {
   getOrganizationPermissions(user: UserDetails, organizationId: string): Permission[] {
     const permissions = new Set<Permission>();
 
-    // Check networks
-    if (user.networks) {
-      const network = user.networks.find((n) => n._id === organizationId);
-      if (network?.role?.role_permissions) {
-        network.role.role_permissions.forEach((permission) => {
-          if (permission.permission) {
-            permissions.add(permission.permission as Permission);
-          }
-        });
-      }
-    }
-
     // Check groups
     if (user.groups) {
       const group = user.groups.find((g) => g._id === organizationId);
@@ -301,19 +268,6 @@ class PermissionService {
    */
   getUserRoles(user: UserDetails): Array<{ role: string; organizationId: string; organizationName: string }> {
     const roles: Array<{ role: string; organizationId: string; organizationName: string }> = [];
-
-    // Add network roles
-    if (user.networks) {
-      user.networks.forEach((network) => {
-        if (network.role?.role_name) {
-          roles.push({
-            role: network.role.role_name,
-            organizationId: network._id,
-            organizationName: network.net_name,
-          });
-        }
-      });
-    }
 
     // Add group roles
     if (user.groups) {

@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_list_content.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -44,8 +45,8 @@ class _SurveyListPageState extends State<SurveyListPage> {
         titleSpacing: 16,
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.refresh,
+            icon: SystemGlyph.retry(
+              size: 22,
               color: theme.brightness == Brightness.dark
                   ? Colors.white
                   : AppColors.boldHeadlineColor4,

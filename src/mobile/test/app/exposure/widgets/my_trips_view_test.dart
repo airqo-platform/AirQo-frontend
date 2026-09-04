@@ -4,8 +4,10 @@ import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
 import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
+import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -56,24 +58,68 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
-        home: const Scaffold(
-          body: MyTripsView(
-            savedSites: [
-              SelectedSite(
-                id: 'site-1',
-                name: 'Home',
-                searchName: 'Home',
-                latitude: 0.3476,
-                longitude: 32.5825,
-              ),
-            ],
+        home: BlocProvider(
+          create: (_) => LanguageBloc(),
+          child: const Scaffold(
+            body: MyTripsView(
+              savedSites: [
+                SelectedSite(
+                  id: 'site-1',
+                  name: 'Home',
+                  searchName: 'Home',
+                  latitude: 0.3476,
+                  longitude: 32.5825,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
 
-    expect(find.text('Add at least two saved places to analyze a trip.'),
-        findsOneWidget);
+    expect(find.text('No trips to analyze'), findsOneWidget);
+  });
+
+  testWidgets('MyTripsView shows a loader while dashboard is first loading',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: const Scaffold(
+          body: MyTripsView(
+            savedSites: [],
+            isDashboardLoading: true,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('MyTripsView shows retry when dashboard failed', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: BlocProvider(
+          create: (_) => LanguageBloc(),
+          child: Scaffold(
+            body: MyTripsView(
+              savedSites: const [],
+              hasDashboardError: true,
+              onRetry: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Unable to load trips'), findsOneWidget);
+    expect(
+      find.text("We couldn't load your trips right now. Please try again."),
+      findsOneWidget,
+    );
+    expect(find.text('Try Again'), findsOneWidget);
   });
 }
 
