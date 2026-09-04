@@ -70,16 +70,9 @@ export function ThemeProvider({
   const token = extendedSession?.accessToken || extendedSession?.user?.accessToken;
 
   // Read active group from Redux if not explicitly passed as prop
-  let reduxGroupId: string | undefined;
-  try {
-    const activeGroup = useAppSelector((state) => state.user?.activeGroup);
-    reduxGroupId = activeGroup?._id;
-  } catch {
-    reduxGroupId = undefined;
-  }
+  const reduxGroupId = useAppSelector((state) => state.user?.activeGroup)?._id;
 
   const activeGroupId = propActiveGroupId || reduxGroupId;
-
   const [currentTheme, setCurrentTheme] = React.useState<ThemeData>(() => {
     return getStoredTheme(activeGroupId) || defaultThemeData;
   });
