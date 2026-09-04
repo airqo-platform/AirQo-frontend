@@ -49,13 +49,25 @@ export interface ThemeProviderProps {
   disableTransitionOnChange?: boolean;
 }
 
+interface ExtendedUser {
+  id?: string;
+  _id?: string;
+  accessToken?: string;
+}
+
+interface ExtendedSession {
+  user?: ExtendedUser;
+  accessToken?: string;
+}
+
 export function ThemeProvider({
   children,
   activeGroupId: propActiveGroupId,
 }: ThemeProviderProps) {
   const { data: session, status } = useSession();
-  const userId = (session?.user as any)?.id || (session?.user as any)?._id;
-  const token = (session as any)?.accessToken || (session?.user as any)?.accessToken;
+  const extendedSession = session as ExtendedSession | null;
+  const userId = extendedSession?.user?.id || extendedSession?.user?._id;
+  const token = extendedSession?.accessToken || extendedSession?.user?.accessToken;
 
   // Read active group from Redux if not explicitly passed as prop
   let reduxGroupId: string | undefined;
