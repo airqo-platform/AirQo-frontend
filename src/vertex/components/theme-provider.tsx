@@ -180,15 +180,53 @@ export function ThemeProvider({
     [updateTheme]
   );
 
-  // Determine resolvedTheme
-  const resolvedTheme: 'light' | 'dark' = React.useMemo(() => {
-    if (currentTheme.mode === 'dark') return 'dark';
-    if (currentTheme.mode === 'light') return 'light';
+  const [systemResolvedTheme, setSystemResolvedTheme] = React.useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     return 'light';
+  });
+
+  // Subscribe to prefers-color-scheme media query changes when in system mode
+  React.useEffect(() => {
+    if (currentTheme.mode !== 'system' || typeof window === 'undefined' || !window.matchMedia) {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const updateFromMediaQuery = (e: MediaQueryListEvent | MediaQueryList) => {
+      const isDark = e.matches;
+      setSystemResolvedTheme(isDark ? 'dark' : 'light');
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    updateFromMediaQuery(mediaQuery);
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateFromMediaQuery);
+      return () => mediaQuery.removeEventListener('change', updateFromMediaQuery);
+    } else {
+      type LegacyMediaQueryList = {
+        addListener?: (cb: (e: MediaQueryListEvent | MediaQueryList) => void) => void;
+        removeListener?: (cb: (e: MediaQueryListEvent | MediaQueryList) => void) => void;
+      };
+      const legacyQuery = mediaQuery as unknown as LegacyMediaQueryList;
+      legacyQuery.addListener?.(updateFromMediaQuery);
+      return () => legacyQuery.removeListener?.(updateFromMediaQuery);
+    }
   }, [currentTheme.mode]);
+
+  // Determine resolvedTheme
+  const resolvedTheme: 'light' | 'dark' = React.useMemo(() => {
+    if (currentTheme.mode === 'dark') return 'dark';
+    if (currentTheme.mode === 'light') return 'light';
+    return systemResolvedTheme;
+  }, [currentTheme.mode, systemResolvedTheme]);
 
   const contextValue = React.useMemo<ThemeContextValue>(
     () => ({

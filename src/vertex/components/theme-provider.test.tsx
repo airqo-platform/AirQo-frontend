@@ -155,4 +155,66 @@ describe('ThemeProvider', () => {
     expect(screen.getByTestId('theme-val').textContent).toBe('dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
+
+  it('subscribes to media query change events in system mode and updates resolvedTheme and dark class', () => {
+    let changeHandler: ((e: MediaQueryListEvent | MediaQueryList) => void) | null = null;
+    const addEventListenerMock = vi.fn((event: string, cb: (e: MediaQueryListEvent | MediaQueryList) => void) => {
+      if (event === 'change') changeHandler = cb;
+    });
+    const removeEventListenerMock = vi.fn();
+
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: addEventListenerMock,
+      removeEventListener: removeEventListenerMock,
+      dispatchEvent: vi.fn(),
+    }));
+
+    const { unmount } = render(
+      <ThemeProvider>
+        <TestConsumer />
+      </ThemeProvider>
+    );
+
+    // Switch to system mode
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'theme',
+          newValue: JSON.stringify({
+            mode: 'system',
+            primaryColor: '#145FFF',
+            interfaceStyle: 'default',
+            contentLayout: 'wide',
+          }),
+        })
+      );
+    });
+
+    expect(addEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+
+    // Simulate OS switching to dark mode
+    act(() => {
+      changeHandler?.({ matches: true } as MediaQueryListEvent);
+    });
+
+    expect(screen.getByTestId('resolved-theme-val').textContent).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+    // Simulate OS switching to light mode
+    act(() => {
+      changeHandler?.({ matches: false } as MediaQueryListEvent);
+    });
+
+    expect(screen.getByTestId('resolved-theme-val').textContent).toBe('light');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+
+    // Unmount cleans up listener
+    unmount();
+    expect(removeEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+  });
 });
