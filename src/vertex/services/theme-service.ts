@@ -95,13 +95,17 @@ class ThemeService {
   async fetchUserTheme(
     groupId?: string | null,
     userId?: string | null,
-    tokenOverride?: string | null
+    tokenOverride?: string | null,
+    signal?: AbortSignal
   ): Promise<ThemeData | null> {
     try {
+      if (signal?.aborted) return null;
+
       const headers = this.getHeaders(tokenOverride);
 
       // If no token is available at all, return stored local theme
       if (!('Authorization' in headers)) {
+        if (signal?.aborted) return null;
         return getStoredTheme(groupId || undefined);
       }
 
@@ -126,10 +130,13 @@ class ThemeService {
       }
 
       for (const url of endpointsToTry) {
+        if (signal?.aborted) return null;
+
         try {
           const response = await fetch(url, {
             method: 'GET',
             headers,
+            signal,
           });
 
           if (!response.ok) {
@@ -152,23 +159,37 @@ class ThemeService {
               contentLayout: payload.contentLayout || 'wide',
             };
 
+            // Exit if aborted before performing any storage or DOM writes
+            if (signal?.aborted) {
+              return null;
+            }
+
             // Save to localStorage & immediately apply to DOM
             saveThemeToStorage(themeData, groupId || undefined);
             applyThemeImmediately(themeData);
             return themeData;
           }
         } catch (endpointError) {
+          if (signal?.aborted || (endpointError instanceof Error && endpointError.name === 'AbortError')) {
+            return null;
+          }
           console.debug(`Theme fetch failed for endpoint ${url}:`, endpointError);
         }
       }
 
+      if (signal?.aborted) return null;
+
       // If API calls did not return a theme, fallback to local storage
       const fallback = getStoredTheme(groupId || undefined);
       if (fallback) {
+        if (signal?.aborted) return null;
         applyThemeImmediately(fallback);
       }
       return fallback;
     } catch (error) {
+      if (signal?.aborted || (error instanceof Error && error.name === 'AbortError')) {
+        return null;
+      }
       console.debug('Error in fetchUserTheme:', error);
       return getStoredTheme(groupId || undefined);
     }

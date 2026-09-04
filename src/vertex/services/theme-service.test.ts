@@ -90,6 +90,25 @@ describe('themeService', () => {
       const result = await themeService.fetchUserTheme('group-123', 'user-456', 'mock-token');
       expect(result).toEqual(fallbackTheme);
     });
+
+    it('aborts request and exits without writing to storage or DOM when signal is aborted', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const saveSpy = vi.spyOn(themeUtils, 'saveThemeToStorage');
+      const applySpy = vi.spyOn(themeUtils, 'applyThemeImmediately');
+
+      const result = await themeService.fetchUserTheme(
+        'group-123',
+        'user-456',
+        'mock-token',
+        controller.signal
+      );
+
+      expect(result).toBeNull();
+      expect(saveSpy).not.toHaveBeenCalled();
+      expect(applySpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateUserTheme', () => {

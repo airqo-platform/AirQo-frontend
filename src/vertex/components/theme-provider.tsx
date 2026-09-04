@@ -132,18 +132,26 @@ export function ThemeProvider({
 
   // 3. Fetch latest theme from backend API when authenticated or group changes
   React.useEffect(() => {
-    if (status === 'authenticated') {
-      themeService
-        .fetchUserTheme(activeGroupId, userId, token)
-        .then((fetchedTheme) => {
-          if (fetchedTheme) {
-            setCurrentTheme(fetchedTheme);
-          }
-        })
-        .catch((err) => {
+    if (status !== 'authenticated') return;
+
+    const controller = new AbortController();
+
+    themeService
+      .fetchUserTheme(activeGroupId, userId, token, controller.signal)
+      .then((fetchedTheme) => {
+        if (!controller.signal.aborted && fetchedTheme) {
+          setCurrentTheme(fetchedTheme);
+        }
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
           console.debug('Could not fetch theme from API:', err);
-        });
-    }
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [activeGroupId, userId, token, status]);
 
   // Mutator helpers

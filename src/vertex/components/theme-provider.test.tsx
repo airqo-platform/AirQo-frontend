@@ -2,11 +2,16 @@ import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
 import { ThemeProvider, useTheme } from './theme-provider';
+import { themeService } from '@/services/theme-service';
+import { ThemeData } from '@/lib/theme-utils';
+
+let mockSessionStatus = 'unauthenticated';
+let mockSessionData: { user?: { id?: string; _id?: string }; accessToken?: string } | null = null;
 
 vi.mock('next-auth/react', () => ({
   useSession: () => ({
-    data: null,
-    status: 'unauthenticated',
+    data: mockSessionData,
+    status: mockSessionStatus,
   }),
 }));
 
@@ -30,6 +35,9 @@ describe('ThemeProvider', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.className = '';
+    mockSessionStatus = 'unauthenticated';
+    mockSessionData = null;
+    vi.restoreAllMocks();
   });
 
   it('renders children and provides default theme context', () => {
@@ -216,5 +224,81 @@ describe('ThemeProvider', () => {
     // Unmount cleans up listener
     unmount();
     expect(removeEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+  });
+
+  it('aborts previous theme fetch and avoids applying stale theme when active group changes before resolution', async () => {
+    mockSessionStatus = 'authenticated';
+    mockSessionData = { user: { id: 'user-1' }, accessToken: 'token-1' };
+
+    let resolveGroup1: (value: unknown) => void;
+    let resolveGroup2: (value: unknown) => void;
+
+    const group1Promise = new Promise((resolve) => {
+      resolveGroup1 = resolve;
+    });
+    const group2Promise = new Promise((resolve) => {
+      resolveGroup2 = resolve;
+    });
+
+    const fetchSpy = vi
+      .spyOn(themeService, 'fetchUserTheme')
+      .mockImplementation((groupId?: string | null, _userId?: string | null, _token?: string | null, signal?: AbortSignal) => {
+        if (groupId === 'group-1') {
+          return group1Promise.then((data) => {
+            if (signal?.aborted) return null;
+            return data as ThemeData;
+          });
+        }
+        if (groupId === 'group-2') {
+          return group2Promise.then((data) => {
+            if (signal?.aborted) return null;
+            return data as ThemeData;
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+    const { rerender } = render(
+      <ThemeProvider activeGroupId="group-1">
+        <TestConsumer />
+      </ThemeProvider>
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith('group-1', 'user-1', 'token-1', expect.any(AbortSignal));
+
+    // Switch group to group-2 before group-1 resolves
+    rerender(
+      <ThemeProvider activeGroupId="group-2">
+        <TestConsumer />
+      </ThemeProvider>
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith('group-2', 'user-1', 'token-1', expect.any(AbortSignal));
+
+    // Now resolve group-1 with dark mode
+    await act(async () => {
+      resolveGroup1!({
+        mode: 'dark',
+        primaryColor: '#FF0000',
+        interfaceStyle: 'default',
+        contentLayout: 'wide',
+      });
+    });
+
+    // Theme must NOT have updated to group-1's dark theme because group-1 request was aborted
+    expect(screen.getByTestId('theme-val').textContent).toBe('light');
+
+    // Now resolve group-2 with dark mode
+    await act(async () => {
+      resolveGroup2!({
+        mode: 'dark',
+        primaryColor: '#00FF00',
+        interfaceStyle: 'default',
+        contentLayout: 'wide',
+      });
+    });
+
+    // Group-2 theme is applied
+    expect(screen.getByTestId('theme-val').textContent).toBe('dark');
   });
 });
