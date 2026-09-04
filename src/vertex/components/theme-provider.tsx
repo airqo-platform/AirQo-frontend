@@ -110,7 +110,10 @@ export function ThemeProvider({
         ? `${GROUP_THEME_STORAGE_PREFIX}${activeGroupId}`
         : null;
       const isCurrentGroupTheme = isGroupTheme && event.key === currentGroupKey;
-      const isFallbackTheme = isGeneralTheme && !currentGroupKey;
+      const hasGroupOverride = Boolean(
+        currentGroupKey && localStorage.getItem(currentGroupKey)
+      );
+      const isFallbackTheme = isGeneralTheme && !hasGroupOverride;
 
       if (!isCurrentGroupTheme && !isFallbackTheme) return;
 
