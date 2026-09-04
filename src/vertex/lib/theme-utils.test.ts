@@ -110,6 +110,49 @@ describe('theme-utils', () => {
     it('returns null for invalid/malformed JSON string', () => {
       expect(parseThemeValue('{not-valid-json')).toBeNull();
     });
+
+    it('falls back to default mode when mode is invalid or unsupported', () => {
+      const json = JSON.stringify({
+        mode: 'neon-cyberpunk',
+        primaryColor: '#123456',
+      });
+      const parsed = parseThemeValue(json);
+      expect(parsed?.mode).toBe('light');
+      expect(parsed?.primaryColor).toBe('#123456');
+    });
+
+    it('validates primaryColor and preserves color fallback order', () => {
+      // 1. primaryColor provided as valid string
+      const withPrimary = JSON.stringify({
+        primaryColor: '#AA0000',
+        color: '#00AA00',
+      });
+      expect(parseThemeValue(withPrimary)?.primaryColor).toBe('#AA0000');
+
+      // 2. primaryColor invalid/missing, fallback to color
+      const withColorFallback = JSON.stringify({
+        primaryColor: 12345, // invalid non-string
+        color: '#00AA00',
+      });
+      expect(parseThemeValue(withColorFallback)?.primaryColor).toBe('#00AA00');
+
+      // 3. Both missing or invalid, fallback to '#145FFF'
+      const withNeither = JSON.stringify({
+        primaryColor: null,
+        color: {},
+      });
+      expect(parseThemeValue(withNeither)?.primaryColor).toBe('#145FFF');
+    });
+
+    it('falls back to default interfaceStyle and contentLayout when invalid', () => {
+      const json = JSON.stringify({
+        interfaceStyle: 'floating',
+        contentLayout: 'fullscreen',
+      });
+      const parsed = parseThemeValue(json);
+      expect(parsed?.interfaceStyle).toBe('default');
+      expect(parsed?.contentLayout).toBe('wide');
+    });
   });
 
   describe('getGroupThemeKey', () => {
@@ -150,6 +193,27 @@ describe('theme-utils', () => {
       clearStoredTheme();
       expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
     });
+
+    it('runtime-validates malformed stored theme in localStorage', () => {
+      localStorage.setItem(
+        THEME_STORAGE_KEY,
+        JSON.stringify({
+          mode: 'unsupported_mode',
+          primaryColor: 12345,
+          color: {},
+          interfaceStyle: 'invalid_style',
+          contentLayout: 'invalid_layout',
+        })
+      );
+
+      const stored = getStoredTheme();
+      expect(stored).toEqual({
+        mode: 'light',
+        primaryColor: '#145FFF',
+        interfaceStyle: 'default',
+        contentLayout: 'wide',
+      });
+    });
   });
 
   describe('applyThemeImmediately', () => {
@@ -175,6 +239,19 @@ describe('theme-utils', () => {
       });
 
       expect(document.documentElement.classList.contains('dark')).toBe(false);
+    });
+
+    it('safely handles malformed ThemeData without throwing errors', () => {
+      expect(() => {
+        applyThemeImmediately({
+          mode: 'invalid-mode' as unknown as 'light',
+          primaryColor: 99999 as unknown as string,
+        });
+      }).not.toThrow();
+
+      // Confirms fallback light mode and fallback color were safely applied
+      expect(document.documentElement.classList.contains('dark')).toBe(false);
+      expect(document.documentElement.style.getPropertyValue('--primary')).toBe('20 95 255');
     });
   });
 

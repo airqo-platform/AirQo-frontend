@@ -43,20 +43,44 @@ export function parseThemeValue(raw: string | null): ThemeData | null {
   try {
     const parsed = JSON.parse(trimmed);
     if (typeof parsed === 'string') {
-      if (parsed === 'light' || parsed === 'dark' || parsed === 'system') {
-        return {
-          mode: parsed,
-          primaryColor: '#145FFF',
-          interfaceStyle: 'default',
-          contentLayout: 'wide',
-        };
-      }
-    } else if (typeof parsed === 'object' && parsed !== null) {
+      const mode =
+        parsed === 'light' || parsed === 'dark' || parsed === 'system'
+          ? parsed
+          : 'light';
       return {
-        mode: parsed.mode || 'light',
-        primaryColor: parsed.primaryColor || parsed.color || '#145FFF',
-        interfaceStyle: parsed.interfaceStyle || 'default',
-        contentLayout: parsed.contentLayout || 'wide',
+        mode,
+        primaryColor: '#145FFF',
+        interfaceStyle: 'default',
+        contentLayout: 'wide',
+      };
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      const mode =
+        parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'system'
+          ? parsed.mode
+          : 'light';
+
+      const primaryColor =
+        typeof parsed.primaryColor === 'string' && parsed.primaryColor.trim()
+          ? parsed.primaryColor.trim()
+          : typeof parsed.color === 'string' && parsed.color.trim()
+          ? parsed.color.trim()
+          : '#145FFF';
+
+      const interfaceStyle =
+        parsed.interfaceStyle === 'bordered' || parsed.interfaceStyle === 'default'
+          ? parsed.interfaceStyle
+          : 'default';
+
+      const contentLayout =
+        parsed.contentLayout === 'compact' || parsed.contentLayout === 'wide'
+          ? parsed.contentLayout
+          : 'wide';
+
+      return {
+        mode,
+        primaryColor,
+        interfaceStyle,
+        contentLayout,
       };
     }
   } catch {
@@ -130,6 +154,9 @@ export function clearStoredTheme(groupId?: string): void {
  * Convert hex color to RGB triplet string ('20 95 255')
  */
 export function hexToRgb(hex: string): string {
+  if (typeof hex !== 'string') {
+    return '20 95 255';
+  }
   const clean = hex.replace('#', '');
   if (!/^[0-9a-fA-F]{6}$/.test(clean)) {
     return '20 95 255';
@@ -165,9 +192,17 @@ export function darkenRgb(rgb: string, amount: number): string {
  * shades, and the dark mode class on document.documentElement.
  */
 export function applyThemeImmediately(theme: ThemeData): void {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || !theme) return;
 
-  const { mode, primaryColor } = theme;
+  const mode =
+    theme.mode === 'light' || theme.mode === 'dark' || theme.mode === 'system'
+      ? theme.mode
+      : 'light';
+  const primaryColor =
+    typeof theme.primaryColor === 'string' && theme.primaryColor.trim()
+      ? theme.primaryColor.trim()
+      : '#145FFF';
+
   const rgb = hexToRgb(primaryColor);
 
   document.documentElement.style.setProperty('--primary', rgb);
