@@ -58,13 +58,7 @@ export const metadata: Metadata = {
   },
 };
 
-const hexToRgbValues = (hex: string) => {
-  const normalizedHex = hex.replace('#', '');
-  const r = parseInt(normalizedHex.slice(0, 2), 16);
-  const g = parseInt(normalizedHex.slice(2, 4), 16);
-  const b = parseInt(normalizedHex.slice(4, 6), 16);
-  return `${r} ${g} ${b}`;
-};
+import { getThemeScript } from '@/lib/theme-utils';
 
 export default async function RootLayout({
   children,
@@ -78,13 +72,15 @@ export default async function RootLayout({
     logger.error("Failed to fetch session:", { error });
   }
 
-  const primaryRgb = hexToRgbValues(vertexConfig.org.primaryColor);
-
   return (
-    <html lang="en" className={inter.variable} style={{ '--primary': primaryRgb } as React.CSSProperties}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://api.mapbox.com" />
         <link rel="preconnect" href="https://events.mapbox.com" />
+        <script
+          id="theme-script"
+          dangerouslySetInnerHTML={{ __html: getThemeScript() }}
+        />
       </head>
       <ClientLayout session={session}>{children}</ClientLayout>
     </html>
