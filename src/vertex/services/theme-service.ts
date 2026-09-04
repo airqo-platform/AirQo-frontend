@@ -16,7 +16,7 @@ export const getPlatformApiBaseUrl = (): string => {
       hostname === '127.0.0.1' ||
       hostname.startsWith('192.168.') ||
       hostname.startsWith('10.') ||
-      hostname.startsWith('172.')
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
     ) {
       return (
         process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
