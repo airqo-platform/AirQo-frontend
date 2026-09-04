@@ -1,0 +1,5 @@
+app_identifier("com.airqo.net") # The bundle identifier of your app
+team_id("DFMDF9D6NT") # AirQo Apple Developer Team ID
+
+# Authentication is handled via an App Store Connect API key (see fastlane/Fastfile),
+# so no apple_id / itc_team_id is required here.
