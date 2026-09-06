@@ -16,15 +16,21 @@ import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/auth/services/auth_validation_helper.dart';
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/retry_button.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
+import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
+  final bool prefsLoadFailed;
   final MeasurementCardTourKeys? tourKeys;
   final VoidCallback? onTourTargetReady;
 
   const MyPlacesView({
     super.key,
     this.userPreferences,
+    this.prefsLoadFailed = false,
     this.tourKeys,
     this.onTourTargetReady,
   });
@@ -52,7 +58,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   void didUpdateWidget(MyPlacesView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.userPreferences != oldWidget.userPreferences) {
+    if (widget.userPreferences != oldWidget.userPreferences ||
+        widget.prefsLoadFailed != oldWidget.prefsLoadFailed) {
       loggy.info('User preferences updated, reloading measurements');
       _loadSelectedMeasurements();
     }
@@ -395,12 +402,20 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  if (isLoading)
-                    _buildLoadingState()
-                  else if (selectedMeasurements.isEmpty &&
-                      unmatchedSites.isEmpty)
-                    (_prefsAuthError ? _buildSessionExpiredState() : _buildEmptyState())
-                  else ...[
+                  ...switch (resolveSavedPlacesContent(
+                    isLoading: isLoading,
+                    loadFailed: widget.prefsLoadFailed,
+                    hasPlaces: selectedMeasurements.isNotEmpty ||
+                        unmatchedSites.isNotEmpty,
+                  )) {
+                    SavedPlacesContentStatus.loading => [_buildLoadingState()],
+                    SavedPlacesContentStatus.error => [_buildLoadErrorState()],
+                    SavedPlacesContentStatus.empty => [
+                        _prefsAuthError
+                            ? _buildSessionExpiredState()
+                            : _buildEmptyState(),
+                      ],
+                    SavedPlacesContentStatus.ready => [
                     ...selectedMeasurements.asMap().entries.map((entry) {
                       final index = entry.key;
                       final measurement = entry.value;
@@ -434,6 +449,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                           ),
                         )),
                   ],
+                  },
                 ],
               ),
             ),
@@ -463,6 +479,21 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadErrorState() {
+    return EmptyStateView(
+      icon: SystemGlyph.error(context),
+      title: 'Unable to load favorites',
+      message:
+          "We couldn't load your saved places right now. Please try again.",
+      actionLabel: 'Try Again',
+      onAction: () {
+        context.read<DashboardBloc>().add(
+              const LoadUserPreferences(forceRefresh: true),
+            );
+      },
     );
   }
 
@@ -533,7 +564,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
           ),
         ),
         const SizedBox(height: 24),
-        ElevatedButton.icon(
+        RetryButton(
           onPressed: () async {
             final token = await AuthHelper.refreshTokenIfNeeded();
             if (token != null && mounted) {
@@ -546,14 +577,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
               );
             }
           },
-          icon: const Icon(Icons.refresh),
-          label: const TranslatedText('Refresh Session'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
+          label: 'Refresh Session',
         ),
       ],
     );

@@ -42,14 +42,13 @@ export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
  * the fallback handles the null case internally.
  *
  * Both this hook and useHasAnyPermission use the same spread-last merge pattern:
- * defaults (activeGroup/activeNetwork) are set first, then `...context` is spread
+ * defaults (activeGroup) are set first, then `...context` is spread
  * on top. This means an explicit `activeOrganization: undefined` in context IS
  * honoured and produces a global (all-orgs) check, which is the intended escape hatch.
  */
 export const usePermission = (permission: Permission, context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const userContext = useAppSelector((state) => state.user.userContext);
 
   const result = useMemo(() => {
@@ -61,10 +60,9 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 
     return permissionService.hasPermission(user, permission, {
       activeOrganization: activeGroup ?? undefined,
-      activeNetwork: activeNetwork ?? undefined,
       ...context,
     });
-  }, [user, permission, activeGroup, activeNetwork, userContext, context]);
+  }, [user, permission, activeGroup, userContext, context]);
 
   return result;
 };
@@ -75,7 +73,6 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 export const usePermissionCheck = (permission: Permission, context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMemo(() => {
     if (!user) {
@@ -87,10 +84,9 @@ export const usePermissionCheck = (permission: Permission, context?: Partial<Acc
 
     return permissionService.checkPermission(user, permission, {
       activeOrganization: activeGroup ?? undefined,
-      activeNetwork: activeNetwork ?? undefined,
       ...context,
     });
-  }, [user, permission, activeGroup, activeNetwork, context]);
+  }, [user, permission, activeGroup, context]);
 };
 
 /**
@@ -193,7 +189,6 @@ export const usePermissionDescription = (permission: Permission) => {
 export const usePermissions = (permissions: Permission[], context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const result = useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
@@ -213,12 +208,11 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
     return permissions.reduce((acc, permission) => {
       acc[permission] = permissionService.hasPermission(user, permission, {
         activeOrganization: activeGroup ?? undefined,
-        activeNetwork: activeNetwork ?? undefined,
         ...context,
       });
       return acc;
     }, {} as Record<Permission, boolean>);
-  }, [user, permissions, activeGroup, activeNetwork, context]);
+  }, [user, permissions, activeGroup, context]);
 
   return result;
 };
@@ -232,7 +226,6 @@ export const usePermissions = (permissions: Permission[], context?: Partial<Acce
 export const useHasAnyPermission = (permissions: Permission[], context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
@@ -244,11 +237,10 @@ export const useHasAnyPermission = (permissions: Permission[], context?: Partial
     return permissions.some((permission) =>
       permissionService.hasPermission(user, permission, {
         activeOrganization: activeGroup ?? undefined,
-        activeNetwork: activeNetwork ?? undefined,
         ...context,
       })
     );
-  }, [user, permissions, activeGroup, activeNetwork, context]);
+  }, [user, permissions, activeGroup, context]);
 };
 
 /**
@@ -257,7 +249,6 @@ export const useHasAnyPermission = (permissions: Permission[], context?: Partial
 export const useHasAllPermissions = (permissions: Permission[], context?: Partial<AccessContext>) => {
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
@@ -269,9 +260,8 @@ export const useHasAllPermissions = (permissions: Permission[], context?: Partia
     return permissions.every((permission) =>
       permissionService.hasPermission(user, permission, {
         activeOrganization: activeGroup ?? undefined,
-        activeNetwork: activeNetwork ?? undefined,
         ...context,
       })
     );
-  }, [user, permissions, activeGroup, activeNetwork, context]);
+  }, [user, permissions, activeGroup, context]);
 };

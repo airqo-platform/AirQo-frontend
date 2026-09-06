@@ -30,6 +30,8 @@ class DashboardLoaded extends DashboardState {
   /// True when the preferences fetch returned a 401, meaning the user's token
   /// is expired. The session is not wiped — the user just needs a token refresh.
   final bool prefsAuthError;
+  /// True when saved places/preferences could not be loaded (network/server).
+  final bool prefsLoadFailed;
 
   const DashboardLoaded(
     this.response, {
@@ -37,10 +39,12 @@ class DashboardLoaded extends DashboardState {
     this.isOffline = false,
     this.lastUpdated,
     this.prefsAuthError = false,
+    this.prefsLoadFailed = false,
   });
 
   @override
-  List<Object?> get props => [response, userPreferences, isOffline, lastUpdated, prefsAuthError];
+  List<Object?> get props =>
+      [response, userPreferences, isOffline, lastUpdated, prefsAuthError, prefsLoadFailed];
 
   List<String> get selectedLocationIds {
     if (userPreferences == null) return [];
@@ -57,6 +61,7 @@ class DashboardLoaded extends DashboardState {
     bool? isOffline,
     DateTime? lastUpdated,
     bool? prefsAuthError,
+    bool? prefsLoadFailed,
   }) {
     return DashboardLoaded(
       response ?? this.response,
@@ -64,6 +69,7 @@ class DashboardLoaded extends DashboardState {
       isOffline: isOffline ?? this.isOffline,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       prefsAuthError: prefsAuthError ?? this.prefsAuthError,
+      prefsLoadFailed: prefsLoadFailed ?? this.prefsLoadFailed,
     );
   }
 }
@@ -75,6 +81,7 @@ class DashboardRefreshing extends DashboardLoaded {
     super.isOffline,
     super.lastUpdated,
     super.prefsAuthError,
+    super.prefsLoadFailed,
   });
 }
 
@@ -87,6 +94,7 @@ class DashboardLoadedWithError extends DashboardLoaded {
     super.isOffline,
     super.lastUpdated,
     super.prefsAuthError,
+    super.prefsLoadFailed,
     required this.errorMessage,
   });
 

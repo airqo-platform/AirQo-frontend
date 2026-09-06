@@ -209,9 +209,9 @@ export default function LoginPage() {
   }, [callbackUrl, step, form, showBanner, captchaToken, hcaptchaEnabled]);
 
   return (
-    <div className="flex min-h-screen lg:h-screen w-full flex-col bg-primary-50 text-foreground">
+    <div className="flex min-h-screen lg:h-screen w-full flex-col bg-white dark:bg-background text-foreground">
       {/* Sticky Topbar */}
-      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-primary-50 backdrop-blur supports-[backdrop-filter]:bg-primary-50/60">
+      <header data-vertex-topbar className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 dark:bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-12 items-center justify-between px-6 md:px-8">
           <div className="flex items-center">
             <Image
@@ -242,7 +242,7 @@ export default function LoginPage() {
       {/* Main Content Area */}
       <main className="flex flex-1 overflow-y-auto">
         <div className="flex flex-1 flex-col px-4 sm:px-6">
-          <div className="mx-auto w-full max-w-[450px] my-auto border border-primary/20 rounded-lg p-8 shadow-md bg-white">
+          <div className="mx-auto w-full max-w-[450px] my-auto border border-primary/20 rounded-lg p-8 shadow-md bg-white dark:bg-card">
             <div className="mb-10 text-center">
               <h1 className="text-3xl font-semibold leading-relaxed text-foreground sm:text-4xl">
                 <span className="block">Deploy devices,</span>

@@ -25,7 +25,7 @@ import AppDropdown from './AppDropdown';
 import { openFeedbackDialog } from '../features/feedback/feedback-dialog';
 import { useSession } from 'next-auth/react';
 import type { UserDetails } from '@/app/types/users';
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { vertexConfig } from '@/vertex.config';
 import { profileSettingsUrl } from '@/core/urls';
 

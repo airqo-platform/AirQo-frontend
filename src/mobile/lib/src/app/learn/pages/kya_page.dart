@@ -11,8 +11,9 @@ import 'package:airqo/src/app/learn/widgets/learn_bottom_sheets.dart';
 import 'package:airqo/src/app/learn/widgets/learn_course_portrait_card.dart';
 import 'package:airqo/src/app/learn/widgets/learn_dashboard_header.dart';
 import 'package:airqo/src/app/learn/widgets/learn_level_summary_card.dart';
-import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -177,7 +178,9 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
   Widget _buildCoursesContent() {
     return BlocBuilder<KyaBloc, KyaState>(
       builder: (context, state) {
-        if (state is LessonsLoading || _isRetrying) {
+        if (state is LessonsLoading ||
+            state is KyaInitial ||
+            _isRetrying) {
           return CustomScrollView(
             slivers: [
               ..._headerSlivers(),
@@ -217,6 +220,31 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _onLessonsReady(courses);
           });
+        }
+
+        if (courses.isEmpty) {
+          return RefreshIndicator(
+            onRefresh: () => _refreshLessons(catalog),
+            color: AppColors.primaryColor,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                ..._headerSlivers(),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyStateView(
+                    icon: SystemGlyph.emptyLearn(context),
+                    title: 'No courses available',
+                    message:
+                        "We couldn't find any courses right now. Please try again.",
+                    actionLabel: 'Try Again',
+                    onAction: _retryLoading,
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         final stage = LearnCatalog.currentStage(courses, _progress);
@@ -321,26 +349,16 @@ class _KyaPageState extends State<KyaPage> with UiLoggy {
           ),
           const SizedBox(height: 60),
           Center(
-            child: Column(
-              children: [
-                Icon(
-                  state.isOffline ? Icons.cloud_off : Icons.error_outline,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
-                const TranslatedText(
-                  'Unable to load content',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _retryLoading,
-                  icon: const Icon(Icons.refresh),
-                  label: const TranslatedText('Try Again'),
-                  style: learnExposurePrimaryButtonStyle(),
-                ),
-              ],
+            child: EmptyStateView(
+              icon: state.isOffline
+                  ? SystemGlyph.offline(context, size: 64)
+                  : SystemGlyph.error(context, size: 64),
+              title: 'Unable to load content',
+              message: state.isOffline
+                  ? 'Please check your connection and try again'
+                  : 'Something went wrong. Please try again later',
+              actionLabel: 'Try Again',
+              onAction: _retryLoading,
             ),
           ),
         ],

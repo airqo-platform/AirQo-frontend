@@ -15,7 +15,13 @@ class LoadDashboard extends DashboardEvent {
   List<Object> get props => [forceRefresh];
 }
 
-class LoadUserPreferences extends DashboardEvent {}
+class LoadUserPreferences extends DashboardEvent {
+  final bool forceRefresh;
+  const LoadUserPreferences({this.forceRefresh = false});
+
+  @override
+  List<Object> get props => [forceRefresh];
+}
 
 class UpdateSelectedLocations extends DashboardEvent {
   final List<String> locationIds;

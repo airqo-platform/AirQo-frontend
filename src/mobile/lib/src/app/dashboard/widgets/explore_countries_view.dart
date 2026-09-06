@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 
 class ExploreCountriesView extends StatelessWidget {
   final List<Measurement> measurements;
+  final VoidCallback? onRetry;
 
-  const ExploreCountriesView({super.key, required this.measurements});
+  const ExploreCountriesView({
+    super.key,
+    required this.measurements,
+    this.onRetry,
+  });
 
   Map<String, List<Measurement>> _groupByCountry() {
     final grouped = <String, List<Measurement>>{};
@@ -23,6 +30,16 @@ class ExploreCountriesView extends StatelessWidget {
   Widget build(BuildContext context) {
     final grouped = _groupByCountry();
     final countries = grouped.keys.toList()..sort();
+
+    if (countries.isEmpty) {
+      return EmptyStateView(
+        icon: SystemGlyph.emptyPlace(context),
+        title: 'No air quality stations available',
+        message: "We couldn't find any stations right now. Please try again.",
+        actionLabel: onRetry != null ? 'Try Again' : null,
+        onAction: onRetry,
+      );
+    }
 
     return ListView.builder(
       shrinkWrap: true,

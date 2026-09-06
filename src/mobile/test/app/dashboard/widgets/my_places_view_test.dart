@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
+import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +25,10 @@ void main() {
     });
 
 
-    Widget createTestWidget({UserPreferencesModel? userPreferences}) {
+    Widget createTestWidget({
+      UserPreferencesModel? userPreferences,
+      bool prefsLoadFailed = false,
+    }) {
       return MaterialApp(
         home: MultiBlocProvider(
           providers: [
@@ -32,10 +36,14 @@ void main() {
             BlocProvider<ForecastBloc>(
               create: (context) => ForecastBloc(ForecastImpl()),
             ),
+            BlocProvider<LanguageBloc>(
+              create: (context) => LanguageBloc(),
+            ),
           ],
           child: Scaffold(
             body: MyPlacesView(
               userPreferences: userPreferences,
+              prefsLoadFailed: prefsLoadFailed,
             ),
           ),
         ),
@@ -57,6 +65,22 @@ void main() {
       expect(find.text('Start by adding locations you care about.'),
           findsOneWidget);
       expect(find.text('+Add Location'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('displays load error when preferences fetch failed',
+        (WidgetTester tester) async {
+      when(mockDashboardBloc.state).thenReturn(DashboardLoaded(
+        AirQualityResponse(success: true, measurements: []),
+        prefsLoadFailed: true,
+      ));
+      when(mockDashboardBloc.stream).thenAnswer((_) => Stream.empty());
+
+      await tester.pumpWidget(createTestWidget(prefsLoadFailed: true));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load favorites'), findsOneWidget);
+      expect(find.text('Add places you love'), findsNothing);
+      expect(find.text('+Add Location'), findsNothing);
     });
 
     testWidgets(
@@ -220,9 +244,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Remote Location'), findsOneWidget);
-      expect(find.text('Loading data'), findsOneWidget);
-      expect(find.text('Lat: 1.000000'), findsOneWidget);
-      expect(find.text('Long: 2.000000'), findsOneWidget);
+      expect(find.text('Unavailable'), findsOneWidget);
     });
 
     testWidgets('add location button exists without testing navigation',
@@ -344,7 +366,7 @@ void main() {
       expect(find.byType(SwipeableAnalyticsCard), findsOneWidget);
       expect(find.text('Test Location Name'), findsOneWidget);
 
-      expect(find.text('25.50'), findsOneWidget);
+      expect(find.text('25.5'), findsOneWidget);
       expect(find.text('Moderate'), findsOneWidget);
     });
   });

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -58,6 +59,15 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
   @override
   Future<AirQualityResponse> fetchAirQualityReadings({bool forceRefresh = false}) async {
     loggy.info('Fetching air quality readings (forceRefresh: $forceRefresh)');
+
+    if (DebugApiOverride.instance.forceFailAirQuality) {
+      loggy.warning('DEBUG: simulating air quality API failure');
+      throw Exception('DEBUG: simulated air quality API failure');
+    }
+    if (DebugApiOverride.instance.forceEmptyAirQuality) {
+      loggy.warning('DEBUG: returning empty air quality readings');
+      return DebugApiOverride.instance.emptyAirQualityResponse;
+    }
     
     final cachedData = await _cacheManager.get<AirQualityResponse>(
       boxName: CacheBoxName.airQuality,

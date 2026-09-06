@@ -3,6 +3,7 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/forecast_guidance.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
@@ -218,15 +219,11 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
       padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.withValues(alpha: 0.1),
+        color: AppSurfaceColors.nested(context),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.wifi_off,
-            color: Colors.grey,
-            size: 24,
-          ),
+          SystemGlyph.offline(context, size: 24),
           SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -276,15 +273,12 @@ class _AnalyticsForecastWidgetState extends State<AnalyticsForecastWidget> with 
       padding: EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.withValues(alpha: 0.1),
+        color: AppAlertColors.errorBackground(context),
+        border: Border.all(color: AppAlertColors.errorBorder(context)),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.grey,
-            size: 24,
-          ),
+          SystemGlyph.error(context, size: 24),
           SizedBox(width: 8),
           Expanded(
             child: Text(

@@ -1,4 +1,5 @@
-import 'package:airqo/src/app/learn/widgets/learn_sheet_button_styles.dart';
+import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
@@ -34,12 +35,12 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<SurveyBloc, SurveyState>(
       builder: (context, state) {
-        if (state is SurveyLoading) {
+        if (state is SurveyLoading || state is SurveyInitial) {
           return _buildLoadingState();
         } else if (state is SurveysLoaded) {
           return _buildSurveysLoadedState(state);
         } else if (state is SurveyError) {
-          return _buildErrorState(state);
+          return _buildErrorState();
         } else {
           return _buildEmptyState();
         }
@@ -243,94 +244,27 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
     );
   }
 
-  Widget _buildErrorState(SurveyError state) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            TranslatedText(
-              'Unable to load surveys',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                context.read<SurveyBloc>().add(const LoadSurveys());
-              },
-              style: learnExposurePrimaryButtonStyle(),
-              child: const TranslatedText('Try Again'),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildErrorState() {
+    return EmptyStateView(
+      icon: SystemGlyph.error(context),
+      title: 'Unable to load surveys',
+      message: "We couldn't load surveys right now. Please try again.",
+      actionLabel: 'Try Again',
+      onAction: () {
+        context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
+      },
     );
   }
 
   Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.quiz_outlined,
-              size: 64,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            TranslatedText(
-              'No surveys available',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            TranslatedText(
-              'Check back later for new research surveys.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              onPressed: () {
-                context
-                    .read<SurveyBloc>()
-                    .add(const LoadSurveys(forceRefresh: true));
-              },
-              child: const TranslatedText('Refresh'),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: SystemGlyph.emptySurvey(context),
+      title: 'No surveys available',
+      message: "We couldn't find any surveys right now. Please try again.",
+      actionLabel: 'Try Again',
+      onAction: () {
+        context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
+      },
     );
   }
 

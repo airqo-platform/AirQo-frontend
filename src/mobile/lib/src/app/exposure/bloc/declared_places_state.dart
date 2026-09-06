@@ -24,3 +24,12 @@ class DeclaredPlacesLoaded extends DeclaredPlacesState {
   @override
   List<Object?> get props => [places, readings];
 }
+
+class DeclaredPlacesError extends DeclaredPlacesState {
+  final String message;
+
+  const DeclaredPlacesError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

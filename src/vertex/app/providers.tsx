@@ -42,12 +42,7 @@ export default function Providers({ children, session }: { children: React.React
         <QueryProvider scopeKey={cacheScope}>
           <BannerProvider>
             <AuthProvider session={session}>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
+              <ThemeProvider>
                 {children}
               </ThemeProvider>
               {process.env.NODE_ENV !== "production" && (

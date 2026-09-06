@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
+import 'package:airqo/src/app/debug/debug_version_tap_target.dart';
 import 'package:airqo/src/app/feedback/pages/feedback_screen.dart';
 import 'package:airqo/src/app/feedback/pages/post_logout_feedback_sheet.dart';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
@@ -357,11 +358,13 @@ void _showLogoutConfirmation() {
                     height: screenHeight * 0.05,
                   ),
                   SizedBox(height: screenHeight * 0.01),
-                  Text(
-                    _appVersion,
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                      fontSize: 12,
+                  DebugVersionTapTarget(
+                    child: Text(
+                      _appVersion,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                   SizedBox(height: screenHeight * 0.01),

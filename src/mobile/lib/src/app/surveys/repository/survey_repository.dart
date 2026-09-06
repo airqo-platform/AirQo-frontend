@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/utils/device_id_manager.dart';
@@ -29,14 +31,22 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       '/api/v2/users/surveys/responses';
   static const String _surveyStatsEndpoint = '/api/v2/users/surveys/stats';
 
+  static const Duration _surveysRequestTimeout = Duration(seconds: 15);
+
   Future<List<Survey>> getSurveys({bool forceRefresh = false}) async {
     try {
+      if (DebugApiOverride.instance.forceEmptySurveys) {
+        loggy.warning('DEBUG: returning empty surveys');
+        return [];
+      }
+
       final queryParams = {
         'isActive': 'true',
         'limit': '100',
       };
 
-      final response = await createGetRequest(_surveysEndpoint, queryParams);
+      final response = await createGetRequest(_surveysEndpoint, queryParams)
+          .timeout(_surveysRequestTimeout);
       final data = json.decode(utf8.decode(response.bodyBytes));
 
       if (data['success'] == true && data['surveys'] != null) {

@@ -2,6 +2,72 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.37
+**Released:** September 4, 2026
+
+### Feature: Beacon & Nexus Unified Theme Architecture Parity
+
+Implemented the complete cross-app theme setup from Beacon and Nexus in Vertex. Vertex now supports dynamic organization-specific and user-level theme customization, real-time cross-tab and cross-app synchronization, backend API synchronization via the AirQo Platform API, dynamic primary color shade derivation, and zero-flicker pre-hydration head script injection.
+
+<details>
+<summary><strong>Theme Utilities & Synchronous Head Script Injection</strong></summary>
+
+- **Created `lib/theme-utils.ts`**:
+  - Defined the unified `ThemeData` interface (`mode`, `primaryColor`, `interfaceStyle`, `contentLayout`).
+  - Added hex-to-RGB conversion (`hexToRgb`) and RGB lighten/darken algorithms (`lightenRgb`, `darkenRgb`) that automatically compute `--primary-50`, `--primary-100`, `--primary-700`, `--primary-800`, and `--primary-900` CSS variables from any custom primary color.
+  - Implemented `applyThemeImmediately` to synchronously set CSS variables on `document.documentElement.style` and toggle the `.dark` class.
+  - Implemented `getStoredTheme`, `saveThemeToStorage`, `clearStoredTheme`, and `parseThemeValue` supporting group-scoped storage keys (`theme_group_<id>`) with fallback to general `theme`.
+  - Added `getThemeScript()` which executes inside the HTML `<head>` before React hydration, inspecting Redux persist state (`persist:user`) or localStorage to apply the correct theme with zero visual flash.
+- **Updated `app/layout.tsx`**: Injected `<script id="theme-script" dangerouslySetInnerHTML={{ __html: getThemeScript() }} />` and removed the static inline `--primary` style override on `<html>`. Added `suppressHydrationWarning` on `<html>` and `<body>` in `app/client-layout.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Backend Platform API Synchronization via ThemeService</strong></summary>
+
+- **Created `services/theme-service.ts`**:
+  - Implemented `buildPlatformApiUrl` resolving endpoints across local development, staging, and production environments.
+  - Implemented `fetchUserTheme(groupId, userId, token)` querying priority endpoints:
+    1. `/users/preferences/theme/user/:userId/group/:groupId`
+    2. `/users/theme`
+    3. `/users/preferences/theme/organization/group/:groupId`
+  - Saves fetched theme preferences to localStorage and immediately updates the DOM; falls back to cached local storage if the user is offline or requests fail.
+  - Implemented `updateUserTheme(themeData, groupId, token)` to persist theme modifications back to the backend.
+
+</details>
+
+<details>
+<summary><strong>Custom ThemeProvider, Live Cross-Tab Sync & useTheme Hook</strong></summary>
+
+- **Updated `components/theme-provider.tsx`**:
+  - Replaced the simple `next-themes` wrapper with an active theme provider that automatically syncs with Redux (`state.user.activeGroup?._id`) and NextAuth session data.
+  - Added a window `storage` event listener to enable real-time cross-tab and cross-app live theme synchronization between Nexus, Beacon, and Vertex.
+  - Exports a unified `useTheme()` hook providing `{ theme, themeData, resolvedTheme, setTheme, setPrimaryColor, updateTheme }`.
+- **Updated `components/layout/topbar.tsx` & `components/ui/sonner.tsx`**: Connected dark/light mode toggling directly to the new theme provider.
+- **Updated `tailwind.config.ts`**: Extended `colors.primary` to map `50`, `100`, `700`, `800`, and `900` shades to `rgb(var(--primary-*) / <alpha-value>)`.
+
+</details>
+
+### Fix: Login page background color reset to white
+
+- With the addition of the `primary.50` color token to `tailwind.config.ts`, the previously unmapped `bg-primary-50` class on `app/login/page.tsx` began applying a blue tint background to the login screen.
+- Updated `app/login/page.tsx` to set the outer container and sticky header background explicitly to `bg-white dark:bg-background` (with `dark:bg-card` for the inner card), restoring the intended clean white background in light mode.
+
+**Files changed:**
+- `lib/theme-utils.ts` [NEW] — Theme data schemas, color math, and pre-hydration head script
+- `services/theme-service.ts` [NEW] — Platform API sync service
+- `components/theme-provider.tsx` — Unified ThemeProvider with cross-app sync and `useTheme` hook
+- `app/layout.tsx` — Head script injection and removal of static inline primary color style
+- `app/client-layout.tsx` — Hydration warning suppression on `<body>`
+- `app/providers.tsx` — ThemeProvider invocation cleanup
+- `components/layout/topbar.tsx` — Migration to unified `useTheme`
+- `components/ui/sonner.tsx` & `components/ui/sonner.test.tsx` — Migration to unified `useTheme`
+- `tailwind.config.ts` — Addition of primary shade tokens (`50`, `100`, `700`, `800`, `900`)
+- `app/login/page.tsx` — Login container and header background changed to white
+- `lib/theme-utils.test.ts` [NEW] — Comprehensive unit tests for theme utilities
+- `services/theme-service.test.ts` [NEW] — Unit tests for theme API service
+- `components/theme-provider.test.tsx` [NEW] — Unit tests for ThemeProvider component
+
 ## Version 2.0.36
 **Released:** August 17, 2026
 

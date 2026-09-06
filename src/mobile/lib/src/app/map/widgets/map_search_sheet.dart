@@ -217,7 +217,23 @@ class _BrowseList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (measurements.isEmpty && countries.isEmpty) {
-      return const SliverToBoxAdapter(child: SizedBox.shrink());
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Center(
+            child: TranslatedText(
+              'No air quality stations available',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isDark
+                    ? AppColors.boldHeadlineColor2
+                    : AppColors.boldHeadlineColor3,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     final labelColor =

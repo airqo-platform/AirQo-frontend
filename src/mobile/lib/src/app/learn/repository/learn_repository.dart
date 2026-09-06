@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/learn/models/learn_v2_catalog.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
@@ -70,6 +71,11 @@ class LearnRepositoryImpl extends LearnRepository with UiLoggy {
   Future<LearnV2CatalogResponse> fetchCatalog(
       {bool forceRefresh = false}) async {
     loggy.info('Fetching Learn v2 catalog (forceRefresh: $forceRefresh)');
+
+    if (DebugApiOverride.instance.forceEmptyLearn) {
+      loggy.warning('DEBUG: returning empty Learn catalog');
+      return DebugApiOverride.instance.emptyLearnCatalog;
+    }
 
     final cachedData = await _cacheManager.get<LearnV2CatalogResponse>(
       boxName: CacheBoxName.location,

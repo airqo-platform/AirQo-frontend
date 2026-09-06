@@ -1,4 +1,6 @@
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
+import 'package:airqo/src/app/shared/widgets/retry_button.dart';
+import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -83,11 +85,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: Colors.red[400],
-                ),
+                SystemGlyph.error(context, size: 48),
                 const SizedBox(height: 16),
                 Text(
                   errorMsg,
@@ -96,15 +94,7 @@ class LocationListView extends StatelessWidget with UiLoggy {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: onRetry,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                  child: const TranslatedText('Try Again'),
-                ),
+                RetryButton(onPressed: onRetry),
               ],
             ),
           );

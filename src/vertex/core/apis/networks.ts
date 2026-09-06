@@ -101,7 +101,7 @@ export const networks = {
   getNetworksApi: async (): Promise<Network[]> => {
     try {
       const response = await createSecureApiClient().get<NetworksSummaryResponse>(
-        `/users/networks`,
+        `/devices/networks`,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data.networks || [];

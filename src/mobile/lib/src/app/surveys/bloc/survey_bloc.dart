@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -35,15 +36,24 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   }
 
   Future<void> _onLoadSurveys(LoadSurveys event, Emitter<SurveyState> emit) async {
+    final previousResponses = state is SurveysLoaded
+        ? (state as SurveysLoaded).userResponses
+        : const <SurveyResponse>[];
     emit(SurveyLoading());
     try {
       final surveys = await repository.getSurveys(forceRefresh: event.forceRefresh);
-      final userResponses = await repository.getSurveyResponses();
-
-      emit(SurveysLoaded(surveys, userResponses: userResponses));
+      emit(SurveysLoaded(surveys, userResponses: previousResponses));
       loggy.info('Loaded ${surveys.length} surveys');
 
-      // Track each survey presented to user
+      try {
+        final userResponses = await repository
+            .getSurveyResponses()
+            .timeout(const Duration(seconds: 10));
+        emit(SurveysLoaded(surveys, userResponses: userResponses));
+      } catch (e) {
+        loggy.warning('Survey responses unavailable, showing surveys anyway: $e');
+      }
+
       for (final survey in surveys) {
         await analytics.trackSurveyPresented(surveyId: survey.id);
       }
