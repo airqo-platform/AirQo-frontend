@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import { DeviceHealthSnapshot, DiagnosticEvaluationResult, DiagnosisResult } from "@/types/diagnostics";
@@ -30,7 +30,7 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<DiagnosisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDiagnosticData = async () => {
+  const fetchDiagnosticData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,13 +48,13 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
     } finally {
       setLoading(false);
     }
-  };
+  }, [deviceId]);
 
   useEffect(() => {
     if (deviceId) {
       fetchDiagnosticData();
     }
-  }, [deviceId]);
+  }, [deviceId, fetchDiagnosticData]);
 
   const handleReevaluate = async () => {
     try {

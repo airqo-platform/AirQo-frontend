@@ -169,7 +169,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      heading="Manage, diagnose, and maintain air quality devices across Africa"
+      heading="Manage, and diagnose air quality devices across Africa"
       subtitle="AirQo Beacon provides calibration, firmware management, automated triage, and live telemetry to keep air monitors healthy."
     >
       {step === 1 ? (
