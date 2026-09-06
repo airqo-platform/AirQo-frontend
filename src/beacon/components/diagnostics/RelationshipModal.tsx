@@ -74,7 +74,7 @@ export function RelationshipModal({
   }, [open, isEditing, relationshipIndex, preselectedSource, preselectedTarget, profile.relationships, components]);
 
   const handleSave = async () => {
-    if (!sourceComponent || !targetComponent) {
+    if (!sourceComponent || !targetComponent || sourceComponent === targetComponent) {
       toast({
         title: "Selection Required",
         description: "Please choose both source and target subsystem components.",
@@ -217,7 +217,7 @@ export function RelationshipModal({
             type="button"
             size="sm"
             onClick={handleSave}
-            disabled={isSubmitting || components.length < 2}
+            disabled={isSubmitting || components.length < 2 || !sourceComponent || !targetComponent || sourceComponent === targetComponent}
             className="text-xs bg-primary hover:bg-primary/90 text-white font-semibold"
           >
             {isSubmitting ? "Linking..." : isEditing ? "Update Link" : "Establish Link"}

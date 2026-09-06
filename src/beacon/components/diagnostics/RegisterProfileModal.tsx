@@ -56,7 +56,11 @@ export function RegisterProfileModal({
     let parsedMeta: Record<string, any> = {};
     if (metaDataJson.trim()) {
       try {
-        parsedMeta = JSON.parse(metaDataJson);
+        const parsed = JSON.parse(metaDataJson);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Custom metadata must be a JSON object");
+        }
+        parsedMeta = parsed;
       } catch (e) {
         toast({
           title: "Invalid JSON",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { diagnosticsService } from "@/services/diagnosticsService";
@@ -68,10 +68,8 @@ export default function FleetDiagnosticsTriagePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [stateFilter, setStateFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [submittedSearchTerm, setSubmittedSearchTerm] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-
-  const searchQueryRef = useRef(searchQuery);
-  searchQueryRef.current = searchQuery;
 
   const fetchTriage = useCallback(async () => {
     if (!isAirqoGroup) return;
@@ -80,7 +78,7 @@ export default function FleetDiagnosticsTriagePage() {
       const data = await diagnosticsService.getFleetTriage({
         category: categoryFilter,
         lifecycle_state: stateFilter,
-        search: searchQueryRef.current,
+        search: submittedSearchTerm,
       });
       setTriageData(data);
     } catch (err: any) {
@@ -94,7 +92,7 @@ export default function FleetDiagnosticsTriagePage() {
     } finally {
       setLoading(false);
     }
-  }, [categoryFilter, stateFilter, isAirqoGroup]);
+  }, [categoryFilter, stateFilter, submittedSearchTerm, isAirqoGroup]);
 
   useEffect(() => {
     if (isAirqoGroup) {
@@ -104,7 +102,11 @@ export default function FleetDiagnosticsTriagePage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchTriage();
+    const term = searchQuery.trim();
+    setSubmittedSearchTerm(term);
+    if (term === submittedSearchTerm) {
+      fetchTriage();
+    }
   };
 
   const handleRefresh = async () => {

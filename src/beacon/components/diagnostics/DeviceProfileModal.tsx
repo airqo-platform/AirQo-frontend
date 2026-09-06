@@ -367,7 +367,7 @@ export function DeviceProfileModal({
 
   // Relationships
   const handleAddRelationship = () => {
-    if (!relSource || !relTarget) {
+    if (!relSource || !relTarget || relSource === relTarget) {
       toast({
         title: "Select Components",
         description: "Select source and target component",
@@ -1035,6 +1035,7 @@ export function DeviceProfileModal({
                 <Button
                   type="button"
                   size="sm"
+                  disabled={!relSource || !relTarget || relSource === relTarget}
                   onClick={handleAddRelationship}
                   className="h-7 text-xs bg-primary hover:bg-primary/90 text-white"
                 >

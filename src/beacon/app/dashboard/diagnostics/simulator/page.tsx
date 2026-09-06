@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { diagnosticsService } from "@/services/diagnosticsService";
@@ -127,6 +127,8 @@ function DiagnosticSimulatorContent() {
   const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
 
   const [profiles, setProfiles] = useState<DeviceProfile[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState<boolean>(false);
+  const [profilesError, setProfilesError] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("preset_battery_collapse");
   const [deviceId, setDeviceId] = useState<string>(queryDeviceId || SIMULATOR_PRESETS[0].deviceId);
   const [profileId, setProfileId] = useState<string>("prof_airqo_v5_dualpm");
@@ -145,15 +147,35 @@ function DiagnosticSimulatorContent() {
     setJsonContext(JSON.stringify(preset.context || {}, null, 2));
   };
 
+  const loadProfiles = useCallback(() => {
+    setProfilesLoading(true);
+    setProfilesError(null);
+    return diagnosticsService
+      .getProfiles()
+      .then((p) => {
+        if (p && p.length > 0) setProfiles(p);
+      })
+      .catch((err: any) => {
+        const errMsg = err?.message || "Failed to load hardware profiles.";
+        setProfilesError(errMsg);
+        toast({
+          title: "Error Loading Profiles",
+          description: errMsg,
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setProfilesLoading(false);
+      });
+  }, []);
+
   // Initialize with preset 0 while preserving searchParams device_id if provided
   useEffect(() => {
     if (isAirqoGroup) {
       loadPreset(SIMULATOR_PRESETS[0], queryDeviceId);
-      diagnosticsService.getProfiles().then((p) => {
-        if (p && p.length > 0) setProfiles(p);
-      });
+      loadProfiles();
     }
-  }, [queryDeviceId, isAirqoGroup]);
+  }, [queryDeviceId, isAirqoGroup, loadProfiles]);
 
   if (groupLoading) {
     return (
@@ -345,10 +367,22 @@ function DiagnosticSimulatorContent() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-gray-700">Hardware Profile</Label>
-                <Select value={profileId} onValueChange={setProfileId}>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-gray-700">Hardware Profile</Label>
+                  {profilesError && (
+                    <button
+                      type="button"
+                      onClick={() => loadProfiles()}
+                      className="text-[11px] text-red-600 hover:text-red-700 underline font-medium flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Retry
+                    </button>
+                  )}
+                </div>
+                <Select value={profileId} onValueChange={setProfileId} disabled={profilesLoading}>
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
+                    <SelectValue placeholder={profilesLoading ? "Loading profiles..." : "Select profile"} />
                   </SelectTrigger>
                   <SelectContent>
                     {profiles.map((p) => (
@@ -358,6 +392,9 @@ function DiagnosticSimulatorContent() {
                     ))}
                   </SelectContent>
                 </Select>
+                {profilesError && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{profilesError}</p>
+                )}
               </div>
 
               {/* Context JSON */}

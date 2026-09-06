@@ -291,9 +291,27 @@ export default function DiagnosticTemplatesPage() {
       return;
     }
 
+    const trimmedWeight = ruleWeight.trim();
+    let parsedWeight: number;
+
+    if (!trimmedWeight) {
+      parsedWeight = 3.5;
+    } else {
+      const num = Number(trimmedWeight);
+      if (isNaN(num) || !isFinite(num)) {
+        toast({
+          title: "Invalid Rule Weight",
+          description: "Weight must be a valid numeric value (e.g. 4.5 or -5.0).",
+          variant: "destructive",
+        });
+        return;
+      }
+      parsedWeight = num;
+    }
+
     const newRule: HypothesisRule = {
       evidence_code: ruleEvidCode.trim().toUpperCase(),
-      weight: parseFloat(ruleWeight) || 3.5,
+      weight: parsedWeight,
       is_mandatory: ruleMandatory,
       description: ruleDesc.trim() || null,
     };
@@ -708,7 +726,10 @@ export default function DiagnosticTemplatesPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                               {rules.map((rule, rIdx) => {
-                                const isPos = rule.weight > 0;
+                                const rawWeight = rule.weight !== null && rule.weight !== undefined ? Number(rule.weight) : NaN;
+                                const normalizedWeight = Number.isFinite(rawWeight) ? rawWeight : 0;
+                                const isPos = normalizedWeight > 0;
+                                const weightLabel = isPos ? `+${normalizedWeight.toFixed(1)}` : normalizedWeight.toFixed(1);
                                 return (
                                   <div
                                     key={rule.id || rIdx}
@@ -733,7 +754,7 @@ export default function DiagnosticTemplatesPage() {
                                               : "bg-rose-100 text-rose-800 border-rose-300"
                                           }`}
                                         >
-                                          {isPos ? `+${rule.weight.toFixed(1)}` : rule.weight.toFixed(1)}
+                                          {weightLabel}
                                         </span>
                                       </div>
                                     </div>

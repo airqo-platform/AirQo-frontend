@@ -185,21 +185,22 @@ export function getRelationshipDetails(
   const relType = rel.relationship_type || rel.relation_type || "POWERS";
 
   const sourceRef =
-    rel.source_component_name ||
-    rel.source_component ||
     rel.source_component_id ||
+    rel.source_component ||
+    rel.source_component_name ||
     "";
 
   const targetRef =
-    rel.target_component_name ||
-    rel.target_component ||
     rel.target_component_id ||
+    rel.target_component ||
+    rel.target_component_name ||
     "";
 
-  const resolveCompName = (ref: string): string => {
-    if (!ref) return "Unknown Subsystem";
+  const resolveCompName = (ref: string, fallbackName?: string): string => {
+    if (!ref && !fallbackName) return "Unknown Subsystem";
     const found = (components || []).find((c) => c.id === ref || c.name === ref);
     if (found) return found.name;
+    if (fallbackName) return fallbackName;
     // If it's a UUID and not found directly in components list, display a readable identifier
     if (ref.length > 20 && ref.includes("-")) {
       return `Subsystem (${ref.slice(0, 8)}...)`;
@@ -207,18 +208,18 @@ export function getRelationshipDetails(
     return ref;
   };
 
-  const resolveCompId = (ref: string): string | undefined => {
-    if (!ref) return undefined;
+  const resolveCompId = (ref: string, fallbackId?: string): string | undefined => {
+    if (!ref && !fallbackId) return undefined;
     const found = (components || []).find((c) => c.id === ref || c.name === ref);
-    return found?.id || (ref.includes("-") ? ref : undefined);
+    return found?.id || fallbackId || (ref.includes("-") ? ref : undefined);
   };
 
   return {
-    sourceName: resolveCompName(sourceRef),
-    targetName: resolveCompName(targetRef),
+    sourceName: resolveCompName(sourceRef, rel.source_component_name || rel.source_component),
+    targetName: resolveCompName(targetRef, rel.target_component_name || rel.target_component),
     relationType: relType,
-    sourceId: resolveCompId(sourceRef),
-    targetId: resolveCompId(targetRef),
+    sourceId: resolveCompId(sourceRef, rel.source_component_id),
+    targetId: resolveCompId(targetRef, rel.target_component_id),
   };
 }
 

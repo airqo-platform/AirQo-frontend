@@ -264,21 +264,55 @@ export function SubsystemTopologyFlow({
     return positions;
   }, [components, relationships]);
 
+  const prevComponentNamesRef = useRef<string[] | null>(null);
+  const prevProfileIdRef = useRef<string>(profile.id);
+
   // Initialize or restore saved coordinates on profile change
   useEffect(() => {
-    const autoPositions = computeAutoLayout();
-    const initialPositions: Record<string, NodePosition> = {};
+    const isProfileChanged = prevProfileIdRef.current !== profile.id;
+    const prevNames = prevComponentNamesRef.current;
+    const currentNames = components.map((c) => c.name);
 
-    components.forEach((comp) => {
-      const savedCoord = getComponentCoordinates(comp);
-      if (savedCoord) {
-        initialPositions[comp.name] = savedCoord;
-      } else if (autoPositions[comp.name]) {
-        initialPositions[comp.name] = autoPositions[comp.name];
-      }
+    const isComponentSetChanged =
+      isProfileChanged ||
+      prevNames === null ||
+      prevNames.length !== currentNames.length ||
+      currentNames.some((name) => !prevNames.includes(name));
+
+    if (!isComponentSetChanged) {
+      return;
+    }
+
+    prevProfileIdRef.current = profile.id;
+    prevComponentNamesRef.current = currentNames;
+
+    const autoPositions = computeAutoLayout();
+
+    setNodePositions((prev) => {
+      const nextPositions: Record<string, NodePosition> = {};
+
+      components.forEach((comp, index) => {
+        if (!isProfileChanged && prev[comp.name]) {
+          nextPositions[comp.name] = prev[comp.name];
+          return;
+        }
+
+        const savedCoord = getComponentCoordinates(comp);
+        if (savedCoord) {
+          nextPositions[comp.name] = savedCoord;
+        } else if (autoPositions[comp.name]) {
+          nextPositions[comp.name] = autoPositions[comp.name];
+        } else {
+          nextPositions[comp.name] = {
+            x: 100 + index * 180,
+            y: 100 + index * 80,
+          };
+        }
+      });
+
+      return nextPositions;
     });
 
-    setNodePositions(initialPositions);
     setHasUnsavedChanges(false);
   }, [profile.id, components, computeAutoLayout]);
 
@@ -410,11 +444,22 @@ export function SubsystemTopologyFlow({
     setDraggingNodeId(null);
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-    setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.35), 2.2));
-  };
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      setZoom((prev) => Math.min(Math.max(prev * zoomFactor, 0.35), 2.2));
+    };
+
+    container.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener("wheel", onWheel);
+    };
+  }, []);
 
   const handleStartNodeDrag = (e: React.MouseEvent, nodeName: string, currentPos: NodePosition) => {
     e.stopPropagation();
@@ -523,18 +568,27 @@ export function SubsystemTopologyFlow({
     }
   };
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
-    if (!isFullscreen) {
+    if (!document.fullscreenElement) {
       if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+        containerRef.current.requestFullscreen().catch(() => {});
       }
-      setIsFullscreen(true);
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
+        document.exitFullscreen().catch(() => {});
       }
-      setIsFullscreen(false);
     }
   };
 
@@ -548,7 +602,6 @@ export function SubsystemTopologyFlow({
       onMouseDown={handleMouseDownCanvas}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onWheel={handleWheel}
     >
       {/* Top Floating Toolbar */}
       <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between pointer-events-none">

@@ -123,12 +123,20 @@ export default function DeviceProfileDetailPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleCopyJSON = () => {
+  const handleCopyJSON = async () => {
     if (!profile) return;
-    navigator.clipboard.writeText(JSON.stringify(profile, null, 2));
-    setCopied(true);
-    toast({ title: "Copied", description: "Profile JSON schema copied to clipboard." });
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(profile, null, 2));
+      setCopied(true);
+      toast({ title: "Copied", description: "Profile JSON schema copied to clipboard." });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err: any) {
+      toast({
+        title: "Failed to copy",
+        description: err?.message || "Could not copy profile schema to clipboard.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteProfile = async () => {
@@ -163,14 +171,39 @@ export default function DeviceProfileDetailPage() {
 
   const handleDeleteSubsystem = async (idx: number) => {
     if (!profile) return;
-    const compName = profile.components?.[idx]?.name || "Subsystem";
+    const targetComp = profile.components?.[idx];
+    const compName = targetComp?.name || "Subsystem";
     if (!confirm(`Are you sure you want to remove subsystem "${compName}" and its declared metrics?`)) return;
 
     const currentComponents = [...(profile.components || [])];
     currentComponents.splice(idx, 1);
+
+    const compIdentifiers = new Set([targetComp?.name, targetComp?.id].filter(Boolean) as string[]);
+
+    const filteredRelationships = (profile.relationships || []).filter((rel) => {
+      if (compIdentifiers.size === 0) return true;
+      const details = getRelationshipDetails(rel, profile.components);
+      const isSourceMatch =
+        compIdentifiers.has(details.sourceName) ||
+        (details.sourceId ? compIdentifiers.has(details.sourceId) : false) ||
+        (rel.source_component ? compIdentifiers.has(rel.source_component) : false) ||
+        (rel.source_component_id ? compIdentifiers.has(rel.source_component_id) : false) ||
+        (rel.source_component_name ? compIdentifiers.has(rel.source_component_name) : false);
+
+      const isTargetMatch =
+        compIdentifiers.has(details.targetName) ||
+        (details.targetId ? compIdentifiers.has(details.targetId) : false) ||
+        (rel.target_component ? compIdentifiers.has(rel.target_component) : false) ||
+        (rel.target_component_id ? compIdentifiers.has(rel.target_component_id) : false) ||
+        (rel.target_component_name ? compIdentifiers.has(rel.target_component_name) : false);
+
+      return !isSourceMatch && !isTargetMatch;
+    });
+
     const payload: Partial<DeviceProfile> = {
       ...profile,
       components: currentComponents,
+      relationships: filteredRelationships,
     };
 
     try {
@@ -276,6 +309,13 @@ export default function DeviceProfileDetailPage() {
 
   const handleDeleteRelationship = async (idx: number) => {
     if (!profile) return;
+    const rel = profile.relationships?.[idx];
+    const details = rel ? getRelationshipDetails(rel, profile.components) : null;
+    const confirmMessage = details
+      ? `Are you sure you want to remove the relationship "${details.sourceName} → ${details.targetName}"?`
+      : "Are you sure you want to remove this relationship?";
+    if (!confirm(confirmMessage)) return;
+
     const currentRels = [...(profile.relationships || [])];
     currentRels.splice(idx, 1);
     const payload: Partial<DeviceProfile> = {
