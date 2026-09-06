@@ -56,8 +56,13 @@ export function RelationshipModal({
       if (isEditing && profile.relationships && profile.relationships[relationshipIndex]) {
         const rel = profile.relationships[relationshipIndex];
         const details = getRelationshipDetails(rel, components);
-        setSourceComponent(details.sourceName !== "Unknown Subsystem" ? details.sourceName : components[0]?.name || "");
-        setTargetComponent(details.targetName !== "Unknown Subsystem" ? details.targetName : components[1]?.name || components[0]?.name || "");
+        const validNames = new Set(components.map((c) => c.name));
+        const fallbackSource = components[0]?.name || "";
+        const fallbackTarget =
+          components.find((c) => c.name && c.name !== fallbackSource)?.name || components[1]?.name || fallbackSource;
+
+        setSourceComponent(validNames.has(details.sourceName) ? details.sourceName : fallbackSource);
+        setTargetComponent(validNames.has(details.targetName) ? details.targetName : fallbackTarget);
         setRelationType(details.relationType || "POWERS");
       } else {
         setSourceComponent(preselectedSource || components[0]?.name || "");
