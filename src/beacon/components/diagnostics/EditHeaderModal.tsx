@@ -64,11 +64,15 @@ export function EditHeaderModal({
     let parsedMeta: Record<string, any> = {};
     if (metaDataJson.trim()) {
       try {
-        parsedMeta = JSON.parse(metaDataJson);
+        const parsed = JSON.parse(metaDataJson);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Custom metadata must be a JSON object");
+        }
+        parsedMeta = parsed;
       } catch (e) {
         toast({
           title: "Invalid JSON",
-          description: "Custom Metadata JSON is not valid syntax.",
+          description: "Custom Metadata JSON must be a valid JSON object.",
           variant: "destructive",
         });
         return;
