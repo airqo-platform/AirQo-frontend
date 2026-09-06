@@ -11,7 +11,6 @@ import {
   AqAirQlouds,
   AqTool02,
   AqFile02,
-  AqActivityHeart,
   AqMessageNotificationSquare,
 } from "@airqo/icons-react"
 import { Card } from "@/components/ui/card"
@@ -137,39 +136,6 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: Readonly<Sideb
       permissionCheck: () =>
         Boolean(activeGroup) &&
         (!isAirqoGroup || canMaintainDevices || hasAnyPermission(["DATA_EXPORT", "ANALYTICS_EXPORT", "DATA_VIEW"])),
-    },
-    {
-      id: "diagnostics",
-      label: "Diagnostics",
-      href: "/dashboard/diagnostics",
-      icon: AqActivityHeart,
-      subroutes: [
-        {
-          id: "triage-board",
-          label: "Fleet Triage Board",
-          href: "/dashboard/diagnostics",
-          description: "Real-time health triage & diagnostics",
-        },
-        {
-          id: "simulator",
-          label: "Bench Simulator",
-          href: "/dashboard/diagnostics/simulator",
-          description: "Simulate sensor anomalies & faults",
-        },
-        {
-          id: "device-profiles",
-          label: "Device Profiles",
-          href: "/dashboard/settings/device-profiles",
-          description: "Configure device diagnostic profiles",
-        },
-        {
-          id: "diagnostic-templates",
-          label: "Diagnostic Templates",
-          href: "/dashboard/settings/diagnostic-templates",
-          description: "Manage failure classification rules",
-        },
-      ],
-      permissionCheck: () => true,
     },
   ]
 

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { diagnosticsService, DEFAULT_PROFILES } from "@/services/diagnosticsService";
+import { diagnosticsService } from "@/services/diagnosticsService";
 import { DiagnosticEvaluationResult, DiagnosisResult, DeviceProfile } from "@/types/diagnostics";
 import { HealthScoreGauge } from "@/components/diagnostics/HealthScoreGauge";
 import { SubsystemScoreCard } from "@/components/diagnostics/SubsystemScoreCard";
@@ -32,7 +32,10 @@ import {
   Sun,
   Cog,
   Stethoscope,
+  ShieldAlert,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGroup } from "@/lib/group-context";
 
 // PRE-LOADED PRESETS
 const SIMULATOR_PRESETS = [
@@ -120,8 +123,12 @@ const SIMULATOR_PRESETS = [
 function DiagnosticSimulatorContent() {
   const searchParams = useSearchParams();
   const queryDeviceId = searchParams?.get("device_id");
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
 
-  const [profiles, setProfiles] = useState<DeviceProfile[]>(DEFAULT_PROFILES);
+  const [profiles, setProfiles] = useState<DeviceProfile[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState<boolean>(false);
+  const [profilesError, setProfilesError] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("preset_battery_collapse");
   const [deviceId, setDeviceId] = useState<string>(queryDeviceId || SIMULATOR_PRESETS[0].deviceId);
   const [profileId, setProfileId] = useState<string>("prof_airqo_v5_dualpm");
@@ -140,13 +147,62 @@ function DiagnosticSimulatorContent() {
     setJsonContext(JSON.stringify(preset.context || {}, null, 2));
   };
 
+  const loadProfiles = useCallback(() => {
+    setProfilesLoading(true);
+    setProfilesError(null);
+    return diagnosticsService
+      .getProfiles()
+      .then((p) => {
+        if (p && p.length > 0) setProfiles(p);
+      })
+      .catch((err: any) => {
+        const errMsg = err?.message || "Failed to load hardware profiles.";
+        setProfilesError(errMsg);
+        toast({
+          title: "Error Loading Profiles",
+          description: errMsg,
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setProfilesLoading(false);
+      });
+  }, []);
+
   // Initialize with preset 0 while preserving searchParams device_id if provided
   useEffect(() => {
-    loadPreset(SIMULATOR_PRESETS[0], queryDeviceId);
-    diagnosticsService.getProfiles().then((p) => {
-      if (p && p.length > 0) setProfiles(p);
-    });
-  }, [queryDeviceId]);
+    if (isAirqoGroup) {
+      loadPreset(SIMULATOR_PRESETS[0], queryDeviceId);
+      loadProfiles();
+    }
+  }, [queryDeviceId, isAirqoGroup, loadProfiles]);
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Card className="border border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-600" />
+              Restricted Organization Section
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
+              Diagnostic Simulator & Bench Tester is exclusively available when the active organization is set to <span className="font-semibold text-primary">AirQo</span>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const handlePresetSelect = (id: string) => {
     const found = SIMULATOR_PRESETS.find((p) => p.id === id);
@@ -311,10 +367,22 @@ function DiagnosticSimulatorContent() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-gray-700">Hardware Profile</Label>
-                <Select value={profileId} onValueChange={setProfileId}>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-gray-700">Hardware Profile</Label>
+                  {profilesError && (
+                    <button
+                      type="button"
+                      onClick={() => loadProfiles()}
+                      className="text-[11px] text-red-600 hover:text-red-700 underline font-medium flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Retry
+                    </button>
+                  )}
+                </div>
+                <Select value={profileId} onValueChange={setProfileId} disabled={profilesLoading}>
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
+                    <SelectValue placeholder={profilesLoading ? "Loading profiles..." : "Select profile"} />
                   </SelectTrigger>
                   <SelectContent>
                     {profiles.map((p) => (
@@ -324,6 +392,9 @@ function DiagnosticSimulatorContent() {
                     ))}
                   </SelectContent>
                 </Select>
+                {profilesError && (
+                  <p className="text-[11px] text-red-600 mt-0.5">{profilesError}</p>
+                )}
               </div>
 
               {/* Context JSON */}

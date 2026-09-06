@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import { DeviceHealthSnapshot, DiagnosticEvaluationResult, DiagnosisResult } from "@/types/diagnostics";
@@ -10,7 +10,7 @@ import { DiagnosisCard } from "@/components/diagnostics/DiagnosisCard";
 import { EvidenceFactBadge } from "@/components/diagnostics/EvidenceFactBadge";
 import { TelemetryDiagnosticChart } from "@/components/diagnostics/TelemetryDiagnosticChart";
 import { TechnicianFeedbackModal } from "@/components/diagnostics/TechnicianFeedbackModal";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
@@ -26,11 +26,16 @@ import {
   ExternalLink,
   Wrench,
   Stethoscope,
+  ShieldAlert,
 } from "lucide-react";
+import { useGroup } from "@/lib/group-context";
 
 export default function DeviceDiagnosticInspectorPage() {
   const params = useParams();
   const router = useRouter();
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+
   const rawId = params?.id || params?.deviceId || "AQ_TEST_01";
   const deviceId = Array.isArray(rawId) ? rawId[0] : rawId;
 
@@ -42,7 +47,8 @@ export default function DeviceDiagnosticInspectorPage() {
   const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<DiagnosisResult | null>(null);
 
-  const fetchDiagnosticData = async () => {
+  const fetchDiagnosticData = useCallback(async () => {
+    if (!isAirqoGroup) return;
     try {
       setLoading(true);
       const [healthData, histData] = await Promise.all([
@@ -63,13 +69,13 @@ export default function DeviceDiagnosticInspectorPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [deviceId, isAirqoGroup]);
 
   useEffect(() => {
-    if (deviceId) {
+    if (deviceId && isAirqoGroup) {
       fetchDiagnosticData();
     }
-  }, [deviceId]);
+  }, [deviceId, fetchDiagnosticData, isAirqoGroup]);
 
   const handleReevaluate = async () => {
     try {
@@ -118,6 +124,44 @@ export default function DeviceDiagnosticInspectorPage() {
       description: `Dispatched maintenance ticket for ${deviceId} (${diag.title}). Assigned to field crew.`,
     });
   };
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/devices/${deviceId}`)}
+            className="h-8 text-xs bg-white gap-1.5"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Device
+          </Button>
+        </div>
+        <Card className="border border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-600" />
+              Restricted Organization Section
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
+              Device Diagnostics & Root-Cause Intelligence are exclusively available when the active organization is set to{" "}
+              <span className="font-semibold text-primary">AirQo</span>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto pb-16">
