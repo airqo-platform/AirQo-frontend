@@ -429,8 +429,12 @@ export function SubsystemTopologyFlow({
         y: e.clientY - dragStart.y,
       });
     } else if (draggingNodeId) {
-      const newX = Math.round((e.clientX - nodeDragOffset.x) / zoom);
-      const newY = Math.round((e.clientY - nodeDragOffset.y) / zoom);
+      const rect = containerRef.current?.getBoundingClientRect();
+      const left = rect?.left ?? 0;
+      const top = rect?.top ?? 0;
+
+      const newX = Math.round((e.clientX - left - pan.x - nodeDragOffset.x) / zoom);
+      const newY = Math.round((e.clientY - top - pan.y - nodeDragOffset.y) / zoom);
       setNodePositions((prev) => ({
         ...prev,
         [draggingNodeId]: { x: newX, y: newY },
