@@ -13,7 +13,7 @@ import { getThemeScript } from "@/lib/theme-utils"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AirQo Dashboard",
+  title: "AirQo Beacon",
   description: "Air quality monitoring dashboard for AirQo",
 }
 

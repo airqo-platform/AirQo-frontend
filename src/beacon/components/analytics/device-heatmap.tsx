@@ -341,7 +341,7 @@ const getHourUptimeColor = (count: number): string => {
 }
 
 function DeviceHourHeatmap({ device, metric }: Readonly<DeviceHourHeatmapProps>) {
-  const points = device.hourly_data ?? []
+  const points = useMemo(() => device.hourly_data ?? [], [device.hourly_data])
 
   // Distinct dates ascending
   const dates = useMemo(() => {

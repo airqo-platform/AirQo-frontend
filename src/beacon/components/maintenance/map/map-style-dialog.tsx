@@ -15,11 +15,19 @@ export interface MapTileStyle {
 
 export const MAP_TILE_STYLES: MapTileStyle[] = [
   {
+    id: "osm",
+    name: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    description: "Standard open-source crowd-mapped cartography (Default)",
+    badgeColor: "bg-emerald-500",
+  },
+  {
     id: "voyager",
     name: "CartoDB Voyager",
     url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
     attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-    description: "Detailed street names, green parks, and vibrant terrain (Recommended)",
+    description: "Detailed street names, green parks, and vibrant terrain",
     badgeColor: "bg-blue-500",
   },
   {
@@ -29,14 +37,6 @@ export const MAP_TILE_STYLES: MapTileStyle[] = [
     attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     description: "Clean, minimal light background highlighting device markers",
     badgeColor: "bg-gray-400",
-  },
-  {
-    id: "osm",
-    name: "OpenStreetMap",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    description: "Standard open-source crowd-mapped cartography",
-    badgeColor: "bg-emerald-500",
   },
   {
     id: "dark",

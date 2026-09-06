@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { diagnosticsService } from "@/services/diagnosticsService";
@@ -49,11 +49,15 @@ import {
   Wind,
   Stethoscope,
 } from "lucide-react";
+import { useGroup } from "@/lib/group-context";
 
 const PIE_COLORS = ["#2563eb", "#e11d48", "#f59e0b", "#9333ea", "#059669"];
 
 export default function FleetDiagnosticsTriagePage() {
   const router = useRouter();
+  const { activeGroup, loading: groupLoading } = useGroup();
+  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+
   const [loading, setLoading] = useState<boolean>(true);
   const [triageData, setTriageData] = useState<{
     summary: FleetTriageSummary;
@@ -66,30 +70,37 @@ export default function FleetDiagnosticsTriagePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const fetchTriage = async () => {
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
+  const fetchTriage = useCallback(async () => {
+    if (!isAirqoGroup) return;
     try {
       setLoading(true);
       const data = await diagnosticsService.getFleetTriage({
         category: categoryFilter,
         lifecycle_state: stateFilter,
-        search: searchQuery,
+        search: searchQueryRef.current,
       });
       setTriageData(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching fleet triage:", err);
+      setTriageData(null);
       toast({
         title: "Triage Fetch Error",
-        description: "Failed to connect to triage API. Using fallback fleet data.",
+        description: err?.message || "Failed to connect to triage API.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryFilter, stateFilter, isAirqoGroup]);
 
   useEffect(() => {
-    fetchTriage();
-  }, [categoryFilter, stateFilter]);
+    if (isAirqoGroup) {
+      fetchTriage();
+    }
+  }, [fetchTriage, isAirqoGroup]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +116,33 @@ export default function FleetDiagnosticsTriagePage() {
       description: "Fetched latest diagnostic status across all monitored nodes.",
     });
   };
+
+  if (groupLoading) {
+    return (
+      <div className="p-6">
+        <Skeleton className="h-10 w-72 mb-6" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAirqoGroup) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Card className="border border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-600" />
+              Restricted Organization Section
+            </CardTitle>
+            <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
+              IoT Diagnostics and Automated Triage are exclusively available when the active organization is set to <span className="font-semibold text-primary">AirQo</span>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -545,7 +583,19 @@ export default function FleetDiagnosticsTriagePage() {
             </CardContent>
           </Card>
         </>
-      ) : null}
+      ) : (
+        <Card className="p-10 text-center border-dashed border-gray-200">
+          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-gray-900">No Fleet Triage Data</h3>
+          <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+            Unable to load fleet diagnostic triage data. Please verify backend service availability.
+          </p>
+          <Button onClick={fetchTriage} className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Retry Fetching Triage
+          </Button>
+        </Card>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   AqBox,
   AqChevronRight,
   AqShield02,
+  AqActivityHeart,
 } from "@airqo/icons-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,39 @@ const AIRQO_ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/dashboard",
     icon: AqHomeSmile,
     description: "Platform high-level statistics and health overview",
+  },
+  {
+    id: "admin-diagnostics",
+    label: "IoT Diagnostics",
+    href: "/dashboard/diagnostics",
+    icon: AqActivityHeart,
+    description: "Automated root-cause triage, bench simulator & hardware profiles",
+    subroutes: [
+      {
+        id: "admin-diagnostics-triage",
+        label: "Fleet Triage Board",
+        href: "/dashboard/diagnostics",
+        description: "Real-time health triage & root-cause intelligence",
+      },
+      {
+        id: "admin-diagnostics-simulator",
+        label: "Bench Simulator",
+        href: "/dashboard/diagnostics/simulator",
+        description: "Simulate sensor anomalies & diagnostic scenarios",
+      },
+      {
+        id: "admin-diagnostics-profiles",
+        label: "Device Profiles",
+        href: "/dashboard/settings/device-profiles",
+        description: "Hardware topologies & slot mapping specifications",
+      },
+      {
+        id: "admin-diagnostics-templates",
+        label: "Diagnostic Templates",
+        href: "/dashboard/settings/diagnostic-templates",
+        description: "Manage symptom rules & evidential weighting templates",
+      },
+    ],
   },
   {
     id: "admin-collocation",
