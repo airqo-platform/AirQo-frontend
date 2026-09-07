@@ -36,15 +36,23 @@ jobs:
 
       - name: Scale up AKS workload nodes
         run: |
-          echo "Restoring autoscaler bounds to min 2, max 4..."
+          echo "Re-enabling autoscaler and scaling workload nodes to 2..."
           az aks nodepool update \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
             --name workload \
-            --update-cluster-autoscaler \
+            --enable-cluster-autoscaler \
             --min-count 2 \
             --max-count 4
-          echo "Autoscaler bounds restored — autoscaler will provision nodes"
+          echo "Autoscaler re-enabled with min 2, max 4"
+
+          echo "Scaling node pool to 2 to trigger immediate provisioning..."
+          az aks nodepool scale \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
+            --name workload \
+            --node-count 2
+          echo "Node pool scaling to 2 initiated"
 
       - name: Get AKS credentials
         run: |
@@ -70,8 +78,6 @@ jobs:
               exit 1
             fi
 
-            # Bound the kubectl request itself so a stalled API call
-            # does not silently consume the entire deadline
             REQUEST_TIMEOUT=$(( REMAINING < 30 ? REMAINING : 30 ))
 
             if ! NODES=$(kubectl get nodes \
@@ -90,7 +96,6 @@ jobs:
               break
             fi
 
-            # Cap sleep to remaining time so we never overshoot the deadline
             SLEEP=$(( INTERVAL < REMAINING ? INTERVAL : REMAINING ))
             echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${REMAINING}s remaining)..."
             sleep "$SLEEP"
