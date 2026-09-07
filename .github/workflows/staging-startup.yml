@@ -36,7 +36,7 @@ jobs:
 
       - name: Scale up AKS workload nodes
         run: |
-          echo "Re-enabling autoscaler and scaling workload nodes to 2..."
+          echo "Re-enabling autoscaler with min 2, max 4..."
           az aks nodepool update \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
@@ -44,15 +44,7 @@ jobs:
             --enable-cluster-autoscaler \
             --min-count 2 \
             --max-count 4
-          echo "Autoscaler re-enabled with min 2, max 4"
-
-          echo "Scaling node pool to 2 to trigger immediate provisioning..."
-          az aks nodepool scale \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --node-count 2
-          echo "Node pool scaling to 2 initiated"
+          echo "Autoscaler re-enabled — will provision nodes to meet min-count of 2"
 
       - name: Get AKS credentials
         run: |
