@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-docs
-  tag: prod-83a7a08e-1788016968
+  tag: prod-1053bbad-1788869050
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''

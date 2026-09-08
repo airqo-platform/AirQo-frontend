@@ -352,6 +352,59 @@ Returns full details for one monitoring site, including coordinates, administrat
 
 ---
 
+### Find the nearest sites to a coordinate
+
+```http
+GET /api/v2/devices/sites/nearest?token={SECRET_TOKEN}
+```
+
+Returns monitoring sites near a given point, sorted by distance (closest first). Useful when the place you're interested in doesn't correspond to a named site — see [3.3 Finding the Nearest Monitor to a Specific Location](../../data-access/researchers-guide/spatial-disaggregation-and-geographic-filtering.md#33-finding-the-nearest-monitor-to-a-specific-location).
+
+**Query parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `token` | string | — | Required |
+| `latitude` | number | — | Required. Must have at least 5 decimal places of precision |
+| `longitude` | number | — | Required. Must have at least 5 decimal places of precision |
+| `radius` | number | — | Required. Search radius in kilometres |
+| `online_status` | string | — | Optional. Filter to `online` or `offline` sites only |
+| `limit` | integer | 30 | Max results to return (max: 80) |
+
+**Example — sites within 5 km, online only**
+
+```bash
+curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.34760&longitude=32.58250&radius=5&online_status=online&token={SECRET_TOKEN}"
+```
+
+**Example response**
+
+```json
+{
+  "success": true,
+  "message": "successfully retrieved the nearest sites",
+  "sites": [
+    {
+      "_id": "64f7b3e8c9d25a0013f2d456",
+      "name": "kampala_road",
+      "long_name": "Kampala Road, Kampala",
+      "generated_name": "Kampala Road",
+      "latitude": 0.3476,
+      "longitude": 32.5825,
+      "network": "airqo",
+      "isOnline": true,
+      "distance_km": 0.42
+    }
+  ]
+}
+```
+
+:::note Coordinate approximation applies here too
+Like every other endpoint, returned site coordinates are subject to the [~0.5 km privacy approximation](../../data-access/researchers-guide/location-approximation.md) — factor that into how you interpret `distance_km` for very short radii.
+:::
+
+---
+
 ## Devices
 
 Devices are individual sensor units. Each device is deployed at a site.

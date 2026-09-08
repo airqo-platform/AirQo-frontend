@@ -53,7 +53,9 @@ A Site ID identifies a specific physical monitoring location.
 A Site ID looks like: `64f7b3e8c9d25a0013f2d456`
 
 :::note Don't know which site to use for a specific place?
-Not every neighbourhood or landmark has a monitoring site named after it. To find the closest active site to a location, the quickest option today is the **Near You** feature in the [AirQo Mobile App](https://airqo.net/explore/mobile-app) — it uses GPS to list the nearest active sites within 10 km. A coordinate-based lookup in the public API is planned but not yet available; contact [support@airqo.net](mailto:support@airqo.net) in the meantime.
+Not every neighbourhood or landmark has a monitoring site named after it. Two options:
+- **Programmatically**: use the [Find the nearest sites to a coordinate](./metadata.md#find-the-nearest-sites-to-a-coordinate) endpoint — pass a `latitude`/`longitude` and get back the nearest sites sorted by distance.
+- **In the app**: the **Near You** feature in the [AirQo Mobile App](https://airqo.net/explore/mobile-app) does the same thing using your phone's GPS.
 :::
 
 ---
