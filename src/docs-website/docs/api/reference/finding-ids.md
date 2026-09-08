@@ -54,7 +54,7 @@ A Site ID looks like: `64f7b3e8c9d25a0013f2d456`
 
 :::note Don't know which site to use for a specific place?
 Not every neighbourhood or landmark has a monitoring site named after it. Two options:
-- **Programmatically**: use the [Find the nearest sites to a coordinate](./metadata.md#find-the-nearest-sites-to-a-coordinate) endpoint — pass a `latitude`/`longitude` and get back active sites sorted by distance.
+- **Programmatically**: use the [Find the nearest sites to a coordinate](./metadata.md#find-the-nearest-sites-to-a-coordinate) endpoint — pass a `latitude`/`longitude` and get back the nearest sites sorted by distance.
 - **In the app**: the **Near You** feature in the [AirQo Mobile App](https://airqo.net/explore/mobile-app) does the same thing using your phone's GPS.
 :::
 
