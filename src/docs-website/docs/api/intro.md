@@ -17,6 +17,7 @@ The AirQo API gives you programmatic access to air quality measurements from our
 | **City or municipality** monitoring a defined geographical area | [Grid ID Access →](./for-cities/intro.md) |
 | **Developer** who needs historical or raw sensor data at scale | [Analytics API →](./analytics-api/raw-data.md) |
 | **Researcher or planner** who needs predictive air quality data | [Forecast API →](./forecasts/overview.md) |
+| **Website or app** embedding a live view of Africa's air quality monitoring landscape, across every manufacturer and operator | [Network Coverage API →](./network-coverage/intro.md) |
 
 ---
 
