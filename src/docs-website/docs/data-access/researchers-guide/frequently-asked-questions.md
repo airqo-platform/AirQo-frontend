@@ -85,3 +85,6 @@ Yes, data is open access. However, we encourage collaborators to access data dir
 
 **Why is my download limited to three months?**
 This is an intentional, permanent system design to ensure equitable access for all users. Please download data in quarterly batches. See the [Fair Usage Policy](../fair-usage-policy/index.md) for full guidance.
+
+#### The specific place I'm studying isn't listed as a monitoring site — what should I use instead?
+AirQo Nexus lists monitoring sites, not every neighbourhood or landmark, so a specific place of interest won't always have a site named after it. Use the closest active site as a proxy: the quickest way to find one is the **Near You** feature in the [AirQo Mobile App](https://airqo.net/explore/mobile-app) (Dashboard tab, or "Nearby" on the Map tab), which uses your phone's GPS to list the nearest active sites within 10 km. See [3.3 Finding the Nearest Monitor to a Specific Location](./spatial-disaggregation-and-geographic-filtering.md#33-finding-the-nearest-monitor-to-a-specific-location) for other options, including asking [support@airqo.net](mailto:support@airqo.net) to confirm the most appropriate proxy site for you.
