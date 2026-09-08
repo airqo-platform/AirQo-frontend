@@ -50,12 +50,12 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage?activeOnly=true&toke
       "country": "Uganda",
       "iso2": "UG",
       "stats": {
-        "total": 142,
+        "total": 136,
         "Reference": 4,
-        "LCS": 138,
-        "Inactive": 6,
+        "LCS": 132,
+        "Inactive": 0,
         "active": 136,
-        "inactive": 6
+        "inactive": 0
       },
       "monitors": [
         {
@@ -173,6 +173,8 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/countries/uganda/mon
 
 **Example response**
 
+Each entry in `monitors[]` is a full monitor object — the same shape returned by [Monitor Details](./monitor-details.md), and the same shape used in the summary endpoint above:
+
 ```json
 {
   "success": true,
@@ -184,8 +186,33 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/countries/uganda/mon
     {
       "id": "64f7b3e8c9d25a0013f2d456",
       "name": "Kampala Road",
+      "city": "Kampala",
+      "country": "Uganda",
+      "countryId": "uganda",
+      "iso2": "UG",
+      "latitude": 0.3476,
+      "longitude": 32.5825,
       "type": "LCS",
-      "status": "active"
+      "status": "active",
+      "lastActive": "2025-09-28T08:45:00.000Z",
+      "network": "airqo",
+      "operator": "AirQo",
+      "equipment": "AirQo BAM Node",
+      "manufacturer": "AirQo",
+      "pollutants": ["PM2.5", "PM10"],
+      "resolution": "Hourly",
+      "transmission": "GSM",
+      "site": "Kampala Road, Kampala",
+      "landUse": "Roadside",
+      "deployed": "2020-12-01",
+      "calibrationLastDate": "2025-06-01",
+      "calibrationMethod": "Field co-location",
+      "uptime30d": "96%",
+      "publicData": "Yes",
+      "organisation": "AirQo",
+      "coLocation": "Not available",
+      "coLocationNote": "",
+      "viewDataUrl": "https://airqo.net/explore-data"
     }
   ]
 }

@@ -73,8 +73,8 @@ POST /api/v2/devices/network-coverage/cities?token={SECRET_TOKEN}
 
 ```json
 {
-  "city": "Kampala",
-  "country": "Uganda",
+  "city": "kampala",
+  "country": "uganda",
   "iso2": "UG",
   "population": 1680000,
   "year": 2024,

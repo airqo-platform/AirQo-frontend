@@ -19,6 +19,10 @@ If you're deploying an AirQo-owned device, use [Deploy to a Site](../../vertex/d
 POST /api/v2/devices/network-coverage/registry?token={SECRET_TOKEN}
 ```
 
+:::warning Never call this with `token` from a public-facing form
+This is the endpoint your own "Add monitor" form would submit to — but if that form is a public webpage, don't have the browser call this URL with `?token=` directly; the token would be readable in your page's requests. Submit the form to your own backend first, and have your backend attach the token when it calls this endpoint server-side. See [the note on query-string tokens →](./intro.md#endpoints-at-a-glance).
+:::
+
 **Request body**
 
 ```json

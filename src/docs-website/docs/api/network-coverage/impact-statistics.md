@@ -74,7 +74,7 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/impact?token={SECRET
       {
         "sensorManufacturer": "AirQo",
         "totalMonitors": 1600,
-        "byType": { "Reference": 0, "LCS": 1600, "Inactive": 40 },
+        "byType": { "Reference": 0, "LCS": 1560, "Inactive": 40 },
         "byStatus": { "active": 1560, "inactive": 40 },
         "totalCities": 90,
         "totalCountries": 22,

@@ -11,6 +11,10 @@ Returns the currently-matched monitors as a flat CSV — one row per monitor —
 GET /api/v2/devices/network-coverage/export.csv?token={SECRET_TOKEN}
 ```
 
+:::warning Don't put `token` in a public "Download" link
+If you're wiring this up to a download button a visitor clicks, don't use a link with `?token=` in it — anyone can read the token out of that URL. Route the download through your own backend instead, the same way as any other endpoint on this page. See [the note on query-string tokens →](./intro.md#endpoints-at-a-glance).
+:::
+
 **Query parameters**
 
 | Parameter | Type | Description |

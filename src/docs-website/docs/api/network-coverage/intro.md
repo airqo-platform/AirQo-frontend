@@ -40,6 +40,10 @@ Everything below maps one of those features to the endpoint behind it.
 
 All endpoints live under `/api/v2/devices/network-coverage` and follow the same [authentication](../getting-started/authentication.md) rules as the rest of the API — pass your `token` as a query parameter.
 
+:::warning Keep `token` out of anything a browser or public link can see
+Because `token` travels in the URL, calling these endpoints directly from client-side JavaScript, an HTML form, or a public download link can leak it into server access logs, browser history, analytics tools, or a `Referer` header sent to whatever the response links to. HTTPS protects the URL in transit, but does nothing to stop any of that once the request lands. Make these calls from your own backend and hand the result to the browser — the way [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage) itself does: its frontend never sees the token, a server-side route attaches it before forwarding the request.
+:::
+
 | Feature | Endpoint | Docs |
 |---------|----------|------|
 | Country-by-country monitor counts (map overview) | `GET /api/v2/devices/network-coverage` | [Monitors & Countries →](./monitors-and-countries.md) |
