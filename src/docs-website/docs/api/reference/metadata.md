@@ -5,9 +5,13 @@ sidebar_label: Metadata API
 
 # Metadata API
 
-The Metadata API lets you browse the AirQo monitoring infrastructure — grids, cohorts, sites, devices, and geographic boundaries — so you can discover the right identifiers before querying measurement or forecast data.
+The Metadata API lets you browse **AirQo's own** monitoring infrastructure — grids, cohorts, sites, devices, and geographic boundaries — so you can discover the right identifiers before querying measurement or forecast data.
 
 All endpoints require your `token` query parameter, with one exception noted below. See [Authentication →](../getting-started/authentication.md).
+
+:::info Looking for monitors beyond AirQo's own fleet?
+This page is scoped to infrastructure AirQo directly manages. For a broader, cross-manufacturer registry of monitors across Africa — including reference-grade instruments and equipment run by other operators (ministries, embassies, universities, other sensor networks) — see the [Network Coverage API →](../network-coverage/intro.md). AirQo's own public sites appear in both; the Network Coverage API additionally includes monitors that were never registered as AirQo sites/devices at all.
+:::
 
 ---
 
