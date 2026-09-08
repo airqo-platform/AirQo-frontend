@@ -13,6 +13,10 @@ The point of documenting it here is to let it be reused: any organisation with a
 This page assumes you already know how authentication and requests work. If you haven't yet, start with [AirQo API →](../intro.md) for the fundamentals, then come back here.
 :::
 
+:::info This is location and monitor metadata, not air-quality readings
+Every endpoint here answers "what monitors exist, where, and run by whom" — not "what is the air quality right now." If you already have a monitor's identifiers and want its actual readings, that's the [Analytics API](../analytics-api/raw-data.md) or [Forecast API](../forecasts/overview.md) instead. In that sense this API is a sibling of the [Metadata API →](../reference/metadata.md): Metadata covers AirQo's own registered grids, cohorts, sites, and devices; Network Coverage covers the same *kind* of information — monitor identity and location — extended to every manufacturer and operator across Africa, not just AirQo's fleet.
+:::
+
 ---
 
 ## What the reference map does with this data
