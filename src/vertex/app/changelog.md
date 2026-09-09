@@ -2,6 +2,34 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
+## Version 2.0.38
+**Released:** September 9, 2026
+
+### Feature: Bulk Device CSV/Spreadsheet Import on "Assign Devices to Cohort" Modal (Issue #3912)
+
+Reused the `DeviceNameParser` component from cohort creation in `AssignCohortDevicesDialog` (`assign-cohort-devices.tsx`). Users can now bulk import devices from CSV and Excel spreadsheets when assigning devices to existing cohorts, with interactive column mapping, exact and substring device resolution, deduplication, and scoped feedback banners.
+
+<details>
+<summary><strong>Device Import & Matching Details</strong></summary>
+
+- **Integrated `DeviceNameParser` into `AssignCohortDevicesDialog`**:
+  - Positioned the "Import from CSV" action directly beside the `Devices *` form label.
+  - Automatically disables with a "Loading devices..." tooltip if device options are still loading.
+  - Interactive modal allows selecting which column in the uploaded file contains device names.
+- **Implemented `handleDeviceImport`**:
+  - Matches parsed names against loaded devices (`deviceOptions` and `deviceById`) checking exact matches against option labels, `device.name`, `device.long_name`, and `device._id`, as well as substring contains matches for search queries >= 3 characters.
+  - Merges parsed devices into existing selections without duplication.
+  - Surfaces scoped feedback banners reporting success or breakdown counts (`Imported X device(s). Y not found.`).
+- **Comprehensive Unit Test Coverage**:
+  - Expanded `assign-cohort-devices.test.tsx` with 4 new tests covering full match, partial match with not-found warnings, zero match warnings, and preserving existing selections across multiple import actions.
+
+</details>
+
+**Files changed:**
+- `components/features/cohorts/assign-cohort-devices.tsx` — Integrated `DeviceNameParser` and `handleDeviceImport`
+- `components/features/cohorts/assign-cohort-devices.test.tsx` — Added 4 unit tests for bulk device import
+- `VERTEX_PENDING_ITEMS_HANDOVER.md` — Updated issue #3912 to resolved status
+
 ## Version 2.0.37
 **Released:** September 4, 2026
 
