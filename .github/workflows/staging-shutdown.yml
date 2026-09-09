@@ -26,6 +26,49 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --overwrite-existing
+
+      - name: Gracefully shut down Kafka before node drain
+        run: |
+          echo "Scaling KafkaNodePool to 0 replicas to avoid PDB blocking node drain..."
+          kubectl patch kafkanodepool dual-role \
+            -n message-broker \
+            --type merge \
+            -p '{"spec":{"replicas":0}}'
+
+          echo "Waiting for Kafka pods to terminate (max 3 minutes)..."
+          TIMEOUT=180
+          INTERVAL=10
+          ELAPSED=0
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            COUNT=$(kubectl get pods -n message-broker \
+              -l strimzi.io/name=airqo-stage-kafka-kafka \
+              --no-headers 2>/dev/null | grep -c . || true)
+
+            echo "Kafka pods remaining: $COUNT (${ELAPSED}s elapsed)"
+
+            if [ "$COUNT" = "0" ]; then
+              echo "All Kafka pods terminated"
+              break
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "Removing Kafka PDBs..."
+          kubectl delete pdb airqo-stage-kafka-kafka \
+            -n message-broker --ignore-not-found
+          kubectl delete pdb airqo-stage-kafka-entity-operator \
+            -n message-broker --ignore-not-found
+          echo "Done — Strimzi will recreate PDBs on next startup"
+
       - name: Scale down AKS workload nodes
         run: |
           echo "Disabling cluster autoscaler to allow forced manual scaling..."

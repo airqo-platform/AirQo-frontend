@@ -26,13 +26,40 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Start HAProxy staging VM
+      - name: Start HAProxy staging VM and wait for running state
         run: |
           echo "Starting ${{ env.STAGING_HAPROXY_VM }}..."
           az vm start \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.STAGING_HAPROXY_VM }}
-          echo "VM started"
+
+          echo "Polling for VM running state (max 5 minutes)..."
+          TIMEOUT=300
+          INTERVAL=15
+          ELAPSED=0
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            POWER_STATE=$(az vm get-instance-view \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.STAGING_HAPROXY_VM }} \
+              --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+              -o tsv)
+
+            echo "Power state: $POWER_STATE (${ELAPSED}s elapsed)"
+
+            if [ "$POWER_STATE" = "VM running" ]; then
+              echo "VM successfully started"
+              break
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          if [ "$POWER_STATE" != "VM running" ]; then
+            echo "ERROR: VM did not reach running state within ${TIMEOUT}s. Last state: $POWER_STATE"
+            exit 1
+          fi
 
       - name: Scale up AKS workload nodes
         run: |
@@ -53,52 +80,45 @@ jobs:
             --name ${{ env.STAGING_CLUSTER_NAME }} \
             --overwrite-existing
 
-      - name: Wait for workload nodes to appear and be ready
+      - name: Wait for workload nodes to be ready
         run: |
-          echo "Waiting for at least 2 workload nodes to appear (max 8 minutes)..."
-          EXPECTED_NODES=2
-          TIMEOUT=480
-          INTERVAL=20
-          DEADLINE=$(( $(date +%s) + TIMEOUT ))
+          echo "Waiting for all nodes to be Ready (max 8 minutes)..."
+          kubectl wait --for=condition=Ready nodes --all --timeout=480s
+          echo "All nodes ready"
 
-          while true; do
-            NOW=$(date +%s)
-            REMAINING=$(( DEADLINE - NOW ))
+      - name: Restore Kafka replicas
+        run: |
+          echo "Restoring KafkaNodePool to 2 replicas..."
+          kubectl patch kafkanodepool dual-role \
+            -n message-broker \
+            --type merge \
+            -p '{"spec":{"replicas":2}}'
 
-            if [ $REMAINING -le 0 ]; then
-              echo "ERROR: Expected $EXPECTED_NODES workload nodes but only $NODE_COUNT appeared within ${TIMEOUT}s"
-              exit 1
-            fi
+          echo "Waiting for Kafka pods to be ready (max 5 minutes)..."
+          TIMEOUT=300
+          INTERVAL=15
+          ELAPSED=0
+          COUNT=0
 
-            REQUEST_TIMEOUT=$(( REMAINING < 30 ? REMAINING : 30 ))
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            COUNT=$(kubectl get pods -n message-broker \
+              -l strimzi.io/name=airqo-stage-kafka-kafka \
+              --no-headers 2>/dev/null | grep -c "Running" || true)
 
-            if ! NODES=$(kubectl get nodes \
-              --selector=kubernetes.azure.com/agentpool=workload \
-              --no-headers \
-              --request-timeout="${REQUEST_TIMEOUT}s" 2>&1); then
-              echo "ERROR: Failed to list workload nodes — check AKS credentials and API connectivity"
-              echo "$NODES"
-              exit 1
-            fi
+            echo "Kafka pods running: $COUNT/2 (${ELAPSED}s elapsed)"
 
-            NODE_COUNT=$(printf '%s\n' "$NODES" | grep -c . || true)
-
-            if [ "$NODE_COUNT" -ge "$EXPECTED_NODES" ]; then
-              echo "Workload nodes appearing ($NODE_COUNT/$EXPECTED_NODES)"
+            if [ "$COUNT" = "2" ]; then
+              echo "Kafka pods restored and running"
               break
             fi
 
-            SLEEP=$(( INTERVAL < REMAINING ? INTERVAL : REMAINING ))
-            echo "Waiting for nodes ($NODE_COUNT/$EXPECTED_NODES present, ${REMAINING}s remaining)..."
-            sleep "$SLEEP"
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
           done
 
-          echo "Waiting for Ready state..."
-          kubectl wait node \
-            --for=condition=Ready \
-            --selector=kubernetes.azure.com/agentpool=workload \
-            --timeout=300s
-          echo "Workload nodes ready"
+          if [ "$COUNT" != "2" ]; then
+            echo "WARNING: Kafka pods did not reach 2 running within ${TIMEOUT}s — operator may still be initializing"
+          fi
 
       - name: Wait for nginx-ingress
         run: |
@@ -159,3 +179,6 @@ jobs:
           echo ""
           echo "--- nginx-ingress ---"
           kubectl get pods -n nginx-ingress
+          echo ""
+          echo "--- Kafka pods ---"
+          kubectl get pods -n message-broker
