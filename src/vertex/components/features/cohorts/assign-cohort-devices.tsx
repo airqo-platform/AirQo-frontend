@@ -18,6 +18,7 @@ import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { CreateCohortDialog, PreselectedDevice } from "./create-cohort";
+import { DeviceNameParser } from "./device-name-parser";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
@@ -202,6 +203,98 @@ export function AssignCohortDevicesDialog({
     setCreateCohortModalOpen(true);
   };
 
+  const handleDeviceImport = (deviceNames: string[]) => {
+    if (deviceOptions.length === 0) {
+      showBanner({
+        severity: "warning",
+        message: "No devices available to match against. Please wait for devices to load.",
+        scoped: true,
+      });
+      return;
+    }
+
+    const matchedIds: string[] = [];
+    let notFoundCount = 0;
+
+    deviceNames.forEach((name) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const nameLower = trimmed.toLowerCase();
+
+      // 1. Try exact match on option label (long_name || name || ID)
+      let match = deviceOptions.find((d) => d.label.toLowerCase() === nameLower);
+
+      // 2. Try match on device.name, device.long_name, or device._id
+      if (!match) {
+        const found = Array.from(deviceById.values()).find(
+          (d) =>
+            d.name?.toLowerCase() === nameLower ||
+            d._id?.toLowerCase() === nameLower ||
+            d.long_name?.toLowerCase() === nameLower
+        );
+        if (found?._id) {
+          match = {
+            value: found._id,
+            label: found.long_name || found.name || found._id,
+          };
+        }
+      }
+
+      // 3. Fall back to contains match if nameLower length >= 3
+      if (!match && nameLower.length >= 3) {
+        match = deviceOptions.find((d) =>
+          d.label.toLowerCase().includes(nameLower)
+        );
+      }
+
+      if (match) {
+        matchedIds.push(match.value);
+      } else {
+        notFoundCount++;
+      }
+    });
+
+    const uniqueMatchedIds = Array.from(new Set(matchedIds));
+
+    if (uniqueMatchedIds.length === 0) {
+      showBanner({
+        severity: "warning",
+        message: "No matching devices found. Please ensure the devices exist.",
+        scoped: true,
+      });
+      return;
+    }
+
+    // Merge with existing selections
+    const currentDevices = form.getValues("devices") || [];
+    const uniqueDevices = Array.from(
+      new Set([...currentDevices, ...uniqueMatchedIds])
+    );
+    form.setValue("devices", uniqueDevices, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    const importedCount = uniqueMatchedIds.length;
+
+    if (notFoundCount > 0) {
+      showBanner({
+        severity: "warning",
+        message: `Imported ${importedCount} device${
+          importedCount !== 1 ? "s" : ""
+        }. ${notFoundCount} not found.`,
+        scoped: true,
+      });
+    } else {
+      showBanner({
+        severity: "success",
+        message: `Imported ${importedCount} device${
+          importedCount !== 1 ? "s" : ""
+        } successfully.`,
+        scoped: true,
+      });
+    }
+  };
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     assignDevices(
@@ -288,10 +381,17 @@ export function AssignCohortDevicesDialog({
               control={form.control}
               name="devices"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium">
-                    Devices <span className="text-red-500">*</span>
-                  </FormLabel>
+                <FormItem className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium">
+                      Devices <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <DeviceNameParser
+                      onDevicesParsed={handleDeviceImport}
+                      shouldBlock={isFetchingDevices && deviceOptions.length === 0}
+                      tooltipMessage="Loading devices..."
+                    />
+                  </div>
                   <FormControl>
                   <MultiSelectCombobox
                     options={deviceOptions}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AssignCohortDevicesDialog } from "./assign-cohort-devices";
@@ -27,12 +27,32 @@ vi.mock("@/core/hooks/useUserContext", () => ({
 
 vi.mock("@/context/banner-context", () => ({
   BannerSlot: () => null,
-  useBanner: () => ({ hideBanner: vi.fn(), showBanner: vi.fn() }),
+  useBanner: () => ({ hideBanner: vi.fn(), showBanner: showBannerMock }),
 }));
 
+const showBannerMock = vi.fn();
 const showBannerWithDelayMock = vi.fn();
 vi.mock("@/core/hooks/useBannerWithDelay", () => ({
   useBannerWithDelay: () => ({ showBannerWithDelay: showBannerWithDelayMock }),
+}));
+
+let parsedDevicesCallback: ((names: string[]) => void) | null = null;
+vi.mock("./device-name-parser", () => ({
+  DeviceNameParser: ({
+    onDevicesParsed,
+  }: {
+    onDevicesParsed: (names: string[]) => void;
+  }) => {
+    parsedDevicesCallback = onDevicesParsed;
+    return (
+      <button
+        type="button"
+        onClick={() => onDevicesParsed(["AirQo G1"])}
+      >
+        Import from CSV
+      </button>
+    );
+  },
 }));
 
 // CreateCohortDialog has its own dedicated test file — stub it here so this
@@ -279,5 +299,129 @@ describe("AssignCohortDevicesDialog", () => {
     await user.click(screen.getByText("Simulate cohort created"));
 
     expect(screen.getByTestId("create-cohort-dialog")).toBeInTheDocument();
+  });
+
+  it("imports devices in bulk via DeviceNameParser and merges them into the selection", async () => {
+    const assignSpy = vi.fn();
+    mockAssignDevices(assignSpy);
+    const user = userEvent.setup();
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    expect(dialog().getByRole("button", { name: "Add" })).toBeDisabled();
+
+    // Click "Import from CSV", triggering onDevicesParsed with valid device names
+    await user.click(dialog().getByRole("button", { name: "Import from CSV" }));
+
+    // Add button should now be enabled as device is selected
+    await waitFor(() => {
+      expect(dialog().getByRole("button", { name: "Add" })).not.toBeDisabled();
+    });
+
+    expect(showBannerMock).toHaveBeenCalledWith({
+      severity: "success",
+      message: "Imported 1 device successfully.",
+      scoped: true,
+    });
+
+    await user.click(dialog().getByRole("button", { name: "Add" }));
+
+    expect(assignSpy).toHaveBeenCalledWith(
+      { cohortId: "cohort-1", deviceIds: ["device-1"] },
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  it("reports not-found count when some parsed devices do not match", async () => {
+    mockAssignDevices(vi.fn());
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // Call parser with one valid and one unknown device name
+    await act(async () => {
+      parsedDevicesCallback?.(["AirQo G1", "non_existent_device_xyz"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "warning",
+        message: "Imported 1 device. 1 not found.",
+        scoped: true,
+      });
+    });
+
+    expect(dialog().getByRole("button", { name: "Add" })).not.toBeDisabled();
+  });
+
+  it("warns when no parsed devices match any known device", async () => {
+    mockAssignDevices(vi.fn());
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // Call parser with unknown devices only
+    await act(async () => {
+      parsedDevicesCallback?.(["unknown_dev_1", "unknown_dev_2"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "warning",
+        message: "No matching devices found. Please ensure the devices exist.",
+        scoped: true,
+      });
+    });
+
+    expect(dialog().getByRole("button", { name: "Add" })).toBeDisabled();
+  });
+
+  it("preserves existing device selections when importing additional devices", async () => {
+    const assignSpy = vi.fn();
+    mockAssignDevices(assignSpy);
+    const user = userEvent.setup();
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+        selectedDevices={[DEVICE_A] as never}
+      />
+    );
+
+    // Import device B
+    await act(async () => {
+      parsedDevicesCallback?.(["airqo_g2"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Imported 1 device successfully.",
+        scoped: true,
+      });
+    });
+
+    await user.click(dialog().getByRole("button", { name: "Add" }));
+
+    expect(assignSpy).toHaveBeenCalledWith(
+      { cohortId: "cohort-1", deviceIds: ["device-1", "device-2"] },
+      expect.anything(),
+      expect.anything()
+    );
   });
 });
