@@ -82,6 +82,7 @@ ios/Flutter/ApiKeys.xcconfig
 .env
 .env.*
 *.env
+!.env.example
 
 /android/google-services.json
 /android/play-store-service-account.json
