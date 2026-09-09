@@ -106,10 +106,23 @@ export function AssignCohortDevicesDialog({
   const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
   const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : isFetchingAllCohorts;
 
-  const { devices: allDevices, isFetching: isFetchingDevices } = useDevices({
+  // Complete device pool for matching and selection (not restricted by active combobox search or 100-item page)
+  const { devices: completeDevices, isFetching: isFetchingCompleteDevices } = useDevices({
     enabled: open,
+    limit: 2000,
+  });
+
+  const { devices: searchedDevices, isFetching: isFetchingSearchedDevices } = useDevices({
+    enabled: open && !!debouncedDeviceSearch,
     search: debouncedDeviceSearch,
   });
+
+  const [importedDevices, setImportedDevices] = useState<Device[]>([]);
+
+  const isFetchingDevices = debouncedDeviceSearch
+    ? isFetchingSearchedDevices
+    : isFetchingCompleteDevices;
+
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort({
     onSuccess: (data, variables) => {
       showBannerWithDelay({
@@ -138,8 +151,16 @@ export function AssignCohortDevicesDialog({
     },
   });
 
+  const selectedDeviceIds = form.watch("devices") || [];
+  const watchedCohortId = form.watch("cohortId");
+
   const deviceById = useMemo(() => {
-    const combined = [...(selectedDevices ?? []), ...(allDevices ?? [])];
+    const combined = [
+      ...(selectedDevices ?? []),
+      ...(completeDevices ?? []),
+      ...(searchedDevices ?? []),
+      ...importedDevices,
+    ];
     const unique = new Map<string, Device>();
 
     combined.forEach((device) => {
@@ -148,16 +169,40 @@ export function AssignCohortDevicesDialog({
     });
 
     return unique;
-  }, [allDevices, selectedDevices]);
+  }, [completeDevices, searchedDevices, selectedDevices, importedDevices]);
 
-  const deviceOptions: Option[] = useMemo(
-    () =>
-      Array.from(deviceById.values()).map((device) => ({
-        value: device._id as string,
-        label: device.long_name || device.name || `Device ${device._id}`,
-      })),
-    [deviceById]
-  );
+  const deviceOptions: Option[] = useMemo(() => {
+    if (debouncedDeviceSearch) {
+      const selectedIds = new Set(selectedDeviceIds);
+      const optionsMap = new Map<string, Option>();
+
+      (searchedDevices ?? []).forEach((device) => {
+        if (!device?._id) return;
+        optionsMap.set(device._id, {
+          value: device._id,
+          label: device.long_name || device.name || `Device ${device._id}`,
+        });
+      });
+
+      // Also ensure all currently selected devices are present in options so their badge labels resolve
+      selectedIds.forEach((id) => {
+        if (!optionsMap.has(id)) {
+          const device = deviceById.get(id);
+          optionsMap.set(id, {
+            value: id,
+            label: device?.long_name || device?.name || `Device ${id}`,
+          });
+        }
+      });
+
+      return Array.from(optionsMap.values());
+    }
+
+    return Array.from(deviceById.values()).map((device) => ({
+      value: device._id as string,
+      label: device.long_name || device.name || `Device ${device._id}`,
+    }));
+  }, [debouncedDeviceSearch, searchedDevices, deviceById, selectedDeviceIds]);
 
   useEffect(() => {
     if (open) {
@@ -169,6 +214,7 @@ export function AssignCohortDevicesDialog({
       setDebouncedCohortSearch("");
       setDeviceSearch("");
       setDebouncedDeviceSearch("");
+      setImportedDevices([]);
     }
   }, [open, form, cohortId, selectedDevices]);
 
@@ -204,7 +250,10 @@ export function AssignCohortDevicesDialog({
   };
 
   const handleDeviceImport = (deviceNames: string[]) => {
-    if (deviceOptions.length === 0) {
+    // Resolve imported device names against the complete device set (independent of active combobox search and 100-item page)
+    const devicePool = completeDevices.length > 0 ? completeDevices : Array.from(deviceById.values());
+
+    if (devicePool.length === 0) {
       showBanner({
         severity: "warning",
         message: "No devices available to match against. Please wait for devices to load.",
@@ -213,6 +262,7 @@ export function AssignCohortDevicesDialog({
       return;
     }
 
+    const matchedDevices: Device[] = [];
     const matchedIds: string[] = [];
     let notFoundCount = 0;
 
@@ -221,34 +271,26 @@ export function AssignCohortDevicesDialog({
       if (!trimmed) return;
       const nameLower = trimmed.toLowerCase();
 
-      // 1. Try exact match on option label (long_name || name || ID)
-      let match = deviceOptions.find((d) => d.label.toLowerCase() === nameLower);
+      // 1. Try exact match on name, long_name, or _id
+      let match = devicePool.find(
+        (d) =>
+          d.name?.toLowerCase() === nameLower ||
+          d.long_name?.toLowerCase() === nameLower ||
+          d._id?.toLowerCase() === nameLower
+      );
 
-      // 2. Try match on device.name, device.long_name, or device._id
-      if (!match) {
-        const found = Array.from(deviceById.values()).find(
-          (d) =>
-            d.name?.toLowerCase() === nameLower ||
-            d._id?.toLowerCase() === nameLower ||
-            d.long_name?.toLowerCase() === nameLower
-        );
-        if (found?._id) {
-          match = {
-            value: found._id,
-            label: found.long_name || found.name || found._id,
-          };
-        }
-      }
-
-      // 3. Fall back to contains match if nameLower length >= 3
+      // 2. Fall back to contains match if nameLower length >= 3
       if (!match && nameLower.length >= 3) {
-        match = deviceOptions.find((d) =>
-          d.label.toLowerCase().includes(nameLower)
+        match = devicePool.find(
+          (d) =>
+            d.name?.toLowerCase().includes(nameLower) ||
+            d.long_name?.toLowerCase().includes(nameLower)
         );
       }
 
-      if (match) {
-        matchedIds.push(match.value);
+      if (match?._id) {
+        matchedDevices.push(match);
+        matchedIds.push(match._id);
       } else {
         notFoundCount++;
       }
@@ -264,6 +306,13 @@ export function AssignCohortDevicesDialog({
       });
       return;
     }
+
+    // Preserve matched Device objects so their metadata / labels remain available in deviceById
+    setImportedDevices((prev) => {
+      const prevIds = new Set(prev.map((d) => d._id));
+      const newlyAdded = matchedDevices.filter((d) => !prevIds.has(d._id));
+      return [...prev, ...newlyAdded];
+    });
 
     // Merge with existing selections
     const currentDevices = form.getValues("devices") || [];
@@ -317,6 +366,7 @@ export function AssignCohortDevicesDialog({
     if (!newOpen) {
       form.reset();
       setCreateCohortModalOpen(false);
+      setImportedDevices([]);
     }
   };
 
@@ -326,13 +376,13 @@ export function AssignCohortDevicesDialog({
         isOpen={open}
         onClose={() => handleOpenChange(false)}
         title={title}
-        subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
+        subtitle={`${selectedDeviceIds.length} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
           label: "Add",
           onClick: form.handleSubmit(onSubmit),
-          disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isAssigning,
+          disabled: !watchedCohortId || !selectedDeviceIds.length || isAssigning,
         }}
         secondaryAction={{
           label: "Cancel",
@@ -388,7 +438,7 @@ export function AssignCohortDevicesDialog({
                     </FormLabel>
                     <DeviceNameParser
                       onDevicesParsed={handleDeviceImport}
-                      shouldBlock={isFetchingDevices && deviceOptions.length === 0}
+                      shouldBlock={isFetchingCompleteDevices && completeDevices.length === 0}
                       tooltipMessage="Loading devices..."
                     />
                   </div>

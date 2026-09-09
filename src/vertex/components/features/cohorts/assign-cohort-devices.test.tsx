@@ -40,13 +40,19 @@ let parsedDevicesCallback: ((names: string[]) => void) | null = null;
 vi.mock("./device-name-parser", () => ({
   DeviceNameParser: ({
     onDevicesParsed,
+    shouldBlock,
+    tooltipMessage,
   }: {
     onDevicesParsed: (names: string[]) => void;
+    shouldBlock?: boolean;
+    tooltipMessage?: string;
   }) => {
     parsedDevicesCallback = onDevicesParsed;
     return (
       <button
         type="button"
+        disabled={shouldBlock}
+        title={tooltipMessage}
         onClick={() => onDevicesParsed(["AirQo G1"])}
       >
         Import from CSV
@@ -423,5 +429,118 @@ describe("AssignCohortDevicesDialog", () => {
       expect.anything(),
       expect.anything()
     );
+  });
+
+  it("resolves imported device names against complete device pool even when combobox search filter is active", async () => {
+    const assignSpy = vi.fn();
+    mockAssignDevices(assignSpy);
+    const user = userEvent.setup();
+
+    const DEVICE_C = { _id: "device-3", name: "airqo_g3", long_name: "AirQo G3" };
+
+    // Query with search returns only DEVICE_A, while the complete pool (limit: 2000) returns all devices
+    vi.mocked(useDevices).mockImplementation((options) => {
+      if (options?.search) {
+        return {
+          devices: [DEVICE_A],
+          isFetching: false,
+        } as unknown as ReturnType<typeof useDevices>;
+      }
+      return {
+        devices: [DEVICE_A, DEVICE_B, DEVICE_C],
+        isFetching: false,
+      } as unknown as ReturnType<typeof useDevices>;
+    });
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // Filter combobox by typing in the search input
+    const combos = dialog().getAllByRole("combobox");
+    await user.click(combos[1]);
+    const searchInput = screen.getByPlaceholderText("Search or add new input...");
+    await user.type(searchInput, "g1");
+
+    // Wait for the 300ms debounce to trigger useDevices with search: "g1"
+    await waitFor(() => {
+      expect(useDevices).toHaveBeenCalledWith(
+        expect.objectContaining({ search: "g1" })
+      );
+    });
+
+    // Dismiss the combobox popover
+    await user.keyboard("{Escape}");
+
+    // Bulk import a device outside the active search: "AirQo G3"
+    await act(async () => {
+      parsedDevicesCallback?.(["AirQo G3"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Imported 1 device successfully.",
+        scoped: true,
+      });
+    });
+
+    const addButton = dialog().getByRole("button", { name: "Add" });
+    expect(addButton).not.toBeDisabled();
+    await user.click(addButton);
+
+    expect(assignSpy).toHaveBeenCalledWith(
+      { cohortId: "cohort-1", deviceIds: ["device-3"] },
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  it("warns when no devices are available to match against in an empty device pool", async () => {
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [],
+      isFetching: false,
+    } as unknown as ReturnType<typeof useDevices>);
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    await act(async () => {
+      parsedDevicesCallback?.(["AirQo G1"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "warning",
+        message: "No devices available to match against. Please wait for devices to load.",
+        scoped: true,
+      });
+    });
+  });
+
+  it("blocks the CSV import button when complete devices are still loading and pool is empty", () => {
+    vi.mocked(useDevices).mockReturnValue({
+      devices: [],
+      isFetching: true,
+    } as unknown as ReturnType<typeof useDevices>);
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    expect(dialog().getByRole("button", { name: "Import from CSV" })).toBeDisabled();
   });
 });
