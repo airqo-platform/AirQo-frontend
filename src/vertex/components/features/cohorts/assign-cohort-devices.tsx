@@ -279,13 +279,19 @@ export function AssignCohortDevicesDialog({
           d._id?.toLowerCase() === nameLower
       );
 
-      // 2. Fall back to contains match if nameLower length >= 3
+      // 2. Fall back to contains match if nameLower length >= 3 and unambiguous (exactly one device matches)
       if (!match && nameLower.length >= 3) {
-        match = devicePool.find(
+        const partialMatches = devicePool.filter(
           (d) =>
             d.name?.toLowerCase().includes(nameLower) ||
             d.long_name?.toLowerCase().includes(nameLower)
         );
+        const uniqueCandidateMatches = Array.from(
+          new Map(partialMatches.map((d) => [d._id, d])).values()
+        );
+        if (uniqueCandidateMatches.length === 1) {
+          match = uniqueCandidateMatches[0];
+        }
       }
 
       if (match?._id) {

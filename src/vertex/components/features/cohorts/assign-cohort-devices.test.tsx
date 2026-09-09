@@ -543,4 +543,96 @@ describe("AssignCohortDevicesDialog", () => {
 
     expect(dialog().getByRole("button", { name: "Import from CSV" })).toBeDisabled();
   });
+
+  it("accepts a partial match when exactly one device matches unambiguously", async () => {
+    const assignSpy = vi.fn();
+    mockAssignDevices(assignSpy);
+    const user = userEvent.setup();
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // "_g1" has length 3, is not an exact match, and uniquely matches DEVICE_A ("airqo_g1")
+    await act(async () => {
+      parsedDevicesCallback?.(["_g1"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "success",
+        message: "Imported 1 device successfully.",
+        scoped: true,
+      });
+    });
+
+    const addButton = dialog().getByRole("button", { name: "Add" });
+    expect(addButton).not.toBeDisabled();
+    await user.click(addButton);
+
+    expect(assignSpy).toHaveBeenCalledWith(
+      { cohortId: "cohort-1", deviceIds: ["device-1"] },
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  it("leaves ambiguous partial matches unmatched when multiple devices contain the search string", async () => {
+    mockAssignDevices(vi.fn());
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // "AirQo" matches both DEVICE_A ("AirQo G1") and DEVICE_B ("AirQo G2")
+    // Because it is ambiguous, neither should be matched
+    await act(async () => {
+      parsedDevicesCallback?.(["AirQo"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "warning",
+        message: "No matching devices found. Please ensure the devices exist.",
+        scoped: true,
+      });
+    });
+
+    expect(dialog().getByRole("button", { name: "Add" })).toBeDisabled();
+  });
+
+  it("does not match via partial contains when input length is less than 3 characters", async () => {
+    mockAssignDevices(vi.fn());
+
+    render(
+      <AssignCohortDevicesDialog
+        open
+        onOpenChange={vi.fn()}
+        cohortId="cohort-1"
+      />
+    );
+
+    // "G" has length 1 (< 3) and is not an exact match for any device
+    await act(async () => {
+      parsedDevicesCallback?.(["G"]);
+    });
+
+    await waitFor(() => {
+      expect(showBannerMock).toHaveBeenCalledWith({
+        severity: "warning",
+        message: "No matching devices found. Please ensure the devices exist.",
+        scoped: true,
+      });
+    });
+
+    expect(dialog().getByRole("button", { name: "Add" })).toBeDisabled();
+  });
 });
