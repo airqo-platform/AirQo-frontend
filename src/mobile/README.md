@@ -12,16 +12,17 @@ AirQo is a Flutter app that provides air quality information.
 
 Use this from your machine with a phone connected (USB debugging on Android, or a trusted iPhone). `--flavor airqodev` installs as `com.airqo.app.dev` on Android, so it sits next to the Play Store app instead of overwriting it.
 
+Work from `src/mobile` (that directory has `pubspec.yaml`). The app loads `src/mobile/.env.prod`.
+
 ```bash
 git fetch origin staging && git checkout staging && git pull origin staging
 cd src/mobile
-bash tool/setup_local.sh
 flutter pub get
 flutter devices
 flutter run --debug --flavor airqodev
 ```
 
-`tool/setup_local.sh` is only required on a clone that is missing `.env.prod` / `.env.dev`. It copies placeholders; it will not overwrite files you already have.
+If Gradle still asks for Maps keys, run `bash tool/setup_local.sh` once (creates `android/secrets.properties` from defaults). It will not overwrite env files you already have.
 
 If `flutter devices` shows more than one device, pick one:
 
@@ -43,12 +44,12 @@ flutter run --debug --flavor airqodev -d <deviceId>
 
 ### Live API data
 
-Placeholder env files let the app compile. Login, maps, and measurements need real tokens from GCP Secret Manager (`prod-env-mobile-app` or `sta-env-mobile-app`). Put those values in `.env.prod` and `.env.dev` — those files are gitignored.
+`.env.prod` and `.env.dev` ship as empty placeholders so Flutter has an asset to bundle. Login, maps, and measurements need real tokens from GCP Secret Manager (`prod-env-mobile-app` or `sta-env-mobile-app`). Put those values in `.env.prod` / `.env.dev` and do not commit the filled files.
 
 ## One-time developer setup
 
 1. Install [Flutter](https://docs.flutter.dev/get-started/install) **>= 3.27**.
-2. From `src/mobile`, run `bash tool/setup_local.sh` then `flutter pub get`.
+2. From `src/mobile`, run `flutter pub get`. If Android Gradle fails on Maps keys, run `bash tool/setup_local.sh` first.
 3. Run `flutter doctor` and fix anything it reports for your platform.
 
 Store deployment (not local device runs) is covered in:

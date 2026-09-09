@@ -1,9 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// Loads the first bundled env file that exists.
-///
-/// Production and CI ship `.env.prod`. A fresh local clone only has
-/// `.env.example` until `tool/setup_local.sh` copies it.
+/// Loads bundled env files. `.env.prod` is committed as a placeholder so a
+/// clean clone always has a file for Flutter to package.
 Future<void> loadAppEnv() async {
   const candidates = ['.env.prod', '.env.dev', '.env.example'];
   Object? lastError;
@@ -16,7 +14,6 @@ Future<void> loadAppEnv() async {
     }
   }
   throw StateError(
-    'No env file found. From src/mobile run: bash tool/setup_local.sh. '
-    'Last error: $lastError',
+    'No env file found. Expected src/mobile/.env.prod. Last error: $lastError',
   );
 }
