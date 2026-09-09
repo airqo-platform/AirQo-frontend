@@ -62,6 +62,11 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
           done
 
+          if [ "$COUNT" != "0" ]; then
+            echo "ERROR: Kafka pods did not terminate within ${TIMEOUT}s. Remaining: $COUNT"
+            exit 1
+          fi 
+
           echo "Removing Kafka PDBs..."
           kubectl delete pdb airqo-stage-kafka-kafka \
             -n message-broker --ignore-not-found

@@ -117,7 +117,10 @@ jobs:
           done
 
           if [ "$COUNT" != "2" ]; then
-            echo "WARNING: Kafka pods did not reach 2 running within ${TIMEOUT}s — operator may still be initializing"
+            echo "ERROR: Kafka pods did not reach 2 running within ${TIMEOUT}s"
+            kubectl get pods -n message-broker \
+              -l strimzi.io/name=airqo-stage-kafka-kafka
+            exit 1
           fi
 
       - name: Wait for nginx-ingress
