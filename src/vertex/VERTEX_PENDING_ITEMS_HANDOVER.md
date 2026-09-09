@@ -51,5 +51,5 @@ Every item below was originally shared with Bwanika via Slack and re-checked aga
 
 Given Vertex's maintenance-only status, triage on risk/cost rather than feature-vs-fix alone:
 
-- **Do as normal maintenance:** all **Fix/UX** items, plus the three **Accept**-tagged new-feature items above (decommission action, self-service cohort ID, bulk cohort import) — each is either risk-reducing or small and mostly backend-complete already.
+- **Do as normal maintenance:** all **Fix/UX** items, plus the two **Accept**-tagged new-feature items above (decommission action and self-service cohort ID) — each is either risk-reducing or small and mostly backend-complete already.
 - **Defer, pending a product check-in:** device transfer, multi-account switching, and the partner leaderboard/directory/impact UI. None have an urgency signal in the original notes, but declining them outright in this doc risks silently dropping something with product backing (e.g. the leaderboard may tie to an incentive-program push) — worth a one-line confirmation with whoever owns that call before closing them out.
