@@ -8,6 +8,7 @@ import type {
   DecodedToken,
 } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import { resolveCookieDomain } from '@/core/utils/authCookieDomain';
 import logger from '@/lib/logger';
 import { isHCaptchaEnabled } from '@/lib/envConstants';
 import { buildServerApiUrl } from '@/lib/api-routing';
@@ -71,46 +72,47 @@ if (!process.env.NEXTAUTH_URL && azureContainerAppsUrl) {
 const authSecret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 const configuredCookieDomain =
   process.env.NEXTAUTH_COOKIE_DOMAIN?.trim() || undefined;
+/**
+ * Resolved lazily, per request. NEXTAUTH_URL is frequently unset at module
+ * load and only filled in by setRuntimeAuthUrls once the first request
+ * arrives, so evaluating this once up front would either miss the localhost
+ * guard entirely or pin a production domain onto local logins. Memoised on
+ * the reference URL so the warnings are logged once per distinct value.
+ */
+let cachedCookieDomainFor: string | undefined;
+let cachedCookieDomain: string | undefined;
 const getCookieDomain = () => {
-  if (!configuredCookieDomain) {
-    return undefined;
-  }
-
   const referenceUrl = process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL_INTERNAL;
-  if (!referenceUrl) {
-    return configuredCookieDomain;
+  const cacheKey = referenceUrl ?? '';
+  if (cachedCookieDomainFor === cacheKey) {
+    return cachedCookieDomain;
   }
-
-  try {
-    const host = new URL(referenceUrl).hostname.toLowerCase();
-    const normalizedDomain = configuredCookieDomain.replace(/^\./, '').toLowerCase();
-    const hostMatches =
-      host === normalizedDomain || host.endsWith(`.${normalizedDomain}`);
-
-    if (hostMatches) {
-      return configuredCookieDomain;
+  cachedCookieDomainFor = cacheKey;
+  cachedCookieDomain = resolveCookieDomain(configuredCookieDomain, referenceUrl, (warning) => {
+    if (warning.kind === 'host-mismatch') {
+      logger.warn(
+        '[NextAuth] NEXTAUTH_COOKIE_DOMAIN does not match NEXTAUTH_URL host; disabling cookie domain override.',
+        { configuredCookieDomain: warning.configuredCookieDomain, host: warning.host }
+      );
+    } else {
+      logger.warn(
+        '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; disabling cookie domain override.',
+        { configuredCookieDomain: warning.configuredCookieDomain, referenceUrl: warning.referenceUrl }
+      );
     }
-
-    logger.warn(
-      '[NextAuth] NEXTAUTH_COOKIE_DOMAIN does not match NEXTAUTH_URL host; disabling cookie domain override.',
-      { configuredCookieDomain, host }
-    );
-    return undefined;
-  } catch {
-    logger.warn(
-      '[NextAuth] Invalid NEXTAUTH_URL while validating cookie domain; disabling cookie domain override.',
-      { configuredCookieDomain, referenceUrl }
-    );
-    return undefined;
-  }
+  });
+  return cachedCookieDomain;
 };
-const cookieDomain = getCookieDomain();
 const cookieOptions = {
   httpOnly: true,
   sameSite: 'lax' as const,
   path: '/',
   secure: isProduction,
-  domain: cookieDomain,
+  // Getter rather than a captured value: NextAuth reads cookie options while
+  // handling a request, which is after setRuntimeAuthUrls has run.
+  get domain() {
+    return getCookieDomain();
+  },
 };
 
 if (isProduction && !authSecret) {
