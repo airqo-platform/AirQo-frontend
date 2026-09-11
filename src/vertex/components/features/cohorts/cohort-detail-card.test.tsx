@@ -65,6 +65,16 @@ describe("CohortDetailsCard", () => {
     expect(screen.getByText("individual")).toBeInTheDocument();
   });
 
+  it("shows the custom ID row only when the cohort has a slug", () => {
+    mockUpdateCohort(vi.fn());
+    const { rerender } = render(<CohortDetailsCard {...DEFAULT_PROPS} />);
+    expect(screen.queryByText("Custom ID")).not.toBeInTheDocument();
+
+    rerender(<CohortDetailsCard {...DEFAULT_PROPS} cohortSlug="kcca-nairobi-cbd" />);
+    expect(screen.getByText("Custom ID")).toBeInTheDocument();
+    expect(screen.getByText("kcca-nairobi-cbd")).toBeInTheDocument();
+  });
+
   it("shows None when there are no tags", () => {
     mockUpdateCohort(vi.fn());
     render(<CohortDetailsCard {...DEFAULT_PROPS} cohort_tags={[]} />);
