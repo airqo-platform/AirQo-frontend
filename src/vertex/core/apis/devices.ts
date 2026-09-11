@@ -18,6 +18,7 @@ import type {
   DecryptionResponse,
   PrepareDeviceResponse,
   BulkPrepareResponse,
+  CreateShippingBatchResponse,
   GenerateLabelsResponse,
   ShippingStatusResponse,
   ShippingBatchesResponse,
@@ -679,6 +680,33 @@ export const devices = {
       const response = await jwtApiClient.post<BulkPrepareResponse>(
         `/devices/prepare-bulk-for-shipping`,
         requestBody,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Creates a named shipping batch and prepares its devices in one request.
+   * Prefer this over prepareBulkDevicesForShipping whenever a batch name is
+   * given: the backend checks the name for uniqueness first and rolls the
+   * device preparations back if the batch record fails to save.
+   */
+  createShippingBatch: async (
+    deviceNames: string[],
+    batchName: string,
+    tokenType: "hex" | "readable" = "hex"
+  ): Promise<CreateShippingBatchResponse> => {
+    try {
+      const response = await jwtApiClient.post<CreateShippingBatchResponse>(
+        `/devices/shipping-batches`,
+        {
+          device_names: deviceNames,
+          batch_name: batchName,
+          token_type: tokenType,
+        },
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;

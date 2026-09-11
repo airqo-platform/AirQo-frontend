@@ -36,6 +36,7 @@ import type {
   MyDevicesResponse,
   PrepareDeviceResponse,
   BulkPrepareResponse,
+  CreateShippingBatchResponse,
   GenerateLabelsResponse,
   ShippingStatusResponse,
   OrphanedDevicesResponse,
@@ -795,6 +796,32 @@ export const usePrepareBulkDevicesForShipping = (options?: UsePrepareBulkDevices
       adapter.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
+      options?.onSuccess?.(data);
+    },
+    onError: (error) => {
+      options?.onError?.(error);
+    },
+  });
+};
+
+interface UseCreateShippingBatchOptions {
+  onSuccess?: (data: CreateShippingBatchResponse) => void;
+  onError?: (error: AxiosError<ErrorResponse>) => void;
+}
+
+export const useCreateShippingBatch = (options?: UseCreateShippingBatchOptions) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    CreateShippingBatchResponse,
+    AxiosError<ErrorResponse>,
+    { deviceNames: string[]; batchName: string; tokenType?: 'hex' | 'readable' }
+  >({
+    mutationFn: ({ deviceNames, batchName, tokenType }) =>
+      adapter.createShippingBatch(deviceNames, batchName, tokenType),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
+      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
       options?.onSuccess?.(data);
     },
     onError: (error) => {

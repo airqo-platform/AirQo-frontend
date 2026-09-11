@@ -367,6 +367,27 @@ export interface BulkPrepareResponse {
   };
 }
 
+/**
+ * Response of POST /devices/shipping-batches — the atomic counterpart of
+ * prepare-bulk-for-shipping: the backend rejects a duplicate batch name up
+ * front (409) and rolls back every device preparation if the batch record
+ * itself cannot be created, so a batch never half-exists.
+ */
+export interface CreateShippingBatchResponse {
+  success: boolean;
+  message: string;
+  batch_creation_results: {
+    batch: ShippingBatch;
+    successful_preparations: BulkPreparationResult[];
+    failed_preparations: BulkPreparationFailure[];
+    summary: {
+      total_requested: number;
+      successful_count: number;
+      failed_count: number;
+    };
+  };
+}
+
 export interface ShippingLabel {
   device_name: string;
   device_id: string;
