@@ -55,6 +55,15 @@ const getSession = async (): Promise<ExtendedSession | null> => {
   }
 };
 
+const isSameOrigin = (url: string, origin: string): boolean => {
+  try {
+    return new URL(url).origin === origin;
+  } catch {
+    // Not an absolute URL, so it cannot point back at this server.
+    return false;
+  }
+};
+
 export const createProxyHandler = (options: ProxyOptions = {}) => {
   const { requiresAuth = false, requiresApiToken = false } = options;
 
@@ -109,9 +118,11 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       try {
         API_URL = buildServerApiUrl(targetPath);
 
-        // Prevent infinite proxy loops if the API URL resolves back to the proxy itself
+        // Prevent infinite proxy loops if the API URL resolves back to the proxy
+        // itself. Compare parsed origins, not string prefixes: a prefix check
+        // would flag e.g. http://localhost:30001 from http://localhost:3000.
         const requestOrigin = new URL(req.url).origin;
-        if (API_URL.startsWith(requestOrigin)) {
+        if (isSameOrigin(API_URL, requestOrigin)) {
           logger.error('Infinite proxy loop detected. Check NEXT_PUBLIC_API_URL configuration.', { 
             API_URL, 
             requestOrigin 
