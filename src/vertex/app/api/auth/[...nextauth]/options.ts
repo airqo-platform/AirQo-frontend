@@ -83,6 +83,12 @@ const getCookieDomain = () => {
 
   try {
     const host = new URL(referenceUrl).hostname.toLowerCase();
+    
+    // Ignore custom cookie domains on localhost to prevent NextAuth warnings in development
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return undefined;
+    }
+
     const normalizedDomain = configuredCookieDomain.replace(/^\./, '').toLowerCase();
     const hostMatches =
       host === normalizedDomain || host.endsWith(`.${normalizedDomain}`);

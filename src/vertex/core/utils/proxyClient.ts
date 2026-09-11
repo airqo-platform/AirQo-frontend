@@ -108,6 +108,19 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       let API_URL: string;
       try {
         API_URL = buildServerApiUrl(targetPath);
+
+        // Prevent infinite proxy loops if the API URL resolves back to the proxy itself
+        const requestOrigin = new URL(req.url).origin;
+        if (API_URL.startsWith(requestOrigin)) {
+          logger.error('Infinite proxy loop detected. Check NEXT_PUBLIC_API_URL configuration.', { 
+            API_URL, 
+            requestOrigin 
+          });
+          return NextResponse.json(
+            { error: 'Configuration Error: Proxy loop detected. Ensure API base URL does not point to the frontend application itself.' },
+            { status: 508 }
+          );
+        }
       } catch (envError) {
         logger.error('Failed to get API base URL from environment:', { error: envError instanceof Error ? envError.message : String(envError) });
         return NextResponse.json(
