@@ -3,6 +3,7 @@ import ReusableInputField from '@/components/shared/inputfield/ReusableInputFiel
 import { Form, FormField } from '@/components/ui/form';
 import { ClaimDeviceFormData, ErrorAlert } from '../claim-device-modal';
 import CohortAssignmentBanner from './CohortAssignmentBanner';
+import DeviceAvailabilityHint from './DeviceAvailabilityHint';
 
 const ManualInputStep = ({
   formMethods,
@@ -36,7 +37,10 @@ const ManualInputStep = ({
           control={formMethods.control}
           name="device_id"
           render={({ field, fieldState }) => (
-            <ReusableInputField label="Device Name" placeholder="e.g. airqo_g5241" error={fieldState.error?.message} required {...field} />
+            <div className="space-y-1.5">
+              <ReusableInputField label="Device Name" placeholder="e.g. airqo_g5241" error={fieldState.error?.message} required {...field} />
+              {!fieldState.error && <DeviceAvailabilityHint deviceName={field.value ?? ''} />}
+            </div>
           )}
         />
         <FormField
