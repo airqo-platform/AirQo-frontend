@@ -16,3 +16,4 @@ secret
 .prod-env.yaml
 .idea/*
 .claude/
+src/beacon/ISSUES.md
