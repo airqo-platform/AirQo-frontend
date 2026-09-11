@@ -82,6 +82,10 @@ ios/Flutter/ApiKeys.xcconfig
 .env
 .env.*
 *.env
+!.env.example
+# Placeholders required by pubspec.yaml assets (flutter run fails without them).
+!.env.prod
+!.env.dev
 
 /android/google-services.json
 /android/play-store-service-account.json

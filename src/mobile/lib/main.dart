@@ -36,6 +36,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
+import 'core/utils/env_loader.dart';
 import 'core/utils/hive_box_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
@@ -68,7 +69,7 @@ void main() async {
               'Unhandled Flutter error', details.exception, details.stack);
         };
 
-        await dotenv.load(fileName: ".env.prod");
+        await loadAppEnv();
 
         // Initialize PostHog for analytics and feature flags
         final postHogApiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
