@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { usePrepareBulkDevicesForShipping } from '@/core/hooks/useDevices';
+import { useCreateShippingBatch } from '@/core/hooks/useDevices';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqPlus, AqXClose, AqUploadCloud02 } from '@airqo/icons-react';
@@ -26,12 +26,20 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { showBanner } = useBanner();
     const { showBannerWithDelay } = useBannerWithDelay();
-    const { mutate: prepareBulk, isPending } = usePrepareBulkDevicesForShipping({
+    // Batches are created through the atomic shipping-batches endpoint: the
+    // batch name is validated for uniqueness before any device is touched and
+    // device preparations are rolled back if the batch record fails to save.
+    const { mutate: createBatch, isPending } = useCreateShippingBatch({
         onSuccess: (data) => {
-            showBannerWithDelay({ severity: 'success', message: data.message, scoped: false });
+            const failedCount = data.batch_creation_results?.summary?.failed_count ?? 0;
+            showBannerWithDelay({
+                severity: failedCount > 0 ? 'warning' : 'success',
+                message: data.message,
+                scoped: false,
+            });
         },
         onError: (error) => {
-            showBanner({ severity: 'error', message: `Bulk Preparation Failed: ${getApiErrorMessage(error)}`, scoped: true });
+            showBanner({ severity: 'error', message: `Batch Preparation Failed: ${getApiErrorMessage(error)}`, scoped: true });
         },
     });
 
@@ -182,8 +190,13 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
             showBanner({ severity: 'error', message: 'Please add at least one device', scoped: true });
             return;
         }
-        prepareBulk(
-            { deviceNames: devices, tokenType, batchName: batchName.trim() || undefined },
+        const trimmedBatchName = batchName.trim();
+        if (!trimmedBatchName) {
+            showBanner({ severity: 'error', message: 'Please enter a batch name', scoped: true });
+            return;
+        }
+        createBatch(
+            { deviceNames: devices, tokenType, batchName: trimmedBatchName },
             {
                 onSuccess: () => {
                     // Reset form state
@@ -305,7 +318,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                         </div>
                     </div>
                     <div className="flex justify-end pt-4">
-                        <ReusableButton type="submit" disabled={isPending || devices.length === 0 || !batchName} loading={isPending}>Prepare {devices.length} Device{devices.length !== 1 ? 's' : ''}</ReusableButton>
+                        <ReusableButton type="submit" disabled={isPending || devices.length === 0 || !batchName.trim()} loading={isPending}>Prepare {devices.length} Device{devices.length !== 1 ? 's' : ''}</ReusableButton>
                     </div>
                 </form>
             </div>

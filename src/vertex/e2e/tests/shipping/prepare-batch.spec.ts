@@ -11,7 +11,7 @@ import { PERMISSIONS } from "../../../core/permissions/constants";
 /**
  * Admin Shipping — Prepare New Batch. Permissions are transformed in flight
  * (see rbac-mocks.ts) so this doesn't depend on the seeded account's real
- * grants; the prepare-bulk mutation is mocked, other GETs stay real.
+ * grants; the create-batch mutation is mocked, other GETs stay real.
  */
 
 test.beforeAll(() => {
