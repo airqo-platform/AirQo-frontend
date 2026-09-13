@@ -1,122 +1,193 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import {
-  FleetTriageDeviceItem,
-  FleetTriageSummary,
+  CHECK_TYPE_LABELS,
+  FleetDailySummary,
+  FleetIssue,
+  FleetTopIssue,
+  IssueSeverity,
   LifecycleState,
+  SEVERITY_ORDER,
 } from "@/types/diagnostics";
 import { getLifecycleConfig } from "@/components/diagnostics/HealthScoreGauge";
+import { DailyRunDialog } from "@/components/diagnostics/DailyRunDialog";
+import {
+  LifecycleBadge,
+  SEVERITY_STYLES,
+  SeverityBadge,
+  StreakBadge,
+  checkTypeLabel,
+  formatDiagnosisDate,
+  getScoreToneClass,
+} from "@/components/diagnostics/DiagnosticBadges";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import {
   Activity,
   AlertTriangle,
+  CalendarDays,
   CheckCircle2,
-  AlertOctagon,
-  XCircle,
-  ShieldAlert,
-  Sparkles,
-  Search,
-  Filter,
-  Sliders,
-  ExternalLink,
-  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
   Layers,
-  Zap,
-  Snowflake,
-  Cog,
-  Sun,
-  Wind,
+  ListChecks,
+  PlayCircle,
+  RefreshCw,
+  Search,
+  ShieldAlert,
+  Sliders,
+  Sparkles,
   Stethoscope,
+  X,
 } from "lucide-react";
 import { useGroup } from "@/lib/group-context";
 
-const PIE_COLORS = ["#2563eb", "#e11d48", "#f59e0b", "#9333ea", "#059669"];
+const LIFECYCLE_STATES: LifecycleState[] = ["HEALTHY", "DEGRADING", "SUSPICIOUS", "LIKELY_FAILURE", "FAILED", "NO_DATA"];
+const SEVERITY_BAR_COLORS: Record<string, string> = {
+  CRITICAL: "bg-red-600",
+  HIGH: "bg-rose-400",
+  MEDIUM: "bg-amber-400",
+  LOW: "bg-slate-300",
+  NONE: "bg-emerald-400",
+};
+const PAGE_SIZE = 50;
 
-export default function FleetDiagnosticsTriagePage() {
-  const router = useRouter();
+interface IssueFilterState {
+  issue_code: string;
+  severity: IssueSeverity | "all";
+  check_type: string;
+  subsystem: string;
+  component_name: string;
+  device_id: string;
+  min_streak_days: string;
+  only_new: boolean;
+}
+
+const EMPTY_FILTERS: IssueFilterState = {
+  issue_code: "",
+  severity: "all",
+  check_type: "all",
+  subsystem: "",
+  component_name: "",
+  device_id: "",
+  min_streak_days: "",
+  only_new: false,
+};
+
+const yesterdayUtc = () => new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+
+const truncate = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
+
+const deviceDiagnosticsHref = (deviceId: string) => `/dashboard/devices/${encodeURIComponent(deviceId)}/diagnostics`;
+
+export default function FleetDiagnosticsPage() {
   const { activeGroup, loading: groupLoading } = useGroup();
   const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
 
+  // Empty string = latest diagnosed day
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [summary, setSummary] = useState<FleetDailySummary | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [triageData, setTriageData] = useState<{
-    summary: FleetTriageSummary;
-    devices: FleetTriageDeviceItem[];
-  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [runDialogOpen, setRunDialogOpen] = useState<boolean>(false);
 
-  // Filter states
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [stateFilter, setStateFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [submittedSearchTerm, setSubmittedSearchTerm] = useState<string>("");
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [draftFilters, setDraftFilters] = useState<IssueFilterState>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<IssueFilterState>(EMPTY_FILTERS);
+  const [page, setPage] = useState<number>(0);
+  const [issues, setIssues] = useState<FleetIssue[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [issuesLoading, setIssuesLoading] = useState<boolean>(false);
+  const issuesRef = useRef<HTMLDivElement>(null);
 
-  const fetchTriage = useCallback(async () => {
+  const fetchSummary = useCallback(async () => {
     if (!isAirqoGroup) return;
     try {
       setLoading(true);
-      const data = await diagnosticsService.getFleetTriage({
-        category: categoryFilter,
-        lifecycle_state: stateFilter,
-        search: submittedSearchTerm,
+      setError(null);
+      const data = await diagnosticsService.getFleetDailySummary({
+        diagnosis_date: selectedDate || undefined,
+        top_n: 10,
       });
-      setTriageData(data);
+      setSummary(data);
     } catch (err: any) {
-      console.error("Error fetching fleet triage:", err);
-      setTriageData(null);
-      toast({
-        title: "Triage Fetch Error",
-        description: err?.message || "Failed to connect to triage API.",
-        variant: "destructive",
-      });
+      console.error("Error fetching fleet daily summary:", err);
+      setSummary(null);
+      setError(err?.message || "Failed to load fleet diagnostics.");
     } finally {
       setLoading(false);
     }
-  }, [categoryFilter, stateFilter, submittedSearchTerm, isAirqoGroup]);
+  }, [selectedDate, isAirqoGroup]);
 
   useEffect(() => {
-    if (isAirqoGroup) {
-      fetchTriage();
-    }
-  }, [fetchTriage, isAirqoGroup]);
+    fetchSummary();
+  }, [fetchSummary]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const term = searchQuery.trim();
-    setSubmittedSearchTerm(term);
-    if (term === submittedSearchTerm) {
-      fetchTriage();
+  const diagnosisDate = summary?.diagnosis_date || null;
+
+  const fetchIssues = useCallback(async () => {
+    if (!diagnosisDate) {
+      setIssues([]);
+      setHasMore(false);
+      return;
     }
+    try {
+      setIssuesLoading(true);
+      const minStreak = Number(filters.min_streak_days);
+      const result = await diagnosticsService.getFleetIssues({
+        diagnosis_date: diagnosisDate,
+        issue_code: filters.issue_code.trim() || undefined,
+        severity: filters.severity !== "all" ? filters.severity : undefined,
+        check_type: filters.check_type !== "all" ? filters.check_type : undefined,
+        subsystem: filters.subsystem.trim() || undefined,
+        component_name: filters.component_name.trim() || undefined,
+        device_id: filters.device_id.trim() || undefined,
+        min_streak_days: Number.isFinite(minStreak) && minStreak >= 1 ? minStreak : undefined,
+        only_new: filters.only_new || undefined,
+        skip: page * PAGE_SIZE,
+        // One extra row tells us whether there is a next page.
+        limit: PAGE_SIZE + 1,
+      });
+      setHasMore(result.length > PAGE_SIZE);
+      setIssues(result.slice(0, PAGE_SIZE));
+    } catch (err: any) {
+      console.error("Error fetching fleet issues:", err);
+      setIssues([]);
+      setHasMore(false);
+      toast({
+        title: "Issue Search Failed",
+        description: err?.message || "Failed to search fleet issues.",
+        variant: "destructive",
+      });
+    } finally {
+      setIssuesLoading(false);
+    }
+  }, [diagnosisDate, filters, page]);
+
+  useEffect(() => {
+    fetchIssues();
+  }, [fetchIssues]);
+
+  const applyFilters = (next: IssueFilterState) => {
+    setDraftFilters(next);
+    setFilters(next);
+    setPage(0);
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchTriage();
-    setIsRefreshing(false);
-    toast({
-      title: "Fleet Triage Updated",
-      description: "Fetched latest diagnostic status across all monitored nodes.",
-    });
+  const showIssueDevices = (issue: FleetTopIssue) => {
+    applyFilters({ ...EMPTY_FILTERS, issue_code: issue.issue_code });
+    issuesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleDateChange = (value: string) => {
+    setSelectedDate(value);
+    setPage(0);
   };
 
   if (groupLoading) {
@@ -146,36 +217,53 @@ export default function FleetDiagnosticsTriagePage() {
     );
   }
 
-  const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "air_quality":
-        return <Wind className="w-3.5 h-3.5 text-blue-600" />;
-      case "cold_chain":
-        return <Snowflake className="w-3.5 h-3.5 text-cyan-600" />;
-      case "solar":
-        return <Sun className="w-3.5 h-3.5 text-amber-600" />;
-      case "water_pump":
-        return <Cog className="w-3.5 h-3.5 text-emerald-600" />;
-      default:
-        return <Zap className="w-3.5 h-3.5 text-gray-600" />;
-    }
-  };
+  const topIssueChartData = (summary?.top_issues || []).map((issue) => ({
+    name: truncate(issue.title, 34),
+    persisting: issue.device_count - issue.new_device_count,
+    new: issue.new_device_count,
+    issue,
+  }));
+
+  const severityEntries = [...SEVERITY_ORDER, "NONE"]
+    .map((severity) => [severity, summary?.max_severity_counts?.[severity] || 0] as const)
+    .filter(([, count]) => count > 0);
+  const severityTotal = severityEntries.reduce((sum, [, count]) => sum + count, 0);
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
             <Stethoscope className="w-7 h-7 text-primary" />
-            Fleet-Wide Diagnostic Triage Board
+            Fleet Diagnostics
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Real-time multi-cohort health surveillance, active failure mode triage, and automated evidential reasoning
+            Daily device health across the fleet: lifecycle states, most common issues, persistent faults and the devices that need attention
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <CalendarDays className="w-4 h-4 text-gray-400" />
+            <Input
+              type="date"
+              value={selectedDate}
+              max={yesterdayUtc()}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="h-9 text-xs w-36 bg-white"
+              title="Diagnosis day (UTC); empty shows the latest diagnosed day"
+            />
+            {selectedDate && (
+              <Button variant="ghost" size="sm" onClick={() => handleDateChange("")} className="h-9 text-xs px-2">
+                Latest
+              </Button>
+            )}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setRunDialogOpen(true)} className="h-9 text-xs bg-white gap-1.5 text-gray-700">
+            <PlayCircle className="w-3.5 h-3.5 text-primary" />
+            Run Daily Diagnostics
+          </Button>
           <Link href="/dashboard/diagnostics/simulator">
             <Button variant="outline" size="sm" className="h-9 text-xs bg-white gap-1.5 text-gray-700">
               <Sliders className="w-3.5 h-3.5 text-primary" />
@@ -189,383 +277,444 @@ export default function FleetDiagnosticsTriagePage() {
             </Button>
           </Link>
           <Button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
+            onClick={() => {
+              fetchSummary();
+              fetchIssues();
+            }}
+            disabled={loading}
             className="h-9 text-xs bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh Triage
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {loading && !triageData ? (
+      {loading && !summary ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Skeleton className="h-72 lg:col-span-2 rounded-xl" />
-            <Skeleton className="h-72 rounded-xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <Skeleton className="h-80 lg:col-span-7 rounded-xl" />
+            <Skeleton className="h-80 lg:col-span-5 rounded-xl" />
           </div>
           <Skeleton className="h-96 rounded-xl" />
         </div>
-      ) : triageData ? (
+      ) : error ? (
+        <Card className="p-10 text-center border-dashed border-gray-200">
+          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-gray-900">Fleet Diagnostics Unavailable</h3>
+          <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">{error}</p>
+          <Button onClick={fetchSummary} className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Retry
+          </Button>
+        </Card>
+      ) : summary && summary.devices_diagnosed === 0 ? (
+        <Card className="p-10 text-center border-dashed border-gray-200">
+          <CalendarDays className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-gray-900">
+            No Daily Diagnoses{selectedDate ? ` for ${formatDiagnosisDate(selectedDate)}` : " Yet"}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+            Devices are diagnosed automatically after the nightly data sync. You can also run or backfill the last 14 days now.
+          </p>
+          <Button onClick={() => setRunDialogOpen(true)} className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5">
+            <PlayCircle className="w-3.5 h-3.5" />
+            Run Daily Diagnostics
+          </Button>
+        </Card>
+      ) : summary ? (
         <>
-          {/* 1. Summary Stat Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* Total */}
-            <div className="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs">
-              <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                Total Monitored
-              </div>
-              <div className="text-2xl font-bold text-gray-900 mt-1">
-                {triageData.summary.total_devices}
-              </div>
-              <span className="text-[11px] text-gray-400 mt-0.5 block">Across all cohorts</span>
-            </div>
+          <p className="text-xs text-gray-500 -mt-2">
+            Showing <strong className="text-gray-800">{formatDiagnosisDate(summary.diagnosis_date, "EEEE d MMMM yyyy")}</strong> (UTC day)
+            {!selectedDate && " · latest diagnosed day"}
+          </p>
 
-            {/* Healthy */}
+          {/* 1. Headline numbers */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs">
+              <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Devices Diagnosed</div>
+              <div className="text-2xl font-bold text-gray-900 mt-1">{summary.devices_diagnosed}</div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs">
+              <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">With Issues</div>
+              <div className="text-2xl font-bold text-rose-600 mt-1">
+                {summary.devices_with_issues}
+                <span className="text-sm text-gray-400 font-medium">
+                  {" "}
+                  ({Math.round((summary.devices_with_issues / summary.devices_diagnosed) * 100)}%)
+                </span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs">
+              <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Average Score</div>
+              <div className="mt-1">
+                <span className={`text-2xl font-bold px-2 rounded-lg ${getScoreToneClass(summary.average_health_score)}`}>
+                  {summary.average_health_score ?? "—"}
+                </span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 shadow-2xs">
+              <div className="text-[11px] font-semibold text-blue-800 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> New Issues
+              </div>
+              <div className="text-2xl font-bold text-blue-900 mt-1">{summary.new_issue_count}</div>
+            </div>
             <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-2xs">
               <div className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Healthy
+                <CheckCircle2 className="w-3.5 h-3.5" /> Resolved Issues
               </div>
-              <div className="text-2xl font-bold text-emerald-900 mt-1">
-                {triageData.summary.healthy_count}
-              </div>
-              <span className="text-[11px] text-emerald-700/80 mt-0.5 block">Score ≥ 85</span>
-            </div>
-
-            {/* Degrading */}
-            <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 shadow-2xs">
-              <div className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                Degrading
-              </div>
-              <div className="text-2xl font-bold text-amber-900 mt-1">
-                {triageData.summary.degrading_count}
-              </div>
-              <span className="text-[11px] text-amber-700/80 mt-0.5 block">Score 70–84</span>
-            </div>
-
-            {/* Suspicious */}
-            <div className="p-3.5 rounded-xl border border-orange-200 bg-orange-50/50 shadow-2xs">
-              <div className="text-[11px] font-semibold text-orange-800 uppercase tracking-wider flex items-center gap-1">
-                <ShieldAlert className="w-3.5 h-3.5 text-orange-600" />
-                Suspicious
-              </div>
-              <div className="text-2xl font-bold text-orange-900 mt-1">
-                {triageData.summary.suspicious_count}
-              </div>
-              <span className="text-[11px] text-orange-700/80 mt-0.5 block">Score 50–69</span>
-            </div>
-
-            {/* Likely Failure */}
-            <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50/50 shadow-2xs">
-              <div className="text-[11px] font-semibold text-rose-800 uppercase tracking-wider flex items-center gap-1">
-                <AlertOctagon className="w-3.5 h-3.5 text-rose-600" />
-                Likely Failure
-              </div>
-              <div className="text-2xl font-bold text-rose-900 mt-1">
-                {triageData.summary.likely_failure_count}
-              </div>
-              <span className="text-[11px] text-rose-700/80 mt-0.5 block">Confidence ≥ 85%</span>
-            </div>
-
-            {/* Failed */}
-            <div className="p-3.5 rounded-xl border border-red-300 bg-red-100/60 shadow-2xs">
-              <div className="text-[11px] font-semibold text-red-900 uppercase tracking-wider flex items-center gap-1">
-                <XCircle className="w-3.5 h-3.5 text-red-700" />
-                Failed
-              </div>
-              <div className="text-2xl font-bold text-red-950 mt-1">
-                {triageData.summary.failed_count}
-              </div>
-              <span className="text-[11px] text-red-800/80 mt-0.5 block">Immediate Action</span>
+              <div className="text-2xl font-bold text-emerald-900 mt-1">{summary.resolved_issue_count}</div>
             </div>
           </div>
 
-          {/* 2. Failure Distribution & Active Triage Overview */}
+          {/* 2. Lifecycle states & severity */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardContent className="p-4 space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {LIFECYCLE_STATES.map((state) => {
+                  const cfg = getLifecycleConfig(state);
+                  const Icon = cfg.icon;
+                  const count = summary.lifecycle_state_counts?.[state] || 0;
+                  return (
+                    <div key={state} className={`p-3 rounded-xl border ${count > 0 ? cfg.bgLight : "bg-white opacity-60"}`}>
+                      <div className={`text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 ${cfg.textColor}`}>
+                        <Icon className="w-3.5 h-3.5" />
+                        {cfg.label}
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 mt-1">{count}</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {severityTotal > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Devices by highest issue severity
+                  </div>
+                  <div className="flex h-3 w-full rounded-full overflow-hidden bg-gray-100">
+                    {severityEntries.map(([severity, count]) => (
+                      <div
+                        key={severity}
+                        className={SEVERITY_BAR_COLORS[severity]}
+                        style={{ width: `${(count / severityTotal) * 100}%` }}
+                        title={`${severity === "NONE" ? "No issues" : severity}: ${count}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-[11px] text-gray-600">
+                    {severityEntries.map(([severity, count]) => (
+                      <span key={severity} className="flex items-center gap-1">
+                        <span className={`w-2.5 h-2.5 rounded-full inline-block ${SEVERITY_BAR_COLORS[severity]}`} />
+                        {severity === "NONE" ? "No issues" : severity} ({count})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 3. Top issues & worst devices */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Failure Distribution Chart */}
             <Card className="lg:col-span-7 border border-gray-200 shadow-sm">
               <CardHeader className="pb-2 border-b border-gray-100">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-blue-600" />
-                  Fleet-Wide Root Cause Distribution
+                  Most Common Issues
                 </CardTitle>
                 <CardDescription className="text-xs text-gray-500">
-                  Active diagnostic hypotheses ranked by incidence across the fleet
+                  Devices affected per issue, split into newly appeared and persisting. Click an issue to list its devices.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={triageData.summary.failure_modes_distribution}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" unit="%" tick={{ fontSize: 11, fill: "#64748b" }} />
-                      <YAxis
-                        dataKey="name"
-                        type="category"
-                        width={160}
-                        tick={{ fontSize: 11, fill: "#334155" }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.95)",
-                          borderRadius: "8px",
-                          border: "none",
-                          color: "#fff",
-                          fontSize: "12px",
-                        }}
-                        formatter={(val: any) => [`${val}% of fleet issues`, "Incidence"]}
-                      />
-                      <Bar dataKey="percentage" fill="#2563eb" radius={[0, 4, 4, 0]}>
-                        {triageData.summary.failure_modes_distribution.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+              <CardContent className="pt-4 space-y-3">
+                {topIssueChartData.length === 0 ? (
+                  <div className="py-10 text-center text-xs text-gray-400">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-1.5" />
+                    No issues detected on this day.
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-full" style={{ height: Math.max(160, topIssueChartData.length * 30 + 40) }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={topIssueChartData} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "#64748b" }} />
+                          <YAxis dataKey="name" type="category" width={190} tick={{ fontSize: 11, fill: "#334155" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "rgba(15, 23, 42, 0.95)",
+                              borderRadius: "8px",
+                              border: "none",
+                              color: "#fff",
+                              fontSize: "12px",
+                            }}
+                            formatter={(val: any, name: any) => [`${val} devices`, name === "new" ? "New" : "Persisting"]}
                           />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                          <Legend wrapperStyle={{ fontSize: "11px" }} formatter={(v: any) => (v === "new" ? "New" : "Persisting")} />
+                          <Bar
+                            dataKey="persisting"
+                            stackId="devices"
+                            fill="#f97316"
+                            cursor="pointer"
+                            onClick={(entry: any) => entry?.payload?.issue && showIssueDevices(entry.payload.issue)}
+                          />
+                          <Bar
+                            dataKey="new"
+                            stackId="devices"
+                            fill="#3b82f6"
+                            radius={[0, 4, 4, 0]}
+                            cursor="pointer"
+                            onClick={(entry: any) => entry?.payload?.issue && showIssueDevices(entry.payload.issue)}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <ul className="divide-y divide-gray-100 border-t border-gray-100">
+                      {summary.top_issues.map((issue) => (
+                        <li key={issue.issue_code}>
+                          <button
+                            onClick={() => showIssueDevices(issue)}
+                            className="w-full py-2 flex items-center justify-between gap-3 text-left text-xs hover:bg-slate-50 px-1"
+                          >
+                            <div className="min-w-0">
+                              <div className="font-semibold text-gray-900 truncate">{issue.title}</div>
+                              <div className="text-[10px] text-gray-400 font-mono truncate">
+                                {checkTypeLabel(issue.check_type)} · {issue.component_name || issue.subsystem}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <SeverityBadge severity={issue.severity} />
+                              <span className="font-bold text-gray-900 w-16 text-right">
+                                {issue.device_count} dev
+                              </span>
+                              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </CardContent>
             </Card>
 
-            {/* Quick Cohort Breakdown / Pie Chart */}
-            <Card className="lg:col-span-5 border border-gray-200 shadow-sm flex flex-col justify-between">
+            <Card className="lg:col-span-5 border border-gray-200 shadow-sm">
               <CardHeader className="pb-2 border-b border-gray-100">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-blue-600" />
-                  Failure Mode Proportions
+                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                  Devices Needing Attention
                 </CardTitle>
-                <CardDescription className="text-xs text-gray-500">
-                  Subsystem failure mode breakdown
-                </CardDescription>
+                <CardDescription className="text-xs text-gray-500">Lowest health scores on this day</CardDescription>
               </CardHeader>
-              <CardContent className="pt-4 flex-1 flex flex-col items-center justify-center">
-                <div className="h-52 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={triageData.summary.failure_modes_distribution}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        dataKey="percentage"
-                      >
-                        {triageData.summary.failure_modes_distribution.map((entry, index) => (
-                          <Cell
-                            key={`pie-cell-${index}`}
-                            fill={PIE_COLORS[index % PIE_COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(15, 23, 42, 0.95)",
-                          borderRadius: "8px",
-                          border: "none",
-                          color: "#fff",
-                          fontSize: "12px",
-                        }}
-                        formatter={(val: any) => [`${val}%`, "Share"]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2 text-[11px] text-gray-600 mt-2">
-                  {triageData.summary.failure_modes_distribution.slice(0, 3).map((item, idx) => (
-                    <span key={idx} className="flex items-center gap-1">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full inline-block"
-                        style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
-                      />
-                      {item.name.split(" ")[0]} ({item.percentage}%)
-                    </span>
-                  ))}
-                </div>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="py-2.5 px-3">Device</th>
+                      <th className="py-2.5 px-2 text-center">Score</th>
+                      <th className="py-2.5 px-2">State</th>
+                      <th className="py-2.5 px-3 text-right">Issues</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {summary.worst_devices.map((device) => (
+                      <tr key={device.device_id} className="hover:bg-slate-50/70">
+                        <td className="py-2.5 px-3 max-w-[10rem]">
+                          <Link
+                            href={deviceDiagnosticsHref(device.device_id)}
+                            className="font-mono font-semibold text-primary hover:underline truncate block"
+                          >
+                            {device.device_id}
+                          </Link>
+                          {device.top_cause_code && (
+                            <div className="font-mono text-[10px] text-gray-400 truncate" title={device.top_cause_code}>
+                              {device.top_cause_code}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-2 text-center">
+                          <span className={`inline-block font-bold px-1.5 rounded ${getScoreToneClass(device.overall_health_score)}`}>
+                            {device.overall_health_score}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-2">
+                          <LifecycleBadge state={device.lifecycle_state} />
+                        </td>
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                          <span className="font-semibold mr-1.5">{device.issue_count}</span>
+                          <SeverityBadge severity={device.max_severity} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </CardContent>
             </Card>
           </div>
 
-          {/* 3. Filterable Triage Table */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* 4. Issue search */}
+          <div ref={issuesRef} className="scroll-mt-6">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="pb-3 border-b border-gray-100 space-y-3">
                 <div>
-                  <CardTitle className="text-base font-bold text-gray-900">
-                    Active Device Triage Queue
+                  <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <ListChecks className="w-4 h-4 text-primary" />
+                    Issue Search
                   </CardTitle>
                   <CardDescription className="text-xs text-gray-500">
-                    Filter and inspect real-time diagnostic status of field stations
+                    Every issue detected on {formatDiagnosisDate(summary.diagnosis_date)}, most severe and longest-running first
                   </CardDescription>
                 </div>
 
-                {/* Filter Controls */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  {/* Category Filter */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    applyFilters(draftFilters);
+                  }}
+                  className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 text-xs"
+                >
+                  <Input
+                    placeholder="Device ID"
+                    value={draftFilters.device_id}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, device_id: e.target.value })}
+                    className="h-8 text-xs font-mono"
+                  />
+                  <Input
+                    placeholder="Issue code"
+                    value={draftFilters.issue_code}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, issue_code: e.target.value })}
+                    className="h-8 text-xs font-mono"
+                  />
                   <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="h-8 text-xs px-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium"
+                    value={draftFilters.severity}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, severity: e.target.value as IssueFilterState["severity"] })}
+                    className="h-8 text-xs px-2 rounded-md border border-input bg-white text-gray-700"
                   >
-                    <option value="all">All Hardware Categories</option>
-                    <option value="air_quality">Air Quality Stations</option>
-                    <option value="cold_chain">Cold Chain Vaccine Monitors</option>
-                    <option value="solar">Solar Microgrids</option>
-                    <option value="water_pump">Smart Water Pumps</option>
+                    <option value="all">All severities</option>
+                    {SEVERITY_ORDER.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
                   </select>
-
-                  {/* Lifecycle State Filter */}
                   <select
-                    value={stateFilter}
-                    onChange={(e) => setStateFilter(e.target.value)}
-                    className="h-8 text-xs px-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium"
+                    value={draftFilters.check_type}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, check_type: e.target.value })}
+                    className="h-8 text-xs px-2 rounded-md border border-input bg-white text-gray-700"
                   >
-                    <option value="all">All Lifecycle States</option>
-                    <option value="HEALTHY">HEALTHY</option>
-                    <option value="DEGRADING">DEGRADING</option>
-                    <option value="SUSPICIOUS">SUSPICIOUS</option>
-                    <option value="LIKELY_FAILURE">LIKELY FAILURE</option>
-                    <option value="FAILED">FAILED</option>
-                    <option value="RECOVERING">RECOVERING</option>
+                    <option value="all">All checks</option>
+                    {Object.entries(CHECK_TYPE_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
                   </select>
+                  <Input
+                    placeholder="Component type, e.g. battery"
+                    value={draftFilters.subsystem}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, subsystem: e.target.value })}
+                    className="h-8 text-xs"
+                  />
+                  <Input
+                    placeholder="Component name"
+                    value={draftFilters.component_name}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, component_name: e.target.value })}
+                    className="h-8 text-xs font-mono"
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="Min. streak days"
+                    value={draftFilters.min_streak_days}
+                    onChange={(e) => setDraftFilters({ ...draftFilters, min_streak_days: e.target.value })}
+                    className="h-8 text-xs"
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={draftFilters.only_new}
+                        onChange={(e) => setDraftFilters({ ...draftFilters, only_new: e.target.checked })}
+                        className="accent-primary"
+                      />
+                      New only
+                    </label>
+                    <Button type="submit" size="sm" className="h-8 text-xs px-2.5 gap-1 ml-auto">
+                      <Search className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => applyFilters(EMPTY_FILTERS)}
+                      className="h-8 text-xs px-2"
+                      title="Clear filters"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </form>
+              </CardHeader>
 
-                  {/* Search Input */}
-                  <form onSubmit={handleSearchSubmit} className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-gray-400" />
-                    <Input
-                      placeholder="Search device, site, cause..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-8 text-xs pl-8 w-48 sm:w-56"
-                    />
-                  </form>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-0 overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
-                  <tr>
-                    <th className="py-3 px-4">Device ID & Name</th>
-                    <th className="py-3 px-3">Category</th>
-                    <th className="py-3 px-3">Cohort / Site</th>
-                    <th className="py-3 px-3 text-center">Health Score</th>
-                    <th className="py-3 px-3">Lifecycle State</th>
-                    <th className="py-3 px-3">Top Inferred Root Cause</th>
-                    <th className="py-3 px-3">Confidence</th>
-                    <th className="py-3 px-3">Last Evaluated</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {triageData.devices.length === 0 ? (
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
                     <tr>
-                      <td colSpan={9} className="text-center py-10 text-gray-400">
-                        No devices matching current filter criteria.
-                      </td>
+                      <th className="py-3 px-4">Device</th>
+                      <th className="py-3 px-3">Issue</th>
+                      <th className="py-3 px-3">Check / Location</th>
+                      <th className="py-3 px-3">Severity</th>
+                      <th className="py-3 px-3">Streak</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
-                  ) : (
-                    triageData.devices.map((device) => {
-                      const cfg = getLifecycleConfig(device.lifecycle_state);
-                      const StateIcon = cfg.icon;
-
-                      return (
-                        <tr
-                          key={device.device_id}
-                          className="hover:bg-slate-50/70 transition-colors"
-                        >
-                          <td className="py-3 px-4">
-                            <div className="font-bold text-gray-900">
-                              {device.device_name}
-                            </div>
-                            <div className="font-mono text-[11px] text-gray-400">
-                              {device.device_id}
-                            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {issuesLoading ? (
+                      <tr>
+                        <td colSpan={6} className="py-10 text-center text-gray-400">
+                          <RefreshCw className="w-4 h-4 animate-spin inline mr-1.5" />
+                          Searching issues...
+                        </td>
+                      </tr>
+                    ) : issues.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-10 text-gray-400">
+                          No issues match the current filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      issues.map((issue) => (
+                        <tr key={`${issue.device_id}-${issue.issue_code}`} className="hover:bg-slate-50/70 align-top">
+                          <td className="py-3 px-4 font-mono font-semibold text-gray-900 whitespace-nowrap">{issue.device_id}</td>
+                          <td className="py-3 px-3 max-w-sm">
+                            <div className="font-semibold text-gray-900">{issue.title}</div>
+                            {issue.description && <div className="text-[11px] text-gray-500 line-clamp-2">{issue.description}</div>}
                           </td>
-
                           <td className="py-3 px-3">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 capitalize border border-slate-200">
-                              {getCategoryIcon(device.category)}
-                              {device.category.replace(/_/g, " ")}
-                            </span>
+                            <div>{checkTypeLabel(issue.check_type)}</div>
+                            <div className="font-mono text-[10px] text-gray-400">
+                              {[issue.component_name, issue.metric_key].filter(Boolean).join(".") || issue.subsystem}
+                            </div>
                           </td>
-
-                          <td className="py-3 px-3 text-gray-600">
-                            <div className="font-medium text-gray-800">{device.cohort || "Global"}</div>
-                            <div className="text-[11px] text-gray-400">{device.site || "General"}</div>
-                          </td>
-
-                          <td className="py-3 px-3 text-center">
-                            <span
-                              className={`inline-block font-bold text-sm px-2 py-0.5 rounded-lg ${
-                                device.overall_health_score >= 85
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : device.overall_health_score >= 70
-                                  ? "bg-amber-50 text-amber-700"
-                                  : device.overall_health_score >= 50
-                                  ? "bg-orange-50 text-orange-700"
-                                  : "bg-rose-50 text-rose-700"
-                              }`}
-                            >
-                              {device.overall_health_score}
-                            </span>
-                          </td>
-
                           <td className="py-3 px-3">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${cfg.badgeClass}`}
-                            >
-                              <StateIcon className="w-3 h-3" />
-                              {cfg.label}
-                            </span>
+                            <SeverityBadge severity={issue.severity} />
                           </td>
-
-                          <td className="py-3 px-3 max-w-xs">
-                            {device.top_diagnosis ? (
-                              <div>
-                                <div className="font-medium text-gray-900 truncate">
-                                  {device.top_diagnosis.title}
-                                </div>
-                                <div className="font-mono text-[10px] text-gray-400 truncate">
-                                  {device.top_diagnosis.cause_code}
-                                </div>
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <StreakBadge streakDays={issue.streak_days} isNew={issue.is_new} />
+                            {!issue.is_new && (
+                              <div className="text-[10px] text-gray-400 mt-0.5">
+                                since {formatDiagnosisDate(issue.streak_start_date, "d MMM")}
                               </div>
-                            ) : (
-                              <span className="text-gray-400 italic">Nominal Operation</span>
                             )}
                           </td>
-
-                          <td className="py-3 px-3">
-                            {device.top_diagnosis ? (
-                              <span className="font-semibold text-gray-800">
-                                {device.top_diagnosis.confidence_percentage.toFixed(1)}%
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-3 text-gray-400 text-[11px] whitespace-nowrap">
-                            {device.last_evaluated}
-                          </td>
-
                           <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <Link href={`/dashboard/devices/${device.device_id}/diagnostics`}>
+                            <Link href={deviceDiagnosticsHref(issue.device_id)}>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -577,27 +726,45 @@ export default function FleetDiagnosticsTriagePage() {
                             </Link>
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </CardContent>
+
+              {(page > 0 || hasMore) && (
+                <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 text-xs text-gray-500">
+                  <span>
+                    Showing {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + issues.length}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page === 0 || issuesLoading}
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      className="h-7 text-xs bg-white gap-1"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!hasMore || issuesLoading}
+                      onClick={() => setPage((p) => p + 1)}
+                      className="h-7 text-xs bg-white gap-1"
+                    >
+                      Next <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
         </>
-      ) : (
-        <Card className="p-10 text-center border-dashed border-gray-200">
-          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-gray-900">No Fleet Triage Data</h3>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
-            Unable to load fleet diagnostic triage data. Please verify backend service availability.
-          </p>
-          <Button onClick={fetchTriage} className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5">
-            <RefreshCw className="w-3.5 h-3.5" />
-            Retry Fetching Triage
-          </Button>
-        </Card>
-      )}
+      ) : null}
+
+      <DailyRunDialog open={runDialogOpen} onOpenChange={setRunDialogOpen} />
     </div>
   );
 }

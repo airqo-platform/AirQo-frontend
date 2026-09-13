@@ -91,6 +91,18 @@ export const getLifecycleConfig = (state: LifecycleState) => {
         icon: Sparkles,
         description: "Post-maintenance recovery period. Verifying baseline stability.",
       };
+    case "NO_DATA":
+      return {
+        label: "NO DATA",
+        badgeClass: "bg-slate-50 text-slate-600 border-slate-300 ring-slate-500/20",
+        strokeColor: "#94a3b8", // slate-400
+        gradientFrom: "#94a3b8",
+        gradientTo: "#64748b",
+        textColor: "text-slate-500",
+        bgLight: "bg-slate-50",
+        icon: Clock,
+        description: "No telemetry was available in the evaluated window, so the device could not be scored.",
+      };
     default:
       return {
         label: "UNKNOWN",
