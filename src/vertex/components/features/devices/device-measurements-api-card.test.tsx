@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import DeviceMeasurementsApiCard, {
   HISTORICAL_DATA_DOCS_URL,
+  HISTORICAL_DATA_ENDPOINT,
+  buildHistoricalRequestBody,
 } from "./device-measurements-api-card";
 import { useClipboard } from "@/core/hooks/useClipboard";
 
@@ -16,19 +18,42 @@ describe("DeviceMeasurementsApiCard", () => {
     vi.mocked(useClipboard).mockReturnValue({ handleCopy: vi.fn() });
   });
 
-  it("renders the recent and historical measurement API URLs for the device", () => {
-    render(<DeviceMeasurementsApiCard deviceId="aq_g5_01" />);
+  it("renders the recent measurements URL for the device id", () => {
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" deviceName="airqo_g5241" />);
 
     expect(
-      screen.getByText(/devices\/aq_g5_01\/recent\?token=YOUR_TOKEN/)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/devices\/aq_g5_01\/historical\?token=YOUR_TOKEN/)
+      screen.getByText(/devices\/65c8d4a2\/recent\?token=YOUR_TOKEN/)
     ).toBeInTheDocument();
   });
 
+  it("shows the v3 data-download POST endpoint for historical data, not a per-device GET route", () => {
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" deviceName="airqo_g5241" />);
+
+    expect(screen.getByText("POST")).toBeInTheDocument();
+    expect(
+      screen.getByText(/api\/v3\/public\/analytics\/data-download\?token=YOUR_TOKEN/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/\/historical\?token=/)).not.toBeInTheDocument();
+  });
+
+  it("renders an example request body targeting the device by name", () => {
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" deviceName="airqo_g5241" />);
+
+    const body = JSON.parse(buildHistoricalRequestBody("airqo_g5241"));
+    expect(body.device_names).toEqual(["airqo_g5241"]);
+    expect(body).toMatchObject({ startDateTime: expect.any(String), endDateTime: expect.any(String) });
+    expect(screen.getByText(/"device_names": \[/)).toBeInTheDocument();
+    expect(screen.getByText(/"airqo_g5241"/)).toBeInTheDocument();
+  });
+
+  it("falls back to a placeholder when the device name is unknown", () => {
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" />);
+
+    expect(screen.getByText(/"DEVICE_NAME"/)).toBeInTheDocument();
+  });
+
   it("links the historical endpoint to the partner docs in a new tab", () => {
-    render(<DeviceMeasurementsApiCard deviceId="aq_g5_01" />);
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" deviceName="airqo_g5241" />);
 
     const link = screen.getByRole("link", { name: /learn more/i });
     expect(link).toHaveAttribute("href", HISTORICAL_DATA_DOCS_URL);
@@ -36,17 +61,16 @@ describe("DeviceMeasurementsApiCard", () => {
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
   });
 
-  it("copies the historical measurements URL when its copy button is clicked", async () => {
+  it("copies the endpoint and the request body from their copy buttons", async () => {
     const handleCopy = vi.fn();
     vi.mocked(useClipboard).mockReturnValue({ handleCopy });
     const user = userEvent.setup();
-    render(<DeviceMeasurementsApiCard deviceId="aq_g5_01" />);
+    render(<DeviceMeasurementsApiCard deviceId="65c8d4a2" deviceName="airqo_g5241" />);
 
-    const [, historicalCopyButton] = screen.getAllByRole("button");
-    await user.click(historicalCopyButton);
+    await user.click(screen.getByRole("button", { name: "Copy historical data API URL" }));
+    expect(handleCopy).toHaveBeenLastCalledWith(HISTORICAL_DATA_ENDPOINT);
 
-    expect(handleCopy).toHaveBeenCalledWith(
-      expect.stringContaining("devices/aq_g5_01/historical?token=YOUR_TOKEN")
-    );
+    await user.click(screen.getByRole("button", { name: "Copy historical data request body" }));
+    expect(handleCopy).toHaveBeenLastCalledWith(buildHistoricalRequestBody("airqo_g5241"));
   });
 });
