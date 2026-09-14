@@ -1,3 +1,5 @@
+import type { Revalidator, RevalidatorOptions } from 'swr';
+
 /**
  * Shared bounded retry policy for idempotent reads (AGENTS.md retry policy):
  *
@@ -78,6 +80,51 @@ export const getRetryAfterSeconds = (error: unknown): number | null => {
 
   return null;
 };
+
+/**
+ * SWR-compatible retry adapter. Retries ONLY 429 (rate-limit) for idempotent
+ * GETs, at most 1 retry / 2 attempts. Honours `Retry-After` when present
+ * (capped), falls back to 1 s. Never retries abort/ERR_NETWORK/5xx/401/403
+ * or any other status. The retry count is preserved from SWR's own tracking
+ * and capped at one additional attempt (retryCount > 1 → stop).
+ *
+ * Wire into SWR config via spread: `{ ...swrRetryPolicy, errorRetryCount: 1 }`.
+ */
+export const swrRetryPolicy = {
+  shouldRetryOnError: (error: Error): boolean => {
+    // Only retry on 429 — idempotent GETs.  Abort / ERR_NETWORK / 5xx /
+    // 401 / 403 / 404 / everything else: fail immediately.
+    if (isRetryForbiddenError(error)) return false;
+    return getErrorStatus(error) === 429;
+  },
+  onErrorRetry: (
+    error: Error,
+    _key: string,
+    _config: unknown,
+    revalidate: Revalidator,
+    revalidateOpts: Required<RevalidatorOptions>
+  ): void => {
+    // Defense in depth: only 429 should reach here when shouldRetryOnError
+    // gates correctly, but guard explicitly so a misconfiguration never
+    // causes a retry storm.
+    if (getErrorStatus(error) !== 429) return;
+    if (isRetryForbiddenError(error)) return;
+
+    // Stop after one retry — don't loop on persistent 429s.
+    if (revalidateOpts.retryCount > 1) return;
+
+    const retryAfterMs = (() => {
+      const seconds = getRetryAfterSeconds(error);
+      if (seconds !== null) {
+        return Math.min(seconds * 1000, RATE_LIMIT_RETRY_MAX_MS);
+      }
+      // Exponential fallback: 1 s for the single allowed retry.
+      return 1000;
+    })();
+
+    setTimeout(() => revalidate(revalidateOpts), retryAfterMs);
+  },
+} as const;
 
 const isRetryForbiddenError = (error: unknown): boolean => {
   if (isAbortError(error)) return true;

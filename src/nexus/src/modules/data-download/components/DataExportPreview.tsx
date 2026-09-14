@@ -15,19 +15,14 @@ import {
 } from '@/shared/components/charts/constants';
 import { WarningBanner, InfoBanner } from '@/shared/components/ui/banner';
 import { areArraysEqual } from '@/shared/utils/arrays';
-import {
-  AqAlertTriangle,
-  AqLoading02,
-  AqSettings01,
-} from '@airqo/icons-react';
+import { AqAlertTriangle, AqLoading02, AqSettings01 } from '@airqo/icons-react';
 import {
   getDefaultDownloadColumnKeys,
   getDownloadColumnGroups,
   getDownloadColumnLabelMap,
 } from '../utils/dataExportFile';
 import { resolveGridSitesForDownload } from '../utils/dataExportRequest';
-
-type PreviewData = Record<string, string | number | null>;
+import type { PreviewData } from '../types/dataExportTypes';
 
 interface DataExportPreviewProps {
   isOpen: boolean;
@@ -229,7 +224,11 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
             ? 'Download Metadata Only'
             : 'Confirm & Download',
         onClick: () => onConfirm(selectedColumnKeys),
-        disabled: isDownloading || selectedColumnKeys.length === 0,
+        disabled:
+          isDownloading ||
+          isFetchingPreview ||
+          Boolean(previewError) ||
+          selectedColumnKeys.length === 0,
         loading: isDownloading,
         variant: 'filled',
       }}
@@ -316,7 +315,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
               aria-live="polite"
             >
               <div aria-hidden="true" className="flex justify-center mb-4">
-                <AqLoading02 className="w-8 h-8 text-primary animate-spin" />
+                <AqLoading02 className="w-8 h-8 text-primary animate-spin motion-reduce:animate-none" />
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Building preview...
@@ -330,8 +329,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
               <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Unable to Load Preview
               </h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-sm mx-auto">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 max-w-sm mx-auto">
                 {previewError}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-sm mx-auto">
+                Try again, widen the date range, or check the selected
+                locations.
               </p>
               <Button variant="outlined" size="sm" onClick={onRetryPreview}>
                 Retry
@@ -379,15 +382,24 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                 </div>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Showing metadata for all {selectedLocations.length} selected {locationType.toLowerCase()}. The actual download will include measurement data for these locations based on your export configuration.
+                Showing metadata for all {selectedLocations.length} selected{' '}
+                {locationType.toLowerCase()}. The actual download will include
+                measurement data for these locations based on your export
+                configuration.
               </p>
             </>
           ) : hasNoData ? (
             <WarningBanner
               dense
-              title="No Measurement Data Found"
-              message="There are no readings available for the selected time period, locations, and pollutants. If you proceed, you will receive a metadata-only file (location names, coordinates, and device info) with no measurement values."
+              title="No sensor readings for this period"
+              message="There are no sensor readings for this period — if you proceed, the file will contain location details only."
             />
+          ) : selectedColumnKeys.length === 0 ? (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Select at least one column to include in the export file.
+              </p>
+            </div>
           ) : (
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">

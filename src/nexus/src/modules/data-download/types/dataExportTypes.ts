@@ -59,3 +59,5 @@ export interface TabConfig {
   title: string;
   hasCategory: boolean;
 }
+
+export type PreviewData = Record<string, string | number | null>;

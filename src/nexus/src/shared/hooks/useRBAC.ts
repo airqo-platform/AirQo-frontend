@@ -168,21 +168,6 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user has a specific permission in a specific network
-   */
-  const hasPermissionInNetwork = (
-    permission: string,
-    networkName: string
-  ): boolean => {
-    if (!userRoles) return false;
-
-    const network = userRoles.networks.find(
-      n => n.network_name === networkName
-    );
-    return network ? network.permissions.includes(permission) : false;
-  };
-
-  /**
    * Check if user has a specific role in a specific group
    */
   const hasRoleInGroup = (role: string, groupName: string): boolean => {
@@ -193,29 +178,10 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user has a specific role in a specific network
-   */
-  const hasRoleInNetwork = (role: string, networkName: string): boolean => {
-    if (!userRoles) return false;
-
-    const network = userRoles.networks.find(
-      n => n.network_name === networkName
-    );
-    return network ? network.role_name === role : false;
-  };
-
-  /**
    * Get all groups the user belongs to
    */
   const getUserGroups = (): UserRole[] => {
     return userRoles?.groups || [];
-  };
-
-  /**
-   * Get all networks the user belongs to
-   */
-  const getUserNetworks = (): UserRole[] => {
-    return userRoles?.networks || [];
   };
 
   /**
@@ -292,13 +258,8 @@ export const useRBAC = () => {
     hasPermissionInGroup,
     hasRoleInGroup,
 
-    // Network-specific checks
-    hasPermissionInNetwork,
-    hasRoleInNetwork,
-
     // Utility functions
     getUserGroups,
-    getUserNetworks,
     canAccessAdminPanel,
 
     // Active group permission checks
