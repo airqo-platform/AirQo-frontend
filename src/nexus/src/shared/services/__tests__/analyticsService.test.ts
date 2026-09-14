@@ -61,6 +61,10 @@ const {
       siteIds: string[],
       signal?: AbortSignal
     ) => Promise<unknown[]>;
+    downloadData: (
+      request: Record<string, unknown>,
+      signal?: AbortSignal
+    ) => Promise<unknown>;
   };
   chartContractToRetryForErrorBody: (body: unknown) => string | null;
   resetChartDateContract: () => void;
@@ -1014,5 +1018,45 @@ describe('AnalyticsService.getComparisonReadings', () => {
       expect.anything(),
       expect.objectContaining({ signal: controller.signal })
     );
+  });
+});
+
+describe('AnalyticsService.downloadData signal forwarding', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('passes an AbortSignal through to serverClient.post as the third-arg option', async () => {
+    const controller = new AbortController();
+    mockPost.mockResolvedValueOnce({ data: { success: true } });
+
+    await analyticsService.downloadData(
+      { downloadType: 'csv', datatype: 'calibrated' },
+      controller.signal
+    );
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/data-download',
+      { downloadType: 'csv', datatype: 'calibrated' },
+      expect.objectContaining({ signal: controller.signal })
+    );
+  });
+
+  it('still works when no signal is provided (third arg is { signal: undefined })', async () => {
+    mockPost.mockResolvedValueOnce({ data: 'csv-content' });
+
+    const result = await analyticsService.downloadData({
+      downloadType: 'csv',
+      datatype: 'raw',
+    });
+
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/data-download',
+      { downloadType: 'csv', datatype: 'raw' },
+      expect.objectContaining({ signal: undefined })
+    );
+    expect(result).toBe('csv-content');
   });
 });

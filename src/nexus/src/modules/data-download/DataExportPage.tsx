@@ -29,6 +29,7 @@ import {
   DeviceCategory,
   TabType,
   TableItem,
+  PreviewData,
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
@@ -105,8 +106,6 @@ const rebuildSelectionCache = (
 
   return nextCache;
 };
-
-type PreviewData = Record<string, string | number | null>;
 
 const DataExportPage = () => {
   const pathname = usePathname();

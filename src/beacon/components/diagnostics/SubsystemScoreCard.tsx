@@ -91,10 +91,10 @@ export const SubsystemScoreCard: React.FC<SubsystemScoreCardProps> = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
             <Layers className="w-4 h-4 text-blue-600" />
-            Subsystem Health Breakdown
+            Component Health Breakdown
           </CardTitle>
           <span className="text-xs text-gray-400 font-medium">
-            {subsystems.length} Subsystems Monitored
+            {subsystems.length} {subsystems.length === 1 ? "Component" : "Components"} Scored
           </span>
         </div>
       </CardHeader>

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createProxyHandler } from "./proxyClient";
 import axios from "axios";
+import { buildServerApiUrl } from "@/lib/api-routing";
 import { NextRequest } from "next/server";
 import { mockGetServerSession, createMockSession, resetNextAuthMocks } from "@/test/mocks/nextAuth";
 import { mockAxiosSuccess, mockAxiosError } from "@/test/factories/apiResponseFactory";
@@ -53,6 +54,31 @@ describe("proxyClient", () => {
     const res = await handler(req, { params: { path: ["users"] } });
     
     expect(res.status).toBe(405);
+  });
+
+  it("returns 508 when the API URL resolves to the proxy's own origin", async () => {
+    vi.mocked(buildServerApiUrl).mockReturnValueOnce("http://localhost:3000/api/users");
+    const handler = createProxyHandler();
+    const req = createRequest("GET", "http://localhost:3000/api/users");
+
+    const res = await handler(req, { params: { path: ["users"] } });
+
+    expect(res.status).toBe(508);
+    expect(axios).not.toHaveBeenCalled();
+  });
+
+  it("does not treat an API origin that merely shares a prefix as a loop", async () => {
+    vi.mocked(buildServerApiUrl).mockReturnValueOnce("http://localhost:30001/api/users");
+    const handler = createProxyHandler();
+    const req = createRequest("GET", "http://localhost:3000/api/users");
+    vi.mocked(axios).mockResolvedValueOnce(mockAxiosSuccess({ users: [] }));
+
+    const res = await handler(req, { params: { path: ["users"] } });
+
+    expect(res.status).toBe(200);
+    expect(axios).toHaveBeenCalledWith(expect.objectContaining({
+      url: "http://localhost:30001/api/users",
+    }));
   });
 
   it("forwards GET request successfully", async () => {

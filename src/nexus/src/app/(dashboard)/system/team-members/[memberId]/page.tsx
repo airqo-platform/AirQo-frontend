@@ -29,7 +29,6 @@ import {
   AqRefreshCw05,
   AqShield02,
   AqUsers01,
-  AqUsersCheck,
 } from '@airqo/icons-react';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import {
@@ -142,20 +141,11 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
 
   const currentRoleEntries = useMemo(() => {
     const entries: Array<{
-      scope: 'Network' | 'Group';
+      scope: 'Group';
       name: string;
       roleName: string;
       rolePermissions: { _id: string; permission: string }[];
     }> = [];
-
-    user?.networks?.forEach(network => {
-      entries.push({
-        scope: 'Network',
-        name: network.net_name,
-        roleName: network.role?.role_name || 'No role assigned',
-        rolePermissions: network.role?.role_permissions || [],
-      });
-    });
 
     user?.groups?.forEach(group => {
       entries.push({
@@ -433,7 +423,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
             <div>
               <h3 className="text-lg font-semibold">Current Access</h3>
               <p className="text-sm text-muted-foreground">
-                Roles inherited from networks and groups
+                Roles inherited from groups
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -443,35 +433,6 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Networks
-              </h4>
-              {user.networks?.length ? (
-                user.networks.map(network => (
-                  <div
-                    key={network._id}
-                    className="rounded-lg border bg-muted/20 p-4 flex items-start justify-between gap-4"
-                  >
-                    <div>
-                      <p className="font-medium">{network.net_name}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {network.role?.role_name || 'No role assigned'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <AqUsersCheck className="w-4 h-4" />
-                      <span>{network.userType}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No network roles assigned.
-                </p>
-              )}
-            </div>
-
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                 Groups

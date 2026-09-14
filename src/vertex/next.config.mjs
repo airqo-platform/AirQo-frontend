@@ -11,7 +11,7 @@ const nextConfig = {
       return [
         {
           source: '/api/v2/:path*',
-          destination: 'https://staging-vertex.airqo.net/api/v2/:path*',
+          destination: 'https://staging-analytics.airqo.net/api/v2/:path*',
         },
       ];
     }

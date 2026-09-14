@@ -4,7 +4,32 @@ export type LifecycleState =
   | "SUSPICIOUS"
   | "LIKELY_FAILURE"
   | "FAILED"
-  | "RECOVERING";
+  | "RECOVERING"
+  | "NO_DATA";
+
+export type IssueSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export const SEVERITY_ORDER: IssueSeverity[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+
+// Generic checks the profile-driven engine runs; every evidence fact and daily issue carries one.
+export type DiagnosticCheckType =
+  | "METRIC_BELOW_MIN"
+  | "METRIC_ABOVE_MAX"
+  | "METRIC_RATE_EXCEEDED"
+  | "METRIC_STUCK"
+  | "METRIC_MISSING"
+  | "SENSOR_DISAGREEMENT"
+  | "DATA_GAPS";
+
+export const CHECK_TYPE_LABELS: Record<DiagnosticCheckType, string> = {
+  METRIC_BELOW_MIN: "Below expected minimum",
+  METRIC_ABOVE_MAX: "Above expected maximum",
+  METRIC_RATE_EXCEEDED: "Rate of change exceeded",
+  METRIC_STUCK: "Stuck value",
+  METRIC_MISSING: "Missing metric",
+  SENSOR_DISAGREEMENT: "Paired sensors disagree",
+  DATA_GAPS: "Data gaps",
+};
 
 export interface TelemetryMapping {
   key: string;
@@ -230,37 +255,69 @@ export interface EvidenceContribution {
 }
 
 export interface DiagnosisResult {
-  cause_code: string;
+  cause_code: string; // e.g. "COMPONENT_FAULT:device_battery"
   title: string;
+  component_name?: string | null; // Root-cause component from the profile
+  affected_components?: string[]; // Dependent components whose issues this cause explains
   category?: "HARDWARE_FAILURE" | "RESOURCE_DEPLETION" | "ENVIRONMENTAL" | "CALIBRATION" | "CONNECTIVITY" | "FIRMWARE" | string;
   confidence_percentage: number;
-  supporting_evidence: EvidenceContribution[];
+  supporting_evidence: EvidenceContribution[]; // contribution is 0..1
   refuting_evidence: EvidenceContribution[];
   recommended_action: string;
-  severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  severity?: IssueSeverity;
 }
 
 export interface EvidenceFact {
-  code: string;
+  code: string; // e.g. "METRIC_BELOW_MIN:device_battery.battery_voltage"
+  check?: DiagnosticCheckType | string;
   component_name: string;
+  component_type?: string | null;
+  metric?: string | null;
+  title?: string;
   description: string;
-  confidence: number;
+  severity?: IssueSeverity | string;
+  confidence: number; // 0..1
   value: any;
+  related_components?: string[];
   polarity?: "SUPPORTING" | "REFUTING" | "NEUTRAL";
+}
+
+export interface DataCompleteness {
+  records: number;
+  expected_records?: number | null;
+  missing_rate?: number | null; // 0..1
+  expected_interval_seconds?: number | null;
 }
 
 export interface DiagnosticEvaluationResult {
   device_id: string;
-  profile_id?: string;
+  profile_id?: string | null;
+  profile_name?: string | null;
   overall_health_score: number;
   lifecycle_state: LifecycleState;
-  subsystem_scores: Record<string, number>;
+  subsystem_scores: Record<string, number>; // Keyed by profile component name
   active_evidences: EvidenceFact[];
   detected_symptoms: string[];
   top_diagnoses: DiagnosisResult[];
+  data_completeness?: DataCompleteness | null;
+  profile_warnings?: string[];
   evaluated_window_hours: number;
   timestamp: string;
   context?: Record<string, any>;
+}
+
+// GET /diagnostics/profiles/{id}/diagnostic-readiness
+export interface ProfileDiagnosticReadiness {
+  profile_id?: string | null;
+  profile_name?: string | null;
+  diagnosable: boolean;
+  errors: string[];
+  warnings: string[];
+  evaluated_metrics: string[]; // "component.metric"
+  transmission_components: string[];
+  dependencies: Record<string, string[]>; // component -> upstream components
+  redundant_pairs: string[]; // "a.metric ~ b.metric"
+  effective_policy: Record<string, any>;
 }
 
 export interface DeviceHealthSnapshot {
@@ -351,35 +408,159 @@ export interface DiagnosticTemplate {
   updated_at?: string;
 }
 
-export interface FleetTriageDeviceItem {
-  device_id: string;
-  device_name: string;
-  category: string;
-  cohort?: string;
-  site?: string;
-  overall_health_score: number;
-  lifecycle_state: LifecycleState;
-  top_diagnosis?: {
-    cause_code: string;
-    title: string;
-    confidence_percentage: number;
-  };
-  subsystem_scores: Record<string, number>;
-  last_evaluated: string;
+// ── Daily Diagnostics ─────────────────────────────────────────────────────────
+// One diagnosis per device per completed UTC day, produced after the nightly sync.
+
+export interface DailyIssue {
+  issue_code: string; // e.g. "METRIC_BELOW_MIN:device_battery.battery_voltage"
+  check_type: DiagnosticCheckType | string;
+  component_name?: string | null;
+  metric_key?: string | null;
+  title: string;
+  subsystem: string; // Component type from the profile, e.g. "battery"
+  severity: IssueSeverity;
+  confidence?: number | null;
+  description?: string | null;
+  value?: any;
+  is_new: boolean;
+  streak_days: number;
+  streak_start_date: string; // YYYY-MM-DD
 }
 
-export interface FleetTriageSummary {
-  total_devices: number;
-  healthy_count: number;
-  degrading_count: number;
-  suspicious_count: number;
-  likely_failure_count: number;
-  failed_count: number;
-  recovering_count: number;
-  failure_modes_distribution: {
-    name: string;
-    count: number;
-    percentage: number;
-    category: string;
-  }[];
+export interface FleetIssue extends DailyIssue {
+  device_id: string;
+  diagnosis_date: string;
+}
+
+export interface DeviceDailyDiagnosticSummary {
+  id: string;
+  device_id: string;
+  channel_id?: string | null;
+  diagnosis_date: string;
+  record_count: number;
+  hours_with_data: number;
+  overall_health_score: number;
+  lifecycle_state: LifecycleState;
+  subsystem_scores: Record<string, number>;
+  top_cause_code?: string | null;
+  issue_count: number;
+  max_severity?: IssueSeverity | null;
+  resolved_issue_codes?: string[] | null;
+  engine_version?: string | null;
+  evaluated_at?: string | null;
+  issues: DailyIssue[];
+}
+
+export interface MetricSummary {
+  mean?: number;
+  min?: number;
+  max?: number;
+  count?: number;
+}
+
+export interface DeviceDailyDiagnostic extends DeviceDailyDiagnosticSummary {
+  profile_id?: string | null;
+  first_record_at?: string | null;
+  last_record_at?: string | null;
+  active_evidences?: EvidenceFact[] | null;
+  detected_symptoms?: string[] | null;
+  top_diagnoses?: DiagnosisResult[] | null;
+  metrics_summary?: Record<string, MetricSummary> | null;
+}
+
+export interface DeviceIssueHistoryItem {
+  issue_code: string;
+  title: string;
+  subsystem: string;
+  severity: IssueSeverity;
+  days_observed: number;
+  first_seen: string;
+  last_seen: string;
+  is_active: boolean;
+  current_streak_days: number;
+}
+
+export interface HealthTrendPoint {
+  diagnosis_date: string;
+  overall_health_score: number;
+  lifecycle_state: LifecycleState;
+  issue_count: number;
+}
+
+export interface DeviceIssueSummary {
+  device_id: string;
+  start_date: string;
+  end_date: string;
+  days_diagnosed: number;
+  average_health_score?: number | null;
+  latest_diagnosis_date?: string | null;
+  latest_lifecycle_state?: LifecycleState | null;
+  issues: DeviceIssueHistoryItem[];
+  health_trend: HealthTrendPoint[];
+}
+
+export interface FleetTopIssue {
+  issue_code: string;
+  check_type: DiagnosticCheckType | string;
+  component_name?: string | null;
+  title: string;
+  subsystem: string;
+  severity: IssueSeverity;
+  device_count: number;
+  new_device_count: number;
+}
+
+export interface FleetDeviceHealth {
+  device_id: string;
+  overall_health_score: number;
+  lifecycle_state: LifecycleState;
+  issue_count: number;
+  max_severity?: IssueSeverity | null;
+  top_cause_code?: string | null;
+}
+
+export interface FleetDailySummary {
+  diagnosis_date?: string | null;
+  devices_diagnosed: number;
+  devices_with_issues: number;
+  average_health_score?: number | null;
+  lifecycle_state_counts: Partial<Record<LifecycleState, number>>;
+  max_severity_counts: Record<string, number>; // Includes "NONE" for devices without issues
+  new_issue_count: number;
+  resolved_issue_count: number;
+  top_issues: FleetTopIssue[];
+  worst_devices: FleetDeviceHealth[];
+}
+
+export interface FleetIssueFilters {
+  diagnosis_date?: string;
+  start_date?: string;
+  end_date?: string;
+  device_id?: string;
+  issue_code?: string;
+  severity?: IssueSeverity;
+  subsystem?: string;
+  component_name?: string;
+  check_type?: DiagnosticCheckType | string;
+  min_streak_days?: number;
+  only_new?: boolean;
+  skip?: number;
+  limit?: number;
+}
+
+export interface DailyDiagnosticsRunRequest {
+  start_date?: string;
+  end_date?: string;
+  device_ids?: string[];
+  force?: boolean;
+  lookback_days?: number; // 1..14, used when start_date is omitted
+}
+
+export interface DailyDiagnosticsRunResponse {
+  success: boolean;
+  message: string;
+  start_date: string;
+  end_date: string;
+  device_ids?: string[] | null;
+  force: boolean;
 }

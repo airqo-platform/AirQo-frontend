@@ -26,98 +26,30 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Get AKS credentials
+      - name: Stop AKS staging cluster
         run: |
-          az aks get-credentials \
+          echo "Checking AKS cluster power state..."
+          POWER_STATE=$(az aks show \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.STAGING_CLUSTER_NAME }} \
-            --overwrite-existing
+            --query "powerState.code" -o tsv)
 
-      - name: Gracefully shut down Kafka before node drain
-        run: |
-          echo "Scaling KafkaNodePool to 0 replicas to avoid PDB blocking node drain..."
-          kubectl patch kafkanodepool dual-role \
-            -n message-broker \
-            --type merge \
-            -p '{"spec":{"replicas":0}}'
+          echo "Current power state: $POWER_STATE"
 
-          echo "Waiting for Kafka pods to terminate (max 3 minutes)..."
-          TIMEOUT=180
-          INTERVAL=10
-          ELAPSED=0
-
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            COUNT=$(kubectl get pods -n message-broker \
-              -l strimzi.io/name=airqo-stage-kafka-kafka \
-              --no-headers 2>/dev/null | grep -c . || true)
-
-            echo "Kafka pods remaining: $COUNT (${ELAPSED}s elapsed)"
-
-            if [ "$COUNT" = "0" ]; then
-              echo "All Kafka pods terminated"
-              break
-            fi
-
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
-
-          if [ "$COUNT" != "0" ]; then
-            echo "ERROR: Kafka pods did not terminate within ${TIMEOUT}s. Remaining: $COUNT"
+          if [ "$POWER_STATE" = "Stopped" ]; then
+            echo "Cluster is already stopped — skipping"
+          elif [ "$POWER_STATE" = "Stopping" ]; then
+            echo "ERROR: Cluster is currently in Stopping state — wait for it to stabilise before rerunning"
             exit 1
-          fi 
-
-          echo "Removing Kafka PDBs..."
-          kubectl delete pdb airqo-stage-kafka-kafka \
-            -n message-broker --ignore-not-found
-          kubectl delete pdb airqo-stage-kafka-entity-operator \
-            -n message-broker --ignore-not-found
-          echo "Done — Strimzi will recreate PDBs on next startup"
-
-      - name: Scale down AKS workload nodes
-        run: |
-          echo "Disabling cluster autoscaler to allow forced manual scaling..."
-          az aks nodepool update \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --disable-cluster-autoscaler
-
-          echo "Explicitly forcing node pool count to 0..."
-          az aks nodepool scale \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --node-count 0
-          echo "Node pool scaling to 0 initiated"
-
-          echo "Polling until workload nodes reach 0 (max 15 minutes)..."
-          TIMEOUT=900
-          INTERVAL=30
-          ELAPSED=0
-          COUNT=999
-
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            COUNT=$(az aks nodepool show \
+          elif [ "$POWER_STATE" = "Starting" ]; then
+            echo "ERROR: Cluster is currently in Starting state — wait for it to stabilise before rerunning"
+            exit 1
+          else
+            echo "Stopping AKS cluster — bypasses PDBs, preserves PVCs, drops compute cost to zero..."
+            az aks stop \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-              --name workload \
-              --query count -o tsv)
-
-            echo "Current node count: $COUNT (${ELAPSED}s elapsed)"
-
-            if [ "$COUNT" = "0" ]; then
-              echo "Workload nodes successfully scaled to 0"
-              break
-            fi
-
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
-
-          if [ "$COUNT" != "0" ]; then
-            echo "ERROR: Nodes did not reach 0 within ${TIMEOUT}s. Last count: $COUNT"
-            exit 1
+              --name ${{ env.STAGING_CLUSTER_NAME }}
+            echo "AKS cluster stopped successfully"
           fi
 
       - name: Stop HAProxy staging VM and wait for deallocation
@@ -158,12 +90,11 @@ jobs:
           echo "=== Shutdown Summary ==="
           echo "Time: $(date)"
           echo ""
-          echo "--- AKS Node Pool ---"
-          az aks nodepool show \
+          echo "--- AKS Cluster State ---"
+          az aks show \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --query "{name:name, count:count, state:provisioningState}" \
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --query "{name:name, powerState:powerState.code, provisioningState:provisioningState}" \
             -o table
           echo ""
           echo "--- VM Power State ---"
