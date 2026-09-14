@@ -482,11 +482,12 @@ export class AnalyticsService {
 
   // Download data - authenticated endpoint
   async downloadData(
-    request: DataDownloadRequest
+    request: DataDownloadRequest,
+    signal?: AbortSignal
   ): Promise<DataDownloadResponse | string> {
     const response = await this.serverClient.post<
       DataDownloadResponse | string
-    >('/analytics/data-download', request);
+    >('/analytics/data-download', request, { signal });
     return response.data;
   }
 
