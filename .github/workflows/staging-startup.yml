@@ -61,17 +61,13 @@ jobs:
             exit 1
           fi
 
-      - name: Scale up AKS workload nodes
+      - name: Start AKS staging cluster
         run: |
-          echo "Re-enabling autoscaler with min 2, max 4..."
-          az aks nodepool update \
+          echo "Starting AKS cluster..."
+          az aks start \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --cluster-name ${{ env.STAGING_CLUSTER_NAME }} \
-            --name workload \
-            --enable-cluster-autoscaler \
-            --min-count 2 \
-            --max-count 4
-          echo "Autoscaler re-enabled — will provision nodes to meet min-count of 2"
+            --name ${{ env.STAGING_CLUSTER_NAME }}
+          echo "AKS cluster started successfully"
 
       - name: Get AKS credentials
         run: |
@@ -80,48 +76,11 @@ jobs:
             --name ${{ env.STAGING_CLUSTER_NAME }} \
             --overwrite-existing
 
-      - name: Wait for workload nodes to be ready
+      - name: Wait for nodes to be ready
         run: |
           echo "Waiting for all nodes to be Ready (max 8 minutes)..."
           kubectl wait --for=condition=Ready nodes --all --timeout=480s
           echo "All nodes ready"
-
-      - name: Restore Kafka replicas
-        run: |
-          echo "Restoring KafkaNodePool to 2 replicas..."
-          kubectl patch kafkanodepool dual-role \
-            -n message-broker \
-            --type merge \
-            -p '{"spec":{"replicas":2}}'
-
-          echo "Waiting for Kafka pods to be ready (max 5 minutes)..."
-          TIMEOUT=300
-          INTERVAL=15
-          ELAPSED=0
-          COUNT=0
-
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            COUNT=$(kubectl get pods -n message-broker \
-              -l strimzi.io/name=airqo-stage-kafka-kafka \
-              --no-headers 2>/dev/null | grep -c "Running" || true)
-
-            echo "Kafka pods running: $COUNT/2 (${ELAPSED}s elapsed)"
-
-            if [ "$COUNT" = "2" ]; then
-              echo "Kafka pods restored and running"
-              break
-            fi
-
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
-
-          if [ "$COUNT" != "2" ]; then
-            echo "ERROR: Kafka pods did not reach 2 running within ${TIMEOUT}s"
-            kubectl get pods -n message-broker \
-              -l strimzi.io/name=airqo-stage-kafka-kafka
-            exit 1
-          fi
 
       - name: Wait for nginx-ingress
         run: |
@@ -167,6 +126,13 @@ jobs:
         run: |
           echo "=== Startup Summary ==="
           echo "Time: $(date)"
+          echo ""
+          echo "--- AKS Cluster State ---"
+          az aks show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --query "{name:name, powerState:powerState.code, provisioningState:provisioningState}" \
+            -o table
           echo ""
           echo "--- Nodes ---"
           kubectl get nodes
