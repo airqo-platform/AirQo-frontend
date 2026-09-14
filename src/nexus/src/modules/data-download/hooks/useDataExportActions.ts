@@ -22,6 +22,7 @@ import {
 import { parseDownloadResponseRecords } from '../utils/dataExportFile';
 import {
   getMeasurementRecords,
+  getPartialDataWarning,
 } from '../utils/dataAvailability';
 import type {
   DataDownloadRequest,
@@ -474,6 +475,15 @@ interface GridLocationLookupEntry {
 const getNormalizedString = (...values: unknown[]) =>
   getStringValue(...values) || '';
 
+/**
+ * Normalizes a lookup key for the grid location maps: trim + lowercase.
+ * Used on BOTH the build side (map keys) and the lookup side so that
+ * site_id / site_name matches are case- and whitespace-insensitive
+ * without changing the behavior of already-normalized values.
+ */
+const normalizeLookupKey = (value: string): string =>
+  value.trim().toLowerCase();
+
 const buildGridLocationLookup = (
   gridData: TableItem[],
   selectedGridIds: string[],
@@ -537,8 +547,8 @@ const buildGridLocationLookup = (
         locationName: gridName,
       };
 
-      bySiteId.set(siteId, entry);
-      bySiteName.set(siteName.toLowerCase(), entry);
+      bySiteId.set(normalizeLookupKey(siteId), entry);
+      bySiteName.set(normalizeLookupKey(siteName), entry);
     });
   });
 
@@ -582,10 +592,10 @@ const normalizeCountryCityDownloadResponse = (
 
     const matchedLookup =
       (recordSiteId
-        ? gridLocationLookup.bySiteId.get(recordSiteId)
+        ? gridLocationLookup.bySiteId.get(normalizeLookupKey(recordSiteId))
         : undefined) ||
       (recordSiteName
-        ? gridLocationLookup.bySiteName.get(recordSiteName.toLowerCase())
+        ? gridLocationLookup.bySiteName.get(normalizeLookupKey(recordSiteName))
         : undefined);
 
     const resolvedSiteId = recordSiteId || matchedLookup?.siteId || '';
@@ -1049,7 +1059,10 @@ export const useDataExportActions = (
       };
 
       try {
-        const rawResponse = await fetchDownloadData(request);
+        const rawResponse = await fetchDownloadData({
+          request,
+          signal: abortController.signal,
+        });
 
         if (abortController.signal.aborted) return null;
 
@@ -1073,6 +1086,33 @@ export const useDataExportActions = (
           return prepareMetadataFallback();
         }
 
+        const partialDataSelectedIds =
+          activeTab === 'sites'
+            ? selectedSiteIds
+            : activeTab === 'devices'
+              ? selectedDeviceIds
+              : sitesForDownload;
+        const partialDataSelectedLabels =
+          activeTab === 'sites'
+            ? selectedSites
+            : activeTab === 'devices'
+              ? selectedDevices
+              : getGridSiteNames(
+                  activeTab,
+                  selectedGridIds,
+                  selectedGridSiteIds,
+                  selectedGridSites,
+                  activeTab === 'countries' ? countriesData : citiesData
+                );
+
+        const partialDataWarning = getPartialDataWarning(
+          normalizedResponse,
+          activeTab,
+          partialDataSelectedIds,
+          partialDataSelectedLabels,
+          selectedPollutants
+        );
+
         const effectiveLocationCount =
           activeTab === 'sites'
             ? selectedSites.length
@@ -1080,10 +1120,20 @@ export const useDataExportActions = (
               ? selectedDeviceIds.length
               : sitesForDownload.length;
 
-        toast.success(
-          'Download ready',
-          `Your export for ${effectiveLocationCount} location${effectiveLocationCount !== 1 ? 's' : ''} is ready.`
-        );
+        if (partialDataWarning) {
+          const missingCount = partialDataWarning.missingNames.length;
+          const totalCount = partialDataWarning.totalSelected;
+          const missingList = partialDataWarning.missingNames.join(', ');
+          toast.warning(
+            'Partial data available',
+            `${missingCount} of ${totalCount} locations returned no readings: ${missingList}. The download will include metadata only for those.`
+          );
+        } else {
+          toast.success(
+            'Download ready',
+            `Your export for ${effectiveLocationCount} location${effectiveLocationCount !== 1 ? 's' : ''} is ready.`
+          );
+        }
 
         return {
           request,

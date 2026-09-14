@@ -396,7 +396,7 @@ export const useDataDownload = () => {
       transformOptions?: DownloadFileTransformOptions
     ) => {
       try {
-        const response = await trigger(request);
+        const response = await trigger({ request });
         const { content, mimeType, extension } = buildDownloadFileContent(
           response,
           request.downloadType,
