@@ -85,6 +85,15 @@ function dialog() {
   return within(screen.getByRole("dialog"));
 }
 
+// ReusableDialog auto-focuses its first focusable element 100ms after
+// opening. Typing that straddles that window gets its focus yanked back
+// mid-field and drops keystrokes, so wait it out before typing.
+async function settleDialogFocus() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  });
+}
+
 function mockAssignDevices(
   assignSpy: (variables: unknown, hookOptions: unknown, callOptions: unknown) => void
 ) {
@@ -459,6 +468,8 @@ describe("AssignCohortDevicesDialog", () => {
         cohortId="cohort-1"
       />
     );
+
+    await settleDialogFocus();
 
     // Filter combobox by typing in the search input
     const combos = dialog().getAllByRole("combobox");
