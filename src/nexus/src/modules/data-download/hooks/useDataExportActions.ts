@@ -695,7 +695,6 @@ const getGridSiteNames = (
 ): string[] => {
   if (activeTab !== 'countries' && activeTab !== 'cities') return [];
 
-  const siteNames: string[] = [];
   const siteIdToName = new Map<string, string>();
 
   // Build lookup from grid data — handles both populated and empty sites arrays
@@ -724,25 +723,13 @@ const getGridSiteNames = (
     }
   });
 
-  // Get all selected site IDs and map to names
-  selectedGridIds.forEach(gridId => {
-    const hasCustomSelection = Object.prototype.hasOwnProperty.call(
-      selectedGridSiteIds,
-      gridId
-    );
-    const sites = hasCustomSelection
-      ? selectedGridSiteIds[gridId] || []
-      : selectedGridSites[gridId] || [];
-    sites.forEach(siteId => {
-      const name = siteIdToName.get(siteId);
-      if (name) {
-        siteNames.push(name);
-      }
-      // If no name found, don't add the raw ID — we'll handle this in the warning
-    });
-  });
-
-  return siteNames;
+  // Use resolveGridSitesForDownload for the authoritative deduped/trimmed id
+  // list so labels stay exactly 1:1 with the ids used for the request.
+  return resolveGridSitesForDownload(
+    selectedGridIds,
+    selectedGridSites,
+    selectedGridSiteIds
+  ).map(siteId => siteIdToName.get(siteId) ?? siteId);
 };
 
 const getCalendarDayDifference = (from: Date, to: Date) => {
