@@ -85,7 +85,8 @@ export const getRetryAfterSeconds = (error: unknown): number | null => {
  * SWR-compatible retry adapter. Retries ONLY 429 (rate-limit) for idempotent
  * GETs, at most 1 retry / 2 attempts. Honours `Retry-After` when present
  * (capped), falls back to 1 s. Never retries abort/ERR_NETWORK/5xx/401/403
- * or any other status.
+ * or any other status. The retry count is preserved from SWR's own tracking
+ * and capped at one additional attempt (retryCount > 1 → stop).
  *
  * Wire into SWR config via spread: `{ ...swrRetryPolicy, errorRetryCount: 1 }`.
  */
@@ -101,14 +102,16 @@ export const swrRetryPolicy = {
     _key: string,
     _config: unknown,
     revalidate: Revalidator,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Required by SWR's onErrorRetry signature; not used.
-    _revalidateOpts: Required<RevalidatorOptions>
+    revalidateOpts: Required<RevalidatorOptions>
   ): void => {
     // Defense in depth: only 429 should reach here when shouldRetryOnError
     // gates correctly, but guard explicitly so a misconfiguration never
     // causes a retry storm.
     if (getErrorStatus(error) !== 429) return;
     if (isRetryForbiddenError(error)) return;
+
+    // Stop after one retry — don't loop on persistent 429s.
+    if (revalidateOpts.retryCount > 1) return;
 
     const retryAfterMs = (() => {
       const seconds = getRetryAfterSeconds(error);
@@ -119,7 +122,7 @@ export const swrRetryPolicy = {
       return 1000;
     })();
 
-    setTimeout(() => revalidate({ retryCount: 1 }), retryAfterMs);
+    setTimeout(() => revalidate(revalidateOpts), retryAfterMs);
   },
 } as const;
 

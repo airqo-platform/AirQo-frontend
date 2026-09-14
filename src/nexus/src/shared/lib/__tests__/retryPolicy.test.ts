@@ -178,7 +178,7 @@ describe('swrRetryPolicy.onErrorRetry', () => {
     jest.useRealTimers();
   });
 
-  it('schedules a single revalidate for a 429 with Retry-After', () => {
+  it('schedules a single revalidate for a 429 with Retry-After, passing opts through', () => {
     const revalidate = jest.fn();
     const error = Object.assign(new Error('Too Many Requests'), {
       response: {
@@ -187,12 +187,15 @@ describe('swrRetryPolicy.onErrorRetry', () => {
       },
     });
 
+    const opts = { retryCount: 1, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
     swrRetryPolicy.onErrorRetry(
       error,
       'test-key',
       {} as never,
       revalidate as never,
-      { retryCount: 0, errorRetryCount: 0 } as never
+      opts
     );
 
     // Not called yet — setTimeout is pending.
@@ -202,7 +205,8 @@ describe('swrRetryPolicy.onErrorRetry', () => {
     jest.advanceTimersByTime(2000);
 
     expect(revalidate).toHaveBeenCalledTimes(1);
-    expect(revalidate).toHaveBeenCalledWith({ retryCount: 1 });
+    // Must receive the same opts object (pass-through), not a hard-reset.
+    expect(revalidate).toHaveBeenCalledWith(opts);
   });
 
   it('uses a 1 s fallback when no Retry-After header is present', () => {
@@ -211,12 +215,15 @@ describe('swrRetryPolicy.onErrorRetry', () => {
       response: { status: 429 },
     });
 
+    const opts = { retryCount: 1, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
     swrRetryPolicy.onErrorRetry(
       error,
       'test-key',
       {} as never,
       revalidate as never,
-      { retryCount: 0, errorRetryCount: 0 } as never
+      opts
     );
 
     jest.advanceTimersByTime(999);
@@ -224,7 +231,7 @@ describe('swrRetryPolicy.onErrorRetry', () => {
 
     jest.advanceTimersByTime(1);
     expect(revalidate).toHaveBeenCalledTimes(1);
-    expect(revalidate).toHaveBeenCalledWith({ retryCount: 1 });
+    expect(revalidate).toHaveBeenCalledWith(opts);
   });
 
   it('caps Retry-After at 15 s', () => {
@@ -236,12 +243,15 @@ describe('swrRetryPolicy.onErrorRetry', () => {
       },
     });
 
+    const opts = { retryCount: 1, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
     swrRetryPolicy.onErrorRetry(
       error,
       'test-key',
       {} as never,
       revalidate as never,
-      { retryCount: 0, errorRetryCount: 0 } as never
+      opts
     );
 
     jest.advanceTimersByTime(14999);
@@ -249,6 +259,27 @@ describe('swrRetryPolicy.onErrorRetry', () => {
 
     jest.advanceTimersByTime(1);
     expect(revalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT schedule a retry when retryCount > 1 (already retried once)', () => {
+    const revalidate = jest.fn();
+    const error = Object.assign(new Error('Too Many Requests'), {
+      response: { status: 429 },
+    });
+
+    const opts = { retryCount: 2, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
+    swrRetryPolicy.onErrorRetry(
+      error,
+      'test-key',
+      {} as never,
+      revalidate as never,
+      opts
+    );
+
+    jest.advanceTimersByTime(10000);
+    expect(revalidate).not.toHaveBeenCalled();
   });
 
   it('does NOT call revalidate for a 500 error', () => {
