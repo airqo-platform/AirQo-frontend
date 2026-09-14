@@ -42,7 +42,7 @@ export const EvidenceFactBadge: React.FC<EvidenceFactBadgeProps> = ({
   if (facts.length === 0 && symptoms.length === 0) {
     return (
       <div className="text-xs text-gray-400 italic py-2">
-        No findings in this evaluation window. Every evaluated metric stayed within its profile limits.
+        No findings are available for this evaluation window.
       </div>
     );
   }

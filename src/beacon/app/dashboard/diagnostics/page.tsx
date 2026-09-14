@@ -229,6 +229,14 @@ export default function FleetDiagnosticsPage() {
     .filter(([, count]) => count > 0);
   const severityTotal = severityEntries.reduce((sum, [, count]) => sum + count, 0);
 
+  // Any other state the API reports (e.g. RECOVERING) is shown too, so the grid always adds up.
+  const lifecycleStates = [
+    ...LIFECYCLE_STATES,
+    ...(Object.keys(summary?.lifecycle_state_counts || {}) as LifecycleState[]).filter(
+      (state) => !LIFECYCLE_STATES.includes(state)
+    ),
+  ];
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header Banner */}
@@ -376,7 +384,7 @@ export default function FleetDiagnosticsPage() {
           <Card className="border border-gray-200 shadow-sm">
             <CardContent className="p-4 space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {LIFECYCLE_STATES.map((state) => {
+                {lifecycleStates.map((state) => {
                   const cfg = getLifecycleConfig(state);
                   const Icon = cfg.icon;
                   const count = summary.lifecycle_state_counts?.[state] || 0;

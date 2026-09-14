@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { diagnosticsService, DiagnosticsApiError } from "@/services/diagnosticsService";
 import {
   DeviceDailyDiagnosticSummary,
@@ -66,7 +66,14 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
   const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<DiagnosisResult | null>(null);
 
+  // Each load takes a token; a response is applied only if no newer load started for
+  // another device or day range in the meantime.
+  const dailyRequestRef = useRef<number>(0);
+  const snapshotRequestRef = useRef<number>(0);
+
   const fetchDaily = useCallback(async () => {
+    const token = ++dailyRequestRef.current;
+    const isCurrent = () => token === dailyRequestRef.current;
     try {
       setDailyLoading(true);
       setDailyError(null);
@@ -77,27 +84,33 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
           limit: Math.min(days + 1, 180),
         }),
       ]);
+      if (!isCurrent()) return;
       setIssueSummary(summary);
       setDailyDiagnoses(list);
     } catch (err: any) {
+      if (!isCurrent()) return;
       console.error("Error fetching daily diagnostics:", err);
       setDailyError(err?.message || "Daily diagnostics are currently unavailable.");
       setIssueSummary(null);
       setDailyDiagnoses([]);
     } finally {
-      setDailyLoading(false);
+      if (isCurrent()) setDailyLoading(false);
     }
   }, [deviceId, days]);
 
   const fetchSnapshot = useCallback(async () => {
+    const token = ++snapshotRequestRef.current;
+    const isCurrent = () => token === snapshotRequestRef.current;
     try {
       setSnapshotLoading(true);
-      setSnapshot(await diagnosticsService.getDeviceHealth(deviceId));
+      const data = await diagnosticsService.getDeviceHealth(deviceId);
+      if (isCurrent()) setSnapshot(data);
     } catch (err: any) {
+      if (!isCurrent()) return;
       console.error("Error fetching latest device health:", err);
       setSnapshot(null);
     } finally {
-      setSnapshotLoading(false);
+      if (isCurrent()) setSnapshotLoading(false);
     }
   }, [deviceId]);
 
@@ -106,18 +119,25 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
   }, [deviceId, fetchDaily]);
 
   useEffect(() => {
+    // Evaluation output belongs to the previous device
+    setLastEvaluation(null);
+    setProfileError(null);
     if (deviceId) fetchSnapshot();
   }, [deviceId, fetchSnapshot]);
 
   const handleReevaluate = async () => {
+    const token = ++snapshotRequestRef.current;
+    const isCurrent = () => token === snapshotRequestRef.current;
     try {
       setIsEvaluating(true);
       setProfileError(null);
       const result = await diagnosticsService.evaluateDevice(deviceId, { window_hours: windowHours });
+      if (!isCurrent()) return;
       setLastEvaluation(result);
 
       // The evaluation saved a snapshot; reload it so feedback references its real id.
       const saved = await diagnosticsService.getDeviceHealth(deviceId).catch(() => null);
+      if (!isCurrent()) return;
       setSnapshot(
         saved || {
           id: "",
@@ -141,6 +161,7 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
             : `Evaluated ${result.evaluated_window_hours}h of telemetry. Health score: ${result.overall_health_score}/100.`,
       });
     } catch (err: any) {
+      if (!isCurrent()) return;
       if (err instanceof DiagnosticsApiError && err.isProfileNotDiagnosable) {
         setProfileError(err);
       } else {

@@ -139,6 +139,8 @@ export const HealthScoreGauge: React.FC<HealthScoreGaugeProps> = ({
   const circumference = 2 * Math.PI * radius;
   const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
   const strokeDashoffset = circumference - (clampedScore / 100) * circumference;
+  // NO_DATA carries a placeholder score of 0; showing it would read as a failed device.
+  const noData = state === "NO_DATA";
 
   return (
     <div className={`flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-2xl border bg-white shadow-sm transition-all duration-200 ${className}`}>
@@ -162,27 +164,31 @@ export const HealthScoreGauge: React.FC<HealthScoreGaugeProps> = ({
               fill="transparent"
             />
             {/* Value Progress Arc */}
-            <circle
-              cx={dim / 2}
-              cy={dim / 2}
-              r={radius}
-              stroke={`url(#gauge-grad-${state})`}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              fill="transparent"
-              className="transition-all duration-1000 ease-out"
-            />
+            {!noData && (
+              <circle
+                cx={dim / 2}
+                cy={dim / 2}
+                r={radius}
+                stroke={`url(#gauge-grad-${state})`}
+                strokeWidth={strokeWidth}
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                fill="transparent"
+                className="transition-all duration-1000 ease-out"
+              />
+            )}
           </svg>
           {/* Inner Score Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none">
             <span className={`font-bold tracking-tight ${size === "lg" ? "text-4xl" : size === "md" ? "text-2xl" : "text-lg"} ${cfg.textColor}`}>
-              {clampedScore}
+              {noData ? "—" : clampedScore}
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              / 100
-            </span>
+            {!noData && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                / 100
+              </span>
+            )}
           </div>
         </div>
 

@@ -31,6 +31,10 @@ export interface ScenarioDefinition {
   supports?: (m: SimMetric) => boolean;
 }
 
+/** Metrics without a data_type are treated as numeric, like the engine's feature extraction. */
+export const isNumericMetric = (metric: MetricDefinition): boolean =>
+  !metric.data_type || ["float", "int", "integer"].includes(metric.data_type);
+
 export const SCENARIOS: ScenarioDefinition[] = [
   { id: "nominal", label: "Nominal", description: "Every metric oscillates inside its expected range.", target: "none" },
   {
@@ -38,23 +42,30 @@ export const SCENARIOS: ScenarioDefinition[] = [
     label: "Below minimum",
     description: "The metric drops below expected_min for the second half of the window.",
     target: "metric",
-    supports: (m) => m.metric.expected_min !== null && m.metric.expected_min !== undefined,
+    supports: (m) => isNumericMetric(m.metric) && m.metric.expected_min !== null && m.metric.expected_min !== undefined,
   },
   {
     id: "above_max",
     label: "Above maximum",
     description: "The metric rises above expected_max for the second half of the window.",
     target: "metric",
-    supports: (m) => m.metric.expected_max !== null && m.metric.expected_max !== undefined,
+    supports: (m) => isNumericMetric(m.metric) && m.metric.expected_max !== null && m.metric.expected_max !== undefined,
   },
   {
     id: "rate_spike",
     label: "Rate spike",
     description: "The metric ramps at 3× max_rate_of_change for an hour, then back.",
     target: "metric",
-    supports: (m) => typeof m.metric.max_rate_of_change === "number" && m.metric.max_rate_of_change > 0,
+    supports: (m) =>
+      isNumericMetric(m.metric) && typeof m.metric.max_rate_of_change === "number" && m.metric.max_rate_of_change > 0,
   },
-  { id: "stuck", label: "Stuck value", description: "The metric reports the same value for the whole window.", target: "metric" },
+  {
+    id: "stuck",
+    label: "Stuck value",
+    description: "The metric reports the same value for the whole window.",
+    target: "metric",
+    supports: (m) => isNumericMetric(m.metric),
+  },
   { id: "missing", label: "Missing metric", description: "The metric is absent from every record.", target: "metric" },
   {
     id: "sensor_disagreement",
@@ -181,6 +192,13 @@ export function generateScenarioTelemetry(options: {
     metrics.forEach((m, seed) => {
       const isTarget = m.ref === target;
       if (scenario === "missing" && isTarget) return;
+
+      // Keep the declared type for non-numeric telemetry; numeric faults never target these.
+      if (!isNumericMetric(m.metric)) {
+        const dataType = m.metric.data_type;
+        record[m.field] = dataType === "bool" || dataType === "boolean" ? i % 2 === 0 : "ok";
+        return;
+      }
 
       const { mid, span } = envelopeFor(m.metric);
       const maxRate = m.metric.max_rate_of_change;

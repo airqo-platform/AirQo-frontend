@@ -15,6 +15,7 @@ import {
   SCENARIOS,
   ScenarioId,
   generateScenarioTelemetry,
+  isNumericMetric,
   listSimMetrics,
   parseRedundantPair,
 } from "@/components/diagnostics/simulatorScenarios";
@@ -97,6 +98,9 @@ function DiagnosticSimulatorContent() {
 
   // Full profile (components and metrics) plus what the engine can evaluate on it
   useEffect(() => {
+    // Output from a previous profile would be shown against the new one
+    setEvalError(null);
+    setResult(null);
     if (!profileId) {
       setProfile(null);
       setReadiness(null);
@@ -135,8 +139,9 @@ function DiagnosticSimulatorContent() {
         .map((m) => ({ value: m.ref, label: m.metric.unit ? `${m.ref} (${m.metric.unit})` : m.ref }));
     }
     if (scenarioDef.target === "pair") {
+      const numericRefs = new Set(simMetrics.filter((m) => isNumericMetric(m.metric)).map((m) => m.ref));
       return (readiness?.redundant_pairs || [])
-        .filter((p) => parseRedundantPair(p))
+        .filter((p) => parseRedundantPair(p)?.every((ref) => numericRefs.has(ref)))
         .map((p) => ({ value: p, label: p }));
     }
     return [];
