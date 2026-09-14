@@ -1,14 +1,20 @@
 import { config } from "@/lib/config";
 import { fetchWithAuth } from "@/lib/api-client";
 import {
+  DailyDiagnosticsRunRequest,
+  DailyDiagnosticsRunResponse,
+  DeviceDailyDiagnostic,
+  DeviceDailyDiagnosticSummary,
   DeviceHealthSnapshot,
+  DeviceIssueSummary,
   DiagnosticEvaluationResult,
   DiagnosticFeedbackCreate,
   DiagnosticTemplate,
   DeviceProfile,
-  FleetTriageDeviceItem,
-  FleetTriageSummary,
-  LifecycleState,
+  FleetDailySummary,
+  FleetIssue,
+  FleetIssueFilters,
+  ProfileDiagnosticReadiness,
 } from "@/types/diagnostics";
 
 const getBaseUrl = () => {
@@ -31,13 +37,83 @@ const getAuthHeaders = (): HeadersInit => {
   return headers;
 };
 
-// Helper to calculate lifecycle state from health score if not provided
-export const calculateLifecycleState = (healthScore: number, topConfidence: number = 0): LifecycleState => {
-  if (healthScore < 20) return "FAILED";
-  if (healthScore < 50 || topConfidence >= 85) return "LIKELY_FAILURE";
-  if (healthScore < 70 || topConfidence >= 70) return "SUSPICIOUS";
-  if (healthScore < 85) return "DEGRADING";
-  return "HEALTHY";
+/**
+ * Error raised for non-2xx diagnostics responses. When the backend rejects an
+ * evaluation because the device profile cannot drive a diagnostic analysis (422),
+ * `errors` and `warnings` list what the profile is missing.
+ */
+export class DiagnosticsApiError extends Error {
+  status: number;
+  errors: string[];
+  warnings: string[];
+
+  constructor(message: string, status: number, errors: string[] = [], warnings: string[] = []) {
+    super(message);
+    this.name = "DiagnosticsApiError";
+    this.status = status;
+    this.errors = errors;
+    this.warnings = warnings;
+  }
+
+  /** True when the device has no usable profile (evaluate endpoints return 422 with profile errors). */
+  get isProfileNotDiagnosable(): boolean {
+    return this.status === 422 && this.errors.length > 0;
+  }
+}
+
+const toStringList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+
+const raiseForStatus = async (res: Response, context: string): Promise<void> => {
+  if (res.ok) return;
+
+  const text = await res.text().catch(() => "");
+  let detail: unknown = undefined;
+  try {
+    detail = text ? JSON.parse(text)?.detail : undefined;
+  } catch {
+    detail = undefined;
+  }
+
+  // {"detail": {"message", "errors", "warnings"}} — profile cannot be diagnosed
+  if (detail && typeof detail === "object" && !Array.isArray(detail)) {
+    const d = detail as Record<string, unknown>;
+    const errors = toStringList(d.errors);
+    const message = typeof d.message === "string" ? d.message : `${context} (${res.status})`;
+    throw new DiagnosticsApiError(message, res.status, errors, toStringList(d.warnings));
+  }
+
+  // {"detail": "..."} — HTTPException with a plain message
+  if (typeof detail === "string") {
+    throw new DiagnosticsApiError(`${context}: ${detail}`, res.status);
+  }
+
+  // {"detail": [{"loc", "msg"}]} — request validation error
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item: any) => (item?.msg ? `${(item.loc || []).slice(1).join(".") || "request"}: ${item.msg}` : null))
+      .filter((m): m is string => Boolean(m));
+    throw new DiagnosticsApiError(`${context}: ${messages.join("; ") || res.statusText}`, res.status);
+  }
+
+  throw new DiagnosticsApiError(
+    `${context} (${res.status}: ${res.statusText || text || "Unknown Error"})`,
+    res.status
+  );
+};
+
+const buildQuery = (params: Record<string, string | number | boolean | string[] | undefined | null>): string => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => query.append(key, v));
+    } else {
+      query.set(key, String(value));
+    }
+  });
+  const qs = query.toString();
+  return qs ? `?${qs}` : "";
 };
 
 // ==========================================
@@ -46,10 +122,10 @@ export const calculateLifecycleState = (healthScore: number, topConfidence: numb
 
 export const diagnosticsService = {
   /**
-   * Fetch Latest Device Health & Diagnoses
+   * Fetch Latest Device Health & Diagnoses (null when the device has never been evaluated)
    * GET /api/v1/diagnostics/devices/{device_id}/health
    */
-  async getDeviceHealth(deviceId: string): Promise<DeviceHealthSnapshot> {
+  async getDeviceHealth(deviceId: string): Promise<DeviceHealthSnapshot | null> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
       `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health`,
@@ -57,14 +133,7 @@ export const diagnosticsService = {
         headers: getAuthHeaders(),
       }
     );
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch health for device ${deviceId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to fetch health for device ${deviceId}`);
     return await res.json();
   },
 
@@ -80,14 +149,7 @@ export const diagnosticsService = {
         headers: getAuthHeaders(),
       }
     );
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch health history for device ${deviceId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to fetch health history for device ${deviceId}`);
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   },
@@ -95,10 +157,11 @@ export const diagnosticsService = {
   /**
    * Run Live On-Demand Device Evaluation
    * POST /api/v1/diagnostics/evaluate/{device_id}?save_snapshot=true
+   * Throws DiagnosticsApiError (422, isProfileNotDiagnosable) when the device has no usable profile.
    */
   async evaluateDevice(
     deviceId: string,
-    payload?: { context?: Record<string, any>; window_hours?: number }
+    payload?: { context?: Record<string, any>; window_hours?: number; profile_id?: string }
   ): Promise<DiagnosticEvaluationResult> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
@@ -109,20 +172,14 @@ export const diagnosticsService = {
         body: JSON.stringify(payload || { window_hours: 24 }),
       }
     );
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Evaluation failed for device ${deviceId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Evaluation failed for device ${deviceId}`);
     return await res.json();
   },
 
   /**
    * Ad-Hoc Payload Evaluation (Simulator / Bench Tester)
    * POST /api/v1/diagnostics/evaluate-payload
+   * context accepts `expected_interval_seconds` and `policy` overrides.
    */
   async evaluatePayload(payload: {
     device_id: string;
@@ -137,14 +194,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Ad-hoc evaluation failed (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Ad-hoc evaluation failed");
     return await res.json();
   },
 
@@ -159,14 +209,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(feedback),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Feedback submission failed (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Feedback submission failed");
     const data = await res.json();
     return { success: true, data };
   },
@@ -177,25 +220,15 @@ export const diagnosticsService = {
    */
   async getProfiles(filters?: { skip?: number; limit?: number; category?: string }): Promise<DeviceProfile[]> {
     const baseUrl = getBaseUrl();
-    const query = new URLSearchParams();
-    if (filters?.skip !== undefined) query.set("skip", String(filters.skip));
-    if (filters?.limit !== undefined) query.set("limit", String(filters.limit));
-    if (filters?.category && filters.category !== "all") query.set("category", filters.category);
-
-    const qs = query.toString();
-    const url = `${baseUrl}/api/v1/diagnostics/profiles${qs ? `?${qs}` : ""}`;
-
-    const res = await fetchWithAuth(url, {
+    const qs = buildQuery({
+      skip: filters?.skip,
+      limit: filters?.limit,
+      category: filters?.category && filters.category !== "all" ? filters.category : undefined,
+    });
+    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles${qs}`, {
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch device profiles (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Failed to fetch device profiles");
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   },
@@ -212,14 +245,23 @@ export const diagnosticsService = {
         headers: getAuthHeaders(),
       }
     );
+    await raiseForStatus(res, `Failed to fetch device profile ${profileId}`);
+    return await res.json();
+  },
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch device profile ${profileId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+  /**
+   * What the diagnostic engine is missing to analyse devices on this profile
+   * GET /api/v1/diagnostics/profiles/{profile_id}/diagnostic-readiness
+   */
+  async getProfileReadiness(profileId: string): Promise<ProfileDiagnosticReadiness> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(profileId)}/diagnostic-readiness`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+    await raiseForStatus(res, `Failed to fetch diagnostic readiness for profile ${profileId}`);
     return await res.json();
   },
 
@@ -234,14 +276,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(profile),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to create device profile (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Failed to create device profile");
     return await res.json();
   },
 
@@ -264,14 +299,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to update profile ${id} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to update profile ${id}`);
     return await res.json();
   },
 
@@ -285,14 +313,7 @@ export const diagnosticsService = {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to delete profile ${id} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to delete profile ${id}`);
     return { success: true };
   },
 
@@ -302,24 +323,11 @@ export const diagnosticsService = {
    */
   async getTemplates(params?: { skip?: number; limit?: number }): Promise<DiagnosticTemplate[]> {
     const baseUrl = getBaseUrl();
-    const query = new URLSearchParams();
-    if (params?.skip !== undefined) query.set("skip", String(params.skip));
-    if (params?.limit !== undefined) query.set("limit", String(params.limit));
-
-    const qs = query.toString();
-    const url = `${baseUrl}/api/v1/diagnostics/templates${qs ? `?${qs}` : ""}`;
-
-    const res = await fetchWithAuth(url, {
+    const qs = buildQuery({ skip: params?.skip, limit: params?.limit });
+    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates${qs}`, {
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch diagnostic templates (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Failed to fetch diagnostic templates");
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   },
@@ -333,14 +341,7 @@ export const diagnosticsService = {
     const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates/${encodeURIComponent(templateId)}`, {
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch diagnostic template ${templateId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to fetch diagnostic template ${templateId}`);
     return await res.json();
   },
 
@@ -360,14 +361,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to create diagnostic template (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Failed to create diagnostic template");
     return await res.json();
   },
 
@@ -387,14 +381,7 @@ export const diagnosticsService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to update diagnostic template ${templateId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to update diagnostic template ${templateId}`);
     return await res.json();
   },
 
@@ -408,14 +395,7 @@ export const diagnosticsService = {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to delete diagnostic template ${templateId} (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, `Failed to delete diagnostic template ${templateId}`);
     return { success: true };
   },
 
@@ -429,46 +409,106 @@ export const diagnosticsService = {
       method: "POST",
       headers: getAuthHeaders(),
     });
+    await raiseForStatus(res, "Seed defaults failed");
+    return await res.json();
+  },
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Seed defaults failed (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
+  // ── Daily Diagnostics ───────────────────────────────────────────────────────
 
+  /**
+   * Day-by-day diagnosis history for a device (newest first)
+   * GET /api/v1/diagnostics/devices/{device_id}/daily
+   */
+  async getDeviceDailyDiagnostics(
+    deviceId: string,
+    filters?: { start_date?: string; end_date?: string; lifecycle_state?: string; limit?: number }
+  ): Promise<DeviceDailyDiagnosticSummary[]> {
+    const baseUrl = getBaseUrl();
+    const qs = buildQuery({ ...filters });
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/daily${qs}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch daily diagnostics for device ${deviceId}`);
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * Full diagnosis for one device-day (evidence, causes, issues, metric summary)
+   * GET /api/v1/diagnostics/devices/{device_id}/daily/{diagnosis_date}
+   */
+  async getDeviceDailyDiagnostic(deviceId: string, diagnosisDate: string): Promise<DeviceDailyDiagnostic> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/daily/${encodeURIComponent(diagnosisDate)}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch diagnosis for ${deviceId} on ${diagnosisDate}`);
     return await res.json();
   },
 
   /**
-   * Fleet-Wide Triage Data
-   * GET /api/v1/diagnostics/fleet-triage
+   * Recurring / active issues and daily health trend for a device
+   * GET /api/v1/diagnostics/devices/{device_id}/issues?days=30
    */
-  async getFleetTriage(filters?: {
-    category?: string;
-    lifecycle_state?: string;
-    search?: string;
-  }): Promise<{ summary: FleetTriageSummary; devices: FleetTriageDeviceItem[] }> {
+  async getDeviceIssueSummary(deviceId: string, days: number = 30): Promise<DeviceIssueSummary> {
     const baseUrl = getBaseUrl();
-    const query = new URLSearchParams();
-    if (filters?.category && filters.category !== "all") query.set("category", filters.category);
-    if (filters?.lifecycle_state && filters.lifecycle_state !== "all") query.set("state", filters.lifecycle_state);
-    if (filters?.search) query.set("search", filters.search);
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/issues${buildQuery({ days })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch issue summary for device ${deviceId}`);
+    return await res.json();
+  },
 
-    const qs = query.toString();
-    const url = `${baseUrl}/api/v1/diagnostics/fleet-triage${qs ? `?${qs}` : ""}`;
+  /**
+   * Fleet health for one day (defaults to the latest diagnosed day)
+   * GET /api/v1/diagnostics/fleet/daily-summary
+   */
+  async getFleetDailySummary(params?: { diagnosis_date?: string; top_n?: number }): Promise<FleetDailySummary> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/fleet/daily-summary${buildQuery({ ...params })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, "Failed to fetch fleet daily summary");
+    return await res.json();
+  },
 
-    const res = await fetchWithAuth(url, {
+  /**
+   * Search detected issues across the fleet
+   * GET /api/v1/diagnostics/fleet/issues
+   */
+  async getFleetIssues(filters?: FleetIssueFilters): Promise<FleetIssue[]> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/fleet/issues${buildQuery({ ...filters })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, "Failed to fetch fleet issues");
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * Run or backfill daily diagnostics in the background (only days with raw data, max 14 days back)
+   * POST /api/v1/diagnostics/daily/run
+   */
+  async triggerDailyRun(request: DailyDiagnosticsRunRequest = {}): Promise<DailyDiagnosticsRunResponse> {
+    const baseUrl = getBaseUrl();
+    const qs = buildQuery({
+      start_date: request.start_date,
+      end_date: request.end_date,
+      device_id: request.device_ids && request.device_ids.length > 0 ? request.device_ids : undefined,
+      force: request.force || undefined,
+      lookback_days: request.lookback_days,
+    });
+    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/daily/run${qs}`, {
+      method: "POST",
       headers: getAuthHeaders(),
     });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(
-        `Failed to fetch fleet triage (${res.status}: ${res.statusText || errorText || "Unknown Error"})`
-      );
-    }
-
+    await raiseForStatus(res, "Failed to start daily diagnostics");
     return await res.json();
   },
 };

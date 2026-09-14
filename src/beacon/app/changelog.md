@@ -2,6 +2,80 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Beacon frontend.
 
+## Version 2.2.0
+**Released:** September 13, 2026
+
+### Feature: Daily Device Diagnostics, Fleet Health & Profile-Driven Diagnostics
+
+Aligned the diagnostics UI with the profile-driven diagnostic engine and daily diagnostics in Beacon API 2.3.0. Everything device-specific now comes from the device profile, and every device is diagnosed once per completed UTC day.
+
+<details>
+<summary><strong>Fleet Health (replaces the Fleet Triage Board)</strong></summary>
+
+- **Rebuilt `app/dashboard/diagnostics/page.tsx`** on `GET /diagnostics/fleet/daily-summary` and `GET /diagnostics/fleet/issues` (the old `/fleet-triage` endpoint does not exist):
+  - Day picker (defaults to the latest diagnosed day), devices diagnosed / with issues, average score, new and resolved issue counts.
+  - Lifecycle state counts (including `NO_DATA`) and devices by highest issue severity.
+  - Most common issues chart split into new vs. persisting devices; clicking an issue lists its devices.
+  - Devices needing attention (lowest scores) and a paginated issue search by device, issue code, severity, check type, component type, component name, minimum streak and "new only".
+  - "Run Daily Diagnostics" dialog (`DailyRunDialog.tsx`) for `POST /diagnostics/daily/run`: recent days or a date range (last 14 days of raw data), optional device IDs and re-evaluation.
+
+</details>
+
+<details>
+<summary><strong>Device Diagnostics</strong></summary>
+
+- **New `components/diagnostics/DeviceDiagnosticsPanel.tsx`**, shared by the device diagnostics page and the device Diagnostics tab:
+  - Daily health trend (`DailyHealthTrendChart.tsx`) with optional per-component score lines; click a day to open its full diagnosis.
+  - Issue history over 7–90 days (`DeviceIssueHistory.tsx`) with active streaks, resolved issues and first/last seen dates.
+  - Day detail dialog (`DailyDiagnosisDetailDialog.tsx`): data coverage, issues with streaks, resolved issues, component scores, evidence, ranked causes and per-metric min/mean/max.
+  - Latest on-demand evaluation with the profile used, data completeness and profile warnings (`EvaluationQualityNotice.tsx`).
+  - When the device has no usable profile, the evaluation's `422` errors and warnings are shown with a link to the profiles (`ProfileNotDiagnosableNotice.tsx`).
+- Technician feedback now references the saved snapshot id instead of a client-generated one.
+- Removed `TelemetryDiagnosticChart.tsx`, which relied on hardcoded battery/solar/PM keys and subsystem names.
+
+</details>
+
+<details>
+<summary><strong>Diagnostic Simulator</strong></summary>
+
+- **Rewrote `app/dashboard/diagnostics/simulator/page.tsx`**: presets pointed at profile IDs that do not exist and are gone. Telemetry is now generated from the selected profile's own metric limits and reporting interval (`simulatorScenarios.ts`), using its telemetry slots as field names.
+- Fault scenarios map to the engine's checks: below minimum, above maximum, rate spike, stuck value, missing metric, sensor disagreement and data gaps.
+- Shows whether the selected profile is diagnosable before running.
+
+</details>
+
+<details>
+<summary><strong>Device Profiles: Diagnostic Readiness</strong></summary>
+
+- **Added a "Diagnostics" tab** to `app/dashboard/settings/device-profiles/[id]/page.tsx` backed by `GET /diagnostics/profiles/{id}/diagnostic-readiness` (`ProfileReadinessPanel.tsx`): blocking errors, skipped-check warnings, evaluated metrics, data delivery components, dependency graph, sensor agreement pairs and the effective policy with `meta_data.diagnostics` overrides.
+- Header badge shows "Diagnostics Ready" / "Not Diagnosable"; readiness is rechecked after every profile edit.
+- Object values in profile meta tags are shown as JSON instead of `[object Object]`.
+
+</details>
+
+<details>
+<summary><strong>Services, Types & Shared Components</strong></summary>
+
+- **`services/diagnosticsService.ts`**: added `getProfileReadiness`, `getDeviceDailyDiagnostics`, `getDeviceDailyDiagnostic`, `getDeviceIssueSummary`, `getFleetDailySummary`, `getFleetIssues` and `triggerDailyRun`; removed `getFleetTriage` and the client-side `calculateLifecycleState`. Errors are raised as `DiagnosticsApiError` with parsed `detail` messages, `errors` and `warnings`.
+- **`types/diagnostics.ts`**: `NO_DATA` lifecycle state, check types and severities; evidence (`check`, `component_type`, `metric`, `title`, `severity`, `related_components`), diagnosis (`component_name`, `affected_components`) and evaluation (`profile_name`, `data_completeness`, `profile_warnings`) fields; daily diagnosis, issue, fleet summary and readiness types.
+- **`DiagnosticBadges.tsx`**: shared severity, lifecycle and streak badges plus date/value formatting.
+- `EvidenceFactBadge`, `DiagnosisCard`, `SubsystemScoreCard` and `HealthScoreGauge` show the new fields (component-keyed scores, affected components, contributions as percentages, `NO_DATA`).
+
+</details>
+
+**Files changed:**
+- `app/dashboard/diagnostics/page.tsx` — Fleet Health
+- `app/dashboard/diagnostics/simulator/page.tsx` — Profile-driven simulator
+- `app/dashboard/devices/[id]/diagnostics/page.tsx`, `app/dashboard/devices/[id]/diagnostics-tab.tsx` — Use `DeviceDiagnosticsPanel`
+- `app/dashboard/settings/device-profiles/[id]/page.tsx` — Diagnostic readiness tab
+- `components/diagnostics/DeviceDiagnosticsPanel.tsx`, `DailyHealthTrendChart.tsx`, `DeviceIssueHistory.tsx`, `DailyDiagnosisDetailDialog.tsx`, `DailyRunDialog.tsx`, `ProfileReadinessPanel.tsx`, `EvaluationQualityNotice.tsx`, `ProfileNotDiagnosableNotice.tsx`, `DiagnosticBadges.tsx`, `simulatorScenarios.ts` [NEW]
+- `components/diagnostics/EvidenceFactBadge.tsx`, `DiagnosisCard.tsx`, `SubsystemScoreCard.tsx`, `HealthScoreGauge.tsx` — New engine fields
+- `components/diagnostics/TelemetryDiagnosticChart.tsx` [REMOVED]
+- `components/dashboard/global-admin-sidebar.tsx` — "Fleet Health" menu entry
+- `services/diagnosticsService.ts`, `types/diagnostics.ts` — New endpoints and types
+
+---
+
 ## Version 2.1.1
 **Released:** September 6, 2026
 

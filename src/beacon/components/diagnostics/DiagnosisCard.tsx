@@ -16,7 +16,9 @@ import {
   TrendingUp,
   TrendingDown,
   Info,
+  GitBranch,
 } from "lucide-react";
+import { SeverityBadge } from "@/components/diagnostics/DiagnosticBadges";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
@@ -44,6 +46,12 @@ const getCategoryBadgeColor = (category?: string) => {
     default:
       return "bg-gray-50 text-gray-700 border-gray-200";
   }
+};
+
+// Profile-driven causes report contributions as a 0..1 share of the confidence.
+const formatContribution = (contribution: number) => {
+  const value = Math.abs(contribution);
+  return value <= 1 ? `${(value * 100).toFixed(0)}%` : value.toFixed(1);
 };
 
 const getConfidenceColor = (confidence: number) => {
@@ -93,7 +101,7 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
             Ranked Root Causes & Prescriptions
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            Probabilistic diagnostic inference ordered by confidence with explainable evidential weighting
+            Faulty components ordered by confidence. An upstream fault is reported as the root cause of its dependents&apos; issues.
           </p>
         </div>
         <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
@@ -142,23 +150,22 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
                           {diag.category.replace(/_/g, " ")}
                         </span>
                       )}
-                      {diag.severity && (
-                        <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                            diag.severity === "CRITICAL"
-                              ? "bg-red-100 text-red-800 border-red-300"
-                              : diag.severity === "HIGH"
-                              ? "bg-rose-50 text-rose-700 border-rose-200"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
-                          }`}
-                        >
-                          {diag.severity}
-                        </span>
-                      )}
+                      <SeverityBadge severity={diag.severity} />
                     </div>
                     <p className="text-xs text-gray-500 font-mono mt-1">
                       Code: {diag.cause_code}
                     </p>
+                    {diag.affected_components && diag.affected_components.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 mt-1.5 text-[11px] text-gray-500">
+                        <GitBranch className="w-3 h-3 text-purple-500" />
+                        Likely explains issues on
+                        {diag.affected_components.map((name) => (
+                          <span key={name} className="px-1.5 py-0.5 rounded bg-purple-50 border border-purple-200 font-mono text-[10px] text-purple-800">
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -282,7 +289,7 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
                               </span>
                               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 shrink-0">
                                 <TrendingUp className="w-3 h-3 text-emerald-600" />
-                                +{Math.abs(item.contribution).toFixed(1)}
+                                +{formatContribution(item.contribution)}
                               </span>
                             </li>
                           ))}
@@ -318,7 +325,7 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
                               </span>
                               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-100 text-rose-800 shrink-0">
                                 <TrendingDown className="w-3 h-3 text-rose-600" />
-                                -{Math.abs(item.contribution).toFixed(1)}
+                                -{formatContribution(item.contribution)}
                               </span>
                             </li>
                           ))}

@@ -57,9 +57,9 @@ const AIRQO_ADMIN_NAV_ITEMS: AdminNavItem[] = [
     subroutes: [
       {
         id: "admin-diagnostics-triage",
-        label: "Fleet Triage Board",
+        label: "Fleet Health",
         href: "/dashboard/diagnostics",
-        description: "Real-time health triage & root-cause intelligence",
+        description: "Daily fleet health, recurring issues & devices needing attention",
       },
       {
         id: "admin-diagnostics-simulator",

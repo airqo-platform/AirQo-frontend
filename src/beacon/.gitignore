@@ -12,6 +12,7 @@
 # production
 /build
 /dist
+ISSUES.md
 
 # debug
 npm-debug.log*
