@@ -53,6 +53,14 @@ export function getClaimErrorMessage(error: unknown): string {
   const status = (error as { response?: { status?: number } })?.response?.status;
   const message = getApiErrorMessage(error);
 
+  // The same status codes also carry failures that are not about the device
+  // or its token: a 404 when the target cohort is missing, and a 409 when the
+  // device's status changed mid-claim. Their backend copy is already
+  // actionable, so keep it rather than mislabelling them.
+  if (/specified cohort/i.test(message) || /changed during the operation/i.test(message)) {
+    return message;
+  }
+
   switch (status) {
     case 404:
       return DEVICE_NOT_FOUND_MESSAGE;

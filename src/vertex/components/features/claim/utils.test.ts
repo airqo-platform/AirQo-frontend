@@ -66,6 +66,20 @@ describe("getClaimErrorMessage", () => {
     );
   });
 
+  it("does not relabel a missing cohort 404 as a missing device", () => {
+    expect(
+      getClaimErrorMessage(axiosError(404, "The specified cohort does not exist"))
+    ).toBe("The specified cohort does not exist");
+  });
+
+  it("does not relabel a mid-claim status race 409 as already claimed", () => {
+    expect(
+      getClaimErrorMessage(
+        axiosError(409, "Device status may have changed during the operation. Please try again.")
+      )
+    ).toBe("Device status may have changed during the operation. Please try again.");
+  });
+
   it("passes unrecognised backend messages through untouched", () => {
     expect(getClaimErrorMessage(axios400("user_id must be a valid MongoDB ObjectId"))).toBe(
       "user_id must be a valid MongoDB ObjectId"
