@@ -26,11 +26,13 @@ import type {
   CohortResponse,
 } from '../types/api';
 import { normalizeCohortIds } from '../utils/cohortUtils';
+import { swrRetryPolicy } from '../lib/retryPolicy';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
-  shouldRetryOnError: false,
+  ...swrRetryPolicy,
+  errorRetryCount: 1,
   // The auth tree mounts more than once per page load; a remount must reuse
   // the cached response instead of re-firing the request. Freshness is
   // handled by key changes (group switch), explicit mutations and the
@@ -63,11 +65,16 @@ const useAbortableFetcher = <T>(
   // and shares one in-flight request between them — a StrictMode remount
   // subscribes to the SAME in-flight request, and aborting it on unmount
   // leaves the remount with a "canceled" error that nothing re-triggers
-  // (shouldRetryOnError: false). The request is still aborted when a NEW
-  // fetch supersedes it (revalidation / key change), and the AbortSignal
+  // (shouldRetryOnError only retries 429). The request is still aborted when
+  // a NEW fetch supersedes it (revalidation / key change), and the AbortSignal
   // keeps working for per-request cancellation.
 
-  return useCallback(async () => {
+  const cancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
+
+  const wrappedFetcher = useCallback(async () => {
     // Abort the previous in-flight request when a new fetch supersedes it.
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -81,6 +88,8 @@ const useAbortableFetcher = <T>(
       }
     }
   }, [fetcher]);
+
+  return { fetcher: wrappedFetcher, cancel };
 };
 
 export interface ActiveGroupCohortsState {
@@ -108,7 +117,17 @@ const useCohortSitesQuery = (
       deviceService.getCohortSites({ cohort_ids: cohortIds }, params, signal),
     [cohortIds, params]
   );
-  const fetchCohortSites = useAbortableFetcher(cohortSitesFetcher);
+  const { fetcher: fetchCohortSites, cancel } =
+    useAbortableFetcher(cohortSitesFetcher);
+
+  // Abort any in-flight request when the query is paused via cohortsLoading
+  // becoming true. When cohortsLoading flips back to false the key goes from
+  // null → non-null so SWR fires a fresh request with a new AbortController.
+  useEffect(() => {
+    if (cohortsLoading) {
+      cancel();
+    }
+  }, [cohortsLoading, cancel]);
 
   const result = useSWR<CohortSitesResponse>(key, fetchCohortSites, {
     ...SWR_STABLE_REQUEST_OPTIONS,
@@ -145,7 +164,17 @@ const useCohortDevicesQuery = (
       deviceService.getCohortDevices({ cohort_ids: cohortIds }, params, signal),
     [cohortIds, params]
   );
-  const fetchCohortDevices = useAbortableFetcher(cohortDevicesFetcher);
+  const { fetcher: fetchCohortDevices, cancel } =
+    useAbortableFetcher(cohortDevicesFetcher);
+
+  // Abort any in-flight request when the query is paused via cohortsLoading
+  // becoming true. When cohortsLoading flips back to false the key goes from
+  // null → non-null so SWR fires a fresh request with a new AbortController.
+  useEffect(() => {
+    if (cohortsLoading) {
+      cancel();
+    }
+  }, [cohortsLoading, cancel]);
 
   const result = useSWR<CohortDevicesResponse>(key, fetchCohortDevices, {
     ...SWR_STABLE_REQUEST_OPTIONS,
@@ -168,7 +197,7 @@ export const useSitesSummary = (
   enabled = true
 ) => {
   const key = enabled ? ['sites/summary', params] : null;
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) =>
         deviceService.getSitesSummaryAuthenticated(params, signal),
@@ -185,7 +214,7 @@ export const useSitesSummaryWithToken = (
   enabled = true
 ) => {
   const key = enabled ? ['sites/summary/token', params] : null;
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) =>
         deviceService.getSitesSummaryWithToken(params, signal),
@@ -203,7 +232,7 @@ export const useGridsSummary = (
   enabled = true
 ) => {
   const key = enabled ? ['grids/summary', params, cohort_id] : null;
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) =>
         deviceService.getGridsSummaryAuthenticated(params, cohort_id, signal),
@@ -221,7 +250,7 @@ export const useGridsSummaryWithToken = (
   enabled = true
 ) => {
   const key = enabled ? ['grids/summary/token', params, cohort_id] : null;
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) =>
         deviceService.getGridsSummaryWithToken(params, cohort_id, signal),
@@ -243,7 +272,7 @@ export const useCohortSites = (
       deviceService.getCohortSites({ cohort_ids: cohortIds }, params, signal),
     [cohortIds, params]
   );
-  const fetchCohortSites = useAbortableFetcher(cohortSitesFetcher);
+  const { fetcher: fetchCohortSites } = useAbortableFetcher(cohortSitesFetcher);
 
   const result = useSWR<CohortSitesResponse>(
     enabled && cohortIds.length > 0
@@ -294,7 +323,8 @@ export const useCohortDevices = (
       deviceService.getCohortDevices({ cohort_ids: cohortIds }, params, signal),
     [cohortIds, params]
   );
-  const fetchCohortDevices = useAbortableFetcher(cohortDevicesFetcher);
+  const { fetcher: fetchCohortDevices } =
+    useAbortableFetcher(cohortDevicesFetcher);
 
   const result = useSWR<CohortDevicesResponse>(
     enabled && cohortIds.length > 0
@@ -318,7 +348,7 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
     () => (enabled && groupId ? ['group/cohorts', groupId] : null),
     [enabled, groupId]
   );
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) => deviceService.getGroupCohorts(groupId, signal),
       [groupId]
@@ -331,9 +361,10 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
     SWR_STABLE_REQUEST_OPTIONS
   );
 
-  // A canceled error can land on the key (e.g. a superseded fetch); nothing
-  // re-fires it (shouldRetryOnError: false), so re-trigger once when that
-  // happens — otherwise cohortIds stay empty and dependent lists hang.
+  // A canceled error can land on the key (e.g. a superseded fetch); SWR's
+  // shouldRetryOnError only retries 429 so nothing re-fires it — re-trigger
+  // once when that happens, otherwise cohortIds stay empty and dependent
+  // lists hang.
   const recoveredAbortRef = useRef(false);
   useEffect(() => {
     if (
@@ -353,7 +384,7 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
 // Cohort details hook
 export const useCohort = (cohortId: string, enabled = true) => {
   const key = enabled && cohortId ? ['cohort/details', cohortId] : null;
-  const fetcher = useAbortableFetcher(
+  const { fetcher } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) => deviceService.getCohort(cohortId, signal),
       [cohortId]
@@ -412,7 +443,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
     !!groupId && !!lastFetchedGroupId && lastFetchedGroupId !== groupId;
   const shouldFetch =
     enabled && ((!!groupId && !lastFetchedGroupId) || hasStaleCohortsForGroup);
-  const fetchGroupCohorts = useAbortableFetcher(
+  const { fetcher: fetchGroupCohorts } = useAbortableFetcher(
     useCallback(
       (signal: AbortSignal) => deviceService.getGroupCohorts(groupId!, signal),
       [groupId]
@@ -438,40 +469,43 @@ export const useActiveGroupCohorts = (enabled = true) => {
   }, [groupId, dispatch]);
 
   // Fetch cohorts for active group
-  const { data, error: swrError, isLoading: swrIsLoading } =
-    useSWR<GroupCohortsResponse>(
-      shouldFetch ? ['group/cohorts', groupId] : null,
-      fetchGroupCohorts,
-      {
-        ...SWR_STABLE_REQUEST_OPTIONS,
-        dedupingInterval: 30000, // Cache for 30 seconds
-        onSuccess: data => {
-          if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {
-            return;
-          }
+  const {
+    data,
+    error: swrError,
+    isLoading: swrIsLoading,
+  } = useSWR<GroupCohortsResponse>(
+    shouldFetch ? ['group/cohorts', groupId] : null,
+    fetchGroupCohorts,
+    {
+      ...SWR_STABLE_REQUEST_OPTIONS,
+      dedupingInterval: 30000, // Cache for 30 seconds
+      onSuccess: data => {
+        if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {
+          return;
+        }
 
-          if (data?.success) {
-            const normalizedCohortIds = normalizeCohortIds(data.data);
+        if (data?.success) {
+          const normalizedCohortIds = normalizeCohortIds(data.data);
 
-            dispatch(
-              setActiveGroupCohorts({
-                groupId,
-                cohortIds: normalizedCohortIds,
-              })
-            );
-            return;
-          }
+          dispatch(
+            setActiveGroupCohorts({
+              groupId,
+              cohortIds: normalizedCohortIds,
+            })
+          );
+          return;
+        }
 
-          dispatch(setCohortsError(data?.message || 'Failed to fetch cohorts'));
-        },
-        onError: err => {
-          if (!enabled || latestGroupIdRef.current !== groupId) {
-            return;
-          }
-          dispatch(setCohortsError(err.message || 'Failed to fetch cohorts'));
-        },
-      }
-    );
+        dispatch(setCohortsError(data?.message || 'Failed to fetch cohorts'));
+      },
+      onError: err => {
+        if (!enabled || latestGroupIdRef.current !== groupId) {
+          return;
+        }
+        dispatch(setCohortsError(err.message || 'Failed to fetch cohorts'));
+      },
+    }
+  );
 
   // With revalidateIfStale: false a remount serves the cached response
   // WITHOUT firing a fetch, so onSuccess never runs and the Redux store
@@ -507,9 +541,10 @@ export const useActiveGroupCohorts = (enabled = true) => {
   const resolvedError = enabled ? error || swrError : null;
 
   // A canceled error can land on the key while lastFetchedGroupId is still
-  // unset (e.g. StrictMode remount or a superseded fetch); nothing re-fires
-  // it (shouldRetryOnError: false), leaving cohortIds permanently empty and
-  // the sites table stuck on "Loading data...". Re-trigger once.
+  // unset (e.g. StrictMode remount or a superseded fetch); SWR's
+  // shouldRetryOnError only retries 429 so nothing re-fires it, leaving
+  // cohortIds permanently empty and the sites table stuck on "Loading data...".
+  // Re-trigger once.
   const recoveredAbortRef = useRef(false);
   useEffect(() => {
     if (

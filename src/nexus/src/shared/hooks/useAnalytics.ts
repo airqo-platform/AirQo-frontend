@@ -30,9 +30,9 @@ export const useDownloadData = () => {
     'analytics/data-download',
     async (
       key,
-      { arg }: { arg: DataDownloadRequest }
+      { arg }: { arg: { request: DataDownloadRequest; signal?: AbortSignal } }
     ): Promise<DataDownloadResponse | string> => {
-      return await analyticsService.downloadData(arg);
+      return await analyticsService.downloadData(arg.request, arg.signal);
     }
   );
 };
