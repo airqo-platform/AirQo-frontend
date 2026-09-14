@@ -28,46 +28,77 @@ jobs:
 
       - name: Start HAProxy staging VM and wait for running state
         run: |
-          echo "Starting ${{ env.STAGING_HAPROXY_VM }}..."
-          az vm start \
+          echo "Checking VM power state..."
+          POWER_STATE=$(az vm get-instance-view \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.STAGING_HAPROXY_VM }}
+            --name ${{ env.STAGING_HAPROXY_VM }} \
+            --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+            -o tsv)
 
-          echo "Polling for VM running state (max 5 minutes)..."
-          TIMEOUT=300
-          INTERVAL=15
-          ELAPSED=0
+          echo "Current VM power state: $POWER_STATE"
 
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            POWER_STATE=$(az vm get-instance-view \
+          if [ "$POWER_STATE" = "VM running" ]; then
+            echo "VM is already running — skipping start"
+          else
+            echo "Starting ${{ env.STAGING_HAPROXY_VM }}..."
+            az vm start \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --name ${{ env.STAGING_HAPROXY_VM }} \
-              --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
-              -o tsv)
+              --name ${{ env.STAGING_HAPROXY_VM }}
 
-            echo "Power state: $POWER_STATE (${ELAPSED}s elapsed)"
+            echo "Polling for VM running state (max 5 minutes)..."
+            TIMEOUT=300
+            INTERVAL=15
+            ELAPSED=0
 
-            if [ "$POWER_STATE" = "VM running" ]; then
-              echo "VM successfully started"
-              break
+            while [ $ELAPSED -lt $TIMEOUT ]; do
+              POWER_STATE=$(az vm get-instance-view \
+                --resource-group ${{ env.RESOURCE_GROUP }} \
+                --name ${{ env.STAGING_HAPROXY_VM }} \
+                --query "instanceView.statuses[?starts_with(code, 'PowerState')].displayStatus" \
+                -o tsv)
+
+              echo "Power state: $POWER_STATE (${ELAPSED}s elapsed)"
+
+              if [ "$POWER_STATE" = "VM running" ]; then
+                echo "VM successfully started"
+                break
+              fi
+
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+            done
+
+            if [ "$POWER_STATE" != "VM running" ]; then
+              echo "ERROR: VM did not reach running state within ${TIMEOUT}s. Last state: $POWER_STATE"
+              exit 1
             fi
-
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
-
-          if [ "$POWER_STATE" != "VM running" ]; then
-            echo "ERROR: VM did not reach running state within ${TIMEOUT}s. Last state: $POWER_STATE"
-            exit 1
           fi
 
       - name: Start AKS staging cluster
         run: |
-          echo "Starting AKS cluster..."
-          az aks start \
+          echo "Checking AKS cluster power state..."
+          POWER_STATE=$(az aks show \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.STAGING_CLUSTER_NAME }}
-          echo "AKS cluster started successfully"
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --query "powerState.code" -o tsv)
+
+          echo "Current power state: $POWER_STATE"
+
+          if [ "$POWER_STATE" = "Running" ]; then
+            echo "Cluster is already running — skipping start"
+          elif [ "$POWER_STATE" = "Starting" ]; then
+            echo "ERROR: Cluster is currently in Starting state — wait for it to stabilise before rerunning"
+            exit 1
+          elif [ "$POWER_STATE" = "Stopping" ]; then
+            echo "ERROR: Cluster is currently in Stopping state — wait for it to stabilise before rerunning"
+            exit 1
+          else
+            echo "Starting AKS cluster..."
+            az aks start \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.STAGING_CLUSTER_NAME }}
+            echo "AKS cluster started successfully"
+          fi
 
       - name: Get AKS credentials
         run: |

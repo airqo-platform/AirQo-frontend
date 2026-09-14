@@ -28,11 +28,29 @@ jobs:
 
       - name: Stop AKS staging cluster
         run: |
-          echo "Stopping AKS cluster — bypasses PDBs, preserves PVCs, drops compute cost to zero..."
-          az aks stop \
+          echo "Checking AKS cluster power state..."
+          POWER_STATE=$(az aks show \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --name ${{ env.STAGING_CLUSTER_NAME }}
-          echo "AKS cluster stopped successfully"
+            --name ${{ env.STAGING_CLUSTER_NAME }} \
+            --query "powerState.code" -o tsv)
+
+          echo "Current power state: $POWER_STATE"
+
+          if [ "$POWER_STATE" = "Stopped" ]; then
+            echo "Cluster is already stopped — skipping"
+          elif [ "$POWER_STATE" = "Stopping" ]; then
+            echo "ERROR: Cluster is currently in Stopping state — wait for it to stabilise before rerunning"
+            exit 1
+          elif [ "$POWER_STATE" = "Starting" ]; then
+            echo "ERROR: Cluster is currently in Starting state — wait for it to stabilise before rerunning"
+            exit 1
+          else
+            echo "Stopping AKS cluster — bypasses PDBs, preserves PVCs, drops compute cost to zero..."
+            az aks stop \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.STAGING_CLUSTER_NAME }}
+            echo "AKS cluster stopped successfully"
+          fi
 
       - name: Stop HAProxy staging VM and wait for deallocation
         run: |
