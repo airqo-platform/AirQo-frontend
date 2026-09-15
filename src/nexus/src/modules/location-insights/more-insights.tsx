@@ -49,6 +49,7 @@ import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
 import { toDateString } from '@/shared/services/analyticsService';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -181,8 +182,12 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
   // Fetch data when dependencies change and ignore stale responses when the
   // dialog closes or a different site/group context replaces the current one.
+  // Each effect run owns an AbortController whose signal is threaded through
+  // the mutation arg — cleanup aborts any in-flight request so it cannot
+  // resolve into state after unmount/re-run.
   useEffect(() => {
     let isActive = true;
+    const controller = new AbortController();
 
     if (
       !isOpen ||
@@ -193,6 +198,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       setChartData([]);
       return () => {
         isActive = false;
+        controller.abort();
       };
     }
 
@@ -208,6 +214,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           frequency: frequency,
           pollutant: normalizePollutant(pollutant),
           organisation_name: '',
+          signal: controller.signal,
         });
 
         if (!isActive) {
@@ -228,6 +235,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
         setChartData([]);
       } catch (error) {
+        // Cancelled requests must never surface as a user-facing failure
+        // (AGENTS.md abort lifecycle).
+        if (isAbortError(error) || controller.signal.aborted) {
+          return;
+        }
         if (!isActive) {
           return;
         }
@@ -245,6 +257,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
     return () => {
       isActive = false;
+      controller.abort();
     };
   }, [
     chartRequestType,

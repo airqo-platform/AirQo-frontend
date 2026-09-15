@@ -32,7 +32,7 @@ import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { enrichChartDataSiteIds } from '../utils/chartLabels';
 import { toBackendChartType, normalizePollutant } from '../utils/chartConfig';
-import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { CHART_LOAD_ERROR_MESSAGE } from '../constants';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -282,10 +282,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }
 
     if (chartsError && charts.length === 0) {
+      // Render a fixed, safe description — never echo unmatched backend text.
+      // The diagnostic is preserved (non-enumerable `cause`) for logging only.
       return (
         <ErrorState
           title="Unable to load chart configurations"
-          description={getUserFriendlyErrorMessage(chartsError)}
+          description={CHART_LOAD_ERROR_MESSAGE}
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       );

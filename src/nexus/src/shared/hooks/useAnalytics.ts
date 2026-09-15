@@ -7,7 +7,12 @@ import type {
   DataDownloadResponse,
 } from '../types/api';
 
-// Get chart data
+// Get chart data. The mutation arg carries the request plus an optional
+// AbortSignal so callers can cancel in-flight requests on unmount/re-run.
+// The signal is destructured out of the arg here — it must never be passed
+// to the service as part of the HTTP request body.
+type ChartDataMutationArg = AnalyticsChartRequest & { signal?: AbortSignal };
+
 export const useGetChartData = (keyParts?: unknown[]) => {
   const swrKey = Array.isArray(keyParts)
     ? ['analytics/chart-data', ...keyParts]
@@ -17,9 +22,10 @@ export const useGetChartData = (keyParts?: unknown[]) => {
     swrKey,
     async (
       key,
-      { arg, signal }: { arg: AnalyticsChartRequest; signal?: AbortSignal }
+      { arg }: { arg: ChartDataMutationArg }
     ): Promise<AnalyticsChartResponse> => {
-      return await analyticsService.getChartData(arg, signal);
+      const { signal, ...request } = arg;
+      return await analyticsService.getChartData(request, signal);
     }
   );
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { UseChartManagementResult } from '@/modules/analytics/hooks/useChartManagement';
 import type { ExplorerChartDraft } from '@/modules/analytics/utils/chartConfig';
+import { CHART_LOAD_ERROR_MESSAGE } from '@/modules/analytics/constants';
 import { DashboardCharts } from '../DashboardCharts';
 
 jest.mock('@/modules/analytics/components/explorer/AnalyticsChartCard', () => ({
@@ -86,10 +87,8 @@ describe('DashboardCharts error sanitization', () => {
       />
     );
 
-    // The user-friendly timeout message renders...
-    expect(
-      screen.getByText(/request timed out\. please check your connection/i)
-    ).toBeInTheDocument();
+    // The fixed chart-load message renders...
+    expect(screen.getByText(CHART_LOAD_ERROR_MESSAGE)).toBeInTheDocument();
     // ...and the raw axios string never reaches the UI.
     expect(
       screen.queryByText('timeout of 30000ms exceeded')
@@ -112,10 +111,35 @@ describe('DashboardCharts error sanitization', () => {
       />
     );
 
-    expect(
-      screen.getByText(/network error\. please check your internet connection/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(CHART_LOAD_ERROR_MESSAGE)).toBeInTheDocument();
     expect(screen.queryByText('Network Error')).not.toBeInTheDocument();
+  });
+
+  it('never renders a backend diagnostic string — uses a fixed chart-load message', () => {
+    // Simulate a preferencesService rejection whose message is a backend
+    // diagnostic (the kind our sanitization now converts to a stable message).
+    const backendDiagnostic = 'Backend exploded at line 42';
+    const backendError = new Error(backendDiagnostic);
+
+    render(
+      <DashboardCharts
+        groupId="org-group-1"
+        chartMgmt={buildChartMgmt({
+          chartsError: backendError as unknown as Error,
+        })}
+      />
+    );
+
+    // The backend diagnostic string must NOT reach the UI....
+    expect(screen.queryByText(backendDiagnostic)).not.toBeInTheDocument();
+    // ...the fixed, approved chart-load message IS rendered....
+    expect(
+      screen.getByText(
+        /we could not load your charts right now\. please try again\./i
+      )
+    ).toBeInTheDocument();
+    // ...and the Retry action remains available.
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
   it('renders charts normally when there is no error', () => {
