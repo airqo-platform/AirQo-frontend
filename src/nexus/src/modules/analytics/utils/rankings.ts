@@ -92,6 +92,10 @@ export const sortHistoryEntriesByLatestValue = (
  * Each yearly value becomes a data point shaped for the shared DynamicChart
  * (`time` = year label, `value` = PM2.5, `site` = entity name).
  * Years without data are skipped rather than rendered as zero.
+ *
+ * When two countries contain a city with the same name, the `site` /
+ * `site_id` / `device_id` labels are suffixed with the country name to keep
+ * them unique. Normal (non-colliding) labels are unchanged.
  */
 export const buildHistoryChartData = (
   entries: RankingHistoryEntry[],
@@ -101,18 +105,30 @@ export const buildHistoryChartData = (
     return [];
   }
 
-  return sortHistoryEntriesByLatestValue(entries)
-    .slice(0, maxEntities)
-    .flatMap(entry =>
-      entry.values
-        .filter(value => value && typeof value.avg_pm2_5 === 'number')
-        .map(value => ({
-          time: String(value.year),
-          value: value.avg_pm2_5 as number,
-          site: entry.name,
-          site_id: entry.name,
-          device_id: entry.name,
-          rawTime: String(value.year),
-        }))
-    );
+  const sorted = sortHistoryEntriesByLatestValue(entries).slice(0, maxEntities);
+
+  // Detect name collisions across the sliced set so labels stay unique.
+  const nameCounts = new Map<string, number>();
+  for (const entry of sorted) {
+    nameCounts.set(entry.name, (nameCounts.get(entry.name) ?? 0) + 1);
+  }
+  const hasCollision = (name: string): boolean =>
+    (nameCounts.get(name) ?? 0) > 1;
+
+  return sorted.flatMap(entry => {
+    const label = hasCollision(entry.name)
+      ? `${entry.name} (${entry.country_name ?? entry.country_code ?? 'Unknown'})`
+      : entry.name;
+
+    return entry.values
+      .filter(value => value && typeof value.avg_pm2_5 === 'number')
+      .map(value => ({
+        time: String(value.year),
+        value: value.avg_pm2_5 as number,
+        site: label,
+        site_id: label,
+        device_id: label,
+        rawTime: String(value.year),
+      }));
+  });
 };

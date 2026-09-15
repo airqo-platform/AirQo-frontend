@@ -246,21 +246,31 @@ The module uses Tailwind CSS classes and is fully responsive. All components sup
 ## Air Quality Rankings (`/user/air-quality/rankings`)
 
 The African AQI leaderboard, powered by the device-registry rankings endpoints
-(`GET /devices/readings/rankings` and `GET /devices/readings/rankings/history`).
+(`GET /devices/readings/rankings`, `GET /devices/readings/rankings/history`,
+and `GET /devices/readings/rankings/countries`).
 
 - **Live rankings** — country or city leaderboard, worst/cleanest first, with
   configurable entry count. Each row shows rank, flag, average PM2.5, derived
   AQI index, a color-coded category badge (colored from the live AQI ranges
   config) and how many sites contributed. Locations only appear once they have
-  a reading from the last 3 days.
+  a reading from the last 3 days. When the level is set to city, a country
+  filter dropdown appears (populated from the `/countries` endpoint) so the
+  leaderboard can be scoped to a single country. The response includes a
+  `meta` object with `total`, `limit`, and `skip` — the summary cards and
+  leaderboard use `meta.total` to show how many locations are ranked beyond
+  the current page.
 - **Historical comparison** — year-by-year average PM2.5 per location
   (entities as rows, years as columns, capped at a 5-year span). Years with
   no usable data come back as `null` from the API and render as a grayed-out
-  dash — never as clean air.
+  dash — never as clean air. When the level is set to city, a country filter
+  dropdown appears. Country-scoped city history only has data from the
+  current deploy forward — `history_from` on the country indicates the first
+  year with data, and earlier years come back as `null` (shown as a dash),
+  never an error.
 
 Data flows through `rankingsService` (API-token-authenticated — these
 endpoints reject user JWTs) and the
-`useRankings` / `useRankingsHistory` react-query hooks.
+`useRankings` / `useRankingsHistory` / `useRankingCountries` react-query hooks.
 
 ## Air Quality Analytics (`/user/air-quality/analytics`)
 

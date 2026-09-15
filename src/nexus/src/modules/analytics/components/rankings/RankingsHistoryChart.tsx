@@ -12,6 +12,7 @@ interface RankingsHistoryChartProps {
   history: RankingHistoryEntry[];
   aqiConfig?: AqiConfig | null;
   isLoading?: boolean;
+  countryName?: string | null;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export const RankingsHistoryChart: React.FC<RankingsHistoryChartProps> = ({
   history,
   aqiConfig,
   isLoading = false,
+  countryName = null,
   className,
 }) => {
   const chartData = useMemo<NormalizedChartData[]>(
@@ -31,10 +33,14 @@ export const RankingsHistoryChart: React.FC<RankingsHistoryChartProps> = ({
     [history]
   );
 
+  const subtitle = countryName
+    ? `Average PM2.5 (µg/m³) per year for the top ranked locations in ${countryName}`
+    : 'Average PM2.5 (µg/m³) per year for the top ranked locations';
+
   return (
     <ChartContainer
       title="PM2.5 trends by year"
-      subtitle="Average PM2.5 (µg/m³) per year for the top ranked locations"
+      subtitle={subtitle}
       exportOptions={{
         enablePDF: true,
         enablePNG: true,

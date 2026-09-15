@@ -5,18 +5,18 @@ sidebar_label: AirQo Nexus Dashboard
 
 # AirQo Nexus Dashboard
 
-The AirQo Nexus Dashboard shows air quality trends and readings for the locations you follow. In the **Individual** workflow, the dashboard is on the **My Favorites** page; in the **Organization** workflow, it is on the **Dashboard** page. Both pages show the same AirQo Nexus view, scoped to your personal or organization workspace.
+The AirQo Nexus Dashboard is the home page you see after logging in. It shows air quality trends and readings for your configured locations, scoped to your personal or organization workspace. In the **Individual** workflow this is the **Home** page; in the **Organization** workflow it is the **Dashboard** page.
 
 ---
 
 ## Where to Find the Dashboard
 
-| Workflow | Sidebar Item | Web Address |
-|----------|--------------|-------------|
-| **Individual** | **My Favorites** | `https://nexus.airqo.net/user/favorites` |
+| Workflow         | Sidebar Item  | Web Address                                        |
+| ---------------- | ------------- | -------------------------------------------------- |
+| **Individual**   | **Home**      | `https://nexus.airqo.net/user/home`                |
 | **Organization** | **Dashboard** | `https://nexus.airqo.net/org/<your-org>/dashboard` |
 
-After logging in, you land on the [Home page](https://nexus.airqo.net/user/home), which is a welcome screen with quick-action buttons. Select **My Favorites** or **Start here** to open the dashboard.
+After logging in, you land directly on the dashboard.
 
 ---
 
@@ -39,10 +39,10 @@ Select any location tile to open the **More Insights** view for that site.
 
 Below the location cards, the dashboard shows two charts side by side on large screens:
 
-| Chart | What It Shows |
-|-------|---------------|
-| **Air Pollution Trends Over Time** | A line chart of pollutant levels across your selected locations over the chosen date range |
-| **Air Pollution Levels Distribution** | A bar chart showing the distribution of pollutant levels across your selected locations |
+| Chart                                 | What It Shows                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Air Pollution Trends Over Time**    | A line chart of pollutant levels across your selected locations over the chosen date range |
+| **Air Pollution Levels Distribution** | A bar chart showing the distribution of pollutant levels across your selected locations    |
 
 Each chart lets you:
 
@@ -58,17 +58,11 @@ Above the charts you can change:
 - **Date range** — choose the start and end dates
 - **Frequency** — set the aggregation level for the time series
 
-### Manage Favorites
-
-Select **Manage Favorites** to open the **Add Favorites** dialog, where you can search for sites and select up to four locations to display on the dashboard.
-
----
-
 ## Empty Dashboard States
 
 ### Individual Workflow
 
-If you have not selected any favorite locations yet, the dashboard shows an empty state with an **Add favorite** button. Select it to open the Add Favorites dialog and choose up to four sites.
+If no locations are configured yet, the dashboard shows an empty state prompting you to add locations.
 
 ### Organization Workflow
 
@@ -79,18 +73,6 @@ If your organization has no deployed devices, or if your organization's data vis
 ## Reading Air Quality Levels
 
 The dashboard uses AirQo's air quality categories to make readings easy to interpret. See [Air Quality Levels](./air-quality-levels.md) for the full color scale and ranges.
-
----
-
-## Adding or Changing Favorite Locations
-
-1. On the dashboard, select **Manage Favorites**.
-2. In the Add Favorites dialog, search or browse the list of monitoring sites.
-3. Select the checkboxes next to the sites you want to follow.
-4. The sidebar shows your selected favorites (maximum 4).
-5. Select **Save Favorites**.
-
-For detailed instructions, see [Favorite Locations](../managing-locations/favorite-locations.md).
 
 ---
 
@@ -110,18 +92,18 @@ If your organization's information is set to private, recent readings will not a
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Dashboard shows "No favorite locations yet" | Add up to four favorite locations using **Manage Favorites**. |
-| Cards show "--" instead of a value | The selected site may not have recent readings, or your organization's data may be private. |
-| Chart values look unexpected | Check that the correct pollutant and date range are selected. |
-| Dashboard is empty in organization workflow | Ensure the organization has deployed devices and that data visibility is public. |
+| Issue                                       | Solution                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Dashboard shows an empty state              | No locations are configured yet for your workspace.                                         |
+| Cards show "--" instead of a value          | The selected site may not have recent readings, or your organization's data may be private. |
+| Chart values look unexpected                | Check that the correct pollutant and date range are selected.                               |
+| Dashboard is empty in organization workflow | Ensure the organization has deployed devices and that data visibility is public.            |
 
 ---
 
 ## Related Guides
 
 - [Air Quality Levels](./air-quality-levels.md)
-- [Favorite Locations](../managing-locations/favorite-locations.md)
+- [Air Quality Analysis](./air-quality-analysis.md) — analyze trends and compare locations
 - [Interactive Map](./interactive-map.md)
 - [Export Air Quality Data](../exporting-data/data-export.md)

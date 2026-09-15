@@ -13,6 +13,7 @@ interface RankingsSummaryCardsProps {
   rankings: RankingEntry[];
   aqiConfig?: AqiConfig | null;
   isLoading?: boolean;
+  totalCount?: number | null;
   className?: string;
 }
 
@@ -41,7 +42,8 @@ const buildHighlightSiteData = (entry: RankingEntry): SiteData => ({
 const buildExtraInfo = (entry: RankingEntry): React.ReactNode => (
   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
     <span>
-      <span className="font-semibold text-foreground">AQI</span> {entry.aqi_index ?? '—'}
+      <span className="font-semibold text-foreground">AQI</span>{' '}
+      {entry.aqi_index ?? '—'}
     </span>
     <span>
       <span className="font-semibold text-foreground">{entry.site_count}</span>{' '}
@@ -60,6 +62,7 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
   rankings,
   aqiConfig,
   isLoading = false,
+  totalCount = null,
   className,
 }) => {
   if (isLoading) {
@@ -94,7 +97,12 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
   );
 
   return (
-    <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4', className)}>
+    <div
+      className={cn(
+        'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4',
+        className
+      )}
+    >
       <AnalyticsCard
         siteData={buildHighlightSiteData(worst)}
         headerLabel="Most polluted"
@@ -132,7 +140,9 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs text-gray-600">Last 3 days</span>
               </div>
-              <div className="text-3xl font-bold">{rankings.length}</div>
+              <div className="text-3xl font-bold">
+                {totalCount ?? rankings.length}
+              </div>
             </div>
           </div>
         </CardContent>
