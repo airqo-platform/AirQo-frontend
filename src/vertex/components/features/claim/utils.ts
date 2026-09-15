@@ -5,24 +5,79 @@ import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 export const DEVICE_NOT_FOUND_MESSAGE =
   "We couldn't find this device. Double-check the device name and claim token, or contact AirQo support if you just received this device.";
 
+export const DEVICE_ALREADY_CLAIMED_MESSAGE =
+  "This device has already been claimed. If it was shipped to you, contact AirQo support so it can be transferred to your account.";
+
+export const CLAIM_TOKEN_MISMATCH_MESSAGE =
+  "The claim token doesn't match this device. Check the token printed on the shipping label and try again.";
+
+export const CLAIM_TOKEN_EXPIRED_MESSAGE =
+  "This claim token has expired. Contact AirQo support to get a new one for this device.";
+
 /**
- * Claim-specific error copy.
+ * Maps a raw backend claim failure message to user-facing copy.
  *
- * A 404 from POST /devices/claim means the device has not been registered and
- * shipping-prepped by AirQo yet — the raw backend message ("Device doesn't
- * exist yet") reads like a bug to a user who is holding the device, so replace
- * it with copy that points at the two things they can actually check.
+ * The backend reports the same four failure classes with slightly different
+ * wording depending on the path (single claim throws HttpErrors; bulk claim
+ * returns per-device strings), so match on the meaning rather than the exact
+ * text. Anything unrecognised is returned untouched.
+ */
+export function getClaimFailureMessage(message: string): string {
+  // A missing cohort is not a missing device, and the backend copy
+  // ("The specified cohort does not exist") is already actionable.
+  if (/specified cohort/i.test(message)) {
+    return message;
+  }
+  if (/does(n't| not) exist|not found/i.test(message)) {
+    return DEVICE_NOT_FOUND_MESSAGE;
+  }
+  if (/expired/i.test(message)) {
+    return CLAIM_TOKEN_EXPIRED_MESSAGE;
+  }
+  if (/token.*(mismatch|does(n't| not) match)|invalid claim token/i.test(message)) {
+    return CLAIM_TOKEN_MISMATCH_MESSAGE;
+  }
+  if (/already claimed|not available for claiming|claimed by another/i.test(message)) {
+    return DEVICE_ALREADY_CLAIMED_MESSAGE;
+  }
+  return message;
+}
+
+/**
+ * Claim-specific error copy for POST /devices/claim.
+ *
+ * The raw backend messages read like bugs to a user who is holding the
+ * device ("Device doesn't exist yet", "Claim token does not match"), so
+ * replace the known failure classes with copy that points at what they can
+ * actually check. Status codes are the primary signal (404 not found, 409
+ * already claimed, 403 token mismatch, 410 token expired); the message text
+ * is the fallback for older deployments that return a generic 400.
  * Every other failure keeps the backend's own message.
  */
 export function getClaimErrorMessage(error: unknown): string {
   const status = (error as { response?: { status?: number } })?.response?.status;
   const message = getApiErrorMessage(error);
 
-  if (status === 404 || /does(n't| not) exist/i.test(message)) {
-    return DEVICE_NOT_FOUND_MESSAGE;
+  // The same status codes also carry failures that are not about the device
+  // or its token: a 404 when the target cohort is missing, and a 409 when the
+  // device's status changed mid-claim. Their backend copy is already
+  // actionable, so keep it rather than mislabelling them.
+  if (/specified cohort/i.test(message) || /changed during the operation/i.test(message)) {
+    return message;
   }
 
-  return message;
+  switch (status) {
+    case 404:
+      return DEVICE_NOT_FOUND_MESSAGE;
+    case 409:
+      return DEVICE_ALREADY_CLAIMED_MESSAGE;
+    case 403:
+      return CLAIM_TOKEN_MISMATCH_MESSAGE;
+    case 410:
+      return CLAIM_TOKEN_EXPIRED_MESSAGE;
+    default:
+      return getClaimFailureMessage(message);
+  }
 }
 
 export function parseQRCode(

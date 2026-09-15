@@ -4,6 +4,7 @@ import React from 'react';
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { BulkDeviceClaimResponse } from '@/app/types/devices';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { getClaimFailureMessage } from '../utils';
 
 interface BulkClaimResultsProps {
     results: BulkDeviceClaimResponse['data'];
@@ -113,7 +114,7 @@ export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results }) =
                                                 {result.device_name}
                                             </p>
                                             <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                                                {result.error || 'Unknown error occurred'}
+                                                {result.error ? getClaimFailureMessage(result.error) : 'Unknown error occurred'}
                                             </p>
                                         </div>
                                     </div>
