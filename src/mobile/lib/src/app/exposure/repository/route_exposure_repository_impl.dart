@@ -75,21 +75,18 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     required double destinationLat,
     required double destinationLng,
   }) async {
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception(
-          'GOOGLE_MAPS_API_KEY is missing from the mobile environment.');
-    }
-
-    final uri = Uri.https('maps.googleapis.com', '/maps/api/directions/json', {
-      'origin': '$originLat,$originLng',
-      'destination': '$destinationLat,$destinationLng',
-      'mode': 'driving',
-      'key': apiKey,
-    });
-
     final response = await _withRequestTimeout(
-      _httpClient.get(uri),
+      _httpClient.post(
+        Uri.parse(
+            '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/directions'),
+        headers: await _getAuthHeaders(),
+        body: jsonEncode({
+          'origin_latitude': originLat,
+          'origin_longitude': originLng,
+          'destination_latitude': destinationLat,
+          'destination_longitude': destinationLng,
+        }),
+      ),
       'Trip directions request timed out.',
     );
     if (response.statusCode != 200) {
@@ -97,9 +94,16 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
-    final status = (body['status'] ?? '').toString();
-    final errorMessage = (body['error_message'] ?? '').toString();
-    final routes = (body['routes'] as List<dynamic>? ?? const []);
+    if (body['success'] != true) {
+      throw Exception(
+          (body['message'] ?? 'Failed to fetch trip directions.').toString());
+    }
+
+    final directionsData = body['data'] as Map<String, dynamic>? ?? const {};
+    final status = (directionsData['status'] ?? '').toString();
+    final errorMessage = (directionsData['error_message'] ?? '').toString();
+    final routes =
+        (directionsData['routes'] as List<dynamic>? ?? const []);
     if (routes.isEmpty) {
       throw Exception(
         _directionsErrorMessage(
