@@ -13,18 +13,18 @@ Learn how the AirQo Nexus interface is organized, how the Individual and Organiz
 
 ### Individual Workflow
 
-The Individual workflow is your personal workspace. Use it to explore air quality data, save favorite locations, export datasets, and visualize your own data files.
+The Individual workflow is your personal workspace. Use it to explore air quality data, analyze trends and comparisons, export datasets, and visualize your own data files.
 
 **Navigation sidebar:**
 
-| Group | Page | Description |
-|-------|------|-------------|
-| **Explore** | Home | Welcome page with quick actions and an onboarding checklist |
-| | Map | Full-screen interactive map with air quality data layers |
-| | My Favorites | Saved locations and quick-access charts |
-| **Data & Analysis** | Visualization & Data Export | Download air quality datasets with flexible configuration |
-| | Dataset Visualizer | Upload CSV or Excel files and build custom charts |
-| **Account** | Profile | Edit your name, profile picture, and account settings |
+| Group               | Page                        | Description                                                 |
+| ------------------- | --------------------------- | ----------------------------------------------------------- |
+| **Explore**         | Home                        | Welcome page with quick actions and an onboarding checklist |
+|                     | Map                         | Full-screen interactive map with air quality data layers    |
+| **Data & Analysis** | Visualization & Data Export | Download air quality datasets with flexible configuration   |
+|                     | Dataset Visualizer          | Upload CSV or Excel files and build custom charts           |
+|                     | Air Quality Analysis        | Analyze trends, forecasts, and compare locations            |
+| **Account**         | Profile                     | Edit your name, profile picture, and account settings       |
 
 ### Organization Workflow
 
@@ -32,17 +32,17 @@ The Organization workflow is a shared workspace for teams. It includes the same 
 
 **Navigation sidebar:**
 
-| Group | Page | Description |
-|-------|------|-------------|
-| **Main** | Dashboard | Organization-level Nexus dashboard with selected sites and charts |
-| | Visualization & Data Export | Download datasets for your organization's locations |
-| | Dataset Visualizer | Upload and visualize data files |
-| | Map | Interactive map for your organization's monitoring sites |
-| **Management** | Members | View and manage team members (requires permission) |
-| | Member Requests | Review join requests from new members (requires permission) |
-| | Roles & Permissions | Configure roles and assign permissions (requires permission) |
-| | Organization Settings | Manage your organization's configuration (requires permission) |
-| **Account** | Profile | Edit your personal profile |
+| Group          | Page                        | Description                                                       |
+| -------------- | --------------------------- | ----------------------------------------------------------------- |
+| **Main**       | Dashboard                   | Organization-level Nexus dashboard with selected sites and charts |
+|                | Visualization & Data Export | Download datasets for your organization's locations               |
+|                | Dataset Visualizer          | Upload and visualize data files                                   |
+|                | Map                         | Interactive map for your organization's monitoring sites          |
+| **Management** | Members                     | View and manage team members (requires permission)                |
+|                | Member Requests             | Review join requests from new members (requires permission)       |
+|                | Roles & Permissions         | Configure roles and assign permissions (requires permission)      |
+|                | Organization Settings       | Manage your organization's configuration (requires permission)    |
+| **Account**    | Profile                     | Edit your personal profile                                        |
 
 :::note
 The Management section is only visible to users with the appropriate permissions. If you do not see these items, contact your organization administrator.
@@ -56,14 +56,14 @@ The Management section is only visible to users with the appropriate permissions
 
 The header appears at the top of every page and contains:
 
-| Element | Description |
-|---------|-------------|
-| **Menu** | Opens the global sidebar for cross-workflow navigation |
-| **Logo** | AirQo or organization logo — select it to return to your home page |
-| **Page title** | Shows the name of the current page |
-| **Organization Selector** | Switch between your personal and organization workspaces |
-| **App Menu** | Links to other AirQo products such as Calibrate, Vertex, API Docs, and the Mobile App |
-| **Profile Menu** | Access your profile, settings, and sign-out option |
+| Element                   | Description                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| **Menu**                  | Opens the global sidebar for cross-workflow navigation                                |
+| **Logo**                  | AirQo or organization logo — select it to return to your home page                    |
+| **Page title**            | Shows the name of the current page                                                    |
+| **Organization Selector** | Switch between your personal and organization workspaces                              |
+| **App Menu**              | Links to other AirQo products such as Calibrate, Vertex, API Docs, and the Mobile App |
+| **Profile Menu**          | Access your profile, settings, and sign-out option                                    |
 
 ### Sidebar (Desktop)
 
@@ -73,9 +73,9 @@ The left sidebar shows navigation for your current workflow. It updates automati
 
 On mobile devices, the sidebar is replaced by a bottom navigation bar:
 
-| Workflow | Items |
-|----------|-------|
-| **Individual** | Home, Map, Export |
+| Workflow         | Items                  |
+| ---------------- | ---------------------- |
+| **Individual**   | Home, Map, Export      |
 | **Organization** | Dashboard, Map, Export |
 
 ### Global Sidebar (Menu)
@@ -100,11 +100,11 @@ Use the **Organization Selector** in the header to switch workspaces:
 
 ## Quick Actions
 
-| Action | Shortcut |
-|--------|----------|
+| Action              | Shortcut                           |
+| ------------------- | ---------------------------------- |
 | Open global sidebar | Select the menu icon in the header |
-| Search | Use the search bar in the header |
-| Close dialogs | Press **Escape** |
+| Search              | Use the search bar in the header   |
+| Close dialogs       | Press **Escape**                   |
 
 ---
 

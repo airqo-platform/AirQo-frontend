@@ -1,9 +1,16 @@
----
+﻿---
 sidebar_position: 1
-sidebar_label: Favorite Locations
+sidebar_label: "Favorite Locations (Deprecated)"
 ---
 
 # Favorite Locations
+
+:::warning Deprecated feature
+The Favorite Locations ("My Favorites") feature is **no longer available** in the current AirQo Nexus app. The Quick Access cards for favorites have been removed and the dashboard is now the home page. This page is kept for reference only and may be removed in a future release.
+
+- To explore locations, trends, and forecasts, use [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md).
+- To download data, use [Export Air Quality Data](../exporting-data/data-export.md).
+:::
 
 Favorites let you follow up to four monitoring sites so they appear on your dashboard every time you log in. In the Individual workflow, this page is called **My Favorites**; in the Organization workflow, the same view is called **Dashboard**.
 
@@ -11,10 +18,10 @@ Favorites let you follow up to four monitoring sites so they appear on your dash
 
 ## Accessing Favorites
 
-| Workflow | Sidebar Item | Web Address |
-|----------|--------------|-------------|
-| **Individual** | **My Favorites** | `https://nexus.airqo.net/user/favorites` |
-| **Organization** | **Dashboard** | `https://nexus.airqo.net/org/<your-org>/dashboard` |
+| Workflow         | Sidebar Item     | Web Address                                        |
+| ---------------- | ---------------- | -------------------------------------------------- |
+| **Individual**   | **My Favorites** | `https://nexus.airqo.net/user/favorites`           |
+| **Organization** | **Dashboard**    | `https://nexus.airqo.net/org/<your-org>/dashboard` |
 
 You can also reach the Individual Favorites page from the [Home page](https://nexus.airqo.net/user/home) by selecting **My Favorites** or **Start here**.
 
@@ -55,12 +62,12 @@ Select the **Refresh** button in the dialog header to reload the available sites
 
 The Add Favorites dialog lists sites with the following columns:
 
-| Column | Description |
-|--------|-------------|
-| **Location** | The site location name |
-| **City** | The city where the site is located |
-| **Country** | The country where the site is located |
-| **Owner** | The organization or entity that owns the site |
+| Column       | Description                                   |
+| ------------ | --------------------------------------------- |
+| **Location** | The site location name                        |
+| **City**     | The city where the site is located            |
+| **Country**  | The country where the site is located         |
+| **Owner**    | The organization or entity that owns the site |
 
 Use the column headers to sort, and use the pagination controls at the bottom to browse more sites.
 
@@ -88,6 +95,7 @@ Select any location card or chart's **More Insights** option to explore the site
 
 ## Related Guides
 
+- [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md) — analyze trends and compare locations
 - [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
 - [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md)
 - [Interactive Map](../monitoring-air-quality/interactive-map.md)
