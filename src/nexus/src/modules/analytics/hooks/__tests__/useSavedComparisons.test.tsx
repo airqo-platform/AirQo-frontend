@@ -286,9 +286,11 @@ describe('useSavedComparisons', () => {
     expect(result.current.isMutating).toBe(false);
   });
 
-  it('does not refetch on remount while cached data exists (revalidateIfStale: false)', async () => {
-    // A shared cache Map so the cached data survives unmount — proving the
-    // remount reuses it instead of refetching.
+  it('deduplicates on remount while cached data is within dedupingInterval', async () => {
+    // A shared cache Map so the cached data survives unmount — proving that
+    // deduping (10s) still prevents a refetch of fresh data on remount even
+    // with revalidateIfStale: true. The stale-data case is covered by the
+    // next test.
     const sharedCache = new Map();
     const cachedWrapper = ({ children }: { children: React.ReactNode }) => (
       <SWRConfig value={{ provider: () => sharedCache, dedupingInterval: 0 }}>
@@ -313,7 +315,8 @@ describe('useSavedComparisons', () => {
     );
     expect(mockList).toHaveBeenCalledTimes(1);
 
-    // Unmount and remount — the cached data must be reused, not refetched.
+    // Unmount and remount immediately — dedupingInterval (10s) prevents a
+    // refetch of the still-fresh data.
     unmount();
 
     const { result: result2 } = renderHook(
@@ -323,6 +326,44 @@ describe('useSavedComparisons', () => {
 
     await waitFor(() =>
       expect(result2.current.comparisons.length).toBeGreaterThan(0)
+    );
+    expect(mockList).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches a stale persisted empty list on mount instead of serving it forever', async () => {
+    // Simulate a persisted (but stale) cache entry with an empty list — the
+    // exact scenario that caused the live bug.
+    const sharedCache = new Map();
+    const staleKey = JSON.stringify(buildSavedComparisonsKey('group-1'));
+    sharedCache.set(staleKey, {
+      data: [],
+      error: undefined,
+      isLoading: false,
+      isValidating: false,
+    });
+
+    const cachedWrapper = ({ children }: { children: React.ReactNode }) => (
+      <SWRConfig value={{ provider: () => sharedCache, dedupingInterval: 0 }}>
+        {children}
+      </SWRConfig>
+    );
+
+    const apiComparison = makeComparison({ id: 'api-result' });
+    mockList.mockResolvedValue({
+      success: true,
+      message: 'ok',
+      comparisons: [apiComparison],
+      meta: { total: 1, total_pages: 1, page: 1, skip: 0, limit: 100 },
+    });
+
+    const { result } = renderHook(
+      () => useSavedComparisons({ groupId: 'group-1' }),
+      { wrapper: cachedWrapper }
+    );
+
+    // The stale empty list is replaced by the API response.
+    await waitFor(() =>
+      expect(result.current.comparisons).toEqual([apiComparison])
     );
     expect(mockList).toHaveBeenCalledTimes(1);
   });
@@ -362,5 +403,30 @@ describe('useSavedComparisons', () => {
 
     // A fresh request fires for group-2.
     await waitFor(() => expect(mockList).toHaveBeenCalledTimes(2));
+  });
+
+  it('does not abort the initial fetch signal on unmount (StrictMode regression)', async () => {
+    // Simulate a pending initial fetch that never resolves.
+    mockList.mockImplementationOnce(
+      () =>
+        new Promise<SavedComparisonListResponse>(() => {
+          // intentionally never resolves
+        })
+    );
+
+    const { unmount } = renderHook(
+      () => useSavedComparisons({ groupId: 'group-1' }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1));
+
+    const signalArg = mockList.mock.calls[0][1];
+    expect(signalArg).toBeInstanceOf(AbortSignal);
+
+    // Unmount the hook — this must NOT abort the initial fetch signal.
+    unmount();
+
+    expect(signalArg.aborted).toBe(false);
   });
 });

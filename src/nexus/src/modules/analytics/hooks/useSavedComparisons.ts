@@ -44,14 +44,16 @@ export const buildSavedComparisonsKey = (
   groupId: string | undefined
 ): string[] => ['saved-comparisons', groupId ?? 'no-active-group'];
 
-// Fetch once per group, revalidate after mutations (mutate()), and never
-// refetch on remount while cached data exists. There is no staleTime: SWR
-// revalidates stale keys on mount by default, so revalidateIfStale:false is
-// what actually suppresses the remount refetch.
+// Fetch once per group, revalidate after mutations (mutate()), and revalidate
+// on mount even when a persisted cache entry exists — the persisted cache can
+// otherwise serve an empty/stale list indefinitely and suppress the fetch.
+// keepPreviousData is false because the key is group-scoped: the previous
+// group's list must never render while the new group's request is in flight.
 const SWR_STABLE_OPTIONS = {
   revalidateOnFocus: false,
   revalidateOnReconnect: false,
-  revalidateIfStale: false,
+  revalidateIfStale: true,
+  keepPreviousData: false,
   shouldRetryOnError: false,
   dedupingInterval: 10000,
 } as const;
@@ -106,12 +108,19 @@ export const useSavedComparisons = ({
   );
 
   const abortRef = useRef<AbortController | null>(null);
+  const abortedGroupRef = useRef(groupId);
 
   useEffect(() => {
-    // Abort the previous group's in-flight list request when the group
-    // changes or the hook unmounts — a group-A response must never resolve
-    // after the group-B query starts (AGENTS.md).
-    return () => abortRef.current?.abort();
+    // Abort an in-flight request for a PREVIOUS group so a group-A response
+    // can never resolve after the group-B query starts (AGENTS.md). Do NOT
+    // abort on unmount: React StrictMode's dev double-mount would cancel the
+    // initial fetch and, with shouldRetryOnError:false, leave the list
+    // permanently empty (confirmed by live browser testing).
+    if (abortedGroupRef.current !== groupId) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      abortedGroupRef.current = groupId;
+    }
   }, [groupId]);
 
   const fetcher = useCallback(async (): Promise<SavedComparison[]> => {

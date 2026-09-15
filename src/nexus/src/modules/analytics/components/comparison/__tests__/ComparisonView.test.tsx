@@ -31,6 +31,20 @@ jest.mock('@/shared/services/comparisonsService', () => ({
   comparisonsService,
 }));
 
+// ── Mock the toast module ───────────────────────────────────────────────────
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  warning: jest.fn(),
+  info: jest.fn(),
+  custom: jest.fn(),
+  dismiss: jest.fn(),
+};
+
+jest.mock('@/shared/components/ui/toast', () => ({
+  toast: mockToast,
+}));
+
 // ── Controllable mock state for useSavedComparisons ─────────────────────────
 let mockComparisons: SavedComparison[] = [];
 let mockIsLoading = false;
@@ -116,6 +130,13 @@ jest.mock('@/shared/providers/aqi-config-provider', () => ({
     error: undefined,
     refresh: jest.fn(),
   }),
+}));
+
+// MoreInsights pulls in charts/SWR/PostHog — stub the default export so the
+// "View insights" action can be exercised without that machinery.
+jest.mock('@/modules/location-insights/more-insights', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 const mockToSiteSlug = jest.fn(
@@ -269,7 +290,7 @@ const renderComparisonView = (groupId = 'group-1') => {
       </QueryClientProvider>
     </Provider>
   );
-  return { ...utils, queryClient };
+  return { ...utils, queryClient, store };
 };
 
 // Builds the full provider tree for a given group, used by the rerender
@@ -317,6 +338,10 @@ describe('ComparisonView integration (saved comparisons)', () => {
     jest.clearAllMocks();
     mockPush.mockReset();
     mockRememberSiteSlug.mockReset();
+    mockToast.success.mockReset();
+    mockToast.error.mockReset();
+    mockToast.warning.mockReset();
+    mockToast.info.mockReset();
     mockToSiteSlug.mockImplementation(
       (name: string) =>
         name
@@ -503,7 +528,7 @@ describe('ComparisonView integration (saved comparisons)', () => {
     expect(await screen.findByText('Saved')).toBeInTheDocument();
   });
 
-  it('disables Save when the selection is clean or empty', async () => {
+  it('disables Save when the selection is clean or empty with no loaded comparison', async () => {
     const user = userEvent.setup();
     mockComparisons = [
       makeSavedComparison({ id: 'loaded', site_ids: ['site-1'] }),
@@ -522,6 +547,67 @@ describe('ComparisonView integration (saved comparisons)', () => {
     // Make it dirty → enabled.
     await user.click(await screen.findByLabelText('Select item site-2'));
     await waitFor(() => expect(saveButton).not.toBeDisabled());
+  });
+
+  it('disables Save when the picker is empty and there is no loaded comparison', async () => {
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView();
+
+    // Nothing is selected and nothing is loaded → Save stays disabled.
+    const saveButton = await screen.findByRole('button', {
+      name: /save selection/i,
+    });
+    await waitFor(() => expect(saveButton).toBeDisabled());
+  });
+
+  it('deletes the loaded comparison (DELETE) when the selection is cleared — never PATCHes an empty list', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({ id: 'loaded', site_ids: ['site-1'] }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1 (loaded comparison).
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Clear all → picker empty but a comparison is loaded → Save enabled with
+    // the "Delete saved comparison" label.
+    await user.click(screen.getByText('Clear all'));
+
+    const saveButton = await screen.findByRole('button', {
+      name: /delete saved comparison/i,
+    });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    // A delete confirmation dialog opens.
+    expect(
+      await screen.findByText('Delete saved comparison?')
+    ).toBeInTheDocument();
+
+    // Confirm the delete.
+    comparisonsService.remove.mockResolvedValueOnce({ success: true });
+    const confirmButton = screen.getByRole('button', { name: 'Delete' });
+    await user.click(confirmButton);
+
+    // DELETE is issued — never a PATCH with an empty site_ids.
+    await waitFor(() =>
+      expect(comparisonsService.remove).toHaveBeenCalledTimes(1)
+    );
+    expect(comparisonsService.remove).toHaveBeenCalledWith('loaded');
+    expect(comparisonsService.update).not.toHaveBeenCalled();
+
+    // The loaded chip is gone.
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Saved · Saved comparison')
+      ).not.toBeInTheDocument()
+    );
   });
 
   it('shows the error state with retry when the readings request fails', async () => {
@@ -811,5 +897,300 @@ describe('ComparisonView integration (saved comparisons)', () => {
     // and cannot create a comparison.
     expect(dialogSaveButton).toBeDisabled();
     expect(comparisonsService.create).not.toHaveBeenCalled();
+  });
+
+  it('loads a different saved comparison from the "Saved comparisons" dropdown', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'first',
+        name: 'First Pick',
+        site_ids: ['site-1'],
+        updated_at: '2026-08-22T00:00:00Z',
+      }),
+      makeSavedComparison({
+        id: 'second',
+        name: 'Second Pick',
+        site_ids: ['site-2'],
+        updated_at: '2026-08-01T00:00:00Z',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // The most recent comparison (First Pick, site-1) auto-loads.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the "Saved comparisons" dropdown and pick the second one.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+    await user.click(screen.getByText('Second Pick'));
+
+    // The second comparison's site (site-2) is now checked; site-1 is not.
+    const siteTwoCheckbox = await screen.findByLabelText('Select item site-2');
+    await waitFor(() => expect(siteTwoCheckbox).toBeChecked());
+    await waitFor(() =>
+      expect(screen.getByLabelText('Select item site-1')).not.toBeChecked()
+    );
+  });
+
+  it('shows "Loading saved comparisons…" while the list is loading with no results', async () => {
+    const user = userEvent.setup();
+    mockIsLoading = true;
+    mockComparisons = [];
+
+    renderComparisonView();
+
+    // Open the dropdown.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+
+    expect(screen.getByText('Loading saved comparisons…')).toBeInTheDocument();
+    expect(
+      screen.queryByText('No saved comparisons yet')
+    ).not.toBeInTheDocument();
+  });
+
+  it('creates a new comparison via "Save as new comparison…" in the dropdown', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Existing Pick',
+        site_ids: ['site-1'],
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Add site-2 so we have a non-empty selection.
+    await user.click(screen.getByLabelText('Select item site-2'));
+
+    // Open the dropdown and click "Save as new comparison…".
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+    await user.click(screen.getByText('Save as new comparison…'));
+
+    // The name dialog opens with a default name.
+    expect(await screen.findByText('Save comparison')).toBeInTheDocument();
+    const nameInput = screen.getByLabelText('Comparison name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Brand New Comparison');
+
+    // Confirm.
+    comparisonsService.create.mockResolvedValueOnce({
+      success: true,
+      message: 'ok',
+      comparison: makeSavedComparison({
+        id: 'new-comp',
+        name: 'Brand New Comparison',
+        site_ids: ['site-1', 'site-2'],
+      }),
+    });
+    const confirmButton = screen.getByRole('button', { name: 'Save' });
+    await user.click(confirmButton);
+
+    // create was called with the current picker selection (not the previously
+    // loaded one).
+    await waitFor(() =>
+      expect(comparisonsService.create).toHaveBeenCalledTimes(1)
+    );
+    expect(comparisonsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        group_id: 'group-1',
+        name: 'Brand New Comparison',
+        site_ids: ['site-1', 'site-2'],
+      })
+    );
+
+    // The loaded status chip shows the new name (after the 1 500 ms "Saved"
+    // flash clears).
+    expect(
+      await screen.findByText(
+        'Saved · Brand New Comparison',
+        {},
+        { timeout: 3000 }
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('opens More Insights for a row via the "View insights" action', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+    mockReadings = [makeReading({ site_id: 'site-1' })];
+
+    const { store } = renderComparisonView();
+
+    // Pick a location so the table renders.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+    expect(await screen.findByText('72')).toBeInTheDocument();
+
+    // Click the row's "View insights" button.
+    const insightsButton = screen.getByRole('button', {
+      name: /view insights for kampala site/i,
+    });
+    await user.click(insightsButton);
+
+    // The app store's insights.selectedSites now contains that site id.
+    await waitFor(() => {
+      const selected = store.getState().insights.selectedSites;
+      expect(selected.some(site => site._id === 'site-1')).toBe(true);
+    });
+  });
+
+  it('clicking a dropdown trash button closes the dropdown and shows the delete dialog', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+        site_ids: ['site-1'],
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the "Saved comparisons" dropdown.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+
+    // Dropdown menu content is visible.
+    expect(screen.getByText('Save as new comparison…')).toBeInTheDocument();
+
+    // Click the trash icon for the saved comparison.
+    const trashButton = screen.getByRole('button', {
+      name: /delete saved comparison saved comparison/i,
+    });
+    await user.click(trashButton);
+
+    // Dropdown menu content is gone (dropdown closed).
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Save as new comparison…')
+      ).not.toBeInTheDocument()
+    );
+
+    // The delete confirmation dialog is visible.
+    expect(screen.getByText('Delete saved comparison?')).toBeInTheDocument();
+  });
+
+  it('shows toast.success on successful delete from the dropdown trash icon', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+        site_ids: ['site-1'],
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the dropdown and click the trash icon.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+    const trashButton = screen.getByRole('button', {
+      name: /delete saved comparison saved comparison/i,
+    });
+    await user.click(trashButton);
+
+    // Confirm the delete in the dialog.
+    comparisonsService.remove.mockResolvedValueOnce({ success: true });
+    const confirmButton = screen.getByRole('button', { name: 'Delete' });
+    await user.click(confirmButton);
+
+    // DELETE is issued.
+    await waitFor(() =>
+      expect(comparisonsService.remove).toHaveBeenCalledWith('loaded')
+    );
+
+    // toast.success was called with the expected messages.
+    await waitFor(() =>
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Saved comparison deleted',
+        '"Saved comparison" was removed from your saved comparisons.'
+      )
+    );
+
+    // No error toast.
+    expect(mockToast.error).not.toHaveBeenCalled();
+  });
+
+  it('shows toast.error (not inline error) on failed delete', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'loaded',
+        name: 'Saved comparison',
+        site_ids: ['site-1'],
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // Auto-loads site-1.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the dropdown and click the trash icon.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+    const trashButton = screen.getByRole('button', {
+      name: /delete saved comparison saved comparison/i,
+    });
+    await user.click(trashButton);
+
+    // Confirm the delete in the dialog — service returns failure.
+    comparisonsService.remove.mockResolvedValueOnce({
+      success: false,
+      message: 'nope',
+    });
+    const confirmButton = screen.getByRole('button', { name: 'Delete' });
+    await user.click(confirmButton);
+
+    // DELETE is issued.
+    await waitFor(() =>
+      expect(comparisonsService.remove).toHaveBeenCalledWith('loaded')
+    );
+
+    // toast.error was called.
+    await waitFor(() =>
+      expect(mockToast.error).toHaveBeenCalledWith(
+        'Failed to delete comparison',
+        'Please check your connection and try again.'
+      )
+    );
+
+    // No inline saveError rendered for the delete path.
+    expect(screen.queryByText(/failed to delete/i)).not.toBeInTheDocument();
+
+    // No success toast.
+    expect(mockToast.success).not.toHaveBeenCalled();
   });
 });

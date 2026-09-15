@@ -18,6 +18,8 @@ interface ComparisonSitePickerProps {
    * selected-items strip so off-page selections always show real names.
    */
   namesBySite?: Map<string, string>;
+  /** siteId → explicit series color; when set, a color dot precedes each chip label. */
+  siteColorBySiteId?: Map<string, string>;
   /**
    * Emits every cohort-site row currently loaded, so the parent can resolve
    * full `Site` objects (real names, geo) for its save payload — including
@@ -43,6 +45,7 @@ export const ComparisonSitePicker: React.FC<ComparisonSitePickerProps> = ({
   selectedSiteIds,
   onSelectionChange,
   namesBySite,
+  siteColorBySiteId,
   onSitesResolved,
   className,
 }) => {
@@ -138,6 +141,13 @@ export const ComparisonSitePicker: React.FC<ComparisonSitePickerProps> = ({
                   key={siteId}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground"
                 >
+                  {siteColorBySiteId?.get(siteId) && (
+                    <span
+                      aria-hidden="true"
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: siteColorBySiteId.get(siteId) }}
+                    />
+                  )}
                   <span className="max-w-[180px] truncate">{label}</span>
                   <button
                     type="button"
