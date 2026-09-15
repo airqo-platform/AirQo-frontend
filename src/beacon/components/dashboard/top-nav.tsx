@@ -11,6 +11,8 @@ import GroupSelector from "@/components/dashboard/group-selector"
 import { syncGroups } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
 import { useGroup } from "@/lib/group-context"
+import { useNavigationAccess } from "@/hooks/use-navigation-access"
+import { getDevicesHome, getModuleForPath } from "@/lib/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,13 +54,14 @@ interface TopNavProps {
   user: User | null
   loading: boolean
   isLoggingOut: boolean
-  onToggleAdminMenu: () => void
+  onMenuClick: () => void
   onLogout: () => void
 }
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Network Overview",
   "/dashboard/devices": "Devices",
+  "/dashboard/devices/my-devices": "My Devices",
   "/dashboard/analytics": "Performance Analysis",
   "/dashboard/maintenance": "Maintenance",
   "/dashboard/reports": "Reports",
@@ -127,16 +130,18 @@ export default function TopNav({
   user,
   loading,
   isLoggingOut,
-  onToggleAdminMenu,
+  onMenuClick,
   onLogout,
 }: Readonly<TopNavProps>) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const pageTitle = getPageTitle(pathname, searchParams)
+  const isAdminMode = getModuleForPath(pathname) === "admin"
 
   const { toast } = useToast()
   const { activeGroup } = useGroup()
   const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
+  const devicesHome = getDevicesHome(useNavigationAccess())
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -205,15 +210,15 @@ export default function TopNav({
                 variant="ghost"
                 size="sm"
                 className="-ml-1 mr-1 p-2 rounded-lg text-foreground hover:bg-muted"
-                onClick={onToggleAdminMenu}
-                aria-label="Open AirQo Admin Panel"
-                title="AirQo Admin Panel"
+                onClick={onMenuClick}
+                aria-label="Open navigation menu"
+                title="Menu"
               >
                 <AqMenu01 className="w-5 h-5 text-foreground" />
               </Button>
 
               <Link
-                href="/dashboard/devices"
+                href={devicesHome}
                 className="flex items-center space-x-2.5 cursor-pointer focus:outline-none"
               >
                 <AqAirQo size={32} color="#0A84FF" />
@@ -221,6 +226,12 @@ export default function TopNav({
                   Beacon
                 </span>
               </Link>
+
+              {isAdminMode && (
+                <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                  Administrator
+                </span>
+              )}
             </div>
 
             {/* Middle Section: Page Title (Nexus Style) */}

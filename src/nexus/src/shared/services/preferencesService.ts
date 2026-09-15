@@ -57,6 +57,36 @@ export class PreferencesService {
     return enhancedError;
   }
 
+  /**
+   * Build an EnhancedError whose message is a fixed, safe string even when the
+   * caller supplies a backend-provided diagnostic. The backend text is
+   * preserved as a non-enumerable `cause` so it remains visible to logs and
+   * debuggers but can never be rendered in the UI (messages read via
+   * `getUserFriendlyErrorMessage` only see the fixed message).
+   */
+  private createSanitizedError(
+    stableMessage: string,
+    backendMessage: string | undefined,
+    response?: { status?: number; data?: unknown }
+  ): EnhancedError {
+    const enhancedError = this.createEnhancedError(stableMessage, response);
+    const diagnostic =
+      backendMessage && backendMessage !== stableMessage
+        ? backendMessage
+        : undefined;
+    const causePayload =
+      diagnostic !== undefined ? { diagnostic, response } : response;
+    if (causePayload !== undefined) {
+      Object.defineProperty(enhancedError, 'cause', {
+        value: causePayload,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+      });
+    }
+    return enhancedError;
+  }
+
   private handleApiError(
     error: unknown,
     defaultMessage: string
@@ -72,17 +102,31 @@ export class PreferencesService {
       return error as EnhancedError;
     }
 
-    // Handle axios error
+    // Handle axios error. Raw axios errors can carry server-internal wording
+    // (e.g. "timeout of 30000ms exceeded", unmatched backend diagnostics) that
+    // must never reach the UI as an Error message. Throw a stable, safe
+    // message and attach the original as a non-enumerable `cause` so logs and
+    // debuggers can still see it.
     const axiosError = error as {
       response?: { status?: number; data?: unknown };
       message?: string;
       isAxiosError?: boolean;
     };
 
-    return this.createEnhancedError(
-      axiosError?.message || defaultMessage,
+    const stableMessage = defaultMessage;
+    const enhancedError = this.createEnhancedError(
+      stableMessage,
       axiosError?.response
     );
+    if (error !== undefined && error !== null) {
+      Object.defineProperty(enhancedError, 'cause', {
+        value: error,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+      });
+    }
+    return enhancedError;
   }
 
   // Get user preferences for current active group
@@ -301,15 +345,20 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to get chart configurations',
+        // Never propagate backend-supplied diagnostic text into the thrown
+        // Error message (it would otherwise reach the UI via
+        // `getUserFriendlyErrorMessage`). Use a fixed, safe message; keep the
+        // backend text as a non-enumerable `cause` for logging/debugging.
+        throw this.createSanitizedError(
+          'Failed to load chart configurations',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
 
       return data as ChartListResponse;
     } catch (error: unknown) {
-      throw this.handleApiError(error, 'Failed to get chart configurations');
+      throw this.handleApiError(error, 'Failed to load chart configurations');
     }
   }
 
@@ -323,15 +372,16 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to get chart configuration',
+        throw this.createSanitizedError(
+          'Failed to load chart configuration',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
 
       return data as ChartDetailResponse;
     } catch (error: unknown) {
-      throw this.handleApiError(error, 'Failed to get chart configuration');
+      throw this.handleApiError(error, 'Failed to load chart configuration');
     }
   }
 
@@ -356,8 +406,9 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to create chart configuration',
+        throw this.createSanitizedError(
+          'Failed to create chart configuration',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
@@ -388,8 +439,9 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to update chart configuration',
+        throw this.createSanitizedError(
+          'Failed to update chart configuration',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
@@ -410,8 +462,9 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to copy chart configuration',
+        throw this.createSanitizedError(
+          'Failed to copy chart configuration',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }
@@ -432,8 +485,9 @@ export class PreferencesService {
       const data = response.data;
 
       if ('success' in data && !data.success) {
-        throw this.createEnhancedError(
-          data.message || 'Failed to delete chart configuration',
+        throw this.createSanitizedError(
+          'Failed to delete chart configuration',
+          typeof data.message === 'string' ? data.message : undefined,
           { status: response.status, data: data as ApiErrorResponse }
         );
       }

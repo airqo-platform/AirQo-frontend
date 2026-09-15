@@ -1,7 +1,11 @@
 import React from 'react';
 import { InfoBanner } from '@/shared/components/ui';
-import { AqPlayCircle } from '@airqo/icons-react';
+import { AqPlayCircle, AqBookOpen01 } from '@airqo/icons-react';
 import { Button } from '@/shared/components/ui';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
+
+const DATA_EXPORT_DOCS_URL =
+  'https://platform.airqo.net/docs/nexus/exporting-data/data-export/';
 
 interface DataExportHelpBannerProps {
   onShowTutorial: () => void;
@@ -18,14 +22,29 @@ export const DataExportHelpBanner: React.FC<DataExportHelpBannerProps> = ({
   onDismiss,
 }) => {
   const actions = (
-    <Button
-      variant="filled"
-      onClick={onShowTutorial}
-      Icon={AqPlayCircle}
-      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-    >
-      Watch Tutorial
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="filled"
+        onClick={onShowTutorial}
+        Icon={AqPlayCircle}
+        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+      >
+        Watch Tutorial
+      </Button>
+      <Button
+        variant="outlined"
+        Icon={AqBookOpen01}
+        onClick={() =>
+          window.open(
+            getEnvironmentAwareUrl(DATA_EXPORT_DOCS_URL),
+            '_blank',
+            'noopener,noreferrer'
+          )
+        }
+      >
+        Read Docs
+      </Button>
+    </div>
   );
 
   return (

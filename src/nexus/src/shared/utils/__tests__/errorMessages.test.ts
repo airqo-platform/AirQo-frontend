@@ -91,6 +91,53 @@ describe('errorMessages', () => {
         );
       });
 
+      it('returns friendly timeout message for axios ECONNABORTED', () => {
+        const axiosError = {
+          isAxiosError: true,
+          code: 'ECONNABORTED',
+          message: 'timeout of 30000ms exceeded',
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe(
+          'The request timed out. Please check your connection and try again.'
+        );
+      });
+
+      it('returns friendly timeout message for axios ETIMEDOUT', () => {
+        const axiosError = {
+          isAxiosError: true,
+          code: 'ETIMEDOUT',
+          message: 'connect ETIMEDOUT 10.0.0.1:443',
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe(
+          'The request timed out. Please check your connection and try again.'
+        );
+      });
+
+      it('returns friendly timeout message when message contains "timeout" without a timeout code', () => {
+        const axiosError = {
+          isAxiosError: true,
+          message: 'timeout of 15000ms exceeded',
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe(
+          'The request timed out. Please check your connection and try again.'
+        );
+      });
+
+      it('returns status 500 mapped message', () => {
+        const axiosError = {
+          isAxiosError: true,
+          response: {
+            status: 500,
+            data: {},
+          },
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe('Server error. Please try again later.');
+      });
+
       it('returns status 403 mapped message', () => {
         const axiosError = {
           isAxiosError: true,
