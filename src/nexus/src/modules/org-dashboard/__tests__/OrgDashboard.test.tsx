@@ -19,6 +19,35 @@ import type { ExplorerChartDraft } from '@/modules/analytics/utils/chartConfig';
 // are the one exception allowed inside a factory, and OrgDashboard is
 // required lazily at the bottom, after this line has run.
 let mockCharts: ExplorerChartDraft[] = [];
+const mockUseChartManagement = jest.fn<
+  UseChartManagementResult,
+  [string, boolean]
+>((): UseChartManagementResult => ({
+  charts: mockCharts,
+  chartsLoading: false,
+  chartsError: null,
+  refetchCharts: jest.fn(),
+  siteNames: new Map(),
+  forecastChartIds: new Set(),
+  dialogOpen: false,
+  editingDraft: null,
+  deleteDraft: null,
+  isDeleteConfirming: false,
+  saveError: null,
+  isSaving: false,
+  openCreate: jest.fn(),
+  openEdit: jest.fn(),
+  closeDialog: jest.fn(),
+  handleSaveDraft: jest.fn(),
+  handleRequestDelete: jest.fn(),
+  cancelDelete: jest.fn(),
+  confirmDelete: jest.fn(),
+  handleDuplicate: jest.fn(),
+  handleForecastToggle: jest.fn(),
+  handleEditTitle: jest.fn(),
+  handleChartTypeChange: jest.fn(),
+  handleNamesResolved: jest.fn(),
+}));
 
 jest.mock('@/shared/hooks/useUser', () => ({
   useUser: () => ({
@@ -56,32 +85,8 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@/modules/analytics/hooks/useChartManagement', () => ({
-  useChartManagement: (): UseChartManagementResult => ({
-    charts: mockCharts,
-    chartsLoading: false,
-    chartsError: null,
-    refetchCharts: jest.fn(),
-    siteNames: new Map(),
-    forecastChartIds: new Set(),
-    dialogOpen: false,
-    editingDraft: null,
-    deleteDraft: null,
-    isDeleteConfirming: false,
-    saveError: null,
-    isSaving: false,
-    openCreate: jest.fn(),
-    openEdit: jest.fn(),
-    closeDialog: jest.fn(),
-    handleSaveDraft: jest.fn(),
-    handleRequestDelete: jest.fn(),
-    cancelDelete: jest.fn(),
-    confirmDelete: jest.fn(),
-    handleDuplicate: jest.fn(),
-    handleForecastToggle: jest.fn(),
-    handleEditTitle: jest.fn(),
-    handleChartTypeChange: jest.fn(),
-    handleNamesResolved: jest.fn(),
-  }),
+  useChartManagement: (...args: [string, boolean]) =>
+    mockUseChartManagement(...args),
 }));
 
 jest.mock('@/modules/ai/components/AiDrawerTrigger', () => ({
@@ -112,6 +117,7 @@ describe('OrgDashboard analysis tabs', () => {
   beforeEach(() => {
     window.localStorage.clear();
     mockCharts = [{ id: 'chart-1' } as ExplorerChartDraft];
+    mockUseChartManagement.mockClear();
   });
 
   const renderDashboard = () => {
@@ -172,11 +178,14 @@ describe('OrgDashboard analysis tabs', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe('comparison');
   });
 
-  it('lazy-inits the tab from localStorage (persisted choice survives reload)', () => {
+  it('lazy-inits the tab from localStorage (persisted choice survives reload)', async () => {
     window.localStorage.setItem(STORAGE_KEY, 'comparison');
     renderDashboard();
 
-    expect(screen.getByTestId('comparison-view')).toBeInTheDocument();
+    // The persisted choice is read post-mount (after the first 'trends' render),
+    // so wait for the Comparison view to appear rather than asserting it
+    // synchronously.
+    expect(await screen.findByTestId('comparison-view')).toBeInTheDocument();
     expect(screen.queryByTestId('saved-preferences')).not.toBeInTheDocument();
   });
 
@@ -198,5 +207,26 @@ describe('OrgDashboard analysis tabs', () => {
     expect(screen.getByTestId('aqi-legend')).toBeInTheDocument();
     expect(screen.queryByTestId('comparison-view')).not.toBeInTheDocument();
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe('trends');
+  });
+
+  it('disables chart-data fetching while the Comparison tab is active and re-enables it on Trends', () => {
+    renderDashboard();
+
+    // Default tab is Trends — chart management is enabled for the org group.
+    expect(mockUseChartManagement).toHaveBeenCalledWith('org-group-1', true);
+  });
+
+  it('passes enabled=false to useChartManagement when the Comparison tab is active', async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+
+    await user.click(screen.getByText('Comparison'));
+
+    // Switching to Comparison must disable the chart-data fetch (no redundant
+    // network call for data the hidden view never renders).
+    expect(mockUseChartManagement).toHaveBeenCalledWith('org-group-1', false);
+    // ComparisonView renders; the trends children do not.
+    expect(screen.getByTestId('comparison-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-charts')).not.toBeInTheDocument();
   });
 });

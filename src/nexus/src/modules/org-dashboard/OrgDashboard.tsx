@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { useUser, useOrgGroup } from '@/shared/hooks';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
@@ -70,9 +70,14 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   // Trends (saved locations + charts) and Comparison are mutually exclusive
   // views of the "Air Quality Analysis" section; persist the choice so a
   // returning visitor lands on the same tab.
-  const [analysisTab, setAnalysisTab] = useState<AnalysisTab>(
-    readStoredAnalysisTab
-  );
+  // Initialize to the server-rendered default ('trends') to avoid a hydration
+  // mismatch, then adopt the persisted choice after mount. The stored value can
+  // never equal the server output on a fast reload otherwise.
+  const [analysisTab, setAnalysisTab] = useState<AnalysisTab>('trends');
+
+  useEffect(() => {
+    setAnalysisTab(readStoredAnalysisTab());
+  }, []);
 
   const handleAnalysisTabChange = (tab: AnalysisTab) => {
     setAnalysisTab(tab);
@@ -84,10 +89,13 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
     }
   };
 
-  // Call unconditionally — the hook's `enabled` param handles the not-ready state.
+  // Call unconditionally — the hook's `enabled` param handles the not-ready
+  // state. Gated to the Trends tab so the group's chart data isn't fetched
+  // while the (mutually-exclusive) Comparison tab is active; returning to
+  // Trends re-reads from the SWR cache.
   const chartMgmt = useChartManagement(
     organizationGroupId,
-    !!organizationGroupId
+    analysisTab === 'trends' && !!organizationGroupId
   );
 
   const isOrgContextReady =

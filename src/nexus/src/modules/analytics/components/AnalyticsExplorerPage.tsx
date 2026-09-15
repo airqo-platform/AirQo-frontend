@@ -32,6 +32,7 @@ import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { enrichChartDataSiteIds } from '../utils/chartLabels';
 import { toBackendChartType, normalizePollutant } from '../utils/chartConfig';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -284,11 +285,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       return (
         <ErrorState
           title="Unable to load chart configurations"
-          description={
-            chartsError instanceof Error
-              ? chartsError.message
-              : 'We could not load your saved charts.'
-          }
+          description={getUserFriendlyErrorMessage(chartsError)}
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       );

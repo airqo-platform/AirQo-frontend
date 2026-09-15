@@ -638,6 +638,33 @@ describe('ComparisonView integration (saved comparisons)', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
+  it('sanitizes a raw axios timeout message in the comparison table error state', async () => {
+    mockComparisons = [
+      makeSavedComparison({ id: 'loaded', site_ids: ['site-1'] }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    mockReadings = [];
+    // Raw axios timeout wording — exactly the string that must never reach the UI.
+    mockReadingsError = new Error('timeout of 30000ms exceeded');
+
+    renderComparisonView();
+
+    // The user-friendly timeout message renders...
+    expect(
+      await screen.findByText(
+        /request timed out\. please check your connection/i
+      )
+    ).toBeInTheDocument();
+
+    // ...and the raw axios string does NOT.
+    expect(
+      screen.queryByText(/timeout of 30000ms exceeded/)
+    ).not.toBeInTheDocument();
+
+    // Retry action remains available.
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+  });
+
   it('renders the AQI legend pollutant switcher and toggling does not crash', async () => {
     const user = userEvent.setup();
     mockComparisons = [];

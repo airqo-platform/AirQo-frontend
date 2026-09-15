@@ -37,6 +37,7 @@ import {
   type ComparisonRow,
 } from '../../utils/comparisonRows';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqiLegend } from '../explorer/AqiLegend';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import type { AqiPollutant } from '@/shared/types/aqi';
@@ -752,7 +753,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       <ComparisonTableView
         rows={rows}
         isLoading={readingsLoading}
-        error={readingsError?.message ?? null}
+        error={
+          readingsError ? getUserFriendlyErrorMessage(readingsError) : null
+        }
         hasSelection={pickerIds.length > 0}
         onRetry={refetchReadings}
         pm25Config={pm25Config}

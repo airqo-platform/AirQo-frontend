@@ -51,6 +51,7 @@ const DEFAULT_ERROR_MAPPINGS: ErrorMapping = {
     'Network error. Please check your internet connection and try again.',
   connection:
     'Network error. Please check your internet connection and try again.',
+  timeout: 'The request timed out. Please check your connection and try again.',
   'rate limit':
     'Too many login attempts. Please wait a few minutes before trying again.',
   'too many':
@@ -199,6 +200,21 @@ export function getUserFriendlyErrorMessage(
       return (
         errorMappings['network'] ||
         'Network error. Please check your internet connection and try again.'
+      );
+    }
+
+    // Priority 5: Request timeouts. Axios surfaces these with code
+    // ECONNABORTED/ETIMEDOUT and a message like "timeout of 30000ms exceeded",
+    // with no HTTP response attached — so they fall through every check above
+    // and would otherwise render verbatim in the UI.
+    if (
+      axiosError.code === 'ECONNABORTED' ||
+      axiosError.code === 'ETIMEDOUT' ||
+      /timeout/i.test(axiosError.message)
+    ) {
+      return (
+        errorMappings['timeout'] ||
+        'The request timed out. Please check your connection and try again.'
       );
     }
   }

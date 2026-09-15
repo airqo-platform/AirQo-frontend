@@ -17,9 +17,9 @@ export const useGetChartData = (keyParts?: unknown[]) => {
     swrKey,
     async (
       key,
-      { arg }: { arg: AnalyticsChartRequest }
+      { arg, signal }: { arg: AnalyticsChartRequest; signal?: AbortSignal }
     ): Promise<AnalyticsChartResponse> => {
-      return await analyticsService.getChartData(arg);
+      return await analyticsService.getChartData(arg, signal);
     }
   );
 };

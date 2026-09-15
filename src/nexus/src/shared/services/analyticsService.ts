@@ -515,11 +515,28 @@ export class AnalyticsService {
       return [];
     }
 
-    const response = await this.serverClient.post<RecentReadingsResponse>(
-      '/devices/readings/recent',
-      { site_ids: trimmedSiteIds },
-      { signal }
-    );
+    let response;
+    try {
+      response = await this.serverClient.post<RecentReadingsResponse>(
+        '/devices/readings/recent',
+        { site_ids: trimmedSiteIds },
+        { signal }
+      );
+    } catch (error) {
+      // Cancellations propagate as-is — callers must never treat an aborted
+      // request as a failure (AGENTS.md).
+      if (isCancellation(error) || signal?.aborted) throw error;
+
+      // Raw axios network/timeout errors carry internal wording (e.g. "timeout
+      // of 30000ms exceeded") that must never reach the UI. Wrap them in a
+      // stable, non-sensitive message; keep the original as a non-enumerable
+      // cause for debugging.
+      throw Object.defineProperty(
+        new Error('Failed to fetch the latest readings.'),
+        'cause',
+        { value: error, enumerable: false, configurable: true, writable: true }
+      );
+    }
 
     const payload = response.data;
     if (!payload?.success) {

@@ -40,6 +40,7 @@ import {
   enrichChartDataSiteIds,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import type {
   ChartType,
   NormalizedChartData,
@@ -512,7 +513,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         // can never bake derived text into the saved subtitle.
         subtitle={draft.subtitle}
         loading={isLoading || isRefreshing}
-        error={error ?? null}
+        error={error ? getUserFriendlyErrorMessage(error) : null}
         onRefresh={refresh}
         exportOptions={{
           enablePDF: true,

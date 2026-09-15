@@ -947,6 +947,55 @@ describe('AnalyticsService.getRecentReadings', () => {
       expect.objectContaining({ signal: controller.signal })
     );
   });
+
+  it('wraps a raw axios timeout/network error in a stable message (no axios text leaks)', async () => {
+    const rawAxiosError = new Error('timeout of 30000ms exceeded');
+    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
+    mockPost.mockRejectedValueOnce(rawAxiosError);
+
+    let thrown: Error | undefined;
+    try {
+      await analyticsService.getRecentReadings(['site-1']);
+    } catch (err) {
+      thrown = err as Error;
+    }
+
+    // The thrown message is the stable, non-sensitive one...
+    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
+    // ...and the raw axios wording must NOT surface as the thrown message.
+    expect(thrown?.message).not.toContain('timeout of 30000ms exceeded');
+  });
+
+  it('preserves the original axios error as a non-enumerable cause', async () => {
+    const rawAxiosError = new Error('timeout of 30000ms exceeded');
+    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
+    mockPost.mockRejectedValueOnce(rawAxiosError);
+
+    let thrown: (Error & { cause?: unknown }) | undefined;
+    try {
+      await analyticsService.getRecentReadings(['site-1']);
+    } catch (err) {
+      thrown = err as Error & { cause?: unknown };
+    }
+
+    expect(thrown).toBeDefined();
+    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
+    expect(thrown?.cause).toBe(rawAxiosError);
+    // cause must be non-enumerable so it never leaks into UI text/JSON.
+    expect(Object.getOwnPropertyDescriptor(thrown, 'cause')?.enumerable).toBe(
+      false
+    );
+  });
+
+  it('does NOT wrap a cancellation — AbortError propagates as-is', async () => {
+    const abortError = new Error('The operation was aborted.');
+    abortError.name = 'AbortError';
+    mockPost.mockRejectedValueOnce(abortError);
+
+    await expect(
+      analyticsService.getRecentReadings(['site-1'])
+    ).rejects.toThrow(abortError);
+  });
 });
 
 describe('AnalyticsService.getComparisonReadings', () => {
