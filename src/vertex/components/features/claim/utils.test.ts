@@ -103,6 +103,12 @@ describe("getClaimFailureMessage", () => {
     expect(getClaimFailureMessage(raw)).toBe(expected);
   });
 
+  it("passes a missing cohort message through instead of the missing-device copy", () => {
+    expect(getClaimFailureMessage("The specified cohort does not exist")).toBe(
+      "The specified cohort does not exist"
+    );
+  });
+
   it("returns unknown failures unchanged", () => {
     expect(getClaimFailureMessage("The specified cohort does not belong to you")).toBe(
       "The specified cohort does not belong to you"

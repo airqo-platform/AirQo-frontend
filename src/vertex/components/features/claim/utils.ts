@@ -23,6 +23,11 @@ export const CLAIM_TOKEN_EXPIRED_MESSAGE =
  * text. Anything unrecognised is returned untouched.
  */
 export function getClaimFailureMessage(message: string): string {
+  // A missing cohort is not a missing device, and the backend copy
+  // ("The specified cohort does not exist") is already actionable.
+  if (/specified cohort/i.test(message)) {
+    return message;
+  }
   if (/does(n't| not) exist|not found/i.test(message)) {
     return DEVICE_NOT_FOUND_MESSAGE;
   }
