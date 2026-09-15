@@ -7,6 +7,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useDispatch } from 'react-redux';
+import { HiCheck } from 'react-icons/hi';
+import { AqChevronDown, AqPlus, AqTrash01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/components/ui/button';
@@ -18,6 +21,13 @@ import type {
   SavedComparison,
   SavedComparisonSite,
 } from '@/shared/types/api';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import { useRecentReadings } from '../../hooks/useRecentReadings';
 import { useSavedComparisons } from '../../hooks/useSavedComparisons';
 import {
@@ -27,19 +37,31 @@ import {
   type ComparisonRow,
 } from '../../utils/comparisonRows';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqiLegend } from '../explorer/AqiLegend';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import type { AqiPollutant } from '@/shared/types/aqi';
 import { ComparisonSitePicker } from './ComparisonSitePicker';
 import { ComparisonTableView } from './ComparisonTableView';
+import { downloadComparisonCsv } from './comparisonExport';
+import MoreInsights from '@/modules/location-insights/more-insights';
+import AddLocation from '@/modules/location-insights/add-location';
 import { toSiteSlug } from '@/modules/data-download/utils/siteDetails';
 import { rememberSiteSlug } from '@/modules/data-download/hooks/useResolveSiteByName';
 import ReusableDialog from '@/shared/components/ui/dialog';
+import { toast } from '@/shared/components/ui/toast';
+import { getDefaultSiteColor } from '../../utils/siteColors';
+import { openMoreInsights } from '@/shared/store/insightsSlice';
+import type { SelectedSite } from '@/shared/store/insightsSlice';
 
 interface ComparisonViewProps {
   /** Organization group id; empty in the user flow (uses the active group). */
   groupId?: string;
   className?: string;
+  /** When true, site clicks route into the org analytics sub-route. */
+  isOrganizationFlow?: boolean;
+  /** Org slug used to build the org site-details URL in the org flow. */
+  organizationSlug?: string;
 }
 
 const SAVED_INDICATOR_MS = 1500;
@@ -133,11 +155,14 @@ const buildComparisonSitesSnapshot = (
 export const ComparisonView: React.FC<ComparisonViewProps> = ({
   groupId,
   className,
+  isOrganizationFlow = false,
+  organizationSlug,
 }) => {
   const { user } = useUser();
   const resolvedUserId = user?.id ?? '';
   const resolvedGroupId = groupId ?? '';
 
+  const dispatch = useDispatch();
   const {
     comparisons,
     isLoading: savedListLoading,
@@ -145,6 +170,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     error: savedListError,
     createComparison,
     updateComparison,
+    deleteComparison,
   } = useSavedComparisons({ groupId: resolvedGroupId });
 
   // Current picker selection. Syncs from a loaded comparison exactly once per
@@ -181,6 +207,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       selectionGroupRef.current = group;
       setPickerIds([]);
       setLoadedComparison(null);
+      // A dialog opened for a record in the previous group must not survive
+      // into the new group (AGENTS.md group-switch guard).
+      setPendingDelete(null);
       // Clear picker rows so stale group-A rows never bleed into a group-B
       // save snapshot.
       pickerRowsRef.current = new Map();
@@ -283,6 +312,17 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     return map;
   }, [readings, loadedComparison, resolvedPickerSites]);
 
+  // Per-site series colors keyed by site id, in picker order — shared across
+  // the picker chips, the comparison table rows and the trend chart so a given
+  // location renders in one consistent color everywhere.
+  const siteColorBySiteId = useMemo(() => {
+    const map = new Map<string, string>();
+    pickerIds.forEach((siteId, index) => {
+      map.set(siteId, getDefaultSiteColor(index));
+    });
+    return map;
+  }, [pickerIds]);
+
   // One honest row per selected location — missing readings render as
   // "No reading", they are never omitted.
   const rows = useMemo<ComparisonRow[]>(
@@ -309,6 +349,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
+  const [savedDropdownOpen, setSavedDropdownOpen] = useState(false);
+  // The comparison targeted for deletion via the per-row trash icon or the
+  // "Delete saved comparison" button. null when no delete is pending.
+  const [pendingDelete, setPendingDelete] = useState<SavedComparison | null>(
+    null
+  );
   const router = useRouter();
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -349,11 +395,22 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   );
 
   const handleSaveSelection = useCallback(async () => {
-    if (!isDirty || pickerIds.length === 0) return;
+    if (!isDirty) return;
+
+    // Loaded comparison + EMPTY selection (user cleared it) — the save button
+    // becomes "Delete saved comparison". Opening the delete confirmation dialog
+    // (which issues DELETE, never PATCHes an empty list — the backend rejects
+    // empty site_ids with 400).
+    if (loadedComparison && pickerIds.length === 0) {
+      setPendingDelete(loadedComparison);
+      return;
+    }
+
     const groupAtStart = activeGroupRef.current;
 
-    // Updating an existing loaded comparison — PATCH its site_ids/sites,
-    // keep the name unchanged.
+    // Loaded comparison + non-empty selection — PATCH its site_ids/sites,
+    // keep the name unchanged. site_ids is guaranteed 1..80 because the
+    // selection is non-empty.
     if (loadedComparison) {
       setSaveError(null);
       const snapshot = buildComparisonSitesSnapshot(
@@ -377,6 +434,10 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       return;
     }
 
+    // No loaded comparison yet and nothing selected — there is nothing to
+    // persist (an empty selection with no loaded comparison is a no-op).
+    if (pickerIds.length === 0) return;
+
     // No loaded comparison yet — open the name dialog to create a new one.
     setSaveName('My comparison');
     setSaveDialogOpen(true);
@@ -389,6 +450,78 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     flashSavedIndicator,
     updateLoadedComparison,
   ]);
+
+  // Loads a saved comparison from the dropdown: sync the picker to its sites,
+  // mark it loaded, and arm the group-sync refs so the one-time auto-load
+  // effect can never clobber the manual choice.
+  const handleLoadComparison = useCallback(
+    (comparison: SavedComparison) => {
+      setPickerIds(comparison.site_ids.filter(Boolean));
+      setLoadedComparison(comparison);
+      selectionGroupRef.current = resolvedGroupId;
+      syncedGroupRef.current = resolvedGroupId;
+      setSavedDropdownOpen(false);
+    },
+    [resolvedGroupId]
+  );
+
+  const handleRequestDelete = useCallback((comparison: SavedComparison) => {
+    // Close the dropdown first: its content has a higher z-index than the
+    // delete confirmation dialog and would otherwise overlap it.
+    setSavedDropdownOpen(false);
+    setPendingDelete(comparison);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    const target = pendingDelete;
+    if (!target) return;
+    // Never delete a record belonging to a different group than the one
+    // currently active — a dialog opened in group A can outlive the switch
+    // to group B (AGENTS.md: invalidation on group switch; never resolve a
+    // stale group's mutation into the current group).
+    if (target.group_id !== activeGroupRef.current) {
+      setPendingDelete(null);
+      return;
+    }
+    setPendingDelete(null);
+    setSaveError(null);
+    const id = target.id;
+    const wasLoaded = loadedComparison?.id === id;
+    const groupAtStart = activeGroupRef.current;
+    const success = await deleteComparison(id);
+    // The delete belonged to a group the user has left — set NO state and show
+    // no toast/error for the departed group (AGENTS.md group-switch guard).
+    if (activeGroupRef.current !== groupAtStart) return;
+    if (success) {
+      toast.success(
+        'Saved comparison deleted',
+        `"${target.name}" was removed from your saved comparisons.`
+      );
+      if (wasLoaded) setLoadedComparison(null);
+    } else {
+      toast.error(
+        'Failed to delete comparison',
+        'Please check your connection and try again.'
+      );
+    }
+  }, [deleteComparison, loadedComparison, pendingDelete]);
+
+  const handleViewInsights = useCallback(
+    (row: ComparisonRow) => {
+      const reading = readingsBySiteId.get(row.siteId);
+      const siteDetails = reading?.siteDetails;
+      const site: SelectedSite = {
+        _id: row.siteId,
+        name: row.siteName,
+        search_name: siteDetails?.search_name || undefined,
+        country: siteDetails?.country || undefined,
+        city: siteDetails?.city || undefined,
+        region: siteDetails?.region || undefined,
+      };
+      dispatch(openMoreInsights({ sites: [site] }));
+    },
+    [readingsBySiteId, dispatch]
+  );
 
   const handleConfirmSave = useCallback(async () => {
     // Block saving an empty selection — the picker may have been cleared by a
@@ -434,6 +567,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
 
   const isSaving = isMutating;
 
+  // Exports the latest-readings table as CSV — closed over `rows`, so the
+  // table stays presentational (no data plumbing, just the trigger).
+  const handleExport = useCallback(() => {
+    downloadComparisonCsv(rows);
+  }, [rows]);
+
   // Clicking a site opens its details in a sub-route (Data Export pattern):
   // write the slug index so the details page resolves instantly and exactly,
   // then navigate with the authoritative site id.
@@ -444,11 +583,21 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         siteId: row.siteId,
         displayName: row.siteName,
       });
+      // In the organization flow the site details live under the org
+      // data-export route, not the user route — keep the user bounded to
+      // their own analytics. When the org slug is still resolving (empty),
+      // do not fall through to the user-flow URL — that would leak an org
+      // click into the user's own analytics route.
+      if (isOrganizationFlow && !organizationSlug) return;
+      const base =
+        isOrganizationFlow && organizationSlug
+          ? `/org/${organizationSlug}/data-export/sites`
+          : '/user/air-quality/analytics/sites';
       void router.push(
-        `/user/air-quality/analytics/sites/${slug}?site_id=${encodeURIComponent(row.siteId)}`
+        `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`
       );
     },
-    [router]
+    [router, isOrganizationFlow, organizationSlug]
   );
 
   return (
@@ -495,14 +644,99 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
                 : `Saved · ${loadedComparison.name}`}
             </span>
           )}
+          <DropdownMenu
+            open={savedDropdownOpen}
+            onOpenChange={setSavedDropdownOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outlined"
+                size="sm"
+                Icon={AqChevronDown}
+                iconPosition="end"
+                aria-haspopup="menu"
+              >
+                Saved comparisons
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[260px]">
+              {savedListLoading && comparisons.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-muted-foreground">
+                  Loading saved comparisons…
+                </p>
+              ) : comparisons.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-muted-foreground">
+                  No saved comparisons yet
+                </p>
+              ) : (
+                comparisons.map(comparison => {
+                  const isLoaded = loadedComparison?.id === comparison.id;
+                  return (
+                    <div
+                      key={comparison.id}
+                      className="flex items-center gap-1"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => handleLoadComparison(comparison)}
+                        className="flex flex-1 items-center justify-between gap-2"
+                      >
+                        <span className="truncate">{comparison.name}</span>
+                        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                          {comparison.site_ids.length}
+                          {isLoaded && (
+                            <HiCheck className="h-3.5 w-3.5 text-primary" />
+                          )}
+                        </span>
+                      </DropdownMenuItem>
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleRequestDelete(comparison);
+                        }}
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                        aria-label={`Delete saved comparison ${comparison.name}`}
+                      >
+                        <AqTrash01 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+              {pickerIds.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSaveName(
+                        `My comparison${comparisons.length > 0 ? ` ${comparisons.length + 1}` : ''}`
+                      );
+                      setSaveDialogOpen(true);
+                    }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <AqPlus className="h-3.5 w-3.5" />
+                      Save as new comparison…
+                    </span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="filled"
             size="sm"
             onClick={() => void handleSaveSelection()}
-            disabled={!isDirty || pickerIds.length === 0 || isSaving}
+            disabled={
+              !isDirty ||
+              (pickerIds.length === 0 && !loadedComparison) ||
+              isSaving
+            }
             loading={isSaving}
           >
-            Save selection
+            {loadedComparison && pickerIds.length === 0
+              ? 'Delete saved comparison'
+              : 'Save selection'}
           </Button>
         </div>
       </div>
@@ -512,18 +746,24 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         selectedSiteIds={pickerIds}
         onSelectionChange={handleSelectionChange}
         namesBySite={namesBySite}
+        siteColorBySiteId={siteColorBySiteId}
         onSitesResolved={handleSitesResolved}
       />
 
       <ComparisonTableView
         rows={rows}
         isLoading={readingsLoading}
-        error={readingsError?.message ?? null}
+        error={
+          readingsError ? getUserFriendlyErrorMessage(readingsError) : null
+        }
         hasSelection={pickerIds.length > 0}
         onRetry={refetchReadings}
         pm25Config={pm25Config}
         pm10Config={pm10Config}
         onSiteClick={handleSiteClick}
+        onViewInsights={handleViewInsights}
+        onExport={handleExport}
+        siteColorBySiteId={siteColorBySiteId}
       />
 
       <div className="flex flex-col items-center gap-3 pt-2">
@@ -568,6 +808,38 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
           placeholder="My comparison"
         />
       </ReusableDialog>
+
+      {/* Delete-saved-comparison confirmation */}
+      <ReusableDialog
+        isOpen={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Delete saved comparison?"
+        size="sm"
+        primaryAction={{
+          label: 'Delete',
+          onClick: () => void handleConfirmDelete(),
+          variant: 'danger',
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () => setPendingDelete(null),
+        }}
+      >
+        <p className="text-sm text-muted-foreground">
+          This will permanently delete the saved comparison{' '}
+          <span className="font-medium text-foreground">
+            {pendingDelete?.name}
+          </span>
+          . This action cannot be undone.
+        </p>
+      </ReusableDialog>
+
+      <MoreInsights activeTab="sites" />
+
+      {/* MoreInsights' "Add Location" action pushes the add-location dialog
+          onto the Redux stack; this mount is what renders it in the
+          Comparison tab (mirrors DataExportPage's pairing). */}
+      <AddLocation />
     </div>
   );
 };

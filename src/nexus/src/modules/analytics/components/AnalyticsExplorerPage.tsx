@@ -32,6 +32,7 @@ import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
 import { enrichChartDataSiteIds } from '../utils/chartLabels';
 import { toBackendChartType, normalizePollutant } from '../utils/chartConfig';
+import { CHART_LOAD_ERROR_MESSAGE } from '../constants';
 
 interface AnalyticsExplorerPageProps {
   className?: string;
@@ -41,19 +42,33 @@ interface AnalyticsExplorerPageProps {
 
 type TrendsLayout = 'list' | 'grid';
 
-const TRENDS_LAYOUT_STORAGE_KEY = 'nexus:analytics:overview-layout';
+// Flow-scoped so a user's stored preferences never bleed into an org flow
+// (and vice-versa). The legacy flow-agnostic key is read as a fallback so
+// existing stored prefs are preserved on first use after this change.
+const tabStorageKey = (isOrg: boolean) =>
+  isOrg
+    ? 'nexus:analytics:org:overview-tab'
+    : 'nexus:analytics:user:overview-tab';
+const layoutStorageKey = (isOrg: boolean) =>
+  isOrg
+    ? 'nexus:analytics:org:overview-layout'
+    : 'nexus:analytics:user:overview-layout';
+const OVERVIEW_TAB_STORAGE_KEY_LEGACY = 'nexus:analytics:overview-tab';
+const TRENDS_LAYOUT_STORAGE_KEY_LEGACY = 'nexus:analytics:overview-layout';
 
 type OverviewTab = 'trends' | 'comparison';
-
-const OVERVIEW_TAB_STORAGE_KEY = 'nexus:analytics:overview-tab';
 
 // The active page-level tab survives reloads too (mirrors the Rankings tab).
 // Both 'trends' and 'comparison' are accepted; anything else falls back to
 // 'trends' (a stale/invalid stored value must not break the page).
-const readStoredOverviewTab = (): OverviewTab => {
+// Reads the flow-scoped key first, falling back to the legacy key so existing
+// stored prefs are preserved.
+const readStoredOverviewTab = (isOrg: boolean): OverviewTab => {
   if (typeof window === 'undefined') return 'trends';
   try {
-    const stored = window.localStorage.getItem(OVERVIEW_TAB_STORAGE_KEY);
+    const stored =
+      window.localStorage.getItem(tabStorageKey(isOrg)) ??
+      window.localStorage.getItem(OVERVIEW_TAB_STORAGE_KEY_LEGACY);
     return stored === 'comparison' ? 'comparison' : 'trends';
   } catch {
     return 'trends';
@@ -82,11 +97,15 @@ const TRENDS_LAYOUT_OPTIONS: {
   },
 ];
 
-// The Trends layout (list vs grid) survives reloads too.
-const readStoredTrendsLayout = (): TrendsLayout => {
+// The Trends layout (list vs grid) survives reloads too. Reads the
+// flow-scoped key first, falling back to the legacy key so existing stored
+// prefs are preserved.
+const readStoredTrendsLayout = (isOrg: boolean): TrendsLayout => {
   if (typeof window === 'undefined') return 'list';
   try {
-    const stored = window.localStorage.getItem(TRENDS_LAYOUT_STORAGE_KEY);
+    const stored =
+      window.localStorage.getItem(layoutStorageKey(isOrg)) ??
+      window.localStorage.getItem(TRENDS_LAYOUT_STORAGE_KEY_LEGACY);
     return stored === 'list' || stored === 'grid' ? stored : 'list';
   } catch {
     return 'list';
@@ -112,12 +131,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     isOrganizationFlow,
   });
 
-  const [trendsLayout, setTrendsLayout] = useState<TrendsLayout>(
-    readStoredTrendsLayout
+  const [trendsLayout, setTrendsLayout] = useState<TrendsLayout>(() =>
+    readStoredTrendsLayout(isOrganizationFlow)
   );
 
-  const [activeTab, setActiveTab] = useState<OverviewTab>(
-    readStoredOverviewTab
+  const [activeTab, setActiveTab] = useState<OverviewTab>(() =>
+    readStoredOverviewTab(isOrganizationFlow)
   );
 
   const {
@@ -149,20 +168,23 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   // Persist the Trends layout so a refresh returns to the same view.
   useEffect(() => {
     try {
-      window.localStorage.setItem(TRENDS_LAYOUT_STORAGE_KEY, trendsLayout);
+      window.localStorage.setItem(
+        layoutStorageKey(isOrganizationFlow),
+        trendsLayout
+      );
     } catch {
       // Storage unavailable — layout memory is best-effort.
     }
-  }, [trendsLayout]);
+  }, [trendsLayout, isOrganizationFlow]);
 
   // Persist the page-level tab so a refresh returns to the same view.
   useEffect(() => {
     try {
-      window.localStorage.setItem(OVERVIEW_TAB_STORAGE_KEY, activeTab);
+      window.localStorage.setItem(tabStorageKey(isOrganizationFlow), activeTab);
     } catch {
       // Storage unavailable — tab memory is best-effort.
     }
-  }, [activeTab]);
+  }, [activeTab, isOrganizationFlow]);
 
   // Data-coverage warning: users can select many locations, but the chart
   // API only returns series for locations that actually have data. These
@@ -260,14 +282,12 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }
 
     if (chartsError && charts.length === 0) {
+      // Render a fixed, safe description — never echo unmatched backend text.
+      // The diagnostic is preserved (non-enumerable `cause`) for logging only.
       return (
         <ErrorState
           title="Unable to load chart configurations"
-          description={
-            chartsError instanceof Error
-              ? chartsError.message
-              : 'We could not load your saved charts.'
-          }
+          description={CHART_LOAD_ERROR_MESSAGE}
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       );
@@ -393,7 +413,11 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
         )}
 
         {activeTab === 'comparison' ? (
-          <ComparisonView groupId={groupId} />
+          <ComparisonView
+            groupId={groupId}
+            isOrganizationFlow={isOrganizationFlow}
+            organizationSlug={organizationSlug}
+          />
         ) : (
           renderTrendsView()
         )}

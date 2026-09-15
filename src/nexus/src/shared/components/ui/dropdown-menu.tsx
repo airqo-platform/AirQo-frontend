@@ -317,12 +317,10 @@ const DropdownMenuItem = ({
 }: DropdownMenuItemProps) => {
   const { onOpenChange } = useDropdownMenu();
 
-  const handleClick = (e: React.MouseEvent) => {
+  // Single activation path shared by pointer and keyboard, so
+  // onSelect/closeOnSelect semantics are identical.
+  const activate = () => {
     if (disabled) return;
-
-    // Prevent default to avoid any form submission or navigation
-    e.preventDefault();
-    e.stopPropagation();
 
     if (onSelect) {
       const event = new Event('select', { bubbles: true, cancelable: true });
@@ -338,10 +336,35 @@ const DropdownMenuItem = ({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (disabled) return;
+
+    // Prevent default to avoid any form submission or navigation
+    e.preventDefault();
+    e.stopPropagation();
+
+    activate();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+
+    // preventDefault: Enter/Space must not trigger button defaults, scroll
+    // the page, or submit a surrounding form.
+    e.preventDefault();
+    e.stopPropagation();
+
+    activate();
+  };
+
   return (
     <div
       role="menuitem"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className={cn(
         'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
         'focus:bg-accent focus:text-accent-foreground',
@@ -352,7 +375,6 @@ const DropdownMenuItem = ({
         className
       )}
       data-disabled={disabled ? '' : undefined}
-      aria-disabled={disabled}
     >
       {children}
     </div>
