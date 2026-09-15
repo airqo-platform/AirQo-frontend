@@ -28,6 +28,8 @@ The map has two main areas:
 
 On desktop, the sidebar and map share the screen height. On mobile, the map takes the top 40% of the screen and the sidebar takes the bottom 60%.
 
+![Interactive Map showing clustered station markers, country filter buttons, the locations list with current readings, and map controls](/img/nexus/map-overview.png)
+
 ---
 
 ## Map Markers
@@ -38,11 +40,11 @@ Monitoring sites appear as markers on the map. When many sites are close togethe
 
 You can change how individual sites are displayed using **Map Settings**:
 
-| Style | Appearance |
-|-------|------------|
-| **Emoji** | An icon that reflects the current air quality level (default) |
-| **Node** | A solid colored circle |
-| **Number** | A colored circle showing the current pollutant value |
+| Style      | Appearance                                                    |
+| ---------- | ------------------------------------------------------------- |
+| **Emoji**  | An icon that reflects the current air quality level (default) |
+| **Node**   | A solid colored circle                                        |
+| **Number** | A colored circle showing the current pollutant value          |
 
 :::note
 The **Heatmap** option appears in Map Settings but is currently disabled.
@@ -60,14 +62,14 @@ Hover over a marker to see a tooltip with the site name and current reading. Sel
 
 Controls are floating buttons on the map canvas:
 
-| Control | What It Does |
-|---------|--------------|
-| **Map styles** | Open the Map Settings dialog to change the base map and marker style |
-| **Copy map link** | Copy the current map URL to your clipboard |
-| **Refresh map** | Reload the latest air quality readings |
-| **Reset to default view** | Return the map to its initial position and zoom |
-| **Find my location** | Center the map on your current geographic location |
-| **Zoom in / Zoom out** | Adjust the map zoom level |
+| Control                   | What It Does                                                         |
+| ------------------------- | -------------------------------------------------------------------- |
+| **Map styles**            | Open the Map Settings dialog to change the base map and marker style |
+| **Copy map link**         | Copy the current map URL to your clipboard                           |
+| **Refresh map**           | Reload the latest air quality readings                               |
+| **Reset to default view** | Return the map to its initial position and zoom                      |
+| **Find my location**      | Center the map on your current geographic location                   |
+| **Zoom in / Zoom out**    | Adjust the map zoom level                                            |
 
 ---
 
@@ -75,21 +77,23 @@ Controls are floating buttons on the map canvas:
 
 Select the **Map styles** button to open **Map Settings**. From there you can choose:
 
+![Map Settings dialog showing Map Details (Emoji, Node, Number; Heatmap disabled) and Map Type (Streets, Satellite, Light, Dark)](/img/nexus/map-settings.png)
+
 ### Map Type (Base Map)
 
-| Style | Description |
-|-------|-------------|
-| **Streets** | Default road and place names map |
-| **Satellite** | Aerial imagery |
-| **Light** | Minimal light-colored map |
-| **Dark** | Minimal dark-colored map |
+| Style         | Description                      |
+| ------------- | -------------------------------- |
+| **Streets**   | Default road and place names map |
+| **Satellite** | Aerial imagery                   |
+| **Light**     | Minimal light-colored map        |
+| **Dark**      | Minimal dark-colored map         |
 
 ### Map Details (Marker Style)
 
-| Style | Description |
-|-------|-------------|
-| **Emoji** | Air quality icon markers |
-| **Node** | Solid colored circles |
+| Style      | Description                         |
+| ---------- | ----------------------------------- |
+| **Emoji**  | Air quality icon markers            |
+| **Node**   | Solid colored circles               |
 | **Number** | Circles showing the pollutant value |
 
 Select **Apply** to update the map.
@@ -106,6 +110,10 @@ Use the search field at the top of the sidebar to find villages, cities, or coun
 
 Below the search field, a country list lets you filter sites by country. Select a country to show only its monitoring sites. Select it again to clear the filter.
 
+### Provider Filter
+
+A provider filter lets you show only the sites from a specific data source. Select **All Providers** to clear the filter and show every site.
+
 ### Location List
 
 The main area of the sidebar lists available monitoring sites. Select any site to:
@@ -118,7 +126,9 @@ The main area of the sidebar lists available monitoring sites. Select any site t
 
 ## Site Details Panel
 
-When you select a site, the sidebar switches to the details panel. It contains:
+When you select a site, the sidebar switches to the details panel. It contains the current reading with a color-coded AQI level, health tips, a weekly forecast, and an insights chart.
+
+![Location details panel showing the current PM₂.₅ reading, a color-coded AQI level, health tips, weekly forecast, and insights chart](/img/nexus/map-location-details.png)
 
 ### Air Quality Forecast
 
@@ -191,18 +201,18 @@ If the organization's cohort has no deployed devices yet, an empty-state banner 
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Map does not load | Check that your internet connection is working and that the map service is reachable. |
-| No markers appear | Try zooming out, clearing the country filter, or checking that data visibility is public. |
-| Organization map is blank | The organization data may be private or the cohort may have no deployed devices. |
-| Forecast is unavailable | Forecasts require sufficient historical data for the selected site. Try another site. |
-| "Unable to load cohort" | The organization address may be invalid or you may not have access. Retry or contact your administrator. |
+| Issue                     | Solution                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Map does not load         | Check that your internet connection is working and that the map service is reachable.                    |
+| No markers appear         | Try zooming out, clearing the country filter, or checking that data visibility is public.                |
+| Organization map is blank | The organization data may be private or the cohort may have no deployed devices.                         |
+| Forecast is unavailable   | Forecasts require sufficient historical data for the selected site. Try another site.                    |
+| "Unable to load cohort"   | The organization address may be invalid or you may not have access. Retry or contact your administrator. |
 
 ---
 
 ## Related Guides
 
 - [Air Quality Levels](./air-quality-levels.md)
+- [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md) — analyze trends and compare locations
 - [Nexus Dashboard](./nexus-dashboard.md)
-- [Favorite Locations](../managing-locations/favorite-locations.md)

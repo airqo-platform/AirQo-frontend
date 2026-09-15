@@ -5,7 +5,7 @@ sidebar_label: Creating an Account
 
 # Creating an Account
 
-Create a free AirQo Nexus account to explore air quality data, save favorite locations, and collaborate with your organization.
+Create a free AirQo Nexus account to explore air quality data, analyze trends and comparisons, and collaborate with your organization.
 
 ---
 
@@ -13,9 +13,9 @@ Create a free AirQo Nexus account to explore air quality data, save favorite loc
 
 AirQo Nexus supports two workflows:
 
-| Workflow | Best For | Web Address |
-|----------|----------|-------------|
-| **Individual** | Personal research, analysis, and exploration | `https://nexus.airqo.net/user/*` |
+| Workflow         | Best For                                                      | Web Address                                |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------------ |
+| **Individual**   | Personal research, analysis, and exploration                  | `https://nexus.airqo.net/user/*`           |
 | **Organization** | Teams, government agencies, and NGOs managing sensor networks | `https://nexus.airqo.net/org/<your-org>/*` |
 
 New accounts begin in the **Individual** workflow. You can switch to an organization from the header once you have been invited.
