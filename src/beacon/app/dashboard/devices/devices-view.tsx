@@ -247,19 +247,19 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGroup, groupLoading, deviceScope])
 
-  // Refetch devices when pagination, search, or scope changes
+  // Org devices are paginated and searched server-side, so refetch when those controls change
   useEffect(() => {
-    if (groupLoading || !activeGroup) return
-
-    if (deviceScope === "org") {
-      fetchDevices()
-    } else {
-      if (session?.accessToken) {
-        fetchMyDevices()
-      }
-    }
+    if (groupLoading || !activeGroup || deviceScope !== "org") return
+    fetchDevices()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, debouncedSearchTerm, showTracked, activeGroup, groupLoading, deviceScope, session?.accessToken])
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, showTracked, activeGroup, groupLoading, deviceScope])
+
+  // Personal devices are filtered and paginated in memory, so only refetch when the source changes
+  useEffect(() => {
+    if (groupLoading || !activeGroup || deviceScope !== "my" || !session?.accessToken) return
+    fetchMyDevices()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGroup, groupLoading, deviceScope, session?.accessToken])
 
   // Refresh all data
   const refreshData = () => {
@@ -390,15 +390,6 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     return sorted
   }, [deviceScope, sortedDevices, myDevices, searchTerm])
 
-  const paginatedDisplayedDevices = useMemo(() => {
-    if (deviceScope === "org") {
-      return displayedDevices
-    }
-
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return displayedDevices.slice(startIndex, startIndex + itemsPerPage)
-  }, [deviceScope, displayedDevices, currentPage, itemsPerPage])
-
   const currentTotalItems = useMemo(() => {
     return deviceScope === "org" ? totalDevices : displayedDevices.length
   }, [deviceScope, totalDevices, displayedDevices])
@@ -408,6 +399,20 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       ? totalPages
       : Math.ceil(displayedDevices.length / itemsPerPage) || 1
   }, [deviceScope, totalPages, displayedDevices, itemsPerPage])
+
+  // A refresh can shrink the personal list below the current page, so keep the page in range
+  const safeCurrentPage = deviceScope === "my"
+    ? Math.min(currentPage, currentTotalPages)
+    : currentPage
+
+  const paginatedDisplayedDevices = useMemo(() => {
+    if (deviceScope === "org") {
+      return displayedDevices
+    }
+
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage
+    return displayedDevices.slice(startIndex, startIndex + itemsPerPage)
+  }, [deviceScope, displayedDevices, safeCurrentPage, itemsPerPage])
 
   const currentItems = paginatedDisplayedDevices;
 
@@ -500,11 +505,10 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     setFirmwareDialogOpen(true)
   }, [])
 
-  // Handle successful device update
-  const handleUpdateSuccess = useCallback(() => {
+  // Handle successful device update. Not memoized, so the refresh uses the current page and search.
+  const handleUpdateSuccess = () => {
     refreshData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }
 
   // Handle row click to navigate to device details
   const handleRowClick = useCallback((deviceId: string) => {
@@ -800,7 +804,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                       </Select>
                     </div>
                     <Pagination
-                      currentPage={currentPage}
+                      currentPage={safeCurrentPage}
                       totalPages={currentTotalPages || 1}
                       onPageChange={setCurrentPage}
                       showInfo={true}

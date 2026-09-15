@@ -30,6 +30,9 @@ export const ROUTES = {
   FIRMWARE: "/dashboard/firmware",
   CATEGORIES: "/dashboard/category",
   STOCK: "/dashboard/stock",
+  USERS: "/dashboard/users",
+  ALERTS: "/dashboard/alerts",
+  SETTINGS: "/dashboard/settings",
 } as const
 
 export type NavModule = "devices" | "admin"
@@ -47,6 +50,8 @@ const ADMIN_ROUTE_PREFIXES = [
   ROUTES.FIRMWARE,
   ROUTES.CATEGORIES,
   ROUTES.STOCK,
+  // User management isn't in the admin menu yet, but it is an admin surface.
+  ROUTES.USERS,
 ]
 
 export function isAdminRoute(pathname: string): boolean {
@@ -110,7 +115,13 @@ export function getNavigationAccess({
   }
 }
 
-/** Routes not listed here are open to every signed-in user. */
+/**
+ * Whether the signed-in user may open a dashboard route. Admin-module routes
+ * (including user management) need the admin panel, and fleet views follow
+ * the group rules below. Everything else is deliberately open to any signed-in
+ * user: device detail pages (reachable from My Devices) and the user's own
+ * profile settings (ROUTES.SETTINGS).
+ */
 export function isRouteAccessible(pathname: string, access: NavigationAccess): boolean {
   if (isAdminRoute(pathname)) return access.canAccessAdminPanel
   if (matchesRoute(pathname, ROUTES.MY_DEVICES)) return access.showMyDevices
@@ -118,6 +129,8 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
   if (pathname === ROUTES.DEVICES) return access.showOrgDevices
   if (matchesRoute(pathname, ROUTES.ANALYTICS)) return access.canAccessAnalytics
   if (matchesRoute(pathname, ROUTES.MAINTENANCE)) return access.canAccessMaintenance
+  // Fleet-wide device alerts carry the same visibility as maintenance
+  if (matchesRoute(pathname, ROUTES.ALERTS)) return access.canAccessMaintenance
   if (matchesRoute(pathname, ROUTES.REPORTS)) return access.canAccessReports
   if (matchesRoute(pathname, ROUTES.VISUALISE) || matchesRoute(pathname, "/dashboard/visualize")) {
     return access.canAccessVisualise
@@ -125,9 +138,12 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
   return true
 }
 
-/** Landing page of the devices module: the drawer's "Home" and the guard's redirect target. */
+/**
+ * Landing page of the devices module: the drawer's "Home" and the guard's redirect target.
+ * As in Vertex, the AirQo (personal) context lands on the user's own devices.
+ */
 export function getDevicesHome(access: NavigationAccess): string {
-  return access.showOrgDevices ? ROUTES.DEVICES : ROUTES.MY_DEVICES
+  return access.showMyDevices ? ROUTES.MY_DEVICES : ROUTES.DEVICES
 }
 
 export interface RecentPage {

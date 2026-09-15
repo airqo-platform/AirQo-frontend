@@ -49,6 +49,10 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
   } | null>(null)
 
   const flyoutTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const flyoutRef = useRef<HTMLDivElement>(null)
+  // Where focus returns when a keyboard-opened flyout closes
+  const flyoutTriggerRef = useRef<HTMLElement | null>(null)
+  const focusFlyoutOnOpenRef = useRef(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -69,6 +73,25 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
     setActiveFlyout(null)
     setActiveTooltip(null)
   }, [pathname])
+
+  // Move focus into a flyout that was opened from the keyboard
+  useEffect(() => {
+    if (!activeFlyout || !focusFlyoutOnOpenRef.current) return
+    focusFlyoutOnOpenRef.current = false
+    flyoutRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
+  }, [activeFlyout])
+
+  // A press outside the flyout closes it; keyboard-opened flyouts never get a hover-out
+  useEffect(() => {
+    if (!activeFlyout) return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!flyoutRef.current?.contains(event.target as Node)) {
+        setActiveFlyout(null)
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [activeFlyout])
 
   // Handle hovering over a nav item
   const handleItemMouseEnter = useCallback((item: NavItemConfig, element: HTMLElement) => {
@@ -121,6 +144,63 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
     }, 180)
   }, [])
 
+  const closeFlyout = useCallback((restoreFocus: boolean) => {
+    if (flyoutTimeoutRef.current) {
+      clearTimeout(flyoutTimeoutRef.current)
+      flyoutTimeoutRef.current = null
+    }
+    setActiveFlyout(null)
+    if (restoreFocus) {
+      flyoutTriggerRef.current?.focus()
+    }
+  }, [])
+
+  // Keyboard access to subroute flyouts: ArrowRight/ArrowDown opens one and focuses its first entry
+  const handleTriggerKeyDown = (item: NavItemConfig, event: React.KeyboardEvent<HTMLAnchorElement>) => {
+    if (!item.subroutes?.length) return
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault()
+      flyoutTriggerRef.current = event.currentTarget
+      focusFlyoutOnOpenRef.current = true
+      handleItemMouseEnter(item, event.currentTarget.parentElement ?? event.currentTarget)
+    } else if (event.key === "Escape" && activeFlyout?.item.id === item.id) {
+      event.preventDefault()
+      closeFlyout(false)
+    }
+  }
+
+  const handleFlyoutKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const menuItems = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+    const currentIndex = menuItems.indexOf(document.activeElement as HTMLElement)
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault()
+        menuItems[(currentIndex + 1) % menuItems.length]?.focus()
+        break
+      case "ArrowUp":
+        event.preventDefault()
+        menuItems[currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1]?.focus()
+        break
+      case "Home":
+        event.preventDefault()
+        menuItems[0]?.focus()
+        break
+      case "End":
+        event.preventDefault()
+        menuItems[menuItems.length - 1]?.focus()
+        break
+      case "Escape":
+      case "ArrowLeft":
+      case "Tab":
+        // The flyout is portaled to the end of the page, so hand focus back to its trigger
+        event.preventDefault()
+        closeFlyout(true)
+        break
+    }
+  }
+
   const renderNavItem = (item: NavItemConfig) => {
     const Icon = item.icon
     const hasSubroutes = Boolean(item.subroutes && item.subroutes.length > 0)
@@ -154,6 +234,10 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
                 : "text-foreground hover:bg-muted"
             )}
             aria-current={isActive ? "page" : undefined}
+            aria-haspopup={hasSubroutes ? "menu" : undefined}
+            aria-expanded={hasSubroutes ? isFlyoutOpen : undefined}
+            aria-controls={isFlyoutOpen ? `sidebar-flyout-${item.id}` : undefined}
+            onKeyDown={(e) => handleTriggerKeyDown(item, e)}
           >
             <Icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-primary" : "text-foreground")} />
             <span className="sr-only">{item.label}</span>
@@ -188,6 +272,10 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
               : "text-foreground hover:bg-muted font-normal"
           )}
           aria-current={isActive ? "page" : undefined}
+          aria-haspopup={hasSubroutes ? "menu" : undefined}
+          aria-expanded={hasSubroutes ? isFlyoutOpen : undefined}
+          aria-controls={isFlyoutOpen ? `sidebar-flyout-${item.id}` : undefined}
+          onKeyDown={(e) => handleTriggerKeyDown(item, e)}
         >
           <div className="flex items-center justify-center flex-shrink-0 w-5 h-5">
             <Icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-foreground")} />
@@ -330,6 +418,11 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
         activeFlyout &&
         createPortal(
           <div
+            ref={flyoutRef}
+            id={`sidebar-flyout-${activeFlyout.item.id}`}
+            role="menu"
+            aria-label={activeFlyout.item.label}
+            onKeyDown={handleFlyoutKeyDown}
             className="fixed z-[99999] w-64 bg-card border border-border rounded-xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-150"
             style={{
               top: `${Math.min(activeFlyout.top, typeof window !== "undefined" ? window.innerHeight - 280 : activeFlyout.top)}px`,
@@ -338,16 +431,21 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
             onMouseEnter={handleFlyoutMouseEnter}
             onMouseLeave={handleFlyoutMouseLeave}
           >
-            <div className="px-3 py-1.5 mb-1.5 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div
+              className="px-3 py-1.5 mb-1.5 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+              aria-hidden="true"
+            >
               {activeFlyout.item.label}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1" role="none">
               {activeFlyout.item.subroutes!.map((sub) => {
                 const isSubActive = isSubRouteActive(sub, pathname)
                 return (
                   <Link
                     key={sub.id}
                     href={sub.href}
+                    role="menuitem"
+                    tabIndex={-1}
                     onClick={() => setActiveFlyout(null)}
                     className={cn(
                       "block p-2.5 rounded-lg text-xs transition-colors",

@@ -1,12 +1,11 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { ChevronDown, ChevronRight, Clock, ShieldCheck } from "lucide-react"
 import { AqAirQo, AqHomeSmile, AqXClose } from "@airqo/icons-react"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -144,6 +143,11 @@ function DrawerFlyout({
  * Mirrors Vertex: Home returns to the devices module, the Administrative Panel
  * (AirQo maintainers only) switches to the admin module, and Recently Visited
  * jumps back to recent pages.
+ *
+ * Built on Radix Dialog for the modal behaviour: focus is trapped inside and
+ * restored on close, Escape and the backdrop close it, the background is
+ * hidden from assistive tech, and the scroll lock is shared with Beacon's
+ * other dialogs.
  */
 export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readonly<PrimarySidebarProps>) {
   const pathname = usePathname()
@@ -151,10 +155,8 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
   const access = useNavigationAccess()
   const { activeGroup } = useGroup()
   const { visitedPages } = useRecentlyVisited()
-  const drawerRef = useRef<HTMLDivElement>(null)
-  const previousActiveElement = useRef<Element | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [mounted, setMounted] = useState(false)
   const [openFlyout, setOpenFlyout] = useState<FlyoutMenu | null>(null)
 
   const devicesHome = getDevicesHome(access)
@@ -162,45 +164,14 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
   const moduleSections = getSidebarSections(activeModule, access)
 
   useEffect(() => {
-    setMounted(true)
     return () => {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     }
   }, [])
 
-  // Focus management
   useEffect(() => {
-    if (isOpen) {
-      previousActiveElement.current = document.activeElement
-      setTimeout(() => {
-        drawerRef.current?.focus()
-      }, 0)
-    } else {
-      setOpenFlyout(null)
-      if (previousActiveElement.current instanceof HTMLElement) {
-        previousActiveElement.current.focus()
-      }
-    }
+    if (!isOpen) setOpenFlyout(null)
   }, [isOpen])
-
-  // Escape key handler and body scroll lock
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose()
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
-      document.body.style.overflow = "hidden"
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = ""
-    }
-  }, [isOpen, onClose])
 
   const cancelFlyoutClose = () => {
     if (closeTimeoutRef.current) {
@@ -234,44 +205,34 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
     }
   }
 
-  if (!mounted) return null
-
-  return createPortal(
-    <div
-      className={cn(
-        "fixed inset-0 z-[10000] transition-[opacity,visibility] duration-300",
-        isOpen ? "visible opacity-100" : "invisible opacity-0 pointer-events-none"
-      )}
-      aria-hidden={!isOpen}
+  return (
+    <DialogPrimitive.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
     >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-[2px] transition-opacity duration-300"
-        onClick={onClose}
-        aria-label="Close navigation menu"
-      />
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-[10000] bg-black/40 dark:bg-black/70 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
-      {/* Drawer */}
-      <div
-        className={cn(
-          "fixed left-0 top-0 h-full w-72 max-w-[90vw] z-[10001] shadow-2xl transition-transform duration-300 ease-out",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <Card
-          ref={drawerRef}
-          className="h-full rounded-none border-r border-y-0 border-l-0 border-border bg-card p-0 flex flex-col focus:outline-none"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
-          tabIndex={-1}
+        <DialogPrimitive.Content
+          ref={contentRef}
+          aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            // Focus the panel itself rather than jumping to its first control
+            event.preventDefault()
+            contentRef.current?.focus()
+          }}
+          className="fixed inset-y-0 left-0 z-[10001] flex h-full w-72 max-w-[90vw] flex-col border-r border-border bg-card shadow-2xl duration-300 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
         >
           {/* Drawer Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2.5 min-w-0">
               <AqAirQo size={36} color="#0A84FF" />
               <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="font-bold text-lg leading-tight text-foreground">Beacon</span>
+                <DialogPrimitive.Title className="font-bold text-lg leading-tight text-foreground">
+                  Beacon
+                </DialogPrimitive.Title>
                 {activeGroup && (
                   <span
                     className="inline-block w-fit max-w-[160px] truncate px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary"
@@ -282,15 +243,16 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
                 )}
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-              aria-label="Close navigation menu"
-            >
-              <AqXClose className="h-4 w-4" />
-            </Button>
+            <DialogPrimitive.Close asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                aria-label="Close navigation menu"
+              >
+                <AqXClose className="h-4 w-4" />
+              </Button>
+            </DialogPrimitive.Close>
           </div>
 
           {/* Drawer Content */}
@@ -392,9 +354,8 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
               Organization: <strong className="text-foreground">{activeGroup || "—"}</strong>
             </div>
           </div>
-        </Card>
-      </div>
-    </div>,
-    document.body
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }
