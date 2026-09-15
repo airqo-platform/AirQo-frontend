@@ -1,9 +1,6 @@
 name: Staging Shutdown
 
 on:
-  schedule:
-    - cron: '0 21 * * 1-5'   # Midnight EAT (21:00 UTC) Mon-Fri
-    - cron: '0 15 * * 6,0'   # 6PM EAT (15:00 UTC) Sat-Sun
   workflow_dispatch:
 
 concurrency:
