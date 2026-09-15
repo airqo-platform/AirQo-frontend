@@ -15,6 +15,7 @@ interface RankingsLeaderboardProps {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  totalCount?: number | null;
   className?: string;
 }
 
@@ -43,6 +44,7 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
   isLoading = false,
   error = null,
   onRetry,
+  totalCount = null,
   className,
 }) => {
   const generatedAt = rankings[0]?.generated_at;
@@ -182,6 +184,9 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
         generatedAt ? (
           <span className="text-xs text-muted-foreground">
             Updated {formatRankingsGeneratedAt(generatedAt)}
+            {totalCount != null &&
+              totalCount > rankings.length &&
+              ` · Showing ${rankings.length} of ${totalCount}`}
           </span>
         ) : undefined
       }

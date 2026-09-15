@@ -26,15 +26,13 @@ export function useRankingsHistory(
     params.level ?? 'country',
     params.start_year,
     params.end_year,
+    params.country ?? 'all',
   ];
 
   const query = useQuery<RankingsHistoryResponse['data'], Error>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const response = await rankingsService.getRankingsHistory(
-        params,
-        signal
-      );
+      const response = await rankingsService.getRankingsHistory(params, signal);
 
       if (!response?.success) {
         throw new Error(response?.message || 'Failed to get rankings history');

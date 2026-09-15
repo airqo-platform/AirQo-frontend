@@ -5,32 +5,38 @@ import { rankingsService } from '@/shared/services/rankingsService';
 import { boundedRetryPolicy } from '@/shared/lib/retryPolicy';
 import { sortRankingEntries } from '../utils/rankings';
 import type {
+  RankingEntry,
+  RankingsMeta,
   RankingsParams,
-  RankingsResponse,
 } from '@/shared/types/api';
 
 const RANKINGS_STALE_TIME_MS = 1000 * 60 * 5;
 const RANKINGS_GC_TIME_MS = 1000 * 60 * 60 * 12;
 
+interface RankingsQueryResult {
+  entries: RankingEntry[];
+  meta: RankingsMeta | null;
+}
+
 /**
  * Fetches the current African AQI rankings leaderboard.
  *
  * The query key is derived from a stable serialization of the params object
- * so that re-renders never fire redundant requests.
+ * so that re-renders never fire redundant requests. The country code is part
+ * of the key so switching countries can never serve another country's cached
+ * rows.
  */
-export function useRankings(
-  params: RankingsParams = {},
-  enabled = true
-) {
+export function useRankings(params: RankingsParams = {}, enabled = true) {
   const queryKey = [
     'analytics',
     'rankings',
     params.level ?? 'country',
     params.sort ?? 'worst',
     params.limit ?? 20,
+    params.country ?? 'all',
   ];
 
-  const query = useQuery<RankingsResponse['data'], Error>({
+  const query = useQuery<RankingsQueryResult, Error>({
     queryKey,
     queryFn: async ({ signal }) => {
       const response = await rankingsService.getRankings(params, signal);
@@ -39,7 +45,10 @@ export function useRankings(
         throw new Error(response?.message || 'Failed to get rankings');
       }
 
-      return response.data ?? [];
+      return {
+        entries: response.data ?? [],
+        meta: response.data ? (response.meta ?? null) : null,
+      };
     },
     enabled,
     networkMode: 'online',
@@ -51,7 +60,11 @@ export function useRankings(
   });
 
   return {
-    rankings: sortRankingEntries(query.data ?? [], params.sort ?? 'worst'),
+    rankings: sortRankingEntries(
+      query.data?.entries ?? [],
+      params.sort ?? 'worst'
+    ),
+    rankingsMeta: query.data?.meta ?? null,
     isLoading: query.isLoading,
     isRefreshing: query.isFetching,
     error: query.error ? (query.error.message ?? null) : null,

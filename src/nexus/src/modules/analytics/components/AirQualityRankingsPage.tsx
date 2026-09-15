@@ -11,6 +11,7 @@ import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useRankings } from '../hooks/useRankings';
 import { useRankingsHistory } from '../hooks/useRankingsHistory';
+import { useRankingCountries } from '../hooks/useRankingCountries';
 import { AqiLegend } from './explorer/AqiLegend';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import {
@@ -66,9 +67,9 @@ interface AirQualityRankingsPageProps {
  * The AQI legend is placed at the page level (above the leaderboard) so it
  * stays visible across both the live and historical tabs without repeating.
  */
-export const AirQualityRankingsPage: React.FC<
-  AirQualityRankingsPageProps
-> = ({ className }) => {
+export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
+  className,
+}) => {
   const posthog = usePostHog();
   const { config: aqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig('pm2_5');
@@ -77,6 +78,7 @@ export const AirQualityRankingsPage: React.FC<
   const [level, setLevel] = useState<RankingsLevel>('country');
   const [sort, setSort] = useState<RankingsSort>('worst');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
+  const [country, setCountry] = useState<string>('');
 
   // Persist the active tab so a refresh returns to the same view.
   useEffect(() => {
@@ -94,11 +96,20 @@ export const AirQualityRankingsPage: React.FC<
 
   const {
     rankings,
+    rankingsMeta,
     isLoading: rankingsLoading,
     isRefreshing,
     error: rankingsError,
     refetch: refetchRankings,
-  } = useRankings({ level, sort, limit }, tab === 'live');
+  } = useRankings(
+    {
+      level,
+      sort,
+      limit,
+      country: level === 'city' && country ? country : undefined,
+    },
+    tab === 'live'
+  );
 
   const {
     history,
@@ -107,14 +118,35 @@ export const AirQualityRankingsPage: React.FC<
     error: historyError,
     refetch: refetchHistory,
   } = useRankingsHistory(
-    { level: historyLevel, start_year: startYear, end_year: endYear },
+    {
+      level: historyLevel,
+      start_year: startYear,
+      end_year: endYear,
+      country: historyLevel === 'city' && country ? country : undefined,
+    },
     tab === 'history'
   );
+
+  const showCountryFilter =
+    (tab === 'live' && level === 'city') ||
+    (tab === 'history' && historyLevel === 'city');
+
+  const { countries, isLoading: countriesLoading } =
+    useRankingCountries(showCountryFilter);
+
+  const selectedCountryName = country
+    ? (countries.find(c => c.country_code === country)?.country_name ?? null)
+    : null;
+
+  const selectedHistoryFrom = country
+    ? (countries.find(c => c.country_code === country)?.history_from ?? null)
+    : null;
 
   useEffect(() => {
     posthog?.capture('air_quality_rankings_viewed', {
       tab,
       level: tab === 'live' ? level : historyLevel,
+      country: country || 'all',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -127,8 +159,7 @@ export const AirQualityRankingsPage: React.FC<
     }
   }, [tab, refetchHistory, refetchRankings]);
 
-  const isRefreshingAny =
-    tab === 'live' ? isRefreshing : historyRefreshing;
+  const isRefreshingAny = tab === 'live' ? isRefreshing : historyRefreshing;
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -192,9 +223,7 @@ export const AirQualityRankingsPage: React.FC<
               <select
                 aria-label="Number of entries"
                 value={limit}
-                onChange={event =>
-                  setLimit(Number(event.target.value) || 20)
-                }
+                onChange={event => setLimit(Number(event.target.value) || 20)}
                 className="h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-2 py-0.5 text-xs"
               >
                 {LIMIT_OPTIONS.map(option => (
@@ -203,6 +232,22 @@ export const AirQualityRankingsPage: React.FC<
                   </option>
                 ))}
               </select>
+              {level === 'city' && (
+                <select
+                  aria-label="Country filter"
+                  value={country}
+                  onChange={event => setCountry(event.target.value)}
+                  disabled={countriesLoading}
+                  className="h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-2 py-0.5 text-xs"
+                >
+                  <option value="">All countries</option>
+                  {countries.map(c => (
+                    <option key={c.country_code} value={c.country_code}>
+                      {c.country_name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </CardContent>
           </Card>
 
@@ -210,6 +255,7 @@ export const AirQualityRankingsPage: React.FC<
             rankings={rankings}
             aqiConfig={aqiConfig ?? null}
             isLoading={rankingsLoading || aqiConfigLoading}
+            totalCount={rankingsMeta?.total ?? null}
           />
 
           <RankingsLeaderboard
@@ -218,6 +264,7 @@ export const AirQualityRankingsPage: React.FC<
             isLoading={rankingsLoading}
             error={rankingsError}
             onRetry={() => void refetchRankings()}
+            totalCount={rankingsMeta?.total ?? null}
           />
         </>
       ) : (
@@ -231,6 +278,12 @@ export const AirQualityRankingsPage: React.FC<
                 onLevelChange={setHistoryLevel}
                 onStartYearChange={setStartYear}
                 onEndYearChange={setEndYear}
+                country={country}
+                onCountryChange={setCountry}
+                countryOptions={countries}
+                countryName={selectedCountryName}
+                historyFrom={selectedHistoryFrom}
+                countriesLoading={countriesLoading}
                 disabled={historyLoading}
               />
             </CardContent>
@@ -240,6 +293,7 @@ export const AirQualityRankingsPage: React.FC<
             history={history}
             aqiConfig={aqiConfig ?? null}
             isLoading={historyLoading}
+            countryName={historyLevel === 'city' ? selectedCountryName : null}
           />
 
           <RankingsHistoryTable

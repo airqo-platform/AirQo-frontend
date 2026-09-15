@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import SelectField from '@/shared/components/ui/select';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
-import type { RankingsLevel } from '@/shared/types/api';
+import type { RankingCountry, RankingsLevel } from '@/shared/types/api';
 import { InfoBanner } from '@/shared/components/ui/banner';
 
 const MAX_SPAN_YEARS = 5;
@@ -20,6 +20,12 @@ interface RankingsHistoryFiltersProps {
   onLevelChange: (level: RankingsLevel) => void;
   onStartYearChange: (year: number) => void;
   onEndYearChange: (year: number) => void;
+  country: string;
+  onCountryChange: (countryCode: string) => void;
+  countryOptions: RankingCountry[];
+  countryName?: string | null;
+  historyFrom?: number | null;
+  countriesLoading?: boolean;
   disabled?: boolean;
 }
 
@@ -38,15 +44,19 @@ const buildYearOptions = (): number[] => {
  * years that keep the range valid — the browser can't produce an invalid
  * request instead of being told off after the fact.
  */
-export const RankingsHistoryFilters: React.FC<
-  RankingsHistoryFiltersProps
-> = ({
+export const RankingsHistoryFilters: React.FC<RankingsHistoryFiltersProps> = ({
   level,
   startYear,
   endYear,
   onLevelChange,
   onStartYearChange,
   onEndYearChange,
+  country,
+  onCountryChange,
+  countryOptions,
+  countryName = null,
+  historyFrom = null,
+  countriesLoading = false,
   disabled = false,
 }) => {
   const yearOptions = useMemo(buildYearOptions, []);
@@ -92,6 +102,24 @@ export const RankingsHistoryFilters: React.FC<
           />
         </div>
 
+        {level === 'city' && (
+          <SelectField
+            label="Country"
+            value={country}
+            onChange={event => onCountryChange(event.target.value as string)}
+            disabled={disabled || countriesLoading}
+            className="w-40"
+            containerClassName="w-40"
+          >
+            <option value="">All countries</option>
+            {countryOptions.map(option => (
+              <option key={option.country_code} value={option.country_code}>
+                {option.country_name}
+              </option>
+            ))}
+          </SelectField>
+        )}
+
         <SelectField
           label="Start year"
           value={startYear}
@@ -133,6 +161,16 @@ export const RankingsHistoryFilters: React.FC<
           title={`Year ranges are capped at ${MAX_SPAN_YEARS} years. Select a smaller range for older data.`}
         />
       )}
+
+      {level === 'city' &&
+        country &&
+        historyFrom &&
+        startYear < historyFrom && (
+          <InfoBanner
+            dense
+            title={`City-level history for ${countryName} starts in ${historyFrom}. Earlier years will show no data.`}
+          />
+        )}
     </div>
   );
 };
