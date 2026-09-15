@@ -38,6 +38,7 @@ interface HistoryRow {
   name: string;
   level: string;
   country_code: string | null;
+  country_name?: string | null;
   site_count: number | null;
   [year: string]: unknown;
 }
@@ -70,10 +71,13 @@ export const RankingsHistoryTable: React.FC<RankingsHistoryTableProps> = ({
         .reverse()
         .find(value => typeof value.avg_pm2_5 === 'number');
       const row: HistoryRow = {
-        id: entry.name,
+        // Key by country_code:name to prevent cross-country React key
+        // collisions when two countries contain a city with the same name.
+        id: `${entry.country_code ?? 'xx'}:${entry.name}`,
         name: entry.name,
         level: entry.level,
         country_code: entry.country_code,
+        country_name: entry.country_name,
         site_count: latestYear?.site_count ?? null,
       };
       entry.values.forEach(value => {
@@ -99,7 +103,8 @@ export const RankingsHistoryTable: React.FC<RankingsHistoryTableProps> = ({
             {item.country_code ? (
               <Image
                 src={`https://flagcdn.com/w40/${item.country_code.toLowerCase()}.png`}
-                alt=""
+                alt={item.country_name ?? ''}
+                title={item.country_name ?? ''}
                 width={20}
                 height={14}
                 className="h-3.5 w-5 flex-shrink-0 rounded-[2px] object-cover"
@@ -172,8 +177,8 @@ export const RankingsHistoryTable: React.FC<RankingsHistoryTableProps> = ({
       className={className}
       customHeader={
         <span className="w-full text-left text-xs text-muted-foreground">
-          Average PM2.5 (µg/m³) per year. Years without data are shown as a
-          dash — they are not treated as clean air.
+          Average PM2.5 (µg/m³) per year. Years without data are shown as a dash
+          — they are not treated as clean air.
         </span>
       }
       emptyComponent={

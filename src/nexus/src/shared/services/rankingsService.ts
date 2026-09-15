@@ -5,6 +5,7 @@ import type {
   RankingsHistoryParams,
   RankingsResponse,
   RankingsHistoryResponse,
+  RankingsCountriesResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -76,6 +77,23 @@ export class RankingsService {
     }
 
     return data as RankingsHistoryResponse;
+  }
+
+  // Get the list of countries that have rankable locations (reading in the
+  // last 3 days). Used to populate the country filter dropdowns.
+  async getRankingCountries(
+    signal?: AbortSignal
+  ): Promise<RankingsCountriesResponse> {
+    const response = await this.serverClient.get<
+      RankingsCountriesResponse | ApiErrorResponse
+    >('/devices/readings/rankings/countries', { signal });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get ranking countries');
+    }
+
+    return data as RankingsCountriesResponse;
   }
 }
 

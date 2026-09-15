@@ -2906,12 +2906,14 @@ export interface RankingsParams {
   level?: RankingsLevel;
   sort?: RankingsSort;
   limit?: number;
+  country?: string;
 }
 
 export interface RankingsHistoryParams {
   level?: RankingsLevel;
   start_year: number;
   end_year: number;
+  country?: string;
 }
 
 // AQI category strings as returned by the rankings API (snake_case keys,
@@ -2924,6 +2926,7 @@ export interface RankingEntry {
   name: string;
   level: RankingsLevel;
   country_code: string | null;
+  country_name?: string | null;
   avg_pm2_5: number | null;
   aqi_index: number | null;
   aqi_category: RankingsAqiCategory | null;
@@ -2931,10 +2934,32 @@ export interface RankingEntry {
   generated_at: string;
 }
 
+export interface RankingsMeta {
+  total: number;
+  limit: number;
+  skip: number;
+}
+
 export interface RankingsResponse {
   success: boolean;
   message: string;
   data: RankingEntry[];
+  meta?: RankingsMeta;
+}
+
+export interface RankingCountry {
+  country_code: string;
+  country_name: string;
+  city_count: number;
+  site_count: number;
+  latest_reading_at: string | null;
+  history_from: number | null;
+}
+
+export interface RankingsCountriesResponse {
+  success: boolean;
+  message: string;
+  data: RankingCountry[];
 }
 
 export interface RankingYearValue {
@@ -2948,6 +2973,7 @@ export interface RankingHistoryEntry {
   name: string;
   level: RankingsLevel;
   country_code: string | null;
+  country_name?: string | null;
   values: RankingYearValue[];
 }
 
