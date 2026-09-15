@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
@@ -139,6 +139,14 @@ jest.mock('@/modules/location-insights/more-insights', () => ({
   default: () => null,
 }));
 
+// AddLocation is mounted by ComparisonView to render the "Add Location"
+// dialog pushed onto the Redux stack — stub its default export so the mount
+// is exercised without its data-fetching machinery.
+jest.mock('@/modules/location-insights/add-location', () => ({
+  __esModule: true,
+  default: () => <div data-testid="add-location" />,
+}));
+
 const mockToSiteSlug = jest.fn(
   (name: string) =>
     name
@@ -267,7 +275,10 @@ const makeSavedComparison = (
   ...overrides,
 });
 
-const renderComparisonView = (groupId = 'group-1') => {
+const renderComparisonView = (
+  groupId = 'group-1',
+  viewProps: { isOrganizationFlow?: boolean; organizationSlug?: string } = {}
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -286,7 +297,7 @@ const renderComparisonView = (groupId = 'group-1') => {
   const utils = render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <ComparisonView groupId={groupId} />
+        <ComparisonView groupId={groupId} {...viewProps} />
       </QueryClientProvider>
     </Provider>
   );
@@ -792,6 +803,126 @@ describe('ComparisonView integration (saved comparisons)', () => {
     );
   });
 
+  it('mounts the AddLocation dialog so the "Add Location" action has a target', async () => {
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView();
+
+    // The AddLocation dialog (stubbed) is present in the ComparisonView tree.
+    expect(await screen.findByTestId('add-location')).toBeInTheDocument();
+  });
+
+  it('does not currently delete a comparison that belongs to a different group than the active one (stale delete target)', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-a',
+        name: 'Group A Pick',
+        site_ids: ['site-1'],
+        group_id: 'group-A',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    const { rerender } = render(buildView('group-A'));
+
+    // Auto-loads site-1 for group A.
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the dropdown and click the trash icon for the group A record.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+    const trashButton = screen.getByRole('button', {
+      name: /delete saved comparison group a pick/i,
+    });
+    await user.click(trashButton);
+
+    // The delete confirmation dialog is visible.
+    expect(screen.getByText('Delete saved comparison?')).toBeInTheDocument();
+
+    // Switch to group B while the dialog is open.
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'comp-b',
+        name: 'Group B Pick',
+        site_ids: ['site-2'],
+        group_id: 'group-B',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    rerender(buildView('group-B'));
+
+    // The group switch dismisses the stale dialog (the effect clears
+    // pendingDelete), so the group-A record can never be deleted while
+    // group B is active.
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Delete saved comparison?')
+      ).not.toBeInTheDocument()
+    );
+
+    expect(comparisonsService.remove).not.toHaveBeenCalled();
+  });
+
+  it('routes site clicks through the org site-details sub-route in the organization flow', async () => {
+    const user = userEvent.setup();
+    mockReadings = [makeReading({ site_id: 'site-1' })];
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView('org-group', {
+      isOrganizationFlow: true,
+      organizationSlug: 'acme',
+    });
+
+    // Pick a location so the table renders.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+    expect(await screen.findByText('72')).toBeInTheDocument();
+
+    // Click the site name button.
+    const siteButton = screen.getByRole('button', {
+      name: /view details for kampala site/i,
+    });
+    await user.click(siteButton);
+
+    // router.push was called with the org-scoped site-details sub-route.
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    const pushUrl: string = mockPush.mock.calls[0][0];
+    expect(pushUrl).toContain('/org/acme/data-export/sites/');
+    expect(pushUrl).toContain('site_id=site-1');
+  });
+
+  it('does not navigate when isOrganizationFlow is true but organizationSlug is empty (org context still resolving)', async () => {
+    const user = userEvent.setup();
+    mockReadings = [makeReading({ site_id: 'site-1' })];
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+
+    renderComparisonView('org-group', {
+      isOrganizationFlow: true,
+      organizationSlug: '',
+    });
+
+    // Pick a location so the table renders.
+    const checkbox = await screen.findByLabelText('Select item site-1');
+    await user.click(checkbox);
+    expect(await screen.findByText('72')).toBeInTheDocument();
+
+    // Click the site name button.
+    const siteButton = screen.getByRole('button', {
+      name: /view details for kampala site/i,
+    });
+    await user.click(siteButton);
+
+    // router.push must NOT have been called — the slug is still resolving,
+    // so we must not fall through to the user-flow route.
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
   it('discards a completed save that belongs to a group the user has left (stale-completion guard)', async () => {
     const user = userEvent.setup();
     // Group A has a saved comparison with site-1.
@@ -1022,6 +1153,53 @@ describe('ComparisonView integration (saved comparisons)', () => {
         { timeout: 3000 }
       )
     ).toBeInTheDocument();
+  });
+
+  it('exposes keyboard-focusable, Enter-activatable saved-comparison menu items', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [
+      makeSavedComparison({
+        id: 'first',
+        name: 'First Pick',
+        site_ids: ['site-1'],
+        updated_at: '2026-08-22T00:00:00Z',
+      }),
+      makeSavedComparison({
+        id: 'second',
+        name: 'Second Pick',
+        site_ids: ['site-2'],
+        updated_at: '2026-08-01T00:00:00Z',
+      }),
+    ];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+
+    renderComparisonView();
+
+    // First Pick auto-loads (site-1 checked).
+    const siteOneCheckbox = await screen.findByLabelText('Select item site-1');
+    await waitFor(() => expect(siteOneCheckbox).toBeChecked());
+
+    // Open the "Saved comparisons" dropdown.
+    await user.click(
+      screen.getByRole('button', { name: /saved comparisons/i })
+    );
+
+    // The "load comparison" menu item is focusable.
+    const menuItem = screen
+      .getByText('Second Pick')
+      .closest('[role="menuitem"]') as HTMLElement;
+    expect(menuItem).not.toBeNull();
+    expect(menuItem).toHaveAttribute('tabindex', '0');
+    menuItem.focus();
+    expect(menuItem).toHaveFocus();
+
+    // Enter activates it — loads the second comparison's site (site-2).
+    fireEvent.keyDown(menuItem, { key: 'Enter' });
+    const siteTwoCheckbox = await screen.findByLabelText('Select item site-2');
+    await waitFor(() => expect(siteTwoCheckbox).toBeChecked());
+    await waitFor(() =>
+      expect(screen.getByLabelText('Select item site-1')).not.toBeChecked()
+    );
   });
 
   it('opens More Insights for a row via the "View insights" action', async () => {

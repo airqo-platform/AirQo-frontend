@@ -41,6 +41,11 @@ interface ComparisonTableViewProps {
   pm10Config?: AqiConfig | null;
   /** Opens the reusable site-details dialog for this row. */
   onSiteClick?: (row: ComparisonRow) => void;
+  /**
+   * Exports the comparison table payload — the caller owns the data; the
+   * table stays presentational. When omitted, no export control is rendered.
+   */
+  onExport?: () => void;
   /** Opens the More-Insights dialog for a single row's location. */
   onViewInsights?: (row: ComparisonRow) => void;
   /** siteId → explicit series color; when set, a color dot precedes the site name. */
@@ -106,10 +111,42 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   pm10Config = null,
   onSiteClick,
   onViewInsights,
+  onExport,
   siteColorBySiteId,
 }) => {
   const [sortKey, setSortKey] = useState<ComparisonSortKey>('aqi');
   const [sortDir, setSortDir] = useState<ComparisonSortDir>('desc');
+
+  /**
+   * Table header area: the "click a site" affordance plus the export control
+   * (right-aligned). The export control stays mounted — disabled — while no
+   * rows exist, so the action is discoverable even in the empty state.
+   */
+  const renderHeaderBar = () => (
+    <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-2">
+      {onSiteClick && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <HiInformationCircle
+            className="h-3.5 w-3.5 shrink-0"
+            aria-hidden="true"
+          />
+          Click a site to view its details
+        </p>
+      )}
+      {onExport && (
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          aria-label="Export comparison"
+          disabled={rows.length === 0 || isLoading}
+          onClick={onExport}
+        >
+          Export
+        </Button>
+      )}
+    </div>
+  );
 
   const columns = useMemo<DataTableColumn<ComparisonRow>[]>(
     () => [
@@ -277,36 +314,38 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
 
   if (!hasSelection) {
     return (
-      <EmptyState
-        title="Pick locations to compare"
-        description="Select one or more locations above to see their latest air-quality readings side by side."
-        className={className}
-      />
+      <Card className={className}>
+        <CardContent className="p-0">
+          {renderHeaderBar()}
+          <EmptyState
+            title="Pick locations to compare"
+            description="Select one or more locations above to see their latest air-quality readings side by side."
+            className={className}
+          />
+        </CardContent>
+      </Card>
     );
   }
 
   if (sortedRows.length === 0 && !isLoading) {
     return (
-      <EmptyState
-        title="No recent readings"
-        description="None of the selected locations returned a recent reading. Try different locations or check back later."
-        className={className}
-      />
+      <Card className={className}>
+        <CardContent className="p-0">
+          {renderHeaderBar()}
+          <EmptyState
+            title="No recent readings"
+            description="None of the selected locations returned a recent reading. Try different locations or check back later."
+            className={className}
+          />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <Card className={className}>
       <CardContent className="p-0">
-        {onSiteClick && (
-          <p className="flex items-center gap-1.5 border-b border-border/50 px-4 pb-2.5 pt-3 text-xs text-muted-foreground">
-            <HiInformationCircle
-              className="h-3.5 w-3.5 shrink-0"
-              aria-hidden="true"
-            />
-            Click a site to view its details
-          </p>
-        )}
+        {renderHeaderBar()}
         <DataTable
           data={sortedRows}
           columns={columns}

@@ -42,7 +42,9 @@ import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import type { AqiPollutant } from '@/shared/types/aqi';
 import { ComparisonSitePicker } from './ComparisonSitePicker';
 import { ComparisonTableView } from './ComparisonTableView';
+import { downloadComparisonCsv } from './comparisonExport';
 import MoreInsights from '@/modules/location-insights/more-insights';
+import AddLocation from '@/modules/location-insights/add-location';
 import { toSiteSlug } from '@/modules/data-download/utils/siteDetails';
 import { rememberSiteSlug } from '@/modules/data-download/hooks/useResolveSiteByName';
 import ReusableDialog from '@/shared/components/ui/dialog';
@@ -55,6 +57,10 @@ interface ComparisonViewProps {
   /** Organization group id; empty in the user flow (uses the active group). */
   groupId?: string;
   className?: string;
+  /** When true, site clicks route into the org analytics sub-route. */
+  isOrganizationFlow?: boolean;
+  /** Org slug used to build the org site-details URL in the org flow. */
+  organizationSlug?: string;
 }
 
 const SAVED_INDICATOR_MS = 1500;
@@ -148,6 +154,8 @@ const buildComparisonSitesSnapshot = (
 export const ComparisonView: React.FC<ComparisonViewProps> = ({
   groupId,
   className,
+  isOrganizationFlow = false,
+  organizationSlug,
 }) => {
   const { user } = useUser();
   const resolvedUserId = user?.id ?? '';
@@ -198,6 +206,9 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       selectionGroupRef.current = group;
       setPickerIds([]);
       setLoadedComparison(null);
+      // A dialog opened for a record in the previous group must not survive
+      // into the new group (AGENTS.md group-switch guard).
+      setPendingDelete(null);
       // Clear picker rows so stale group-A rows never bleed into a group-B
       // save snapshot.
       pickerRowsRef.current = new Map();
@@ -463,6 +474,14 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   const handleConfirmDelete = useCallback(async () => {
     const target = pendingDelete;
     if (!target) return;
+    // Never delete a record belonging to a different group than the one
+    // currently active — a dialog opened in group A can outlive the switch
+    // to group B (AGENTS.md: invalidation on group switch; never resolve a
+    // stale group's mutation into the current group).
+    if (target.group_id !== activeGroupRef.current) {
+      setPendingDelete(null);
+      return;
+    }
     setPendingDelete(null);
     setSaveError(null);
     const id = target.id;
@@ -547,6 +566,12 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
 
   const isSaving = isMutating;
 
+  // Exports the latest-readings table as CSV — closed over `rows`, so the
+  // table stays presentational (no data plumbing, just the trigger).
+  const handleExport = useCallback(() => {
+    downloadComparisonCsv(rows);
+  }, [rows]);
+
   // Clicking a site opens its details in a sub-route (Data Export pattern):
   // write the slug index so the details page resolves instantly and exactly,
   // then navigate with the authoritative site id.
@@ -557,11 +582,21 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         siteId: row.siteId,
         displayName: row.siteName,
       });
+      // In the organization flow the site details live under the org
+      // data-export route, not the user route — keep the user bounded to
+      // their own analytics. When the org slug is still resolving (empty),
+      // do not fall through to the user-flow URL — that would leak an org
+      // click into the user's own analytics route.
+      if (isOrganizationFlow && !organizationSlug) return;
+      const base =
+        isOrganizationFlow && organizationSlug
+          ? `/org/${organizationSlug}/data-export/sites`
+          : '/user/air-quality/analytics/sites';
       void router.push(
-        `/user/air-quality/analytics/sites/${slug}?site_id=${encodeURIComponent(row.siteId)}`
+        `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`
       );
     },
-    [router]
+    [router, isOrganizationFlow, organizationSlug]
   );
 
   return (
@@ -724,6 +759,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         pm10Config={pm10Config}
         onSiteClick={handleSiteClick}
         onViewInsights={handleViewInsights}
+        onExport={handleExport}
         siteColorBySiteId={siteColorBySiteId}
       />
 
@@ -796,6 +832,11 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
       </ReusableDialog>
 
       <MoreInsights activeTab="sites" />
+
+      {/* MoreInsights' "Add Location" action pushes the add-location dialog
+          onto the Redux stack; this mount is what renders it in the
+          Comparison tab (mirrors DataExportPage's pairing). */}
+      <AddLocation />
     </div>
   );
 };

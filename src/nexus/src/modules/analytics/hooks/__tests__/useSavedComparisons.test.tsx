@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { SWRConfig } from 'swr';
+import { SWRConfig, unstable_serialize } from 'swr';
 import type { SavedComparisonListResponse } from '@/shared/types/api';
 
 const mockList = jest.fn();
@@ -334,7 +334,10 @@ describe('useSavedComparisons', () => {
     // Simulate a persisted (but stale) cache entry with an empty list — the
     // exact scenario that caused the live bug.
     const sharedCache = new Map();
-    const staleKey = JSON.stringify(buildSavedComparisonsKey('group-1'));
+    // SWR 2.x serializes array keys with stableHash, not JSON.stringify —
+    // seed the persisted entry the exact way SWR does internally so the
+    // stale-cache revalidation path is genuinely exercised.
+    const staleKey = unstable_serialize(buildSavedComparisonsKey('group-1'));
     sharedCache.set(staleKey, {
       data: [],
       error: undefined,

@@ -347,6 +347,16 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         return;
       }
 
+      // The download must match the visible (checked) locations — the same set
+      // the chart renders — not the full selection, which may include hidden sites.
+      if (visibleSiteIds.length === 0) {
+        toast.error(
+          'No Locations Visible',
+          'Make at least one location visible to download its data.'
+        );
+        return;
+      }
+
       if (!dateRange?.from || !dateRange?.to) {
         toast.error(
           'Invalid Date Range',
@@ -396,7 +406,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           startDateTime,
-          sites: selectedSites.map((site: SelectedSite) => site._id),
+          sites: visibleSiteIds,
           device_category: 'lowcost' as const,
         };
 
@@ -407,7 +417,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           fileType: 'csv',
           frequency: frequency as 'hourly' | 'daily' | 'monthly',
           pollutants: [pollutant],
-          locationCount: selectedSites.length,
+          locationCount: visibleSiteIds.length,
           startDate: startDateTime,
           endDate: endDateTime,
           durationDays: Math.ceil(
@@ -430,6 +440,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     },
     [
       selectedSites,
+      visibleSiteIds,
       dateRange,
       dataType,
       frequency,
