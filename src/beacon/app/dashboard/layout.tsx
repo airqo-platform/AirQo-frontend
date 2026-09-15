@@ -7,8 +7,10 @@ import { RefreshCw } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
-import GlobalAdminSidebar from "@/components/dashboard/global-admin-sidebar"
+import PrimarySidebar from "@/components/dashboard/primary-sidebar"
 import { GroupProvider, useGroup } from "@/lib/group-context"
+import { useNavigationAccess } from "@/hooks/use-navigation-access"
+import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
 
@@ -34,7 +36,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [adminSidebarOpen, setAdminSidebarOpen] = useState(false)
+  const [primarySidebarOpen, setPrimarySidebarOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -60,6 +62,14 @@ export default function DashboardLayout({
     : null
 
   const pathname = usePathname()
+  // Like Vertex, the sidebar module follows the URL: admin routes show the admin panel
+  const activeModule = getModuleForPath(pathname)
+
+  // Close the navigation drawer once a new page is reached
+  useEffect(() => {
+    setPrimarySidebarOpen(false)
+  }, [pathname])
+
   const isMapRoute = Boolean(
     pathname && (
       pathname.startsWith("/dashboard/maintenance") ||
@@ -99,7 +109,7 @@ export default function DashboardLayout({
           user={user}
           loading={loading}
           isLoggingOut={isLoggingOut}
-          onToggleAdminMenu={() => setAdminSidebarOpen(!adminSidebarOpen)}
+          onMenuClick={() => setPrimarySidebarOpen(true)}
           onLogout={handleLogout}
         />
 
@@ -109,6 +119,7 @@ export default function DashboardLayout({
           <Sidebar
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            activeModule={activeModule}
           />
 
           {/* Scrollable Main Content Area */}
@@ -136,10 +147,11 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* Slide-over Global Admin Sidebar */}
-        <GlobalAdminSidebar
-          isOpen={adminSidebarOpen}
-          onClose={() => setAdminSidebarOpen(false)}
+        {/* Slide-over primary navigation: Home, Administrative Panel, Recently Visited */}
+        <PrimarySidebar
+          isOpen={primarySidebarOpen}
+          onClose={() => setPrimarySidebarOpen(false)}
+          activeModule={activeModule}
         />
       </div>
     </GroupProvider>
@@ -147,57 +159,28 @@ export default function DashboardLayout({
 }
 
 function GroupRouteGuard({ children }: { children: React.ReactNode }) {
-  const { activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission, loading } = useGroup()
+  const { activeGroup } = useGroup()
+  const access = useNavigationAccess()
   const pathname = usePathname()
   const router = useRouter()
 
+  // Same policy the sidebars use, so a page is reachable exactly when it is offered.
+  // Also runs on group switches, moving users off pages the new group doesn't offer.
+  const canViewRoute = !pathname || isRouteAccessible(pathname, access)
+  const devicesHome = getDevicesHome(access)
+
   useEffect(() => {
-    if (loading || !pathname) return
+    if (access.loading || canViewRoute) return
+    router.replace(devicesHome)
+  }, [access.loading, canViewRoute, devicesHome, router])
 
-    const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
-    const canMaintainDevices = hasPermission("DEVICE_MAINTAIN") || isActiveGroupAdmin
-
-    // Path definitions & permission checks
-    const isOverview = pathname === "/dashboard" || pathname === "/dashboard/"
-    const isRestrictedAirqoOnly =
-      pathname.startsWith("/dashboard/collocation") ||
-      pathname.startsWith("/dashboard/firmware") ||
-      pathname.startsWith("/dashboard/category") ||
-      pathname.startsWith("/dashboard/stock")
-
-    const isAnalytics = pathname.startsWith("/dashboard/analytics")
-    const canAccessAnalytics =
-      Boolean(activeGroup) &&
-      (!isAirqoGroup || canMaintainDevices || hasAnyPermission(["ANALYTICS_VIEW", "DATA_VIEW"]))
-
-    const isMaintenance = pathname.startsWith("/dashboard/maintenance")
-    const canAccessMaintenance =
-      Boolean(activeGroup) && (!isAirqoGroup || canMaintainDevices || hasPermission("DEVICE_MAINTAIN"))
-
-    const isReports = pathname.startsWith("/dashboard/reports")
-    const canAccessReports =
-      Boolean(activeGroup) &&
-      (!isAirqoGroup || canMaintainDevices || hasAnyPermission(["DATA_EXPORT", "ANALYTICS_EXPORT", "DATA_VIEW"]))
-
-    const isVisualise =
-      pathname.startsWith("/dashboard/visualise") || pathname.startsWith("/dashboard/visualize")
-    const canAccessVisualise = Boolean(activeGroup)
-
-    if ((isOverview || isRestrictedAirqoOnly) && (!isAirqoGroup || !canMaintainDevices)) {
-      router.replace("/dashboard/devices")
-    } else if (isAnalytics && !canAccessAnalytics) {
-      router.replace("/dashboard/devices")
-    } else if (isMaintenance && !canAccessMaintenance) {
-      router.replace("/dashboard/devices")
-    } else if (isReports && !canAccessReports) {
-      router.replace("/dashboard/devices")
-    } else if (isVisualise && !canAccessVisualise) {
-      router.replace("/dashboard/devices")
-    }
-  }, [activeGroup, isActiveGroupAdmin, hasPermission, hasAnyPermission, loading, pathname, router])
-
-  if (loading && !activeGroup) {
+  if (access.loading && !activeGroup) {
     return <LoadingState text="Updating active group..." className="min-h-[50vh]" />
+  }
+
+  // Don't render (and start fetching for) a page we're about to leave
+  if (!canViewRoute) {
+    return <LoadingState text="Redirecting..." className="min-h-[50vh]" />
   }
 
   return <>{children}</>
