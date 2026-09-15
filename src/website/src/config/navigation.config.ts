@@ -20,7 +20,7 @@ const navigationConfig: NavigationConfig = {
     { label: 'Solutions', href: '/solutions' },
     { label: 'Developers', href: '/developers' },
     { label: 'About', href: '/about' },
-    { label: 'Blogs', href: '/blogs' },
+    { label: 'Blogs', href: 'https://blog.airqo.net/', isExternal: true },
     { label: 'FAQs', href: '/faqs' },
   ],
   footerNav: {

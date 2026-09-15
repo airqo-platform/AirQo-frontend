@@ -11,16 +11,15 @@ import {
   FiCheckCircle,
   FiCode,
   FiCpu,
-  FiMapPin,
   FiTool,
   FiUsers,
 } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
-import { DEVCON_COUNTDOWN_TARGET, DEVCON_IMAGE_SRC } from '@/lib/devcon';
+import { DEVCON_IMAGE_SRC } from '@/lib/devcon';
 
-import CountdownTimer from './CountdownTimer';
+// import CountdownTimer from './CountdownTimer'; // TEMPORARILY HIDDEN with countdown section below (restore together)
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -105,15 +104,11 @@ const AirQoDevConPage = () => {
               </div>
               <div className="flex flex-wrap gap-2 mb-5">
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-[#71717a]">
-                  <FiMapPin className="w-3.5 h-3.5" /> Makerere University
+                  <FiCalendar className="w-3.5 h-3.5" /> Next cohort
                 </span>
                 <span className="text-[#d4d4d8]">&middot;</span>
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-[#71717a]">
-                  <FiCalendar className="w-3.5 h-3.5" /> 17&ndash;18 June 2026
-                </span>
-                <span className="text-[#d4d4d8]">&middot;</span>
-                <span className="inline-flex items-center gap-1.5 text-[13px] text-[#dc2626]">
-                  <FiCheckCircle className="w-3.5 h-3.5" /> Applications closed
+                  Dates and location to be announced
                 </span>
               </div>
               <h1 className="text-[32px] md:text-[36px] font-semibold tracking-[-0.025em] text-[#18181b] leading-[1.15] mb-4">
@@ -150,6 +145,10 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
+      {/*
+        TEMPORARILY HIDDEN (2026-09-15): countdown disabled until the next cohort
+        dates are confirmed. Restore this section together with the
+        CountdownTimer and DEVCON_COUNTDOWN_TARGET imports.
       <motion.section
         className="px-4"
         initial="hidden"
@@ -178,6 +177,7 @@ const AirQoDevConPage = () => {
           </motion.div>
         </div>
       </motion.section>
+      */}
 
       <motion.section
         className="bg-blue-50"
@@ -369,7 +369,7 @@ const AirQoDevConPage = () => {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <h2 className="text-[24px] md:text-[28px] font-semibold tracking-[-0.02em] mb-2">
-                  Applications are now closed.
+                  Next AirQo DevCon cohort coming soon
                 </h2>
                 <p className="text-[14px] text-blue-100">
                   Free to attend &middot; Official AirQo gear &middot;
