@@ -146,7 +146,7 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
     posthog?.capture('air_quality_rankings_viewed', {
       tab,
       level: tab === 'live' ? level : historyLevel,
-      country: country || 'all',
+      country: showCountryFilter && country ? country : 'all',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
