@@ -39,6 +39,14 @@ if (secretsPropertiesFile.exists()) {
     }
 }
 
+def defaultProperties = new Properties()
+def defaultPropertiesFile = rootProject.file('local.defaults.properties')
+if (defaultPropertiesFile.exists()) {
+    defaultPropertiesFile.withReader('UTF-8') { reader ->
+        defaultProperties.load(reader)
+    }
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -47,15 +55,15 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def googleMapApiKey = appProperties.getProperty('google.maps.key') ?: secretsProperties.getProperty('MAPS_API_KEY')
-if (googleMapApiKey == null) {
-    throw new GradleException("Google Maps Key not found. Define either google.maps.key in key.properties or MAPS_API_KEY in secrets.properties")
-}
+def googleMapApiKey = appProperties.getProperty('google.maps.key')
+        ?: secretsProperties.getProperty('MAPS_API_KEY')
+        ?: defaultProperties.getProperty('MAPS_API_KEY')
+        ?: 'DEFAULT_API_KEY'
 
-def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev') ?: secretsProperties.getProperty('MAPS_API_KEY_DEV')
-if (googleMapApiKeyDev == null) {
-    throw new GradleException("Google Maps Dev Key not found. Define either google.maps.key.dev in key.properties or MAPS_API_KEY_DEV in secrets.properties")
-}
+def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev')
+        ?: secretsProperties.getProperty('MAPS_API_KEY_DEV')
+        ?: defaultProperties.getProperty('MAPS_API_KEY_DEV')
+        ?: 'DEFAULT_API_KEY'
 
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -133,10 +141,17 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.release
+            // Local debug/release runs work without the production keystore.
+            // Play Store / App Distribution builds still use prod-key.properties.
+            if (releaseKeystorePropertiesFile.exists() && releaseKeystoreProperties['storeFile']) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
         }
     }
 }
