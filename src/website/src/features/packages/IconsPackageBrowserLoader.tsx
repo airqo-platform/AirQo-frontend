@@ -48,7 +48,7 @@ export default function IconsPackageBrowserLoader() {
             </h2>
             <p className="text-base text-gray-600">
               The full browser includes live search, category filters, previews,
-              and code snippets for 1,383+ icons. Load it only when you need to
+              and code snippets for 1,384+ icons. Load it only when you need to
               explore the library.
             </p>
             <button

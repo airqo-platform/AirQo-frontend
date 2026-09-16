@@ -17,6 +17,8 @@ ARG API_URL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+# Public build-time value: comma-separated site URLs; first entry = canonical base.
+ARG NEXT_PUBLIC_SITE_URL
 
 # Set environment variables for build (server-side variables)
 # Only set non-sensitive values. Do not store secrets in ENV here.
@@ -24,7 +26,8 @@ ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
 ENV API_URL=$API_URL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Install dependencies and build
 COPY package*.json ./
@@ -51,13 +54,16 @@ ARG API_URL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 ARG NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+# Public build-time value: comma-separated site URLs; first entry = canonical base.
+ARG NEXT_PUBLIC_SITE_URL
 
 # Set environment variables for runtime (server-side variables)
 # Only set non-sensitive defaults here. Supply sensitive values at runtime.
 ENV API_URL=$API_URL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN \
-    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY
+    NEXT_PUBLIC_HCAPTCHA_SITE_KEY=$NEXT_PUBLIC_HCAPTCHA_SITE_KEY \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001

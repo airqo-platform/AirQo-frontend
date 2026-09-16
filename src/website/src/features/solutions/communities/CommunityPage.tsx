@@ -213,7 +213,7 @@ const CommunitiesPage = () => {
           >
             <div className="flex items-baseline gap-2">
               <span className="text-[#FFE600] font-dm-mono text-4xl md:text-5xl font-normal">
-                300
+                1500+
               </span>
               <Image
                 src={images.arrowLeft}
@@ -363,7 +363,7 @@ const CommunitiesPage = () => {
           onClick={() => dispatch(openModal())}
           className={`${mainConfig.containerClass} w-full px-4 rounded-lg text-black py-16 bg-[#FFEA2B]`}
         >
-          <div className="text-center">
+          <div className="w-full text-center">
             <h2 className="text-3xl mb-4">Become an air quality champion.</h2>
             <span className="inline-block text-lg">Get involved →</span>
           </div>

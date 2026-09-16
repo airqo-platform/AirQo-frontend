@@ -76,7 +76,7 @@ describe('navigationConfig', () => {
       expect(hrefs).toContain('/solutions');
       expect(hrefs).toContain('/developers');
       expect(hrefs).toContain('/about');
-      expect(hrefs).toContain('/blogs');
+      expect(hrefs).toContain('https://blog.airqo.net/');
       expect(hrefs).toContain('/faqs');
     });
   });

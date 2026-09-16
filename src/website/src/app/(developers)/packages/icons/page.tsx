@@ -12,7 +12,7 @@ const iconsOgImage = optimizeCloudinaryUrl(
 export const metadata: Metadata = {
   title: 'AirQo Icons',
   description:
-    'Beautiful multi-framework icon library for modern applications. 1,383+ icons across 22 categories for React, Vue, and Flutter with TypeScript support.',
+    'Beautiful multi-framework icon library for modern applications. 1,384+ icons across 22 categories for React, Vue, and Flutter with TypeScript support.',
   keywords: [
     'airqo icons',
     'react icons',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
-      '1,383+ beautiful icons for React, Vue, and Flutter. Fully customizable with TypeScript support and tree-shakable imports.',
+      '1,384+ beautiful icons for React, Vue, and Flutter. Fully customizable with TypeScript support and tree-shakable imports.',
     images: [
       {
         url: iconsOgImage,
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
-      '1,383+ icons for React, Vue, and Flutter with TypeScript support.',
+      '1,384+ icons for React, Vue, and Flutter with TypeScript support.',
   },
 };
 

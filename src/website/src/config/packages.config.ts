@@ -40,14 +40,14 @@ export const packagesData: Package[] = [
     name: 'icons',
     displayName: 'AirQo Icons',
     description:
-      'Production-ready icon library with 1,383+ optimized SVG icons across 22 categories. Available for React, Vue, and Flutter with full TypeScript support.',
+      'Production-ready icon library with 1,384+ optimized SVG icons across 22 categories. Available for React, Vue, and Flutter with full TypeScript support.',
     tagline: 'Beautiful icons for your AirQo projects',
     type: 'library',
     // TODO: These metrics should be fetched from npm registry API at build time to stay current
     version: '0.2.10',
-    weeklyDownloads: '113',
+    weeklyDownloads: '100+',
     totalDownloads: '500+',
-    iconCount: 1383,
+    iconCount: 1384,
     categories: 22,
     frameworks: [
       {
@@ -77,7 +77,7 @@ export const packagesData: Package[] = [
 
 <AqHome01 size={24} color="#0284C7" />`,
     features: [
-      '1,383 carefully crafted icons',
+      '1,384 carefully crafted icons',
       'Tree-shakable (2-4KB per icon)',
       'Smart search with fuzzy matching',
       'Full TypeScript support',
@@ -93,7 +93,7 @@ export const packagesData: Package[] = [
     docsUrl: 'https://aero-glyphs.vercel.app/docs',
     bundleSize: '~15 MB unpacked, tree-shakeable',
     license: 'MIT',
-    lastPublished: '3 months ago',
+    lastPublished: '1 month ago',
     treeshakeable: true,
     typescript: true,
     ssr: true,
@@ -107,7 +107,7 @@ export const packagesData: Package[] = [
     tagline: 'Bootstrap an IoT console in seconds',
     type: 'cli',
     version: '0.1.4',
-    weeklyDownloads: '—',
+    weeklyDownloads: '10+',
     totalDownloads: '—',
     installCommand: 'npx @airqo/create-vertex-app@latest',
     usageExample: `npx @airqo/create-vertex-app@latest
@@ -123,7 +123,7 @@ export const packagesData: Package[] = [
     npmPackage: 'https://www.npmjs.com/package/@airqo/create-vertex-app',
     docsUrl: 'https://www.npmjs.com/package/@airqo/create-vertex-app',
     license: 'MIT',
-    lastPublished: '21 days ago',
+    lastPublished: '1 month ago',
   },
 ];
 
