@@ -56,14 +56,23 @@ describe("DeviceAvailabilityHint", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("looks up the trimmed name only after the user pauses typing", async () => {
+  it("looks up the name only after the user pauses typing", async () => {
     mockAvailability({});
     const { rerender } = render(<DeviceAvailabilityHint deviceName="" />);
-    rerender(<DeviceAvailabilityHint deviceName="  airqo_g5241 " />);
+    rerender(<DeviceAvailabilityHint deviceName="airqo_g5241" />);
 
     expect(useDeviceAvailability).toHaveBeenLastCalledWith("");
     await settleDebounce();
     expect(useDeviceAvailability).toHaveBeenLastCalledWith("airqo_g5241");
+  });
+
+  it("does not look up or report a whitespace-padded name the claim form would reject", async () => {
+    mockAvailability({ data: availability(true) });
+    render(<DeviceAvailabilityHint deviceName="  airqo_g5241 " />);
+    await settleDebounce();
+
+    expect(useDeviceAvailability).toHaveBeenLastCalledWith("");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("shows a checking state while the lookup is in flight", async () => {

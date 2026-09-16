@@ -2,8 +2,9 @@ import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useDeviceAvailability } from '@/core/hooks/useDevices';
 import { useDebouncedValue } from '@/core/hooks/useDebouncedValue';
 
-// Mirrors the device_id rules in claimDeviceSchema so we never hit the API
-// with a name the form would reject anyway.
+// Mirrors the device_id rules in claimDeviceSchema (min 3 chars, letters,
+// digits, underscores and hyphens, no trimming) so we never look up, or
+// report as available, a name the form would reject on submit.
 const CLAIMABLE_NAME_PATTERN = /^[a-zA-Z0-9_-]{3,}$/;
 
 export const DEVICE_AVAILABLE_HINT = 'This device is available to claim.';
@@ -20,14 +21,13 @@ export const DEVICE_UNKNOWN_HINT =
  * user. Lookups are debounced and only fire for names the form would accept.
  */
 export function DeviceAvailabilityHint({ deviceName }: { deviceName: string }) {
-  const trimmed = deviceName.trim();
-  const debouncedName = useDebouncedValue(trimmed);
+  const debouncedName = useDebouncedValue(deviceName);
   const candidate = CLAIMABLE_NAME_PATTERN.test(debouncedName) ? debouncedName : '';
 
   const { data, error, isFetching } = useDeviceAvailability(candidate);
 
   // Hide stale results while the user is still typing a different name.
-  if (!candidate || candidate !== trimmed) return null;
+  if (!candidate || candidate !== deviceName) return null;
 
   if (isFetching) {
     return (
