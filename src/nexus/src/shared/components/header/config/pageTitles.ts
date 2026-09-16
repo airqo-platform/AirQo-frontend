@@ -14,7 +14,6 @@ export const PAGE_TITLES: Record<string, string> = {
   '/org/map': 'Air Quality Map',
   '/org/data-export': 'Visualization & Data Export',
   '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
-  '/org/air-quality/rankings': 'Air Quality Rankings',
   '/org/members': 'Members',
   '/org/profile': 'Profile',
   '/org/role-permissions': 'Roles & Permissions',

@@ -23,6 +23,7 @@ import {
   buildSeriesLabels,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 
 interface ChartsOverviewViewProps {
   charts: ExplorerChartDraft[];
@@ -141,7 +142,7 @@ const OverviewChartCard: React.FC<{
         // (and keeping the inline editor from baking it in).
         subtitle={draft.subtitle}
         loading={isLoading}
-        error={error ?? null}
+        error={error ? getUserFriendlyErrorMessage(error) : null}
         onRefresh={refresh}
         exportOptions={{
           enablePDF: true,

@@ -10,6 +10,7 @@ import { AqTrash01 } from '@airqo/icons-react';
 import { AnalyticsChartCard } from '@/modules/analytics/components/explorer/AnalyticsChartCard';
 import { ChartConfigDialog } from '@/modules/analytics/components/explorer/ChartConfigDialog';
 import type { UseChartManagementResult } from '@/modules/analytics/hooks/useChartManagement';
+import { CHART_LOAD_ERROR_MESSAGE } from '@/modules/analytics/constants';
 
 interface DashboardChartsProps {
   groupId: string;
@@ -60,13 +61,11 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
           <LoadingState text="Loading charts..." />
         </div>
       ) : chartsError && charts.length === 0 ? (
+        // Fixed, safe description — never echo unmatched backend diagnostic text.
+        // The diagnostic is preserved (non-enumerable `cause`) for logging only.
         <ErrorState
           title="Unable to load chart configurations"
-          description={
-            chartsError instanceof Error
-              ? chartsError.message
-              : 'We could not load your saved charts.'
-          }
+          description={CHART_LOAD_ERROR_MESSAGE}
           retryAction={{ label: 'Retry', onClick: () => void refetchCharts() }}
         />
       ) : charts.length === 0 ? (

@@ -25,22 +25,25 @@ void main() {
       httpClient: _FakeClient((request) async {
         requests.add(request.url);
 
-        if (request.url.host == 'maps.googleapis.com') {
+        if (request.url.path.endsWith('/devices/metadata/routes/directions')) {
           return http.Response(
               jsonEncode({
-                'routes': [
-                  {
-                    'overview_polyline': {
-                      'points': '_p~iF~ps|U_ulLnnqC_mqNvxq`@',
-                    },
-                    'legs': [
-                      {
-                        'distance': {'text': '12 km'},
-                        'duration': {'text': '28 mins'},
-                      }
-                    ],
-                  }
-                ],
+                'success': true,
+                'data': {
+                  'routes': [
+                    {
+                      'overview_polyline': {
+                        'points': '_p~iF~ps|U_ulLnnqC_mqNvxq`@',
+                      },
+                      'legs': [
+                        {
+                          'distance': {'text': '12 km'},
+                          'duration': {'text': '28 mins'},
+                        }
+                      ],
+                    }
+                  ],
+                },
               }),
               200);
         }
@@ -121,11 +124,14 @@ void main() {
       () async {
     final repository = RouteExposureRepositoryImpl(
       httpClient: _FakeClient((request) async {
-        if (request.url.host == 'maps.googleapis.com') {
+        if (request.url.path.endsWith('/devices/metadata/routes/directions')) {
           return http.Response(
             jsonEncode({
-              'status': 'ZERO_RESULTS',
-              'routes': [],
+              'success': true,
+              'data': {
+                'status': 'ZERO_RESULTS',
+                'routes': [],
+              },
             }),
             200,
           );

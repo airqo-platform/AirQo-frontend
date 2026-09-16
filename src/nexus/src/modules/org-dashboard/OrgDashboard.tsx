@@ -1,19 +1,45 @@
 'use client';
 
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { useUser, useOrgGroup } from '@/shared/hooks';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { AqiLegend } from '@/modules/analytics';
 import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent } from '@/shared/components/ui/card';
 import { AqPlus } from '@airqo/icons-react';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { useChartManagement } from '@/modules/analytics/hooks/useChartManagement';
+import { ComparisonView } from '@/modules/analytics/components/comparison';
+import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { DashboardHeader } from './components/DashboardHeader';
 import { DashboardCharts } from './components/DashboardCharts';
 import { SavedPreferencesSection } from './components/SavedPreferencesSection';
 import { OrgDashboardSkeleton } from './components/OrgDashboardSkeleton';
+
+type AnalysisTab = 'trends' | 'comparison';
+
+const ANALYSIS_TAB_STORAGE_KEY = 'nexus:org-dashboard:analysis-tab';
+
+const ANALYSIS_TAB_OPTIONS: { value: AnalysisTab; label: string }[] = [
+  { value: 'trends', label: 'Trends' },
+  { value: 'comparison', label: 'Comparison' },
+];
+
+// Lazy-init the analytics tab from localStorage so a returning visitor keeps
+// their last view; anything unrecognized falls back to 'trends' so a stale or
+// corrupt stored value can never break the page.
+const readStoredAnalysisTab = (): AnalysisTab => {
+  if (typeof window === 'undefined') return 'trends';
+  try {
+    const stored = window.localStorage.getItem(ANALYSIS_TAB_STORAGE_KEY);
+    return stored === 'comparison' ? 'comparison' : 'trends';
+  } catch {
+    return 'trends';
+  }
+};
 
 interface OrgDashboardProps {
   organizationSlug: string;
@@ -41,8 +67,36 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
   const { config: selectedAqiConfig } = useAqiConfig('pm2_5');
 
-  // Call unconditionally — the hook's `enabled` param handles the not-ready state.
-  const chartMgmt = useChartManagement(organizationGroupId, !!organizationGroupId);
+  // Trends (saved locations + charts) and Comparison are mutually exclusive
+  // views of the "Air Quality Analysis" section; persist the choice so a
+  // returning visitor lands on the same tab.
+  // Initialize to the server-rendered default ('trends') to avoid a hydration
+  // mismatch, then adopt the persisted choice after mount. The stored value can
+  // never equal the server output on a fast reload otherwise.
+  const [analysisTab, setAnalysisTab] = useState<AnalysisTab>('trends');
+
+  useEffect(() => {
+    setAnalysisTab(readStoredAnalysisTab());
+  }, []);
+
+  const handleAnalysisTabChange = (tab: AnalysisTab) => {
+    setAnalysisTab(tab);
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(ANALYSIS_TAB_STORAGE_KEY, tab);
+    } catch {
+      /* storage unavailable (private mode) — keep session-only state */
+    }
+  };
+
+  // Call unconditionally — the hook's `enabled` param handles the not-ready
+  // state. Gated to the Trends tab so the group's chart data isn't fetched
+  // while the (mutually-exclusive) Comparison tab is active; returning to
+  // Trends re-reads from the SWR cache.
+  const chartMgmt = useChartManagement(
+    organizationGroupId,
+    analysisTab === 'trends' && !!organizationGroupId
+  );
 
   const isOrgContextReady =
     !!organizationGroupId && activeGroup?.id === organizationGroupId;
@@ -55,7 +109,8 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   const isOrgSyncing =
     !userContextLoading && !unresolvedOrganizationSlug && !isOrgContextReady;
 
-  const isInitialLoading = userContextLoading || orgGroupLoading || isOrgSyncing;
+  const isInitialLoading =
+    userContextLoading || orgGroupLoading || isOrgSyncing;
 
   React.useEffect(() => {
     if (isInitialLoading || hasTrackedViewRef.current) return;
@@ -89,30 +144,61 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
 
   return (
     <div className={`space-y-5 ${className}`}>
-      <DashboardHeader organizationTitle={organizationGroup?.title ?? 'Organization'} />
+      <DashboardHeader
+        organizationTitle={organizationGroup?.title ?? 'Organization'}
+      />
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-medium text-foreground">Air Quality Analysis</h2>
-          <div className="flex items-center gap-2">
-            {chartMgmt.charts.length > 0 && (
-              <Button
-                variant="filled"
-                size="md"
-                Icon={AqPlus}
-                onClick={chartMgmt.openCreate}
-                disabled={!organizationGroupId}
-                showTextOnMobile
-              >
-                Add chart
-              </Button>
-            )}
-            <AiDrawerTrigger />
-          </div>
+          <h2 className="text-xl font-medium text-foreground">
+            Air Quality Analysis
+          </h2>
+          {analysisTab === 'trends' && (
+            <div className="flex items-center gap-2">
+              {chartMgmt.charts.length > 0 && (
+                <Button
+                  variant="filled"
+                  size="md"
+                  Icon={AqPlus}
+                  onClick={chartMgmt.openCreate}
+                  disabled={!organizationGroupId}
+                  showTextOnMobile
+                >
+                  Add chart
+                </Button>
+              )}
+              <AiDrawerTrigger />
+            </div>
+          )}
         </div>
-        <SavedPreferencesSection groupId={organizationGroupId} />
-        <DashboardCharts groupId={organizationGroupId} chartMgmt={chartMgmt} />
+        <Card className="w-fit">
+          <CardContent className="p-2">
+            <SegmentedTabs
+              ariaLabel="Air Quality Analysis views"
+              options={ANALYSIS_TAB_OPTIONS}
+              value={analysisTab}
+              onChange={handleAnalysisTabChange}
+            />
+          </CardContent>
+        </Card>
+        {analysisTab === 'trends' ? (
+          <>
+            <SavedPreferencesSection groupId={organizationGroupId} />
+            <DashboardCharts
+              groupId={organizationGroupId}
+              chartMgmt={chartMgmt}
+            />
+            {/* Page-level legend is trends-only — ComparisonView ships its
+                own, and rendering both would duplicate the color scale. */}
+            <AqiLegend aqiConfig={selectedAqiConfig} className="pt-2" />
+          </>
+        ) : (
+          <ComparisonView
+            groupId={organizationGroupId}
+            isOrganizationFlow
+            organizationSlug={organizationSlug}
+          />
+        )}
       </section>
-      <AqiLegend aqiConfig={selectedAqiConfig} className="pt-2" />
     </div>
   );
 };
