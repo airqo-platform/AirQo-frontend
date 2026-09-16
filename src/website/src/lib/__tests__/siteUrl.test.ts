@@ -1,7 +1,9 @@
 import {
   buildSiteUrl,
   detectSiteUrlFromHeaders,
+  getConfiguredSiteUrls,
   getPrimarySiteUrl,
+  parseSiteUrls,
   resolveSiteUrl,
 } from '@/lib/siteUrl';
 
@@ -11,6 +13,7 @@ describe('siteUrl', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
+    delete process.env.NEXT_PUBLIC_SITE_URL;
     delete process.env.NEXT_PUBLIC_VERCEL_URL;
     delete process.env.VERCEL_URL;
     delete process.env.RAILWAY_PUBLIC_DOMAIN;
@@ -26,6 +29,89 @@ describe('siteUrl', () => {
 
   afterAll(() => {
     process.env = originalEnv;
+  });
+
+  describe('parseSiteUrls', () => {
+    it('returns empty array for empty/null input', () => {
+      expect(parseSiteUrls('')).toEqual([]);
+      expect(parseSiteUrls(null)).toEqual([]);
+      expect(parseSiteUrls(undefined)).toEqual([]);
+    });
+
+    it('parses a single http URL', () => {
+      expect(parseSiteUrls('http://localhost:3000')).toEqual([
+        'http://localhost:3000',
+      ]);
+    });
+
+    it('strips trailing slashes', () => {
+      expect(parseSiteUrls('https://airqo.net/')).toEqual([
+        'https://airqo.net',
+      ]);
+      expect(parseSiteUrls('https://airqo.net///')).toEqual([
+        'https://airqo.net',
+      ]);
+    });
+
+    it('prepends https for bare hosts', () => {
+      expect(parseSiteUrls('airqo.net')).toEqual(['https://airqo.net']);
+      expect(parseSiteUrls('airqo.net:8080')).toEqual([
+        'https://airqo.net:8080',
+      ]);
+    });
+
+    it('handles comma-separated list, first entry wins', () => {
+      expect(parseSiteUrls('https://airqo.net,https://www.airqo.net')).toEqual([
+        'https://airqo.net',
+        'https://www.airqo.net',
+      ]);
+    });
+
+    it('handles whitespace-separated list', () => {
+      expect(parseSiteUrls('https://airqo.net https://www.airqo.net')).toEqual([
+        'https://airqo.net',
+        'https://www.airqo.net',
+      ]);
+    });
+
+    it('handles mixed comma and whitespace separation', () => {
+      expect(parseSiteUrls('https://airqo.net, https://www.airqo.net')).toEqual(
+        ['https://airqo.net', 'https://www.airqo.net'],
+      );
+    });
+
+    it('drops invalid/non-http entries', () => {
+      expect(parseSiteUrls('ftp://files.airqo.net,https://airqo.net')).toEqual([
+        'https://airqo.net',
+      ]);
+      expect(parseSiteUrls('not-a-url,https://airqo.net')).toEqual([
+        'https://airqo.net',
+      ]);
+    });
+
+    it('deduplicates entries', () => {
+      expect(parseSiteUrls('https://airqo.net,https://airqo.net')).toEqual([
+        'https://airqo.net',
+      ]);
+    });
+
+    it('preserves port on http localhost', () => {
+      expect(parseSiteUrls('http://localhost:3000')).toEqual([
+        'http://localhost:3000',
+      ]);
+    });
+  });
+
+  describe('getConfiguredSiteUrls', () => {
+    it('reads from NEXT_PUBLIC_SITE_URL env', () => {
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://airqo.net';
+      expect(getConfiguredSiteUrls()).toEqual(['https://airqo.net']);
+    });
+
+    it('returns empty when env is not set', () => {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+      expect(getConfiguredSiteUrls()).toEqual([]);
+    });
   });
 
   describe('detectSiteUrlFromHeaders', () => {
@@ -60,6 +146,24 @@ describe('siteUrl', () => {
         'https://airqo.africa',
       );
     });
+
+    it('takes the first entry from a comma-separated forwarded host', () => {
+      expect(detectSiteUrlFromHeaders('airqo.net, internal:3000')).toBe(
+        'https://airqo.net',
+      );
+    });
+
+    it('preserves port with explicit http protocol', () => {
+      expect(detectSiteUrlFromHeaders('airqo.net:8080', 'http')).toBe(
+        'http://airqo.net:8080',
+      );
+    });
+
+    it('falls back to https for an invalid protocol value', () => {
+      expect(detectSiteUrlFromHeaders('airqo.net', 'ftp')).toBe(
+        'https://airqo.net',
+      );
+    });
   });
 
   describe('getPrimarySiteUrl', () => {
@@ -90,6 +194,54 @@ describe('siteUrl', () => {
       global.window = savedWindow;
     });
 
+    it('returns NEXT_PUBLIC_SITE_URL on server-side (no window, no host header)', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://airqo.net';
+
+      expect(getPrimarySiteUrl()).toBe('https://airqo.net');
+
+      global.window = savedWindow;
+    });
+
+    it('first comma-separated entry of NEXT_PUBLIC_SITE_URL wins on server-side', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      process.env.NEXT_PUBLIC_SITE_URL =
+        'https://airqo.net,https://www.airqo.net';
+
+      expect(getPrimarySiteUrl()).toBe('https://airqo.net');
+
+      global.window = savedWindow;
+    });
+
+    it('prefers Host header over NEXT_PUBLIC_SITE_URL', () => {
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://airqo.net';
+      expect(getPrimarySiteUrl('staging.airqo.africa')).toBe(
+        'https://staging.airqo.africa',
+      );
+    });
+
+    it('prefers window.location.origin over NEXT_PUBLIC_SITE_URL on client', () => {
+      // jsdom window.location.origin is mocked to http://localhost:3000
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://airqo.net';
+      expect(getPrimarySiteUrl()).toBe('http://localhost:3000');
+    });
+
+    it('ignores invalid/non-http entries in NEXT_PUBLIC_SITE_URL', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      process.env.NEXT_PUBLIC_SITE_URL =
+        'ftp://files.airqo.net,https://airqo.net';
+
+      expect(getPrimarySiteUrl()).toBe('https://airqo.net');
+
+      global.window = savedWindow;
+    });
+
     it('returns localhost fallback when nothing configured (server-side)', () => {
       const savedWindow = global.window;
       // @ts-expect-error - testing server-side behavior without window
@@ -111,6 +263,12 @@ describe('siteUrl', () => {
 
     it('strips trailing slash from Host header', () => {
       expect(getPrimarySiteUrl('airqo.africa/')).toBe('https://airqo.africa');
+    });
+
+    it('honors explicit protocol from Host header', () => {
+      expect(getPrimarySiteUrl('localhost:3000', 'http')).toBe(
+        'http://localhost:3000',
+      );
     });
   });
 
@@ -169,6 +327,23 @@ describe('siteUrl', () => {
 
     it('uses primary URL when candidate is null', () => {
       expect(buildSiteUrl('/about', null)).toBe('http://localhost:3000/about');
+    });
+
+    it('forwards host header to resolveSiteUrl', () => {
+      expect(buildSiteUrl('/about', null, 'airqo.net', 'https')).toBe(
+        'https://airqo.net/about',
+      );
+    });
+
+    it('uses NEXT_PUBLIC_SITE_URL on server-side when no candidate/header', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      process.env.NEXT_PUBLIC_SITE_URL = 'https://airqo.net';
+
+      expect(buildSiteUrl('/about')).toBe('https://airqo.net/about');
+
+      global.window = savedWindow;
     });
   });
 });
