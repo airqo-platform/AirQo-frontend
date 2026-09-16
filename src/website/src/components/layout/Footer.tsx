@@ -53,7 +53,7 @@ const footerLinks = {
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact Us', href: '/contact' },
-    { label: 'Blogs', href: '/blogs' },
+    { label: 'Blogs', href: 'https://blog.airqo.net/', external: true },
   ],
   developers: [
     { label: 'Packages', href: '/packages' },
@@ -182,6 +182,8 @@ const Footer = () => {
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener noreferrer' : undefined}
                     className="text-[14px] text-gray-500 hover:text-gray-900 transition-colors duration-150"
                   >
                     {link.label}

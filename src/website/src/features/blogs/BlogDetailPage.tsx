@@ -2,7 +2,6 @@
 
 import { format } from 'date-fns';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
 
 import { sanitizeAndCleanHTML } from '@/lib/utils/htmlValidator';
@@ -52,12 +51,14 @@ const BlogDetailPage = ({ blog }: BlogDetailPageProps) => {
     <div className="bg-white">
       <section className="border-b border-gray-200 bg-[#FAFBFC]">
         <div className="max-w-[800px] mx-auto py-12 px-4">
-          <Link
-            href="/blogs"
+          <a
+            href="https://blog.airqo.net/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[14px] font-medium text-blue-600 hover:underline"
           >
             ← All articles
-          </Link>
+          </a>
 
           <div className="mt-8">
             <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-blue-600">

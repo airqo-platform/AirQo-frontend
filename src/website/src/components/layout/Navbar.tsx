@@ -197,12 +197,14 @@ const Navbar: React.FC = () => {
                 />
               </div>
             ))}
-            <Link
-              href="/blogs"
+            <a
+              href="https://blog.airqo.net/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element"
             >
               Blogs
-            </Link>
+            </a>
             <a
               href="https://ai.airqo.net/map"
               target="_blank"
@@ -363,8 +365,10 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ))}
-            <Link
-              href="/blogs"
+            <a
+              href="https://blog.airqo.net/"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={handleLinkClick}
               className="flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
             >
@@ -374,7 +378,7 @@ const Navbar: React.FC = () => {
               <span className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
                 Latest
               </span>
-            </Link>
+            </a>
             <a
               href="https://ai.airqo.net/map"
               target="_blank"

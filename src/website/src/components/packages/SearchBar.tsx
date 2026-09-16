@@ -11,7 +11,7 @@ interface SearchBarProps {
 export default function SearchBar({
   value,
   onChange,
-  placeholder = 'Search 1,383 icons...',
+  placeholder = 'Search 1,384 icons...',
   resultCount,
 }: SearchBarProps) {
   return (

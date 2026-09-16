@@ -36,36 +36,37 @@ export const partnerLogos = [
 export const accordionItems = {
   cities: [
     {
-      title: 'High Resolution Network',
+      title: 'High resolution monitoring networks',
       content:
-        'We want cleaner air in all African cities. We leverage our understanding of the African context.',
+        'We build locally adapted monitoring networks that close critical data gaps and provide cities with trusted, hyperlocal air quality data.',
     },
     {
-      title: 'Digital air quality platforms',
+      title: 'Open digital solutions',
       content:
-        'We empower decision-makers in African cities We increase access to air quality data evidence.',
+        'We make air quality data open, accessible and usable, helping city leaders turn evidence into decisions and action.',
     },
     {
-      title: 'Policy engagement',
+      title: 'City and policy engagement',
       content:
-        'We engage city authorities and government agencies We empower local leaders with air quality information.',
+        'We work with city authorities and government agencies to strengthen the use of air quality data in planning, policy and public health action.',
     },
   ],
   communities: [
     {
-      title: 'AirQommunity Champions',
+      title: 'AirQommunity champions',
       content:
-        'A growing network of individual change makers Championing local leaders and demand action.',
+        'We support a growing network of local changemakers who use air quality information to raise awareness and drive action.',
     },
     {
-      title: 'Free Access To Air Quality Information',
+      title: 'Access to air quality information',
       content:
-        'We train individuals and communities Facilitating access to air quality information.',
+        'We equip communities to understand and use air quality information by providing free access to timely, local data.',
     },
     {
-      title: 'AirQo Hosts',
+      title: 'Community hosts',
+      // TODO: confirm ending — source screenshot was cut off after "enabling reliable,"
       content:
-        'We engage locals host our deployment activities We involve locals in our maintenance drives.',
+        'Local residents host AirQo monitors, enabling reliable, community rooted air quality monitoring.',
     },
   ],
 };

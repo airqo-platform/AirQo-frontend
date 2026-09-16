@@ -23,7 +23,7 @@ export default function IconsPackagePage() {
               AirQo Icon Library
             </h1>
             <p className="mt-3 text-[16px] text-blue-100 leading-[1.5] max-w-lg">
-              1,383+ beautiful icons for React, Vue, and Flutter. Fully
+              1,384+ beautiful icons for React, Vue, and Flutter. Fully
               customizable with TypeScript support.
             </p>
           </div>
@@ -36,7 +36,7 @@ export default function IconsPackagePage() {
           <StatCard
             icon={<FiBox className="w-5 h-5" />}
             label="Total Icons"
-            value="1,383+"
+            value="1,384+"
           />
           <StatCard
             icon={<FiSettings className="w-5 h-5" />}
