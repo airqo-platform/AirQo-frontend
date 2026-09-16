@@ -20,6 +20,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 vi.mock("@/core/hooks/useDevices", () => ({
   useClaimDevice: vi.fn(),
   useBulkClaimDevices: vi.fn(),
+  useDeviceAvailability: vi.fn(() => ({ data: undefined, error: null, isFetching: false })),
 }));
 
 vi.mock("@/core/hooks/useCohorts", () => ({
