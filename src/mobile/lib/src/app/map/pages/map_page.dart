@@ -112,9 +112,14 @@ class _MapScreenState extends State<MapScreen>
         measurement.siteDetails?.siteCategory?.latitude;
     final longitude = measurement.siteDetails?.approximateLongitude ??
         measurement.siteDetails?.siteCategory?.longitude;
-    if (!_cameraController.isInitialized ||
-        latitude == null ||
-        longitude == null) {
+    if (latitude == null || longitude == null) {
+      if (allMeasurements.isNotEmpty) {
+        _pendingNavigationMeasurement = null;
+        MapNavigationService.instance.clear(requested);
+      }
+      return;
+    }
+    if (!_cameraController.isInitialized) {
       return;
     }
 
@@ -366,6 +371,7 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _initializeWithData(AirQualityResponse response) async {
     populateMeasurements(response.measurements ?? []);
     await addMarkers(response);
+    await _focusPendingNavigationMeasurement();
   }
 
   Future<void> _retryLoading() async {

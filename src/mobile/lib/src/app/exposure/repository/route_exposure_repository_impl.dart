@@ -237,10 +237,22 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     // AirQo's supported measurements API is site-scoped. The former bulk
     // `/measurements?site_id=...` URL is not part of the public API and fails
     // even after directions and nearest-location lookup succeed.
-    final results = await Future.wait(
-      nearbySites.map(_fetchRecentMeasurementsForSite),
+    final outcomes = await Future.wait(
+      nearbySites.map((site) async {
+        try {
+          return await _fetchRecentMeasurementsForSite(site);
+        } on Object {
+          return null;
+        }
+      }),
     );
-    return results.expand((measurements) => measurements).toList();
+    final successes = outcomes.whereType<List<Measurement>>().toList();
+    if (successes.isEmpty) {
+      throw Exception(
+        'Could not load air quality along this route. Try again.',
+      );
+    }
+    return successes.expand((measurements) => measurements).toList();
   }
 
   Future<List<Measurement>> _fetchRecentMeasurementsForSite(
@@ -254,31 +266,32 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       queryParameters: token.isEmpty ? null : {'token': token},
     );
 
-    try {
-      final response = await _withRequestTimeout(
-        _httpClient.get(uri, headers: await _getAuthHeaders()),
-        'Route measurements request timed out.',
+    final response = await _withRequestTimeout(
+      _httpClient.get(uri, headers: await _getAuthHeaders()),
+      'Route measurements request timed out.',
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Route measurements request failed: HTTP ${response.statusCode}',
       );
-      if (response.statusCode != 200) return const [];
-
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = body['data'];
-      final rawMeasurements = body['measurements'] ??
-          body['readings'] ??
-          (data is Map<String, dynamic>
-              ? data['measurements'] ?? data['readings']
-              : data);
-      if (rawMeasurements is! List) return const [];
-
-      return rawMeasurements
-          .whereType<Map<String, dynamic>>()
-          .map(Measurement.fromJson)
-          .where((measurement) => measurement.pm25?.value != null)
-          .toList();
-    } catch (_) {
-      // A route can still be useful when one monitor is temporarily offline.
-      return const [];
     }
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'];
+    final rawMeasurements = body['measurements'] ??
+        body['readings'] ??
+        (data is Map<String, dynamic>
+            ? data['measurements'] ?? data['readings']
+            : data);
+    if (rawMeasurements is! List) {
+      throw Exception('Route measurements response was malformed.');
+    }
+
+    return rawMeasurements
+        .whereType<Map<String, dynamic>>()
+        .map(Measurement.fromJson)
+        .where((measurement) => measurement.pm25?.value != null)
+        .toList();
   }
 
   Future<Map<String, String>> _getAuthHeaders() async {

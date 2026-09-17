@@ -94,7 +94,14 @@ class _MyTripsViewState extends State<MyTripsView> {
 
   void _syncSelection() {
     final countries = _countries;
-    if (countries.isEmpty) return;
+    if (countries.isEmpty) {
+      _country = null;
+      _origin = null;
+      _destination = null;
+      _summary = null;
+      _errorMessage = null;
+      return;
+    }
     if (_country == null || !countries.contains(_country)) {
       final favoriteCountries = widget.networkSites
           .where((entry) => entry.isFavorite)
@@ -106,14 +113,13 @@ class _MyTripsViewState extends State<MyTripsView> {
       );
     }
     final sites = _countrySites.map((entry) => entry.site).toList();
-    if (_origin == null || !sites.any((site) => site.id == _origin!.id)) {
-      _origin = sites.firstOrNull;
-    }
-    if (_destination == null ||
-        !sites.any((site) => site.id == _destination!.id) ||
-        _destination?.id == _origin?.id) {
-      _destination = sites.where((site) => site.id != _origin?.id).firstOrNull;
-    }
+    _origin = sites.where((site) => site.id == _origin?.id).firstOrNull ??
+        sites.firstOrNull;
+    _destination = sites
+            .where((site) =>
+                site.id == _destination?.id && site.id != _origin?.id)
+            .firstOrNull ??
+        sites.where((site) => site.id != _origin?.id).firstOrNull;
   }
 
   void _selectCountry(String country) {

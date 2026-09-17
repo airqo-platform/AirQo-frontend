@@ -69,7 +69,13 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
     if (!isClosed &&
         generation == _loadGeneration &&
         state is DeclaredPlacesLoaded) {
-      emit((state as DeclaredPlacesLoaded).withReadings(results));
+      final loaded = state as DeclaredPlacesLoaded;
+      final activeSiteIds = loaded.places.map((place) => place.siteId).toSet();
+      emit(loaded.withReadings({
+        ...loaded.readings,
+        for (final entry in results.entries)
+          if (activeSiteIds.contains(entry.key)) entry.key: entry.value,
+      }));
     }
   }
 

@@ -177,6 +177,83 @@ void main() {
       ),
     );
   });
+
+  test('buildTripExposure errors when every monitor request fails', () async {
+    final repository = RouteExposureRepositoryImpl(
+      httpClient: _FakeClient((request) async {
+        if (request.url.path.endsWith('/devices/metadata/routes/directions')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'routes': [
+                  {
+                    'overview_polyline': {
+                      'points': '_p~iF~ps|U_ulLnnqC_mqNvxq`@',
+                    },
+                    'legs': [
+                      {
+                        'distance': {'text': '12 km'},
+                        'duration': {'text': '28 mins'},
+                      }
+                    ],
+                  }
+                ],
+              },
+            }),
+            200,
+          );
+        }
+
+        if (request.url.path
+            .endsWith('/devices/metadata/routes/nearest-locations')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'sites': [
+                  {'_id': 'site-1', 'name': 'Central Monitor'},
+                ],
+              },
+            }),
+            200,
+          );
+        }
+
+        if (request.url.path.contains('/devices/measurements/sites/')) {
+          return http.Response('Unauthorized', 401);
+        }
+
+        throw UnsupportedError('Unhandled request: ${request.url}');
+      }),
+    );
+
+    expect(
+      () => repository.buildTripExposure(
+        origin: const SelectedSite(
+          id: 'origin',
+          name: 'Origin',
+          searchName: 'Origin',
+          latitude: 0.3476,
+          longitude: 32.5825,
+        ),
+        destination: const SelectedSite(
+          id: 'destination',
+          name: 'Destination',
+          searchName: 'Destination',
+          latitude: 0.3136,
+          longitude: 32.5811,
+        ),
+      ),
+      throwsA(
+        isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          contains('Could not load air quality along this route'),
+        ),
+      ),
+    );
+  });
 }
 
 class _FakeClient extends http.BaseClient {

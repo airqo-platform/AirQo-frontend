@@ -89,7 +89,7 @@ List<ExposureFavoriteItem> exposureFavoritesForDashboard(
           locationName:
               site.searchName.trim().isEmpty ? site.name : site.searchName,
           monitorName: site.name,
-          city: site.name,
+          city: site.geographicCity,
         ),
       ),
   ];
@@ -131,6 +131,7 @@ List<TripNetworkSite> tripNetworkSitesFromMapState(
             details.formattedName ??
             details.city ??
             country,
+        city: details.city,
         latitude: latitude,
         longitude: longitude,
       ),

@@ -112,6 +112,60 @@ void main() {
     expect(readings['site-work']?[workHour].pm25, 9.2);
   });
 
+  test('prefers response site IDs and ignores shared aliases', () async {
+    final client = MockClient((request) async {
+      return http.Response(
+        jsonEncode({
+          'status': 'success',
+          'data': [
+            {
+              'datetime': '2026-09-16 14:00:00Z',
+              'site_id': 'site-work',
+              'site_name': 'KCCA Division Rubaga',
+              'pm2_5_calibrated_value': 7.1,
+            },
+            {
+              'datetime': '2026-09-16 15:00:00Z',
+              'site_name': 'Home',
+              'pm2_5_calibrated_value': 99.0,
+            },
+          ],
+        }),
+        200,
+      );
+    });
+    const places = [
+      DeclaredPlace(
+        siteId: 'site-home',
+        displayName: 'Home',
+        locationName: 'KCCA Division Rubaga',
+        city: 'Kampala',
+        type: PlaceType.home,
+      ),
+      DeclaredPlace(
+        siteId: 'site-work',
+        displayName: 'Home',
+        locationName: "Ang'awa Avenue",
+        city: 'Kampala',
+        type: PlaceType.work,
+      ),
+    ];
+
+    final repository = HourlyReadingsRepositoryImpl(httpClient: client);
+    final readings = await repository.fetchHourlyReadingsForPlaces(
+      places,
+      DateTime(2026, 9, 16),
+    );
+    final mismatchedNameHour =
+        DateTime.parse('2026-09-16T14:00:00Z').toLocal().hour;
+    final aliasHour = DateTime.parse('2026-09-16T15:00:00Z').toLocal().hour;
+
+    expect(readings['site-work']?[mismatchedNameHour].pm25, 7.1);
+    expect(readings['site-home']?[mismatchedNameHour].pm25, isNull);
+    expect(readings['site-home']?[aliasHour].pm25, isNull);
+    expect(readings['site-work']?[aliasHour].pm25, isNull);
+  });
+
   test('returns explicit unavailable hours when the request fails', () async {
     final repository = HourlyReadingsRepositoryImpl(
       httpClient: MockClient((_) async => http.Response('Unauthorized', 401)),

@@ -66,15 +66,22 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
         return unavailable;
       }
 
-      final placesByName = <String, List<DeclaredPlace>>{};
+      final placesById = {
+        for (final place in places) place.siteId: place,
+      };
+      final placesByUniqueName = <String, DeclaredPlace>{};
+      final ambiguousNames = <String>{};
       for (final place in places) {
-        for (final name in {
-          place.monitorName,
-          place.locationName,
-          place.displayName,
-          place.city,
-        }) {
-          placesByName.putIfAbsent(_normalizedName(name), () => []).add(place);
+        for (final name in {place.monitorName, place.locationName}) {
+          final key = _normalizedName(name);
+          if (key.isEmpty || ambiguousNames.contains(key)) continue;
+          final existing = placesByUniqueName[key];
+          if (existing == null) {
+            placesByUniqueName[key] = place;
+          } else if (existing.siteId != place.siteId) {
+            placesByUniqueName.remove(key);
+            ambiguousNames.add(key);
+          }
         }
       }
       final readingsBySite = <String, Map<int, HourlyReading>>{
@@ -83,22 +90,22 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
 
       for (final item in (body['data'] as List).whereType<Map>()) {
         final measurement = Map<String, dynamic>.from(item);
-        final siteName = _normalizedName(
-          (measurement['site_name'] ?? '').toString(),
-        );
-        final matches = placesByName[siteName] ?? const <DeclaredPlace>[];
-        if (matches.isEmpty) continue;
+        final responseSiteId =
+            (measurement['site_id'] ?? measurement['siteId'] ?? '').toString();
+        final place = placesById[responseSiteId] ??
+            placesByUniqueName[_normalizedName(
+              (measurement['site_name'] ?? '').toString(),
+            )];
+        if (place == null) continue;
         final timestamp = _parseAnalyticsTimestamp(measurement['datetime']);
         final pm25 = _pm25Value(measurement);
         if (timestamp == null || pm25 == null) continue;
         final localTime = timestamp.toLocal();
         if (!_isSameDay(localTime, date)) continue;
-        for (final place in matches) {
-          readingsBySite[place.siteId]![localTime.hour] = HourlyReading(
-            hour: localTime.hour,
-            pm25: pm25,
-          );
-        }
+        readingsBySite[place.siteId]![localTime.hour] = HourlyReading(
+          hour: localTime.hour,
+          pm25: pm25,
+        );
       }
 
       final result = {

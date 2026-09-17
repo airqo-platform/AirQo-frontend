@@ -128,7 +128,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     setState(() {
       currentIndex = index;
     });
-    if (_exposureEnabled && previousIndex == 2 && index == 0) {
+    if (_exposureEnabled && previousIndex == 2 && index != 2) {
       context.read<DashboardBloc>().add(
             const LoadUserPreferences(forceRefresh: true),
           );

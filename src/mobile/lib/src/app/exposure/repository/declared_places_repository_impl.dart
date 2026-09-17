@@ -45,10 +45,7 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository
             if (!data.containsKey('declared_places')) {
               return cached;
             }
-            final places = _mergeBySiteId(
-              cached,
-              _parseDeclaredPlaces(data),
-            );
+            final places = _parseDeclaredPlaces(data);
             await _cacheToHive(places);
             return places;
           }
@@ -120,17 +117,6 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository
         .whereType<Map>()
         .map((j) => DeclaredPlace.fromJson(Map<String, dynamic>.from(j)))
         .toList();
-  }
-
-  List<DeclaredPlace> _mergeBySiteId(
-    List<DeclaredPlace> cached,
-    List<DeclaredPlace> remote,
-  ) {
-    final merged = <String, DeclaredPlace>{
-      for (final place in cached) place.siteId: place,
-      for (final place in remote) place.siteId: place,
-    };
-    return merged.values.toList();
   }
 
   Future<List<dynamic>> _fetchCurrentSelectedSites(String userId) async {

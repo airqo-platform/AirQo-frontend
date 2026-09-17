@@ -77,6 +77,7 @@ void main() {
       id: 'kisumu-site',
       name: "Ang'awa Avenue",
       searchName: 'Kisumu 256',
+      city: 'Kisumu',
     );
     const declared = DeclaredPlace(
       siteId: 'kisumu-site',
@@ -93,6 +94,7 @@ void main() {
 
     expect(item.declaredPlace?.locationName, 'Kisumu 256');
     expect(item.declaredPlace?.monitorName, "Ang'awa Avenue");
+    expect(item.declaredPlace?.city, 'Kisumu');
   });
 
   test('dashboard favorites remain resolved during a refresh', () {

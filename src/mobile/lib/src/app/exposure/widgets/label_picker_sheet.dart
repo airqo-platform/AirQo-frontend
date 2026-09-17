@@ -202,7 +202,7 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
           ? widget.site.name
           : widget.site.searchName,
       monitorName: widget.site.name,
-      city: widget.site.name,
+      city: widget.site.geographicCity,
       type: _selectedType,
       weekdayWindow: widget.existing?.weekdayWindow,
       weekendWindow: widget.existing?.weekendWindow,
