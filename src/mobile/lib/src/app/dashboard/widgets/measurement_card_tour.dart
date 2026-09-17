@@ -1,24 +1,29 @@
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_action_strip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// GlobalKey for the first dashboard measurement card used by the gestures tour.
 class MeasurementCardTourKeys {
   final GlobalKey cardKey = GlobalKey(debugLabel: 'measurement_card');
+  final GlobalKey shareIconKey = GlobalKey(debugLabel: 'measurement_share');
+  final GlobalKey forecastIconKey =
+      GlobalKey(debugLabel: 'measurement_forecast');
 }
 
 const String measurementCardGesturesTourSeenKey =
-    'measurement_card_gestures_tour_seen';
+    'measurement_card_forecast_tour_seen_v2';
 
 /// Set to true when ready to show the first-run card gestures tour again.
-const bool kMeasurementCardGesturesTourEnabled = false;
+const bool kMeasurementCardGesturesTourEnabled = true;
 
 enum MeasurementCardTourTargetKind { tapZone, shareIcon, forecastIcon }
 
 /// Whether the first card is attached and laid out.
 bool measurementCardTourTargetsReady(MeasurementCardTourKeys keys) {
-  return keys.cardKey.currentContext != null;
+  return keys.cardKey.currentContext != null &&
+      keys.forecastIconKey.currentContext != null;
 }
 
 /// Waits until the tour card is measurable, then invokes [onReady] once.
@@ -50,14 +55,30 @@ void scheduleMeasurementCardTourReady({
 /// Spotlight rect derived from the card bounds and known icon layout constants.
 Rect measurementCardTourTargetRect(
   MeasurementCardTourKeys keys,
-  MeasurementCardTourTargetKind kind,
-) {
+  MeasurementCardTourTargetKind kind, {
+  RenderBox? relativeTo,
+}) {
+  final exactTargetKey = switch (kind) {
+    MeasurementCardTourTargetKind.shareIcon => keys.shareIconKey,
+    MeasurementCardTourTargetKind.forecastIcon => keys.forecastIconKey,
+    MeasurementCardTourTargetKind.tapZone => null,
+  };
+  final exactTargetContext = exactTargetKey?.currentContext;
+  final exactTargetBox = exactTargetContext?.findRenderObject() as RenderBox?;
+  if (exactTargetBox != null && exactTargetBox.hasSize) {
+    final globalTopLeft = exactTargetBox.localToGlobal(Offset.zero);
+    final topLeft = relativeTo?.globalToLocal(globalTopLeft) ?? globalTopLeft;
+    return topLeft & exactTargetBox.size;
+  }
+
   final ctx = keys.cardKey.currentContext;
   if (ctx == null) return Rect.zero;
   final box = ctx.findRenderObject() as RenderBox?;
   if (box == null || !box.hasSize) return Rect.zero;
 
-  final card = box.localToGlobal(Offset.zero) & box.size;
+  final globalTopLeft = box.localToGlobal(Offset.zero);
+  final cardTopLeft = relativeTo?.globalToLocal(globalTopLeft) ?? globalTopLeft;
+  final card = cardTopLeft & box.size;
   const footerHeight =
       kMeasurementCardBottomPadding + kMeasurementCardActionTapTarget;
 
@@ -106,7 +127,23 @@ class MeasurementCardTourStep {
   final String subtitle;
 }
 
-List<MeasurementCardTourStep> buildMeasurementCardGesturesTourSteps() {
+enum MeasurementCardTourView { nearYou, favorites, locations }
+
+List<MeasurementCardTourStep> buildMeasurementCardGesturesTourSteps({
+  MeasurementCardTourView view = MeasurementCardTourView.locations,
+}) {
+  if (view == MeasurementCardTourView.nearYou) {
+    return const [
+      MeasurementCardTourStep(
+        targetKind: MeasurementCardTourTargetKind.forecastIcon,
+        svgAssetPath: 'assets/icons/chevron-right.svg',
+        title: 'See the forecast',
+        subtitle:
+            'Tap the chevron to view the hourly and daily forecast for this place.',
+      ),
+    ];
+  }
+
   return const [
     MeasurementCardTourStep(
       targetKind: MeasurementCardTourTargetKind.tapZone,
@@ -126,8 +163,7 @@ List<MeasurementCardTourStep> buildMeasurementCardGesturesTourSteps() {
       targetKind: MeasurementCardTourTargetKind.shareIcon,
       svgAssetPath: 'assets/icons/share-icon.svg',
       title: 'Share button',
-      subtitle:
-          'You can also tap the share icon here to open sharing options.',
+      subtitle: 'You can also tap the share icon here to open sharing options.',
     ),
     MeasurementCardTourStep(
       targetKind: MeasurementCardTourTargetKind.forecastIcon,
@@ -156,8 +192,10 @@ class MeasurementCardGesturesTour extends StatefulWidget {
       _MeasurementCardGesturesTourState();
 }
 
-class _MeasurementCardGesturesTourState extends State<MeasurementCardGesturesTour>
+class _MeasurementCardGesturesTourState
+    extends State<MeasurementCardGesturesTour>
     with SingleTickerProviderStateMixin {
+  final GlobalKey _overlayKey = GlobalKey();
   int _stepIndex = 0;
   Rect? _targetRect;
   late AnimationController _fade;
@@ -188,9 +226,12 @@ class _MeasurementCardGesturesTourState extends State<MeasurementCardGesturesTou
   }
 
   void _applyTargetRect() {
+    final overlayBox =
+        _overlayKey.currentContext?.findRenderObject() as RenderBox?;
     final rect = measurementCardTourTargetRect(
       widget.tourKeys,
       _step.targetKind,
+      relativeTo: overlayBox,
     );
     if (rect == Rect.zero || !mounted) return;
     setState(() => _targetRect = rect);
@@ -251,6 +292,7 @@ class _MeasurementCardGesturesTourState extends State<MeasurementCardGesturesTou
         behavior: HitTestBehavior.opaque,
         onTap: _advance,
         child: Stack(
+          key: _overlayKey,
           children: [
             if (targetRect != null)
               CustomPaint(
@@ -379,9 +421,8 @@ class _CardTourTooltipBubble extends StatelessWidget {
     final subColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
-    final spotlightBottom = compact
-        ? targetRect.bottom + _gap
-        : targetRect.bottom - 8 + _gap;
+    final spotlightBottom =
+        compact ? targetRect.bottom + _gap : targetRect.bottom - 8 + _gap;
     final spotlightTop = compact ? targetRect.top - _gap : targetRect.top - 8;
 
     final placeBelow = !preferAbove &&
@@ -400,8 +441,8 @@ class _CardTourTooltipBubble extends StatelessWidget {
           children: [
             Padding(
               padding: EdgeInsets.only(
-                left: (arrowCx - _hPad - padding.left - 10)
-                    .clamp(0.0, screen.width - (_hPad + padding.horizontal) - 20),
+                left: (arrowCx - _hPad - padding.left - 10).clamp(
+                    0.0, screen.width - (_hPad + padding.horizontal) - 20),
               ),
               child: CustomPaint(
                 size: const Size(20, _arrowH),
@@ -479,6 +520,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: textColor,
                         height: 1.2,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -489,6 +531,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
                         fontWeight: FontWeight.w400,
                         color: subColor,
                         height: 1.45,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ],
@@ -505,6 +548,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
                   fontSize: 11,
                   color: subColor,
                   fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
                 ),
               ),
               const Spacer(),
@@ -516,16 +560,19 @@ class _CardTourTooltipBubble extends StatelessWidget {
                   fontSize: 11,
                   color: subColor,
                   fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.none,
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(
-                isLastStep
-                    ? Icons.keyboard_arrow_down_rounded
-                    : Icons.keyboard_arrow_right_rounded,
-                size: 14,
-                color: subColor,
-              ),
+              isLastStep
+                  ? AqChevronDown(
+                      size: 14,
+                      color: subColor,
+                    )
+                  : AqChevronRight(
+                      size: 14,
+                      color: subColor,
+                    ),
             ],
           ),
         ],
@@ -539,8 +586,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
         step.svgAssetPath!,
         width: 20,
         height: 20,
-        colorFilter:
-            ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),
       );
     }
     return Icon(

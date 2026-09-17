@@ -20,6 +20,9 @@ import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/retry_button.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
+import 'package:airqo/src/app/exposure/models/declared_place.dart';
+import 'package:airqo/src/app/exposure/repository/declared_places_repository_impl.dart';
+import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
@@ -45,6 +48,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   bool isLoading = false;
   bool _prefsAuthError = false;
   late CacheManager _cacheManager;
+  Map<String, DeclaredPlace> _declaredPlacesBySiteId = const {};
 
   @override
   void initState() {
@@ -52,6 +56,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     loggy.info('Initializing MyPlacesView');
     _cacheManager = CacheManager();
     _loadSelectedMeasurements();
+    _loadDeclaredPlaces();
   }
 
   @override
@@ -62,6 +67,25 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         widget.prefsLoadFailed != oldWidget.prefsLoadFailed) {
       loggy.info('User preferences updated, reloading measurements');
       _loadSelectedMeasurements();
+      _loadDeclaredPlaces();
+    }
+  }
+
+  Future<void> _loadDeclaredPlaces() async {
+    if (!FeatureFlagService.instance
+        .isEnabled(AppFeatureFlag.exposureTracking)) {
+      return;
+    }
+    try {
+      final places = await DeclaredPlacesRepositoryImpl().getDeclaredPlaces();
+      if (!mounted) return;
+      setState(() {
+        _declaredPlacesBySiteId = {
+          for (final place in places) place.siteId: place,
+        };
+      });
+    } catch (error) {
+      loggy.warning('Could not load Favorite labels for dashboard: $error');
     }
   }
 
@@ -208,7 +232,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
             ),
           ),
           content: TranslatedText(
-            "You need to have at least one location in My Places. Add another location before removing this one.",
+            "You need to have at least one Favorite. Add another Favorite before removing this one.",
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
@@ -302,31 +326,37 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'location_selection'), builder: (context) => LocationSelectionScreen()),
+      MaterialPageRoute(
+          settings: const RouteSettings(name: 'location_selection'),
+          builder: (context) => LocationSelectionScreen()),
     );
 
     if (result != null && mounted) {
       final expectedLocationIds = (result as List<String>);
       final expectedCount = expectedLocationIds.length;
-      loggy.info('Returned from location selection with $expectedCount locations: $expectedLocationIds');
-      
+      loggy.info(
+          'Returned from location selection with $expectedCount locations: $expectedLocationIds');
+
       setState(() {
         isLoading = true;
       });
-      
+
       context.read<DashboardBloc>().add(LoadDashboard());
-      
+
       // Verify the result after giving time for state to update
       Future.delayed(Duration(seconds: 2), () {
         if (mounted) {
-          final actualCount = selectedMeasurements.length + unmatchedSites.length;
-          loggy.info('Expected: $expectedCount locations, Actual: $actualCount locations');
-          
+          final actualCount =
+              selectedMeasurements.length + unmatchedSites.length;
+          loggy.info(
+              'Expected: $expectedCount locations, Actual: $actualCount locations');
+
           if (actualCount != expectedCount) {
             loggy.warning('Location count mismatch detected');
             NotificationManager().showNotification(
               context,
-              message: 'Some locations may not have been saved properly. Please verify your selections.',
+              message:
+                  'Some locations may not have been saved properly. Please verify your selections.',
               isSuccess: false,
             );
           } else {
@@ -344,11 +374,13 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         loggy.info('Dashboard state changed to ${state.runtimeType}');
         if (state is DashboardLoaded) {
           if (state.prefsAuthError) {
-            loggy.warning('Preferences auth error detected — showing refresh prompt');
+            loggy.warning(
+                'Preferences auth error detected — showing refresh prompt');
             setState(() => _prefsAuthError = true);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const TranslatedText('Session expired. Your saved places could not be loaded.'),
+                content: const TranslatedText(
+                    'Session expired. Your saved places could not be loaded.'),
                 duration: const Duration(seconds: 10),
                 action: SnackBarAction(
                   label: 'Refresh',
@@ -360,7 +392,8 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                     } else if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: TranslatedText('Could not refresh session. Please log in again.'),
+                          content: TranslatedText(
+                              'Could not refresh session. Please log in again.'),
                           duration: Duration(seconds: 6),
                         ),
                       );
@@ -416,39 +449,43 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                             : _buildEmptyState(),
                       ],
                     SavedPlacesContentStatus.ready => [
-                    ...selectedMeasurements.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final measurement = entry.value;
-                      String? preferenceLocationName;
-                      if (widget.userPreferences != null) {
-                        for (var site in widget.userPreferences!.selectedSites) {
-                          if (site.id == measurement.siteId) {
-                            preferenceLocationName = site.name;
-                            break;
+                        ...selectedMeasurements.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final measurement = entry.value;
+                          String? preferenceLocationName;
+                          if (widget.userPreferences != null) {
+                            for (var site
+                                in widget.userPreferences!.selectedSites) {
+                              if (site.id == measurement.siteId) {
+                                preferenceLocationName = site.name;
+                                break;
+                              }
+                            }
                           }
-                        }
-                      }
-                      
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: SwipeableAnalyticsCard(
-                          measurement: measurement,
-                          onRemove: _removeLocation,
-                          fallbackLocationName: preferenceLocationName,
-                          tourKeys: index == 0 ? widget.tourKeys : null,
-                          onTourTargetReady:
-                              index == 0 ? widget.onTourTargetReady : null,
-                        ),
-                      );
-                    }),
-                    ...unmatchedSites.map((site) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: UnmatchedSiteCard(
-                            site: site,
-                            onRemove: _removeLocation,
-                          ),
-                        )),
-                  ],
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: SwipeableAnalyticsCard(
+                              measurement: measurement,
+                              onRemove: _removeLocation,
+                              fallbackLocationName: preferenceLocationName,
+                              favorite:
+                                  _declaredPlacesBySiteId[measurement.siteId],
+                              tourKeys: index == 0 ? widget.tourKeys : null,
+                              onTourTargetReady:
+                                  index == 0 ? widget.onTourTargetReady : null,
+                            ),
+                          );
+                        }),
+                        ...unmatchedSites.map((site) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: UnmatchedSiteCard(
+                                site: site,
+                                onRemove: _removeLocation,
+                                favorite: _declaredPlacesBySiteId[site.id],
+                              ),
+                            )),
+                      ],
                   },
                 ],
               ),
@@ -458,7 +495,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       ),
     );
   }
-
 
   Widget _buildLoadingState() {
     return Container(
@@ -536,7 +572,11 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         Icon(
           Icons.lock_clock_outlined,
           size: 64,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
+          color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.4),
         ),
         const SizedBox(height: 16),
         Padding(
@@ -572,7 +612,9 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
               context.read<DashboardBloc>().add(LoadUserPreferences());
             } else if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (context) => const LoginPage()),
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: 'login'),
+                    builder: (context) => const LoginPage()),
                 (route) => false,
               );
             }

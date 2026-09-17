@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/map/utils/map_aq_presentation.dart';
+import 'package:airqo/src/app/map/utils/map_measurement_filter.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:airqo/src/meta/utils/widget_to_map_icon.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,7 @@ class MapMarkerBuilder {
     required List<Measurement> measurements,
     required ValueChanged<Measurement> onMeasurementTap,
   }) async {
-    final valid = measurements.where(_hasMappableReading).toList();
+    final valid = measurements.where(isMapVisibleMeasurement).toList();
     if (valid.isEmpty) return [];
 
     final markers = <Marker>[];
@@ -23,13 +24,6 @@ class MapMarkerBuilder {
     }
 
     return markers;
-  }
-
-  bool _hasMappableReading(Measurement measurement) {
-    return measurement.id != null &&
-        measurement.pm25?.value != null &&
-        measurement.siteDetails?.approximateLatitude != null &&
-        measurement.siteDetails?.approximateLongitude != null;
   }
 
   Future<Marker> _measurementMarker(
