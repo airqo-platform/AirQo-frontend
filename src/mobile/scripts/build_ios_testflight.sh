@@ -10,7 +10,12 @@ MOBILE_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$MOBILE_DIR"
 
 echo "==> Pulling latest staging"
-git pull origin staging
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "Error: working tree has uncommitted changes. Commit or stash them, then rerun." >&2
+  exit 1
+fi
+git checkout staging
+git pull --ff-only origin staging
 
 echo "==> Cleaning build folder"
 flutter clean
