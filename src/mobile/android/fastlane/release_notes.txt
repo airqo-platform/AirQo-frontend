@@ -1,0 +1,4 @@
+• Home Favorites stay in a clearer order, with a path through to the live map monitor
+• Country labels show Cameroon consistently instead of Cameroun
+• Google sign-in is removed from the login screen
+• Profile initials stay readable in light mode
