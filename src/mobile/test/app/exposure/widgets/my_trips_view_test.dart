@@ -9,8 +9,33 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 
 void main() {
+  const networkSites = [
+    TripNetworkSite(
+      country: 'Uganda',
+      isFavorite: true,
+      site: SelectedSite(
+        id: 'site-1',
+        name: 'Home',
+        searchName: 'Kampala, Uganda',
+        latitude: 0.3476,
+        longitude: 32.5825,
+      ),
+    ),
+    TripNetworkSite(
+      country: 'Uganda',
+      site: SelectedSite(
+        id: 'site-2',
+        name: 'Office',
+        searchName: 'Kampala, Uganda',
+        latitude: 0.3136,
+        longitude: 32.5811,
+      ),
+    ),
+  ];
+
   testWidgets('MyTripsView shows a route summary after analysis',
       (tester) async {
     final repository = _FakeRouteExposureRepository();
@@ -36,6 +61,7 @@ void main() {
                 longitude: 32.5811,
               ),
             ],
+            networkSites: networkSites,
             repository: repository,
           ),
         ),
@@ -53,7 +79,7 @@ void main() {
         findsOneWidget);
   });
 
-  testWidgets('MyTripsView explains when there are not enough saved sites',
+  testWidgets('MyTripsView uses country-scoped AirQo network endpoints',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -62,25 +88,45 @@ void main() {
           create: (_) => LanguageBloc(),
           child: const Scaffold(
             body: MyTripsView(
-              savedSites: [
-                SelectedSite(
-                  id: 'site-1',
-                  name: 'Home',
-                  searchName: 'Home',
-                  latitude: 0.3476,
-                  longitude: 32.5825,
-                ),
-              ],
+              savedSites: [],
+              networkSites: networkSites,
             ),
           ),
         ),
       ),
     );
 
-    expect(find.text('No trips to analyze'), findsOneWidget);
+    expect(find.text('Check route exposure'), findsOneWidget);
+    expect(find.text('Uganda'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Office'), findsOneWidget);
   });
 
-  testWidgets('MyTripsView shows a loader while dashboard is first loading',
+  testWidgets('location search uses a compact inline search icon',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: BlocProvider(
+          create: (_) => LanguageBloc(),
+          child: const Scaffold(
+            body: MyTripsView(
+              savedSites: [],
+              networkSites: networkSites,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+
+    final icon = tester.widget<AqSearchMd>(find.byType(AqSearchMd));
+    expect(icon.size, 18);
+  });
+
+  testWidgets('MyTripsView remains usable while Favorites are loading',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -94,10 +140,12 @@ void main() {
       ),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Check route exposure'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('MyTripsView shows retry when dashboard failed', (tester) async {
+  testWidgets('MyTripsView explains when network locations fail',
+      (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -114,12 +162,57 @@ void main() {
       ),
     );
 
-    expect(find.text('Unable to load trips'), findsOneWidget);
     expect(
-      find.text("We couldn't load your trips right now. Please try again."),
+        find.text('AirQo network locations are unavailable'), findsOneWidget);
+    expect(
+      find.text(
+          'Trips use monitored AirQo locations so route exposure has a better chance of returning readings.'),
       findsOneWidget,
     );
-    expect(find.text('Try Again'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Retry locations'),
+      120,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Retry locations'), findsOneWidget);
+  });
+
+  testWidgets(
+      'MyTripsView offers add places when both trip endpoints are unavailable',
+      (tester) async {
+    var addPlacesCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: Scaffold(
+          body: MyTripsView(
+            savedSites: const [
+              SelectedSite(
+                id: 'site-1',
+                name: 'Home',
+                searchName: 'Home',
+                latitude: 0.3476,
+                longitude: 32.5825,
+              ),
+            ],
+            onAddPlaces: () => addPlacesCount += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.text('No AirQo network locations to compare'),
+      findsOneWidget,
+    );
+    expect(find.text('Add places'), findsOneWidget);
+    expect(find.text('Analyze trip exposure'), findsNothing);
+
+    await tester.tap(find.text('Add places'));
+    await tester.pump();
+
+    expect(addPlacesCount, 1);
   });
 }
 

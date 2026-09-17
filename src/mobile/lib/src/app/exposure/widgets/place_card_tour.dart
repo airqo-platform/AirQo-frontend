@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 
-/// Full-screen guided-tour overlay that spotlights the first place card and
+/// Full-screen guided-tour overlay that spotlights the first Favorite card and
 /// tells the user they can tap it to see the hourly PM2.5 breakdown.
 ///
-/// Show it the first time the user adds a place; dismiss on any tap.
+/// Show it the first time the user configures a Favorite; dismiss on any tap.
 class PlaceCardTour extends StatefulWidget {
   final GlobalKey cardKey;
   final VoidCallback onDismiss;
@@ -21,6 +22,7 @@ class PlaceCardTour extends StatefulWidget {
 
 class _PlaceCardTourState extends State<PlaceCardTour>
     with SingleTickerProviderStateMixin {
+  final GlobalKey _overlayKey = GlobalKey();
   Rect? _cardRect;
   late AnimationController _fade;
   late Animation<double> _opacity;
@@ -51,8 +53,12 @@ class _PlaceCardTourState extends State<PlaceCardTour>
     final ctx = widget.cardKey.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return;
-    final topLeft = box.localToGlobal(Offset.zero);
+    final overlayBox =
+        _overlayKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize || overlayBox == null) return;
+    final topLeft = overlayBox.globalToLocal(
+      box.localToGlobal(Offset.zero),
+    );
     if (mounted) {
       setState(() {
         _cardRect = topLeft & box.size;
@@ -71,24 +77,28 @@ class _PlaceCardTourState extends State<PlaceCardTour>
 
     return FadeTransition(
       opacity: _opacity,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _dismiss,
-        child: Stack(
-          children: [
-            // ── Spotlight backdrop ───────────────────────────────
-            if (cardRect != null)
-              CustomPaint(
-                size: MediaQuery.of(context).size,
-                painter: _SpotlightPainter(spotlight: cardRect),
-              )
-            else
-              Container(color: Colors.black54),
-
-            // ── Tooltip bubble ───────────────────────────────────
-            if (cardRect != null)
-              _TooltipBubble(cardRect: cardRect, isDark: isDark),
-          ],
+      child: LayoutBuilder(
+        builder: (context, constraints) => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _dismiss,
+          child: Stack(
+            key: _overlayKey,
+            children: [
+              if (cardRect != null)
+                CustomPaint(
+                  size: constraints.biggest,
+                  painter: _SpotlightPainter(spotlight: cardRect),
+                )
+              else
+                Container(color: Colors.black54),
+              if (cardRect != null)
+                _TooltipBubble(
+                  cardRect: cardRect,
+                  overlayHeight: constraints.maxHeight,
+                  isDark: isDark,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -112,7 +122,8 @@ class _SpotlightPainter extends CustomPainter {
         spotlight.left - _pad,
         spotlight.top - _pad,
         spotlight.right + _pad,
-        spotlight.bottom - _pad, // trim bottom: card margin is 12px, so this leaves ~4px gap
+        spotlight.bottom -
+            _pad, // trim bottom: card margin is 12px, so this leaves ~4px gap
       );
 
   @override
@@ -152,11 +163,16 @@ class _SpotlightPainter extends CustomPainter {
 
 class _TooltipBubble extends StatelessWidget {
   final Rect cardRect;
+  final double overlayHeight;
   final bool isDark;
   static const double _arrowH = 10.0;
   static const double _hPad = 16.0;
 
-  const _TooltipBubble({required this.cardRect, required this.isDark});
+  const _TooltipBubble({
+    required this.cardRect,
+    required this.overlayHeight,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -167,30 +183,22 @@ class _TooltipBubble extends StatelessWidget {
     final subColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
-    // Position bubble below the spotlight cutout (bottom = cardRect.bottom - 8
-    // after asymmetric inflation, then add a small gap before the arrow).
-    final spotBottom = cardRect.bottom - 8 + 6; // spotlight bottom + breathing room
-    final topOfBubble = spotBottom + _arrowH;
+    // Keep the guidance above the highlighted card and clear of bottom nav.
+    final bubbleBottom = (overlayHeight - cardRect.top + 6)
+        .clamp(16.0, overlayHeight - 16.0)
+        .toDouble();
 
     // Arrow horizontal centre follows card centre, clamped to screen.
-    final arrowCx = cardRect.center.dx.clamp(40.0, screen.width - 40.0);
+    final arrowCx =
+        cardRect.center.dx.clamp(40.0, screen.width - 40.0).toDouble();
 
     return Positioned(
-      top: topOfBubble,
+      bottom: bubbleBottom,
       left: _hPad,
       right: _hPad,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Arrow pointer aligned with card centre
-          Padding(
-            padding: EdgeInsets.only(left: (arrowCx - _hPad - 10).clamp(0, screen.width - _hPad * 2 - 20)),
-            child: CustomPaint(
-              size: const Size(20, _arrowH),
-              painter: _ArrowPainter(color: bubbleBg),
-            ),
-          ),
-
           // Bubble body
           Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -211,7 +219,6 @@ class _TooltipBubble extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Tap icon
                     Container(
                       width: 36,
                       height: 36,
@@ -219,8 +226,7 @@ class _TooltipBubble extends StatelessWidget {
                         color: AppColors.primaryColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(
-                        Icons.touch_app_rounded,
+                      child: AqHand(
                         size: 20,
                         color: AppColors.primaryColor,
                       ),
@@ -237,16 +243,18 @@ class _TooltipBubble extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: textColor,
                               height: 1.2,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'See the hourly PM2.5 breakdown for each of your places.',
+                            'See the hourly PM2.5 breakdown for each Favorite and how your usual schedule shapes exposure.',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                               color: subColor,
                               height: 1.45,
+                              decoration: TextDecoration.none,
                             ),
                           ),
                         ],
@@ -264,17 +272,30 @@ class _TooltipBubble extends StatelessWidget {
                         fontSize: 11,
                         color: subColor,
                         fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
+                    AqChevronDown(
                       size: 14,
                       color: subColor,
                     ),
                   ],
                 ),
               ],
+            ),
+          ),
+
+          // Downward pointer aligned with the highlighted card.
+          Padding(
+            padding: EdgeInsets.only(
+              left: (arrowCx - _hPad - 10)
+                  .clamp(0.0, screen.width - _hPad * 2 - 20)
+                  .toDouble(),
+            ),
+            child: CustomPaint(
+              size: const Size(20, _arrowH),
+              painter: _ArrowPainter(color: bubbleBg, pointsDown: true),
             ),
           ),
         ],
@@ -287,18 +308,28 @@ class _TooltipBubble extends StatelessWidget {
 
 class _ArrowPainter extends CustomPainter {
   final Color color;
-  const _ArrowPainter({required this.color});
+  final bool pointsDown;
+  const _ArrowPainter({required this.color, this.pointsDown = false});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..close();
+    final path = Path();
+    if (pointsDown) {
+      path
+        ..moveTo(0, 0)
+        ..lineTo(size.width / 2, size.height)
+        ..lineTo(size.width, 0);
+    } else {
+      path
+        ..moveTo(0, size.height)
+        ..lineTo(size.width / 2, 0)
+        ..lineTo(size.width, size.height);
+    }
+    path.close();
     canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter old) => old.color != color;
+  bool shouldRepaint(_ArrowPainter old) =>
+      old.color != color || old.pointsDown != pointsDown;
 }

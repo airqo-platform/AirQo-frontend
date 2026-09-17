@@ -7,26 +7,20 @@ enum PlaceType { home, work, school, gym, family, other }
 extension PlaceTypeExtension on PlaceType {
   String get label {
     switch (this) {
-      case PlaceType.home: return 'Home';
-      case PlaceType.work: return 'Work';
-      case PlaceType.school: return 'School';
-      case PlaceType.gym: return 'Gym';
-      case PlaceType.family: return 'Family';
-      case PlaceType.other: return 'Other';
+      case PlaceType.home:
+        return 'Home';
+      case PlaceType.work:
+        return 'Work';
+      case PlaceType.school:
+        return 'School';
+      case PlaceType.gym:
+        return 'Gym';
+      case PlaceType.family:
+        return 'Family';
+      case PlaceType.other:
+        return 'Other';
     }
   }
-
-  IconData get icon {
-    switch (this) {
-      case PlaceType.home: return Icons.home_outlined;
-      case PlaceType.work: return Icons.business_center_outlined;
-      case PlaceType.school: return Icons.school_outlined;
-      case PlaceType.gym: return Icons.fitness_center_outlined;
-      case PlaceType.family: return Icons.people_outline;
-      case PlaceType.other: return Icons.place_outlined;
-    }
-  }
-
 }
 
 class TimeWindow extends Equatable {
@@ -70,8 +64,10 @@ class TimeWindow extends Equatable {
       };
 
   factory TimeWindow.fromJson(Map<String, dynamic> json) => TimeWindow(
-        arrive: TimeOfDay(hour: json['arrive_h'] as int, minute: json['arrive_m'] as int),
-        leave: TimeOfDay(hour: json['leave_h'] as int, minute: json['leave_m'] as int),
+        arrive: TimeOfDay(
+            hour: json['arrive_h'] as int, minute: json['arrive_m'] as int),
+        leave: TimeOfDay(
+            hour: json['leave_h'] as int, minute: json['leave_m'] as int),
       );
 
   // Supports overnight spans: if leave < arrive the window wraps past midnight.
@@ -93,6 +89,10 @@ class DeclaredPlace extends Equatable {
   // User-chosen label (e.g. "Hakim's Home") — distinct from locationName which is the map search result.
   final String displayName;
   final String locationName;
+
+  /// Canonical AirQo site name used to match API responses. This can differ
+  /// from [locationName], which follows the user-facing Favorites title.
+  final String monitorName;
   final String city;
   final PlaceType type;
   final TimeWindow? weekdayWindow;
@@ -104,13 +104,14 @@ class DeclaredPlace extends Equatable {
     required this.siteId,
     required this.displayName,
     required this.locationName,
+    String? monitorName,
     required this.city,
     required this.type,
     this.weekdayWindow,
     this.weekendWindow,
     this.absentOnWeekdays = false,
     this.absentOnWeekends = false,
-  });
+  }) : monitorName = monitorName ?? locationName;
 
   String get visibleLocationName => normalizeLocationLabel(locationName);
   String get visibleCity => normalizeLocationLabel(city);
@@ -118,12 +119,14 @@ class DeclaredPlace extends Equatable {
   bool get hasTimeWindow => weekdayWindow != null || weekendWindow != null;
 
   bool isAbsentOn(DateTime date) {
-    final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+    final isWeekend =
+        date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     return isWeekend ? absentOnWeekends : absentOnWeekdays;
   }
 
   TimeWindow? windowFor(DateTime date) {
-    final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+    final isWeekend =
+        date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     if (isWeekend) {
       if (absentOnWeekends) return null;
       return weekendWindow ?? weekdayWindow;
@@ -136,7 +139,8 @@ class DeclaredPlace extends Equatable {
 
   String dailyHoursLabelFor(DateTime date) {
     if (isAbsentOn(date)) {
-      final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+      final isWeekend =
+          date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
       return isWeekend ? 'Not there on weekends' : 'Not there on weekdays';
     }
     final w = windowFor(date);
@@ -149,6 +153,7 @@ class DeclaredPlace extends Equatable {
   DeclaredPlace copyWith({
     String? displayName,
     String? locationName,
+    String? monitorName,
     String? city,
     PlaceType? type,
     TimeWindow? weekdayWindow,
@@ -162,10 +167,13 @@ class DeclaredPlace extends Equatable {
       siteId: siteId,
       displayName: displayName ?? this.displayName,
       locationName: locationName ?? this.locationName,
+      monitorName: monitorName ?? this.monitorName,
       city: city ?? this.city,
       type: type ?? this.type,
-      weekdayWindow: clearWeekdayWindow ? null : (weekdayWindow ?? this.weekdayWindow),
-      weekendWindow: clearWeekendWindow ? null : (weekendWindow ?? this.weekendWindow),
+      weekdayWindow:
+          clearWeekdayWindow ? null : (weekdayWindow ?? this.weekdayWindow),
+      weekendWindow:
+          clearWeekendWindow ? null : (weekendWindow ?? this.weekendWindow),
       absentOnWeekdays: absentOnWeekdays ?? this.absentOnWeekdays,
       absentOnWeekends: absentOnWeekends ?? this.absentOnWeekends,
     );
@@ -176,6 +184,7 @@ class DeclaredPlace extends Equatable {
         siteId,
         displayName,
         locationName,
+        monitorName,
         city,
         type,
         weekdayWindow,
@@ -188,6 +197,7 @@ class DeclaredPlace extends Equatable {
         'site_id': siteId,
         'display_name': displayName,
         'location_name': locationName,
+        'monitor_name': monitorName,
         'city': city,
         'type': type.name,
         'absent_on_weekdays': absentOnWeekdays,
@@ -199,21 +209,26 @@ class DeclaredPlace extends Equatable {
   factory DeclaredPlace.fromJson(Map<String, dynamic> json) {
     final displayName = json['display_name'] as String;
     return DeclaredPlace(
-        siteId: json['site_id'] as String,
-        displayName: displayName,
-        locationName: normalizeLocationLabel(
-            json['location_name'] as String? ?? displayName),
-        city: normalizeLocationLabel(json['city'] as String),
-        type: PlaceType.values.byName(json['type'] as String),
-        weekdayWindow: json['weekday_window'] != null
-            ? TimeWindow.fromJson(Map<String, dynamic>.from(json['weekday_window'] as Map))
-            : null,
-        weekendWindow: json['weekend_window'] != null
-            ? TimeWindow.fromJson(Map<String, dynamic>.from(json['weekend_window'] as Map))
-            : null,
-        absentOnWeekdays: json['absent_on_weekdays'] as bool? ?? false,
-        absentOnWeekends: json['absent_on_weekends'] as bool? ?? false,
-      );
+      siteId: json['site_id'] as String,
+      displayName: displayName,
+      locationName: normalizeLocationLabel(
+          json['location_name'] as String? ?? displayName),
+      monitorName: json['monitor_name'] as String? ??
+          json['location_name'] as String? ??
+          displayName,
+      city: normalizeLocationLabel(json['city'] as String),
+      type: PlaceType.values.byName(json['type'] as String),
+      weekdayWindow: json['weekday_window'] != null
+          ? TimeWindow.fromJson(
+              Map<String, dynamic>.from(json['weekday_window'] as Map))
+          : null,
+      weekendWindow: json['weekend_window'] != null
+          ? TimeWindow.fromJson(
+              Map<String, dynamic>.from(json['weekend_window'] as Map))
+          : null,
+      absentOnWeekdays: json['absent_on_weekdays'] as bool? ?? false,
+      absentOnWeekends: json['absent_on_weekends'] as bool? ?? false,
+    );
   }
 }
 
@@ -222,33 +237,45 @@ enum ExposureLevel { low, moderate, high }
 extension ExposureLevelExtension on ExposureLevel {
   String get label {
     switch (this) {
-      case ExposureLevel.low: return 'Low';
-      case ExposureLevel.moderate: return 'Moderate';
-      case ExposureLevel.high: return 'High';
+      case ExposureLevel.low:
+        return 'Low';
+      case ExposureLevel.moderate:
+        return 'Moderate';
+      case ExposureLevel.high:
+        return 'High';
     }
   }
 
   String get copy {
     switch (this) {
-      case ExposureLevel.low: return 'Mostly clean air while you were here';
-      case ExposureLevel.moderate: return 'Noticeable pollution during your time here';
-      case ExposureLevel.high: return 'Elevated pollution while you were here';
+      case ExposureLevel.low:
+        return 'The air may be mostly clean while you are here';
+      case ExposureLevel.moderate:
+        return 'You may notice some pollution while you are here';
+      case ExposureLevel.high:
+        return 'Pollution may be elevated while you are here';
     }
   }
 
   Color get color {
     switch (this) {
-      case ExposureLevel.low: return const Color(0xFF34C759);
-      case ExposureLevel.moderate: return const Color(0xFFE8A000);
-      case ExposureLevel.high: return const Color(0xFFF7453C);
+      case ExposureLevel.low:
+        return const Color(0xFF34C759);
+      case ExposureLevel.moderate:
+        return const Color(0xFFE8A000);
+      case ExposureLevel.high:
+        return const Color(0xFFF7453C);
     }
   }
 
   Color get bgColor {
     switch (this) {
-      case ExposureLevel.low: return const Color(0xFFDFF9E5);
-      case ExposureLevel.moderate: return const Color(0xFFFFF3D0);
-      case ExposureLevel.high: return const Color(0xFFFFE5E4);
+      case ExposureLevel.low:
+        return const Color(0xFFDFF9E5);
+      case ExposureLevel.moderate:
+        return const Color(0xFFFFF3D0);
+      case ExposureLevel.high:
+        return const Color(0xFFFFE5E4);
     }
   }
 
@@ -265,6 +292,7 @@ class HourlyReading {
 
   const HourlyReading({required this.hour, this.pm25});
 
-  ExposureLevel? get level => pm25 != null ? ExposureLevelExtension.fromPm25(pm25!) : null;
+  ExposureLevel? get level =>
+      pm25 != null ? ExposureLevelExtension.fromPm25(pm25!) : null;
   bool get isOffline => pm25 == null;
 }

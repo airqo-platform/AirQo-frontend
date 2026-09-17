@@ -12,7 +12,7 @@ We audited the existing notification code in the mobile app. **Most of the notif
 
 | Status | Count | Detail |
 |--------|-------|--------|
-| **Working today** | 1 | My Places success/error toasts (#6) |
+| **Working today** | 1 | Favorites success/error toasts (#6) |
 | **Built but not wired** | 5 | Local notifications (#1–#5) |
 | **Built but deferred** | 4 | Server push via FCM (#7–#10) |
 | **Separate (not OS notifications)** | 1 | Learn tab survey badge (UI only) |
@@ -46,7 +46,7 @@ We audited the existing notification code in the mobile app. **Most of the notif
 | 3 | **Air quality alert banner** (from survey AQ trigger) | Local in-app (top banner) | No | Trigger: ```393:425:src/mobile/lib/src/app/surveys/services/survey_trigger_service.dart``` → UI: ```244:257:src/mobile/lib/src/app/shared/services/notification_manager.dart``` |
 | 4 | **Survey banner** (tap-to-open) | Local in-app (top banner) | No (dead code) | ```492:502:src/mobile/lib/src/app/shared/services/notification_manager.dart``` |
 | 5 | **Permission prompt** (“Enable notifications…”) | Local in-app (bottom toast) | No | ```48:73:src/mobile/lib/src/app/shared/services/notification_manager.dart``` called from ```30:50:src/mobile/lib/src/app/shared/services/notification_helper.dart``` |
-| 6 | **Status toast** (success/error) | Local in-app (bottom toast) | **Yes** (My Places only) | UI: ```16:44:src/mobile/lib/src/app/shared/services/notification_manager.dart``` → caller: ```227:227:src/mobile/lib/src/app/dashboard/widgets/my_places_view.dart``` |
+| 6 | **Status toast** (success/error) | Local in-app (bottom toast) | **Yes** (Favorites only) | UI: ```16:44:src/mobile/lib/src/app/shared/services/notification_manager.dart``` → caller: ```227:227:src/mobile/lib/src/app/dashboard/widgets/my_places_view.dart``` |
 
 ### FCM (server-driven) — deferred for now
 
@@ -146,7 +146,7 @@ Steps 1–2 (local init + permissions + navigation) touch **iOS and Android perm
 - Survey trigger fires → in-app dialog visible and actionable
 - Survey cooldown: same survey not re-triggered within 6 hours
 - Tap OS AQ alert → app opens to expected screen (Step 6)
-- My Places toasts (#6) still work (regression)
+- Favorites toasts (#6) still work (regression)
 
 ### Guardrail 5 — Cooldowns are independent (do not share state)
 
@@ -211,7 +211,7 @@ flowchart TD
 - User receives an **OS notification** when air quality near their location is Unhealthy or worse — **only when permission is granted** (6-hour AQ cooldown applies).
 - User sees an **in-app survey dialog** when trigger conditions are met (6-hour per-survey cooldown applies).
 - Permission flow works on Android 13+ and iOS per **test matrix above**.
-- My Places toasts (#6) continue to work as today.
+- Favorites toasts (#6) continue to work as today.
 - Test matrix completed and results recorded.
 
 ### Phase 2 — Clean up & decide (after Phase 1 validates UX)

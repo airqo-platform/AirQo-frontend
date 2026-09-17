@@ -49,6 +49,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   bool _prefsAuthError = false;
   late CacheManager _cacheManager;
   Map<String, DeclaredPlace> _declaredPlacesBySiteId = const {};
+  int _declaredPlacesGeneration = 0;
 
   @override
   void initState() {
@@ -76,9 +77,10 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         .isEnabled(AppFeatureFlag.exposureTracking)) {
       return;
     }
+    final generation = ++_declaredPlacesGeneration;
     try {
       final places = await DeclaredPlacesRepositoryImpl().getDeclaredPlaces();
-      if (!mounted) return;
+      if (!mounted || generation != _declaredPlacesGeneration) return;
       setState(() {
         _declaredPlacesBySiteId = {
           for (final place in places) place.siteId: place,

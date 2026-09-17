@@ -19,8 +19,7 @@ class TagPickerTile extends StatelessWidget {
     required this.icon,
   });
 
-  static const _idle = Color(0xFFF4F6F8),
-      _labelIdle = Color(0xFF1A1D23);
+  static const _idle = Color(0xFFF4F6F8), _labelIdle = Color(0xFF1A1D23);
 
   @override
   Widget build(BuildContext context) {

@@ -32,7 +32,7 @@ platform :android do
     update_fastlane
     sh "bundle exec fastlane update_plugins"
     sh "flutter pub run build_runner build --delete-conflicting-outputs"
-    sh "flutter build appbundle --flavor airqo"
+    sh "flutter build appbundle --flavor airqo --dart-define=AIRQO_INTERNAL_BUILD=true"
     firebase_app_distribution(
       app: ENV['MOBILE_ANDROID_ID_FIREBASE'],
       android_artifact_path:"../build/app/outputs/bundle/airqoRelease/app-airqo-release.aab",

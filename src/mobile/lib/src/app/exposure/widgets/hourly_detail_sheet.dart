@@ -21,7 +21,8 @@ import 'package:airqo/src/meta/utils/colors.dart';
   }
   if (pm25 < 55.5) {
     return (
-      asset: 'assets/images/shared/airquality_indicators/unhealthy-sensitive.svg',
+      asset:
+          'assets/images/shared/airquality_indicators/unhealthy-sensitive.svg',
       color: const Color(0xFFFF851F),
     );
   }
@@ -43,9 +44,16 @@ import 'package:airqo/src/meta/utils/colors.dart';
   );
 }
 
+String _hourLabel(int hour) {
+  if (hour == 0) return '12 AM';
+  if (hour < 12) return '$hour AM';
+  if (hour == 12) return '12 PM';
+  return '${hour - 12} PM';
+}
+
 class HourlyDetailSheet extends StatelessWidget {
   final DeclaredPlace place;
-  final ExposureLevel exposureLevel;
+  final ExposureLevel? exposureLevel;
   final List<HourlyReading> readings;
 
   const HourlyDetailSheet({
@@ -61,7 +69,15 @@ class HourlyDetailSheet extends StatelessWidget {
     return valid.map((r) => r.pm25!).reduce((a, b) => a + b) / valid.length;
   }
 
-  bool get _hasOffline => readings.any((r) => r.isOffline);
+  bool get _hasOffline => readings.any(
+        (reading) => reading.isOffline && reading.hour <= DateTime.now().hour,
+      );
+
+  HourlyReading? get _latestReading {
+    final available =
+        readings.where((reading) => reading.pm25 != null).toList();
+    return available.isEmpty ? null : available.last;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +119,8 @@ class HourlyDetailSheet extends StatelessWidget {
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: (subtitleColor ?? Colors.grey).withValues(alpha: 0.4),
+                      color:
+                          (subtitleColor ?? Colors.grey).withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -118,7 +135,8 @@ class HourlyDetailSheet extends StatelessWidget {
                     Container(
                       width: 28,
                       height: 28,
-                      decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                      decoration:
+                          BoxDecoration(color: iconBg, shape: BoxShape.circle),
                       child: Center(
                         child: LabelPickerPlaceTypeIcon(
                           type: place.type,
@@ -211,31 +229,42 @@ class HourlyDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: exposureLevel.color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        exposureLevel.label,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: exposureLevel.color,
+                    if (exposureLevel case final level?) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: level.color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          level.label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: level.color,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      exposureLevel.copy,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: nameColor,
-                        height: 1.75,
+                      const SizedBox(height: 10),
+                      Text(
+                        level.copy,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: nameColor,
+                          height: 1.75,
+                        ),
                       ),
-                    ),
+                    ] else
+                      Text(
+                        'No hourly readings are available for this favorite yet.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: subtitleColor,
+                          height: 1.5,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -246,26 +275,42 @@ class HourlyDetailSheet extends StatelessWidget {
               // ── PM2.5 per hour column header ──────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(22, 12, 22, 8),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'PM2.5 PER HOUR',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: hoursColor,
-                        letterSpacing: 0.5,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'PM2.5 PER HOUR',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: hoursColor,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          'µg/m³',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: hoursColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    const Spacer(),
-                    Text(
-                      'µg/m³',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        color: hoursColor,
+                    if (_latestReading case final latest?) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Latest available: ${_hourLabel(latest.hour)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: hoursColor,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -301,17 +346,12 @@ class _HourRow extends StatelessWidget {
   final bool isDark;
   const _HourRow({required this.reading, required this.isDark});
 
-  String _lbl(int h) {
-    if (h == 0) return '12 AM';
-    if (h < 12) return '$h AM';
-    if (h == 12) return '12 PM';
-    return '${h - 12} PM';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final txt2 = isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final txt2 =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
     final offline = reading.isOffline;
+    final isFuture = offline && reading.hour > DateTime.now().hour;
     final aql = offline ? null : _aqLevel(reading.pm25!);
     final frac = offline ? 0.0 : (reading.pm25! / 150.0).clamp(0.0, 1.0);
 
@@ -322,15 +362,17 @@ class _HourRow extends StatelessWidget {
           SizedBox(
             width: 48,
             child: Text(
-              _lbl(reading.hour),
-              style: TextStyle(fontSize: 11, color: txt2, fontWeight: FontWeight.w500),
+              _hourLabel(reading.hour),
+              style: TextStyle(
+                  fontSize: 11, color: txt2, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: LayoutBuilder(builder: (_, c) {
               final total = c.maxWidth;
-              final fillWidth = (offline ? total * 0.18 : (total * frac)).clamp(4.0, total);
+              final fillWidth =
+                  (offline ? total * 0.18 : (total * frac)).clamp(4.0, total);
               final emojiLeft = (fillWidth - 10).clamp(0.0, total - 20);
               final emojiAsset = offline
                   ? 'assets/images/shared/airquality_indicators/unavailable.svg'
@@ -343,7 +385,9 @@ class _HourRow extends StatelessWidget {
                     height: 20,
                     width: total,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkThemeBackground : AppColors.highlightColor,
+                      color: isDark
+                          ? AppColors.darkThemeBackground
+                          : AppColors.highlightColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -372,7 +416,9 @@ class _HourRow extends StatelessWidget {
           SizedBox(
             width: 44,
             child: Text(
-              offline ? 'offline' : reading.pm25!.toStringAsFixed(1),
+              offline
+                  ? (isFuture ? 'not yet' : 'offline')
+                  : reading.pm25!.toStringAsFixed(1),
               style: TextStyle(
                 fontSize: 11,
                 color: offline ? txt2 : aql!.color,
@@ -396,16 +442,18 @@ class _OfflineBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final base =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
     return ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          height: 20,
-          width: width,
-          decoration: BoxDecoration(color: base.withValues(alpha: 0.2)),
-          child: CustomPaint(painter: _StripePainter(base.withValues(alpha: 0.35))),
-        ),
-      );
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        height: 20,
+        width: width,
+        decoration: BoxDecoration(color: base.withValues(alpha: 0.2)),
+        child:
+            CustomPaint(painter: _StripePainter(base.withValues(alpha: 0.35))),
+      ),
+    );
   }
 }
 
@@ -424,7 +472,8 @@ class _StripePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _StripePainter o) => o.stripeColor != stripeColor;
+  bool shouldRepaint(covariant _StripePainter o) =>
+      o.stripeColor != stripeColor;
 }
 
 // ── Offline note ──────────────────────────────────────────────────────────────
@@ -435,12 +484,15 @@ class _OfflineNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? AppColors.darkThemeBackground : AppColors.highlightColor;
-    final txt2 = isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final bg =
+        isDark ? AppColors.darkThemeBackground : AppColors.highlightColor;
+    final txt2 =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
     return Container(
       margin: const EdgeInsets.only(top: 16, bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -448,11 +500,12 @@ class _OfflineNote extends StatelessWidget {
             width: 6,
             height: 6,
             margin: const EdgeInsets.only(top: 4, right: 8),
-            decoration: BoxDecoration(color: txt2.withValues(alpha: 0.5), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: txt2.withValues(alpha: 0.5), shape: BoxShape.circle),
           ),
           Expanded(
             child: Text(
-              'Greyed hours = monitor was offline · avg calculated from available readings only',
+              'Greyed past hours had no monitor reading · average uses available readings only',
               style: TextStyle(fontSize: 12, color: txt2, height: 1.5),
             ),
           ),
@@ -474,8 +527,10 @@ class _Footer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dividerColor =
         isDark ? AppColors.dividerColordark : AppColors.dividerColorlight;
-    final txt2 = isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
-    final ExposureLevel? level = average != null ? ExposureLevelExtension.fromPm25(average!) : null;
+    final txt2 =
+        isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
+    final ExposureLevel? level =
+        average != null ? ExposureLevelExtension.fromPm25(average!) : null;
 
     return Container(
       color: Theme.of(context).cardColor,

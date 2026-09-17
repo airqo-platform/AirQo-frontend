@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
@@ -30,7 +31,8 @@ class NavPage extends StatefulWidget {
 class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   int currentIndex = 0;
   int newSurveysCount = 0;
-  final SurveyNotificationService _notificationService = SurveyNotificationService();
+  final SurveyNotificationService _notificationService =
+      SurveyNotificationService();
 
   bool get _exposureEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.exposureTracking);
@@ -45,7 +47,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       ? ['dashboard', 'map', 'exposure', 'learn']
       : ['dashboard', 'map', 'learn'];
 
-  static const _permissionPromptShownKey = 'notification_permission_prompt_shown';
+  static const _permissionPromptShownKey =
+      'notification_permission_prompt_shown';
 
   @override
   void initState() {
@@ -118,12 +121,18 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   }
 
   void changeCurrentIndex(int index) {
+    final previousIndex = currentIndex;
     if (index == _learnTabIndex && _surveysEnabled) {
       _notificationService.updateLastSeenTimestamp();
     }
     setState(() {
       currentIndex = index;
     });
+    if (_exposureEnabled && previousIndex == 2 && index != 2) {
+      context.read<DashboardBloc>().add(
+            const LoadUserPreferences(forceRefresh: true),
+          );
+    }
     AnalyticsService().trackNavigationChanged(
       tabIndex: index,
       tabName: _tabNames[index],
@@ -140,7 +149,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       body: IndexedStack(index: currentIndex, children: [
         DashboardPage(),
         MapScreen(),
-        if (_exposureEnabled) const ExposureDashboardView(),
+        if (_exposureEnabled)
+          ExposureDashboardView(isActive: currentIndex == 2),
         KyaPage(),
       ]),
       bottomNavigationBar: BottomNavigationBar(
@@ -153,27 +163,48 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
         onTap: changeCurrentIndex,
         items: [
           BottomNavigationBarItem(
-            icon: _buildNavIcon("Home", 0,
-                isDark ? "assets/icons/home_icon.svg" : "assets/icons/home_icon_white.svg"),
+            icon: _buildNavIcon(
+                "Home",
+                0,
+                isDark
+                    ? "assets/icons/home_icon.svg"
+                    : "assets/icons/home_icon_white.svg"),
             label: "",
           ),
           BottomNavigationBarItem(
-            icon: _buildNavIcon("Search", 1,
-                isDark ? "assets/icons/search_icon_light.svg" : "assets/icons/search_icon_dark.svg"),
+            icon: _buildNavIcon(
+                "Search",
+                1,
+                isDark
+                    ? "assets/icons/search_icon_light.svg"
+                    : "assets/icons/search_icon_dark.svg"),
             label: "",
           ),
           if (_exposureEnabled)
             BottomNavigationBarItem(
-              icon: _buildNavIcon("Exposure", 2, "assets/icons/exposure_icon.svg"),
+              icon: _buildNavIcon(
+                "Exposure",
+                2,
+                "assets/icons/exposure_icon.svg",
+                badgeLabel: 'BETA',
+              ),
               label: "",
             ),
           BottomNavigationBarItem(
             icon: _surveysEnabled
-                ? _buildNavIconWithBadge("Learn", _learnTabIndex,
-                    isDark ? "assets/icons/learn_icon.svg" : "assets/icons/learn_icon_white.svg",
+                ? _buildNavIconWithBadge(
+                    "Learn",
+                    _learnTabIndex,
+                    isDark
+                        ? "assets/icons/learn_icon.svg"
+                        : "assets/icons/learn_icon_white.svg",
                     badgeCount: newSurveysCount)
-                : _buildNavIcon("Learn", _learnTabIndex,
-                    isDark ? "assets/icons/learn_icon.svg" : "assets/icons/learn_icon_white.svg"),
+                : _buildNavIcon(
+                    "Learn",
+                    _learnTabIndex,
+                    isDark
+                        ? "assets/icons/learn_icon.svg"
+                        : "assets/icons/learn_icon_white.svg"),
             label: "",
           ),
         ],
@@ -202,7 +233,12 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     return 20;
   }
 
-  Widget _buildNavIcon(String label, int index, String iconPath) {
+  Widget _buildNavIcon(
+    String label,
+    int index,
+    String iconPath, {
+    String? badgeLabel,
+  }) {
     final bool isSelected = currentIndex == index;
     final iconColor = isSelected
         ? Theme.of(context).primaryColor
@@ -210,10 +246,40 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SvgPicture.asset(
-          iconPath,
-          height: _iconHeight(label),
-          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            SvgPicture.asset(
+              iconPath,
+              height: _iconHeight(label),
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+            ),
+            if (badgeLabel != null)
+              Positioned(
+                top: -7,
+                right: -25,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Text(
+                    badgeLabel,
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 7,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.25,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 5),
         TranslatedText(
@@ -259,7 +325,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
                       width: 1.5,
                     ),
                   ),
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
                   child: Center(
                     child: Text(
                       '$badgeCount',
