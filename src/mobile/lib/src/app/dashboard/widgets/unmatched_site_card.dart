@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/exposure/models/declared_place.dart';
+import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 
 class UnmatchedSiteCard extends StatefulWidget {
   final SelectedSite site;
   final Function(String) onRemove;
+  final DeclaredPlace? favorite;
 
   const UnmatchedSiteCard({
     required this.site,
     required this.onRemove,
+    this.favorite,
     super.key,
   });
 
@@ -128,9 +133,48 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (widget.favorite case final favorite?) ...[
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: BoxDecoration(
+                                            color: AppSurfaceColors.nested(
+                                              context,
+                                            ),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: LabelPickerPlaceTypeIcon(
+                                              type: favorite.type,
+                                              selected: false,
+                                              size: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            favorite.displayName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTextColors.headline(
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
                                   Text(
-                                    widget.site.visibleSearchName.isNotEmpty 
-                                        ? widget.site.visibleSearchName 
+                                    widget.site.visibleSearchName.isNotEmpty
+                                        ? widget.site.visibleSearchName
                                         : widget.site.visibleName,
                                     style: TextStyle(
                                       fontSize: 22,
@@ -154,8 +198,9 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          widget.site.name != widget.site.searchName 
-                                              ? widget.site.visibleName 
+                                          widget.site.name !=
+                                                  widget.site.searchName
+                                              ? widget.site.visibleName
                                               : "Unknown location",
                                           style: TextStyle(
                                             fontSize: 14,

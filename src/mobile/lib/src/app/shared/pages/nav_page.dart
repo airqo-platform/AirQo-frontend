@@ -4,6 +4,7 @@ import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
+import 'package:airqo/src/app/map/services/map_navigation_service.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/services/local_notification_bootstrap.dart';
@@ -49,9 +50,29 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
+    MapNavigationService.instance.requestedMeasurement.addListener(
+      _handleMapNavigationRequest,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeLocalNotifications());
     });
+  }
+
+  void _handleMapNavigationRequest() {
+    if (MapNavigationService.instance.requestedMeasurement.value == null ||
+        !mounted ||
+        currentIndex == 1) {
+      return;
+    }
+    changeCurrentIndex(1);
+  }
+
+  @override
+  void dispose() {
+    MapNavigationService.instance.requestedMeasurement.removeListener(
+      _handleMapNavigationRequest,
+    );
+    super.dispose();
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -126,7 +147,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
         enableFeedback: true,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: AppTextColors.muted(context),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         currentIndex: currentIndex,
         onTap: changeCurrentIndex,
@@ -183,22 +204,23 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
   Widget _buildNavIcon(String label, int index, String iconPath) {
     final bool isSelected = currentIndex == index;
+    final iconColor = isSelected
+        ? Theme.of(context).primaryColor
+        : AppTextColors.muted(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset(
           iconPath,
           height: _iconHeight(label),
-          colorFilter: isSelected
-              ? ColorFilter.mode(Theme.of(context).primaryColor, BlendMode.srcIn)
-              : null,
+          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
         ),
         const SizedBox(height: 5),
         TranslatedText(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+            color: iconColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -209,6 +231,9 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   Widget _buildNavIconWithBadge(String label, int index, String iconPath,
       {required int badgeCount}) {
     final bool isSelected = currentIndex == index;
+    final iconColor = isSelected
+        ? Theme.of(context).primaryColor
+        : AppTextColors.muted(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -218,9 +243,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
             SvgPicture.asset(
               iconPath,
               height: _iconHeight(label),
-              colorFilter: isSelected
-              ? ColorFilter.mode(Theme.of(context).primaryColor, BlendMode.srcIn)
-              : null,
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
             ),
             if (badgeCount > 0)
               Positioned(
@@ -257,7 +280,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+            color: iconColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),

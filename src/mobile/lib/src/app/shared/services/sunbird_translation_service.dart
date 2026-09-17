@@ -350,7 +350,7 @@ class SunbirdTranslationService with UiLoggy {
     'Start by adding locations you care about.',
     '+Add Location',
     'Cannot Remove Default Location',
-    'You need to have at least one location in My Places. Add another location before removing this one.',
+    'You need to have at least one Favorite. Add another Favorite before removing this one.',
     'Select Locations',
     'Search Villages, Cities or Countries',
     'Swipe left to remove location',
@@ -406,7 +406,11 @@ class SunbirdTranslationService with UiLoggy {
     'Location Permission Required',
     'Location Services Disabled',
     'Location permission was denied. Please try again.',
-    'Location', 'Languages', 'Log out', 'Log Out', 'Delete Account',
+    'Location',
+    'Languages',
+    'Log out',
+    'Log Out',
+    'Delete Account',
   ];
 
   // MAINTENANCE: matched by exact string value as cache keys — update here if any UI string changes.
@@ -435,8 +439,8 @@ class SunbirdTranslationService with UiLoggy {
     );
 
     final allFailed = results.asMap().entries.every(
-      (e) => e.value == _criticalUiStrings[e.key],
-    );
+          (e) => e.value == _criticalUiStrings[e.key],
+        );
     if (allFailed) {
       throw Exception('Sunbird translation unavailable for $targetLocale');
     }
