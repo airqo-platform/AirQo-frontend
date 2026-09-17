@@ -32,7 +32,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
   final GlobalKey _defaultShareButtonKey = GlobalKey();
   bool _tourReadyNotified = false;
 
-  GlobalKey get _shareButtonKey => _defaultShareButtonKey;
+  GlobalKey get _shareButtonKey =>
+      widget.tourKeys?.shareIconKey ?? _defaultShareButtonKey;
 
   @override
   void initState() {
@@ -101,7 +102,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
             "Unknown location";
   }
 
-
   Color _getAqiColor(Measurement measurement) {
     return getAppAqiCategoryColor(measurement.aqiCategory ?? '');
   }
@@ -140,10 +140,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.color,
+                          color:
+                              Theme.of(context).textTheme.headlineSmall?.color,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -309,6 +307,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
             ),
           ),
           MeasurementCardFooterForecast(
+            forecastButtonKey: widget.tourKeys?.forecastIconKey,
             onForecast: _openForecast,
           ),
         ],

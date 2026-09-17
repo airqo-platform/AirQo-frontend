@@ -65,6 +65,46 @@ class MapCameraController with UiLoggy {
     }
   }
 
+  Future<void> fitMonitorAndUser({
+    required double monitorLatitude,
+    required double monitorLongitude,
+    required Position userPosition,
+  }) async {
+    if (!isInitialized) return;
+    try {
+      final minLat = monitorLatitude < userPosition.latitude
+          ? monitorLatitude
+          : userPosition.latitude;
+      final maxLat = monitorLatitude > userPosition.latitude
+          ? monitorLatitude
+          : userPosition.latitude;
+      final minLng = monitorLongitude < userPosition.longitude
+          ? monitorLongitude
+          : userPosition.longitude;
+      final maxLng = monitorLongitude > userPosition.longitude
+          ? monitorLongitude
+          : userPosition.longitude;
+
+      if (minLat == maxLat && minLng == maxLng) {
+        await animateTo(LatLng(monitorLatitude, monitorLongitude));
+        return;
+      }
+
+      await _controller!.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          72,
+        ),
+      );
+    } catch (e) {
+      loggy.warning('Could not frame the monitor and user location: $e');
+      await animateTo(LatLng(monitorLatitude, monitorLongitude));
+    }
+  }
+
   Future<void> increaseZoom() async {
     if (!isInitialized) return;
     final zoom = await _controller!.getZoomLevel();
