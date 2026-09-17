@@ -89,11 +89,13 @@ class MeasurementCardHeaderShare extends StatelessWidget {
 class MeasurementCardFooterForecast extends StatelessWidget {
   final VoidCallback onForecast;
   final bool enabled;
+  final GlobalKey? forecastButtonKey;
 
   const MeasurementCardFooterForecast({
     super.key,
     required this.onForecast,
     this.enabled = true,
+    this.forecastButtonKey,
   });
 
   @override
@@ -110,12 +112,14 @@ class MeasurementCardFooterForecast extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerRight,
         child: MeasurementCardTrailingIconSlot(
+          key: forecastButtonKey,
           icon: _CompactIconAction(
             tooltip: 'Forecast',
             semanticsLabel: 'View forecast',
             onPressed: enabled
                 ? () {
-                    AnalyticsService().trackCardActionTapped(action: 'forecast');
+                    AnalyticsService()
+                        .trackCardActionTapped(action: 'forecast');
                     onForecast();
                   }
                 : null,

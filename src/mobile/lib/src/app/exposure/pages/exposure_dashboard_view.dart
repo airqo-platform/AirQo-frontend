@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
@@ -19,6 +21,8 @@ import 'package:airqo/src/app/exposure/widgets/declared_place_card.dart';
 import 'package:airqo/src/app/exposure/widgets/entry_place_card.dart';
 import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
 import 'package:airqo/src/app/exposure/widgets/place_card_tour.dart';
+import 'package:airqo/src/app/map/bloc/map_bloc.dart';
+import 'package:airqo/src/app/map/utils/map_measurement_filter.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
@@ -39,6 +43,7 @@ List<SelectedSite> favouritesFromDashboardState(DashboardState state) {
   final DashboardLoaded? loaded = switch (state) {
     DashboardLoaded s => s,
     DashboardLoading(:final previousState) => previousState,
+    DashboardAuthenticationError(:final previousState) => previousState,
     _ => null,
   };
   return List<SelectedSite>.from(
@@ -46,8 +51,100 @@ List<SelectedSite> favouritesFromDashboardState(DashboardState state) {
   );
 }
 
+@visibleForTesting
+bool dashboardFavoritesAreResolved(DashboardState state) => switch (state) {
+      DashboardLoaded() => true,
+      DashboardLoading(previousState: != null) => true,
+      DashboardAuthenticationError() => true,
+      _ => false,
+    };
+
+@visibleForTesting
+class ExposureFavoriteItem {
+  const ExposureFavoriteItem({required this.site, this.declaredPlace});
+
+  final SelectedSite site;
+  final DeclaredPlace? declaredPlace;
+}
+
+/// Keeps Exposure in exactly the same order as the dashboard Favorites tab.
+/// Exposure-only metadata is layered onto a favorite when it exists; stale
+/// cached declarations that are no longer favorites are intentionally omitted.
+@visibleForTesting
+List<ExposureFavoriteItem> exposureFavoritesForDashboard(
+  List<SelectedSite> favorites,
+  List<DeclaredPlace> declaredPlaces,
+) {
+  final declaredBySiteId = {
+    for (final place in declaredPlaces) place.siteId: place,
+  };
+  return [
+    for (final site in favorites)
+      ExposureFavoriteItem(
+        site: site,
+        declaredPlace: declaredBySiteId[site.id]?.copyWith(
+          // Dashboard Favorite cards use searchName as their visible title.
+          // Keep Exposure identical while retaining the canonical monitor
+          // name separately for hourly API response matching.
+          locationName:
+              site.searchName.trim().isEmpty ? site.name : site.searchName,
+          monitorName: site.name,
+          city: site.name,
+        ),
+      ),
+  ];
+}
+
+@visibleForTesting
+List<TripNetworkSite> tripNetworkSitesFromMapState(
+  MapState state,
+  List<SelectedSite> favorites,
+) {
+  final MapLoaded? loaded = switch (state) {
+    MapLoaded s => s,
+    MapLoading(:final previousState) => previousState,
+    _ => null,
+  };
+  final favoriteIds = favorites.map((site) => site.id).toSet();
+  final sites = <String, TripNetworkSite>{};
+  final mapMeasurements = loaded?.response.validMeasurements ?? const [];
+  for (final measurement in mapMeasurements.where(isAirQoNetworkMeasurement)) {
+    final details = measurement.siteDetails!;
+    final id = measurement.siteId ?? details.id;
+    final latitude =
+        details.approximateLatitude ?? details.siteCategory?.latitude;
+    final longitude =
+        details.approximateLongitude ?? details.siteCategory?.longitude;
+    final country = details.country?.trim() ?? '';
+    if (id == null ||
+        id.isEmpty ||
+        latitude == null ||
+        longitude == null ||
+        country.isEmpty) {
+      continue;
+    }
+    sites[id] = TripNetworkSite(
+      site: SelectedSite(
+        id: id,
+        name: details.searchName ?? details.name ?? 'AirQo location',
+        searchName: details.locationName ??
+            details.formattedName ??
+            details.city ??
+            country,
+        latitude: latitude,
+        longitude: longitude,
+      ),
+      country: country,
+      isFavorite: favoriteIds.contains(id),
+    );
+  }
+  return sites.values.toList();
+}
+
 class ExposureDashboardView extends StatelessWidget {
-  const ExposureDashboardView({super.key});
+  const ExposureDashboardView({super.key, this.isActive = true});
+
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -56,26 +153,34 @@ class ExposureDashboardView extends StatelessWidget {
         placesRepo: DeclaredPlacesRepositoryImpl(),
         readingsRepo: HourlyReadingsRepositoryImpl(),
       ),
-      child: const _ExposureBody(),
+      child: _ExposureBody(isActive: isActive),
     );
   }
 }
 
 class _ExposureBody extends StatefulWidget {
-  const _ExposureBody();
+  const _ExposureBody({required this.isActive});
+
+  final bool isActive;
 
   @override
   State<_ExposureBody> createState() => _ExposureBodyState();
 }
 
 class _ExposureBodyState extends State<_ExposureBody> {
-  /// `true` = My Places, `false` = My Trips
-  bool _myPlacesSelected = true;
+  /// `true` = Favorites, `false` = Trips
+  bool _favoritesSelected = true;
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _tripsScrollController = ScrollController();
 
   // ── Tour ──────────────────────────────────────────────────────────────────
-  static const String _tourSeenKey = 'exposure_place_card_tour_seen';
+  static const String _tourSeenKey = 'exposure_favorite_card_tour_seen_v4';
+  static const String _introDismissedKey =
+      'exposure_favorites_intro_dismissed_v1';
   final GlobalKey _firstCardKey = GlobalKey();
   bool _showTour = false;
+  bool _showIntro = false;
+  OverlayEntry? _tourOverlay;
 
   @override
   void initState() {
@@ -93,9 +198,56 @@ class _ExposureBodyState extends State<_ExposureBody> {
         userBloc.add(LoadUser());
       }
     });
+    _loadIntroPreference();
   }
 
-  Future<void> _refreshMyPlaces() async {
+  @override
+  void dispose() {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
+    _scrollController.dispose();
+    _tripsScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ExposureBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      _tourOverlay?.remove();
+      _tourOverlay = null;
+      _showTour = false;
+    }
+  }
+
+  void _selectSection(bool favorites) {
+    if (_favoritesSelected == favorites) return;
+    setState(() => _favoritesSelected = favorites);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+      if (mounted && !favorites && _tripsScrollController.hasClients) {
+        _tripsScrollController.jumpTo(0);
+      }
+    });
+  }
+
+  Future<void> _loadIntroPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _showIntro = !(prefs.getBool(_introDismissedKey) ?? false);
+    });
+  }
+
+  Future<void> _dismissIntro() async {
+    setState(() => _showIntro = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_introDismissedKey, true);
+  }
+
+  Future<void> _refreshFavorites() async {
     context.read<DashboardBloc>().add(
           const LoadUserPreferences(forceRefresh: true),
         );
@@ -106,16 +258,32 @@ class _ExposureBodyState extends State<_ExposureBody> {
   }
 
   Future<void> _dismissTour() async {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
     setState(() => _showTour = false);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_tourSeenKey, true);
   }
 
   void _maybeShowTour(int placesCount) {
-    if (_showTour || placesCount < 1) return;
+    if (!widget.isActive || _showTour || placesCount < 1) return;
     SharedPreferences.getInstance().then((prefs) {
       final seen = prefs.getBool(_tourSeenKey) ?? false;
-      if (!seen && mounted) setState(() => _showTour = true);
+      if (!seen && mounted && widget.isActive) {
+        setState(() => _showTour = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_showTour || _tourOverlay != null) return;
+          _tourOverlay = OverlayEntry(
+            builder: (_) => Positioned.fill(
+              child: PlaceCardTour(
+                cardKey: _firstCardKey,
+                onDismiss: _dismissTour,
+              ),
+            ),
+          );
+          Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
+        });
+      }
     });
   }
 
@@ -128,17 +296,32 @@ class _ExposureBodyState extends State<_ExposureBody> {
         builder: (ctx, placeState) {
           final loaded = placeState is DeclaredPlacesLoaded ? placeState : null;
           final declared = loaded?.places ?? <DeclaredPlace>[];
-          final declaredIds = declared.map((p) => p.siteId).toSet();
 
           // Read favourites from DashboardBloc — already loaded, no extra API call.
           final dashState = context.watch<DashboardBloc>().state;
           final favourites = favouritesFromDashboardState(dashState);
-          final untagged =
-              favourites.where((s) => !declaredIds.contains(s.id)).toList();
+          final favoritesResolved = dashboardFavoritesAreResolved(dashState);
+          final favoriteItems = exposureFavoritesForDashboard(
+            favourites,
+            declared,
+          );
+          final declaredFallback =
+              favoritesResolved ? const <DeclaredPlace>[] : declared;
+          final visibleDeclaredCount = favoritesResolved
+              ? favoriteItems.where((item) => item.declaredPlace != null).length
+              : declaredFallback.length;
+          final firstDeclaredSiteId = favoriteItems
+              .where((item) => item.declaredPlace != null)
+              .firstOrNull
+              ?.declaredPlace
+              ?.siteId;
+          final mapState = context.watch<MapBloc>().state;
+          final networkSites =
+              tripNetworkSitesFromMapState(mapState, favourites);
 
           final isDashboardFirstLoad = dashState is DashboardInitial ||
-              (dashState is DashboardLoading && dashState.previousState == null);
-          final dashboardLoadFailed = dashState is DashboardLoadingError;
+              (dashState is DashboardLoading &&
+                  dashState.previousState == null);
           final prefsLoadFailed =
               dashState is DashboardLoaded && dashState.prefsLoadFailed;
           final placesLoadFailed = placeState is DeclaredPlacesError;
@@ -154,47 +337,54 @@ class _ExposureBodyState extends State<_ExposureBody> {
           final placesStatus = resolveSavedPlacesContent(
             isLoading: showPlacesLoader,
             loadFailed: savedPlacesFailed,
-            hasPlaces: declared.isNotEmpty || untagged.isNotEmpty,
+            hasPlaces: favoritesResolved
+                ? favoriteItems.isNotEmpty
+                : declaredFallback.isNotEmpty,
           );
 
-          final showEmptyMyPlaces = _myPlacesSelected &&
+          final showEmptyFavorites = _favoritesSelected &&
               placesStatus == SavedPlacesContentStatus.empty;
+          final isGuest = context.watch<AuthBloc>().state is GuestUser;
 
           /// Single "day of view" for cards (weekday vs weekend windows). Replace with
           /// calendar/date-picker state when historical days are supported.
           final dayOfView = DateTime.now();
 
           // Check whether to trigger the first-place tour.
-          _maybeShowTour(declared.length);
+          _maybeShowTour(visibleDeclaredCount);
 
           final scrollView = CustomScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               const SliverToBoxAdapter(child: DashboardHeader()),
-              SliverToBoxAdapter(
-                child: _ExposureSubTabs(
-                  myPlacesSelected: _myPlacesSelected,
-                  onChanged: (myPlaces) {
-                    setState(() => _myPlacesSelected = myPlaces);
-                  },
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _ExposureTabsHeaderDelegate(
+                  favoritesSelected: _favoritesSelected,
+                  onChanged: _selectSection,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 ),
               ),
-              if (!_myPlacesSelected)
+              if (!_favoritesSelected)
                 SliverFillRemaining(
                   child: MyTripsView(
+                    scrollController: _tripsScrollController,
                     savedSites: favourites,
-                    isDashboardLoading: isDashboardFirstLoad,
-                    hasDashboardError: dashboardLoadFailed || prefsLoadFailed,
+                    networkSites: networkSites,
+                    isDashboardLoading: mapState is MapInitial ||
+                        (mapState is MapLoading &&
+                            mapState.previousState == null),
+                    hasDashboardError: mapState is MapLoadingError,
                     onRetry: () {
-                      context
-                          .read<DashboardBloc>()
-                          .add(LoadDashboard(forceRefresh: true));
+                      context.read<MapBloc>().add(LoadMap(forceRefresh: true));
                     },
                     onAddPlaces: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          settings: const RouteSettings(name: 'location_selection'),
+                          settings:
+                              const RouteSettings(name: 'location_selection'),
                           builder: (_) => LocationSelectionScreen(),
                         ),
                       );
@@ -230,8 +420,35 @@ class _ExposureBodyState extends State<_ExposureBody> {
                           },
                         )
                       else ...[
-                        ...declared.asMap().entries.map((entry) {
-                          final i = entry.key;
+                        if (_showIntro &&
+                            (favoriteItems.isNotEmpty ||
+                                declaredFallback.isNotEmpty))
+                          _ExposureIntroCard(onDismiss: _dismissIntro),
+                        ...favoriteItems.map((item) {
+                          final p = item.declaredPlace;
+                          if (p == null) {
+                            return EntryPlaceCard(site: item.site);
+                          }
+                          final readings = loaded?.readings[p.siteId] ??
+                              List.generate(24, (h) => HourlyReading(hour: h));
+                          final avg = ExposurePlaceReadings.averagePm25ForCard(
+                            place: p,
+                            readings: readings,
+                            dayOfView: dayOfView,
+                          );
+                          return DeclaredPlaceCard(
+                            key: p.siteId == firstDeclaredSiteId
+                                ? _firstCardKey
+                                : null,
+                            place: p,
+                            exposureLevel: avg != null
+                                ? ExposureLevelExtension.fromPm25(avg)
+                                : null,
+                            hourlyReadings: readings,
+                            dayOfView: dayOfView,
+                          );
+                        }),
+                        ...declaredFallback.asMap().entries.map((entry) {
                           final p = entry.value;
                           final readings = loaded?.readings[p.siteId] ??
                               List.generate(24, (h) => HourlyReading(hour: h));
@@ -241,8 +458,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
                             dayOfView: dayOfView,
                           );
                           return DeclaredPlaceCard(
-                            // Attach key to first card so the tour can locate it.
-                            key: i == 0 ? _firstCardKey : null,
+                            key: entry.key == 0 ? _firstCardKey : null,
                             place: p,
                             exposureLevel: avg != null
                                 ? ExposureLevelExtension.fromPm25(avg)
@@ -251,8 +467,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
                             dayOfView: dayOfView,
                           );
                         }),
-                        ...untagged.map((s) => EntryPlaceCard(site: s)),
-                        if (showEmptyMyPlaces) const _EmptyState(),
+                        if (showEmptyFavorites) _EmptyState(isGuest: isGuest),
                       ],
                     ]),
                   ),
@@ -260,24 +475,14 @@ class _ExposureBodyState extends State<_ExposureBody> {
             ],
           );
 
-          return Stack(
-            children: [
-              _myPlacesSelected
-                  ? RefreshIndicator(
-                      onRefresh: _refreshMyPlaces,
-                      color: AppColors.primaryColor,
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
-                      child: scrollView,
-                    )
-                  : scrollView,
-              if (_showTour)
-                PlaceCardTour(
-                  cardKey: _firstCardKey,
-                  onDismiss: _dismissTour,
-                ),
-            ],
-          );
+          return _favoritesSelected
+              ? RefreshIndicator(
+                  onRefresh: _refreshFavorites,
+                  color: AppColors.primaryColor,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  child: scrollView,
+                )
+              : scrollView;
         },
       ),
     );
@@ -285,15 +490,15 @@ class _ExposureBodyState extends State<_ExposureBody> {
 }
 
 // ---------------------------------------------------------------------------
-// My Places / My Trips — matches dashboard pill styling (Figma exposure tab)
+// Favorites / Trips — matches dashboard pill styling (Figma exposure tab)
 // ---------------------------------------------------------------------------
 
 class _ExposureSubTabs extends StatelessWidget {
-  final bool myPlacesSelected;
+  final bool favoritesSelected;
   final ValueChanged<bool> onChanged;
 
   const _ExposureSubTabs({
-    required this.myPlacesSelected,
+    required this.favoritesSelected,
     required this.onChanged,
   });
 
@@ -308,8 +513,8 @@ class _ExposureSubTabs extends StatelessWidget {
           children: [
             Expanded(
               child: _ExposurePill(
-                label: 'My Places',
-                selected: myPlacesSelected,
+                label: 'Favorites',
+                selected: favoritesSelected,
                 isDark: isDark,
                 onTap: () => onChanged(true),
               ),
@@ -317,8 +522,8 @@ class _ExposureSubTabs extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _ExposurePill(
-                label: 'My Trips',
-                selected: !myPlacesSelected,
+                label: 'Trips',
+                selected: !favoritesSelected,
                 isDark: isDark,
                 onTap: () => onChanged(false),
               ),
@@ -327,6 +532,48 @@ class _ExposureSubTabs extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ExposureTabsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _ExposureTabsHeaderDelegate({
+    required this.favoritesSelected,
+    required this.onChanged,
+    required this.backgroundColor,
+  });
+
+  final bool favoritesSelected;
+  final ValueChanged<bool> onChanged;
+  final Color backgroundColor;
+
+  static const double _height = 52;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: backgroundColor,
+      child: _ExposureSubTabs(
+        favoritesSelected: favoritesSelected,
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _ExposureTabsHeaderDelegate oldDelegate) {
+    return favoritesSelected != oldDelegate.favoritesSelected ||
+        backgroundColor != oldDelegate.backgroundColor ||
+        onChanged != oldDelegate.onChanged;
   }
 }
 
@@ -377,6 +624,82 @@ class _ExposurePill extends StatelessWidget {
   }
 }
 
+class _ExposureIntroCard extends StatelessWidget {
+  const _ExposureIntroCard({required this.onDismiss});
+
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = AppTextColors.headline(context);
+    final bodyColor = AppTextColors.muted(context);
+
+    return Container(
+      key: const ValueKey('exposure-favorites-intro'),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: AqBarChartSquare01(
+              size: 20,
+              color: AppColors.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Favorites power Exposure',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Add a label and your usual hours to understand the air you breathe there. Tap a card or its arrow for hourly readings.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.45,
+                    color: bodyColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Semantics(
+            button: true,
+            label: 'Dismiss exposure introduction',
+            child: IconButton(
+              tooltip: 'Dismiss',
+              onPressed: onDismiss,
+              icon: AqXClose(size: 18, color: bodyColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Empty state — Mobile App Figma (e.g. node 10249:103564): cards inset; Home /
 // Work chips sit on the stack layer above cards with elevation (not inside
@@ -384,12 +707,26 @@ class _ExposurePill extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.isGuest});
+
+  final bool isGuest;
+
+  Future<void> _goLogIn(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'login'),
+        builder: (_) => const LoginPage(),
+      ),
+    );
+  }
 
   Future<void> _goAddFavourites(BuildContext context) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'location_selection'), builder: (_) => LocationSelectionScreen()),
+      MaterialPageRoute(
+          settings: const RouteSettings(name: 'location_selection'),
+          builder: (_) => LocationSelectionScreen()),
     );
     // Reload declared places so newly added favourites appear immediately.
     if (context.mounted) {
@@ -502,7 +839,8 @@ class _EmptyState extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => _goAddFavourites(context),
+                onPressed: () =>
+                    isGuest ? _goLogIn(context) : _goAddFavourites(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                   foregroundColor: Colors.white,
@@ -512,9 +850,12 @@ class _EmptyState extends StatelessWidget {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Add a place',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                child: Text(
+                  isGuest ? 'Log in' : 'Add a place',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

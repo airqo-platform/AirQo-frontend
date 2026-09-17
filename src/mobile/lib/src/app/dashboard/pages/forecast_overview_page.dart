@@ -13,7 +13,9 @@ import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/retry_button.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
+import 'package:airqo/src/app/map/services/map_navigation_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -185,6 +187,15 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
     );
   }
 
+  void _viewMonitorOnMap() {
+    final measurement = widget.measurement;
+    if (measurement == null) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      MapNavigationService.instance.showMonitor(measurement);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -248,6 +259,39 @@ class _ForecastOverviewPageState extends State<ForecastOverviewPage> {
                               ),
                             ],
                           ),
+                          if (widget.measurement != null) ...[
+                            const SizedBox(height: 6),
+                            Semantics(
+                              button: true,
+                              label: 'View monitor on map',
+                              child: InkWell(
+                                onTap: _viewMonitorOnMap,
+                                borderRadius: BorderRadius.circular(6),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AqMap01(
+                                        size: 16,
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'View on map',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

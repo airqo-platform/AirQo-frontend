@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
@@ -11,9 +12,11 @@ import 'package:airqo/src/meta/utils/colors.dart';
 
 class DeclaredPlaceCard extends StatelessWidget {
   final DeclaredPlace place;
+
   /// Null when the user is not scheduled here today ([DeclaredPlace.isAbsentOn]).
   final ExposureLevel? exposureLevel;
   final List<HourlyReading> hourlyReadings;
+
   /// Calendar day used for weekday vs weekend window label + card PM average.
   final DateTime dayOfView;
 
@@ -25,8 +28,11 @@ class DeclaredPlaceCard extends StatelessWidget {
     required this.dayOfView,
   });
 
-  ExposureLevel get _detailExposureLevel =>
-      exposureLevel ?? ExposureLevelExtension.fromPm25(ExposurePlaceReadings.meanPm25(hourlyReadings));
+  ExposureLevel? get _detailExposureLevel {
+    if (exposureLevel != null) return exposureLevel;
+    final mean = ExposurePlaceReadings.meanPm25(hourlyReadings);
+    return mean == null ? null : ExposureLevelExtension.fromPm25(mean);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +83,8 @@ class DeclaredPlaceCard extends StatelessWidget {
                         Container(
                           width: 28,
                           height: 28,
-                          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                              color: iconBg, shape: BoxShape.circle),
                           child: Center(
                             child: LabelPickerPlaceTypeIcon(
                               type: place.type,
@@ -204,29 +211,69 @@ class DeclaredPlaceCard extends StatelessWidget {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _detailExposureLevel.color.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _detailExposureLevel.label,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _detailExposureLevel.color,
+                            if (_detailExposureLevel case final level?) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: level.color.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  level.label,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: level.color,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _detailExposureLevel.copy,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: nameColor,
-                                height: 1.75,
+                              const SizedBox(height: 12),
+                              Text(
+                                level.copy,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: nameColor,
+                                  height: 1.75,
+                                ),
+                              ),
+                            ] else
+                              Text(
+                                'Hourly air quality is not available yet.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: subtitleColor,
+                                  height: 1.5,
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Semantics(
+                                button: true,
+                                label:
+                                    'View hourly air quality for ${place.displayName}',
+                                child: Tooltip(
+                                  message: 'View hourly air quality',
+                                  child: SizedBox(
+                                    width: 40,
+                                    height: 40,
+                                    child: IconButton(
+                                      onPressed: openHourlyDetail,
+                                      padding: EdgeInsets.zero,
+                                      icon: SvgPicture.asset(
+                                        'assets/icons/chevron-right.svg',
+                                        width: 18,
+                                        height: 18,
+                                        colorFilter: ColorFilter.mode(
+                                          AppTextColors.modalCloseIcon(context),
+                                          BlendMode.srcIn,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -266,9 +313,7 @@ class _EditButton extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: EditIcon(
           size: 18,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.boldHeadlineColor2
-              : const Color(0xFF536A87),
+          color: AppTextColors.modalCloseIcon(context),
         ),
       ),
     );

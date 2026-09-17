@@ -31,6 +31,7 @@ import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
@@ -54,6 +55,9 @@ void main() async {
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
+        // Keep debug builds visually representative of production. Flutter's
+        // baseline painter draws the yellow lines seen under tour copy.
+        debugPaintBaselinesEnabled = false;
         Workmanager().initialize(airQualityBackgroundCallbackDispatcher);
 
         await HiveBoxSetup.initializeBoxes();

@@ -60,40 +60,69 @@ class DeclaredPlacesCubit extends Cubit<DeclaredPlacesState> with UiLoggy {
     }
   }
 
-  Future<void> _fetchReadings(List<DeclaredPlace> places, int generation) async {
+  Future<void> _fetchReadings(
+      List<DeclaredPlace> places, int generation) async {
     if (places.isEmpty) return;
     final today = DateTime.now();
-    final results = await Future.wait(
-      places.map((p) => _readingsRepo
-          .fetchHourlyReadings(p.siteId, today)
-          .then((r) => MapEntry(p.siteId, r))),
-    );
+    final results =
+        await _readingsRepo.fetchHourlyReadingsForPlaces(places, today);
     if (!isClosed &&
         generation == _loadGeneration &&
         state is DeclaredPlacesLoaded) {
-      emit((state as DeclaredPlacesLoaded).withReadings(Map.fromEntries(results)));
+      emit((state as DeclaredPlacesLoaded).withReadings(results));
     }
   }
 
-  List<DeclaredPlace> get _current =>
-      state is DeclaredPlacesLoaded ? (state as DeclaredPlacesLoaded).places : [];
+  List<DeclaredPlace> get _current => state is DeclaredPlacesLoaded
+      ? (state as DeclaredPlacesLoaded).places
+      : [];
+
+  Map<String, List<HourlyReading>> get _currentReadings =>
+      state is DeclaredPlacesLoaded
+          ? (state as DeclaredPlacesLoaded).readings
+          : const {};
 
   void addPlace(DeclaredPlace place) {
     final updated = [..._current.where((p) => p.siteId != place.siteId), place];
-    emit(DeclaredPlacesLoaded(places: updated));
+    final readings = Map<String, List<HourlyReading>>.from(_currentReadings);
+    emit(DeclaredPlacesLoaded(places: updated, readings: readings));
     _placesRepo.saveDeclaredPlaces(updated);
+    _fetchReadingForPlace(place);
   }
 
   void updatePlace(DeclaredPlace place) {
-    final updated = _current.map((p) => p.siteId == place.siteId ? place : p).toList();
-    emit(DeclaredPlacesLoaded(places: updated));
+    final updated =
+        _current.map((p) => p.siteId == place.siteId ? place : p).toList();
+    emit(DeclaredPlacesLoaded(places: updated, readings: _currentReadings));
     _placesRepo.saveDeclaredPlaces(updated);
   }
 
   void removePlace(String siteId) {
     final updated = _current.where((p) => p.siteId != siteId).toList();
-    emit(DeclaredPlacesLoaded(places: updated));
+    final readings = Map<String, List<HourlyReading>>.from(_currentReadings)
+      ..remove(siteId);
+    emit(DeclaredPlacesLoaded(places: updated, readings: readings));
     _placesRepo.saveDeclaredPlaces(updated);
+  }
+
+  Future<void> _fetchReadingForPlace(DeclaredPlace place) async {
+    final result = await _readingsRepo.fetchHourlyReadingsForPlaces(
+      [place],
+      DateTime.now(),
+    );
+    final readings = result[place.siteId] ??
+        List.generate(24, (hour) => HourlyReading(hour: hour));
+    if (isClosed || state is! DeclaredPlacesLoaded) return;
+    final loaded = state as DeclaredPlacesLoaded;
+    if (!loaded.places.any((candidate) => candidate.siteId == place.siteId)) {
+      return;
+    }
+    emit(
+      loaded.withReadings({
+        ...loaded.readings,
+        place.siteId: readings,
+      }),
+    );
   }
 
   Future<void> reload({

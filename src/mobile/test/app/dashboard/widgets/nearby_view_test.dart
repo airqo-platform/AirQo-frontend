@@ -101,8 +101,7 @@ void main() {
       expect(find.text('No air quality stations available'), findsNothing);
     });
 
-    testWidgets(
-        'keeps source-empty state while refreshing an empty dashboard',
+    testWidgets('keeps source-empty state while refreshing an empty dashboard',
         (WidgetTester tester) async {
       final emptyLoaded = DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
@@ -180,8 +179,7 @@ void main() {
       );
     });
 
-    testWidgets(
-        'shows source-empty state when the API returns no measurements',
+    testWidgets('shows source-empty state when the API returns no measurements',
         (WidgetTester tester) async {
       final dashboardState = DashboardLoaded(
         AirQualityResponse(success: true, measurements: []),
@@ -321,7 +319,7 @@ void main() {
 
       // Assert
       expect(find.text('Test Location'), findsOneWidget);
-      expect(find.text('2.5 km away'), findsOneWidget);
+      expect(find.text('Test City, Test Country'), findsOneWidget);
       expect(find.text('35.7'), findsOneWidget);
       expect(find.text(' μg/m³'), findsOneWidget);
       expect(find.text('Unhealthy for Sensitive Groups'), findsOneWidget);

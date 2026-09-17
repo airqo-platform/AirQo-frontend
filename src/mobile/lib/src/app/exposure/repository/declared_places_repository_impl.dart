@@ -8,17 +8,20 @@ import 'package:airqo/src/app/debug/debug_api_override.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/declared_places_repository.dart';
 
-class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with NetworkLoggy {
+class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository
+    with NetworkLoggy {
   static const String _hiveBox = 'preferencesBox';
   static const String _hiveKey = 'declared_places_v1';
 
   final UserPreferencesRepository _prefsRepo;
+  Future<void> _saveQueue = Future<void>.value();
 
   DeclaredPlacesRepositoryImpl({UserPreferencesRepository? prefsRepo})
       : _prefsRepo = prefsRepo ?? UserPreferencesImpl();
 
   @override
-  Future<List<DeclaredPlace>> getDeclaredPlaces({bool forceRefresh = false}) async {
+  Future<List<DeclaredPlace>> getDeclaredPlaces(
+      {bool forceRefresh = false}) async {
     if (DebugApiOverride.instance.forceFailPlaces) {
       throw Exception('DEBUG: simulated places API failure');
     }
@@ -27,8 +30,10 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
       return [];
     }
 
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    final userId =
+        await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
     if (userId != null) {
+      final cached = await _loadFromHive();
       try {
         final response = await _prefsRepo.getUserPreferences(
           userId,
@@ -37,26 +42,28 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
         if (response['success'] == true) {
           final data = _extractPrefsData(response);
           if (data != null) {
-            final places = _parseDeclaredPlaces(data);
+            if (!data.containsKey('declared_places')) {
+              return cached;
+            }
+            final places = _mergeBySiteId(
+              cached,
+              _parseDeclaredPlaces(data),
+            );
             await _cacheToHive(places);
             return places;
           }
-          if (forceRefresh) {
-            await _cacheToHive([]);
-          }
-          return [];
+          return cached;
         }
         if (!forceRefresh) {
-          final cached = await _loadFromHive();
           if (cached.isNotEmpty) return cached;
         }
         throw Exception(
           response['message'] ?? 'Failed to load places',
         );
       } catch (e) {
-        loggy.warning('Could not fetch declared places from API, using cache: $e');
+        loggy.warning(
+            'Could not fetch declared places from API, using cache: $e');
         if (!forceRefresh) {
-          final cached = await _loadFromHive();
           if (cached.isNotEmpty) return cached;
         }
         rethrow;
@@ -67,18 +74,30 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
 
   @override
   Future<void> saveDeclaredPlaces(List<DeclaredPlace> places) async {
+    final snapshot = List<DeclaredPlace>.unmodifiable(places);
+    _saveQueue = _saveQueue
+        .catchError((_) {})
+        .then((_) => _persistDeclaredPlaces(snapshot));
+    await _saveQueue;
+  }
+
+  Future<void> _persistDeclaredPlaces(List<DeclaredPlace> places) async {
     await _cacheToHive(places);
 
-    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    final userId =
+        await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
     if (userId == null) return;
 
     try {
       final selectedSites = await _fetchCurrentSelectedSites(userId);
-      await _prefsRepo.replacePreference({
+      final response = await _prefsRepo.replacePreference({
         'user_id': userId,
         'selected_sites': selectedSites,
         'declared_places': places.map((p) => p.toJson()).toList(),
       });
+      if (response['success'] != true) {
+        throw Exception(response['message'] ?? 'Failed to save Favorites');
+      }
     } catch (e) {
       loggy.error('Could not sync declared places to API: $e');
     }
@@ -103,13 +122,25 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
         .toList();
   }
 
+  List<DeclaredPlace> _mergeBySiteId(
+    List<DeclaredPlace> cached,
+    List<DeclaredPlace> remote,
+  ) {
+    final merged = <String, DeclaredPlace>{
+      for (final place in cached) place.siteId: place,
+      for (final place in remote) place.siteId: place,
+    };
+    return merged.values.toList();
+  }
+
   Future<List<dynamic>> _fetchCurrentSelectedSites(String userId) async {
     try {
       final response = await _prefsRepo.getUserPreferences(userId);
       if (response['success'] == true) {
         final data = _extractPrefsData(response);
         if (data != null) {
-          return (data['selected_sites'] ?? data['selectedSites'] ?? []) as List;
+          return (data['selected_sites'] ?? data['selectedSites'] ?? [])
+              as List;
         }
       }
     } catch (e) {
@@ -126,7 +157,8 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
   Future<void> _cacheToHive(List<DeclaredPlace> places) async {
     try {
       final box = await _getBox();
-      await box.put(_hiveKey, jsonEncode(places.map((p) => p.toJson()).toList()));
+      await box.put(
+          _hiveKey, jsonEncode(places.map((p) => p.toJson()).toList()));
     } catch (e) {
       loggy.error('Could not cache declared places to Hive: $e');
     }
@@ -139,7 +171,8 @@ class DeclaredPlacesRepositoryImpl extends DeclaredPlacesRepository with Network
       if (raw != null) {
         final jsonList = jsonDecode(raw as String) as List<dynamic>;
         return jsonList
-            .map((j) => DeclaredPlace.fromJson(Map<String, dynamic>.from(j as Map)))
+            .map((j) =>
+                DeclaredPlace.fromJson(Map<String, dynamic>.from(j as Map)))
             .toList();
       }
     } catch (e) {

@@ -18,7 +18,8 @@ class DeclaredPlacesLoaded extends DeclaredPlacesState {
     this.readings = const {},
   });
 
-  DeclaredPlacesLoaded withReadings(Map<String, List<HourlyReading>> readings) =>
+  DeclaredPlacesLoaded withReadings(
+          Map<String, List<HourlyReading>> readings) =>
       DeclaredPlacesLoaded(places: places, readings: readings);
 
   @override

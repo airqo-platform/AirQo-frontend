@@ -15,7 +15,8 @@ class ExposureLevelChip extends StatelessWidget {
       ),
       child: Text(
         level.label,
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: level.color),
+        style: TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w600, color: level.color),
       ),
     );
   }
