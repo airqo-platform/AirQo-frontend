@@ -43,10 +43,12 @@ In `pubspec.yaml`:
 ```yaml
 version: 3.0.8+2   # marketing_version+build_number
 ```
-- `3.0.8` → shown to users on the Play Store (`versionName`). Must be higher than the live store version (currently **3.0.4**).
-- `+2` → local/dev build number. The Fastlane `play_store` lane **ignores** this for Play uploads: it fetches the current production `versionCode` and adds 1.
+- `3.0.8` → user-visible Play Store label (`versionName`). Google Play does **not** require this string to increase between uploads.
+- `+2` → local/dev build number. The Fastlane `play_store` lane **ignores** this for Play uploads.
 
-You do **not** need to manually bump `+N` in `pubspec.yaml` for Play Store. Keep `versionName` (`3.x.x`) ahead of the live store version before triggering the workflow.
+Google Play **does** require a higher `versionCode` than the last uploaded production build. The `play_store` lane fetches the current production `versionCode` and increments it automatically (`flutter build appbundle --build-number`), so you do **not** need to bump `+N` in `pubspec.yaml` for Play Store.
+
+AirQo project policy: still bump `versionName` (`3.x.x`) so the user-facing label is ahead of the live store version (currently **3.0.4**) before triggering the workflow.
 
 ### 2. Update the release notes
 Edit `android/fastlane/release_notes.txt` with what's new in this version. The Azure workflow copies this into `fastlane/metadata/android/en-US/changelogs/default.txt`. If the file is missing, CI writes a stale `App release version 3.0.2` placeholder.
@@ -118,7 +120,7 @@ Contact the admin if any secrets need to be rotated.
 
 ## Quick Reference Checklist
 
-- [ ] `versionName` in `pubspec.yaml` is higher than the live Play Store version
+- [ ] `versionName` in `pubspec.yaml` bumped per AirQo policy (not a Play upload requirement; `versionCode` is auto-incremented)
 - [ ] `android/fastlane/release_notes.txt` updated
 - [ ] Changes pushed to `staging`
 - [ ] GitHub Actions → **deploy-android-to-play-store-azure** → **Run workflow** (on `staging`, checkbox checked)
