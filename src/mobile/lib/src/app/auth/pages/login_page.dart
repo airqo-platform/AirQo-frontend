@@ -2,9 +2,7 @@ import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/pages/email_verification_screen.dart';
 import 'package:airqo/src/app/auth/pages/password_reset/forgot_password.dart';
 import 'package:airqo/src/app/auth/pages/register_page.dart';
-import 'package:airqo/src/app/auth/widgets/social_login_button.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/widgets/form_field.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -23,7 +21,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   String? error;
   bool _isLoading = false;
-  bool _isOAuthLoading = false;
   late AuthBloc authBloc;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -145,15 +142,10 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           );
-        } else if (state is OAuthCancelled) {
-          setState(() {
-            _isOAuthLoading = false;
-          });
         } else if (state is AuthLoadingError) {
           setState(() {
             error = state.message;
             _isLoading = false;
-            _isOAuthLoading = false;
           });
         }
       },
@@ -315,47 +307,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           
-                          if (FeatureFlagService.instance.isEnabled(AppFeatureFlag.socialLogin)) ...[
-                            SizedBox(height: isSmallScreen ? 12 : 16),
-
-                            Row(
-                              children: [
-                                const Expanded(child: Divider()),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  child: Text(
-                                    'OR',
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                                const Expanded(child: Divider()),
-                              ],
-                            ),
-
-                            SizedBox(height: isSmallScreen ? 12 : 16),
-
-                            SocialLoginButton(
-                              label: 'Continue with Google',
-                              logo: const GoogleLogo(),
-                              isLoading: _isOAuthLoading,
-                              onTap: _isLoading
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _isOAuthLoading = true;
-                                        error = null;
-                                      });
-                                      authBloc.add(const LoginWithProvider('google'));
-                                    },
-                            ),
-
-                            SizedBox(height: isSmallScreen ? 12 : 16),
-                          ],
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

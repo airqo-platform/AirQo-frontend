@@ -283,7 +283,9 @@ const ErrorPage(),
       child: Text(
         initials,
         style: TextStyle(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
