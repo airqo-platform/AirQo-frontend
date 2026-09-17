@@ -1,0 +1,37 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the app and upload a new build to TestFlight, auto-incrementing the build number"
+  lane :release do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_PATH"]
+    )
+
+    # Ask App Store Connect for the highest build number it has ever seen for this
+    # app (across TestFlight and the App Store) instead of trusting whatever is
+    # sitting in pubspec.yaml, then bump past it. This is what removes the need
+    # for whoever is publishing to guess/remember the last build number.
+    latest_build_number = app_store_build_number(
+      api_key: api_key,
+      app_identifier: "com.airqo.net",
+      live: false,
+      # Fallback used only if App Store Connect has no build at all yet for the
+      # current version train (e.g. a brand-new marketing version with no draft
+      # created in App Store Connect yet) - avoids a hard failure on that edge case.
+      initial_build_number: 1
+    )
+    build_number = latest_build_number + 1
+
+    Dir.chdir("..") do
+      sh "flutter build ipa --release --build-number=#{build_number}"
+    end
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: "../build/ios/ipa/airqo.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
