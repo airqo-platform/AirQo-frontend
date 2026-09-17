@@ -111,7 +111,8 @@ Contact the admin if any secrets need to be rotated.
 | Workflow fails at "Login to Azure" | `AZURE_CREDENTIALS` GitHub secret may be expired or missing Key Vault access — check with admin |
 | Workflow fails at "Add keystore" | Secret names in Key Vault `airqo-kv-prod` may have changed — compare with the table above |
 | `versionCode X has already been used` | The Fastlane lane auto-increments, but if the Play Store API call fails it may reuse an old number — re-run the workflow |
-| `flutter build appbundle` fails | Check the workflow logs for the exact error; usually a dependency or SDK version issue in CI |
+| `flutter build appbundle` fails | Check the workflow logs. Flutter 3.47.4 requires Kotlin **2.2.20** (`android/settings.gradle`). CI pins that Flutter version so a newer `stable` cannot drift. |
+| Kotlin lower than Flutter minimum | Bump `org.jetbrains.kotlin.android` in `android/settings.gradle` to Flutter’s stated minimum (currently 2.2.20) |
 | Build doesn't appear in Play Console | Wait a few minutes after the workflow completes — uploads can take time to process |
 | Fastlane `play_store` lane fails | Verify `MOBILE_ANDROID_PLAYSTORE_SA` GitHub secret is valid and the service account has Play Store API access |
 

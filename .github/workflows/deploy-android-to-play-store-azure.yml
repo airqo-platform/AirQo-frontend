@@ -30,6 +30,7 @@ jobs:
         uses: subosito/flutter-action@v2.10.0
         with:
           channel: "stable"
+          flutter-version: "3.47.4"
 
       - name: Login to Azure
         uses: azure/login@v2
