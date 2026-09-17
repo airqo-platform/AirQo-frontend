@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
 
@@ -18,14 +19,19 @@ class SelectedSite extends Equatable {
     this.longitude,
   });
 
+  String get visibleName => normalizeLocationLabel(name);
+  String get visibleSearchName => normalizeLocationLabel(searchName);
+
   /// Geographic city when the API provided one; otherwise the user-facing
   /// search title, then the canonical monitor name.
   String get geographicCity {
     final cityName = city?.trim();
-    if (cityName != null && cityName.isNotEmpty) return cityName;
+    if (cityName != null && cityName.isNotEmpty) {
+      return normalizeLocationLabel(cityName);
+    }
     final searchTitle = searchName.trim();
-    if (searchTitle.isNotEmpty) return searchTitle;
-    return name;
+    if (searchTitle.isNotEmpty) return visibleSearchName;
+    return visibleName;
   }
 
   @override
@@ -40,9 +46,9 @@ class SelectedSite extends Equatable {
 
     return SelectedSite(
       id: id,
-      name: name,
-      searchName: searchName,
-      city: city,
+      name: normalizeLocationLabel(name),
+      searchName: normalizeLocationLabel(searchName),
+      city: normalizeLocationLabelOrNull(city),
       latitude: _parseDouble(json['latitude']),
       longitude: _parseDouble(json['longitude']),
     );

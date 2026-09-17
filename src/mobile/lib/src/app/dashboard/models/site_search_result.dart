@@ -1,3 +1,5 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
+
 class SiteSearchResult {
   final String id;
   final String? name;
@@ -21,8 +23,11 @@ class SiteSearchResult {
     this.locationName,
   });
 
-  String get displayName =>
-      city ?? town ?? locationName ?? name ?? 'Unknown Location';
+  String get displayName => normalizeLocationLabel(
+        city ?? town ?? locationName ?? name ?? 'Unknown Location',
+      );
 
-  String get displaySubtitle => searchName ?? name ?? formattedName ?? '---';
+  String get displaySubtitle => normalizeLocationLabel(
+        searchName ?? name ?? formattedName ?? '---',
+      );
 }

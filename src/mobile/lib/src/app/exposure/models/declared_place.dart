@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -112,6 +113,9 @@ class DeclaredPlace extends Equatable {
     this.absentOnWeekends = false,
   }) : monitorName = monitorName ?? locationName;
 
+  String get visibleLocationName => normalizeLocationLabel(locationName);
+  String get visibleCity => normalizeLocationLabel(city);
+
   bool get hasTimeWindow => weekdayWindow != null || weekendWindow != null;
 
   bool isAbsentOn(DateTime date) {
@@ -207,11 +211,12 @@ class DeclaredPlace extends Equatable {
     return DeclaredPlace(
       siteId: json['site_id'] as String,
       displayName: displayName,
-      locationName: json['location_name'] as String? ?? displayName,
+      locationName: normalizeLocationLabel(
+          json['location_name'] as String? ?? displayName),
       monitorName: json['monitor_name'] as String? ??
           json['location_name'] as String? ??
           displayName,
-      city: json['city'] as String,
+      city: normalizeLocationLabel(json['city'] as String),
       type: PlaceType.values.byName(json['type'] as String),
       weekdayWindow: json['weekday_window'] != null
           ? TimeWindow.fromJson(

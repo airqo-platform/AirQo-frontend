@@ -110,7 +110,7 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
                               color: txt1)),
                       const SizedBox(height: 8),
                       Text(
-                        widget.place.locationName,
+                        widget.place.visibleLocationName,
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,

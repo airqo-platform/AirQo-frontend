@@ -560,7 +560,7 @@ class _TripEndpointField extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      value?.name ?? 'Choose a location',
+                      value?.visibleName ?? 'Choose a location',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -714,8 +714,8 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
     final query = _controller.text.trim().toLowerCase();
     if (query.isEmpty) return widget.sites;
     return widget.sites.where((entry) {
-      return entry.site.name.toLowerCase().contains(query) ||
-          entry.site.searchName.toLowerCase().contains(query);
+      return entry.site.visibleName.toLowerCase().contains(query) ||
+          entry.site.visibleSearchName.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -818,8 +818,8 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
                 : ListView(
                     children: sites.map((entry) {
                       return _TripLocationRow(
-                        title: entry.site.name,
-                        subtitle: entry.site.searchName,
+                        title: entry.site.visibleName,
+                        subtitle: entry.site.visibleSearchName,
                         isFavorite: entry.isFavorite,
                         onTap: () => Navigator.of(context).pop(entry.site),
                       );
@@ -910,7 +910,7 @@ class _RouteExposureSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${summary.origin.name} to ${summary.destination.name}',
+            '${summary.origin.visibleName} to ${summary.destination.visibleName}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,

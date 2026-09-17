@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import '../models/country_model.dart';
 import '../models/countries_api_response.dart';
@@ -79,7 +80,7 @@ class CountryRepository extends BaseRepository {
         final countries = cachedData.data
             .map((item) => CountryModel(
                   item['flag'] as String,
-                  item['countryName'] as String,
+                  normalizeLocationLabel(item['countryName'] as String),
                   sites: item['sites'] as int? ?? 0,
                 ))
             .toList();
@@ -121,7 +122,9 @@ class CountryRepository extends BaseRepository {
     }
 
     return countries
-        .where((country) => activeCountryNames.contains(country.countryName))
+        .where((country) => activeCountryNames.any(
+              (name) => countriesMatch(country.countryName, name),
+            ))
         .toList();
   }
 
@@ -129,7 +132,8 @@ class CountryRepository extends BaseRepository {
   static Set<String> extractActiveCountryNames(List<dynamic> measurements) {
     return measurements
         .where((m) => m.siteDetails?.country != null)
-        .map((m) => m.siteDetails!.country! as String)
+        .map((m) =>
+            normalizeLocationLabel(m.siteDetails!.country! as String))
         .toSet();
   }
 

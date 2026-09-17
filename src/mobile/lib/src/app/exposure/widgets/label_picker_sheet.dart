@@ -198,9 +198,9 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
     final partial = DeclaredPlace(
       siteId: widget.site.id,
       displayName: tag,
-      locationName: widget.site.searchName.trim().isEmpty
-          ? widget.site.name
-          : widget.site.searchName,
+      locationName: widget.site.visibleSearchName.trim().isEmpty
+          ? widget.site.visibleName
+          : widget.site.visibleSearchName,
       monitorName: widget.site.name,
       city: widget.site.geographicCity,
       type: _selectedType,

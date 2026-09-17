@@ -173,9 +173,9 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                     const SizedBox(height: 10),
                                   ],
                                   Text(
-                                    widget.site.searchName.isNotEmpty
-                                        ? widget.site.searchName
-                                        : widget.site.name,
+                                    widget.site.visibleSearchName.isNotEmpty
+                                        ? widget.site.visibleSearchName
+                                        : widget.site.visibleName,
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
@@ -200,7 +200,7 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                         child: Text(
                                           widget.site.name !=
                                                   widget.site.searchName
-                                              ? widget.site.name
+                                              ? widget.site.visibleName
                                               : "Unknown location",
                                           style: TextStyle(
                                             fontSize: 14,

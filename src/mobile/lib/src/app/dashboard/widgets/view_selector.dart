@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/country_button';
 import 'package:airqo/src/app/shared/widgets/loading_widget.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
@@ -61,8 +62,8 @@ class _ViewSelectorState extends State<ViewSelector> {
 
     final userCountry = widget.userCountry;
     if (userCountry != null && userCountry.isNotEmpty) {
-      int userCountryIndex = sortedCountries.indexWhere((country) =>
-          country.countryName.toLowerCase() == userCountry.toLowerCase());
+      int userCountryIndex = sortedCountries.indexWhere(
+          (country) => countriesMatch(country.countryName, userCountry));
 
       if (userCountryIndex != -1) {
         CountryModel userCountryModel =
@@ -188,8 +189,8 @@ class _ViewSelectorState extends State<ViewSelector> {
                         widget.selectedCountry == country.countryName,
                     onTap: () => widget.onViewChanged(DashboardView.country,
                         country: country.countryName),
-                    isUserCountry: widget.userCountry?.toLowerCase() ==
-                        country.countryName.toLowerCase(),
+                    isUserCountry:
+                        countriesMatch(widget.userCountry, country.countryName),
                   ),
                 )),
         ],

@@ -65,6 +65,24 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
+  Color _initialsColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
+
+  Widget _initialsLabel(BuildContext context, String initials) {
+    return Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: _initialsColor(context),
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
   Color _appBarIconColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
           ? Colors.white
@@ -244,16 +262,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     if (profilePicture == null || profilePicture.isEmpty) {
-      return Center(
-        child: Text(
-          initials,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      );
+      return _initialsLabel(context, initials);
     }
 
     if (profilePicture.startsWith('https')) {
@@ -264,16 +273,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         height: 48,
         errorBuilder: (context, error, stackTrace) {
           return initials.isNotEmpty
-              ? Center(
-                  child: Text(
-                    initials,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                )
+              ? _initialsLabel(context, initials)
               : fallbackWidget;
         },
         loadingBuilder: (context, child, loadingProgress) {
@@ -282,16 +282,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           }
 
           return initials.isNotEmpty
-              ? Center(
-                  child: Text(
-                    initials,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                )
+              ? _initialsLabel(context, initials)
               : fallbackWidget;
         },
       );
@@ -304,16 +295,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         width: 48,
         fit: BoxFit.cover,
         placeholderBuilder: (_) => initials.isNotEmpty
-            ? Center(
-                child: Text(
-                  initials,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              )
+            ? _initialsLabel(context, initials)
             : fallbackWidget,
       );
     }
@@ -325,16 +307,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       height: 48,
       errorBuilder: (context, error, stackTrace) {
         return initials.isNotEmpty
-            ? Center(
-                child: Text(
-                  initials,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              )
+            ? _initialsLabel(context, initials)
             : fallbackWidget;
       },
     );

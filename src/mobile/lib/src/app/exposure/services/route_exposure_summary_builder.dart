@@ -71,7 +71,11 @@ class RouteExposureSummaryBuilder {
       peakPm25: peakPm25,
       exposureLevel: exposureLevel,
       headline: _headlineFor(exposureLevel),
-      guidance: _guidanceFor(exposureLevel, origin.name, destination.name),
+      guidance: _guidanceFor(
+        exposureLevel,
+        origin.visibleName,
+        destination.visibleName,
+      ),
       highestSiteName:
           highestMeasurement?.siteDetails?.name ?? highestMeasurement?.siteId,
     );
