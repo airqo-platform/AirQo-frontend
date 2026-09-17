@@ -123,7 +123,7 @@ class DeclaredPlaceCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              place.locationName,
+                              place.visibleLocationName,
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
@@ -135,7 +135,7 @@ class DeclaredPlaceCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              place.city,
+                              place.visibleCity,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,

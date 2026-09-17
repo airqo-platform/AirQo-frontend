@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -70,7 +71,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     if (country != null && mounted) {
       final match = CountryRepository.countries
           .where(
-            (c) => c.countryName.toLowerCase() == country.toLowerCase(),
+            (c) => countriesMatch(c.countryName, country),
           )
           .firstOrNull;
       final canonicalName = match?.countryName;
@@ -316,7 +317,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       case DashboardView.country:
         final countryMeasurements =
             (state.response.measurements ?? [])
-                .where((m) => m.siteDetails?.country == selectedCountry)
+                .where((m) =>
+                    countriesMatch(m.siteDetails?.country, selectedCountry))
                 .toList();
 
         return MeasurementsList(

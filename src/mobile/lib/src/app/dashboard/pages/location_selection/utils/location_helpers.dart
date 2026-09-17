@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:loggy/loggy.dart';
 
 typedef MeasurementsCallback = void Function(List<Measurement> measurements);
@@ -79,7 +80,7 @@ class LocationHelper {
     
     var filtered = measurements.where((measurement) {
       if (measurement.siteDetails != null) {
-        return measurement.siteDetails!.country == country;
+        return countriesMatch(measurement.siteDetails!.country, country);
       }
       return false;
     }).toList();
@@ -99,10 +100,12 @@ class LocationHelper {
       return "Unknown Location";
     }
     
-    return measurement.siteDetails!.city ?? 
-           measurement.siteDetails!.town ?? 
-           measurement.siteDetails!.locationName ?? 
-           "Unknown Location";
+    return normalizeLocationLabel(
+      measurement.siteDetails!.city ??
+          measurement.siteDetails!.town ??
+          measurement.siteDetails!.locationName ??
+          "Unknown Location",
+    );
   }
 
   /// Get location subtitle from measurement
@@ -111,8 +114,10 @@ class LocationHelper {
       return "";
     }
     
-    return measurement.siteDetails!.name ?? 
-           measurement.siteDetails!.formattedName ?? 
-           "";
+    return normalizeLocationLabel(
+      measurement.siteDetails!.name ??
+          measurement.siteDetails!.formattedName ??
+          "",
+    );
   }
 }

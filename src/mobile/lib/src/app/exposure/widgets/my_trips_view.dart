@@ -362,7 +362,7 @@ class _TripDropdownField extends StatelessWidget {
             (site) => DropdownMenuItem<String>(
               value: site.id,
               child: Text(
-                site.name,
+                site.visibleName,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: headlineColor),
               ),
@@ -391,7 +391,7 @@ class _RouteExposureSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${summary.origin.name} to ${summary.destination.name}',
+            '${summary.origin.visibleName} to ${summary.destination.visibleName}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,

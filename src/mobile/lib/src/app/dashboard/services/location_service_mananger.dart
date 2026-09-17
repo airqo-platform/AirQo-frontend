@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
@@ -211,7 +212,7 @@ class LocationServiceManager with UiLoggy {
         final country = placemarks.first.country;
         if (country != null && country.isNotEmpty) {
           loggy.info('User country detected: $country');
-          return country;
+          return normalizeLocationLabel(country);
         }
       }
     } catch (e) {

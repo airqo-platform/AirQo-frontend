@@ -34,7 +34,7 @@ class EntryPlaceCard extends StatelessWidget {
           children: [
             // ── Location name ────────────────────────────────────────────
             Text(
-              site.name,
+              site.visibleName,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -45,7 +45,7 @@ class EntryPlaceCard extends StatelessWidget {
             const SizedBox(height: 4),
             // ── Subtitle ─────────────────────────────────────────────────
             Text(
-              site.searchName,
+              site.visibleSearchName,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,

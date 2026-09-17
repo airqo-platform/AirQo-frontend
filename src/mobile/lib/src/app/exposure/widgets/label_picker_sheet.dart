@@ -190,8 +190,8 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
     final partial = DeclaredPlace(
       siteId: widget.site.id,
       displayName: tag,
-      locationName: widget.site.name,
-      city: widget.site.searchName,
+      locationName: widget.site.visibleName,
+      city: widget.site.visibleSearchName,
       type: _selectedType,
       weekdayWindow: widget.existing?.weekdayWindow,
       weekendWindow: widget.existing?.weekendWindow,

@@ -1,3 +1,5 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
+
 class CountryModel {
   final String flag;
   final String countryName;
@@ -6,6 +8,7 @@ class CountryModel {
   const CountryModel(this.flag, this.countryName, {this.sites = 0});
 
   static String getFlagFromCountryName(String countryName) {
+    final canonicalName = normalizeLocationLabel(countryName);
     final flagMap = {
       'Uganda': '🇺🇬',
       'Kenya': '🇰🇪',
@@ -24,6 +27,6 @@ class CountryModel {
       'Zambia': '🇿🇲',
     };
 
-    return flagMap[countryName] ?? '🌍';
+    return flagMap[canonicalName] ?? '🌍';
   }
 }

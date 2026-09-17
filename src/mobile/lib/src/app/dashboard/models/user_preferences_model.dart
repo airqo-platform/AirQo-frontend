@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
 
@@ -16,6 +17,9 @@ class SelectedSite extends Equatable {
     this.longitude,
   });
 
+  String get visibleName => normalizeLocationLabel(name);
+  String get visibleSearchName => normalizeLocationLabel(searchName);
+
   @override
   List<Object?> get props => [id, name, searchName, latitude, longitude];
 
@@ -27,8 +31,8 @@ class SelectedSite extends Equatable {
 
     return SelectedSite(
       id: id,
-      name: name,
-      searchName: searchName,
+      name: normalizeLocationLabel(name),
+      searchName: normalizeLocationLabel(searchName),
       latitude: _parseDouble(json['latitude']),
       longitude: _parseDouble(json['longitude']),
     );

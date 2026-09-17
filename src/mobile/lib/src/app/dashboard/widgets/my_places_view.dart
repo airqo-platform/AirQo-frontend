@@ -423,7 +423,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                       if (widget.userPreferences != null) {
                         for (var site in widget.userPreferences!.selectedSites) {
                           if (site.id == measurement.siteId) {
-                            preferenceLocationName = site.name;
+                            preferenceLocationName = site.visibleName;
                             break;
                           }
                         }
