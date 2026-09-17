@@ -1,30 +1,49 @@
+import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository_impl.dart';
-import 'package:airqo/src/app/exposure/utils/exposure_load_status.dart';
 import 'package:airqo/src/app/exposure/widgets/exposure_level_chip.dart';
-import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
-import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
+
+class TripNetworkSite extends Equatable {
+  const TripNetworkSite({
+    required this.site,
+    required this.country,
+    this.isFavorite = false,
+  });
+
+  final SelectedSite site;
+  final String country;
+  final bool isFavorite;
+
+  @override
+  List<Object?> get props => [site, country, isFavorite];
+}
 
 class MyTripsView extends StatefulWidget {
   const MyTripsView({
     super.key,
     required this.savedSites,
+    this.networkSites = const [],
     this.isDashboardLoading = false,
     this.hasDashboardError = false,
     this.onRetry,
     this.onAddPlaces,
+    this.scrollController,
     RouteExposureRepository? repository,
   }) : repository = repository ?? const _RouteExposureRepositoryFactory();
 
   final List<SelectedSite> savedSites;
+  final List<TripNetworkSite> networkSites;
   final bool isDashboardLoading;
   final bool hasDashboardError;
   final VoidCallback? onRetry;
   final VoidCallback? onAddPlaces;
+  final ScrollController? scrollController;
   final RouteExposureRepository repository;
 
   @override
@@ -32,15 +51,31 @@ class MyTripsView extends StatefulWidget {
 }
 
 class _MyTripsViewState extends State<MyTripsView> {
-  String? _originId;
-  String? _destinationId;
+  SelectedSite? _origin;
+  SelectedSite? _destination;
+  String? _country;
   bool _isLoading = false;
   String? _errorMessage;
   RouteExposureSummary? _summary;
 
-  List<SelectedSite> get _eligibleSites => widget.savedSites
-      .where((site) => site.latitude != null && site.longitude != null)
-      .toList();
+  List<String> get _countries => widget.networkSites
+      .map((entry) => entry.country)
+      .where((country) => country.isNotEmpty)
+      .toSet()
+      .toList()
+    ..sort();
+
+  List<TripNetworkSite> get _countrySites {
+    final country = _country;
+    if (country == null) return const [];
+    final sites =
+        widget.networkSites.where((entry) => entry.country == country).toList();
+    sites.sort((a, b) {
+      if (a.isFavorite != b.isFavorite) return a.isFavorite ? -1 : 1;
+      return a.site.name.compareTo(b.site.name);
+    });
+    return sites;
+  }
 
   @override
   void initState() {
@@ -51,43 +86,56 @@ class _MyTripsViewState extends State<MyTripsView> {
   @override
   void didUpdateWidget(covariant MyTripsView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.savedSites != widget.savedSites) {
+    if (oldWidget.savedSites != widget.savedSites ||
+        oldWidget.networkSites != widget.networkSites) {
       _syncSelection();
     }
   }
 
   void _syncSelection() {
-    final sites = _eligibleSites;
-    if (sites.length < 2) {
-      _originId = null;
-      _destinationId = null;
+    final countries = _countries;
+    if (countries.isEmpty) {
+      _country = null;
+      _origin = null;
+      _destination = null;
+      _summary = null;
+      _errorMessage = null;
       return;
     }
-
-    _originId =
-        sites.any((site) => site.id == _originId) ? _originId : sites.first.id;
-    final fallbackDestination = sites.firstWhere(
-      (site) => site.id != _originId,
-      orElse: () => sites[1],
-    );
-    _destinationId =
-        sites.any((site) => site.id == _destinationId && site.id != _originId)
-            ? _destinationId
-            : fallbackDestination.id;
+    if (_country == null || !countries.contains(_country)) {
+      final favoriteCountries = widget.networkSites
+          .where((entry) => entry.isFavorite)
+          .map((entry) => entry.country)
+          .toSet();
+      _country = countries.firstWhere(
+        favoriteCountries.contains,
+        orElse: () => countries.first,
+      );
+    }
+    final sites = _countrySites.map((entry) => entry.site).toList();
+    _origin = sites.where((site) => site.id == _origin?.id).firstOrNull ??
+        sites.firstOrNull;
+    _destination = sites
+            .where((site) =>
+                site.id == _destination?.id && site.id != _origin?.id)
+            .firstOrNull ??
+        sites.where((site) => site.id != _origin?.id).firstOrNull;
   }
 
-  SelectedSite? _findSite(String? id) {
-    for (final site in _eligibleSites) {
-      if (site.id == id) {
-        return site;
-      }
-    }
-    return null;
+  void _selectCountry(String country) {
+    setState(() {
+      _country = country;
+      _origin = null;
+      _destination = null;
+      _summary = null;
+      _errorMessage = null;
+      _syncSelection();
+    });
   }
 
   Future<void> _loadTripExposure() async {
-    final origin = _findSite(_originId);
-    final destination = _findSite(_destinationId);
+    final origin = _origin;
+    final destination = _destination;
     if (origin == null || destination == null) {
       return;
     }
@@ -123,76 +171,75 @@ class _MyTripsViewState extends State<MyTripsView> {
 
   @override
   Widget build(BuildContext context) {
-    final sites = _eligibleSites;
-    final tripsStatus = resolveExposureTripsContent(
-      isDashboardFirstLoad: widget.isDashboardLoading,
-      dashboardLoadFailed: widget.hasDashboardError,
-      eligibleSiteCount: sites.length,
-    );
-
-    if (tripsStatus == ExposureTripsContentStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (tripsStatus == ExposureTripsContentStatus.error) {
-      return EmptyStateView(
-        icon: SystemGlyph.error(context),
-        title: 'Unable to load trips',
-        message: "We couldn't load your trips right now. Please try again.",
-        actionLabel: 'Try Again',
-        onAction: widget.onRetry,
-      );
-    }
-
-    if (tripsStatus == ExposureTripsContentStatus.empty) {
-      return EmptyStateView(
-        icon: SystemGlyph.emptyTrip(context),
-        title: 'No trips to analyze',
-        message:
-            'Add at least two saved places to analyze a trip. My Trips uses your saved AirQo locations as route endpoints.',
-        actionLabel: widget.onAddPlaces != null ? 'Add a place' : 'Try Again',
-        actionIcon: widget.onAddPlaces != null ? SystemGlyph.add() : null,
-        onAction: widget.onAddPlaces ?? widget.onRetry,
-      );
-    }
+    final sites = _countrySites;
 
     return ListView(
+      controller: widget.scrollController,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
         _TripSelectorCard(
-          sites: sites,
-          originId: _originId!,
-          destinationId: _destinationId!,
+          countries: _countries,
+          selectedCountry: _country,
+          networkSites: sites,
+          origin: _origin,
+          destination: _destination,
           isLoading: _isLoading,
+          onCountryChanged: _selectCountry,
           onOriginChanged: (value) {
             setState(() {
-              _originId = value;
+              _origin = value;
               _summary = null;
               _errorMessage = null;
-              if (_destinationId == value) {
-                _destinationId =
-                    sites.firstWhere((site) => site.id != value).id;
-              }
             });
           },
           onDestinationChanged: (value) {
             setState(() {
-              _destinationId = value;
+              _destination = value;
               _summary = null;
               _errorMessage = null;
             });
           },
           onSwap: () {
             setState(() {
-              final currentOrigin = _originId;
-              _originId = _destinationId;
-              _destinationId = currentOrigin;
+              final currentOrigin = _origin;
+              _origin = _destination;
+              _destination = currentOrigin;
               _summary = null;
               _errorMessage = null;
             });
           },
           onAnalyze: _loadTripExposure,
+          onAddPlaces: widget.isDashboardLoading || widget.hasDashboardError
+              ? null
+              : widget.onAddPlaces,
         ),
+        if (widget.isDashboardLoading && widget.networkSites.isEmpty) ...[
+          const SizedBox(height: 12),
+          const LinearProgressIndicator(),
+        ] else if (widget.hasDashboardError) ...[
+          const SizedBox(height: 12),
+          _TripMessageCard(
+            title: 'AirQo network locations are unavailable',
+            message:
+                'Trips use monitored AirQo locations so route exposure has a better chance of returning readings.',
+            isError: true,
+          ),
+          if (widget.onRetry != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: widget.onRetry,
+                child: const Text('Retry locations'),
+              ),
+            ),
+        ] else if (widget.networkSites.isEmpty) ...[
+          const SizedBox(height: 12),
+          const _TripMessageCard(
+            title: 'No AirQo network locations to compare',
+            message:
+                'Trips need two monitored AirQo locations. Add places with coverage so you can pick trip endpoints.',
+          ),
+        ],
         if (_errorMessage != null) ...[
           const SizedBox(height: 12),
           _TripMessageCard(
@@ -212,24 +259,62 @@ class _MyTripsViewState extends State<MyTripsView> {
 
 class _TripSelectorCard extends StatelessWidget {
   const _TripSelectorCard({
-    required this.sites,
-    required this.originId,
-    required this.destinationId,
+    required this.countries,
+    required this.selectedCountry,
+    required this.networkSites,
+    required this.origin,
+    required this.destination,
     required this.isLoading,
+    required this.onCountryChanged,
     required this.onOriginChanged,
     required this.onDestinationChanged,
     required this.onSwap,
     required this.onAnalyze,
+    this.onAddPlaces,
   });
 
-  final List<SelectedSite> sites;
-  final String originId;
-  final String destinationId;
+  final List<String> countries;
+  final String? selectedCountry;
+  final List<TripNetworkSite> networkSites;
+  final SelectedSite? origin;
+  final SelectedSite? destination;
   final bool isLoading;
-  final ValueChanged<String?> onOriginChanged;
-  final ValueChanged<String?> onDestinationChanged;
+  final ValueChanged<String> onCountryChanged;
+  final ValueChanged<SelectedSite> onOriginChanged;
+  final ValueChanged<SelectedSite> onDestinationChanged;
   final VoidCallback onSwap;
   final VoidCallback onAnalyze;
+  final VoidCallback? onAddPlaces;
+
+  bool get _showAddPlacesAction =>
+      onAddPlaces != null && origin == null && destination == null;
+
+  VoidCallback? get _primaryAction {
+    if (isLoading) return null;
+    if (_showAddPlacesAction) return onAddPlaces;
+    if (origin == null ||
+        destination == null ||
+        (origin!.latitude == destination!.latitude &&
+            origin!.longitude == destination!.longitude)) {
+      return null;
+    }
+    return onAnalyze;
+  }
+
+  Future<void> _pickEndpoint(
+    BuildContext context,
+    ValueChanged<SelectedSite> onSelected,
+  ) async {
+    final selection = await showModalBottomSheet<SelectedSite>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _TripLocationPickerSheet(
+        sites: networkSites,
+      ),
+    );
+    if (selection != null) onSelected(selection);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +337,7 @@ class _TripSelectorCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Use your saved places as trip endpoints and summarize PM2.5 along the route.',
+            'Choose two AirQo network locations in one country. Favorites appear first when they have monitoring coverage.',
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
@@ -260,11 +345,18 @@ class _TripSelectorCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _TripDropdownField(
+          _TripCountryField(
+            countries: countries,
+            value: selectedCountry,
+            onChanged: isLoading ? null : onCountryChanged,
+          ),
+          const SizedBox(height: 12),
+          _TripEndpointField(
             label: 'From',
-            value: originId,
-            sites: sites,
-            onChanged: onOriginChanged,
+            value: origin,
+            onTap: isLoading
+                ? null
+                : () => _pickEndpoint(context, onOriginChanged),
           ),
           const SizedBox(height: 12),
           Row(
@@ -273,22 +365,24 @@ class _TripSelectorCard extends StatelessWidget {
               IconButton(
                 tooltip: 'Swap trip endpoints',
                 onPressed: isLoading ? null : onSwap,
-                icon: const Icon(Icons.swap_vert_rounded),
+                icon: AqSwitchVertical01(
+                  color: AppTextColors.muted(context),
+                ),
               ),
             ],
           ),
-          _TripDropdownField(
+          _TripEndpointField(
             label: 'To',
-            value: destinationId,
-            sites: sites,
-            onChanged: onDestinationChanged,
+            value: destination,
+            onTap: isLoading
+                ? null
+                : () => _pickEndpoint(context, onDestinationChanged),
           ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed:
-                  isLoading || originId == destinationId ? null : onAnalyze,
+              onPressed: _primaryAction,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
@@ -306,9 +400,11 @@ class _TripSelectorCard extends StatelessWidget {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text(
-                      'Analyze trip exposure',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                  : Text(
+                      _showAddPlacesAction
+                          ? 'Add places'
+                          : 'Analyze trip exposure',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
             ),
           ),
@@ -318,58 +414,481 @@ class _TripSelectorCard extends StatelessWidget {
   }
 }
 
-class _TripDropdownField extends StatelessWidget {
-  const _TripDropdownField({
-    required this.label,
+class _TripCountryField extends StatelessWidget {
+  const _TripCountryField({
+    required this.countries,
     required this.value,
-    required this.sites,
     required this.onChanged,
   });
 
+  final List<String> countries;
+  final String? value;
+  final ValueChanged<String>? onChanged;
+
+  Future<void> _pickCountry(BuildContext context) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _TripCountryPickerSheet(
+        countries: countries,
+        selected: value,
+      ),
+    );
+    if (selected != null) onChanged?.call(selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bodyColor = AppTextColors.muted(context);
+    return Semantics(
+      button: true,
+      label: 'Trip country',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onChanged == null || countries.isEmpty
+            ? null
+            : () => _pickCountry(context),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppSurfaceColors.nested(context),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppSurfaceColors.border(context)),
+          ),
+          child: Row(
+            children: [
+              Text(
+                value == null
+                    ? '🌍'
+                    : CountryModel.getFlagFromCountryName(value!),
+                style: const TextStyle(fontSize: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Country',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: bodyColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      value ?? 'Choose network coverage',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppTextColors.headline(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AqChevronDown(color: bodyColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TripEndpointField extends StatelessWidget {
+  const _TripEndpointField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
   final String label;
-  final String value;
-  final List<SelectedSite> sites;
-  final ValueChanged<String?> onChanged;
+  final SelectedSite? value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final fillColor = AppSurfaceColors.nested(context);
     final borderColor = AppSurfaceColors.border(context);
     final headlineColor = AppTextColors.headline(context);
+    final bodyColor = AppTextColors.muted(context);
 
-    return DropdownButtonFormField<String>(
-      key: ValueKey(value),
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: fillColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.primaryColor),
+    return Semantics(
+      button: true,
+      label: '$label trip location',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: fillColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: AqMarkerPin01(
+                  color: AppColors.primaryColor,
+                  size: 19,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: bodyColor,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      value?.visibleName ?? 'Choose a location',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: headlineColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AqChevronRight(color: bodyColor),
+            ],
+          ),
         ),
       ),
-      items: sites
-          .map(
-            (site) => DropdownMenuItem<String>(
-              value: site.id,
-              child: Text(
-                site.name,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: headlineColor),
+    );
+  }
+}
+
+class _TripCountryPickerSheet extends StatelessWidget {
+  const _TripCountryPickerSheet({
+    required this.countries,
+    required this.selected,
+  });
+
+  final List<String> countries;
+  final String? selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final bodyColor = AppTextColors.muted(context);
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.72,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: bodyColor.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Choose a coverage country',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTextColors.headline(context),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Only countries with active AirQo network locations are shown.',
+                style: TextStyle(fontSize: 13, color: bodyColor, height: 1.45),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView(
+                  children: countries.map((country) {
+                    final active = country == selected;
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).pop(country),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 13,
+                        ),
+                        decoration: BoxDecoration(
+                          color: active
+                              ? AppColors.primaryColor.withValues(alpha: 0.1)
+                              : AppSurfaceColors.nested(context),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: active
+                                ? AppColors.primaryColor
+                                : AppSurfaceColors.border(context),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              CountryModel.getFlagFromCountryName(country),
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                country,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTextColors.headline(context),
+                                ),
+                              ),
+                            ),
+                            if (active)
+                              AqCheck(
+                                color: AppColors.primaryColor,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TripLocationPickerSheet extends StatefulWidget {
+  const _TripLocationPickerSheet({required this.sites});
+
+  final List<TripNetworkSite> sites;
+
+  @override
+  State<_TripLocationPickerSheet> createState() =>
+      _TripLocationPickerSheetState();
+}
+
+class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  List<TripNetworkSite> get _filteredSites {
+    final query = _controller.text.trim().toLowerCase();
+    if (query.isEmpty) return widget.sites;
+    return widget.sites.where((entry) {
+      return entry.site.visibleName.toLowerCase().contains(query) ||
+          entry.site.visibleSearchName.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bodyColor = AppTextColors.muted(context);
+    final borderColor = AppSurfaceColors.border(context);
+    final sites = _filteredSites;
+    final country = widget.sites.firstOrNull?.country ?? 'AirQo network';
+
+    return Container(
+      height: MediaQuery.sizeOf(context).height * 0.82,
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + bottomInset),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: bodyColor.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          )
-          .toList(),
-      onChanged: onChanged,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Choose an AirQo location',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppTextColors.headline(context),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$country network coverage',
+            style: TextStyle(fontSize: 13, color: bodyColor),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'Search monitored locations',
+              prefixIcon: AqSearchMd(
+                size: 18,
+                color: bodyColor,
+                semanticsLabel: 'Search monitored locations',
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 40,
+                minHeight: 40,
+              ),
+              filled: true,
+              fillColor: AppSurfaceColors.nested(context),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.primaryColor,
+                  width: 1.5,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: borderColor),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'AIRQO LOCATIONS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: bodyColor,
+            ),
+          ),
+          Expanded(
+            child: sites.isEmpty
+                ? Center(
+                    child: Text(
+                      'No monitored locations match that search.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: bodyColor),
+                    ),
+                  )
+                : ListView(
+                    children: sites.map((entry) {
+                      return _TripLocationRow(
+                        title: entry.site.visibleName,
+                        subtitle: entry.site.visibleSearchName,
+                        isFavorite: entry.isFavorite,
+                        onTap: () => Navigator.of(context).pop(entry.site),
+                      );
+                    }).toList(),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TripLocationRow extends StatelessWidget {
+  const _TripLocationRow({
+    required this.title,
+    required this.subtitle,
+    required this.isFavorite,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            if (isFavorite)
+              AqHeart(color: AppColors.primaryColor, size: 21)
+            else
+              AqMarkerPin01(color: AppColors.primaryColor, size: 21),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppTextColors.headline(context),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTextColors.muted(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -391,7 +910,7 @@ class _RouteExposureSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${summary.origin.name} to ${summary.destination.name}',
+            '${summary.origin.visibleName} to ${summary.destination.visibleName}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,

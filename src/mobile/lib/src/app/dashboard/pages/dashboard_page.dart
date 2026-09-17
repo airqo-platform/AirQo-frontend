@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
@@ -70,7 +71,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     if (country != null && mounted) {
       final match = CountryRepository.countries
           .where(
-            (c) => c.countryName.toLowerCase() == country.toLowerCase(),
+            (c) => countriesMatch(c.countryName, country),
           )
           .firstOrNull;
       final canonicalName = match?.countryName;
@@ -116,6 +117,12 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   MeasurementCardTourKeys? get _activeCardTourKeys =>
       kMeasurementCardGesturesTourEnabled ? _cardTourKeys : null;
 
+  MeasurementCardTourView get _activeTourView => switch (currentView) {
+        DashboardView.nearYou => MeasurementCardTourView.nearYou,
+        DashboardView.favorites => MeasurementCardTourView.favorites,
+        _ => MeasurementCardTourView.locations,
+      };
+
   Future<void> _refreshDashboard() async {
     final completer = Completer<void>();
 
@@ -156,69 +163,72 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         child: Stack(
           children: [
             RefreshIndicator(
-            onRefresh: _refreshDashboard,
-            color: AppColors.primaryColor,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: DashboardHeader(),
-                ),
-                SliverToBoxAdapter(
-                  child: BlocBuilder<DashboardBloc, DashboardState>(
-                    builder: (context, state) {
-                      Set<String>? activeCountries;
-                      if (state is DashboardLoaded &&
-                          state.response.measurements != null) {
-                        activeCountries =
-                            CountryRepository.extractActiveCountryNames(
-                                state.response.measurements!);
-                      }
-
-                      return ViewSelector(
-                        currentView: currentView,
-                        selectedCountry: selectedCountry,
-                        onViewChanged: setView,
-                        isGuestUser: isGuest,
-                        userCountry: userCountry,
-                        activeCountries: activeCountries,
-                      );
-                    },
+              onRefresh: _refreshDashboard,
+              color: AppColors.primaryColor,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: DashboardHeader(),
                   ),
-                ),
-                _buildContentForCurrentView(isGuest: isGuest),
-              ],
-            ),
-          ),
-          if (currentView == DashboardView.favorites && !isGuest)
-            Positioned(
-              right: 20,
-              bottom: 20,
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      settings: const RouteSettings(name: 'location_selection'),
-                      builder: (context) => LocationSelectionScreen(),
+                  SliverToBoxAdapter(
+                    child: BlocBuilder<DashboardBloc, DashboardState>(
+                      builder: (context, state) {
+                        Set<String>? activeCountries;
+                        if (state is DashboardLoaded &&
+                            state.response.measurements != null) {
+                          activeCountries =
+                              CountryRepository.extractActiveCountryNames(
+                                  state.response.measurements!);
+                        }
+
+                        return ViewSelector(
+                          currentView: currentView,
+                          selectedCountry: selectedCountry,
+                          onViewChanged: setView,
+                          isGuestUser: isGuest,
+                          userCountry: userCountry,
+                          activeCountries: activeCountries,
+                        );
+                      },
                     ),
-                  ).then((value) {
-                    if (value != null && context.mounted) {
-                      context.read<DashboardBloc>().add(LoadDashboard());
-                    }
-                  });
-                },
-                backgroundColor: AppColors.primaryColor,
-                child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                  _buildContentForCurrentView(isGuest: isGuest),
+                ],
               ),
             ),
-          if (kMeasurementCardGesturesTourEnabled && _showCardGesturesTour)
-            MeasurementCardGesturesTour(
-              tourKeys: _cardTourKeys,
-              steps: buildMeasurementCardGesturesTourSteps(),
-              onDismiss: _dismissCardGesturesTour,
-            ),
-        ],
+            if (currentView == DashboardView.favorites && !isGuest)
+              Positioned(
+                right: 20,
+                bottom: 20,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        settings:
+                            const RouteSettings(name: 'location_selection'),
+                        builder: (context) => LocationSelectionScreen(),
+                      ),
+                    ).then((value) {
+                      if (value != null && context.mounted) {
+                        context.read<DashboardBloc>().add(LoadDashboard());
+                      }
+                    });
+                  },
+                  backgroundColor: AppColors.primaryColor,
+                  child: const Icon(Icons.add, color: Colors.white),
+                ),
+              ),
+            if (kMeasurementCardGesturesTourEnabled && _showCardGesturesTour)
+              MeasurementCardGesturesTour(
+                tourKeys: _cardTourKeys,
+                steps: buildMeasurementCardGesturesTourSteps(
+                  view: _activeTourView,
+                ),
+                onDismiss: _dismissCardGesturesTour,
+              ),
+          ],
         ),
       ),
     );
@@ -290,42 +300,37 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
             userPreferences: state.userPreferences,
             prefsLoadFailed: state.prefsLoadFailed,
             tourKeys: _activeCardTourKeys,
-            onTourTargetReady:
-                kMeasurementCardGesturesTourEnabled
-                    ? _maybeShowCardGesturesTour
-                    : null,
+            onTourTargetReady: kMeasurementCardGesturesTourEnabled
+                ? _maybeShowCardGesturesTour
+                : null,
           ),
         );
 
       case DashboardView.nearYou:
         return SliverToBoxAdapter(
           child: NearbyView(
-            onNavigateToFavorites: () =>
-                setView(DashboardView.favorites),
-            onExploreCities: isGuest
-                ? () => setView(DashboardView.explore)
-                : null,
+            onNavigateToFavorites: () => setView(DashboardView.favorites),
+            onExploreCities:
+                isGuest ? () => setView(DashboardView.explore) : null,
             tourKeys: _activeCardTourKeys,
-            onTourTargetReady:
-                kMeasurementCardGesturesTourEnabled
-                    ? _maybeShowCardGesturesTour
-                    : null,
+            onTourTargetReady: kMeasurementCardGesturesTourEnabled
+                ? _maybeShowCardGesturesTour
+                : null,
           ),
         );
 
       case DashboardView.country:
-        final countryMeasurements =
-            (state.response.measurements ?? [])
-                .where((m) => m.siteDetails?.country == selectedCountry)
-                .toList();
+        final countryMeasurements = (state.response.measurements ?? [])
+            .where((m) =>
+                countriesMatch(m.siteDetails?.country, selectedCountry))
+            .toList();
 
         return MeasurementsList(
           measurements: countryMeasurements,
           tourKeys: _activeCardTourKeys,
-          onTourTargetReady:
-              kMeasurementCardGesturesTourEnabled
-                  ? _maybeShowCardGesturesTour
-                  : null,
+          onTourTargetReady: kMeasurementCardGesturesTourEnabled
+              ? _maybeShowCardGesturesTour
+              : null,
           onRetry: retry,
         );
 
@@ -339,13 +344,11 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
       default:
         return MeasurementsList(
-          measurements:
-              (state.response.measurements ?? []).take(5).toList(),
+          measurements: (state.response.measurements ?? []).take(5).toList(),
           tourKeys: _activeCardTourKeys,
-          onTourTargetReady:
-              kMeasurementCardGesturesTourEnabled
-                  ? _maybeShowCardGesturesTour
-                  : null,
+          onTourTargetReady: kMeasurementCardGesturesTourEnabled
+              ? _maybeShowCardGesturesTour
+              : null,
           onRetry: retry,
         );
     }

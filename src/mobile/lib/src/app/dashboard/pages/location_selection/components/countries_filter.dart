@@ -3,6 +3,7 @@ import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class CountriesFilter extends StatelessWidget with UiLoggy {
@@ -35,7 +36,7 @@ class CountriesFilter extends StatelessWidget with UiLoggy {
 
     if (userCountry != null && userCountry!.isNotEmpty) {
       int userCountryIndex = countries.indexWhere(
-        (country) => country.countryName.toLowerCase() == userCountry!.toLowerCase()
+        (country) => countriesMatch(country.countryName, userCountry)
       );
 
       if (userCountryIndex != -1) {

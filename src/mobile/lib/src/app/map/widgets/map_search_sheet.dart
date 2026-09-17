@@ -6,6 +6,7 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/components/loca
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
 import 'package:airqo/src/app/map/utils/map_aq_presentation.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ class _MapSearchSheetState extends State<MapSearchSheet> {
     final countries = widget.allMeasurements
         .map((m) => m.siteDetails?.country)
         .whereType<String>()
+        .map(normalizeLocationLabel)
         .where((country) => country.trim().isNotEmpty)
         .toSet()
         .toList();
@@ -63,7 +65,7 @@ class _MapSearchSheetState extends State<MapSearchSheet> {
   List<Measurement> get _browseMeasurements {
     if (_selectedCountry != 'Nearby') {
       return widget.allMeasurements
-          .where((m) => m.siteDetails?.country == _selectedCountry)
+          .where((m) => countriesMatch(m.siteDetails?.country, _selectedCountry))
           .toList();
     }
 

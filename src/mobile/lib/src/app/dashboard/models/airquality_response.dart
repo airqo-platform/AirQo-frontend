@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'airquality_response.g.dart';
@@ -301,24 +302,34 @@ class SiteDetails {
 
   SiteDetails({
     this.id,
-    this.town,
-    this.city,
-    this.formattedName,
-    this.district,
-    this.county,
-    this.region,
-    this.country,
-    this.name,
+    String? town,
+    String? city,
+    String? formattedName,
+    String? district,
+    String? county,
+    String? region,
+    String? country,
+    String? name,
     this.approximateLatitude,
     this.approximateLongitude,
     this.bearingInRadians,
-    this.description,
-    this.locationName,
-    this.searchName,
+    String? description,
+    String? locationName,
+    String? searchName,
     this.subCounty,
     this.dataProvider,
     this.siteCategory,
-  });
+  })  : town = normalizeLocationLabelOrNull(town),
+        city = normalizeLocationLabelOrNull(city),
+        formattedName = normalizeLocationLabelOrNull(formattedName),
+        district = normalizeLocationLabelOrNull(district),
+        county = normalizeLocationLabelOrNull(county),
+        region = normalizeLocationLabelOrNull(region),
+        country = normalizeLocationLabelOrNull(country),
+        name = normalizeLocationLabelOrNull(name),
+        description = normalizeLocationLabelOrNull(description),
+        locationName = normalizeLocationLabelOrNull(locationName),
+        searchName = normalizeLocationLabelOrNull(searchName);
 
   factory SiteDetails.fromJson(Map<String, dynamic> json) => 
       _$SiteDetailsFromJson(json);

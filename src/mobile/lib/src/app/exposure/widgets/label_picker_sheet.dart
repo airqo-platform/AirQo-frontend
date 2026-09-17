@@ -87,7 +87,8 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
-                          color: isDark ? Colors.white : const Color(0xFF1A1D23),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF1A1D23),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -97,7 +98,9 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           height: 1.45,
-                          color: isDark ? AppColors.boldHeadlineColor : AppColors.secondaryHeadlineColor4,
+                          color: isDark
+                              ? AppColors.boldHeadlineColor
+                              : AppColors.secondaryHeadlineColor4,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -133,7 +136,8 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
-                          color: isDark ? Colors.white : const Color(0xFF1A1D23),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF1A1D23),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -144,7 +148,8 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
                           fontWeight: FontWeight.w400,
                           height: 1.45,
                           color: isDark
-                              ? AppColors.boldHeadlineColor.withValues(alpha: 0.85)
+                              ? AppColors.boldHeadlineColor
+                                  .withValues(alpha: 0.85)
                               : AppColors.secondaryHeadlineColor4,
                         ),
                       ),
@@ -170,7 +175,8 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
                           ),
                           child: const Text(
                             'Continue',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -186,12 +192,17 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
   }
 
   void _onContinue() {
-    final tag = _nameCtrl.text.trim().isEmpty ? _selectedType.label : _nameCtrl.text.trim();
+    final tag = _nameCtrl.text.trim().isEmpty
+        ? _selectedType.label
+        : _nameCtrl.text.trim();
     final partial = DeclaredPlace(
       siteId: widget.site.id,
       displayName: tag,
-      locationName: widget.site.name,
-      city: widget.site.searchName,
+      locationName: widget.site.visibleSearchName.trim().isEmpty
+          ? widget.site.visibleName
+          : widget.site.visibleSearchName,
+      monitorName: widget.site.name,
+      city: widget.site.geographicCity,
       type: _selectedType,
       weekdayWindow: widget.existing?.weekdayWindow,
       weekendWindow: widget.existing?.weekendWindow,

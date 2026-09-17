@@ -1,5 +1,5 @@
 /// True while declared places (or the favorites used to decide empty) are
-/// still resolving, so My Places does not flash a blank list.
+/// still resolving, so Favorites does not flash a blank list.
 bool shouldShowExposurePlacesLoader({
   required bool isPlacesInitial,
   required bool isDashboardFirstLoad,

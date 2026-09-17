@@ -13,8 +13,8 @@ void main() {
   setUp(() {
     dotenv.testLoad(mergeWith: {
       'AIRQO_API_URL': 'https://api.airqo.net',
+      'AIRQO_API_TOKEN': 'test-api-token',
       'AIRQO_MOBILE_TOKEN': 'test-token',
-      'GOOGLE_MAPS_API_KEY': 'test-maps-key',
     });
   });
 
@@ -26,6 +26,7 @@ void main() {
         requests.add(request.url);
 
         if (request.url.path.endsWith('/devices/metadata/routes/directions')) {
+          expect(request.url.queryParameters['token'], 'test-api-token');
           return http.Response(
               jsonEncode({
                 'success': true,
@@ -50,6 +51,7 @@ void main() {
 
         if (request.url.path
             .endsWith('/devices/metadata/routes/nearest-locations')) {
+          expect(request.url.queryParameters['token'], 'test-api-token');
           final body = jsonDecode(request.body) as Map<String, dynamic>;
           expect(body['radius'], 2.5);
           expect((body['polyline'] as List).length, greaterThanOrEqualTo(2));
@@ -67,24 +69,30 @@ void main() {
               200);
         }
 
-        if (request.url.path.endsWith('/devices/measurements')) {
-          expect(request.url.queryParameters['recent'], 'yes');
-          expect(request.url.queryParameters['site_id'], 'site-1,site-2');
-
+        if (request.url.path.contains('/devices/measurements/sites/')) {
+          expect(request.url.queryParameters['token'], 'test-api-token');
+          final siteId = request.url.pathSegments.elementAt(
+            request.url.pathSegments.indexOf('sites') + 1,
+          );
           return http.Response(
               jsonEncode({
-                'measurements': [
-                  {
-                    'site_id': 'site-1',
-                    'siteDetails': {'name': 'Central Monitor'},
-                    'pm2_5': {'value': 18.4},
-                  },
-                  {
-                    'site_id': 'site-2',
-                    'siteDetails': {'name': 'Roadside Monitor'},
-                    'pm2_5': {'value': 42.7},
-                  },
-                ],
+                'measurements': switch (siteId) {
+                  'site-1' => [
+                      {
+                        'site_id': 'site-1',
+                        'siteDetails': {'name': 'Central Monitor'},
+                        'pm2_5': {'value': 18.4},
+                      }
+                    ],
+                  'site-2' => [
+                      {
+                        'site_id': 'site-2',
+                        'siteDetails': {'name': 'Roadside Monitor'},
+                        'pm2_5': {'value': 42.7},
+                      }
+                    ],
+                  _ => <Map<String, dynamic>>[],
+                },
               }),
               200);
         }
@@ -110,10 +118,10 @@ void main() {
       ),
     );
 
-    expect(requests, hasLength(3));
+    expect(requests, hasLength(6));
     expect(summary.distanceLabel, '12 km');
     expect(summary.durationLabel, '28 mins');
-    expect(summary.nearbySites, hasLength(2));
+    expect(summary.nearbySites, hasLength(4));
     expect(summary.averagePm25, closeTo(30.55, 0.001));
     expect(summary.peakPm25, 42.7);
     expect(summary.highestSiteName, 'Roadside Monitor');
@@ -163,8 +171,85 @@ void main() {
           (error) => error.toString(),
           'message',
           contains(
-            'Google Maps could not find a drivable route between Fire Station, Nairobi and Kampala Metropolitan CPS',
+            'We could not find a drivable route between Fire Station, Nairobi and Kampala Metropolitan CPS',
           ),
+        ),
+      ),
+    );
+  });
+
+  test('buildTripExposure errors when every monitor request fails', () async {
+    final repository = RouteExposureRepositoryImpl(
+      httpClient: _FakeClient((request) async {
+        if (request.url.path.endsWith('/devices/metadata/routes/directions')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'routes': [
+                  {
+                    'overview_polyline': {
+                      'points': '_p~iF~ps|U_ulLnnqC_mqNvxq`@',
+                    },
+                    'legs': [
+                      {
+                        'distance': {'text': '12 km'},
+                        'duration': {'text': '28 mins'},
+                      }
+                    ],
+                  }
+                ],
+              },
+            }),
+            200,
+          );
+        }
+
+        if (request.url.path
+            .endsWith('/devices/metadata/routes/nearest-locations')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'data': {
+                'sites': [
+                  {'_id': 'site-1', 'name': 'Central Monitor'},
+                ],
+              },
+            }),
+            200,
+          );
+        }
+
+        if (request.url.path.contains('/devices/measurements/sites/')) {
+          return http.Response('Unauthorized', 401);
+        }
+
+        throw UnsupportedError('Unhandled request: ${request.url}');
+      }),
+    );
+
+    expect(
+      () => repository.buildTripExposure(
+        origin: const SelectedSite(
+          id: 'origin',
+          name: 'Origin',
+          searchName: 'Origin',
+          latitude: 0.3476,
+          longitude: 32.5825,
+        ),
+        destination: const SelectedSite(
+          id: 'destination',
+          name: 'Destination',
+          searchName: 'Destination',
+          latitude: 0.3136,
+          longitude: 32.5811,
+        ),
+      ),
+      throwsA(
+        isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          contains('Could not load air quality along this route'),
         ),
       ),
     );

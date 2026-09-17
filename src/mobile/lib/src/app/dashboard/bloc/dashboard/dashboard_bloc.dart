@@ -364,6 +364,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
             "search_name": measurement.siteDetails?.searchName ??
                 measurement.siteDetails?.name ??
                 'Unknown Location',
+            if (measurement.siteDetails?.city != null)
+              "city": measurement.siteDetails!.city,
             "latitude": latitude,
             "longitude": longitude,
             "createdAt": DateTime.now().toIso8601String(),

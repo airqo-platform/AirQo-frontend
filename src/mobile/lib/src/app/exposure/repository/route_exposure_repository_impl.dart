@@ -53,7 +53,12 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       routePoints: directions.routePoints,
       radiusKm: radiusKm,
     );
-    final measurements = await _fetchMeasurements(nearbySites);
+    final monitoringSites = _includeEndpointSites(
+      nearbySites,
+      origin: origin,
+      destination: destination,
+    );
+    final measurements = await _fetchMeasurements(monitoringSites);
 
     return _summaryBuilder.build(
       origin: origin,
@@ -62,9 +67,28 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       durationLabel: directions.durationLabel,
       radiusKm: radiusKm,
       sampledPointCount: directions.routePoints.length,
-      nearbySites: nearbySites,
+      nearbySites: monitoringSites,
       measurements: measurements,
     );
+  }
+
+  List<RouteMonitoringSite> _includeEndpointSites(
+    List<RouteMonitoringSite> nearbySites, {
+    required SelectedSite origin,
+    required SelectedSite destination,
+  }) {
+    final sites = <String, RouteMonitoringSite>{
+      for (final site in nearbySites) site.id: site,
+    };
+    sites.putIfAbsent(
+      origin.id,
+      () => RouteMonitoringSite(id: origin.id, name: origin.name),
+    );
+    sites.putIfAbsent(
+      destination.id,
+      () => RouteMonitoringSite(id: destination.id, name: destination.name),
+    );
+    return sites.values.toList();
   }
 
   Future<_DirectionsRoute> _fetchDirections({
@@ -75,10 +99,15 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     required double destinationLat,
     required double destinationLng,
   }) async {
+    final token = dotenv.env['AIRQO_API_TOKEN'] ?? '';
+    final uri = Uri.parse(
+      '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/directions',
+    ).replace(
+      queryParameters: token.isEmpty ? null : {'token': token},
+    );
     final response = await _withRequestTimeout(
       _httpClient.post(
-        Uri.parse(
-            '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/directions'),
+        uri,
         headers: await _getAuthHeaders(),
         body: jsonEncode({
           'origin_latitude': originLat,
@@ -102,8 +131,7 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     final directionsData = body['data'] as Map<String, dynamic>? ?? const {};
     final status = (directionsData['status'] ?? '').toString();
     final errorMessage = (directionsData['error_message'] ?? '').toString();
-    final routes =
-        (directionsData['routes'] as List<dynamic>? ?? const []);
+    final routes = (directionsData['routes'] as List<dynamic>? ?? const []);
     if (routes.isEmpty) {
       throw Exception(
         _directionsErrorMessage(
@@ -145,10 +173,15 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     required List<_RoutePoint> routePoints,
     required double radiusKm,
   }) async {
+    final token = dotenv.env['AIRQO_API_TOKEN'] ?? '';
+    final uri = Uri.parse(
+      '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/nearest-locations',
+    ).replace(
+      queryParameters: token.isEmpty ? null : {'token': token},
+    );
     final response = await _withRequestTimeout(
       _httpClient.post(
-        Uri.parse(
-            '${ApiUtils.baseUrl}/api/v2/devices/metadata/routes/nearest-locations'),
+        uri,
         headers: await _getAuthHeaders(),
         body: jsonEncode({
           'polyline': routePoints
@@ -201,12 +234,36 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       return const [];
     }
 
-    final uri =
-        Uri.parse('${ApiUtils.baseUrl}/api/v2/devices/measurements').replace(
-      queryParameters: {
-        'site_id': nearbySites.map((site) => site.id).join(','),
-        'recent': 'yes',
-      },
+    // AirQo's supported measurements API is site-scoped. The former bulk
+    // `/measurements?site_id=...` URL is not part of the public API and fails
+    // even after directions and nearest-location lookup succeed.
+    final outcomes = await Future.wait(
+      nearbySites.map((site) async {
+        try {
+          return await _fetchRecentMeasurementsForSite(site);
+        } on Object {
+          return null;
+        }
+      }),
+    );
+    final successes = outcomes.whereType<List<Measurement>>().toList();
+    if (successes.isEmpty) {
+      throw Exception(
+        'Could not load air quality along this route. Try again.',
+      );
+    }
+    return successes.expand((measurements) => measurements).toList();
+  }
+
+  Future<List<Measurement>> _fetchRecentMeasurementsForSite(
+    RouteMonitoringSite site,
+  ) async {
+    final token = dotenv.env['AIRQO_API_TOKEN'] ?? '';
+    final uri = Uri.parse(
+      '${ApiUtils.baseUrl}/api/v2/devices/measurements/sites/'
+      '${Uri.encodeComponent(site.id)}/recent',
+    ).replace(
+      queryParameters: token.isEmpty ? null : {'token': token},
     );
 
     final response = await _withRequestTimeout(
@@ -214,19 +271,20 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
       'Route measurements request timed out.',
     );
     if (response.statusCode != 200) {
-      throw Exception('Failed to fetch route measurements.');
+      throw Exception(
+        'Route measurements request failed: HTTP ${response.statusCode}',
+      );
     }
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'];
     final rawMeasurements = body['measurements'] ??
-        body['data'] ??
         body['readings'] ??
-        ((body['data'] is Map<String, dynamic>)
-            ? body['data']['measurements']
-            : null);
-
+        (data is Map<String, dynamic>
+            ? data['measurements'] ?? data['readings']
+            : data);
     if (rawMeasurements is! List) {
-      return const [];
+      throw Exception('Route measurements response was malformed.');
     }
 
     return rawMeasurements
@@ -334,17 +392,17 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
 
     switch (statusText) {
       case 'ZERO_RESULTS':
-        return 'Google Maps could not find a drivable route between $originName and $destinationName using the saved place coordinates. Try a different pair of saved places or re-save one of them.';
+        return 'We could not find a drivable route between $originName and $destinationName using the selected AirQo locations. Try a different pair of locations.';
       case 'NOT_FOUND':
-        return 'Google Maps could not recognize the saved coordinates for $originName or $destinationName. Try re-saving the place.$providerDetail';
+        return 'We could not recognize the coordinates for $originName or $destinationName. Try selecting the locations again.$providerDetail';
       case 'REQUEST_DENIED':
-        return 'Google Maps rejected the route request.$providerDetail';
+        return 'The route service rejected this request. Please try again later.$providerDetail';
       case 'OVER_QUERY_LIMIT':
-        return 'Google Maps rate-limited the route request. Please try again in a moment.';
+        return 'The route service is busy. Please try again in a moment.';
       case 'INVALID_REQUEST':
         return 'The route request was incomplete. Please try a different trip.';
       default:
-        return 'Google Maps did not return a usable route between $originName and $destinationName ($statusText).$providerDetail';
+        return 'We could not find a usable route between $originName and $destinationName ($statusText).$providerDetail';
     }
   }
 }

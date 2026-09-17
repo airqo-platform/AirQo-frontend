@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
+import 'package:airqo/src/app/map/services/map_navigation_service.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/services/local_notification_bootstrap.dart';
@@ -29,7 +31,8 @@ class NavPage extends StatefulWidget {
 class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   int currentIndex = 0;
   int newSurveysCount = 0;
-  final SurveyNotificationService _notificationService = SurveyNotificationService();
+  final SurveyNotificationService _notificationService =
+      SurveyNotificationService();
 
   bool get _exposureEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.exposureTracking);
@@ -44,14 +47,35 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       ? ['dashboard', 'map', 'exposure', 'learn']
       : ['dashboard', 'map', 'learn'];
 
-  static const _permissionPromptShownKey = 'notification_permission_prompt_shown';
+  static const _permissionPromptShownKey =
+      'notification_permission_prompt_shown';
 
   @override
   void initState() {
     super.initState();
+    MapNavigationService.instance.requestedMeasurement.addListener(
+      _handleMapNavigationRequest,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeLocalNotifications());
     });
+  }
+
+  void _handleMapNavigationRequest() {
+    if (MapNavigationService.instance.requestedMeasurement.value == null ||
+        !mounted ||
+        currentIndex == 1) {
+      return;
+    }
+    changeCurrentIndex(1);
+  }
+
+  @override
+  void dispose() {
+    MapNavigationService.instance.requestedMeasurement.removeListener(
+      _handleMapNavigationRequest,
+    );
+    super.dispose();
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -97,12 +121,18 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   }
 
   void changeCurrentIndex(int index) {
+    final previousIndex = currentIndex;
     if (index == _learnTabIndex && _surveysEnabled) {
       _notificationService.updateLastSeenTimestamp();
     }
     setState(() {
       currentIndex = index;
     });
+    if (_exposureEnabled && previousIndex == 2 && index != 2) {
+      context.read<DashboardBloc>().add(
+            const LoadUserPreferences(forceRefresh: true),
+          );
+    }
     AnalyticsService().trackNavigationChanged(
       tabIndex: index,
       tabName: _tabNames[index],
@@ -119,40 +149,62 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       body: IndexedStack(index: currentIndex, children: [
         DashboardPage(),
         MapScreen(),
-        if (_exposureEnabled) const ExposureDashboardView(),
+        if (_exposureEnabled)
+          ExposureDashboardView(isActive: currentIndex == 2),
         KyaPage(),
       ]),
       bottomNavigationBar: BottomNavigationBar(
         enableFeedback: true,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: AppTextColors.muted(context),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         currentIndex: currentIndex,
         onTap: changeCurrentIndex,
         items: [
           BottomNavigationBarItem(
-            icon: _buildNavIcon("Home", 0,
-                isDark ? "assets/icons/home_icon.svg" : "assets/icons/home_icon_white.svg"),
+            icon: _buildNavIcon(
+                "Home",
+                0,
+                isDark
+                    ? "assets/icons/home_icon.svg"
+                    : "assets/icons/home_icon_white.svg"),
             label: "",
           ),
           BottomNavigationBarItem(
-            icon: _buildNavIcon("Search", 1,
-                isDark ? "assets/icons/search_icon_light.svg" : "assets/icons/search_icon_dark.svg"),
+            icon: _buildNavIcon(
+                "Search",
+                1,
+                isDark
+                    ? "assets/icons/search_icon_light.svg"
+                    : "assets/icons/search_icon_dark.svg"),
             label: "",
           ),
           if (_exposureEnabled)
             BottomNavigationBarItem(
-              icon: _buildNavIcon("Exposure", 2, "assets/icons/exposure_icon.svg"),
+              icon: _buildNavIcon(
+                "Exposure",
+                2,
+                "assets/icons/exposure_icon.svg",
+                badgeLabel: 'BETA',
+              ),
               label: "",
             ),
           BottomNavigationBarItem(
             icon: _surveysEnabled
-                ? _buildNavIconWithBadge("Learn", _learnTabIndex,
-                    isDark ? "assets/icons/learn_icon.svg" : "assets/icons/learn_icon_white.svg",
+                ? _buildNavIconWithBadge(
+                    "Learn",
+                    _learnTabIndex,
+                    isDark
+                        ? "assets/icons/learn_icon.svg"
+                        : "assets/icons/learn_icon_white.svg",
                     badgeCount: newSurveysCount)
-                : _buildNavIcon("Learn", _learnTabIndex,
-                    isDark ? "assets/icons/learn_icon.svg" : "assets/icons/learn_icon_white.svg"),
+                : _buildNavIcon(
+                    "Learn",
+                    _learnTabIndex,
+                    isDark
+                        ? "assets/icons/learn_icon.svg"
+                        : "assets/icons/learn_icon_white.svg"),
             label: "",
           ),
         ],
@@ -181,24 +233,60 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     return 20;
   }
 
-  Widget _buildNavIcon(String label, int index, String iconPath) {
+  Widget _buildNavIcon(
+    String label,
+    int index,
+    String iconPath, {
+    String? badgeLabel,
+  }) {
     final bool isSelected = currentIndex == index;
+    final iconColor = isSelected
+        ? Theme.of(context).primaryColor
+        : AppTextColors.muted(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SvgPicture.asset(
-          iconPath,
-          height: _iconHeight(label),
-          colorFilter: isSelected
-              ? ColorFilter.mode(Theme.of(context).primaryColor, BlendMode.srcIn)
-              : null,
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            SvgPicture.asset(
+              iconPath,
+              height: _iconHeight(label),
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+            ),
+            if (badgeLabel != null)
+              Positioned(
+                top: -7,
+                right: -25,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Text(
+                    badgeLabel,
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 7,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.25,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 5),
         TranslatedText(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+            color: iconColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -209,6 +297,9 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   Widget _buildNavIconWithBadge(String label, int index, String iconPath,
       {required int badgeCount}) {
     final bool isSelected = currentIndex == index;
+    final iconColor = isSelected
+        ? Theme.of(context).primaryColor
+        : AppTextColors.muted(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -218,9 +309,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
             SvgPicture.asset(
               iconPath,
               height: _iconHeight(label),
-              colorFilter: isSelected
-              ? ColorFilter.mode(Theme.of(context).primaryColor, BlendMode.srcIn)
-              : null,
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
             ),
             if (badgeCount > 0)
               Positioned(
@@ -236,7 +325,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
                       width: 1.5,
                     ),
                   ),
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
                   child: Center(
                     child: Text(
                       '$badgeCount',
@@ -257,7 +347,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+            color: iconColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),

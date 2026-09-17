@@ -14,6 +14,7 @@ import 'package:airqo/src/app/map/widgets/map_loading_view.dart';
 import 'package:airqo/src/app/map/widgets/map_overlay_controls.dart';
 import 'package:airqo/src/app/map/widgets/map_search_sheet.dart';
 import 'package:airqo/src/app/map/widgets/map_style_picker.dart';
+import 'package:airqo/src/app/map/services/map_navigation_service.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
@@ -57,6 +58,7 @@ class _MapScreenState extends State<MapScreen>
   final MapMarkerBuilder _markerBuilder = MapMarkerBuilder();
   MapType _currentMapType = MapType.normal;
   Measurement? _selectedCardMeasurement;
+  Measurement? _pendingNavigationMeasurement;
   String? _mapStyleJson;
   int _markerBuildSeq = 0;
 
@@ -79,6 +81,62 @@ class _MapScreenState extends State<MapScreen>
     } else if (_mapMarkers.isNotEmpty) {
       _cameraController.fitMeasurementsInView(allMeasurements);
     }
+    _focusPendingNavigationMeasurement();
+  }
+
+  void _handleMapNavigationRequest() {
+    final requested = MapNavigationService.instance.requestedMeasurement.value;
+    if (requested == null) return;
+    _pendingNavigationMeasurement = requested;
+    _focusPendingNavigationMeasurement();
+  }
+
+  Future<void> _focusPendingNavigationMeasurement() async {
+    final requested = _pendingNavigationMeasurement;
+    if (requested == null || !mounted) return;
+
+    final requestedSiteId = requested.siteId ?? requested.siteDetails?.id;
+    final measurement = requestedSiteId == null
+        ? requested
+        : allMeasurements.firstWhere(
+            (candidate) =>
+                candidate.siteId == requestedSiteId ||
+                candidate.siteDetails?.id == requestedSiteId,
+            orElse: () => requested,
+          );
+
+    setState(() => _selectedCardMeasurement = measurement);
+    await _animateSheetTo(_sheetPeekSize);
+
+    final latitude = measurement.siteDetails?.approximateLatitude ??
+        measurement.siteDetails?.siteCategory?.latitude;
+    final longitude = measurement.siteDetails?.approximateLongitude ??
+        measurement.siteDetails?.siteCategory?.longitude;
+    if (latitude == null || longitude == null) {
+      if (!isInitializing) {
+        _pendingNavigationMeasurement = null;
+        MapNavigationService.instance.clear(requested);
+      }
+      return;
+    }
+    if (!_cameraController.isInitialized) {
+      return;
+    }
+
+    if (userPosition != null) {
+      await _cameraController.fitMonitorAndUser(
+        monitorLatitude: latitude,
+        monitorLongitude: longitude,
+        userPosition: userPosition!,
+      );
+    } else if (_locationResolved) {
+      await _cameraController.animateTo(LatLng(latitude, longitude));
+    } else {
+      return;
+    }
+
+    _pendingNavigationMeasurement = null;
+    MapNavigationService.instance.clear(requested);
   }
 
   Future<void> _applyMapStyle() async {
@@ -213,12 +271,15 @@ class _MapScreenState extends State<MapScreen>
 
       if (mounted) setState(() => userPosition = position);
       _updateNearbyMeasurements();
-      _cameraController.snapToPosition(userPosition!);
+      if (_pendingNavigationMeasurement == null) {
+        _cameraController.snapToPosition(userPosition!);
+      }
     } catch (e) {
       loggy.error('Failed to get user location: $e');
     } finally {
       if (mounted) {
         setState(() => _locationResolved = true);
+        _focusPendingNavigationMeasurement();
         _maybeShowControlsTour();
       }
     }
@@ -310,6 +371,7 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _initializeWithData(AirQualityResponse response) async {
     populateMeasurements(response.measurements ?? []);
     await addMarkers(response);
+    await _focusPendingNavigationMeasurement();
   }
 
   Future<void> _retryLoading() async {
@@ -373,16 +435,25 @@ class _MapScreenState extends State<MapScreen>
   @override
   void initState() {
     super.initState();
+    MapNavigationService.instance.requestedMeasurement.addListener(
+      _handleMapNavigationRequest,
+    );
     searchController.addListener(_onSearchControllerChanged);
     googlePlacesBloc = context.read<GooglePlacesBloc>()
       ..add(ResetGooglePlaces());
     _loadDataFromAvailableSources();
     _getUserLocation();
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyMapStyle());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleMapNavigationRequest();
+    });
   }
 
   @override
   void dispose() {
+    MapNavigationService.instance.requestedMeasurement.removeListener(
+      _handleMapNavigationRequest,
+    );
     searchController.removeListener(_onSearchControllerChanged);
     _sheetController.dispose();
     _searchFocusNode.dispose();
@@ -416,7 +487,8 @@ class _MapScreenState extends State<MapScreen>
               }
               return;
             }
-            if (state is DashboardLoaded && state is! DashboardLoadedWithError) {
+            if (state is DashboardLoaded &&
+                state is! DashboardLoadedWithError) {
               _initializeWithData(state.response);
             }
           },
@@ -502,7 +574,8 @@ class _MapScreenState extends State<MapScreen>
         );
       case MapContentStatus.empty:
       case MapContentStatus.ready:
-        return _buildMapView(showEmptyOverlay: status == MapContentStatus.empty);
+        return _buildMapView(
+            showEmptyOverlay: status == MapContentStatus.empty);
     }
   }
 
@@ -574,8 +647,7 @@ class _MapScreenState extends State<MapScreen>
           bottom: cardBottom,
           measurement: _selectedCardMeasurement,
           onDismiss: () => setState(() => _selectedCardMeasurement = null),
-          onViewForecast: () =>
-              _showForecastModal(_selectedCardMeasurement!),
+          onViewForecast: () => _showForecastModal(_selectedCardMeasurement!),
         ),
         if (showEmptyOverlay)
           Positioned(

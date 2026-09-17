@@ -11,7 +11,7 @@ This guide walks through deploying the AirQo Flutter app to the Google Play Stor
 | App name | AirQo |
 | Application ID | `com.airqo.app` |
 | Firebase Project | `airqo-250220` |
-| Min SDK version | 23 (Android 6.0) |
+| Min SDK version | 24 (Android 7.0) |
 | Target / Compile SDK | 36 |
 | Build flavor (production) | `airqo` |
 
@@ -21,13 +21,18 @@ This guide walks through deploying the AirQo Flutter app to the Google Play Stor
 
 Deployment is fully automated via GitHub Actions. There is no manual build step.
 
-**Workflow file:** `.github/workflows/deploy-android-to-play-store.yml`
+**Current workflow:** `.github/workflows/deploy-android-to-play-store-azure.yml`  
+GitHub Actions name: **deploy-android-to-play-store-azure**
 
 The workflow:
-1. Pulls secrets (keystore, `.env`, Play Store service account) from **GCP Secret Manager**
-2. Builds a signed `.aab` using `flutter build appbundle --flavor airqo`
-3. Uploads it to the Play Store via **Fastlane** (`android/fastlane/Fastfile` → `play_store` lane)
-4. The build is submitted to the Play Store — you then **publish it manually** from the Play Console
+1. Logs into Azure with the `AZURE_CREDENTIALS` GitHub secret
+2. Pulls keystore, `key.properties`, and `.env` files from **Azure Key Vault** (`airqo-kv-prod`)
+3. Builds a signed `.aab` using `flutter build appbundle --flavor airqo`
+4. Uploads it to the Play Store via **Fastlane** (`android/fastlane/Fastfile` → `play_store` lane)
+
+Fastlane sets `release_status: "completed"`. If Play Console **managed publishing** is on, the upload still waits for a human to send it live. If managed publishing is off, the production release can go live as soon as Google processes the upload — check that setting before you run the workflow.
+
+> Do **not** use `.github/workflows/deploy-android-to-play-store.yml` (the older GCP Secret Manager path). Azure is the current production deploy.
 
 ---
 
@@ -36,15 +41,17 @@ The workflow:
 ### 1. Update the version number
 In `pubspec.yaml`:
 ```yaml
-version: 3.0.4+105   # marketing_version+build_number
+version: 3.0.8+2   # marketing_version+build_number
 ```
-- `3.0.4` → shown to users on the Play Store (`versionName`)
-- `+105` → must be **strictly higher than the last uploaded build** (`versionCode`)
+- `3.0.8` → user-visible Play Store label (`versionName`). Google Play does **not** require this string to increase between uploads.
+- `+2` → local/dev build number. The Fastlane `play_store` lane **ignores** this for Play uploads.
 
-The Fastlane `play_store` lane auto-increments the build number by fetching the current production version from the Play Store and adding 1 — so you do **not** need to manually bump `+N` in `pubspec.yaml` for the build number. However, keep `versionName` (`3.x.x`) up to date before triggering the workflow.
+Google Play **does** require a higher `versionCode` than the last uploaded production build. The `play_store` lane fetches the current production `versionCode` and increments it automatically (`flutter build appbundle --build-number`), so you do **not** need to bump `+N` in `pubspec.yaml` for Play Store.
+
+AirQo project policy: still bump `versionName` (`3.x.x`) so the user-facing label is ahead of the live store version (currently **3.0.4**) before triggering the workflow.
 
 ### 2. Update the release notes
-Edit `android/fastlane/release_notes.txt` with what's new in this version. The workflow copies this into the Play Store changelog automatically.
+Edit `android/fastlane/release_notes.txt` with what's new in this version. The Azure workflow copies this into `fastlane/metadata/android/en-US/changelogs/default.txt`. If the file is missing, CI writes a stale `App release version 3.0.2` placeholder.
 
 ### 3. Pull latest from `staging`
 ```bash
@@ -57,7 +64,7 @@ git pull origin staging
 ## Triggering the Deployment
 
 1. Go to the repository on GitHub
-2. Navigate to **Actions** → **deploy-android-to-play-store**
+2. Navigate to **Actions** → **deploy-android-to-play-store-azure**
 3. Click **Run workflow**
 4. Select the `staging` branch
 5. Check the **"Deploy android to play store"** checkbox → click **Run workflow**
@@ -68,31 +75,30 @@ The workflow takes roughly **10–15 minutes** to complete.
 
 ## After the Workflow Completes
 
-Once the workflow succeeds, the build is uploaded to the Play Store but **not yet live**.
-
 1. Go to https://play.google.com/console
 2. Select the **AirQo** app
 3. Navigate to **Release → Production**
-4. The new build will appear as a draft release
-5. Review it, then click **Start rollout to Production** to publish
+4. Confirm the new `3.x.x` build is there
+5. If managed publishing is on (or the release is still a draft), review it and send it to production
 
 Google's review typically takes a few hours to a couple of days.
 
 ---
 
-## Secrets (managed in GCP — no local setup needed)
+## Secrets (managed in Azure — no local setup needed)
 
-The workflow pulls all secrets automatically. For reference, these are the GCP secrets used:
+The workflow pulls app secrets from Key Vault automatically. GitHub still holds the Azure login and Play Store service account.
 
-| Secret name | Purpose |
-|---|---|
-| `prod-key-mobile-upload-keystore-encrypted` | Release keystore (`.jks`) |
-| `prod-key-mobile-app` | `prod-key.properties` (keystore credentials) |
-| `prod-key-mobile-properties-CI` | `key.properties` (Maps API keys etc.) |
-| `prod-env-mobile-app` | `.env.prod` |
-| `prod-env-mobile-CI` | `.env.dev` |
-| `MOBILE_ANDROID_PLAYSTORE_SA` | Play Store service account JSON (GitHub secret) |
-| `GCP_SA_CREDENTIALS` | GCP service account for Secret Manager access (GitHub secret) |
+| Secret | Where | Purpose |
+|---|---|---|
+| `AZURE_CREDENTIALS` | GitHub Actions secret | Azure login for Key Vault access |
+| `MOBILE_ANDROID_PLAYSTORE_SA` | GitHub Actions secret | Play Store service account JSON |
+| `prod-key-mobile-upload-keystore-encrypted` | Key Vault `airqo-kv-prod` | Release keystore (`.jks`) |
+| `prod-key-mobile-airqo-dev-keystore` | Key Vault `airqo-kv-prod` | Dev flavor keystore |
+| `prod-key-mobile-app` | Key Vault `airqo-kv-prod` | `prod-key.properties` (keystore credentials) |
+| `prod-key-mobile-properties-CI` | Key Vault `airqo-kv-prod` | `key.properties` (Maps API keys etc.) |
+| `prod-env-mobile-app` | Key Vault `airqo-kv-prod` | `.env.prod` |
+| `prod-env-mobile-CI` | Key Vault `airqo-kv-prod` | `.env.dev` |
 
 Contact the admin if any secrets need to be rotated.
 
@@ -102,7 +108,8 @@ Contact the admin if any secrets need to be rotated.
 
 | Problem | Fix |
 |---|---|
-| Workflow fails at "Add keystore" step | GCP service account (`GCP_SA_CREDENTIALS`) may be expired — check with admin |
+| Workflow fails at "Login to Azure" | `AZURE_CREDENTIALS` GitHub secret may be expired or missing Key Vault access — check with admin |
+| Workflow fails at "Add keystore" | Secret names in Key Vault `airqo-kv-prod` may have changed — compare with the table above |
 | `versionCode X has already been used` | The Fastlane lane auto-increments, but if the Play Store API call fails it may reuse an old number — re-run the workflow |
 | `flutter build appbundle` fails | Check the workflow logs for the exact error; usually a dependency or SDK version issue in CI |
 | Build doesn't appear in Play Console | Wait a few minutes after the workflow completes — uploads can take time to process |
@@ -113,10 +120,10 @@ Contact the admin if any secrets need to be rotated.
 
 ## Quick Reference Checklist
 
-- [ ] `versionName` updated in `pubspec.yaml`
+- [ ] `versionName` in `pubspec.yaml` bumped per AirQo policy (not a Play upload requirement; `versionCode` is auto-incremented)
 - [ ] `android/fastlane/release_notes.txt` updated
 - [ ] Changes pushed to `staging`
-- [ ] GitHub Actions → **deploy-android-to-play-store** → **Run workflow** (on `staging`, checkbox checked)
+- [ ] GitHub Actions → **deploy-android-to-play-store-azure** → **Run workflow** (on `staging`, checkbox checked)
 - [ ] Workflow completes successfully (~10–15 min)
-- [ ] Build appears in Play Console → Production → draft release
-- [ ] Reviewed and rolled out from Play Console
+- [ ] Build appears in Play Console → Production
+- [ ] Reviewed and rolled out (if managed publishing / draft still requires it)

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:airqo/src/app/shared/utils/location_label.dart';
+
 CountriesApiResponse countriesApiResponseFromJson(String str) =>
     CountriesApiResponse.fromJson(json.decode(str));
 
@@ -58,10 +60,11 @@ class CountryData {
       };
 
   String get formattedCountryName {
-    return country
+    final formatted = country
         .split('_')
         .where((word) => word.isNotEmpty)
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
+    return normalizeLocationLabel(formatted);
   }
 }

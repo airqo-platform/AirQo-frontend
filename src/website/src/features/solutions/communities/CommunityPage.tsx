@@ -89,7 +89,7 @@ const CommunitiesPage = () => {
         bgColor="bg-yellow-50"
         breadcrumbText="Solutions / For Communities"
         title="For Communities"
-        description="We harness the value that comes with bringing together community members passionate about clean air and a healthy environment."
+        description="We work with residents, educators, young people, civil society organisations and local leaders to make air quality information accessible, strengthen public awareness and support community-led action for cleaner air."
         containerVariants={containerVariants}
         itemVariants={itemVariants}
       />
@@ -141,15 +141,14 @@ const CommunitiesPage = () => {
               </h2>
             </div>
             <p className="text-lg text-gray-700 mb-4">
-              AirQommunity champions and ambassadors are individuals who are
-              part of a growing network of change makers dedicated to improving
-              air quality at the grassroots level.
+              AirQommunity Champions are a growing network of local changemakers
+              who use air quality information to raise awareness, start
+              conversations and inspire action in their communities.
             </p>
             <p className="text-lg text-gray-700">
-              They use air quality data to create positive change in the fight
-              against air inequality while contributing insights and ideas on
-              major issues and potential solutions to air quality challenges in
-              their communities.
+              We equip champions with practical knowledge and digital solutions
+              to understand air pollution, communicate its health impacts and
+              engage their communities around locally relevant solutions.
             </p>
           </motion.div>
 
@@ -236,9 +235,9 @@ const CommunitiesPage = () => {
             variants={itemVariants}
           >
             <p className="text-[#1F2937] font-light leading-[36px] text-lg md:text-[28px]">
-              Amina, one of our air quality champions — helping raise awareness
-              about air pollution in her community through our digital
-              technologies.
+              Amina is one of more than 1,500 AirQommunity Champions using
+              AirQo&apos;s digital solutions to help people in her community
+              understand air pollution and take action.
               <Link
                 target="_blank"
                 href="https://blog.airqo.net/helping-communities-combat-air-pollution-through-digital-technologies-6a5924a1e1e"
@@ -251,7 +250,7 @@ const CommunitiesPage = () => {
         </motion.div>
       </motion.section>
 
-      {/* Access to air quality information */}
+      {/* Making air quality information accessible */}
       <motion.section
         className="px-4"
         initial="hidden"
@@ -266,19 +265,18 @@ const CommunitiesPage = () => {
           {/* Text Content */}
           <motion.div variants={itemVariants}>
             <h2 className="text-2xl font-bold mb-4">
-              Facilitating access to air quality information
+              Making air quality information accessible
             </h2>
             <p className="text-lg text-gray-700 mb-4">
-              Access to air quality data is one of the biggest challenges in
-              tackling air pollution in Africa. We close the air quality data
-              gaps by training and giving free access to real-time data on air
-              quality across Africa, from our open-air quality monitoring
-              platform.
+              People can only act on air pollution when they can understand the
+              air they breathe.
             </p>
             <p className="text-lg text-gray-700">
-              Through building and ensuring access to digital platforms that
-              help us know the pattern or behavior of air quality, we are
-              facilitating evidence-based decision-making in air quality.
+              Through our open digital solutions, training and community
+              engagement activities, we provide open access to timely, local air
+              quality information and help communities turn data into insights
+              they can use to protect their health, raise awareness and advocate
+              for cleaner air.
             </p>
           </motion.div>
 

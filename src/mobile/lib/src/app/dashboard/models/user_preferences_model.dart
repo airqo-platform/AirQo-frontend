@@ -1,3 +1,4 @@
+import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
 
@@ -5,6 +6,7 @@ class SelectedSite extends Equatable {
   final String id;
   final String name;
   final String searchName;
+  final String? city;
   final double? latitude;
   final double? longitude;
 
@@ -12,23 +14,41 @@ class SelectedSite extends Equatable {
     required this.id,
     required this.name,
     required this.searchName,
+    this.city,
     this.latitude,
     this.longitude,
   });
 
+  String get visibleName => normalizeLocationLabel(name);
+  String get visibleSearchName => normalizeLocationLabel(searchName);
+
+  /// Geographic city when the API provided one; otherwise the user-facing
+  /// search title, then the canonical monitor name.
+  String get geographicCity {
+    final cityName = city?.trim();
+    if (cityName != null && cityName.isNotEmpty) {
+      return normalizeLocationLabel(cityName);
+    }
+    final searchTitle = searchName.trim();
+    if (searchTitle.isNotEmpty) return visibleSearchName;
+    return visibleName;
+  }
+
   @override
-  List<Object?> get props => [id, name, searchName, latitude, longitude];
+  List<Object?> get props => [id, name, searchName, city, latitude, longitude];
 
   factory SelectedSite.fromJson(Map<String, dynamic> json) {
     final String id = json['_id'] ?? '';
     
     final String name = json['name'] ?? 'Unknown Location';
     final String searchName = json['search_name'] ?? json['searchName'] ?? name;
+    final String? city = json['city'] as String?;
 
     return SelectedSite(
       id: id,
-      name: name,
-      searchName: searchName,
+      name: normalizeLocationLabel(name),
+      searchName: normalizeLocationLabel(searchName),
+      city: normalizeLocationLabelOrNull(city),
       latitude: _parseDouble(json['latitude']),
       longitude: _parseDouble(json['longitude']),
     );
@@ -40,6 +60,7 @@ class SelectedSite extends Equatable {
       "_id": id,
       "name": name,
       "search_name": searchName,
+      if (city != null) "city": city,
       if (latitude != null) "latitude": latitude,
       if (longitude != null) "longitude": longitude,
     };

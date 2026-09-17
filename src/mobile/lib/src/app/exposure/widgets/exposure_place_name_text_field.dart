@@ -32,14 +32,17 @@ class ExposurePlaceNameTextField extends StatefulWidget {
   static const _borderIdleDark = Color(0xFF4A4E57);
 
   @override
-  State<ExposurePlaceNameTextField> createState() => _ExposurePlaceNameTextFieldState();
+  State<ExposurePlaceNameTextField> createState() =>
+      _ExposurePlaceNameTextFieldState();
 }
 
-class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField> {
+class _ExposurePlaceNameTextFieldState
+    extends State<ExposurePlaceNameTextField> {
   FocusNode? _internalFocusNode;
   bool _focused = false;
 
-  FocusNode get _focusNode => widget.focusNode ?? (_internalFocusNode ??= FocusNode());
+  FocusNode get _focusNode =>
+      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
 
   @override
   void initState() {
@@ -80,7 +83,9 @@ class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField>
 
   @override
   Widget build(BuildContext context) {
-    final idle = widget.isDark ? ExposurePlaceNameTextField._borderIdleDark : ExposurePlaceNameTextField._borderIdle;
+    final idle = widget.isDark
+        ? ExposurePlaceNameTextField._borderIdleDark
+        : ExposurePlaceNameTextField._borderIdle;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -112,14 +117,17 @@ class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField>
           cursorWidth: 1,
           cursorHeight: 24,
           textCapitalization: widget.textCapitalization,
-          textAlignVertical:
-              (widget.maxLines ?? 1) > 1 ? TextAlignVertical.top : TextAlignVertical.center,
+          textAlignVertical: (widget.maxLines ?? 1) > 1
+              ? TextAlignVertical.top
+              : TextAlignVertical.center,
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 16,
             fontWeight: FontWeight.w400,
             height: 24 / 16,
-            color: widget.isDark ? Colors.white : ExposurePlaceNameTextField._textLight,
+            color: widget.isDark
+                ? Colors.white
+                : ExposurePlaceNameTextField._textLight,
           ),
           decoration: InputDecoration(
             hintText: widget.hintText,
@@ -128,7 +136,8 @@ class _ExposurePlaceNameTextFieldState extends State<ExposurePlaceNameTextField>
               fontSize: 16,
               fontWeight: FontWeight.w400,
               height: 24 / 16,
-              color: AppColors.boldHeadlineColor.withValues(alpha: widget.isDark ? 0.5 : 0.45),
+              color: AppColors.boldHeadlineColor
+                  .withValues(alpha: widget.isDark ? 0.5 : 0.45),
             ),
             border: InputBorder.none,
             isDense: true,

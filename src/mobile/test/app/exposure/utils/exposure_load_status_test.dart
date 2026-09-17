@@ -14,7 +14,8 @@ void main() {
       );
     });
 
-    test('shows loader while dashboard first-load is in flight and places are empty',
+    test(
+        'shows loader while dashboard first-load is in flight and places are empty',
         () {
       expect(
         shouldShowExposurePlacesLoader(
