@@ -10,10 +10,16 @@ import 'package:airqo/src/app/exposure/repository/hourly_readings_repository.dar
 
 class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
     with NetworkLoggy {
-  HourlyReadingsRepositoryImpl({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+  static const Duration _defaultRequestTimeout = Duration(seconds: 15);
+
+  HourlyReadingsRepositoryImpl({
+    http.Client? httpClient,
+    Duration requestTimeout = _defaultRequestTimeout,
+  })  : _httpClient = httpClient ?? http.Client(),
+        _requestTimeout = requestTimeout;
 
   final http.Client _httpClient;
+  final Duration _requestTimeout;
 
   @override
   Future<Map<String, List<HourlyReading>>> fetchHourlyReadingsForPlaces(
@@ -32,27 +38,29 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
     };
 
     try {
-      final response = await _httpClient.post(
-        uri,
-        headers: const {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'User-Agent': ApiUtils.mobileUserAgent,
-        },
-        body: jsonEncode({
-          'network': 'airqo',
-          'datatype': 'calibrated',
-          'downloadType': 'json',
-          'outputFormat': 'airqo-standard',
-          'device_category': 'lowcost',
-          'minimum': true,
-          'startDateTime': range.$1.toIso8601String(),
-          'endDateTime': range.$2.toIso8601String(),
-          'sites': places.map((place) => place.siteId).toList(),
-          'pollutants': const ['pm2_5'],
-          'frequency': 'hourly',
-        }),
-      );
+      final response = await _httpClient
+          .post(
+            uri,
+            headers: const {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'User-Agent': ApiUtils.mobileUserAgent,
+            },
+            body: jsonEncode({
+              'network': 'airqo',
+              'datatype': 'calibrated',
+              'downloadType': 'json',
+              'outputFormat': 'airqo-standard',
+              'device_category': 'lowcost',
+              'minimum': true,
+              'startDateTime': range.$1.toIso8601String(),
+              'endDateTime': range.$2.toIso8601String(),
+              'sites': places.map((place) => place.siteId).toList(),
+              'pollutants': const ['pm2_5'],
+              'frequency': 'hourly',
+            }),
+          )
+          .timeout(_requestTimeout);
       if (response.statusCode != 200) {
         loggy.warning(
           'Batch hourly readings request failed: HTTP ${response.statusCode}',
@@ -151,13 +159,15 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
     );
 
     try {
-      final response = await _httpClient.get(
-        uri,
-        headers: const {
-          'Accept': 'application/json',
-          'User-Agent': ApiUtils.mobileUserAgent,
-        },
-      );
+      final response = await _httpClient
+          .get(
+            uri,
+            headers: const {
+              'Accept': 'application/json',
+              'User-Agent': ApiUtils.mobileUserAgent,
+            },
+          )
+          .timeout(_requestTimeout);
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
         if (body['success'] == true) {
@@ -204,8 +214,7 @@ class HourlyReadingsRepositoryImpl extends HourlyReadingsRepository
 
   (DateTime, DateTime) _utcDayRange(DateTime date) {
     final localStart = DateTime(date.year, date.month, date.day);
-    final localEnd = localStart
-        .add(const Duration(days: 1))
+    final localEnd = DateTime(date.year, date.month, date.day + 1)
         .subtract(const Duration(milliseconds: 1));
     return (localStart.toUtc(), localEnd.toUtc());
   }

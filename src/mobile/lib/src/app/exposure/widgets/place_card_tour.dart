@@ -184,11 +184,13 @@ class _TooltipBubble extends StatelessWidget {
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
     // Keep the guidance above the highlighted card and clear of bottom nav.
-    final bubbleBottom =
-        (overlayHeight - cardRect.top + 6).clamp(16.0, overlayHeight - 16.0);
+    final bubbleBottom = (overlayHeight - cardRect.top + 6)
+        .clamp(16.0, overlayHeight - 16.0)
+        .toDouble();
 
     // Arrow horizontal centre follows card centre, clamped to screen.
-    final arrowCx = cardRect.center.dx.clamp(40.0, screen.width - 40.0);
+    final arrowCx =
+        cardRect.center.dx.clamp(40.0, screen.width - 40.0).toDouble();
 
     return Positioned(
       bottom: bubbleBottom,
@@ -287,8 +289,10 @@ class _TooltipBubble extends StatelessWidget {
           // Downward pointer aligned with the highlighted card.
           Padding(
             padding: EdgeInsets.only(
-                left: (arrowCx - _hPad - 10)
-                    .clamp(0, screen.width - _hPad * 2 - 20)),
+              left: (arrowCx - _hPad - 10)
+                  .clamp(0.0, screen.width - _hPad * 2 - 20)
+                  .toDouble(),
+            ),
             child: CustomPaint(
               size: const Size(20, _arrowH),
               painter: _ArrowPainter(color: bubbleBg, pointsDown: true),

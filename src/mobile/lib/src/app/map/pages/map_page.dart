@@ -113,7 +113,7 @@ class _MapScreenState extends State<MapScreen>
     final longitude = measurement.siteDetails?.approximateLongitude ??
         measurement.siteDetails?.siteCategory?.longitude;
     if (latitude == null || longitude == null) {
-      if (allMeasurements.isNotEmpty) {
+      if (!isInitializing) {
         _pendingNavigationMeasurement = null;
         MapNavigationService.instance.clear(requested);
       }

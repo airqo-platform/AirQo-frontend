@@ -209,6 +209,9 @@ class _MyTripsViewState extends State<MyTripsView> {
             });
           },
           onAnalyze: _loadTripExposure,
+          onAddPlaces: widget.isDashboardLoading || widget.hasDashboardError
+              ? null
+              : widget.onAddPlaces,
         ),
         if (widget.isDashboardLoading && widget.networkSites.isEmpty) ...[
           const SizedBox(height: 12),
@@ -229,6 +232,13 @@ class _MyTripsViewState extends State<MyTripsView> {
                 child: const Text('Retry locations'),
               ),
             ),
+        ] else if (widget.networkSites.isEmpty) ...[
+          const SizedBox(height: 12),
+          const _TripMessageCard(
+            title: 'No AirQo network locations to compare',
+            message:
+                'Trips need two monitored AirQo locations. Add places with coverage so you can pick trip endpoints.',
+          ),
         ],
         if (_errorMessage != null) ...[
           const SizedBox(height: 12),
@@ -260,6 +270,7 @@ class _TripSelectorCard extends StatelessWidget {
     required this.onDestinationChanged,
     required this.onSwap,
     required this.onAnalyze,
+    this.onAddPlaces,
   });
 
   final List<String> countries;
@@ -273,6 +284,22 @@ class _TripSelectorCard extends StatelessWidget {
   final ValueChanged<SelectedSite> onDestinationChanged;
   final VoidCallback onSwap;
   final VoidCallback onAnalyze;
+  final VoidCallback? onAddPlaces;
+
+  bool get _showAddPlacesAction =>
+      onAddPlaces != null && origin == null && destination == null;
+
+  VoidCallback? get _primaryAction {
+    if (isLoading) return null;
+    if (_showAddPlacesAction) return onAddPlaces;
+    if (origin == null ||
+        destination == null ||
+        (origin!.latitude == destination!.latitude &&
+            origin!.longitude == destination!.longitude)) {
+      return null;
+    }
+    return onAnalyze;
+  }
 
   Future<void> _pickEndpoint(
     BuildContext context,
@@ -355,13 +382,7 @@ class _TripSelectorCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: isLoading ||
-                      origin == null ||
-                      destination == null ||
-                      (origin!.latitude == destination!.latitude &&
-                          origin!.longitude == destination!.longitude)
-                  ? null
-                  : onAnalyze,
+              onPressed: _primaryAction,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
@@ -379,9 +400,11 @@ class _TripSelectorCard extends StatelessWidget {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text(
-                      'Analyze trip exposure',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                  : Text(
+                      _showAddPlacesAction
+                          ? 'Add places'
+                          : 'Analyze trip exposure',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
             ),
           ),

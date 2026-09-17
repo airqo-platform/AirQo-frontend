@@ -176,6 +176,44 @@ void main() {
     );
     expect(find.text('Retry locations'), findsOneWidget);
   });
+
+  testWidgets(
+      'MyTripsView offers add places when both trip endpoints are unavailable',
+      (tester) async {
+    var addPlacesCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: Scaffold(
+          body: MyTripsView(
+            savedSites: const [
+              SelectedSite(
+                id: 'site-1',
+                name: 'Home',
+                searchName: 'Home',
+                latitude: 0.3476,
+                longitude: 32.5825,
+              ),
+            ],
+            onAddPlaces: () => addPlacesCount += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.text('No AirQo network locations to compare'),
+      findsOneWidget,
+    );
+    expect(find.text('Add places'), findsOneWidget);
+    expect(find.text('Analyze trip exposure'), findsNothing);
+
+    await tester.tap(find.text('Add places'));
+    await tester.pump();
+
+    expect(addPlacesCount, 1);
+  });
 }
 
 class _FakeRouteExposureRepository implements RouteExposureRepository {

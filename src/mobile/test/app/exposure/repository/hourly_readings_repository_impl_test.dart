@@ -179,4 +179,82 @@ void main() {
     expect(readings, hasLength(24));
     expect(readings.every((reading) => reading.pm25 == null), isTrue);
   });
+
+  test('returns empty hours when a site request times out', () async {
+    final repository = HourlyReadingsRepositoryImpl(
+      httpClient: MockClient((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        return http.Response('{}', 200);
+      }),
+      requestTimeout: const Duration(milliseconds: 1),
+    );
+
+    final readings = await repository.fetchHourlyReadings(
+      'site-1',
+      DateTime(2026, 9, 16),
+    );
+
+    expect(readings, hasLength(24));
+    expect(readings.every((reading) => reading.pm25 == null), isTrue);
+  });
+
+  test('returns unavailable hours when a batch request times out', () async {
+    const places = [
+      DeclaredPlace(
+        siteId: 'site-home',
+        displayName: 'Home',
+        locationName: 'KCCA Division Rubaga',
+        city: 'Kampala',
+        type: PlaceType.home,
+      ),
+    ];
+    final repository = HourlyReadingsRepositoryImpl(
+      httpClient: MockClient((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+        return http.Response('{}', 200);
+      }),
+      requestTimeout: const Duration(milliseconds: 1),
+    );
+
+    final readings = await repository.fetchHourlyReadingsForPlaces(
+      places,
+      DateTime(2026, 9, 16),
+    );
+
+    expect(readings['site-home'], hasLength(24));
+    expect(
+      readings['site-home']!.every((reading) => reading.pm25 == null),
+      isTrue,
+    );
+  });
+
+  test('requests the local calendar day rather than a fixed 24-hour span',
+      () async {
+    late Uri requestedUri;
+    final client = MockClient((request) async {
+      requestedUri = request.url;
+      return http.Response(
+        jsonEncode({'success': true, 'measurements': []}),
+        200,
+      );
+    });
+
+    final date = DateTime(2026, 3, 8, 15, 30);
+    await HourlyReadingsRepositoryImpl(httpClient: client).fetchHourlyReadings(
+      'site-1',
+      date,
+    );
+
+    final localStart = DateTime(date.year, date.month, date.day);
+    final localEnd = DateTime(date.year, date.month, date.day + 1)
+        .subtract(const Duration(milliseconds: 1));
+    expect(
+      requestedUri.queryParameters['startTime'],
+      localStart.toUtc().toIso8601String(),
+    );
+    expect(
+      requestedUri.queryParameters['endTime'],
+      localEnd.toUtc().toIso8601String(),
+    );
+  });
 }
