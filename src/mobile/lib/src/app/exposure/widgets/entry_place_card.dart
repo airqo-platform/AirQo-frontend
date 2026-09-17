@@ -49,7 +49,9 @@ class EntryPlaceCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3,
+                color: isDark
+                    ? AppColors.boldHeadlineColor2
+                    : AppColors.boldHeadlineColor3,
               ),
             ),
             const SizedBox(height: 20),
@@ -121,7 +123,7 @@ class _AddLabelButtonState extends State<_AddLabelButton> {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
             child: Center(
               child: Text(
-                '+ Add label to see exposure',
+                'Set up exposure',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,

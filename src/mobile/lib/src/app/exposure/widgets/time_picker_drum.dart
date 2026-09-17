@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class TimePickerDrum extends StatefulWidget {
   final TimeOfDay initial;
   final void Function(TimeOfDay) onConfirm;
-  const TimePickerDrum({super.key, required this.initial, required this.onConfirm});
+  const TimePickerDrum(
+      {super.key, required this.initial, required this.onConfirm});
 
   @override
   State<TimePickerDrum> createState() => _TimePickerDrumState();
@@ -54,7 +56,8 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Center(
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
                   color: muted.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(2),
@@ -76,7 +79,9 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(':', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: txt)),
+                child: Text(':',
+                    style: TextStyle(
+                        fontSize: 36, fontWeight: FontWeight.w700, color: txt)),
               ),
               _DrumColumn(
                 value: _minute,
@@ -88,7 +93,8 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
                 iconColor: muted,
               ),
               const SizedBox(width: 20),
-              _AmPmToggle(isAm: _isAm, onChanged: (v) => setState(() => _isAm = v)),
+              _AmPmToggle(
+                  isAm: _isAm, onChanged: (v) => setState(() => _isAm = v)),
             ],
           ),
           const SizedBox(height: 28),
@@ -100,22 +106,34 @@ class _TimePickerDrumState extends State<TimePickerDrum> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     side: BorderSide(color: borderColor),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('Cancel', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: muted)),
+                  child: Text('Cancel',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: muted)),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () { Navigator.of(context).pop(); widget.onConfirm(_result); },
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onConfirm(_result);
+                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: const Text('Confirm', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  child: const Text('Confirm',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -142,7 +160,11 @@ class _DrumColumn extends StatelessWidget {
     this.padded = false,
   });
 
-  int _wrap(int v) { if (v > max) return min; if (v < min) return max; return v; }
+  int _wrap(int v) {
+    if (v > max) return min;
+    if (v < min) return max;
+    return v;
+  }
 
   /// Wide enough for two digits at 44px without [Text] wrapping them onto separate lines.
   static const _digitSlotWidth = 96.0;
@@ -153,7 +175,10 @@ class _DrumColumn extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ArrowBtn(icon: Icons.keyboard_arrow_up_rounded, iconColor: iconColor, onTap: () => onChanged(_wrap(value + 1))),
+        _ArrowBtn(
+            pointsUp: true,
+            iconColor: iconColor,
+            onTap: () => onChanged(_wrap(value + 1))),
         const SizedBox(height: 4),
         SizedBox(
           width: _digitSlotWidth,
@@ -164,30 +189,38 @@ class _DrumColumn extends StatelessWidget {
               softWrap: false,
               textAlign: TextAlign.center,
               style: TextStyle(
-              fontSize: 44,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
+                fontSize: 44,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
             ),
           ),
         ),
         const SizedBox(height: 4),
-        _ArrowBtn(icon: Icons.keyboard_arrow_down_rounded, iconColor: iconColor, onTap: () => onChanged(_wrap(value - 1))),
+        _ArrowBtn(
+            pointsUp: false,
+            iconColor: iconColor,
+            onTap: () => onChanged(_wrap(value - 1))),
       ],
     );
   }
 }
 
 class _ArrowBtn extends StatelessWidget {
-  final IconData icon;
+  final bool pointsUp;
   final Color iconColor;
   final VoidCallback onTap;
-  const _ArrowBtn({required this.icon, required this.iconColor, required this.onTap});
+  const _ArrowBtn(
+      {required this.pointsUp, required this.iconColor, required this.onTap});
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 28, color: iconColor)),
-  );
+        onTap: onTap,
+        child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: pointsUp
+                ? AqChevronUp(size: 28, color: iconColor)
+                : AqChevronDown(size: 28, color: iconColor)),
+      );
 }
 
 class _AmPmToggle extends StatelessWidget {
@@ -211,7 +244,8 @@ class _AmPmToggle extends StatelessWidget {
           onTap: () => onChanged(label == 'AM'),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            width: 52, margin: const EdgeInsets.symmetric(vertical: 3),
+            width: 52,
+            margin: const EdgeInsets.symmetric(vertical: 3),
             padding: const EdgeInsets.symmetric(vertical: 9),
             decoration: BoxDecoration(
               color: active ? AppColors.primaryColor : idleBg,
