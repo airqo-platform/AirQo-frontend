@@ -100,7 +100,16 @@ cd ios && pod install && cd ..
 
 ## Building the App
 
-### Option A: Command Line (recommended)
+### Option A: One-command script (recommended)
+```bash
+# From the mobile/ directory
+./scripts/build_ios_testflight.sh
+```
+Runs the full "Before Every Release" + build sequence for you: `git pull origin staging` → `flutter clean` → `flutter pub get` → `pod install` → bumps the build number in `pubspec.yaml` → `flutter build ipa --release`. Output IPA is still at `build/ios/ipa/airqo.ipa`.
+
+Note: it bumps the build number on every run, including reruns after a failed build — check `pubspec.yaml` afterward if you need to know the exact build number produced.
+
+### Option B: Command Line (manual)
 ```bash
 # From the mobile/ directory
 flutter build ipa --release
@@ -116,7 +125,7 @@ If you get signing errors, use:
 flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 ```
 
-### Option B: Xcode Archive (if command line fails)
+### Option C: Xcode Archive (if command line fails)
 1. Open `ios/Runner.xcworkspace` in Xcode
 2. Select **Any iOS Device (arm64)** as the build target (not a simulator)
 3. Menu: **Product → Archive**
@@ -213,10 +222,8 @@ If you need to regenerate it (e.g., it was accidentally deleted):
 - [ ] On a Mac with Xcode installed
 - [ ] Added to Apple Developer team (`DFMDF9D6NT`)
 - [ ] Added to App Store Connect with App Manager role
-- [ ] `pubspec.yaml` version and build number updated
-- [ ] `git pull` latest from `staging`
-- [ ] `flutter pub get` + `pod install` done
-- [ ] `flutter build ipa --release` succeeds
+- [ ] `./scripts/build_ios_testflight.sh` run (or manually: `git pull`, `flutter clean`, `flutter pub get`, `pod install`, bump `pubspec.yaml` build number, `flutter build ipa --release`)
+- [ ] `pubspec.yaml` build number confirmed higher than the last App Store Connect upload
 - [ ] `.ipa` uploaded via Xcode Organizer or Transporter
 - [ ] Build appears in App Store Connect (wait ~15 min after upload)
 - [ ] Release notes written
