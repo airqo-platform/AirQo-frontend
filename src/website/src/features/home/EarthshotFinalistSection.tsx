@@ -13,7 +13,7 @@ export default function EarthshotFinalistSection() {
         <div className="relative h-[140px] w-[140px] flex-shrink-0 overflow-hidden rounded-2xl bg-white/60 p-3 shadow-sm ring-1 ring-black/5 sm:h-[180px] sm:w-[180px]">
           <Image
             src={EARTHSHOT_BADGE_SRC}
-            alt="Earthshot Prize Finalist 2026 badge"
+            alt="Earthshot Prize Finalist 2025 badge"
             fill
             priority
             sizes="180px"
@@ -27,10 +27,10 @@ export default function EarthshotFinalistSection() {
             id="earthshot-heading"
             className="text-2xl font-bold text-[#2E3A59] sm:text-3xl"
           >
-            Earthshot Prize Finalist 2026
+            Earthshot Prize Finalist 2025
           </h2>
           <p className="max-w-xl leading-relaxed text-gray-600">
-            AirQo is a 2026 Earthshot Prize Finalist in the Clean Our Air
+            AirQo is a 2025 Earthshot Prize Finalist in the Clean Our Air
             category. This recognition celebrates our work to close air quality
             data gaps and help cities turn hyperlocal air quality information
             into action for cleaner air.
