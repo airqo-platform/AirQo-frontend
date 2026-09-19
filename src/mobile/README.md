@@ -1,57 +1,66 @@
 # AirQo Mobile App Version 3
 
-AirQo is a simple mobile application built with Flutter that provides air quality information to users.
+AirQo is a Flutter app that provides air quality information.
 
-## Key Features:
+## Key Features
 
 - Real-time air quality data for your location
 - Easy-to-understand AQI (Air Quality Index) readings
 - Current pollutant levels and health recommendations
 
-## How It Works:
+## Run the latest staging build on your device
 
-1. The app uses location services to determine your current location
-2. It fetches real-time air quality data from public APIs
-3. Displays the current AQI and pollutant levels
-4. Provides health recommendations based on the AQI reading
+Use this from your machine with a phone connected (USB debugging on Android, or a trusted iPhone). `--flavor airqodev` installs as `com.airqo.app.dev` on Android, so it sits next to the Play Store app instead of overwriting it.
 
-## Getting Started:
+Work from `src/mobile` (that directory has `pubspec.yaml`). The app loads `src/mobile/.env.prod`.
 
-To run this project locally:
+```bash
+git fetch origin staging && git checkout staging && git pull origin staging
+cd src/mobile
+flutter pub get
+flutter devices
+flutter run --debug --flavor airqodev
+```
 
-1. Clone the repository
-2. Run `flutter pub get` to install dependencies
-3. Use `flutter run` to start the app
+If Gradle still asks for Maps keys, run `bash tool/setup_local.sh` once (creates `android/secrets.properties` from defaults). It will not overwrite env files you already have.
 
-## Contributing:
+If `flutter devices` shows more than one device, pick one:
 
-Contributions are welcome! Please feel free to submit pull requests or report issues.
+```bash
+flutter run --debug --flavor airqodev -d <deviceId>
+```
 
-## License:
+### Android
+
+1. Enable **Developer options** → **USB debugging**.
+2. Unlock the phone and accept the USB debugging prompt.
+3. Confirm the device appears in `flutter devices`.
+
+### iOS
+
+1. Open `ios/Runner.xcworkspace` in Xcode once and select a development team.
+2. Trust the computer on the iPhone.
+3. `--flavor airqodev` needs the shared `airqodev` Xcode scheme (checked in with this repo).
+
+### Live API data
+
+`.env.prod` and `.env.dev` ship as empty placeholders so Flutter has an asset to bundle. Login, maps, and measurements need real tokens from GCP Secret Manager (`prod-env-mobile-app` or `sta-env-mobile-app`). Put those values in `.env.prod` / `.env.dev` and do not commit the filled files.
+
+## One-time developer setup
+
+1. Install [Flutter](https://docs.flutter.dev/get-started/install) **>= 3.27**.
+2. From `src/mobile`, run `flutter pub get`. If Android Gradle fails on Maps keys, run `bash tool/setup_local.sh` first.
+3. Run `flutter doctor` and fix anything it reports for your platform.
+
+Store deployment (not local device runs) is covered in:
+
+- [Android Play Store](android/ANDROID_DEPLOY_GUIDE.md)
+- [iOS App Store](ios/IOS_DEPLOY_GUIDE.md)
+
+## Contributing
+
+Contributions are welcome. See the [contributing guide](../../CONTRIBUTING.md).
+
+## License
 
 This project is open-source and licensed under the MIT License.
-
-## Dependencies:
-
-- flutter
-- geolocator
-- http
-
-## Future Improvements:
-
-- Add support for multiple cities
-- Implement push notifications for AQI alerts
-- Create a simple dashboard to track air quality trends over time
-
-Let me know if you'd like me to add anything else to this README file!
-
-Citations:
-[1] https://www.markdownguide.org/basic-syntax/
-[2] https://www.markdownguide.org/cheat-sheet/
-[3] https://daringfireball.net/projects/markdown/syntax
-[4] https://docs.github.com/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
-[5] https://www.markdownguide.org/extended-syntax/
-[6] https://www.markdownguide.org/
-[7] https://confluence.atlassian.com/display/BitbucketServer/Markdown+syntax+guide
-[8] https://ia.net/writer/support/basics/markdown-guide
-[9] https://apidocs.digital.ai/xl-release/4.0.x/markdownsyntax.html
