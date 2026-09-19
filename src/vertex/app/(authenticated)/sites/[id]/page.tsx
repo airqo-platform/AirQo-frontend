@@ -19,6 +19,7 @@ import SiteActivityCard from "@/components/features/sites/site-activity-card";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { usePageTitle } from "@/context/page-title-context";
+import { getSiteDetailsReturnPath } from "@/core/utils/siteDetailsReturnPath";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -45,7 +46,7 @@ export default function UserSiteDetailsPage() {
         <div className="mb-6 flex justify-between items-center">
           <ReusableButton
             variant="text"
-            onClick={() => router.back()}
+            onClick={() => router.push(getSiteDetailsReturnPath("user", "/sites/overview"))}
             Icon={AqArrowLeft}
           >
             Back

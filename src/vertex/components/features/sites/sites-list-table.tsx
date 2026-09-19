@@ -11,6 +11,7 @@ import {
   getDeviceStatus,
 } from "@/core/utils/status";
 import { DateValidHintIndicator } from "@/components/shared/date-valid-hint-indicator";
+import { rememberSiteDetailsReturnPath } from "@/core/utils/siteDetailsReturnPath";
 
 interface SitesTableProps {
   itemsPerPage?: number;
@@ -54,6 +55,7 @@ export default function SitesTable({
 
   const handleSiteClick = (item: unknown) => {
     const site = item as Site;
+    rememberSiteDetailsReturnPath();
     if (onSiteClick) onSiteClick(site);
     else if (site._id) router.push(`${basePath}/${site._id}`);
   };
