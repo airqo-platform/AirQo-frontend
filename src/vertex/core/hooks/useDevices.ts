@@ -721,6 +721,34 @@ export const useRecallDevice = () => {
   });
 };
 
+export const useDecommissionDevice = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      deviceName,
+      decommissionData,
+    }: {
+      deviceName: string;
+      decommissionData: {
+        reason?: string;
+        user_id: string;
+        date: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userName?: string;
+      };
+    }) => adapter.decommissionDevice(deviceName, decommissionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['device-details'] });
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+    },
+  });
+};
+
 export const useAddMaintenanceLog = () => {
   const queryClient = useQueryClient();
 

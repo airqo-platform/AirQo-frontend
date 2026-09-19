@@ -466,6 +466,34 @@ export const devices = {
     }
   },
 
+  /**
+   * Permanently retires a device on the platform only (the upstream data
+   * channel is never touched). The record and its full history are kept but
+   * the device is set to status "decommissioned", detached from its site/grid
+   * and excluded from online-status polling. The safe alternative to deleting
+   * a device whose physical channel is gone for good.
+   */
+  decommissionDevice: async (deviceName: string, decommissionData: {
+    reason?: string;
+    user_id: string;
+    date: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
+  }) => {
+    try {
+      const response = await jwtApiClient.post(
+        `/devices/activities/decommission?deviceName=${encodeURIComponent(deviceName)}`,
+        decommissionData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   createDevice: async (deviceData: {
     long_name: string;
     category: string;
