@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { diagnosticsService } from "@/services/diagnosticsService";
-import { DeviceProfile, MetricDefinition } from "@/types/diagnostics";
+import { DeviceProfile, MetricDefinition, METRIC_ROLE_OPTIONS } from "@/types/diagnostics";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,8 @@ interface MetricModalProps {
   metricIndex?: number | null;
   onSuccess: (updated: DeviceProfile) => void;
 }
+
+const NO_ROLE = "__none__";
 
 export function MetricModal({
   open,
@@ -59,6 +61,7 @@ export function MetricModal({
   const [minVal, setMinVal] = useState<string>("");
   const [maxVal, setMaxVal] = useState<string>("");
   const [maxRoc, setMaxRoc] = useState<string>("");
+  const [role, setRole] = useState<string>(NO_ROLE);
 
   const targetSubsystem = profile.components?.[subsystemIndex];
 
@@ -71,6 +74,7 @@ export function MetricModal({
         setMinVal(metric.expected_min !== undefined && metric.expected_min !== null ? String(metric.expected_min) : "");
         setMaxVal(metric.expected_max !== undefined && metric.expected_max !== null ? String(metric.expected_max) : "");
         setMaxRoc(metric.max_rate_of_change !== undefined && metric.max_rate_of_change !== null ? String(metric.max_rate_of_change) : "");
+        setRole(metric.role || NO_ROLE);
 
         const matchingTel = telemetryEntries.find((t) => t.key === metric.key);
         if (matchingTel) {
@@ -98,6 +102,7 @@ export function MetricModal({
         setMinVal("");
         setMaxVal("");
         setMaxRoc("");
+        setRole(NO_ROLE);
       }
     }
   }, [open, isEditing, metric, telemetryEntries]);
@@ -137,6 +142,7 @@ export function MetricModal({
     }
 
     const metricObj: MetricDefinition = {
+      ...(isEditing && metric ? metric : {}),
       key: finalKey,
       unit: unit.trim() || undefined,
       data_type: dataType as any,
@@ -144,6 +150,7 @@ export function MetricModal({
       expected_max: maxVal.trim() !== "" ? parseFloat(maxVal) : undefined,
       max_rate_of_change: maxRoc.trim() !== "" ? parseFloat(maxRoc) : undefined,
       is_telemetry_field: true,
+      role: role === NO_ROLE ? null : role,
     };
 
     if (isEditing && metricIndex !== null && metricIndex >= 0) {
@@ -319,7 +326,33 @@ export function MetricModal({
               className="h-8 text-xs font-mono"
             />
             <p className="text-[11px] text-gray-400">
-              Flags sensor drift, spikes, or flatline freeze conditions if delta exceeds this limit.
+              {role === "charge_level"
+                ? "For a charge level this limits the discharge rate only, so normal charging never trips it."
+                : "Flags the metric when it changes faster than this per hour."}
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-gray-700">Diagnostic Role</Label>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_ROLE}>None (generic metric)</SelectItem>
+                {METRIC_ROLE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                {role !== NO_ROLE && !METRIC_ROLE_OPTIONS.some((o) => o.value === role) && (
+                  <SelectItem value={role}>{role}</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-gray-400">
+              {METRIC_ROLE_OPTIONS.find((o) => o.value === role)?.description ||
+                "Roles tell the engine what a metric means so it can compute indicators such as the daily charge cycle."}
             </p>
           </div>
         </div>

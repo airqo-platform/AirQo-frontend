@@ -1113,6 +1113,11 @@ export default function DeviceProfileDetailPage() {
                                       </span>
                                     )}
                                   </div>
+                                  {m.role && (
+                                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-[10px] font-semibold text-emerald-800">
+                                      Role: {m.role.replace(/_/g, " ")}
+                                    </span>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1241,6 +1246,19 @@ export default function DeviceProfileDetailPage() {
                                 {relInfo.relationType}
                               </span>
                               <span className="font-bold text-gray-900">{relInfo.targetName}</span>
+                              {rel.meta_data?.tolerance && (
+                                <span className="text-[10px] font-mono text-gray-500" title="Agreement tolerance">
+                                  ±
+                                  {[
+                                    typeof rel.meta_data.tolerance.absolute === "number" ? rel.meta_data.tolerance.absolute : null,
+                                    typeof rel.meta_data.tolerance.relative === "number"
+                                      ? `${+(rel.meta_data.tolerance.relative * 100).toFixed(2)}%`
+                                      : null,
+                                  ]
+                                    .filter((v) => v !== null)
+                                    .join(" or ")}
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center gap-1">
                               <Button

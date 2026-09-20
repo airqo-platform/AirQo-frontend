@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Settings2,
   Stethoscope,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,7 +100,8 @@ export const ProfileReadinessPanel: React.FC<ProfileReadinessPanelProps> = ({
               The engine only uses what this profile defines: metrics mapped to telemetry with{" "}
               <code>expected_min</code>/<code>expected_max</code>/<code>max_rate_of_change</code>, component criticality,{" "}
               <code>POWERS</code>/<code>COOLS</code>/<code>COMMUNICATES_VIA</code>/<code>MEASURES_SAME_AS</code>{" "}
-              relationships and the <code>reporting_interval</code> config mapping.
+              relationships (with a tolerance on sensor pairs), metric roles and the <code>reporting_interval</code> config
+              mapping.
             </p>
           </div>
         </div>
@@ -170,6 +172,22 @@ export const ProfileReadinessPanel: React.FC<ProfileReadinessPanelProps> = ({
             </ul>
           ) : (
             <Empty text="No POWERS, COOLS or COMMUNICATES_VIA relationships, so every fault is reported on its own component." />
+          )}
+        </Section>
+
+        <Section title="Metric roles" icon={Tag} count={Object.keys(readiness.metric_roles || {}).length}>
+          {Object.keys(readiness.metric_roles || {}).length > 0 ? (
+            <ul className="space-y-1 text-xs font-mono">
+              {Object.entries(readiness.metric_roles || {}).map(([metric, role]) => (
+                <li key={metric}>
+                  <span className="text-gray-900">{metric}</span>
+                  <span className="text-gray-400"> is the </span>
+                  <span className="text-emerald-700 font-semibold">{role.replace(/_/g, " ")}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty text="No metric has a role. Set a battery metric's role to charge level to get its daily charge cycle and outage attribution." />
           )}
         </Section>
 
