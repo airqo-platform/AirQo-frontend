@@ -7,6 +7,7 @@ import type {
   BulkDeviceClaimRequest,
   BulkDeviceClaimResponse,
   MyDevicesResponse,
+  MyDevicesStatusFilter,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
   Device,
@@ -256,13 +257,35 @@ export const devices = {
     }
   },
 
+  /**
+   * One page of the user's devices. `status` is applied by the server across
+   * every matching device — filtering the returned page in the browser would
+   * miss devices the page cap left out (see #4019).
+   */
   getMyDevices: async (
     userId: string,
     groupIds?: string[],
-    cohortIds?: string[]
+    cohortIds?: string[],
+    options: {
+      status?: MyDevicesStatusFilter;
+      limit?: number;
+      skip?: number;
+    } = {}
   ): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
+
+      if (options.status) {
+        params.append("status", options.status);
+      }
+
+      if (options.limit !== undefined) {
+        params.append("limit", String(options.limit));
+      }
+
+      if (options.skip !== undefined) {
+        params.append("skip", String(options.skip));
+      }
 
       if (groupIds && groupIds.length > 0) {
         params.append("group_ids", groupIds.join(","));

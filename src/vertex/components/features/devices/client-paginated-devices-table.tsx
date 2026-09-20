@@ -4,7 +4,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Device } from "@/app/types/devices";
 import { useRouter } from "next/navigation";
 import ReusableTable, { TableAction } from "@/components/shared/table/ReusableTable";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { getColumns, type TableDevice } from "./utils/table-columns";
 import { Edit, Plus, Trash2 } from "lucide-react";
@@ -21,6 +21,21 @@ interface ClientPaginatedDevicesTableProps {
   multiSelect?: boolean;
   className?: string;
   hiddenColumns?: string[];
+  /**
+   * Opt-in server-side pagination. When set, `devices` is one page of results
+   * and `pageCount` comes from the server's total rather than the row count.
+   */
+  /**
+   * The table's search box filters rows it already has. With
+   * serverSidePagination it only ever holds one page, so callers whose
+   * endpoint cannot search should turn it off rather than show a box that
+   * silently searches nothing.
+   */
+  searchable?: boolean;
+  serverSidePagination?: boolean;
+  pageCount?: number;
+  pagination?: { pageIndex: number; pageSize: number };
+  onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
 }
 
 export default function ClientPaginatedDevicesTable({
@@ -32,6 +47,11 @@ export default function ClientPaginatedDevicesTable({
   multiSelect = false,
   className,
   hiddenColumns = [],
+  searchable = true,
+  serverSidePagination = false,
+  pageCount,
+  pagination,
+  onPaginationChange,
 }: ClientPaginatedDevicesTableProps) {
   const router = useRouter();
   const { userContext, activeGroup } = useUserContext();
@@ -159,8 +179,12 @@ export default function ClientPaginatedDevicesTable({
             "No devices available"
           )
         }
-        searchable
+        searchable={searchable}
         searchableColumns={["long_name", "name", "description", "site.name"]}
+        serverSidePagination={serverSidePagination}
+        pageCount={pageCount}
+        pagination={pagination}
+        onPaginationChange={onPaginationChange}
       />
       {/* Assign to Cohort Dialog */}
       <AssignCohortDevicesDialog

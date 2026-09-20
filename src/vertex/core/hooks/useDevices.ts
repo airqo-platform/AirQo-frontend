@@ -34,6 +34,7 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
+  MyDevicesStatusFilter,
   PrepareDeviceResponse,
   BulkPrepareResponse,
   CreateShippingBatchResponse,
@@ -177,11 +178,17 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
 export const useMyDevices = (
   userId: string,
   organizationId?: string,
-  options: { enabled?: boolean } = {}
+  options: {
+    enabled?: boolean;
+    /** Applied server-side, across every matching device. */
+    status?: MyDevicesStatusFilter;
+    limit?: number;
+    skip?: number;
+  } = {}
 ) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userDetails = useAppSelector((state) => state.user.userDetails);
-  const { enabled = true } = options;
+  const { enabled = true, status, limit, skip } = options;
 
   // The user profile is fetched from Redux state
   // We use optional chaining and fallbacks to ensure safety
@@ -206,10 +213,16 @@ export const useMyDevices = (
       organizationId || activeGroup?._id,
       groupIds,
       cohortIds,
+      status ?? null,
+      limit ?? null,
+      skip ?? null,
     ],
-    queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds),
+    queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds, { status, limit, skip }),
     enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
+    // Keep the current page on screen while the next one loads, so paging and
+    // switching status never flashes an empty table.
+    placeholderData: (previous) => previous,
   });
 
   return {

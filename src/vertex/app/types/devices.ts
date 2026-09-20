@@ -231,6 +231,16 @@ export interface BulkDeviceClaimResponse {
   };
 }
 
+/** Status values GET /devices/my-devices accepts as a server-side filter. */
+export const MY_DEVICES_STATUS_FILTERS = [
+  "operational",
+  "transmitting",
+  "not_transmitting",
+  "data_available",
+] as const;
+
+export type MyDevicesStatusFilter = (typeof MY_DEVICES_STATUS_FILTERS)[number];
+
 export interface MyDevicesResponse {
   success: boolean;
   message: string;
@@ -238,6 +248,18 @@ export interface MyDevicesResponse {
   total_devices: number;
   deployed_devices: number;
   deployed_devices_count?: number;
+  /**
+   * Totals for the whole matching set, not just the returned page. `devices`
+   * is one server page (default 30, capped at 80), so pagination and any
+   * "N devices" count must come from here.
+   */
+  meta?: {
+    total: number;
+    skip: number;
+    limit: number;
+    page: number;
+    totalPages: number;
+  };
 }
 
 export interface DeviceAssignmentRequest {
