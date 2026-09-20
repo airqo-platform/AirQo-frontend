@@ -19,7 +19,10 @@ export type DiagnosticCheckType =
   | "METRIC_STUCK"
   | "METRIC_MISSING"
   | "SENSOR_DISAGREEMENT"
-  | "DATA_GAPS";
+  | "SENSOR_ERROR_MARGIN"
+  | "DATA_GAPS"
+  | "LOW_CHARGE_OUTAGE"
+  | "DEGRADING_TREND";
 
 export const CHECK_TYPE_LABELS: Record<DiagnosticCheckType, string> = {
   METRIC_BELOW_MIN: "Below expected minimum",
@@ -28,7 +31,10 @@ export const CHECK_TYPE_LABELS: Record<DiagnosticCheckType, string> = {
   METRIC_STUCK: "Stuck value",
   METRIC_MISSING: "Missing metric",
   SENSOR_DISAGREEMENT: "Paired sensors disagree",
+  SENSOR_ERROR_MARGIN: "Paired sensors outside tolerance",
   DATA_GAPS: "Data gaps",
+  LOW_CHARGE_OUTAGE: "Outage after low charge",
+  DEGRADING_TREND: "Degrading trend",
 };
 
 export interface TelemetryMapping {
@@ -62,7 +68,35 @@ export interface MetricDefinition {
   expected_max?: number | null;
   max_rate_of_change?: number | null;
   is_telemetry_field?: boolean;
+  role?: MetricRole | string | null;
   description?: string;
+}
+
+// What a metric represents to the diagnostic engine. Roles switch on indicators:
+// charge_level -> daily charge cycle and low-charge outage attribution, charge_source -> generation.
+export type MetricRole = "charge_level" | "charge_source" | "signal_strength";
+
+export const METRIC_ROLE_OPTIONS: { value: MetricRole; label: string; description: string }[] = [
+  {
+    value: "charge_level",
+    label: "Charge level",
+    description: "Battery voltage or state of charge. Enables the daily charge cycle and outage attribution; the rate limit applies to discharge only.",
+  },
+  {
+    value: "charge_source",
+    label: "Charge source",
+    description: "Solar or charger input. Enables daily generation (peak, hours active).",
+  },
+  {
+    value: "signal_strength",
+    label: "Signal strength",
+    description: "Link quality such as RSSI or CSQ.",
+  },
+];
+
+export interface RelationshipTolerance {
+  absolute?: number | null;
+  relative?: number | null; // share of the mean level, 0..1
 }
 
 export type RelationshipType =
@@ -108,6 +142,9 @@ export interface ComponentRelationship {
   relationship_type?: RelationshipType;
   criticality?: number;
   description?: string;
+  // e.g. {"tolerance": {"absolute": 10, "relative": 0.2}} on MEASURES_SAME_AS:
+  // readings agree when |a - b| <= max(absolute, relative x mean)
+  meta_data?: ({ tolerance?: RelationshipTolerance } & Record<string, any>) | null;
 }
 
 export interface ComponentDefinition {
@@ -299,6 +336,9 @@ export interface DiagnosticEvaluationResult {
   active_evidences: EvidenceFact[];
   detected_symptoms: string[];
   top_diagnoses: DiagnosisResult[];
+  indicators?: DeviceIndicators;
+  headline?: string | null;
+  summary?: string | null; // Plain-language description of the window
   data_completeness?: DataCompleteness | null;
   profile_warnings?: string[];
   evaluated_window_hours: number;
@@ -317,6 +357,7 @@ export interface ProfileDiagnosticReadiness {
   transmission_components: string[];
   dependencies: Record<string, string[]>; // component -> upstream components
   redundant_pairs: string[]; // "a.metric ~ b.metric"
+  metric_roles?: Record<string, string>; // "component.metric" -> role
   effective_policy: Record<string, any>;
 }
 
@@ -429,6 +470,7 @@ export interface DailyIssue {
 
 export interface FleetIssue extends DailyIssue {
   device_id: string;
+  device_name?: string | null; // Display name, e.g. "aq_04"
   diagnosis_date: string;
 }
 
@@ -441,6 +483,7 @@ export interface DeviceDailyDiagnosticSummary {
   hours_with_data: number;
   overall_health_score: number;
   lifecycle_state: LifecycleState;
+  headline?: string | null;
   subsystem_scores: Record<string, number>;
   top_cause_code?: string | null;
   issue_count: number;
@@ -455,6 +498,9 @@ export interface MetricSummary {
   mean?: number;
   min?: number;
   max?: number;
+  std?: number;
+  min_at?: string | null;
+  max_at?: string | null;
   count?: number;
 }
 
@@ -466,6 +512,9 @@ export interface DeviceDailyDiagnostic extends DeviceDailyDiagnosticSummary {
   detected_symptoms?: string[] | null;
   top_diagnoses?: DiagnosisResult[] | null;
   metrics_summary?: Record<string, MetricSummary> | null;
+  indicators?: DeviceIndicators | null;
+  trends?: IndicatorTrend[] | null;
+  summary?: string | null;
 }
 
 export interface DeviceIssueHistoryItem {
@@ -495,6 +544,7 @@ export interface DeviceIssueSummary {
   average_health_score?: number | null;
   latest_diagnosis_date?: string | null;
   latest_lifecycle_state?: LifecycleState | null;
+  latest_headline?: string | null;
   issues: DeviceIssueHistoryItem[];
   health_trend: HealthTrendPoint[];
 }
@@ -512,11 +562,13 @@ export interface FleetTopIssue {
 
 export interface FleetDeviceHealth {
   device_id: string;
+  device_name?: string | null;
   overall_health_score: number;
   lifecycle_state: LifecycleState;
   issue_count: number;
   max_severity?: IssueSeverity | null;
   top_cause_code?: string | null;
+  headline?: string | null;
 }
 
 export interface FleetDailySummary {
@@ -563,4 +615,150 @@ export interface DailyDiagnosticsRunResponse {
   end_date: string;
   device_ids?: string[] | null;
   force: boolean;
+}
+
+// ── Indicators ────────────────────────────────────────────────────────────────
+// Continuous per-component measurements stored with every diagnosis, whether or not
+// anything is wrong. Shape: component -> indicator group -> values. Groups are
+// "charge_cycle", "generation", "coverage" and "agreement:<other component>".
+
+export interface ChargeCycleIndicator {
+  metric: string;
+  unit?: string | null;
+  readings: number;
+  min: number | null;
+  min_at?: string;
+  max: number | null;
+  max_at?: string;
+  mean: number | null;
+  swing: number | null;
+  start?: number | null;
+  end?: number | null;
+  net_change?: number | null;
+  hours_charging?: number | null;
+  hours_discharging?: number | null;
+  hours_flat?: number | null;
+  longest_charge_hours?: number | null;
+  longest_discharge_hours?: number | null;
+  cycle_count?: number;
+  charge_rate_per_hour?: number | null;
+  discharge_rate_per_hour?: number | null;
+  max_discharge_rate_per_hour?: number | null;
+  hours_below_min?: number | null;
+  hours_above_max?: number | null;
+  low_charge_threshold?: number | null;
+  hours_low_charge?: number | null;
+  expected_min?: number | null;
+  expected_max?: number | null;
+}
+
+export interface GenerationIndicator {
+  metric: string;
+  unit?: string | null;
+  readings: number;
+  peak: number | null;
+  peak_at?: string;
+  mean: number | null;
+  hours_active: number | null;
+}
+
+export interface OutageWindow {
+  start: string;
+  end: string;
+  hours: number;
+  // true: charge was low before the outage (power-related); false: charge was healthy (link-related); null: unknown
+  after_low_charge: boolean | null;
+}
+
+export interface CoverageIndicator {
+  records: number;
+  records_without_timestamp?: number;
+  expected_records?: number | null;
+  missing_rate?: number | null;
+  expected_interval_seconds?: number | null;
+  hours_total?: number;
+  hours_with_data?: number;
+  hours_complete?: number;
+  hours_empty?: number;
+  records_per_hour_median?: number | null;
+  partial_record_rate?: number | null;
+  outage_count?: number;
+  offline_hours?: number | null;
+  longest_outage_hours?: number | null;
+  outages_after_low_charge?: number;
+  outages_with_healthy_charge?: number;
+  outages_unattributed?: number;
+  low_charge_threshold?: number | null;
+  charge_metric?: string | null;
+  outages?: OutageWindow[]; // Only on a single day's indicators, not in series
+}
+
+export interface AgreementIndicator {
+  with: string;
+  metric: string;
+  other_metric: string;
+  paired_count: number;
+  correlation: number | null;
+  mean_abs_error: number | null;
+  p95_abs_error?: number | null;
+  bias: number | null; // Positive: this component reads higher than the other
+  relative_error: number | null;
+  mean_level?: number | null;
+  relative_bias?: number | null;
+  tolerance_abs?: number | null;
+  tolerance_rel?: number | null;
+  within_tolerance_rate: number | null; // null when the relationship has no tolerance
+}
+
+export type IndicatorGroupValues = Record<string, any>;
+export type DeviceIndicators = Record<string, Record<string, IndicatorGroupValues>>;
+
+export type IndicatorSeriesPoint<T> = Partial<T> & { diagnosis_date: string };
+
+// GET /diagnostics/devices/{id}/indicators
+export interface DeviceIndicatorSeries {
+  device_id: string;
+  start_date: string;
+  end_date: string;
+  days_diagnosed: number;
+  components: Record<string, Record<string, IndicatorSeriesPoint<IndicatorGroupValues>[]>>;
+}
+
+// ── Trends ────────────────────────────────────────────────────────────────────
+
+export type TrendStatus = "degrading" | "improving" | "stable";
+
+export interface IndicatorTrend {
+  component: string;
+  group: string;
+  field: string;
+  subject: string; // e.g. "Battery Voltage daily minimum"
+  title: string; // Degrading phrasing, e.g. "Battery Voltage daily minimum falling"
+  unit?: string | null;
+  status: TrendStatus;
+  direction: "up" | "down" | "flat";
+  window_days: number;
+  points: number;
+  first_date: string;
+  last_date: string;
+  first_value: number;
+  latest: number;
+  mean: number;
+  slope_per_day: number;
+  change: number;
+  change_fraction: number;
+  r_squared: number;
+  limit?: number | null;
+  days_to_limit?: number | null;
+}
+
+// GET /diagnostics/devices/{id}/trends
+export interface DeviceTrends {
+  device_id: string;
+  as_of?: string | null;
+  window_days: number;
+  min_days: number;
+  degrading_count: number;
+  improving_count: number;
+  trends: IndicatorTrend[];
 }

@@ -9,13 +9,16 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, CheckCircle2, Clock, Database, Layers, ListChecks, Sparkles } from "lucide-react";
+import { Activity, CalendarDays, CheckCircle2, Clock, Database, Layers, ListChecks, Sparkles, TrendingDown } from "lucide-react";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import { DeviceDailyDiagnostic } from "@/types/diagnostics";
 import { HealthScoreGauge } from "@/components/diagnostics/HealthScoreGauge";
 import { SubsystemScoreCard } from "@/components/diagnostics/SubsystemScoreCard";
 import { EvidenceFactBadge } from "@/components/diagnostics/EvidenceFactBadge";
 import { DiagnosisCard } from "@/components/diagnostics/DiagnosisCard";
+import { DiagnosisNarrative } from "@/components/diagnostics/DiagnosisNarrative";
+import { DayIndicators } from "@/components/diagnostics/DayIndicators";
+import { DeviceTrendsList } from "@/components/diagnostics/DeviceTrendsList";
 import {
   SeverityBadge,
   StreakBadge,
@@ -25,6 +28,7 @@ import {
 
 interface DailyDiagnosisDetailDialogProps {
   deviceId: string;
+  deviceName?: string;
   diagnosisDate: string | null;
   onOpenChange: (open: boolean) => void;
 }
@@ -36,6 +40,7 @@ const formatTime = (value?: string | null) =>
 
 export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProps> = ({
   deviceId,
+  deviceName,
   diagnosisDate,
   onOpenChange,
 }) => {
@@ -69,7 +74,7 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
             <CalendarDays className="w-4 h-4 text-primary" />
             Daily Diagnosis · {formatDiagnosisDate(diagnosisDate, "EEEE d MMM yyyy")}
           </DialogTitle>
-          <DialogDescription className="text-xs font-mono">{deviceId}</DialogDescription>
+          <DialogDescription className="text-xs" title={deviceId}>{deviceName || deviceId}</DialogDescription>
         </DialogHeader>
 
         {loading && (
@@ -90,6 +95,8 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
               lastEvaluated={detail.evaluated_at ? new Date(detail.evaluated_at).toLocaleString() : undefined}
               size="md"
             />
+
+            <DiagnosisNarrative headline={detail.headline} summary={detail.summary} />
 
             {/* Data coverage */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -186,6 +193,24 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
 
             <DiagnosisCard diagnoses={detail.top_diagnoses || []} deviceId={deviceId} />
 
+            {detail.trends && detail.trends.some((t) => t.status !== "stable") && (
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <TrendingDown className="w-4 h-4 text-rose-500" /> Trends as of This Day
+                </h4>
+                <DeviceTrendsList trends={detail.trends} hideStable />
+              </div>
+            )}
+
+            {detail.indicators && Object.keys(detail.indicators).length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-600" /> Indicators
+                </h4>
+                <DayIndicators indicators={detail.indicators} />
+              </div>
+            )}
+
             {/* Metric summary */}
             {metrics.length > 0 && (
               <div className="space-y-2">
@@ -200,6 +225,7 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
                         <th className="py-2 px-3 text-right">Min</th>
                         <th className="py-2 px-3 text-right">Mean</th>
                         <th className="py-2 px-3 text-right">Max</th>
+                        <th className="py-2 px-3 text-right">Std</th>
                         <th className="py-2 px-3 text-right">Samples</th>
                       </tr>
                     </thead>
@@ -210,6 +236,7 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
                           <td className="py-1.5 px-3 text-right">{formatStat(stats.min)}</td>
                           <td className="py-1.5 px-3 text-right font-semibold">{formatStat(stats.mean)}</td>
                           <td className="py-1.5 px-3 text-right">{formatStat(stats.max)}</td>
+                          <td className="py-1.5 px-3 text-right text-gray-500">{formatStat(stats.std)}</td>
                           <td className="py-1.5 px-3 text-right text-gray-500">{stats.count ?? "—"}</td>
                         </tr>
                       ))}

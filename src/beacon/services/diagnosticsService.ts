@@ -6,7 +6,9 @@ import {
   DeviceDailyDiagnostic,
   DeviceDailyDiagnosticSummary,
   DeviceHealthSnapshot,
+  DeviceIndicatorSeries,
   DeviceIssueSummary,
+  DeviceTrends,
   DiagnosticEvaluationResult,
   DiagnosticFeedbackCreate,
   DiagnosticTemplate,
@@ -459,6 +461,37 @@ export const diagnosticsService = {
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, `Failed to fetch issue summary for device ${deviceId}`);
+    return await res.json();
+  },
+
+  /**
+   * Daily indicator time series per component (charge cycle, coverage, sensor agreement, generation)
+   * GET /api/v1/diagnostics/devices/{device_id}/indicators?days=30&component=&indicator=
+   */
+  async getDeviceIndicators(
+    deviceId: string,
+    params?: { days?: number; component?: string; indicator?: string }
+  ): Promise<DeviceIndicatorSeries> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/indicators${buildQuery({ ...params })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch indicators for device ${deviceId}`);
+    return await res.json();
+  },
+
+  /**
+   * Multi-day trends of the device's indicators, degrading first
+   * GET /api/v1/diagnostics/devices/{device_id}/trends?window_days=&as_of=
+   */
+  async getDeviceTrends(deviceId: string, params?: { window_days?: number; as_of?: string }): Promise<DeviceTrends> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/trends${buildQuery({ ...params })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch trends for device ${deviceId}`);
     return await res.json();
   },
 
