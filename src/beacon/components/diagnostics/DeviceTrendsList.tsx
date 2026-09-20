@@ -51,7 +51,7 @@ export const DeviceTrendsList: React.FC<DeviceTrendsListProps> = ({
               </div>
               <div className="text-[11px] text-gray-500 mt-0.5">
                 {num(trend.first_value)} → <strong className="text-gray-800">{num(trend.latest)}</strong>
-                {unit} over {trend.points} days ({formatDiagnosisDate(trend.first_date, "d MMM")} –{" "}
+                {unit} over {trend.points} diagnosed days ({formatDiagnosisDate(trend.first_date, "d MMM")} –{" "}
                 {formatDiagnosisDate(trend.last_date, "d MMM")}), {trend.slope_per_day > 0 ? "+" : ""}
                 {num(trend.slope_per_day)}
                 {unit}/day

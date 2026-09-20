@@ -100,7 +100,7 @@ export const ProfileReadinessPanel: React.FC<ProfileReadinessPanelProps> = ({
               The engine only uses what this profile defines: metrics mapped to telemetry with{" "}
               <code>expected_min</code>/<code>expected_max</code>/<code>max_rate_of_change</code>, component criticality,{" "}
               <code>POWERS</code>/<code>COOLS</code>/<code>COMMUNICATES_VIA</code>/<code>MEASURES_SAME_AS</code>{" "}
-              relationships (with a tolerance on sensor pairs), metric roles and the <code>reporting_interval</code> config
+              relationships (with optional tolerances on sensor pairs), metric roles and the <code>reporting_interval</code> config
               mapping.
             </p>
           </div>
