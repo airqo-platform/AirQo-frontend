@@ -16,6 +16,7 @@ import {
 import { adapter } from '../adapters';
 import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
+import { isSameMyDevicesResultSet } from "./myDevicesQueryKey";
 import { useMemo } from 'react';
 import type {
   DevicesSummaryResponse,
@@ -206,23 +207,32 @@ export const useMyDevices = (
     : userDetails?.group_ids || [];
   const cohortIds = personalCohortIds && personalCohortIds.length > 0 ? personalCohortIds : (userDetails?.cohort_ids || []);
 
+  // The last two slots are limit/skip; everything before them identifies the
+  // result set itself.
+  const queryKey = [
+    "myDevices",
+    userId,
+    organizationId || activeGroup?._id,
+    groupIds,
+    cohortIds,
+    status ?? null,
+    limit ?? null,
+    skip ?? null,
+  ];
+
   const query = useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
-    queryKey: [
-      "myDevices",
-      userId,
-      organizationId || activeGroup?._id,
-      groupIds,
-      cohortIds,
-      status ?? null,
-      limit ?? null,
-      skip ?? null,
-    ],
+    queryKey,
     queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds, { status, limit, skip }),
     enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
-    // Keep the current page on screen while the next one loads, so paging and
-    // switching status never flashes an empty table.
-    placeholderData: (previous) => previous,
+    // Keep the current page on screen while the next one loads, so paging
+    // doesn't flash an empty table. Only across pagination changes: React
+    // Query reports placeholder data as loaded, so reusing it for a different
+    // status would show the old rows and total under the new filter.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery && isSameMyDevicesResultSet(previousQuery.queryKey, queryKey)
+        ? previous
+        : undefined,
   });
 
   return {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Upload } from "lucide-react";
@@ -45,8 +45,13 @@ const MyDevicesPage = () => {
 
   const { pagination, setPagination } = useServerSideTableState({ initialPageSize: 25 });
 
-  // A different status is a different result set, so go back to its first page.
+  // A different status is a different result set, so go back to its first
+  // page. Only on an actual change: resetting on mount too would throw away a
+  // page the URL asked for.
+  const previousStatusFilter = useRef(statusFilter);
   useEffect(() => {
+    if (previousStatusFilter.current === statusFilter) return;
+    previousStatusFilter.current = statusFilter;
     setPagination((previous) =>
       previous.pageIndex === 0 ? previous : { ...previous, pageIndex: 0 }
     );

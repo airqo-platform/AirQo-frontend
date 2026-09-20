@@ -137,6 +137,48 @@ describe("MyDevicesPage", () => {
     expect(screen.getByText(/64 devices/)).toBeInTheDocument();
   });
 
+  it("keeps the page the URL asked for instead of resetting it on mount", () => {
+    nav.searchParams = new URLSearchParams("status=transmitting&page=2");
+    mockPersonal({
+      devices: SERVER_FILTERED,
+      total_devices: 64,
+      meta: { total: 64, skip: 25, limit: 25, page: 2, totalPages: 3 },
+    });
+
+    render(<MyDevicesPage />);
+
+    expect(useMyDevices).toHaveBeenLastCalledWith(
+      "user-1",
+      "group-1",
+      expect.objectContaining({ status: "transmitting", limit: 25, skip: 25 })
+    );
+  });
+
+  it("returns to the first page when the status filter changes", () => {
+    nav.searchParams = new URLSearchParams("status=transmitting&page=2");
+    mockPersonal({
+      devices: SERVER_FILTERED,
+      total_devices: 64,
+      meta: { total: 64, skip: 25, limit: 25, page: 2, totalPages: 3 },
+    });
+
+    const { rerender } = render(<MyDevicesPage />);
+    expect(useMyDevices).toHaveBeenLastCalledWith(
+      "user-1",
+      "group-1",
+      expect.objectContaining({ skip: 25 })
+    );
+
+    nav.searchParams = new URLSearchParams("status=operational&page=2");
+    rerender(<MyDevicesPage />);
+
+    expect(useMyDevices).toHaveBeenLastCalledWith(
+      "user-1",
+      "group-1",
+      expect.objectContaining({ status: "operational", skip: 0 })
+    );
+  });
+
   it("ignores a status value the endpoint does not accept", () => {
     nav.searchParams = new URLSearchParams("status=bogus");
     mockPersonal({
