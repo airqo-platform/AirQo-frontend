@@ -92,6 +92,7 @@ export default function CohortDetailsPage() {
                             <CohortDetailsCard
                                 name={cohort?.name || ""}
                                 id={cohort?._id || ""}
+                                cohortSlug={cohort?.cohort_slug}
                                 visibility={Boolean(cohort?.visibility)}
                                 onShowDetailsModal={() => setShowDetailsModal(true)}
                                 loading={isLoading}
