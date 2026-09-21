@@ -49,6 +49,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
 
   const { showBanner } = useBanner();
   const { handleCopy } = useClipboard({ successMessage: 'Cohort ID copied to clipboard' });
+  const { handleCopy: handleCopyCustomId } = useClipboard({ successMessage: 'Custom ID copied to clipboard' });
   const { showBannerWithDelay } = useBannerWithDelay();
   const { mutateAsync: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
@@ -223,7 +224,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
                   </div>
                   <ReusableButton
                     variant="text"
-                    onClick={() => handleCopy(cohortSlug)}
+                    onClick={() => handleCopyCustomId(cohortSlug)}
                     className="p-1"
                     Icon={AqCopy01}
                     aria-label="Copy custom ID"
