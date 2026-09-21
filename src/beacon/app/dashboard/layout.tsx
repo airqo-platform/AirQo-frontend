@@ -13,6 +13,8 @@ import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
+import { NetworkStatusBanner } from "@/components/network-status-banner"
+import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
 
 type User = {
   id?: number
@@ -62,6 +64,9 @@ export default function DashboardLayout({
     : null
 
   const pathname = usePathname()
+  // Most pages fetch in useEffect with no retry, so when reads failed during an
+  // outage the page is remounted once the connection is back to load them again
+  const recoveryKey = useConnectionRecoveryKey()
   // Like Vertex, the sidebar module follows the URL: admin routes show the admin panel
   const activeModule = getModuleForPath(pathname)
 
@@ -103,6 +108,7 @@ export default function DashboardLayout({
 
   return (
     <GroupProvider>
+      <NetworkStatusBanner />
       <div className="flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden bg-background">
         {/* Top Navigation Bar */}
         <TopNav
@@ -133,13 +139,13 @@ export default function DashboardLayout({
             >
               {isMapRoute ? (
                 <div className="flex-1 min-h-0 flex flex-col w-full h-full">
-                  <GroupRouteGuard>{children}</GroupRouteGuard>
+                  <GroupRouteGuard key={recoveryKey}>{children}</GroupRouteGuard>
                 </div>
               ) : (
                 /* Content Container matching Nexus padding and max-w layout */
                 <div className="flex-grow w-full max-w-full">
                   <div className="container px-1 py-6 mx-auto md:px-6 lg:px-8 w-full max-w-7xl">
-                    <GroupRouteGuard>{children}</GroupRouteGuard>
+                    <GroupRouteGuard key={recoveryKey}>{children}</GroupRouteGuard>
                   </div>
                 </div>
               )}
