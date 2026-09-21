@@ -114,8 +114,15 @@ export interface Device {
     _id: string;
     name: string;
   };
-  status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
+  status?: "not deployed" | "deployed" | "recalled" | "decommissioned" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
+  /**
+   * Set by the backend online-status job when the upstream feed provider
+   * returns 404 for this device's channel — almost always a channel deleted
+   * upstream. Cleared automatically once a fetch succeeds again.
+   */
+  channelStatus?: "not_found" | null;
+  channelStatusCheckedAt?: string | null;
   powerType?: "solar" | "alternator" | "mains";
   elapsed_time?: number;
   // Additional properties for device ownership and status
