@@ -171,7 +171,8 @@ Blocking, no exceptions:
 - Missing `AbortController` on a query that can re-fire on re-render.
 - Cross-group cache reuse after a group switch.
 - Tokens/auth headers in logs or error payloads.
-- Retrying 5xx / `ERR_NETWORK` / aborted requests.
+- Retrying 5xx or aborted/cancelled requests, or retrying network failures
+  without the bounded `swrRetryPolicy`.
 - New env var without a matching `.env.example` update.
 
 Everything else — styling, naming, minor refactors — is advisory. Say so
