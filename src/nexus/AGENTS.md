@@ -55,10 +55,17 @@ Run all of these from `src/nexus/`, not the monorepo root.
   fetch loops.
 - Retry policy — be explicit, "avoid retries" alone isn't a rule an agent can
   act on:
-  - Never retry: 5xx, `ERR_NETWORK`, aborted/cancelled requests.
+  - Never retry: 5xx, aborted/cancelled requests.
   - Bounded retry allowed: idempotent GETs on 429, exponential backoff,
     capped at **[CONFIRM max attempts — recommend 2]**.
+  - Bounded retry allowed for network-level failures (`ERR_NETWORK`,
+    `ECONNABORTED`, `ETIMEDOUT`, `TimeoutError`) after sleep/wake or
+    reconnect — exponential backoff with jitter, capped at 2 automatic retries
+    per key (see `swrRetryPolicy`, issue #4023).
   - Anything else: fail once, show a clear error state, don't loop.
+- Reconnect recovery is probe-gated (`probeBackend`) and revalidates with
+  `mutate(() => true)`; never pass an explicit data argument (it wipes the
+  SWR cache).
 - Use `AbortController` for cohort endpoints and any query that can re-fire
   on re-render.
 - Invalidate or drop group-scoped caches on group switch. A request fired
