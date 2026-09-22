@@ -99,6 +99,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                 'system-security',
                 'system-org-requests',
                 'system-user-statistics',
+                'system-usage',
               ].includes(item.id)
             ) {
               return canAccessAdmin;

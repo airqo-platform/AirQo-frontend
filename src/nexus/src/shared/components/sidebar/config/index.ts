@@ -300,6 +300,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqPresentationChart02,
       },
       {
+        id: 'system-usage',
+        label: 'Usage',
+        href: '/system/usage',
+        icon: AqPresentationChart02,
+      },
+      {
         id: 'system-feedback',
         label: 'Feedback',
         href: '/system/feedback',
