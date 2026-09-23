@@ -112,6 +112,19 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
   const recoveryRunIdRef = useRef(0);
   const hiddenAtRef = useRef<number | null>(null);
   const lastRecoveryAttemptRef = useRef(0);
+  const probeInFlightRef = useRef<Promise<boolean> | null>(null);
+
+  const runProbe = useCallback(() => {
+    if (probeInFlightRef.current) return probeInFlightRef.current;
+
+    const promise = probeBackend().finally(() => {
+      if (probeInFlightRef.current === promise) {
+        probeInFlightRef.current = null;
+      }
+    });
+    probeInFlightRef.current = promise;
+    return promise;
+  }, []);
 
   // --- Offline reconnect refresh --------------------------------------------
   //
@@ -143,29 +156,6 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
   const [showOverlay, setShowOverlay] = useState(false);
   const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (backendStatus === 'outage') {
-      // Delay before showing the overlay — cancelled if status clears.
-      overlayTimerRef.current = setTimeout(() => {
-        setShowOverlay(true);
-      }, OUTAGE_APPEAR_DELAY_MS);
-    } else {
-      // Status cleared — cancel pending timer and hide immediately.
-      if (overlayTimerRef.current !== null) {
-        clearTimeout(overlayTimerRef.current);
-        overlayTimerRef.current = null;
-      }
-      setShowOverlay(false);
-    }
-
-    return () => {
-      if (overlayTimerRef.current !== null) {
-        clearTimeout(overlayTimerRef.current);
-        overlayTimerRef.current = null;
-      }
-    };
-  }, [backendStatus]);
-
   // --- Auto-probe loop (backoff, visibility-aware) -------------------------
 
   const probeIndexRef = useRef(0);
@@ -189,10 +179,11 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
       probeTimerRef.current = setTimeout(() => {
         probeTimerRef.current = null;
         if (!isVisibleRef.current) return; // paused while hidden
-        void probeBackend().then(ok => {
+        void runProbe().then(ok => {
           if (ok) {
             probeIndexRef.current = 0; // reset backoff on success
           } else {
+            if (getBackendStatus().status !== 'outage') return;
             probeIndexRef.current = Math.min(
               probeIndexRef.current + 1,
               PROBE_BACKOFF_MS.length - 1
@@ -202,38 +193,52 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
         });
       }, delayMs);
     },
-    [clearProbeTimer]
+    [clearProbeTimer, runProbe]
   );
 
-  // Start / stop the auto-probe loop when outage becomes visible / clears.
+  // Start the bounded retry loop after the delayed overlay appears. The loop
+  // is keyed only to backend status so dismissing the overlay does not stop
+  // recovery.
   useEffect(() => {
     let cancelled = false;
-    if (showOverlay && backendStatus === 'outage') {
+    if (backendStatus !== 'outage') {
+      setShowOverlay(false);
+      clearProbeTimer();
+      return undefined;
+    }
+
+    overlayTimerRef.current = setTimeout(() => {
+      if (cancelled) return;
+
+      setShowOverlay(true);
       probeIndexRef.current = 0;
-      // Immediate first probe, then backoff.
-      void probeBackend().then(ok => {
+      void runProbe().then(ok => {
         if (cancelled) return;
         if (ok) {
           probeIndexRef.current = 0;
           // The backend recovered but no browser `online` event fires, so
           // SWR error states would otherwise persist — refresh now.
           void refreshCachedData();
-        } else if (showOverlay && backendStatus === 'outage') {
+        } else if (getBackendStatus().status === 'outage') {
           probeIndexRef.current = 1;
           scheduleProbe(PROBE_BACKOFF_MS[probeIndexRef.current]);
         }
       });
-    }
+    }, OUTAGE_APPEAR_DELAY_MS);
 
     return () => {
       cancelled = true;
+      if (overlayTimerRef.current !== null) {
+        clearTimeout(overlayTimerRef.current);
+        overlayTimerRef.current = null;
+      }
       clearProbeTimer();
     };
   }, [
-    showOverlay,
     backendStatus,
     scheduleProbe,
     clearProbeTimer,
+    runProbe,
     refreshCachedData,
   ]);
 
@@ -244,7 +249,6 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
 
       if (
         isVisibleRef.current &&
-        showOverlay &&
         backendStatus === 'outage' &&
         probeTimerRef.current === null
       ) {
@@ -257,7 +261,7 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [showOverlay, backendStatus, scheduleProbe]);
+  }, [backendStatus, scheduleProbe]);
 
   // --- Probe-gated recovery (issue #4023) -----------------------------------
   //
@@ -291,14 +295,14 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
         if (typeof navigator !== 'undefined' && !navigator.onLine) return;
       }
 
-      const ok = await probeBackend();
+      const ok = await runProbe();
       if (isStale()) return;
       if (ok) {
         await refreshCachedData();
         return;
       }
     }
-  }, [refreshCachedData]);
+  }, [refreshCachedData, runProbe]);
 
   // Invalidate any in-flight runRecovery loop so a late probe resolution
   // cannot revalidate/refresh after the gate is gone.
@@ -397,14 +401,17 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
   }, [runRecovery, cache]);
 
   const handleRetry = useCallback(() => {
+    // Dismiss the dialog immediately while the probe and bounded background
+    // retry loop continue without blocking the page.
+    setShowOverlay(false);
     // Probe first (navigator.onLine is only a hint), then revalidate once the
     // backend actually answers — mirroring the auto-probe loop's success path.
-    void probeBackend().then(ok => {
+    void runProbe().then(ok => {
       if (ok) {
         void refreshCachedData();
       }
     });
-  }, [refreshCachedData]);
+  }, [refreshCachedData, runProbe]);
 
   const handleOfflineRetry = useCallback(() => {
     void runRecovery();
@@ -459,9 +466,6 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
               <Button size="md" variant="filled" onClick={handleRetry}>
                 Retry now
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Automatic retry in the background
-              </p>
             </div>
           </div>
         </div>
