@@ -350,4 +350,35 @@ describe('getPartialDataWarning', () => {
       )
     ).toBeUndefined();
   });
+
+  it('does not credit a selected site when mixed rows include another site ID', () => {
+    const response = {
+      status: 'success',
+      data: [
+        {
+          site_id: 'other-site',
+          site_name: 'Other site',
+          pm2_5: 12.4,
+        },
+        {
+          site_name: 'Other site',
+          pm2_5: 10.2,
+        },
+      ],
+    };
+
+    expect(
+      getPartialDataWarning(
+        asDownloadResponse(response),
+        'sites',
+        ['selected-site'],
+        ['Selected site'],
+        ['pm2_5']
+      )
+    ).toEqual({
+      totalSelected: 1,
+      withData: 0,
+      missingNames: ['Selected site'],
+    });
+  });
 });

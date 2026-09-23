@@ -235,14 +235,15 @@ export const getDataAvailability = (
   }
 
   // The download endpoint is scoped by the selected site/device query. Some
-  // valid exports omit `site_id` and use a backend location label that differs
-  // from the UI label (for example, a sensor/station name versus “Acholi
-  // Road”). For one selected location, measurement rows are therefore
-  // authoritative when no selected ID is present in the response. Without
+  // Valid exports may omit `site_id` and use a backend location label that
+  // differs from the UI label (for example, a sensor/station name versus
+  // “Acholi Road”). For one selected location, ID-less measurement rows are
+  // authoritative only when the response contains no usable location IDs;
+  // mixed responses must continue through the name-matching path. Without
   // this bounded fallback the UI reports “no readings” despite exporting rows.
   if (
     normalizedSelectedIds.length === 1 &&
-    !allRecordsHaveIds &&
+    responseIds.size === 0 &&
     records.length > 0
   ) {
     return {

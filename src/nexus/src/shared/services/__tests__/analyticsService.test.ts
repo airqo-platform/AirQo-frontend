@@ -101,6 +101,44 @@ describe('AnalyticsService.getChartData', () => {
     expect(sentBody).not.toHaveProperty('endDate');
   });
 
+  it('accumulates chart pages using the response cursor', async () => {
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          chart_type: 'line',
+          data: [{ site_id: 'site-1', value: 1 }],
+          metadata: { total_count: 1, has_more: true, next: 'chart-cursor-2' },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          chart_type: 'line',
+          data: [{ site_id: 'site-1', value: 2 }],
+          metadata: { total_count: 1, has_more: false, next: null },
+        },
+      });
+
+    await expect(analyticsService.getChartData(chartRequest)).resolves.toEqual({
+      status: 'success',
+      message: 'first',
+      chart_type: 'line',
+      data: [
+        { site_id: 'site-1', value: 1 },
+        { site_id: 'site-1', value: 2 },
+      ],
+      metadata: { total_count: 2, has_more: false, next: null },
+    });
+
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[1][1]).toEqual(
+      expect.objectContaining({ cursor: 'chart-cursor-2' })
+    );
+  });
+
   it('deduplicates pollutants and always requests site_id metadata', () => {
     expect(
       buildChartPayload({

@@ -248,7 +248,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     // request failure into a false “no readings” warning. Coverage is only
     // authoritative after every chart query has settled successfully.
     if (
-      coverageQueries.some(query => query.isPending || query.isFetching) ||
+      coverageQueries.some(query => query.isFetching) ||
       coverageQueries.every(query => query.isError)
     ) {
       return null;

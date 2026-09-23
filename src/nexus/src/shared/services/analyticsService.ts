@@ -12,6 +12,7 @@ import type {
 
 const CHART_DATA_PATH = '/analytics/dashboard/chart/data';
 const DATA_DOWNLOAD_PATH = '/analytics/data-download';
+const MAX_CHART_PAGES = 1_000;
 const MAX_DOWNLOAD_PAGES = 1_000;
 
 /**
@@ -90,7 +91,28 @@ export const buildChartPayload = (
     ...(request.organisationName
       ? { organisationName: request.organisationName }
       : {}),
+    ...(request.cursor?.trim() ? { cursor: request.cursor.trim() } : {}),
   };
+};
+
+const getNextChartCursor = (
+  response: AnalyticsChartResponse,
+  seenCursors: Set<string>
+): string | null => {
+  if (!response.metadata?.has_more) return null;
+
+  const nextCursor = response.metadata.next?.trim();
+  if (!nextCursor) {
+    throw new Error(
+      'The chart data service reported more records but did not provide a next cursor.'
+    );
+  }
+  if (seenCursors.has(nextCursor)) {
+    throw new Error('The chart data service returned a repeated pagination cursor.');
+  }
+
+  seenCursors.add(nextCursor);
+  return nextCursor;
 };
 
 const getNextCursor = (
@@ -134,12 +156,46 @@ export class AnalyticsService {
       throw new Error('Chart data request is missing an end date.');
     }
 
-    const response = await this.serverClient.post<AnalyticsChartResponse>(
-      CHART_DATA_PATH,
-      buildChartPayload(request),
-      { signal }
+    const requestedCursor = request.cursor?.trim();
+    const seenCursors = new Set<string>();
+    if (requestedCursor) seenCursors.add(requestedCursor);
+
+    let cursor = requestedCursor || null;
+    let firstPage: AnalyticsChartResponse | null = null;
+    const allData: AnalyticsChartResponse['data'] = [];
+
+    for (let page = 0; page < MAX_CHART_PAGES; page += 1) {
+      const pageRequest = cursor
+        ? { ...request, cursor }
+        : { ...request, cursor: undefined };
+      const response = await this.serverClient.post<AnalyticsChartResponse>(
+        CHART_DATA_PATH,
+        buildChartPayload(pageRequest),
+        { signal }
+      );
+      const pageBody = response.data;
+      firstPage ??= pageBody;
+      allData.push(...pageBody.data);
+
+      cursor = getNextChartCursor(pageBody, seenCursors);
+      if (!cursor) {
+        if (page === 0) return pageBody;
+
+        return {
+          ...firstPage,
+          data: allData,
+          metadata: {
+            total_count: allData.length,
+            has_more: false,
+            next: null,
+          },
+        };
+      }
+    }
+
+    throw new Error(
+      `Chart data exceeded the ${MAX_CHART_PAGES}-page safety limit.`
     );
-    return response.data;
   }
 
   /**

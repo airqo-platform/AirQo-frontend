@@ -1967,6 +1967,7 @@ export interface UpdateOrganizationGroupThemeResponse {
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
+  cursor?: string;
   startDateTime: string;
   endDateTime: string;
   chartType: string;
