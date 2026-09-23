@@ -246,7 +246,7 @@ export const CHART_DATA_STALE_TIME_MS = 300_000;
 export const buildChartDataQueryKey = (
   userId: string | undefined,
   activeGroupId: string | undefined,
-  chartType: 'line' | 'bar',
+  chartType: 'line' | 'bar' | 'pie',
   selectedSiteIds: string[],
   filters: ChartDataFilters
 ): unknown[] => [
@@ -264,7 +264,7 @@ export const buildChartDataQueryKey = (
 
 export const useAnalyticsChartData = (
   filters: ChartDataFilters,
-  chartType: 'line' | 'bar' = 'line',
+  chartType: 'line' | 'bar' | 'pie' = 'line',
   selectedSiteIds: string[] = EMPTY_SELECTED_SITE_IDS,
   enabled = true
 ) => {
@@ -321,8 +321,7 @@ export const useAnalyticsChartData = (
           endDateTime: dateRange.endDate,
           chartType,
           frequency: filters.frequency,
-          pollutant: normalizePollutant(filters.pollutant),
-          organisation_name: '',
+          pollutants: [normalizePollutant(filters.pollutant)],
         },
         signal
       );

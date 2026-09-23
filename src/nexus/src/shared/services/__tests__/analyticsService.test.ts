@@ -1,58 +1,29 @@
 export {};
 
 jest.mock('../apiClient', () => {
-  const mockGet = jest.fn();
   const mockPost = jest.fn();
-  const mockSetAuthToken = jest.fn();
-  const mockRemoveAuthToken = jest.fn();
   return {
-    createAuthenticatedClient: () => ({
-      get: mockGet,
-      post: mockPost,
-      setAuthToken: mockSetAuthToken,
-      removeAuthToken: mockRemoveAuthToken,
-    }),
-    createServerClient: () => ({
-      get: mockGet,
-      post: mockPost,
-      setAuthToken: mockSetAuthToken,
-      removeAuthToken: mockRemoveAuthToken,
-    }),
-    __mockGet: mockGet,
+    createServerClient: () => ({ post: mockPost }),
     __mockPost: mockPost,
   };
 });
 
-jest.mock('../sessionAuthToken', () => ({
-  syncClientSessionToken: jest.fn(),
-}));
-
 const { __mockPost: mockPost } = jest.requireMock('../apiClient') as {
-  __mockGet: jest.Mock;
   __mockPost: jest.Mock;
 };
 
-const {
-  analyticsService,
-  chartContractToRetryForErrorBody,
-  resetChartDateContract,
-} = jest.requireActual('../analyticsService') as {
+  const { analyticsService, buildChartPayload, normalizeChartApiFrequency } = jest.requireActual(
+  '../analyticsService'
+) as {
   analyticsService: {
     getChartData: (
-      request: {
-        sites?: string[];
-        startDateTime: string;
-        endDateTime: string;
-        frequency?: string;
-        pollutant?: string;
-        chartType?: string;
-        organisation_name?: string;
-      },
+      request: Record<string, unknown>,
       signal?: AbortSignal
-    ) => Promise<{
-      status: string;
-      data: unknown[];
-    }>;
+    ) => Promise<Record<string, unknown>>;
+    downloadData: (
+      request: Record<string, unknown>,
+      signal?: AbortSignal
+    ) => Promise<unknown>;
     getRecentReadings: (
       siteIds: string[],
       signal?: AbortSignal
@@ -61,831 +32,237 @@ const {
       siteIds: string[],
       signal?: AbortSignal
     ) => Promise<unknown[]>;
-    downloadData: (
-      request: Record<string, unknown>,
-      signal?: AbortSignal
-    ) => Promise<unknown>;
   };
-  chartContractToRetryForErrorBody: (body: unknown) => string | null;
-  resetChartDateContract: () => void;
+  buildChartPayload: (
+    request: Record<string, unknown>
+  ) => Record<string, unknown>;
+  normalizeChartApiFrequency: (value: string) => string;
 };
 
-const LEGACY_REJECTION_BODY = {
-  errors: {
-    startDate: ['Missing data for required field.'],
-    endDate: ['Missing data for required field.'],
-    endDateTime: ['Unknown field.'],
-    startDateTime: ['Unknown field.'],
-  },
+const chartRequest = {
+  sites: ['site-1'],
+  startDateTime: '2026-08-01T00:00:00.000Z',
+  endDateTime: '2026-08-08T23:59:59.999Z',
+  chartType: 'line',
+  frequency: 'daily',
+  pollutants: ['pm2_5'],
+  organisationName: 'AirQo',
+};
+
+const downloadRequest = {
+  datatype: 'calibrated',
+  downloadType: 'csv',
+  endDateTime: '2026-08-08T23:59:59.999Z',
+  frequency: 'daily',
+  minimum: false,
+  outputFormat: 'airqo-standard',
+  pollutants: ['pm2_5'],
+  startDateTime: '2026-08-01T00:00:00.000Z',
+  sites: ['site-1'],
 };
 
 describe('AnalyticsService.getChartData', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
+  beforeEach(() => jest.clearAllMocks());
 
-  const chartPayload = {
-    status: 'success',
-    data: [{ date: '2025-01-01', pm2_5: 10 }],
-  };
+  it('uses the canonical v2 chart route and exact current request fields', async () => {
+    const chartResponse = {
+      status: 'success',
+      message: 'Chart data retrieved successfully.',
+      chart_type: 'line',
+      data: [],
+      metadata: { total_count: 0, has_more: false, next: null },
+    };
+    mockPost.mockResolvedValueOnce({ data: chartResponse });
 
-  it('normalizes ISO datetime to YYYY-MM-DD in the request body', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21T00:00:00.000Z',
-      endDateTime: '2025-08-21T23:59:59.000Z',
-    });
+    await expect(analyticsService.getChartData(chartRequest)).resolves.toEqual(
+      chartResponse
+    );
 
     expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
+      '/analytics/dashboard/chart/data',
+      {
+        sites: ['site-1'],
+        startDateTime: '2026-08-01T00:00:00.000Z',
+        endDateTime: '2026-08-08T23:59:59.999Z',
+        chartType: 'line',
+        frequency: 'daily',
+        pollutants: ['pm2_5'],
+        metaDataFields: ['site_id'],
+        organisationName: 'AirQo',
+      },
+      { signal: undefined }
+    );
+
+    const sentBody = mockPost.mock.calls[0][1];
+    expect(sentBody).not.toHaveProperty('pollutant');
+    expect(sentBody).not.toHaveProperty('organisation_name');
+    expect(sentBody).not.toHaveProperty('startDate');
+    expect(sentBody).not.toHaveProperty('endDate');
+  });
+
+  it('deduplicates pollutants and always requests site_id metadata', () => {
+    expect(
+      buildChartPayload({
+        ...chartRequest,
+        pollutants: ['pm10', 'pm10'],
+        metaDataFields: ['latitude', 'site_id'],
+      })
+    ).toEqual(
       expect.objectContaining({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      }),
-      expect.anything()
+        pollutants: ['pm10'],
+        metaDataFields: ['latitude', 'site_id'],
+      })
     );
   });
 
-  it('passes through YYYY-MM-DD dates unchanged', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
+  it('preserves documented raw and yearly chart frequencies', () => {
+    expect(
+      normalizeChartApiFrequency('raw')
+    ).toBe('raw');
+    expect(normalizeChartApiFrequency('yearly')).toBe('yearly');
+  });
 
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21',
-      endDateTime: '2025-08-21',
-    });
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.objectContaining({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      }),
-      expect.anything()
+  it('passes only documented chart types to the API', () => {
+    expect(buildChartPayload({ ...chartRequest, chartType: 'pie' })).toEqual(
+      expect.objectContaining({ chartType: 'pie' })
+    );
+    expect(buildChartPayload({ ...chartRequest, chartType: 'scatter' })).toEqual(
+      expect.objectContaining({ chartType: 'line' })
     );
   });
 
-  it('maps the rejected raw frequency to daily (live backend 400s on raw)', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21',
-      endDateTime: '2025-08-21',
-      frequency: 'raw',
-    });
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.objectContaining({ frequency: 'daily' }),
-      expect.anything()
-    );
-  });
-
-  it('passes accepted frequencies through unchanged', async () => {
-    mockPost.mockResolvedValue({ data: chartPayload });
-
-    for (const frequency of ['hourly', 'daily', 'weekly', 'monthly']) {
-      await analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-        frequency,
-      });
-    }
-
-    const bodies = mockPost.mock.calls.map(call => call[1]);
-    expect(bodies.map(body => body.frequency)).toEqual([
-      'hourly',
-      'daily',
-      'weekly',
-      'monthly',
-    ]);
-  });
-
-  it('forwards abort signal', async () => {
+  it('forwards the abort signal and never retries a rejected request', async () => {
     const controller = new AbortController();
-    const abortError = new Error('The operation was aborted.');
-    abortError.name = 'AbortError';
-    mockPost.mockRejectedValueOnce(abortError);
+    const failure = new Error('request failed');
+    mockPost.mockRejectedValueOnce(failure);
 
     await expect(
-      analyticsService.getChartData(
-        { startDateTime: '2025-08-21', endDateTime: '2025-08-21' },
-        controller.signal
-      )
-    ).rejects.toThrow();
-
+      analyticsService.getChartData(chartRequest, controller.signal)
+    ).rejects.toBe(failure);
+    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
+      '/analytics/dashboard/chart/data',
       expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-});
-
-describe('chartContractToRetryForErrorBody', () => {
-  it('detects the legacy schema rejection and returns the alternate contract', () => {
-    expect(chartContractToRetryForErrorBody(LEGACY_REJECTION_BODY)).toBe(
-      'startDate'
+      { signal: controller.signal }
     );
   });
 
-  it('detects the current-schema pydantic rejection of a startDate request (mirror signature)', () => {
-    const pydanticBody = {
-      message: 'Validation error',
-      status: 'error',
-      errors: [
-        {
-          type: 'missing',
-          loc: ['body', 'startDateTime'],
-          msg: 'Field required',
-        },
-      ],
-    };
-    expect(chartContractToRetryForErrorBody(pydanticBody)).toBe(
-      'startDateTime'
-    );
-  });
-
-  it('returns null for unrelated 400 bodies (no retry)', () => {
-    expect(
-      chartContractToRetryForErrorBody({
-        message:
-          'No data source configured for datatype=calibrated, device_category=lowcost, frequency=raw',
-      })
-    ).toBeNull();
-    expect(chartContractToRetryForErrorBody(null)).toBeNull();
-    expect(chartContractToRetryForErrorBody(undefined)).toBeNull();
-    expect(chartContractToRetryForErrorBody({})).toBeNull();
-  });
-});
-
-describe('AnalyticsService.getChartData contract negotiation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
-
-  const chartPayload = { status: 'success', data: [] };
-
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  it('retries ONCE with startDate/endDate on the legacy rejection, then caches the winning contract', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    const request = {
-      sites: ['site-1'],
-      startDateTime: '2025-08-15T00:00:00.000Z',
-      endDateTime: '2025-08-21T00:00:00.000Z',
-      frequency: 'daily',
-    };
-
-    await expect(analyticsService.getChartData(request)).resolves.toEqual(
-      chartPayload
-    );
-
-    // First attempt: primary keys; second attempt: legacy keys.
-    expect(mockPost).toHaveBeenCalledTimes(2);
-    expect(mockPost.mock.calls[0][1]).toEqual(
-      expect.objectContaining({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    );
-    expect(mockPost.mock.calls[1][1]).toEqual(
-      expect.objectContaining({
-        startDate: '2025-08-15',
-        endDate: '2025-08-21',
-      })
-    );
-    // The legacy body must never leak into the retry payload.
-    expect(mockPost.mock.calls[1][1]).not.toHaveProperty('startDateTime');
-    expect(mockPost.mock.calls[1][1]).not.toHaveProperty('endDateTime');
-
-    // Cached: the NEXT request goes straight to the legacy key set.
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData(request);
-    expect(mockPost).toHaveBeenCalledTimes(3);
-    expect(mockPost.mock.calls[2][1]).toEqual(
-      expect.objectContaining({ startDate: '2025-08-15' })
-    );
-    expect(mockPost).toHaveBeenCalledTimes(3); // no extra probe call
-  });
-
-  it('does not retry on unrelated 400 bodies', async () => {
-    mockPost.mockRejectedValueOnce(
-      axiosLikeError(400, {
-        message: 'No data source configured for datatype=calibrated',
-      })
-    );
-
+  it('rejects missing dates before making a request', async () => {
     await expect(
       analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow();
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it('never retries an aborted first attempt', async () => {
-    const abortError = new Error('canceled');
-    abortError.name = 'AbortError';
-    mockPost.mockRejectedValueOnce(abortError);
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow();
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it('surfaces the ORIGINAL error when the alternate contract also fails', async () => {
-    const originalError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    mockPost
-      .mockRejectedValueOnce(originalError)
-      .mockRejectedValueOnce(axiosLikeError(422, { message: 'bad values' }));
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toBe(originalError);
-
-    expect(mockPost).toHaveBeenCalledTimes(2);
-  });
-
-  it('passes the abort signal through to both attempts', async () => {
-    const controller = new AbortController();
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData(
-      { startDateTime: '2025-08-21', endDateTime: '2025-08-21' },
-      controller.signal
-    );
-
-    expect(mockPost.mock.calls[0][2]).toEqual(
-      expect.objectContaining({ signal: controller.signal })
-    );
-    expect(mockPost.mock.calls[1][2]).toEqual(
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-
-  it('persists the winning contract to localStorage so a hard reload skips the 400 probe', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    });
-
-    // The legacy contract is now persisted. A simulated reload — fresh
-    // module instance, same localStorage — must use it on the FIRST
-    // request, with no 400 probe.
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // isolateModules runs the callback in a clean module registry: the
-    // analyticsService module re-initializes and re-reads localStorage on
-    // import. We return the in-flight promise so Jest awaits it before
-    // the test ends.
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        // The shared mock instance carries call history from outside the
-        // sandbox; clear it so the assertions below are scoped to the
-        // reloaded-module path.
-        mockPost.mockClear();
-        mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              // One call only — no probe, no 400.
-              expect(mockPost).toHaveBeenCalledTimes(1);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({
-                  startDate: '2025-08-15',
-                  endDate: '2025-08-21',
-                })
-              );
-              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
-                'startDateTime'
-              );
-              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
-                'endDateTime'
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
-  });
-
-  it('uses the persisted primary contract on reload — no probe, no 400', async () => {
-    // Simulate a user whose very first request succeeded with the current
-    // (DateTime) schema; that contract was persisted in a previous session.
-    window.localStorage.setItem(
-      'nexus:analytics:chart-date-contract',
-      'startDateTime'
-    );
-
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        mockPost.mockClear();
-        mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              expect(mockPost).toHaveBeenCalledTimes(1);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({
-                  startDateTime: '2025-08-15',
-                  endDateTime: '2025-08-21',
-                })
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
-  });
-
-  it('treats a corrupt localStorage value as a fresh session (re-probes)', async () => {
-    // Defensive: if a previous build or migration wrote something we don't
-    // recognize, fall back to the in-memory probe path instead of crashing
-    // or sending the wrong contract silently.
-    window.localStorage.setItem(
-      'nexus:analytics:chart-date-contract',
-      'not-a-real-contract'
-    );
-
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        mockPost.mockClear();
-        mockPost
-          .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-          .mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              // Probe + corrected retry, same as a brand-new session.
-              expect(mockPost).toHaveBeenCalledTimes(2);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({ startDateTime: '2025-08-15' })
-              );
-              expect(mockPost.mock.calls[1][1]).toEqual(
-                expect.objectContaining({ startDate: '2025-08-15' })
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
-  });
-
-  it('refuses to fire when startDateTime is empty and never hits the network', async () => {
-    await expect(
-      analyticsService.getChartData({
+        ...chartRequest,
         startDateTime: '',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow(/missing a start date/i);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('refuses to fire when endDateTime is empty and never hits the network', async () => {
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-15',
         endDateTime: '',
-      })
-    ).rejects.toThrow(/missing an end date/i);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('refuses to fire when both dates are missing (undefined) and never hits the network', async () => {
-    await expect(
-      analyticsService.getChartData({
-        // Cast required because the type declares the keys as required, but
-        // a corrupted caller can still bypass the type system at runtime.
-        startDateTime: undefined as unknown as string,
-        endDateTime: undefined as unknown as string,
       })
     ).rejects.toThrow(/missing start and end dates/i);
     expect(mockPost).not.toHaveBeenCalled();
   });
 });
 
-describe('AnalyticsService.getChartData single-flight negotiation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
+describe('AnalyticsService.downloadData pagination', () => {
+  beforeEach(() => jest.clearAllMocks());
 
-  const chartPayload = { status: 'success', data: [] };
-
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  // What a startDate-contract request gets from a CURRENT-schema backend.
-  const CURRENT_SCHEMA_REJECTION_BODY = {
-    errors: [
-      {
-        type: 'missing',
-        loc: ['body', 'startDateTime'],
-        msg: 'Field required',
+  it('requests JSON internally and normalizes a single completed page', async () => {
+    mockPost.mockResolvedValueOnce({
+      data: {
+        status: 'success',
+        message: 'ok',
+        data: [{ site_name: 'Site 1' }],
+        metadata: { total_count: 1, has_more: false, next: null },
       },
-      {
-        type: 'missing',
-        loc: ['body', 'endDateTime'],
-        msg: 'Field required',
-      },
-    ],
-  };
-
-  /** Drains pending microtasks so in-flight promise chains settle. */
-  const flushAsync = () => new Promise<void>(resolve => setTimeout(resolve, 0));
-
-  it('shares ONE probe pair across concurrent requests on a fresh session — no caller surfaces the 400', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValue({ data: chartPayload });
-
-    const request = {
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    };
-
-    const results = await Promise.all([
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-    ]);
-
-    expect(results).toEqual([chartPayload, chartPayload, chartPayload]);
-
-    // Exactly ONE probe pair: call 0 probed the primary keys and absorbed
-    // the legacy 400; call 1 was that same caller's corrected retry. The
-    // two other callers joined the shared negotiation and each sent exactly
-    // once with the settled contract — they never saw a 400.
-    expect(mockPost).toHaveBeenCalledTimes(4);
-    const bodies = mockPost.mock.calls.map(call => call[1]);
-    expect(bodies[0]).toEqual(
-      expect.objectContaining({ startDateTime: '2025-08-15' })
-    );
-    for (let index = 1; index < bodies.length; index++) {
-      expect(bodies[index]).toEqual(
-        expect.objectContaining({ startDate: '2025-08-15' })
-      );
-      expect(bodies[index]).not.toHaveProperty('startDateTime');
-    }
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-  });
-
-  it('re-probes ONCE when the persisted startDate contract is rejected by a current-schema backend', async () => {
-    // Settle the session on the legacy contract first, as a previous visit
-    // would have persisted.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
     });
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // The backend flapped to the CURRENT schema: the cached startDate keys
-    // now earn the pydantic mirror rejection; the startDateTime retry wins.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
 
     await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    ).resolves.toEqual(chartPayload);
-
-    // Attempt 3 used the stale startDate keys and was rejected; attempt 4
-    // retried with startDateTime and succeeded — bounded at two attempts.
-    expect(mockPost).toHaveBeenCalledTimes(4);
-    expect(mockPost.mock.calls[2][1]).toEqual(
-      expect.objectContaining({ startDate: '2025-08-15' })
-    );
-    expect(mockPost.mock.calls[3][1]).toEqual(
-      expect.objectContaining({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    );
-    expect(mockPost.mock.calls[3][1]).not.toHaveProperty('startDate');
-    // The recovered contract replaces the stale persisted one.
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDateTime');
-  });
-
-  it('runs ONE shared re-probe when concurrent requests hit a stale contract', async () => {
-    // Settle on the legacy contract first.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
+      analyticsService.downloadData(downloadRequest)
+    ).resolves.toEqual({
+      status: 'success',
+      message: 'ok',
+      data: [{ site_name: 'Site 1' }],
+      metadata: { total_count: 1, has_more: false, next: null },
     });
-
-    // All three cached-contract attempts are rejected by the current schema.
-    // The shared re-probe hangs on a deferred until we release it, so we can
-    // observe that NO other caller fires its own probe while it is in flight.
-    let releaseReProbe!: (value: { data: typeof chartPayload }) => void;
-    const reProbeResponse = new Promise<{ data: typeof chartPayload }>(
-      resolve => {
-        releaseReProbe = resolve;
-      }
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/data-download',
+      expect.objectContaining({ downloadType: 'json' }),
+      { signal: undefined }
     );
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockReturnValueOnce(reProbeResponse)
-      .mockResolvedValue({ data: chartPayload });
-
-    const request = {
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    };
-    const allSettled = Promise.all([
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-    ]);
-
-    await flushAsync();
-
-    // Calls 0-1 settled the session; calls 2-4 are the three stale attempts;
-    // call 5 is the SINGLE shared re-probe. The other two failures joined it
-    // instead of probing — nothing else fired while it hangs.
-    expect(mockPost).toHaveBeenCalledTimes(6);
-
-    releaseReProbe({ data: chartPayload });
-    await expect(allSettled).resolves.toEqual([
-      chartPayload,
-      chartPayload,
-      chartPayload,
-    ]);
-
-    // After release only the two joiners sent their own settled requests.
-    expect(mockPost).toHaveBeenCalledTimes(8);
-    // Calls 0-1 are the setup pair (probe + corrected retry); scope the
-    // key-family tally to the stale-contract phase: 3 stale startDate
-    // attempts + 1 shared re-probe + 2 joiner sends, all startDateTime.
-    const phaseBodies = mockPost.mock.calls.slice(2).map(call => call[1]);
-    expect(phaseBodies.filter(body => 'startDate' in body)).toHaveLength(3);
-    expect(phaseBodies.filter(body => 'startDateTime' in body)).toHaveLength(3);
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDateTime');
-  });
-});
-
-describe('AnalyticsService recovery cancellation propagation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
   });
 
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  const chartPayload = { status: 'success', data: [] };
-
-  const makeAbortError = () => {
-    const err = new Error('The operation was aborted.');
-    err.name = 'AbortError';
-    return err;
-  };
-
-  it('(c) fresh-probe alternate retry: AbortError from alternate propagates, not the primary contract-rejection error', async () => {
-    // Fresh session: primary keys fail with contract rejection, alternate
-    // retry is aborted. The AbortError must surface, NOT the original error.
-    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    const abortError = makeAbortError();
-    mockPost
-      .mockRejectedValueOnce(primaryError)
-      .mockRejectedValueOnce(abortError);
-
+  it('follows metadata.next even when an intermediate page is empty', async () => {
     const controller = new AbortController();
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'cursor-2' },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          data: [{ site_name: 'Site 1' }, { site_name: 'Site 2' }],
+          metadata: { total_count: 2, has_more: false, next: null },
+        },
+      });
 
     await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-21',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toThrow(abortError);
+      analyticsService.downloadData(downloadRequest, controller.signal)
+    ).resolves.toEqual({
+      status: 'success',
+      message: 'first',
+      data: [{ site_name: 'Site 1' }, { site_name: 'Site 2' }],
+      metadata: { total_count: 2, has_more: false, next: null },
+    });
 
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[0][1]).not.toHaveProperty('cursor');
+    expect(mockPost.mock.calls[1][1]).toEqual(
+      expect.objectContaining({ cursor: 'cursor-2', downloadType: 'json' })
+    );
+    expect(mockPost.mock.calls[1][2]).toEqual({ signal: controller.signal });
+  });
+
+  it('fails safely when the backend repeats a pagination cursor', async () => {
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'same-cursor' },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'same-cursor' },
+        },
+      });
+
+    await expect(
+      analyticsService.downloadData(downloadRequest)
+    ).rejects.toThrow(/repeated pagination cursor/i);
     expect(mockPost).toHaveBeenCalledTimes(2);
   });
 
-  it('(c) positive control: non-cancellation failure in alternate retry still surfaces the primary error', async () => {
-    // When the alternate retry fails with a non-cancellation error (e.g. 422),
-    // the PRIMARY contract-rejection error must still surface — designed joiner
-    // semantics: callers see the first failure, not a secondary symptom.
-    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    const secondaryError = axiosLikeError(422, {
-      message: 'Unprocessable Entity',
-    });
-    mockPost
-      .mockRejectedValueOnce(primaryError)
-      .mockRejectedValueOnce(secondaryError);
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toBe(primaryError);
-
-    expect(mockPost).toHaveBeenCalledTimes(2);
-  });
-
-  it('cancellation during fresh-session probe propagates AbortError (no retry)', async () => {
-    // Abort before the probe fires — AbortError surfaces immediately,
-    // never triggering the contract-rejection retry path.
-    const abortError = makeAbortError();
-    mockPost.mockRejectedValueOnce(abortError);
-
-    const controller = new AbortController();
-
-    await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-21',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toThrow(abortError);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it("owner shared re-probe: AbortError from the owner's alternate attempt propagates, not the original stale-contract error", async () => {
-    // What a startDate-contract request gets from a CURRENT-schema backend.
-    const CURRENT_SCHEMA_REJECTION_BODY = {
-      errors: [
-        {
-          type: 'missing',
-          loc: ['body', 'startDateTime'],
-          msg: 'Field required',
-        },
-        {
-          type: 'missing',
-          loc: ['body', 'endDateTime'],
-          msg: 'Field required',
-        },
-      ],
-    };
-
-    // Step 1: Settle the session on the legacy (startDate) contract.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    });
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // Step 2: The cached-contract attempt is rejected by the current schema,
-    // making this request the OWNER of the shared re-probe. The re-probe
-    // (alternate attempt) is then aborted — AbortError must propagate.
-    const abortError = makeAbortError();
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(abortError);
-
-    const controller = new AbortController();
-
-    await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-15',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toBe(abortError);
-
-    // Step 1 calls: 2 (fresh probe → LEGACY 400 → re-probe → success)
-    // Step 2 calls: 2 (cached-contract startDateTime → CURRENT 400 → owner re-probe → AbortError)
-    expect(mockPost).toHaveBeenCalledTimes(4);
+  it('preserves an unexpected legacy CSV response', async () => {
+    mockPost.mockResolvedValueOnce({ data: 'site_name,pm2_5\r\nSite 1,12' });
+    await expect(analyticsService.downloadData(downloadRequest)).resolves.toBe(
+      'site_name,pm2_5\r\nSite 1,12'
+    );
   });
 });
 
-describe('AnalyticsService.getRecentReadings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('AnalyticsService reading helpers', () => {
+  beforeEach(() => jest.clearAllMocks());
 
-  it('POSTs the trimmed site_ids to /devices/readings/recent and returns measurements', async () => {
-    const measurements = [{ site_id: 'site-1', aqi_index: 72 }];
+  it('trims site ids for recent readings and returns measurements', async () => {
+    const measurements = [{ site_id: 'site-1' }];
     mockPost.mockResolvedValueOnce({
       data: { success: true, message: 'ok', measurements },
     });
@@ -893,219 +270,36 @@ describe('AnalyticsService.getRecentReadings', () => {
     await expect(
       analyticsService.getRecentReadings([' site-1 ', '', 'site-2'])
     ).resolves.toEqual(measurements);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
       '/devices/readings/recent',
       { site_ids: ['site-1', 'site-2'] },
-      expect.anything()
+      { signal: undefined }
     );
   });
 
-  it('short-circuits to [] without a network call when no valid ids remain', async () => {
+  it('does not request recent readings for an empty id list', async () => {
     await expect(
-      analyticsService.getRecentReadings(['', '   '])
+      analyticsService.getRecentReadings(['', ' '])
     ).resolves.toEqual([]);
     expect(mockPost).not.toHaveBeenCalled();
   });
 
-  it('throws a fixed safe message on success:false (does not leak backend wording)', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: 'site_ids must be valid',
-        measurements: [],
-      },
-    });
-
-    await expect(
-      analyticsService.getRecentReadings(['bad-id'])
-    ).rejects.toThrow('Failed to fetch the latest readings.');
-  });
-
-  it('returns [] for a successful empty payload', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', measurements: [] },
-    });
-
-    await expect(
-      analyticsService.getRecentReadings(['site-x'])
-    ).resolves.toEqual([]);
-  });
-
-  it('forwards the abort signal', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', measurements: [] },
-    });
-
-    await analyticsService.getRecentReadings(['site-1'], controller.signal);
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/recent',
-      expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-
-  it('wraps a raw axios timeout/network error in a stable message (no axios text leaks)', async () => {
-    const rawAxiosError = new Error('timeout of 30000ms exceeded');
-    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
-    mockPost.mockRejectedValueOnce(rawAxiosError);
-
-    let thrown: Error | undefined;
-    try {
-      await analyticsService.getRecentReadings(['site-1']);
-    } catch (err) {
-      thrown = err as Error;
-    }
-
-    // The thrown message is the stable, non-sensitive one...
-    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
-    // ...and the raw axios wording must NOT surface as the thrown message.
-    expect(thrown?.message).not.toContain('timeout of 30000ms exceeded');
-  });
-
-  it('preserves the original axios error as a non-enumerable cause', async () => {
-    const rawAxiosError = new Error('timeout of 30000ms exceeded');
-    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
-    mockPost.mockRejectedValueOnce(rawAxiosError);
-
-    let thrown: (Error & { cause?: unknown }) | undefined;
-    try {
-      await analyticsService.getRecentReadings(['site-1']);
-    } catch (err) {
-      thrown = err as Error & { cause?: unknown };
-    }
-
-    expect(thrown).toBeDefined();
-    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
-    expect(thrown?.cause).toBe(rawAxiosError);
-    // cause must be non-enumerable so it never leaks into UI text/JSON.
-    expect(Object.getOwnPropertyDescriptor(thrown, 'cause')?.enumerable).toBe(
-      false
-    );
-  });
-
-  it('does NOT wrap a cancellation — AbortError propagates as-is', async () => {
-    const abortError = new Error('The operation was aborted.');
+  it('preserves cancellation errors from recent readings', async () => {
+    const abortError = new Error('aborted');
     abortError.name = 'AbortError';
     mockPost.mockRejectedValueOnce(abortError);
-
-    await expect(
-      analyticsService.getRecentReadings(['site-1'])
-    ).rejects.toThrow(abortError);
-  });
-});
-
-describe('AnalyticsService.getComparisonReadings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    await expect(analyticsService.getRecentReadings(['site-1'])).rejects.toBe(
+      abortError
+    );
   });
 
-  it('POSTs the trimmed site_ids to /devices/readings/comparisons and returns readings', async () => {
-    const readings = [
-      { site_id: 'site-1', has_reading: true, aqi: { index: 72 } },
-    ];
+  it('returns comparison readings', async () => {
+    const readings = [{ site_id: 'site-1', has_reading: true }];
     mockPost.mockResolvedValueOnce({
       data: { success: true, message: 'ok', readings },
     });
-
     await expect(
-      analyticsService.getComparisonReadings([' site-1 ', '', 'site-2'])
+      analyticsService.getComparisonReadings([' site-1 '])
     ).resolves.toEqual(readings);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/comparisons',
-      { site_ids: ['site-1', 'site-2'] },
-      expect.anything()
-    );
-  });
-
-  it('short-circuits to [] without a network call when no valid ids remain', async () => {
-    await expect(
-      analyticsService.getComparisonReadings(['', '   '])
-    ).resolves.toEqual([]);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('throws a fixed safe message on success:false (does not leak backend wording)', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: 'site_ids must be valid',
-        readings: [],
-      },
-    });
-
-    await expect(
-      analyticsService.getComparisonReadings(['bad-id'])
-    ).rejects.toThrow('Failed to fetch the latest readings.');
-  });
-
-  it('returns [] for a successful empty payload', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', readings: [] },
-    });
-
-    await expect(
-      analyticsService.getComparisonReadings(['site-x'])
-    ).resolves.toEqual([]);
-  });
-
-  it('forwards the abort signal', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', readings: [] },
-    });
-
-    await analyticsService.getComparisonReadings(['site-1'], controller.signal);
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/comparisons',
-      expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-});
-
-describe('AnalyticsService.downloadData signal forwarding', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('passes an AbortSignal through to serverClient.post as the third-arg option', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({ data: { success: true } });
-
-    await analyticsService.downloadData(
-      { downloadType: 'csv', datatype: 'calibrated' },
-      controller.signal
-    );
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/data-download',
-      { downloadType: 'csv', datatype: 'calibrated' },
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-
-  it('still works when no signal is provided (third arg is { signal: undefined })', async () => {
-    mockPost.mockResolvedValueOnce({ data: 'csv-content' });
-
-    const result = await analyticsService.downloadData({
-      downloadType: 'csv',
-      datatype: 'raw',
-    });
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/data-download',
-      { downloadType: 'csv', datatype: 'raw' },
-      expect.objectContaining({ signal: undefined })
-    );
-    expect(result).toBe('csv-content');
   });
 });

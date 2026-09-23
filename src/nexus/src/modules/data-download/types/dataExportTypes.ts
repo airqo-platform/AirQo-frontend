@@ -4,9 +4,19 @@ export type TabType = 'sites' | 'devices' | 'countries' | 'cities';
 
 export type DeviceCategory = 'lowcost' | 'bam' | 'mobile' | 'gas';
 
-export type DataType = 'raw' | 'calibrated';
+export type DataType =
+  | 'raw'
+  | 'averaged'
+  | 'calibrated'
+  | 'consolidated';
 
-export type Frequency = 'raw' | 'hourly' | 'daily';
+export type Frequency =
+  | 'raw'
+  | 'hourly'
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'yearly';
 
 export type FileType = 'csv' | 'json';
 

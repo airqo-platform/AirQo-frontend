@@ -327,4 +327,27 @@ describe('getPartialDataWarning', () => {
       missingNames: ['Fmbs University Of Yaounde 1 Melen Campus', 'Lusaka'],
     });
   });
+
+  it('does not warn for one selected site when valid rows use a backend label', () => {
+    const response = {
+      status: 'success',
+      data: [
+        {
+          site_name: 'Peca Gulu',
+          datetime: '2026-09-23T00:00:00Z',
+          'PM2.5': 12.4,
+        },
+      ],
+    };
+
+    expect(
+      getPartialDataWarning(
+        asDownloadResponse(response),
+        'sites',
+        ['site-1'],
+        ['Acholi Road'],
+        ['pm2_5']
+      )
+    ).toBeUndefined();
+  });
 });

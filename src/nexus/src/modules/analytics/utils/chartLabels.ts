@@ -1,6 +1,15 @@
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { isUnknownPlaceholder } from './chartConfig';
 
+export const normalizeLocationName = (value: string): string =>
+  value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[,_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 /**
  * Chart series key (the name the data API returns) per site_id — recharts
  * keys series by this value, so colors must be keyed by it.
@@ -77,13 +86,13 @@ export const buildSeriesLabels = (
  * `site_id` (the backend d3 chart-data shape: `{site_name, pm2_5, ...}`)
  * against the app's known siteNames Map (id → name).
  *
- * When a point's `site` exactly matches a name in the reverse map and the
- * point has no `site_id`, the corresponding id is filled in.  When a point
+ * When a point's `site` matches a normalized name in the reverse map and the
+ * point has no `site_id`, the corresponding id is filled in. When a point
  * already has a `site_id`, its `site` is canonicalised to the sidecar/config
  * name so series keys stay consistent with the picker.
  *
  * Returns a NEW array (no mutation of inputs).  Unknown/placeholder names
- * are skipped; case-sensitive exact match only.
+ * are skipped; matching is case/spacing/punctuation-insensitive.
  */
 export const enrichChartDataSiteIds = (
   chartData: NormalizedChartData[],
@@ -94,8 +103,13 @@ export const enrichChartDataSiteIds = (
   // Build reverse map: name → first id.  Skip placeholder / empty names.
   const nameToId = new Map<string, string>();
   siteNames.forEach((name, id) => {
-    if (!isUnknownPlaceholder(name) && name.trim() && !nameToId.has(name)) {
-      nameToId.set(name, id);
+    const normalizedName = normalizeLocationName(name);
+    if (
+      !isUnknownPlaceholder(name) &&
+      normalizedName &&
+      !nameToId.has(normalizedName)
+    ) {
+      nameToId.set(normalizedName, id);
     }
   });
 
@@ -107,7 +121,7 @@ export const enrichChartDataSiteIds = (
 
     // Case 1: no site_id yet — try to fill from name match
     if (!currentSiteId && currentSite && !isUnknownPlaceholder(currentSite)) {
-      const matchedId = nameToId.get(currentSite);
+      const matchedId = nameToId.get(normalizeLocationName(currentSite));
       if (matchedId) {
         // Canonicalise site to the sidecar/config name for consistent keys
         const canonicalName = siteNames.get(matchedId) ?? currentSite;

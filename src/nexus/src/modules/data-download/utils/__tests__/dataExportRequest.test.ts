@@ -35,9 +35,10 @@ describe('buildDataDownloadRequest', () => {
     expect(request).toMatchObject({ sites: ['site-1'] });
     expect(request.device_ids).toBeUndefined();
     expect(request.device_names).toBeUndefined();
+    expect(request.metaDataFields).toContain('site_id');
   });
 
-  it('uses complete device names when they match the selected devices', () => {
+  it('uses device IDs even when human-readable names are available', () => {
     const request = buildDataDownloadRequest({
       ...baseArgs,
       activeTab: 'devices',
@@ -45,12 +46,14 @@ describe('buildDataDownloadRequest', () => {
       selectedDeviceNames: ['AQ-1', 'AQ-2'],
     });
 
-    expect(request.device_names).toEqual(['AQ-1', 'AQ-2']);
-    expect(request.device_ids).toBeUndefined();
+    // The API resolves device_names against device IDs, so human-readable
+    // labels must never be sent as that selector.
+    expect(request.device_ids).toEqual(['device-1', 'device-2']);
+    expect(request.device_names).toBeUndefined();
     expect(request.sites).toBeUndefined();
   });
 
-  it('falls back to device IDs when names are incomplete', () => {
+  it('uses device IDs when names are incomplete', () => {
     const request = buildDataDownloadRequest({
       ...baseArgs,
       activeTab: 'devices',
@@ -74,6 +77,22 @@ describe('buildDataDownloadRequest', () => {
     expect(request.sites).toEqual(['site-1', 'site-2']);
     expect(request.device_ids).toBeUndefined();
     expect(request.device_names).toBeUndefined();
+  });
+
+  it('keeps metadata and weather fields enabled for the documented export shape', () => {
+    const request = buildDataDownloadRequest({
+      ...baseArgs,
+      activeTab: 'sites',
+      selectedSiteIds: ['site-1'],
+    });
+
+    expect(request.minimum).toBe(false);
+    expect(request.metaDataFields).toEqual([
+      'latitude',
+      'longitude',
+      'site_id',
+    ]);
+    expect(request.weatherFields).toEqual(['temperature', 'humidity']);
   });
 
   it('honors an explicit empty custom grid selection instead of restoring defaults', () => {

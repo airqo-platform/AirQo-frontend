@@ -31,7 +31,7 @@ interface TrendPeriodConfig {
 }
 
 /**
- * Daily averages for 7D/30D/90D — matches the D3 chart API's aggregation
+ * Daily averages for 7D/30D/90D — matches the analytics chart API's aggregation
  * ladder and keeps the y-axis honest at every preset.
  */
 const PERIOD_CONFIG: Record<TrendPeriod, TrendPeriodConfig> = {
@@ -51,7 +51,7 @@ interface UseSiteTrendDataOptions {
 }
 
 /**
- * Trend (D3 chart) data for a single site at the given time-range preset.
+ * Trend chart data for a single site at the given time-range preset.
  *
  * NOTE: the backend chart endpoint only accepts `line`/`bar` chart types
  * (verified live: `area` returns 400 "Invalid chart type"). The data is
@@ -96,8 +96,7 @@ export const useSiteTrendData = ({
           endDateTime: dateRange.endDate,
           chartType: 'line',
           frequency: config.frequency,
-          pollutant: normalizePollutant(pollutant),
-          organisation_name: '',
+          pollutants: [normalizePollutant(pollutant)],
         },
         signal
       );

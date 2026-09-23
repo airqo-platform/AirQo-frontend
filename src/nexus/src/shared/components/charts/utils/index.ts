@@ -16,6 +16,7 @@ type ChartLocationDisplaySource = {
   formatted_name?: string;
   generated_name?: string;
   site?: string;
+  label?: string;
 };
 
 /**
@@ -31,6 +32,7 @@ export const getChartLocationDisplayName = (
     source.site_name?.trim() ||
     source.formatted_name?.trim() ||
     source.site?.trim() ||
+    source.label?.trim() ||
     source.generated_name?.trim() ||
     'Unknown Location'
   );
@@ -85,7 +87,12 @@ export const normalizeAirQualityData = (
     // Prefer explicit time/date/timestamp fields; fall back to scanning
     // any key whose value looks like a date string or epoch number.
     let rawTime: string | number | undefined =
-      point.time ?? point.date ?? point.timestamp ?? point.datetime;
+      point.time ??
+      point.date ??
+      point.timestamp ??
+      point.datetime ??
+      // Pie chart responses are categorical: the site label is the x value.
+      point.label;
 
     if (rawTime === undefined || rawTime === null) {
       // Scan remaining keys for a plausible time value
@@ -104,7 +111,17 @@ export const normalizeAirQualityData = (
 
     // Normalize to ISO-ish string
     let normalizedTime: string;
-    if (typeof rawTime === 'number') {
+    const isCategoricalLabel =
+      point.label !== undefined &&
+      rawTime === point.label &&
+      point.time === undefined &&
+      point.date === undefined &&
+      point.timestamp === undefined &&
+      point.datetime === undefined;
+
+    if (isCategoricalLabel) {
+      normalizedTime = String(rawTime);
+    } else if (typeof rawTime === 'number') {
       normalizedTime = new Date(rawTime).toISOString();
     } else if (typeof rawTime === 'string') {
       if (/^\d+$/.test(rawTime)) {

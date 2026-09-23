@@ -89,14 +89,13 @@ const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
   { value: 'pm10', label: 'PM10' },
 ];
 
-// Toolbar chart-type options: the draft/backend contract only persists
-// Line | Area | Bar, and scatter/radar/pie misrepresent multi-site time
-// series (and could never persist), so the quick-view selector offers
-// exactly the three supported types.
+// Toolbar chart-type options mirror the analytics API's line/pie/bar values;
+// Area remains a client-side presentation choice rendered from line data.
 const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
   { value: 'line', label: 'Line Chart' },
   { value: 'area', label: 'Area Chart' },
   { value: 'bar', label: 'Bar Chart' },
+  { value: 'pie', label: 'Pie Chart' },
 ];
 
 interface ForecastSeries {

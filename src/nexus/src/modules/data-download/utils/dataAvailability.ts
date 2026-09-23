@@ -30,7 +30,10 @@ const normalizeKey = (value: string): string =>
   value
     .trim()
     .toLowerCase()
-    .replace(/[\s-]+/g, '_');
+    // The API has used both `pm2_5` and `PM2.5`-style column names across
+    // download formats. Treat punctuation separators consistently so the
+    // availability check sees the same measurement in either response.
+    .replace(/[\s.\-/]+/g, '_');
 
 const normalizeRecordKeys = (record: DownloadRecord): Record<string, unknown> =>
   Object.entries(record).reduce((values, [key, value]) => {
@@ -103,21 +106,36 @@ const getMeasurementAliases = (pollutant: string): string[] => {
   ];
 };
 
+const isNumericMeasurement = (value: unknown): boolean => {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return isNumericMeasurement((value as { value?: unknown }).value);
+  }
+
+  const normalized = normalizeValue(value);
+  return (
+    normalized !== '' &&
+    normalized !== '--' &&
+    normalized !== 'null' &&
+    Number.isFinite(Number(normalized))
+  );
+};
+
+const hasRawMeasurementValue = (
+  record: DownloadRecord,
+  aliases: string[]
+): boolean => {
+  const normalizedRecord = normalizeRecordKeys(record);
+  return aliases.some(alias =>
+    isNumericMeasurement(normalizedRecord[normalizeKey(alias)])
+  );
+};
+
 const hasMeasurementValue = (
   record: DownloadRecord,
   selectedPollutants: string[]
 ): boolean => {
   const aliases = selectedPollutants.flatMap(getMeasurementAliases);
-
-  return aliases.some(alias => {
-    const value = getRecordValue(record, [alias]);
-    return (
-      value !== '' &&
-      value !== '--' &&
-      value !== 'null' &&
-      Number.isFinite(Number(value))
-    );
-  });
+  return hasRawMeasurementValue(record, aliases);
 };
 
 export const getMeasurementRecords = (
@@ -213,6 +231,24 @@ export const getDataAvailability = (
       totalSelected: normalizedSelectedIds.length,
       withData: normalizedSelectedIds.length - missingNames.length,
       missingNames,
+    };
+  }
+
+  // The download endpoint is scoped by the selected site/device query. Some
+  // valid exports omit `site_id` and use a backend location label that differs
+  // from the UI label (for example, a sensor/station name versus “Acholi
+  // Road”). For one selected location, measurement rows are therefore
+  // authoritative when no selected ID is present in the response. Without
+  // this bounded fallback the UI reports “no readings” despite exporting rows.
+  if (
+    normalizedSelectedIds.length === 1 &&
+    !allRecordsHaveIds &&
+    records.length > 0
+  ) {
+    return {
+      totalSelected: 1,
+      withData: 1,
+      missingNames: [],
     };
   }
 

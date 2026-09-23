@@ -129,10 +129,10 @@ describe('enrichChartDataSiteIds', () => {
     expect(result[0].site_id).toBe('');
   });
 
-  it('case-sensitive: does not match "site alpha" to "Site Alpha"', () => {
+  it('matches backend labels case- and punctuation-insensitively', () => {
     const data = [makePoint({ site: 'site alpha', site_id: '' })];
     const result = enrichChartDataSiteIds(data, siteNames);
-    expect(result[0].site_id).toBe('');
+    expect(result[0].site_id).toBe('id-1');
   });
 
   it('skips placeholder names in the siteNames map (no reverse entry created)', () => {

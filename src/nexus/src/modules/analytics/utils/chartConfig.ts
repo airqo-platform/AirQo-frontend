@@ -13,7 +13,7 @@ import type {
 import { getPollutantLabel } from '@/shared/utils/airQuality';
 import { FREQUENCY_LABELS } from '@/shared/components/charts/constants';
 
-export type ExplorerChartType = 'Line' | 'Area' | 'Bar';
+export type ExplorerChartType = 'Line' | 'Area' | 'Bar' | 'Pie';
 
 /**
  * Canonical unknown-name placeholder. The picker and sidecar both emit
@@ -181,10 +181,12 @@ export const removeChartSidecar = (groupId: string, chartId: string) => {
 
 const VALID_POLLUTANTS: ReadonlySet<string> = new Set(['pm2_5', 'pm10']);
 const VALID_FREQUENCIES: ReadonlySet<string> = new Set([
+  'raw',
   'hourly',
   'daily',
   'weekly',
   'monthly',
+  'yearly',
 ]);
 const VALID_STANDARDS: ReadonlySet<string> = new Set([
   'WHO',
@@ -216,11 +218,16 @@ export const normalizeFrequency = (value?: string | null): FrequencyType => {
 };
 
 /**
- * Map an explorer chart type (display-side) to the backend `chartType` value.
- * Area is a client-side presentation choice; the backend only knows `line` / `bar`.
+ * Map an explorer chart type (display-side) to the documented backend value.
+ * Area remains a client-side presentation choice rendered from line data.
  */
-export const toBackendChartType = (chartType: string): 'bar' | 'line' =>
-  chartType === 'Bar' ? 'bar' : 'line';
+export const toBackendChartType = (
+  chartType: string
+): 'bar' | 'line' | 'pie' => {
+  if (chartType === 'Bar') return 'bar';
+  if (chartType === 'Pie') return 'pie';
+  return 'line';
+};
 
 export const normalizeExplorerChartType = (
   value?: string | null
@@ -228,6 +235,7 @@ export const normalizeExplorerChartType = (
   const normalized = (value ?? '').toLowerCase();
   if (normalized === 'area') return 'Area';
   if (normalized === 'bar' || normalized === 'column') return 'Bar';
+  if (normalized === 'pie') return 'Pie';
   return 'Line';
 };
 

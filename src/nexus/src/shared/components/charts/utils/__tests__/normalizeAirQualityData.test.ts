@@ -2,6 +2,21 @@ import { normalizeAirQualityData } from '../index';
 import type { AirQualityDataPoint } from '../../types';
 
 describe('normalizeAirQualityData', () => {
+  it('normalizes pie records that use label/value instead of datetime', () => {
+    const result = normalizeAirQualityData([
+      { label: 'Acholi Road', value: 18.4, site_id: 'site-1' },
+    ]);
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        time: 'Acholi Road',
+        site: 'Acholi Road',
+        value: 18.4,
+        site_id: 'site-1',
+      }),
+    ]);
+  });
+
   it('passes through the legacy {time, value, site_id, name} shape', () => {
     const input: AirQualityDataPoint[] = [
       {

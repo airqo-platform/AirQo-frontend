@@ -630,6 +630,14 @@ const normalizeCountryCityDownloadResponse = (
     message:
       typeof response === 'string' ? 'Data export prepared' : response.message,
     data: enhancedRecords as unknown as DataDownloadResponse['data'],
+    metadata:
+      typeof response === 'string'
+        ? {
+            total_count: enhancedRecords.length,
+            has_more: false,
+            next: null,
+          }
+        : response.metadata,
   };
 };
 
@@ -907,10 +915,12 @@ export const useDataExportActions = (
         return null;
       }
 
-      const effectiveDataType: 'calibrated' | 'raw' =
+      const effectiveDataType: DataDownloadRequest['datatype'] =
         activeTab === 'devices' && deviceCategory === 'bam'
           ? 'raw'
-          : (dataType as 'calibrated' | 'raw');
+          : frequency === 'raw'
+            ? 'raw'
+            : (dataType as DataDownloadRequest['datatype']);
 
       const durationDays = getCalendarDayDifference(
         dateRange.from,

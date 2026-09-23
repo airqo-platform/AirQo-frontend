@@ -55,7 +55,8 @@ describe('chartConfig utils', () => {
     it('normalizes frequency values with fallback', () => {
       expect(normalizeFrequency('hourly')).toBe('hourly');
       expect(normalizeFrequency('Weekly')).toBe('weekly');
-      expect(normalizeFrequency('raw')).toBe('daily');
+      expect(normalizeFrequency('raw')).toBe('raw');
+      expect(normalizeFrequency('yearly')).toBe('yearly');
       expect(normalizeFrequency(undefined)).toBe('daily');
     });
 
@@ -63,7 +64,7 @@ describe('chartConfig utils', () => {
       expect(normalizeExplorerChartType('Line')).toBe('Line');
       expect(normalizeExplorerChartType('area')).toBe('Area');
       expect(normalizeExplorerChartType('Column')).toBe('Bar');
-      expect(normalizeExplorerChartType('pie')).toBe('Line');
+      expect(normalizeExplorerChartType('pie')).toBe('Pie');
     });
   });
 

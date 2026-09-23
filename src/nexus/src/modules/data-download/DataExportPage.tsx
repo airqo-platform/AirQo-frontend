@@ -1051,9 +1051,19 @@ const DataExportPage = () => {
       });
 
       trackDataDownload(posthog, {
-        dataType: dataType as 'calibrated' | 'raw',
+        dataType: dataType as
+          | 'raw'
+          | 'averaged'
+          | 'calibrated'
+          | 'consolidated',
         fileType: format as 'csv' | 'json',
-        frequency: frequency as 'hourly' | 'daily' | 'monthly',
+        frequency: frequency as
+          | 'raw'
+          | 'hourly'
+          | 'daily'
+          | 'weekly'
+          | 'monthly'
+          | 'yearly',
         pollutants: selectedPollutants,
         locationCount: download.locationCount,
         startDate: dateRange?.from?.toISOString() || '',
