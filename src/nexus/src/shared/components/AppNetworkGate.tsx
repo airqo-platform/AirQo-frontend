@@ -182,6 +182,7 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
         void runProbe().then(ok => {
           if (ok) {
             probeIndexRef.current = 0; // reset backoff on success
+            void refreshCachedData();
           } else {
             if (getBackendStatus().status !== 'outage') return;
             probeIndexRef.current = Math.min(
@@ -193,7 +194,7 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
         });
       }, delayMs);
     },
-    [clearProbeTimer, runProbe]
+    [clearProbeTimer, refreshCachedData, runProbe]
   );
 
   // Start the bounded retry loop after the delayed overlay appears. The loop
@@ -409,6 +410,8 @@ const AppNetworkGate = ({ children }: AppNetworkGateProps) => {
     void runProbe().then(ok => {
       if (ok) {
         void refreshCachedData();
+      } else if (getBackendStatus().status === 'outage') {
+        setShowOverlay(true);
       }
     });
   }, [refreshCachedData, runProbe]);
