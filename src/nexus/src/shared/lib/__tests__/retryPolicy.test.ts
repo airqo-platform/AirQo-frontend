@@ -4,6 +4,7 @@ import {
   getErrorStatus,
   getRetryAfterSeconds,
   isAbortError,
+  isNetworkRetryableError,
 } from '../retryPolicy';
 
 describe('isAbortError', () => {
@@ -154,11 +155,40 @@ describe('swrRetryPolicy.shouldRetryOnError', () => {
     expect(swrRetryPolicy.shouldRetryOnError(makeStatus(404))).toBe(false);
   });
 
-  it('returns false for ERR_NETWORK', () => {
+  it('returns true for ERR_NETWORK (issue #4023)', () => {
     const err = Object.assign(new Error('Network Error'), {
       code: 'ERR_NETWORK',
     });
-    expect(swrRetryPolicy.shouldRetryOnError(err)).toBe(false);
+    expect(swrRetryPolicy.shouldRetryOnError(err)).toBe(true);
+  });
+
+  it('returns true for ECONNABORTED, ETIMEDOUT and TimeoutError', () => {
+    expect(
+      swrRetryPolicy.shouldRetryOnError(
+        Object.assign(new Error('aborted'), { code: 'ECONNABORTED' })
+      )
+    ).toBe(true);
+    expect(
+      swrRetryPolicy.shouldRetryOnError(
+        Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' })
+      )
+    ).toBe(true);
+    expect(
+      swrRetryPolicy.shouldRetryOnError(
+        Object.assign(new Error('timeout'), { name: 'TimeoutError' })
+      )
+    ).toBe(true);
+  });
+
+  it('classifies a synthesized 500 from a network failure as network-level', () => {
+    // Some services synthesize HTTP 500 on network errors — code/name must
+    // win over status so the error is still bounded-retried.
+    const err = Object.assign(new Error('Network Error'), {
+      code: 'ERR_NETWORK',
+      response: { status: 500 },
+    });
+    expect(isNetworkRetryableError(err)).toBe(true);
+    expect(swrRetryPolicy.shouldRetryOnError(err)).toBe(true);
   });
 
   it('returns false for an AbortError', () => {
@@ -166,6 +196,43 @@ describe('swrRetryPolicy.shouldRetryOnError', () => {
       name: 'AbortError',
     });
     expect(swrRetryPolicy.shouldRetryOnError(err)).toBe(false);
+  });
+});
+
+describe('isNetworkRetryableError', () => {
+  it('detects network-level codes and TimeoutError', () => {
+    expect(
+      isNetworkRetryableError(
+        Object.assign(new Error('x'), { code: 'ERR_NETWORK' })
+      )
+    ).toBe(true);
+    expect(
+      isNetworkRetryableError(
+        Object.assign(new Error('x'), { code: 'ECONNABORTED' })
+      )
+    ).toBe(true);
+    expect(
+      isNetworkRetryableError(
+        Object.assign(new Error('x'), { code: 'ETIMEDOUT' })
+      )
+    ).toBe(true);
+    expect(
+      isNetworkRetryableError(
+        Object.assign(new Error('x'), { name: 'TimeoutError' })
+      )
+    ).toBe(true);
+  });
+
+  it('ignores aborts, HTTP statuses and ordinary errors', () => {
+    expect(
+      isNetworkRetryableError(
+        Object.assign(new Error('x'), { name: 'AbortError' })
+      )
+    ).toBe(false);
+    expect(isNetworkRetryableError({ response: { status: 500 } })).toBe(false);
+    expect(isNetworkRetryableError(new Error('boom'))).toBe(false);
+    expect(isNetworkRetryableError(null)).toBe(false);
+    expect(isNetworkRetryableError(undefined)).toBe(false);
   });
 });
 
@@ -304,6 +371,125 @@ describe('swrRetryPolicy.onErrorRetry', () => {
     const revalidate = jest.fn();
     const error = Object.assign(new Error('Aborted'), {
       name: 'AbortError',
+    });
+
+    swrRetryPolicy.onErrorRetry(
+      error,
+      'test-key',
+      {} as never,
+      revalidate as never,
+      { retryCount: 0, errorRetryCount: 0 } as never
+    );
+
+    jest.advanceTimersByTime(10000);
+    expect(revalidate).not.toHaveBeenCalled();
+  });
+
+  // --- Network-level retries (issue #4023) --------------------------------
+
+  const makeNetworkError = () =>
+    Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK' });
+
+  it('schedules a network retry on the first failure (retryCount 1)', () => {
+    const revalidate = jest.fn();
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    const opts = { retryCount: 1, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
+
+    swrRetryPolicy.onErrorRetry(
+      makeNetworkError(),
+      'test-key',
+      {} as never,
+      revalidate as never,
+      opts
+    );
+
+    // backoff = 1000 * 2^0 = 1000, jitter = floor(0.5 * 250) = 125 → 1125 ms
+    jest.advanceTimersByTime(1124);
+    expect(revalidate).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    expect(revalidate).toHaveBeenCalledTimes(1);
+    expect(revalidate).toHaveBeenCalledWith(opts);
+
+    randomSpy.mockRestore();
+  });
+
+  it('schedules a network retry on the second failure (retryCount 2)', () => {
+    const revalidate = jest.fn();
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+    const opts = { retryCount: 2, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
+
+    swrRetryPolicy.onErrorRetry(
+      makeNetworkError(),
+      'test-key',
+      {} as never,
+      revalidate as never,
+      opts
+    );
+
+    // backoff = 1000 * 2^1 = 2000, jitter = 0 → 2000 ms
+    jest.advanceTimersByTime(1999);
+    expect(revalidate).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+    expect(revalidate).toHaveBeenCalledTimes(1);
+
+    randomSpy.mockRestore();
+  });
+
+  it('does NOT schedule a network retry once retryCount exceeds 2', () => {
+    const revalidate = jest.fn();
+    const opts = { retryCount: 3, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
+
+    swrRetryPolicy.onErrorRetry(
+      makeNetworkError(),
+      'test-key',
+      {} as never,
+      revalidate as never,
+      opts
+    );
+
+    jest.advanceTimersByTime(10000);
+    expect(revalidate).not.toHaveBeenCalled();
+  });
+
+  it('network retry delay stays within [backoff, backoff + jitter]', () => {
+    const revalidate = jest.fn();
+    // Max jitter: 0.999 * 250 → 249
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.999);
+    const opts = { retryCount: 1, dedupe: true } as Required<
+      import('swr').RevalidatorOptions
+    >;
+
+    swrRetryPolicy.onErrorRetry(
+      makeNetworkError(),
+      'test-key',
+      {} as never,
+      revalidate as never,
+      opts
+    );
+
+    // Lower bound: pure backoff (1000) is NOT enough when jitter is present.
+    jest.advanceTimersByTime(1000);
+    expect(revalidate).not.toHaveBeenCalled();
+
+    // Upper bound: backoff + jitter cap (1000 + 250) is enough.
+    jest.advanceTimersByTime(250);
+    expect(revalidate).toHaveBeenCalledTimes(1);
+
+    randomSpy.mockRestore();
+  });
+
+  it('never retries a 5xx error', () => {
+    const revalidate = jest.fn();
+    const error = Object.assign(new Error('Server Error'), {
+      response: { status: 503 },
     });
 
     swrRetryPolicy.onErrorRetry(

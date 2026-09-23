@@ -464,9 +464,13 @@ const DataExportPage = () => {
               site?.network ?? site?.sensor_manufacturer ?? site?.data_provider
             ),
             latitude: (site?.latitude ?? site?.lat ?? null) as
-              string | number | null,
+              | string
+              | number
+              | null,
             longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as
-              string | number | null,
+              | string
+              | number
+              | null,
             site_id: (site?.site_id ?? site?.id ?? id) as string,
           };
           if (site?.search_name) row.search_name = site.search_name as string;
@@ -496,7 +500,9 @@ const DataExportPage = () => {
             ),
             device_id: (device?.device_id ?? device?.id ?? id) as string,
             latitude: (device?.latitude ?? device?.lat ?? null) as
-              string | number | null,
+              | string
+              | number
+              | null,
             longitude: (device?.longitude ??
               device?.lng ??
               device?.lon ??
@@ -526,7 +532,8 @@ const DataExportPage = () => {
             grid.network ?? grid.sensor_manufacturer
           );
           const sites = grid.sites as
-            Array<{ _id?: string; name?: string }> | undefined;
+            | Array<{ _id?: string; name?: string }>
+            | undefined;
           sites?.forEach(site => {
             if (site._id) {
               siteIdToName.set(String(site._id), String(site.name ?? site._id));
@@ -649,6 +656,13 @@ const DataExportPage = () => {
     isGroupSyncing || groupCohortsHook.isLoading || currentHook.isLoading;
   const tableRefreshing =
     !tableLoading && (currentHook.isValidating || isRefreshing);
+  // Cohort-driven tabs (sites/devices): a failed group-cohorts fetch leaves
+  // the table with no data and no error of its own — surface the cohort error
+  // so the user sees a real message + Retry instead of "No data available".
+  const cohortErrorMessage =
+    (activeTab === 'sites' || activeTab === 'devices') && groupCohortsHook.error
+      ? (groupCohortsHook.error.message ?? 'Failed to load cohorts')
+      : null;
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||
@@ -969,6 +983,18 @@ const DataExportPage = () => {
       }
     }
   }, [currentHook, isGroupSyncing, isRefreshing]);
+
+  // Table-level Retry: when the cohort fetch is the active failure, revalidate
+  // cohorts first (the sites/devices key stays paused until cohorts settle),
+  // then refresh the current tab. Destructured so the callback keeps a stable
+  // identity (SWR's mutate is memoized; error only changes on transitions).
+  const { error: cohortsError, mutate: cohortsMutate } = groupCohortsHook;
+  const handleTableRefresh = useCallback(async () => {
+    if (cohortsError) {
+      void cohortsMutate?.();
+    }
+    await handleRefreshCurrentTab();
+  }, [cohortsError, cohortsMutate, handleRefreshCurrentTab]);
 
   const savePreparedDownload = async (
     download: PreparedDownloadResult,
@@ -1334,7 +1360,8 @@ const DataExportPage = () => {
                 columns={config.columns}
                 loading={tableLoading}
                 isRefreshing={tableRefreshing}
-                error={currentHook.error?.message || null}
+                error={currentHook.error?.message || cohortErrorMessage || null}
+                onRefresh={handleTableRefresh}
                 currentPage={currentState.page}
                 totalPages={meta.totalPages}
                 pageSize={currentState.pageSize}

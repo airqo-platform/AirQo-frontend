@@ -22,6 +22,7 @@ interface DataExportTableProps {
   onSearchChange: (search: string) => void;
   onSelectedItemsChange: (selectedIds: (string | number)[]) => void;
   onRowClick?: (item: TableItem) => void;
+  onRefresh?: () => void;
 }
 
 /**
@@ -46,6 +47,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   onSearchChange,
   onSelectedItemsChange,
   onRowClick,
+  onRefresh,
 }) => {
   const config = getTabConfig(activeTab);
 
@@ -75,6 +77,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
             ? onRowClick
             : undefined
         }
+        onRefresh={onRefresh}
       />
     </div>
   );

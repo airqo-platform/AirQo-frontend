@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { SWRConfig, type SWRConfiguration, type Cache, type State } from 'swr';
 import { shouldEnablePersistentClientCache } from '@/shared/lib/clientCache';
+import { swrRetryPolicy } from '@/shared/lib/retryPolicy';
 
 const SWR_CACHE_STORAGE_KEY_PREFIX = 'airqo:swr-cache:v2';
 const SWR_CACHE_MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
@@ -30,10 +31,6 @@ interface SWRProviderProps {
 const buildStorageKey = (scopeKey?: string | null): string | null => {
   if (!scopeKey) return null;
   return `${SWR_CACHE_STORAGE_KEY_PREFIX}:${scopeKey}`;
-};
-
-const shouldRetryOnError = (): boolean => {
-  return false;
 };
 
 const sanitizeStateForPersistence = (
@@ -231,14 +228,17 @@ export function SWRProvider({
     () => ({
       provider: () => cache as Cache<SWRCacheState>,
       revalidateOnFocus: false,
-      revalidateOnReconnect: false,
+      // Reconnect recovery (issue #4023): revalidate on reconnect so a tab
+      // recovers after sleep/wake or Wi-Fi reconnect. Deduped by
+      // dedupingInterval and keepPreviousData so no skeleton flash occurs.
+      revalidateOnReconnect: true,
       revalidateIfStale: true,
       keepPreviousData: true,
       dedupingInterval: 1000 * 30,
       focusThrottleInterval: 1000 * 60,
-      errorRetryCount: 0,
-      errorRetryInterval: 2000,
-      shouldRetryOnError,
+      // Retry cap is owned by swrRetryPolicy.onErrorRetry — do NOT set
+      // errorRetryCount/errorRetryInterval here.
+      ...swrRetryPolicy,
       isPaused: () => typeof navigator !== 'undefined' && !navigator.onLine,
     }),
     [cache]
