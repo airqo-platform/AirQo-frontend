@@ -126,6 +126,10 @@ async function addHeatmapOverlay(map, gridId, token) {
 }
 ```
 
+:::warning Keep your token off public pages
+This example puts the token in a browser request so the snippet stays short. On a public website, route the call through a server-side proxy instead. The [Website Map Integration guide](./website-map-integration.md) includes a ready-made proxy and a full Leaflet map with forecasts.
+:::
+
 ### Python
 
 ```python
