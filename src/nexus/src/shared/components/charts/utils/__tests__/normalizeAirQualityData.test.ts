@@ -1,7 +1,58 @@
-import { normalizeAirQualityData } from '../index';
+import { getChartLocationLabel, normalizeAirQualityData } from '../index';
 import type { AirQualityDataPoint } from '../../types';
 
 describe('normalizeAirQualityData', () => {
+  it('normalizes pie records that use label/value instead of datetime', () => {
+    const result = normalizeAirQualityData([
+      { label: 'Acholi Road', value: 18.4, site_id: 'site-1' },
+    ]);
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        time: 'Acholi Road',
+        site: 'Acholi Road',
+        value: 18.4,
+        site_id: 'site-1',
+      }),
+    ]);
+  });
+
+  it('preserves the pie API label as a site identity', () => {
+    const siteId = '647896640c47b0001eba8ff2';
+    const result = normalizeAirQualityData([{ label: siteId, value: 14.98 }]);
+
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        time: siteId,
+        site: siteId,
+        label: siteId,
+        value: 14.98,
+      })
+    );
+  });
+
+  it('tolerates non-string metadata without breaking normalization', () => {
+    const result = normalizeAirQualityData([
+      {
+        label: 'Gulu Central',
+        site_name: 42,
+        value: 12.4,
+      } as unknown as AirQualityDataPoint,
+    ]);
+
+    expect(result[0].site).toBe('Gulu Central');
+  });
+  it('uses a configured site name instead of an unresolved pie site id', () => {
+    const siteId = '647896640c47b0001eba8ff2';
+
+    expect(
+      getChartLocationLabel(
+        { site_id: siteId, site: siteId },
+        { [siteId]: 'Gulu Central' }
+      )
+    ).toBe('Gulu Central');
+    expect(getChartLocationLabel({ site: siteId })).toBe('Unknown Location');
+  });
   it('passes through the legacy {time, value, site_id, name} shape', () => {
     const input: AirQualityDataPoint[] = [
       {

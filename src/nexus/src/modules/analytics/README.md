@@ -205,14 +205,19 @@ AQI category boundaries and colors are fetched from `/devices/aqi-ranges` at run
 ```tsx
 const chartRequest = {
   sites: ['site1', 'site2'], // Selected site IDs
-  startDate: '2025-10-12',
-  endDate: '2025-10-19',
-  chartType: 'line',
+  // The analytics routers require ISO-8601 datetimes on the wire.
+  startDateTime: '2025-10-12T00:00:00.000Z',
+  endDateTime: '2025-10-19T23:59:59.999Z',
+  chartType: 'line', // line | pie | bar
   frequency: 'daily',
-  pollutant: 'pm2_5',
-  organisation_name: '',
+  pollutants: ['pm2_5'],
+  metaDataFields: ['site_id'],
 };
 ```
+
+The supported chart frequencies are `raw`, `hourly`, `daily`, `weekly`,
+`monthly`, and `yearly`. The reusable chart renderer also supports the API's
+categorical pie response (`{ label, value }`).
 
 ### User Preferences
 

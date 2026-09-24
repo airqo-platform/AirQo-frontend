@@ -88,8 +88,7 @@ export const useSiteChartData = ({
           endDateTime: dateRange.endDate,
           chartType: 'line',
           frequency,
-          pollutant: normalizePollutant(pollutant),
-          organisation_name: '',
+          pollutants: [normalizePollutant(pollutant)],
         },
         signal
       );

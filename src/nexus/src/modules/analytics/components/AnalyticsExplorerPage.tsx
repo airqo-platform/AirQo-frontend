@@ -216,8 +216,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
               endDateTime: filters.endDateTime,
               chartType,
               frequency: filters.frequency,
-              pollutant: normalizePollutant(filters.pollutant),
-              organisation_name: '',
+              pollutants: [normalizePollutant(filters.pollutant)],
             },
             signal
           );
@@ -240,29 +239,46 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     }),
   });
 
-  // Distinct locations that actually returned chart data across all charts.
-  const coveredSiteIds = useMemo(() => {
-    const withData = new Set<string>();
-    coverageQueries.forEach(query => {
-      const enriched = enrichChartDataSiteIds(query.data ?? [], siteNames);
-      enriched.forEach(point => {
-        if (point.site_id) withData.add(point.site_id);
-      });
-    });
-    return withData;
-  }, [coverageQueries, siteNames]);
-
-  const allSiteIds = useMemo(
-    () => Array.from(new Set(charts.flatMap(chart => chart.siteIds))),
-    [charts]
-  );
-
   const dataCoverage = useMemo(() => {
-    if (allSiteIds.length === 0) return null;
-    const withData = allSiteIds.filter(id => coveredSiteIds.has(id)).length;
-    if (withData >= allSiteIds.length) return null;
-    return { selected: allSiteIds.length, withData };
-  }, [allSiteIds, coveredSiteIds]);
+    if (charts.length === 0 || coverageQueries.length !== charts.length) {
+      return null;
+    }
+
+    // Do not announce missing data while a query is loading, or turn a
+    // request failure into a false “no readings” warning. Coverage is only
+    // authoritative after every chart query has settled successfully.
+    if (
+      coverageQueries.some(query => query.isFetching) ||
+      coverageQueries.every(query => query.isError)
+    ) {
+      return null;
+    }
+
+    let selected = 0;
+    let withData = 0;
+    let successfulCharts = 0;
+
+    charts.forEach((draft, index) => {
+      const query = coverageQueries[index];
+      if (!query.isSuccess) return;
+
+      successfulCharts += 1;
+      const selectedIds = new Set(draft.siteIds);
+      const returnedIds = new Set(
+        enrichChartDataSiteIds(query.data ?? [], siteNames)
+          .map(point => point.site_id)
+          .filter((siteId): siteId is string => Boolean(siteId))
+      );
+
+      selected += selectedIds.size;
+      withData += Array.from(selectedIds).filter(id =>
+        returnedIds.has(id)
+      ).length;
+    });
+
+    if (successfulCharts === 0 || withData >= selected) return null;
+    return { selected, withData };
+  }, [charts, coverageQueries, siteNames]);
 
   useEffect(() => {
     posthog?.capture('analytics_trends_viewed', {
@@ -311,7 +327,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                 severity="warning"
                 dense
                 title="Some locations have no data for the selected time period"
-                message="A few of your selected locations don't have readings available for the current time period and frequency, so some charts may not show every location. Try adjusting the time period or frequency, or remove locations without data from your charts."
+                message={`${dataCoverage.selected - dataCoverage.withData} of ${dataCoverage.selected} selected chart locations returned no readings for their configured dates and frequency, so those series are omitted. Try adjusting the time period or frequency.`}
               />
             )}
 

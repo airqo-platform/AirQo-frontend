@@ -202,9 +202,12 @@ export const FREQUENCY_LABELS = {
   daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
+  yearly: 'Yearly',
 } as const;
 
 export const DATA_TYPE_LABELS = {
   calibrated: 'Calibrated',
   raw: 'Raw',
+  averaged: 'Averaged',
+  consolidated: 'Consolidated',
 } as const;

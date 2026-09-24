@@ -67,22 +67,19 @@ export const resolveGridSitesForDownload = (
 const getDeviceSelector = (
   selectedDeviceIds: string[],
   selectedDeviceNames?: string[]
-): { device_ids: string[] } | { device_names: string[] } => {
+): { device_ids: string[] } => {
   const deviceIds = normalizeSelection(selectedDeviceIds);
-  const deviceNames = normalizeSelection(selectedDeviceNames);
-
-  // Names are only safe when they map one-to-one to the current selection.
-  // Otherwise use IDs, which are the authoritative table selection values.
-  if (deviceNames.length === deviceIds.length && deviceNames.length > 0) {
-    return { device_names: deviceNames };
-  }
 
   if (deviceIds.length > 0) {
     return { device_ids: deviceIds };
   }
 
+  // The analytics API documents `device_names` as a legacy alias that is
+  // resolved against the device_id column, not human-readable names. Never
+  // send the UI labels as that selector.
+  void selectedDeviceNames;
   throw new Error(
-    'At least one device ID or device name is required for export'
+    'At least one device ID is required for device export'
   );
 };
 
@@ -109,7 +106,9 @@ export const buildDataDownloadRequest = ({
   const effectiveDataType: DataDownloadRequest['datatype'] =
     activeTab === 'devices' && deviceCategory === 'bam'
       ? 'raw'
-      : (dataType as DataDownloadRequest['datatype']);
+      : frequency === 'raw'
+        ? 'raw'
+        : (dataType as DataDownloadRequest['datatype']);
 
   const normalizedSiteIds = normalizeSelection(selectedSiteIds);
   const effectiveGridSiteIds = customSelectedGridSiteIds ?? selectedGridSiteIds;
@@ -143,8 +142,12 @@ export const buildDataDownloadRequest = ({
     startDateTime: toUtcDayStartIso(dateRange.from),
     endDateTime: toUtcDayEndIso(dateRange.to),
     frequency: frequency as DataDownloadRequest['frequency'],
-    minimum: true,
-    metaDataFields: ['latitude', 'longitude'],
+    // `minimum: true` excludes metadata and weather on the API. The export
+    // UI requests those context fields, so keep the documented default false.
+    minimum: false,
+    // Keep the canonical site identity in the response so availability
+    // checks do not have to rely on display-name equality.
+    metaDataFields: ['latitude', 'longitude', 'site_id'],
     weatherFields: ['temperature', 'humidity'],
     outputFormat: 'airqo-standard',
     pollutants: selectedPollutants,
