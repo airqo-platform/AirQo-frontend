@@ -51,7 +51,9 @@ export const normalizeChartApiFrequency = (value: string): string =>
     ? value.toLowerCase()
     : 'daily';
 
-export const normalizeChartApiType = (value: string): 'line' | 'pie' | 'bar' => {
+export const normalizeChartApiType = (
+  value: string
+): 'line' | 'pie' | 'bar' => {
   const normalized = value.trim().toLowerCase();
   return CHART_API_TYPES.has(normalized)
     ? (normalized as 'line' | 'pie' | 'bar')
@@ -76,8 +78,10 @@ export const buildChartPayload = (
       request.pollutants.filter((value): value is string => Boolean(value))
     )
   );
+  // Chart consumers need site identity to resolve backend display names,
+  // especially for categorical pie rows.
   const metaDataFields = Array.from(
-    new Set([...(request.metaDataFields ?? []), 'site_id'])
+    new Set(['site_id', ...(request.metaDataFields ?? [])])
   );
 
   return {
@@ -108,7 +112,9 @@ const getNextChartCursor = (
     );
   }
   if (seenCursors.has(nextCursor)) {
-    throw new Error('The chart data service returned a repeated pagination cursor.');
+    throw new Error(
+      'The chart data service returned a repeated pagination cursor.'
+    );
   }
 
   seenCursors.add(nextCursor);

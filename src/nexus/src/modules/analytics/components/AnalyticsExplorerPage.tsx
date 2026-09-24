@@ -271,7 +271,9 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
       );
 
       selected += selectedIds.size;
-      withData += Array.from(selectedIds).filter(id => returnedIds.has(id)).length;
+      withData += Array.from(selectedIds).filter(id =>
+        returnedIds.has(id)
+      ).length;
     });
 
     if (successfulCharts === 0 || withData >= selected) return null;

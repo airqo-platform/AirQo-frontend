@@ -55,6 +55,7 @@ import {
   formatTimestampByFrequency,
   getPollutantLabel,
   getPollutantUnits,
+  getChartLocationLabel,
 } from '../../utils';
 import {
   DEFAULT_CHART_CONFIG,
@@ -76,6 +77,7 @@ import { cn } from '@/shared/lib/utils';
 interface HoverAwareTooltipProps extends TooltipData {
   onHoverChange: (index: number | null) => void;
   focusedDataKey?: string | null;
+  isCategorical?: boolean;
   className?: string;
   showAirQualityLevel?: boolean;
   frequency?: string;
@@ -460,8 +462,17 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     (value: string | number | undefined, entry: LegendPayload) => {
       const seriesKey = String(entry.dataKey ?? entry.value ?? '').trim();
       const isHidden = seriesKey ? isSeriesHidden(seriesKey) : false;
-      const formattedValue =
-        seriesLabels?.[seriesKey] ?? String(value ?? '').trim();
+      const valueLabel = String(value ?? '').trim();
+      const payload = (
+        entry as LegendPayload & { payload?: NormalizedChartData }
+      ).payload;
+      const payloadLabel = payload
+        ? getChartLocationLabel(payload, locationLabels)
+        : getChartLocationLabel({ site: valueLabel }, locationLabels);
+      const configuredLabel = seriesLabels?.[seriesKey];
+      const formattedValue = configuredLabel
+        ? getChartLocationLabel({ site: configuredLabel }, locationLabels)
+        : payloadLabel;
 
       return (
         <span
@@ -474,7 +485,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         </span>
       );
     },
-    [isSeriesHidden, seriesLabels]
+    [isSeriesHidden, locationLabels, seriesLabels]
   );
 
   // Chart configuration
@@ -591,6 +602,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             seriesLabels={seriesLabels}
             locationLabels={locationLabels}
             tooltipDateFormatter={chartConfig.tooltipDateFormatter}
+            isCategorical={chartType === 'pie'}
           />
         }
         wrapperStyle={{ zIndex: 9999 }}
@@ -1077,11 +1089,32 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             <Pie
               data={chartData}
               dataKey={config.dataKey || 'value'}
-              nameKey={config.xAxisKey || 'site'}
+              nameKey="site"
               cx="50%"
               cy="50%"
               outerRadius={120}
-              label={({ name, value }) => `${name}: ${value}`}
+              label={props => {
+                const labelProps = props as {
+                  name?: unknown;
+                  value?: unknown;
+                  payload?: NormalizedChartData;
+                };
+                const label = labelProps.payload
+                  ? getChartLocationLabel(labelProps.payload, locationLabels)
+                  : getChartLocationLabel(
+                      {
+                        site:
+                          typeof labelProps.name === 'string'
+                            ? labelProps.name
+                            : undefined,
+                      },
+                      locationLabels
+                    );
+                const numericValue = Number(labelProps.value ?? 0);
+                return `${label}: ${
+                  Number.isFinite(numericValue) ? numericValue : 0
+                }`;
+              }}
             >
               {chartData.map((_, index) => (
                 <Cell

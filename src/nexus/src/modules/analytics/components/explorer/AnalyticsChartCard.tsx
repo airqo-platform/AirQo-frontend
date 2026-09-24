@@ -410,6 +410,10 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     () => buildSiteLabels(enrichedChartData, siteNames),
     [enrichedChartData, siteNames]
   );
+  const locationLabels = useMemo(
+    () => ({ ...Object.fromEntries(siteNames), ...siteLabels }),
+    [siteLabels, siteNames]
+  );
 
   // Legend/tooltip label overrides keyed by series key (single-series charts
   // render under recharts' generic 'value' key, which gets the name too).
@@ -670,7 +674,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           additionalReferenceLines={nowLine}
           seriesLabels={seriesLabels}
           locationLabels={
-            Object.keys(siteLabels).length > 0 ? siteLabels : undefined
+            Object.keys(locationLabels).length > 0 ? locationLabels : undefined
           }
         />
       </ChartContainer>

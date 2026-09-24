@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { fetchAllSitesSummary } from '@/shared/services/siteSummary';
+import { isLikelySiteId } from '@/shared/components/charts/utils';
 
 /**
  * One cached request to /devices/sites/summary (the site list every map view
@@ -30,11 +31,34 @@ export const useSiteNamesFallback = (enabled = true) => {
   const names = useMemo(() => {
     const map = new Map<string, string>();
     (data ?? []).forEach(site => {
-      const id = String(site?._id ?? '');
-      const name = getSiteDisplayName(
-        site as Parameters<typeof getSiteDisplayName>[0]
-      );
-      if (id && name) map.set(id, name);
+      if (!site || typeof site !== 'object') return;
+      const id = String(site._id ?? site.site_id ?? site.id ?? '').trim();
+      const standardName = getSiteDisplayName({
+        search_name:
+          typeof site.search_name === 'string' ? site.search_name : undefined,
+        location_name:
+          typeof site.location_name === 'string'
+            ? site.location_name
+            : undefined,
+        name: typeof site.name === 'string' ? site.name : undefined,
+        formatted_name:
+          typeof site.formatted_name === 'string'
+            ? site.formatted_name
+            : undefined,
+      });
+      const fallbackName = [site?.site_name, site?.location, site?.display_name]
+        .map(value => (typeof value === 'string' ? value.trim() : ''))
+        .find(Boolean);
+      const name =
+        standardName === 'Unknown Location' ? fallbackName : standardName;
+      if (
+        id &&
+        name &&
+        name.toLowerCase() !== 'unknown location' &&
+        !isLikelySiteId(name)
+      ) {
+        map.set(id, name);
+      }
     });
     return map;
   }, [data]);

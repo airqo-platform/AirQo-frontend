@@ -88,6 +88,32 @@ describe('enrichChartDataSiteIds', () => {
     expect(result[0].site).toBe('Site Alpha');
   });
 
+  it('resolves a pie label containing the site id to its display name', () => {
+    const siteId = '647896640c47b0001eba8ff2';
+    const data = [
+      makePoint({
+        site: 'Unknown Location',
+        site_id: '',
+        label: siteId,
+        time: siteId,
+      }),
+    ];
+    const result = enrichChartDataSiteIds(
+      data,
+      new Map([[siteId, 'Gulu Central']])
+    );
+
+    expect(result[0].site_id).toBe(siteId);
+    expect(result[0].site).toBe('Gulu Central');
+  });
+
+  it('does not expose an unresolved site id as a chart label', () => {
+    const siteId = '647896640c47b0001eba8ff2';
+    const data = [makePoint({ site: siteId, site_id: siteId })];
+
+    expect(buildSiteLabels(data, new Map())).toEqual({});
+    expect(buildSeriesLabels(data, {})[siteId]).toBe('Unknown Location');
+  });
   it('canonicalises site name when site_id already exists', () => {
     const data = [makePoint({ site: 'Old Name', site_id: 'id-1' })];
     const result = enrichChartDataSiteIds(data, siteNames);
