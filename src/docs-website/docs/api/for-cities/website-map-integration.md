@@ -114,8 +114,8 @@ Configure these as **service environment variables** in your service manager (e.
 | Variable | Value |
 |----------|-------|
 | `NODE_ENV` | `production` |
-| `HOST` | `127.0.0.1` (listen internally only; the default is `0.0.0.0`) |
-| `PORT` | `8080` |
+| `HOST` | **Same-host Nginx:** `127.0.0.1`, so the service listens internally only. **Managed platform or container:** use the address the platform can reach, usually `0.0.0.0`, which is the default if unset. |
+| `PORT` | **Same-host Nginx:** `8080`, which must match `proxy_pass`. **Managed platform or container:** leave unset if the platform injects `PORT`, otherwise use the port the platform routes to. |
 | `AIRQO_API_TOKEN` | Your access token (store it as a secret) |
 | `AIRQO_GRID_ID` | Your city's Grid ID |
 
@@ -210,7 +210,7 @@ Never paste a real token into a support ticket, screenshot, or browser console.
 - Keep the Node port closed to the public. Only your web server should reach it.
 - Serve the page over **HTTPS** only.
 - Store the token in your platform's secret store and monitor `/healthz`.
-- For high-traffic public pages, consider **caching** responses at the proxy (heatmaps and forecasts change infrequently; see [Best Practices → Caching](../reference/best-practices.md#caching)) and adding **rate limits**.
+- For high-traffic public pages, consider **caching** responses at the proxy (heatmaps and forecasts change infrequently; see [Best Practices → Caching](../reference/best-practices.md#caching)) and adding **rate limits**. The sample proxy sends `Cache-Control: no-store, max-age=0`, so HTTP caches such as Nginx `proxy_cache` will not store its responses as-is. To cache public Grid data, either change that header in `leaflet-forecast-server.js` or override it at your cache with an explicit TTL. For example, in Nginx use `proxy_ignore_headers Cache-Control;` with `proxy_cache_valid 200 30m;`.
 - Review AirQo's API [usage terms and fair usage policy](../../data-access/fair-usage-policy/index.md) before going live.
 
 ---
