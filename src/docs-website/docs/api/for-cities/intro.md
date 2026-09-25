@@ -74,6 +74,8 @@ City authorities already using Grid ID access:
 - **Lagos State Environmental Protection Agency** — [aqi.lasepa.gov.ng](https://aqi.lasepa.gov.ng/)
 - **Nairobi City County** — [nairobi.go.ke/nairobi-air-quality](https://nairobi.go.ke/nairobi-air-quality)
 
+Want the same on your website? The [Website Map Integration guide](./website-map-integration.md) takes you from a local test to a production deployment of AirQo's open-source live map with forecasts.
+
 ---
 
 ## Next steps
@@ -82,4 +84,5 @@ City authorities already using Grid ID access:
 - [Access historical data →](./historical-data.md)
 - [Generate spatial heatmaps →](./spatial-heatmaps.md)
 - [Get air quality forecasts →](../forecasts/overview.md)
+- [Publish a live map on your website →](./website-map-integration.md)
 - [Set up your account →](../getting-started/authentication.md)
