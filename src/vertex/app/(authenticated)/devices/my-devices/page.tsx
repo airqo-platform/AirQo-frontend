@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
+import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
+import { MY_DEVICES_STATUS_FILTERS, type MyDevicesStatusFilter } from "@/app/types/devices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
@@ -33,13 +35,40 @@ const MyDevicesPage = () => {
   const { userScope } = useUserContext();
   const canClaimDevice = usePermission(PERMISSIONS.DEVICE.CLAIM);
   const canImportDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
+  const isPersonalScope = userScope === 'personal';
 
+  const searchParams = useSearchParams();
+  const rawStatus = searchParams.get("status");
+  const statusFilter = MY_DEVICES_STATUS_FILTERS.includes(rawStatus as MyDevicesStatusFilter)
+    ? (rawStatus as MyDevicesStatusFilter)
+    : null;
+
+  const { pagination, setPagination } = useServerSideTableState({ initialPageSize: 25 });
+
+  // A different status is a different result set, so go back to its first
+  // page. Only on an actual change: resetting on mount too would throw away a
+  // page the URL asked for.
+  const previousStatusFilter = useRef(statusFilter);
+  useEffect(() => {
+    if (previousStatusFilter.current === statusFilter) return;
+    previousStatusFilter.current = statusFilter;
+    setPagination((previous) =>
+      previous.pageIndex === 0 ? previous : { ...previous, pageIndex: 0 }
+    );
+  }, [statusFilter, setPagination]);
+
+  // Personal scope filters and paginates on the server: the endpoint returns
+  // one capped page, so filtering it in the browser hides devices that the cap
+  // left out and makes a non-zero dashboard card open an empty table (#4019).
   const {
     data: myDevicesData,
     isLoading: isLoadingMyDevices,
     error: myDevicesError,
   } = useMyDevices(userDetails?._id || "", activeGroup?._id, {
-    enabled: userScope === 'personal',
+    enabled: isPersonalScope,
+    status: statusFilter ?? undefined,
+    limit: pagination.pageSize,
+    skip: pagination.pageIndex * pagination.pageSize,
   });
 
   const {
@@ -51,21 +80,24 @@ const MyDevicesPage = () => {
   });
 
   const devices = React.useMemo(() => {
-    return userScope === 'personal'
+    return isPersonalScope
       ? myDevicesData?.devices || []
       : orgDevices;
-  }, [userScope, myDevicesData?.devices, orgDevices]);
-  const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
-  const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
-  const searchParams = useSearchParams();
-  const rawStatus = searchParams.get("status");
-  const statusFilter = ["operational", "transmitting", "not_transmitting", "data_available"].includes(rawStatus || "")
-    ? rawStatus
-    : null;
+  }, [isPersonalScope, myDevicesData?.devices, orgDevices]);
+  const isLoading = isPersonalScope ? isLoadingMyDevices : isLoadingOrgDevices;
+  const error = isPersonalScope ? myDevicesError : orgDevicesError;
+
+  const totalDevices = isPersonalScope
+    ? myDevicesData?.meta?.total ?? myDevicesData?.total_devices
+    : undefined;
+  const pageCount =
+    myDevicesData?.meta?.totalPages ??
+    (totalDevices !== undefined ? Math.ceil(totalDevices / pagination.pageSize) : 0);
 
   const filteredDevices = React.useMemo(() => {
     if (!devices) return [];
-    if (!statusFilter) return devices;
+    // Personal scope is already filtered by the server.
+    if (!statusFilter || isPersonalScope) return devices;
 
     return devices.filter((device) => {
       if (statusFilter === "operational") {
@@ -86,7 +118,7 @@ const MyDevicesPage = () => {
 
       return true;
     });
-  }, [devices, statusFilter]);
+  }, [devices, statusFilter, isPersonalScope]);
 
   if (error) {
     return (
@@ -167,6 +199,12 @@ const MyDevicesPage = () => {
             </div>
             <p className="text-muted-foreground">
               Manage your personal and shared devices
+              {totalDevices !== undefined && !isLoading && (
+                <span className="ml-2 text-sm">
+                  • {totalDevices} device{totalDevices === 1 ? "" : "s"}
+                  {statusFilter ? ` ${statusFilter.replace("_", " ")}` : ""}
+                </span>
+              )}
             </p>
           </div>
           <div className="flex gap-2 items-center">
@@ -210,6 +248,13 @@ const MyDevicesPage = () => {
           error={error}
           multiSelect={true}
           hiddenColumns={['groups']}
+          // /devices/my-devices has no search parameter, so with server-side
+          // paging the box could only search the current page.
+          searchable={!isPersonalScope}
+          serverSidePagination={isPersonalScope}
+          pageCount={isPersonalScope ? pageCount : undefined}
+          pagination={isPersonalScope ? pagination : undefined}
+          onPaginationChange={isPersonalScope ? setPagination : undefined}
         />
 
         {/* Modals */}

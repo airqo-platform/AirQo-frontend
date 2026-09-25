@@ -21,6 +21,7 @@ import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import { useUsers, useUpdateUserRole } from '@/shared/hooks/useAdmin';
 import { useRolesSummary } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
+import { buildCsv, buildCsvFilename, downloadCsv } from '@/shared/utils/csv';
 import { toDateString } from '@/shared/services/analyticsService';
 import type { User } from '@/shared/types/api';
 import {
@@ -156,51 +157,27 @@ const UserManagementPage: React.FC = () => {
       'Groups',
     ];
 
-    const escape = (s: string) => {
-      if (!s) return '';
-      const first = s.trimStart().charAt(0);
-      const neutralize = ['=', '+', '-', '@'].includes(first);
-      const text = neutralize ? `'${s}` : s;
-      return text.replace(/"/g, '""');
-    };
-
     const rows = filteredUsers.map(user => [
-      escape(user.firstName || ''),
-      escape(user.lastName || ''),
-      escape(user.email || ''),
-      escape(user.userName || ''),
-      escape(user._id || ''),
+      user.firstName || '',
+      user.lastName || '',
+      user.email || '',
+      user.userName || '',
+      user._id || '',
       user.isActive ? 'Active' : 'Inactive',
       user.verified ? 'Yes' : 'No',
       String(user.loginCount ?? 0),
       user.lastLogin
         ? formatWithPattern(user.lastLogin, 'yyyy-MM-dd HH:mm')
         : '',
-      escape(user.organization || ''),
-      escape(user.country || ''),
-      escape(user.jobTitle || ''),
-      escape(
-        (user.groups ?? [])
-          .map(g => g.grp_title || g.organization_slug)
-          .join('; ')
-      ),
+      user.organization || '',
+      user.country || '',
+      user.jobTitle || '',
+      (user.groups ?? [])
+        .map(g => g.grp_title || g.organization_slug)
+        .join('; '),
     ]);
 
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob(['\uFEFF' + csvContent], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `users-export-${toDateString(new Date().toISOString())}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadCsv(buildCsvFilename('users-export'), buildCsv(headers, rows));
   };
 
   const exportToPDF = async () => {

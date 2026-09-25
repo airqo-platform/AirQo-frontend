@@ -2,6 +2,86 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Beacon frontend.
 
+## Version 2.4.0
+**Released:** September 21, 2026
+
+### Feature: Network Resilience: Offline Feedback, Automatic Recovery & Error Pages
+
+Beacon now notices when the connection drops, tells the user, and reloads what failed once it's back, instead of leaving pages broken until a manual refresh.
+
+<details>
+<summary><strong>Connectivity feedback</strong></summary>
+
+- **Network monitor** (`lib/network-status.ts`): tracks offline, reconnecting, and back-online states. `navigator.onLine` is only a hint: "back online" is declared once `GET /api/ping` (new, doesn't call the backend) answers. While the server is unreachable it re-checks with exponential backoff and jitter, and checks again as soon as the tab becomes visible, so an `online` event missed across sleep/wake doesn't leave the page stuck.
+- **Banner** (`NetworkStatusBanner`, dashboard layout): "You're offline", "Reconnecting…", then "Back online. Refreshing data…" for a few seconds, in a polite `aria-live` region.
+- **`useNetworkStatus`** hook (`useSyncExternalStore`, SSR-safe).
+
+</details>
+
+<details>
+<summary><strong>Automatic recovery</strong></summary>
+
+- **Dashboard pages**: when read requests failed during an outage, the page is remounted once the connection is back so its `useEffect` fetches run again. Failed saves (POST/PUT/PATCH/DELETE) never trigger this, so forms aren't reset.
+- **`useApiData`**: refetches on reconnect and when the tab becomes visible if the last attempt failed or data is older than `staleTime` (5 min). Retries only transient failures (no response, timeout, 502-504) with exponential backoff and jitter, never 4xx, and doesn't spend retries while offline. Previously loaded data stays on screen during refetches and after a failed refetch; responses from superseded requests are ignored.
+- **React Query defaults** (`query-provider.tsx`): `networkMode: 'online'`, `refetchOnReconnect`, `refetchOnWindowFocus` (1 min `staleTime`), transient-only retries with backoff. React Query's online state now follows the network monitor, so queries pause until the server is reachable.
+
+</details>
+
+<details>
+<summary><strong>Errors</strong></summary>
+
+- **Error pages**: `app/error.tsx`, `app/dashboard/error.tsx` (keeps the navigation), and `app/global-error.tsx` show a plain-language message with **Try again** and **Reload page**, and say so when the cause is a lost connection.
+- **Slack alerts**: requests with no response are no longer reported while the user is offline. When the server is reachable they are reported as `API request failed: no response` (`failureType: no_response`), separately from 5xx (`failureType: server`). Cancelled requests are no longer reported.
+
+</details>
+
+## Version 2.3.0
+**Released:** September 20, 2026
+
+### Feature: Diagnostic Indicators, Multi-Day Trends & Plain-Language Summaries
+
+Brings the diagnostics UI in line with Beacon API 2.4.0 (indicators) and 2.5.0 (trends and summaries). Every new section is optional: against an API without these endpoints the rest of the diagnostics pages keep working.
+
+<details>
+<summary><strong>Device Diagnostics</strong></summary>
+
+- **Indicators** (`DeviceIndicatorCharts.tsx`, `GET /diagnostics/devices/{id}/indicators`): one card per component and indicator group, each chart on a single axis.
+  - Charge cycle: daily min-max band with average, low-charge and minimum lines, hours charging / discharging / flat.
+  - Data coverage: offline hours and missing readings per day, with outages counted as power-related (after low charge), link-related (charge was healthy) or unattributed.
+  - Sensor agreement: error relative to the measured level against the pair's tolerance, share of readings within tolerance, correlation, error and which sensor reads higher.
+  - Generation: daily peak and hours active.
+- **Multi-day trends** (`DeviceTrendsList.tsx`, `GET /diagnostics/devices/{id}/trends`): degrading, improving and stable trends with the fitted change per day and, where the indicator has a limit, the days until it is reached.
+- **Plain-language summaries** (`DiagnosisNarrative.tsx`): the latest day's headline on the device panel, headline and summary on the day detail, on-demand evaluations and the simulator.
+- **Day detail**: summary, trends as of that day, the day's indicators with each outage and its attribution (`DayIndicators.tsx`), and the metric standard deviation.
+
+</details>
+
+<details>
+<summary><strong>Device Profiles</strong></summary>
+
+- **Metric role** in the metric dialog (`charge_level`, `charge_source`, `signal_strength`); shown on each metric and in the readiness tab. For a charge level the rate limit is described as a discharge limit.
+- **Agreement tolerance** (absolute and relative) on `MEASURES_SAME_AS` relationships, stored in the relationship's `meta_data.tolerance` and shown on the relationship card.
+- **Fix:** saving a metric or a subsystem rebuilt its metrics from the form fields only, which would have cleared `role` (including the roles backfilled by the API migration). Both dialogs now keep it.
+
+</details>
+
+<details>
+<summary><strong>Fleet Health</strong></summary>
+
+- Devices needing attention show the day's headline.
+- New checks (`SENSOR_ERROR_MARGIN`, `LOW_CHARGE_OUTAGE`, `DEGRADING_TREND`) are labelled and filterable, with one-click filters for degrading trends, outages after low charge and sensors outside tolerance.
+
+</details>
+
+**Files changed:**
+- `components/diagnostics/DeviceIndicatorCharts.tsx`, `DeviceTrendsList.tsx`, `DayIndicators.tsx`, `DiagnosisNarrative.tsx` [NEW]
+- `components/diagnostics/DeviceDiagnosticsPanel.tsx`, `DailyDiagnosisDetailDialog.tsx` — Indicators, trends and summaries
+- `components/diagnostics/MetricModal.tsx`, `SubsystemModal.tsx`, `RelationshipModal.tsx`, `ProfileReadinessPanel.tsx`, `app/dashboard/settings/device-profiles/[id]/page.tsx` — Metric roles and pair tolerance
+- `app/dashboard/diagnostics/page.tsx`, `app/dashboard/diagnostics/simulator/page.tsx` — Headlines, new check filters, simulator indicators
+- `services/diagnosticsService.ts`, `types/diagnostics.ts` — `getDeviceIndicators`, `getDeviceTrends`, indicator and trend types, new fields
+
+---
+
 ## Version 2.2.0
 **Released:** September 13, 2026
 

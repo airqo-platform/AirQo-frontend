@@ -27,6 +27,8 @@ interface LocalMetricDraft {
   expected_min: string;
   expected_max: string;
   max_rate_of_change: string;
+  // Not edited here (see the metric dialog); carried through so saving a subsystem never clears it.
+  role?: string | null;
 }
 
 interface SubsystemModalProps {
@@ -115,6 +117,7 @@ export function SubsystemModal({
                 m.max_rate_of_change !== undefined && m.max_rate_of_change !== null
                   ? String(m.max_rate_of_change)
                   : "",
+              role: m.role ?? null,
             };
           });
           setMetricsList(drafts);
@@ -224,6 +227,7 @@ export function SubsystemModal({
         expected_max: draft.expected_max.trim() !== "" ? parseFloat(draft.expected_max) : undefined,
         max_rate_of_change: draft.max_rate_of_change.trim() !== "" ? parseFloat(draft.max_rate_of_change) : undefined,
         is_telemetry_field: true,
+        role: draft.role ?? null,
       });
     }
 

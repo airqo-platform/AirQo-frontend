@@ -5,7 +5,9 @@ import { diagnosticsService, DiagnosticsApiError } from "@/services/diagnosticsS
 import {
   DeviceDailyDiagnosticSummary,
   DeviceHealthSnapshot,
+  DeviceIndicatorSeries,
   DeviceIssueSummary,
+  DeviceTrends,
   DiagnosisResult,
   DiagnosticEvaluationResult,
 } from "@/types/diagnostics";
@@ -16,6 +18,9 @@ import { EvidenceFactBadge } from "@/components/diagnostics/EvidenceFactBadge";
 import { TechnicianFeedbackModal } from "@/components/diagnostics/TechnicianFeedbackModal";
 import { DailyHealthTrendChart } from "@/components/diagnostics/DailyHealthTrendChart";
 import { DeviceIssueHistory } from "@/components/diagnostics/DeviceIssueHistory";
+import { DeviceIndicatorCharts } from "@/components/diagnostics/DeviceIndicatorCharts";
+import { DeviceTrendsList } from "@/components/diagnostics/DeviceTrendsList";
+import { DiagnosisNarrative } from "@/components/diagnostics/DiagnosisNarrative";
 import { DailyDiagnosisDetailDialog } from "@/components/diagnostics/DailyDiagnosisDetailDialog";
 import { DailyRunDialog } from "@/components/diagnostics/DailyRunDialog";
 import { EvaluationQualityNotice } from "@/components/diagnostics/EvaluationQualityNotice";
@@ -30,13 +35,27 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
-import { AlertTriangle, CalendarDays, ChevronRight, History, ListChecks, PlayCircle, RefreshCw, Sparkles, Stethoscope } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  CalendarDays,
+  ChevronRight,
+  History,
+  ListChecks,
+  PlayCircle,
+  RefreshCw,
+  Sparkles,
+  Stethoscope,
+  TrendingDown,
+} from "lucide-react";
 
 const DAY_RANGES = [7, 14, 30, 90];
 const RECENT_DAYS_SHOWN = 14;
 
 interface DeviceDiagnosticsPanelProps {
   deviceId: string;
+  /** Display name; the id is only used for API calls. */
+  deviceName?: string;
   /** Telemetry window used for on-demand evaluations. */
   windowHours?: number;
 }
@@ -47,13 +66,16 @@ const isoDateDaysAgo = (days: number) => new Date(Date.now() - days * 86_400_000
  * Device diagnostics: the automatic daily diagnoses (trend, recurring issues, per-day detail)
  * and the latest on-demand evaluation against the device profile.
  */
-export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDiagnosticsPanelProps) {
+export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 }: DeviceDiagnosticsPanelProps) {
+  const displayName = deviceName || deviceId;
   // Daily diagnostics
   const [days, setDays] = useState<number>(30);
   const [dailyLoading, setDailyLoading] = useState<boolean>(true);
   const [dailyError, setDailyError] = useState<string | null>(null);
   const [issueSummary, setIssueSummary] = useState<DeviceIssueSummary | null>(null);
   const [dailyDiagnoses, setDailyDiagnoses] = useState<DeviceDailyDiagnosticSummary[]>([]);
+  const [indicatorSeries, setIndicatorSeries] = useState<DeviceIndicatorSeries | null>(null);
+  const [trends, setTrends] = useState<DeviceTrends | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [runDialogOpen, setRunDialogOpen] = useState<boolean>(false);
 
@@ -77,22 +99,29 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
     try {
       setDailyLoading(true);
       setDailyError(null);
-      const [summary, list] = await Promise.all([
+      // Indicators and trends are additive: an API without them must not break the rest of the panel.
+      const [summary, list, indicators, trendData] = await Promise.all([
         diagnosticsService.getDeviceIssueSummary(deviceId, days),
         diagnosticsService.getDeviceDailyDiagnostics(deviceId, {
           start_date: isoDateDaysAgo(days),
           limit: Math.min(days + 1, 180),
         }),
+        diagnosticsService.getDeviceIndicators(deviceId, { days }).catch(() => null),
+        diagnosticsService.getDeviceTrends(deviceId).catch(() => null),
       ]);
       if (!isCurrent()) return;
       setIssueSummary(summary);
       setDailyDiagnoses(list);
+      setIndicatorSeries(indicators);
+      setTrends(trendData);
     } catch (err: any) {
       if (!isCurrent()) return;
       console.error("Error fetching daily diagnostics:", err);
       setDailyError(err?.message || "Daily diagnostics are currently unavailable.");
       setIssueSummary(null);
       setDailyDiagnoses([]);
+      setIndicatorSeries(null);
+      setTrends(null);
     } finally {
       if (isCurrent()) setDailyLoading(false);
     }
@@ -275,6 +304,15 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
               </div>
             </div>
 
+            {issueSummary.latest_headline && (
+              <p className="text-sm font-semibold text-gray-800 px-1">
+                <span className="text-gray-500 font-medium">
+                  {formatDiagnosisDate(issueSummary.latest_diagnosis_date, "d MMM")}:
+                </span>{" "}
+                {issueSummary.latest_headline}
+              </p>
+            )}
+
             <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="pb-2 border-b border-gray-100">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -323,6 +361,7 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
                         <li key={day.id}>
                           <button
                             onClick={() => setSelectedDate(day.diagnosis_date)}
+                            title={day.headline || undefined}
                             className="w-full px-4 py-2.5 flex items-center justify-between gap-3 text-left text-xs hover:bg-slate-50"
                           >
                             <div className="flex items-center gap-3 min-w-0">
@@ -353,6 +392,45 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
                 </CardContent>
               </Card>
             </div>
+
+            {trends && (
+              <Card className="border border-gray-200 shadow-sm">
+                <CardHeader className="pb-3 border-b border-gray-100">
+                  <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <TrendingDown className="w-4 h-4 text-rose-500" />
+                    Multi-Day Trends
+                    {trends.degrading_count > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-rose-50 text-rose-700 border-rose-200">
+                        {trends.degrading_count} degrading
+                      </span>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Line fitted through the last {trends.window_days} days of each indicator
+                    {trends.as_of ? `, up to ${formatDiagnosisDate(trends.as_of)}` : ""}. Needs at least {trends.min_days}{" "}
+                    diagnosed days. A device can pass every daily check while sliding towards failure.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <DeviceTrendsList trends={trends.trends} />
+                </CardContent>
+              </Card>
+            )}
+
+            {indicatorSeries && (
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    Indicators
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    How each component behaved every day, whether or not a check failed. Click a day to inspect it.
+                  </p>
+                </div>
+                <DeviceIndicatorCharts series={indicatorSeries} onSelectDate={setSelectedDate} />
+              </div>
+            )}
           </>
         ) : null}
       </section>
@@ -384,6 +462,10 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
               isEvaluating={isEvaluating}
               isSimulated={snapshot.is_simulated}
             />
+
+            {lastEvaluation && (evaluationMatchesSnapshot || !snapshot.id) && (
+              <DiagnosisNarrative headline={lastEvaluation.headline} summary={lastEvaluation.summary} />
+            )}
 
             {lastEvaluation && (evaluationMatchesSnapshot || !snapshot.id) && (
               <EvaluationQualityNotice
@@ -427,7 +509,7 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
             <Stethoscope className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <h4 className="text-base font-semibold text-gray-800">No On-Demand Evaluation Yet</h4>
             <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-              Evaluate the last {windowHours}h of telemetry for {deviceId} against its device profile.
+              Evaluate the last {windowHours}h of telemetry for {displayName} against its device profile.
             </p>
             <Button onClick={handleReevaluate} size="sm" disabled={isEvaluating} className="mt-4 gap-2">
               <Sparkles className={`w-3.5 h-3.5 ${isEvaluating ? "animate-spin" : ""}`} />
@@ -439,6 +521,7 @@ export function DeviceDiagnosticsPanel({ deviceId, windowHours = 24 }: DeviceDia
 
       <DailyDiagnosisDetailDialog
         deviceId={deviceId}
+        deviceName={displayName}
         diagnosisDate={selectedDate}
         onOpenChange={(open) => !open && setSelectedDate(null)}
       />

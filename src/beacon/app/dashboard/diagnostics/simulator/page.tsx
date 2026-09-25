@@ -10,6 +10,8 @@ import { SubsystemScoreCard } from "@/components/diagnostics/SubsystemScoreCard"
 import { DiagnosisCard } from "@/components/diagnostics/DiagnosisCard";
 import { EvidenceFactBadge } from "@/components/diagnostics/EvidenceFactBadge";
 import { EvaluationQualityNotice } from "@/components/diagnostics/EvaluationQualityNotice";
+import { DiagnosisNarrative } from "@/components/diagnostics/DiagnosisNarrative";
+import { DayIndicators } from "@/components/diagnostics/DayIndicators";
 import { ProfileNotDiagnosableNotice } from "@/components/diagnostics/ProfileNotDiagnosableNotice";
 import {
   SCENARIOS,
@@ -510,6 +512,8 @@ function DiagnosticSimulatorContent() {
                 isSimulated
               />
 
+              <DiagnosisNarrative headline={result.headline} summary={result.summary} />
+
               <EvaluationQualityNotice
                 profileId={result.profile_id}
                 profileName={result.profile_name}
@@ -532,6 +536,8 @@ function DiagnosticSimulatorContent() {
               </Card>
 
               <DiagnosisCard diagnoses={result.top_diagnoses || []} deviceId={result.device_id} />
+
+              <DayIndicators indicators={result.indicators} />
             </div>
           ) : !evalError ? (
             <div className="p-12 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-white space-y-3">

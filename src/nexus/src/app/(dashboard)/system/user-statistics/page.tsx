@@ -22,6 +22,7 @@ import {
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { ChartContainer, StatsPieChart } from '@/shared/components/charts';
 import { getPrimaryColor } from '@/shared/components/charts/constants';
+import ExportUsersButton from './components/ExportUsersButton';
 import {
   AqUsers01,
   AqUsersCheck,
@@ -339,7 +340,7 @@ const UserStatisticsPage: React.FC = () => {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Users</p>
               <p className="text-2xl font-bold mt-1">{stats.total}</p>
@@ -351,13 +352,16 @@ const UserStatisticsPage: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="p-2.5 rounded-full bg-blue-100 text-blue-700">
-              <AqUsers01 className="w-5 h-5" />
+            <div className="flex flex-col items-end gap-2">
+              <div className="p-2.5 rounded-full bg-blue-100 text-blue-700">
+                <AqUsers01 className="w-5 h-5" />
+              </div>
+              <ExportUsersButton segment="total" segmentLabel="Total Users" />
             </div>
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Active Users</p>
               <p className="text-2xl font-bold mt-1">{stats.active}</p>
@@ -369,30 +373,42 @@ const UserStatisticsPage: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="p-2.5 rounded-full bg-green-100 text-green-700">
-              <AqUsersCheck className="w-5 h-5" />
+            <div className="flex flex-col items-end gap-2">
+              <div className="p-2.5 rounded-full bg-green-100 text-green-700">
+                <AqUsersCheck className="w-5 h-5" />
+              </div>
+              <ExportUsersButton segment="active" segmentLabel="Active Users" />
             </div>
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Verified Users</p>
               <p className="text-2xl font-bold mt-1">{verifiedCount}</p>
             </div>
-            <div className="p-2.5 rounded-full bg-purple-100 text-purple-700">
-              <AqMail01 className="w-5 h-5" />
+            <div className="flex flex-col items-end gap-2">
+              <div className="p-2.5 rounded-full bg-purple-100 text-purple-700">
+                <AqMail01 className="w-5 h-5" />
+              </div>
+              <ExportUsersButton
+                segment="verified"
+                segmentLabel="Verified Users"
+              />
             </div>
           </div>
         </Card>
         <Card className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">API Users</p>
               <p className="text-2xl font-bold mt-1">{stats.apiUsers}</p>
             </div>
-            <div className="p-2.5 rounded-full bg-amber-100 text-amber-700">
-              <AqKey01 className="w-5 h-5" />
+            <div className="flex flex-col items-end gap-2">
+              <div className="p-2.5 rounded-full bg-amber-100 text-amber-700">
+                <AqKey01 className="w-5 h-5" />
+              </div>
+              <ExportUsersButton segment="api" segmentLabel="API Users" />
             </div>
           </div>
         </Card>

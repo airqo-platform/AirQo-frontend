@@ -7,6 +7,7 @@ import type {
   BulkDeviceClaimRequest,
   BulkDeviceClaimResponse,
   MyDevicesResponse,
+  MyDevicesStatusFilter,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
   Device,
@@ -256,13 +257,35 @@ export const devices = {
     }
   },
 
+  /**
+   * One page of the user's devices. `status` is applied by the server across
+   * every matching device — filtering the returned page in the browser would
+   * miss devices the page cap left out (see #4019).
+   */
   getMyDevices: async (
     userId: string,
     groupIds?: string[],
-    cohortIds?: string[]
+    cohortIds?: string[],
+    options: {
+      status?: MyDevicesStatusFilter;
+      limit?: number;
+      skip?: number;
+    } = {}
   ): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
+
+      if (options.status) {
+        params.append("status", options.status);
+      }
+
+      if (options.limit !== undefined) {
+        params.append("limit", String(options.limit));
+      }
+
+      if (options.skip !== undefined) {
+        params.append("skip", String(options.skip));
+      }
 
       if (groupIds && groupIds.length > 0) {
         params.append("group_ids", groupIds.join(","));
@@ -458,6 +481,34 @@ export const devices = {
       const response = await jwtApiClient.post(
         `/devices/activities/recall?deviceName=${deviceName}`,
         recallData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Permanently retires a device on the platform only (the upstream data
+   * channel is never touched). The record and its full history are kept but
+   * the device is set to status "decommissioned", detached from its site/grid
+   * and excluded from online-status polling. The safe alternative to deleting
+   * a device whose physical channel is gone for good.
+   */
+  decommissionDevice: async (deviceName: string, decommissionData: {
+    reason?: string;
+    user_id: string;
+    date: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
+  }) => {
+    try {
+      const response = await jwtApiClient.post(
+        `/devices/activities/decommission?deviceName=${encodeURIComponent(deviceName)}`,
+        decommissionData,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

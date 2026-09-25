@@ -2638,6 +2638,37 @@ export interface UserStatsBreakdownResponse {
   data: UserStatsBreakdown;
 }
 
+// User Statistics Export Types (CSV export endpoint)
+export type UserStatsExportSegment = 'total' | 'active' | 'verified' | 'api';
+
+export interface UserStatsExportUser {
+  _id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  organization?: string;
+  country?: string;
+  isActive?: boolean;
+  verified?: boolean;
+  loginCount?: number;
+  lastLogin?: string;
+  createdAt?: string;
+  unsubscribed?: boolean;
+}
+
+export interface UserStatsExportResponse {
+  success: boolean;
+  message: string;
+  segment: UserStatsExportSegment;
+  total: number;
+  unsubscribed_total: number;
+  skip: number;
+  limit: number;
+  has_more: boolean;
+  users: UserStatsExportUser[];
+}
+
 // Subscription Types
 export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
 
@@ -2659,7 +2690,12 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+    | 'active'
+    | 'inactive'
+    | 'past_due'
+    | 'cancelled'
+    | 'trialing'
+    | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2705,7 +2741,12 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+      | 'active'
+      | 'inactive'
+      | 'past_due'
+      | 'cancelled'
+      | 'trialing'
+      | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -2919,7 +2960,12 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
+  | 'good'
+  | 'moderate'
+  | 'u4sg'
+  | 'unhealthy'
+  | 'very_unhealthy'
+  | 'hazardous';
 
 export interface RankingEntry {
   rank: number;

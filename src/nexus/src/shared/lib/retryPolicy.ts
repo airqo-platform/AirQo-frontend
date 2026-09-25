@@ -3,7 +3,10 @@ import type { Revalidator, RevalidatorOptions } from 'swr';
 /**
  * Shared bounded retry policy for idempotent reads (AGENTS.md retry policy):
  *
- * - Never retry: aborts/cancellations, `ERR_NETWORK`, and 5xx server errors.
+ * - Never retry: aborts/cancellations and 5xx server errors.
+ * - Never retry: network-level failures (`ERR_NETWORK`, `ECONNABORTED`,
+ *   `ETIMEDOUT`, `TimeoutError`) — those are retried only by `swrRetryPolicy`
+ *   (the SWR-level adapter), per issue #4023.
  * - Bounded retry: idempotent reads that get a 429 (rate limit) retry once
  *   with backoff that honours the `Retry-After` header when present (capped),
  *   never more than 2 attempts total.
@@ -30,6 +33,16 @@ export const boundedRetryPolicy = {
 
 const RATE_LIMIT_RETRY_MAX_MS = 15_000;
 
+/**
+ * Network-level retry tuning (issue #4023). Some services synthesize
+ * HTTP 500 on network failures, so `code`/`name` classification must run
+ * before `getErrorStatus` — see `isNetworkRetryableError`.
+ */
+const NETWORK_RETRY_MAX_ATTEMPTS = 2;
+const NETWORK_RETRY_BASE_MS = 1_000;
+const NETWORK_RETRY_MAX_MS = 4_000;
+const NETWORK_RETRY_JITTER_MS = 250;
+
 export const isAbortError = (error: unknown): boolean => {
   const candidate = error as {
     name?: string;
@@ -42,6 +55,23 @@ export const isAbortError = (error: unknown): boolean => {
     candidate.name === 'CanceledError' ||
     candidate.code === 'ERR_CANCELED' ||
     candidate.message === 'canceled'
+  );
+};
+
+/**
+ * Classifies transport-level failures (issue #4023) so they can be bounded-
+ * retried after sleep/wake or reconnect. `code`/`name` are checked BEFORE
+ * `getErrorStatus` because some services synthesize HTTP 500 on network
+ * failures — a synthesized status must not mask the network-level cause.
+ */
+export const isNetworkRetryableError = (error: unknown): boolean => {
+  const candidate = error as { name?: unknown; code?: unknown } | null;
+  if (!candidate) return false;
+  if (candidate.name === 'TimeoutError') return true;
+  return (
+    candidate.code === 'ERR_NETWORK' ||
+    candidate.code === 'ECONNABORTED' ||
+    candidate.code === 'ETIMEDOUT'
   );
 };
 
@@ -82,19 +112,23 @@ export const getRetryAfterSeconds = (error: unknown): number | null => {
 };
 
 /**
- * SWR-compatible retry adapter. Retries ONLY 429 (rate-limit) for idempotent
- * GETs, at most 1 retry / 2 attempts. Honours `Retry-After` when present
- * (capped), falls back to 1 s. Never retries abort/ERR_NETWORK/5xx/401/403
- * or any other status. The retry count is preserved from SWR's own tracking
- * and capped at one additional attempt (retryCount > 1 → stop).
- *
- * Wire into SWR config via spread: `{ ...swrRetryPolicy, errorRetryCount: 1 }`.
+ * SWR-compatible retry adapter. Retries idempotent GETs on 429 (rate-limit)
+ * and on network-level failures (issue #4023). 429: at most 1 retry / 2
+ * attempts, honours `Retry-After` when present (capped), falls back to 1 s.
+ * Network: exponential backoff with jitter, capped at 2 automatic retries
+ * per key. Never retries aborts or 5xx. The retry count is preserved from
+ * SWR's own tracking; `onErrorRetry` owns the cap — do NOT also set
+ * `errorRetryCount` when spreading this policy.
  */
 export const swrRetryPolicy = {
   shouldRetryOnError: (error: Error): boolean => {
-    // Only retry on 429 — idempotent GETs.  Abort / ERR_NETWORK / 5xx /
-    // 401 / 403 / 404 / everything else: fail immediately.
-    if (isRetryForbiddenError(error)) return false;
+    // Aborts/cancellations never retry — they are superseded fetches, not
+    // failures to recover from.
+    if (isAbortError(error)) return false;
+    // Network-level failures retry so tabs recover after sleep/wake or
+    // reconnect (issue #4023).
+    if (isNetworkRetryableError(error)) return true;
+    // Rate-limit: idempotent GETs only.
     return getErrorStatus(error) === 429;
   },
   onErrorRetry: (
@@ -104,25 +138,43 @@ export const swrRetryPolicy = {
     revalidate: Revalidator,
     revalidateOpts: Required<RevalidatorOptions>
   ): void => {
-    // Defense in depth: only 429 should reach here when shouldRetryOnError
-    // gates correctly, but guard explicitly so a misconfiguration never
-    // causes a retry storm.
-    if (getErrorStatus(error) !== 429) return;
-    if (isRetryForbiddenError(error)) return;
+    // Aborts never retry.
+    if (isAbortError(error)) return;
 
-    // Stop after one retry — don't loop on persistent 429s.
-    if (revalidateOpts.retryCount > 1) return;
+    // 429 branch — defense in depth: only 429 should reach here when
+    // shouldRetryOnError gates correctly, but guard explicitly so a
+    // misconfiguration never causes a retry storm.
+    if (getErrorStatus(error) === 429) {
+      // Stop after one retry — don't loop on persistent 429s.
+      if (revalidateOpts.retryCount > 1) return;
 
-    const retryAfterMs = (() => {
-      const seconds = getRetryAfterSeconds(error);
-      if (seconds !== null) {
-        return Math.min(seconds * 1000, RATE_LIMIT_RETRY_MAX_MS);
-      }
-      // Exponential fallback: 1 s for the single allowed retry.
-      return 1000;
-    })();
+      const retryAfterMs = (() => {
+        const seconds = getRetryAfterSeconds(error);
+        if (seconds !== null) {
+          return Math.min(seconds * 1000, RATE_LIMIT_RETRY_MAX_MS);
+        }
+        // Exponential fallback: 1 s for the single allowed retry.
+        return 1000;
+      })();
 
-    setTimeout(() => revalidate(revalidateOpts), retryAfterMs);
+      setTimeout(() => revalidate(revalidateOpts), retryAfterMs);
+      return;
+    }
+
+    // Network-level branch (issue #4023): bounded exponential backoff with
+    // jitter so a tab recovers once connectivity returns, without a retry
+    // storm when the network is genuinely down.
+    if (isNetworkRetryableError(error)) {
+      // At most 2 automatic retries per key.
+      if (revalidateOpts.retryCount > NETWORK_RETRY_MAX_ATTEMPTS) return;
+
+      const backoff = Math.min(
+        NETWORK_RETRY_BASE_MS * 2 ** (revalidateOpts.retryCount - 1),
+        NETWORK_RETRY_MAX_MS
+      );
+      const jitter = Math.floor(Math.random() * NETWORK_RETRY_JITTER_MS);
+      setTimeout(() => revalidate(revalidateOpts), backoff + jitter);
+    }
   },
 } as const;
 

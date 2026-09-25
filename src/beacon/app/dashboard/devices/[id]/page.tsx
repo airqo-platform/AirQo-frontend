@@ -404,7 +404,7 @@ export default function DeviceDetailPage() {
         {isAirqoGroup && (
           <TabsContent value="diagnostics" className="mt-4">
             <DiagnosticsTab
-              deviceId={device.name}
+              deviceId={device._id}
               deviceName={device.long_name || device.name}
             />
           </TabsContent>

@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { XCircle } from "lucide-react";
+import { XCircle, AlertTriangle } from "lucide-react";
+import { formatDistanceToNow, isValid, parseISO } from "date-fns";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { getElapsedDurationMapper } from "@/lib/utils";
@@ -15,6 +16,7 @@ import DeviceMeasurementsApiCard from "@/components/features/devices/device-meas
 import OnlineStatusCard from "@/components/features/devices/online-status-card";
 import RunDeviceTestCard from "@/components/features/devices/run-device-test-card";
 import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
+import DecommissionDeviceDialog from "@/components/features/devices/decommission-device-dialog";
 import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
 import { Device } from "@/app/types/devices";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
@@ -31,6 +33,59 @@ const ActionButtonsSkeleton = () => (
         <div className="h-9 w-36 bg-gray-200 rounded animate-pulse" />
     </div>
 );
+
+/**
+ * Surfaces the backend's upstream-channel hint. `channelStatus: "not_found"`
+ * is set when the feed provider 404s for this device's channel — usually a
+ * channel deleted upstream — which is exactly the situation the decommission
+ * action exists for, so point engineers at it before they reach for delete.
+ */
+const ChannelNotFoundNotice = ({
+    checkedAt,
+    canDecommission,
+    isDecommissioned,
+    onDecommission,
+}: {
+    checkedAt?: string | null;
+    canDecommission: boolean;
+    isDecommissioned: boolean;
+    onDecommission: () => void;
+}) => {
+    const parsed = checkedAt ? parseISO(checkedAt) : null;
+    const checkedLabel =
+        parsed && isValid(parsed) ? ` (last checked ${formatDistanceToNow(parsed, { addSuffix: true })})` : "";
+
+    return (
+        <div
+            role="alert"
+            className="mb-6 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200 sm:flex-row sm:items-start sm:justify-between"
+        >
+            <div className="flex gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                <div className="space-y-1">
+                    <p className="font-medium">Upstream data channel not found{checkedLabel}.</p>
+                    <p>
+                        The feed provider no longer has a channel for this device, which usually means it was deleted
+                        upstream.{" "}
+                        {isDecommissioned
+                            ? "This device has been decommissioned."
+                            : "If the channel is gone for good, decommission the device to retire it safely without losing its history."}
+                    </p>
+                </div>
+            </div>
+            {!isDecommissioned && canDecommission && (
+                <ReusableButton
+                    variant="outlined"
+                    padding="px-3 py-1.5"
+                    className="text-sm font-medium whitespace-nowrap"
+                    onClick={onDecommission}
+                >
+                    Decommission Device
+                </ReusableButton>
+            )}
+        </div>
+    );
+};
 
 const ContentGridSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -54,13 +109,18 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
     });
 
     const deploymentStatus = device?.status || "unknown";
+    const isDecommissioned = deploymentStatus === "decommissioned";
 
     const canRecallDevice = usePermission(PERMISSIONS.DEVICE.RECALL);
     const canDeployDevice = usePermission(PERMISSIONS.DEVICE.DEPLOY);
     const canMaintainDevice = usePermission(PERMISSIONS.DEVICE.MAINTAIN);
+    // Decommissioning is the non-destructive counterpart of delete, so it is
+    // offered to the same audience.
+    const canDecommissionDevice = usePermission(PERMISSIONS.DEVICE.DELETE);
 
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
+    const [showDecommissionDialog, setShowDecommissionDialog] = useState(false);
 
     const [showDeployModal, setShowDeployModal] = useState(false);
     const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
@@ -103,7 +163,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                             </ReusableButton>
                         }
 
-                        {deploymentStatus !== "deployed" &&
+                        {deploymentStatus !== "deployed" && !isDecommissioned &&
                             <ReusableButton
                                 variant="filled"
                                 padding="px-3 py-1.5"
@@ -127,9 +187,31 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                         >
                             Add Maintenance Log
                         </ReusableButton>
+
+                        {!isDecommissioned &&
+                            <ReusableButton
+                                variant="outlined"
+                                padding="px-3 py-1.5"
+                                className="text-sm font-medium text-red-600 border-red-300 hover:bg-red-50"
+                                onClick={() => setShowDecommissionDialog(true)}
+                                disabled={!canDecommissionDevice}
+                                permission={PERMISSIONS.DEVICE.DELETE}
+                            >
+                                Decommission
+                            </ReusableButton>
+                        }
                     </div>
                 )}
             </div>
+
+            {device?.channelStatus === "not_found" && (
+                <ChannelNotFoundNotice
+                    checkedAt={device.channelStatusCheckedAt}
+                    canDecommission={canDecommissionDevice}
+                    isDecommissioned={isDecommissioned}
+                    onDecommission={() => setShowDecommissionDialog(true)}
+                />
+            )}
 
             {isLoading ? (
                 <ContentGridSkeleton />
@@ -191,6 +273,12 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     <RecallDeviceDialog
                         open={showRecallDialog}
                         onOpenChange={setShowRecallDialog}
+                        deviceName={device.name}
+                        deviceDisplayName={device.long_name || device.name}
+                    />
+                    <DecommissionDeviceDialog
+                        open={showDecommissionDialog}
+                        onOpenChange={setShowDecommissionDialog}
                         deviceName={device.name}
                         deviceDisplayName={device.long_name || device.name}
                     />
