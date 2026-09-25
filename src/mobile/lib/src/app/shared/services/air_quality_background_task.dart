@@ -1,10 +1,10 @@
+import 'package:airqo/core/utils/env_loader.dart';
 import 'package:airqo/core/utils/hive_box_setup.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
@@ -77,7 +77,7 @@ class AirQualityBackgroundTask with UiLoggy {
 
       await HiveBoxSetup.initializeBoxes();
       await CacheManager().initialize();
-      await dotenv.load(fileName: '.env.prod');
+      await loadAppEnv();
       await PushNotificationService().initializeLocalOnly();
 
       final response = await DashboardImpl().fetchAirQualityReadings(
