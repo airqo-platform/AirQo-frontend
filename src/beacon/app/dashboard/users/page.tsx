@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 import { fetchWithAuth } from "@/lib/api-client"
 import { isMockMode, getMockUsers } from "@/lib/mock-data"
 
@@ -66,7 +67,8 @@ export default function UsersPage() {
 
   // Function to get auth token with proper error handling
   const getAuthToken = () => {
-    const token = localStorage.getItem('access_token')
+    // The platform token, sent as-is like the other Beacon services send it
+    const token = authService.getToken()
     if (!token) {
       throw new Error("Authentication token not found. Please log in again.")
     }
@@ -93,12 +95,8 @@ export default function UsersPage() {
         return
       }
 
-      // Try different authorization header formats
       const headers = {
-        'Authorization': `Bearer ${token}`
-        // Some APIs might expect 'Token' instead of 'Bearer'
-        // Uncomment the line below if the API expects a different format
-        // 'Authorization': `Token ${token}`
+        'Authorization': token
       }
 
       // Remove in production or use a debug utility
@@ -175,7 +173,7 @@ export default function UsersPage() {
       const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(newUser)
