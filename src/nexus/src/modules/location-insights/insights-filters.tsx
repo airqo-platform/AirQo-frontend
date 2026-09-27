@@ -26,7 +26,10 @@ import {
 } from '@/shared/components/charts/constants';
 
 const CHART_TYPE_OPTIONS = Object.entries(CHART_TYPE_LABELS)
-  .filter(([key]) => key === 'line' || key === 'area' || key === 'bar')
+  .filter(
+    ([key]) =>
+      key === 'line' || key === 'area' || key === 'bar' || key === 'pie'
+  )
   .map(([value, label]) => ({
     label,
     value: value as ChartType,

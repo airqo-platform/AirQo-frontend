@@ -16,6 +16,36 @@ type ChartLocationDisplaySource = {
   formatted_name?: string;
   generated_name?: string;
   site?: string;
+  label?: string;
+  site_id?: string;
+  time?: string | number;
+};
+
+const asTrimmedString = (value: unknown): string =>
+  typeof value === 'string' ? value.trim() : '';
+
+export const isLikelySiteId = (value: string): boolean =>
+  /^[a-f\d]{24}$/i.test(value) ||
+  /^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(value);
+
+export const getChartLocationId = (
+  source: ChartLocationDisplaySource
+): string => {
+  const candidate = [
+    source.site_id,
+    source.label,
+    source.site,
+    source.time,
+  ].find(
+    value =>
+      (typeof value === 'string' && value.trim()) ||
+      (typeof value === 'number' && Number.isFinite(value))
+  );
+  return candidate === undefined
+    ? ''
+    : typeof candidate === 'number'
+      ? String(candidate)
+      : asTrimmedString(candidate);
 };
 
 /**
@@ -25,15 +55,40 @@ export const getChartLocationDisplayName = (
   source: ChartLocationDisplaySource
 ): string => {
   return (
-    source.search_name?.trim() ||
-    source.location_name?.trim() ||
-    source.name?.trim() ||
-    source.site_name?.trim() ||
-    source.formatted_name?.trim() ||
-    source.site?.trim() ||
-    source.generated_name?.trim() ||
+    asTrimmedString(source.search_name) ||
+    asTrimmedString(source.location_name) ||
+    asTrimmedString(source.site_name) ||
+    asTrimmedString(source.name) ||
+    asTrimmedString(source.formatted_name) ||
+    asTrimmedString(source.site) ||
+    asTrimmedString(source.label) ||
+    asTrimmedString(source.generated_name) ||
     'Unknown Location'
   );
+};
+
+export const getChartLocationLabel = (
+  source: ChartLocationDisplaySource,
+  overrides: Record<string, string> = {}
+): string => {
+  const siteId = getChartLocationId(source);
+  const overrideValue = siteId ? overrides[siteId] : undefined;
+  const override = asTrimmedString(overrideValue);
+  if (
+    override &&
+    override.toLowerCase() !== 'unknown location' &&
+    !isLikelySiteId(override)
+  ) {
+    return override;
+  }
+
+  const displayName = getChartLocationDisplayName(source);
+  if (displayName.toLowerCase() === 'unknown location') return displayName;
+  if (source.site_id && displayName === String(source.site_id).trim()) {
+    return 'Unknown Location';
+  }
+  if (isLikelySiteId(displayName)) return 'Unknown Location';
+  return displayName;
 };
 
 /**
@@ -84,15 +139,30 @@ export const normalizeAirQualityData = (
     // ---- TIME resolution ----
     // Prefer explicit time/date/timestamp fields; fall back to scanning
     // any key whose value looks like a date string or epoch number.
-    let rawTime: string | number | undefined =
-      point.time ?? point.date ?? point.timestamp ?? point.datetime;
+    const fallbackSiteId = asTrimmedString(point.site_id);
+    const timeCandidates = [
+      point.time,
+      point.date,
+      point.timestamp,
+      point.datetime,
+      point.label,
+      fallbackSiteId || undefined,
+    ];
+    let rawTime = timeCandidates.find(
+      value =>
+        (typeof value === 'string' && Boolean(value.trim())) ||
+        (typeof value === 'number' && Number.isFinite(value))
+    );
 
     if (rawTime === undefined || rawTime === null) {
       // Scan remaining keys for a plausible time value
       for (const key of Object.keys(point)) {
         if (/time|date/i.test(key)) {
           const v = (point as Record<string, unknown>)[key];
-          if (typeof v === 'string' || typeof v === 'number') {
+          if (
+            (typeof v === 'string' && v.trim()) ||
+            (typeof v === 'number' && Number.isFinite(v))
+          ) {
             rawTime = v;
             break;
           }
@@ -100,11 +170,34 @@ export const normalizeAirQualityData = (
       }
     }
 
-    if (rawTime === undefined || rawTime === null) continue;
+    if (
+      rawTime === undefined ||
+      rawTime === null ||
+      (typeof rawTime === 'string' && !rawTime.trim())
+    ) {
+      continue;
+    }
 
     // Normalize to ISO-ish string
     let normalizedTime: string;
-    if (typeof rawTime === 'number') {
+    const hasExplicitTime = [
+      point.time,
+      point.date,
+      point.timestamp,
+      point.datetime,
+    ].some(
+      value =>
+        (typeof value === 'string' && Boolean(value.trim())) ||
+        (typeof value === 'number' && Number.isFinite(value))
+    );
+    const isCategoricalLabel =
+      !hasExplicitTime &&
+      ((point.label !== undefined && rawTime === point.label) ||
+        (fallbackSiteId !== '' && rawTime === fallbackSiteId));
+
+    if (isCategoricalLabel) {
+      normalizedTime = String(rawTime);
+    } else if (typeof rawTime === 'number') {
       normalizedTime = new Date(rawTime).toISOString();
     } else if (typeof rawTime === 'string') {
       if (/^\d+$/.test(rawTime)) {
@@ -144,6 +237,7 @@ export const normalizeAirQualityData = (
           [
             'site_id',
             'device_id',
+            'label',
             'name',
             'time',
             'date',
@@ -173,8 +267,9 @@ export const normalizeAirQualityData = (
       value: rounded,
       site: getChartLocationDisplayName(point),
       device_id: String(point.device_id ?? ''),
-      site_id: String(point.site_id ?? ''),
+      site_id: fallbackSiteId,
       rawTime: normalizedTime,
+      label: point.label,
       search_name: point.search_name,
       location_name: point.location_name,
       formatted_name: point.formatted_name,
