@@ -125,6 +125,12 @@ const orgSidebarConfig: NavGroup[] = [
         href: '/org/map',
         icon: AqGlobe05,
       },
+      {
+        id: 'air-quality-analytics',
+        label: 'Air Quality Analysis',
+        href: '/org/air-quality/analytics',
+        icon: AqPresentationChart02,
+      },
     ],
   },
   {

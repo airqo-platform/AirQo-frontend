@@ -15,6 +15,7 @@ import {
   InfoDropdown,
   WeatherWidget,
 } from './components';
+import { OrgCohortSwitcher } from '../cohorts/OrgCohortSwitcher';
 import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
 import { useMediaQuery } from 'react-responsive';
@@ -65,6 +66,9 @@ export const Header: React.FC<HeaderProps> = ({
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
             {shouldShowAuthControls && !isMobile && <OrganizationSelector />}
+            {shouldShowAuthControls && !isMobile && (
+              <OrgCohortSwitcher containerClassName="mb-0 w-40 xl:w-44" />
+            )}
             <InfoDropdown />
             <AppDropdown />
             {shouldShowAuthControls && <ProfileDropdown />}
@@ -73,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
       </Card>
 
       {/* Weather Widget positioned below header */}
-      <div className="absolute right-4 top-full">
+      <div className="absolute right-4 top-full hidden md:block">
         <WeatherWidget />
       </div>
     </motion.header>

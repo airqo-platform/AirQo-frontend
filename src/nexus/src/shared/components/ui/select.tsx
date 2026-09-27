@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { usePopper } from 'react-popper';
+import { cn } from '@/shared/lib/utils';
 
 interface SelectFieldProps {
   label?: string;
@@ -27,6 +28,8 @@ interface SelectFieldProps {
   maxHeight?: number;
   name?: string;
   id?: string;
+  /** Visual density. `control` renders a header-style control matching the organization selector (h-10, primary border, focus ring). */
+  size?: 'default' | 'control';
 }
 
 const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
@@ -43,8 +46,10 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   value,
   placeholder = 'Select an option',
   maxHeight = 240,
+  size = 'default',
   ...rest
 }) => {
+  const isControl = size === 'control';
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -247,8 +252,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   useEffect(() => {
     if (open && highlightedIndex >= 0 && listRef.current) {
       const highlightedElement = listRef.current.children[highlightedIndex] as
-        | HTMLElement
-        | undefined;
+        HTMLElement | undefined;
       if (highlightedElement) {
         highlightedElement.scrollIntoView({
           block: 'nearest',
@@ -266,12 +270,16 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col mb-4 ${containerClassName}`}
+      className={cn(
+        'flex flex-col',
+        isControl ? 'mb-0' : 'mb-4',
+        containerClassName
+      )}
     >
       {label && (
         <label
           id={`${buttonId}-label`}
-          className="flex items-center mb-2 text-sm text-foreground"
+          className={`flex items-center text-foreground ${isControl ? 'mb-1 text-xs' : 'mb-2 text-sm'}`}
         >
           {label}
           {required && <span className="ml-1 text-destructive">*</span>}
@@ -301,17 +309,30 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           }
           aria-controls={open ? listId : undefined}
           className={`
-            w-full flex justify-between items-center rounded-md px-4 py-2.5 text-sm
+            w-full flex justify-between items-center rounded-md ${
+              isControl
+                ? 'h-10 px-3 py-0 text-sm font-medium'
+                : 'px-4 py-2.5 text-sm'
+            }
             transition duration-150 ease-in-out focus:outline-none
             ${
               error
                 ? 'border border-destructive focus:border-destructive'
-                : 'border border-input focus:border-primary'
+                : isControl
+                  ? 'border border-primary/30 focus:border-primary'
+                  : 'border border-input focus:border-primary'
             }
             ${
               disabled
                 ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                : 'bg-background text-foreground hover:bg-muted'
+                : isControl
+                  ? 'bg-transparent text-foreground hover:bg-primary/5'
+                  : 'bg-background text-foreground hover:bg-muted'
+            }
+            ${
+              isControl
+                ? 'focus:ring-2 focus:ring-primary focus:ring-offset-2'
+                : ''
             }
             ${className}
           `}
@@ -323,7 +344,9 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             {selectedItem ? selectedItem.label : placeholder}
           </span>
           <svg
-            className={`w-5 h-5 ml-2 transition-transform duration-200 flex-shrink-0 ${open ? 'transform rotate-180' : ''} ${
+            className={`${
+              isControl ? 'w-4 h-4 ml-2' : 'w-5 h-5 ml-2'
+            } transition-transform duration-200 flex-shrink-0 ${open ? 'transform rotate-180' : ''} ${
               disabled ? 'text-muted-foreground' : 'text-muted-foreground'
             }`}
             fill="none"
@@ -377,7 +400,9 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                     onClick={() => handleSelect(item)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                     className={`
-                      cursor-pointer px-4 py-2.5 text-sm transition-colors duration-150
+                      cursor-pointer transition-colors duration-150 ${
+                        isControl ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-sm'
+                      }
                       ${
                         item.disabled
                           ? 'opacity-50 cursor-not-allowed text-muted-foreground'
@@ -400,7 +425,11 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                   </li>
                 ))
               ) : (
-                <li className="px-4 py-2.5 text-sm text-muted-foreground">
+                <li
+                  className={`text-muted-foreground ${
+                    isControl ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-sm'
+                  }`}
+                >
                   No options available
                 </li>
               )}
