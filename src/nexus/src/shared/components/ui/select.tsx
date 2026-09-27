@@ -20,6 +20,8 @@ interface SelectFieldProps {
   required?: boolean;
   disabled?: boolean;
   children?: React.ReactNode;
+  /** Optional heading rendered above the option list inside the popper. Not an option — never selectable or keyboard-highlighted. */
+  listHeader?: React.ReactNode;
   onChange?: (event: {
     target: { value: unknown; name?: string; id?: string };
   }) => void;
@@ -47,6 +49,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   placeholder = 'Select an option',
   maxHeight = 240,
   size = 'default',
+  listHeader,
   ...rest
 }) => {
   const isControl = size === 'control';
@@ -380,6 +383,14 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
               ${listClassName}
             `}
           >
+            {listHeader ? (
+              <div
+                role="presentation"
+                className="border-b border-border/60 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
+                {listHeader}
+              </div>
+            ) : null}
             <ul
               ref={listRef}
               id={listId}

@@ -50,6 +50,7 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
         isLoading={ctx.isLoading}
         placeholder={ctx.isLoading ? 'Loading…' : 'Cohort'}
         ariaLabel="Organization cohort"
+        listHeader="Select cohort"
         className="min-w-0"
         containerClassName={cn('mb-0 min-w-0', containerClassName)}
       />

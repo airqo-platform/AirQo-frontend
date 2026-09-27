@@ -7,9 +7,9 @@ import type { OrgCohortOption } from '@/shared/hooks/useOrgCohorts';
 // SelectField renders through react-popper, which is unreliable in jsdom
 // (see DataExportPreview.test.tsx). Stub it with a native <select> that
 // keeps the same onChange({ target: { value } }) contract.
-jest.mock('@/shared/components/ui/select', () => ({
-  __esModule: true,
-  default: ({
+jest.mock('@/shared/components/ui/select', () => {
+  // Uppercase name so react-hooks/rules-of-hooks accepts the useState below.
+  const MockSelectField = ({
     label,
     value,
     onChange,
@@ -18,6 +18,7 @@ jest.mock('@/shared/components/ui/select', () => ({
     placeholder,
     children,
     containerClassName,
+    listHeader,
     ...rest
   }: {
     label?: string;
@@ -28,29 +29,45 @@ jest.mock('@/shared/components/ui/select', () => ({
     placeholder?: string;
     children?: React.ReactNode;
     containerClassName?: string;
+    listHeader?: React.ReactNode;
     'aria-label'?: string;
-  }) => (
-    <div data-testid="select-field" className={containerClassName}>
-      {label ? <label>{label}</label> : null}
-      <select
-        aria-label={rest['aria-label'] ?? label ?? 'Cohort'}
-        value={typeof value === 'string' ? value : ''}
-        disabled={disabled}
-        onChange={event =>
-          onChange?.({ target: { value: event.target.value } })
-        }
-      >
-        {!value && placeholder ? (
-          <option value="" disabled>
-            {placeholder}
-          </option>
+  }) => {
+    // Mirrors SelectField's open state: the popper (and therefore the
+    // listHeader) only exists while the dropdown is open.
+    const [open, setOpen] = React.useState(false);
+
+    return (
+      <div data-testid="select-field" className={containerClassName}>
+        {label ? <label>{label}</label> : null}
+        <select
+          aria-label={rest['aria-label'] ?? label ?? 'Cohort'}
+          value={typeof value === 'string' ? value : ''}
+          disabled={disabled}
+          onClick={() => setOpen(true)}
+          onChange={event => {
+            setOpen(false);
+            onChange?.({ target: { value: event.target.value } });
+          }}
+        >
+          {!value && placeholder ? (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          ) : null}
+          {children}
+        </select>
+        {open && listHeader ? (
+          <div role="presentation" data-testid="select-list-header">
+            {listHeader}
+          </div>
         ) : null}
-        {children}
-      </select>
-      {error ? <p role="alert">{error}</p> : null}
-    </div>
-  ),
-}));
+        {error ? <p role="alert">{error}</p> : null}
+      </div>
+    );
+  };
+
+  return { __esModule: true, default: MockSelectField };
+});
 
 jest.mock('@/shared/components/ui/button', () => ({
   __esModule: true,
@@ -202,5 +219,35 @@ describe('OrgCohortSelector', () => {
     // Give any (incorrect) mirror effect a chance to fire.
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('shows the list header while the dropdown is open, and the options still work', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+
+    render(
+      <OrgCohortSelector
+        cohorts={cohorts}
+        value="cohort-1"
+        onChange={onChange}
+        listHeader="Select cohort"
+      />
+    );
+
+    // Nothing is rendered before the dropdown is opened.
+    expect(screen.queryByText('Select cohort')).not.toBeInTheDocument();
+
+    await user.click(getSelect());
+
+    expect(screen.getByText('Select cohort')).toBeInTheDocument();
+    // The header is presentation-only — never a selectable option.
+    expect(
+      screen.queryByRole('option', { name: 'Select cohort' })
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(getSelect(), 'cohort-2');
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith('cohort-2');
   });
 });

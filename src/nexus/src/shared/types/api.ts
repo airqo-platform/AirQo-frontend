@@ -2075,6 +2075,10 @@ export interface AnalyticsReportPeriod {
 export interface AnalyticsReport {
   status: string;
   message?: string;
+  // Client-populated (not returned by the backend): list of periods the report
+  // service rejected after adaptive splitting. Lets the UI flag gaps in the
+  // merged totals. Undefined when every window succeeded.
+  unavailablePeriods?: AnalyticsReportPeriod[];
   cohort_id: string;
   devices: AnalyticsReportDeviceSummary;
   period: AnalyticsReportPeriod;
@@ -2114,12 +2118,7 @@ export interface DataDownloadRequest {
   metaDataFields?: string[];
   weatherFields?: string[];
   device_category?:
-    | 'lowcost'
-    | 'bam'
-    | 'mobile'
-    | 'gas'
-    | 'general'
-    | 'satellite';
+    'lowcost' | 'bam' | 'mobile' | 'gas' | 'general' | 'satellite';
   grid_ids?: string[];
   cohort_ids?: string[];
   cursor?: string;
@@ -2798,12 +2797,7 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    | 'active'
-    | 'inactive'
-    | 'past_due'
-    | 'cancelled'
-    | 'trialing'
-    | 'paused';
+    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2849,12 +2843,7 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      | 'active'
-      | 'inactive'
-      | 'past_due'
-      | 'cancelled'
-      | 'trialing'
-      | 'paused';
+      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -3068,12 +3057,7 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  | 'good'
-  | 'moderate'
-  | 'u4sg'
-  | 'unhealthy'
-  | 'very_unhealthy'
-  | 'hazardous';
+  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
 
 export interface RankingEntry {
   rank: number;

@@ -23,6 +23,8 @@ export interface OrgCohortSelectorProps {
   containerClassName?: string;
   /** Visual density forwarded to the underlying SelectField trigger. */
   size?: 'default' | 'control';
+  /** Optional heading rendered above the cohort list inside the dropdown. */
+  listHeader?: React.ReactNode;
 }
 
 /**
@@ -44,6 +46,7 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
   className,
   containerClassName,
   size = 'default',
+  listHeader,
 }) => {
   const cohortIds = cohorts.map(cohort => cohort.id);
   const isDisabled = disabled || isLoading || cohortIds.length === 0;
@@ -64,6 +67,7 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
         placeholder={placeholder}
         error={error ?? undefined}
         size={size}
+        listHeader={listHeader}
         containerClassName="mb-0 min-w-0 flex-1"
         className={className}
         aria-label={ariaLabel}

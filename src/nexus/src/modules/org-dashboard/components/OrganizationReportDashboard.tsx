@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { differenceInCalendarDays, format, subDays } from 'date-fns';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
@@ -17,6 +17,7 @@ import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { DatePicker, type DateRange } from '@/shared/components/calendar';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
+import { InfoBanner, WarningBanner } from '@/shared/components/ui/banner';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { AqiLegend } from '@/modules/analytics';
 import { getDefaultSiteColor } from '@/modules/analytics/utils/siteColors';
@@ -26,6 +27,8 @@ import {
 } from '@/shared/utils/airQuality';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useOrgCohortContextRequired } from '@/shared/providers/org-cohort-provider';
+import { MAX_REPORT_RANGE_DAYS } from '@/shared/services/analyticsService';
+import { mergeUnavailablePeriods } from '@/shared/services/utils/reportWindows';
 import type {
   NormalizedChartData,
   PollutantType,
@@ -71,15 +74,15 @@ interface ReportChartProps {
   className?: string;
 }
 
-// The backend rejects report windows wider than 27 calendar days
-// (inclusive), so the default range is exactly that: the last 27 days.
-const MAX_REPORT_WINDOW_DAYS = 27;
+// Default to a single server-valid window; longer selections are split
+// into consecutive windows and merged by the analytics service.
+const DEFAULT_REPORT_RANGE_DAYS = 27;
 
 const getDefaultReportRange = (): DateRange => {
   const to = new Date();
   to.setHours(23, 59, 59, 999);
   const from = new Date(to);
-  from.setDate(from.getDate() - (MAX_REPORT_WINDOW_DAYS - 1));
+  from.setDate(from.getDate() - (DEFAULT_REPORT_RANGE_DAYS - 1));
   from.setHours(0, 0, 0, 0);
   return { from, to };
 };
@@ -293,8 +296,8 @@ export const OrganizationReportDashboard: React.FC<
       ? 'Choose a start and end date for the report.'
       : dateRange.from && dateRange.from.getTime() > Date.now()
         ? 'The report start date cannot be in the future.'
-        : rangeDays > MAX_REPORT_WINDOW_DAYS
-          ? `Reports can cover up to ${MAX_REPORT_WINDOW_DAYS} days. Choose a shorter range.`
+        : rangeDays > MAX_REPORT_RANGE_DAYS
+          ? 'Reports support up to 92 days. Choose a shorter range.'
           : null;
   const reportEnabled = !!effectiveCohortId && !rangeError;
   const {
@@ -336,6 +339,25 @@ export const OrganizationReportDashboard: React.FC<
         report.period.endTime
       )}`
     : null;
+  // Coalesce adjacent/overlapping rejected windows first: a bad month is
+  // recorded as one window per split leaf and would otherwise render as one
+  // banner entry per day.
+  const unavailablePeriods = useMemo(
+    () => mergeUnavailablePeriods(report?.unavailablePeriods ?? []),
+    [report]
+  );
+  const unavailableBanner =
+    unavailablePeriods.length > 0 ? (
+      <WarningBanner
+        dense
+        message={`Some periods could not be processed by the report service and are excluded from the totals: ${unavailablePeriods
+          .map(
+            period =>
+              `${formatReportDate(period.startTime)} – ${formatReportDate(period.endTime)}`
+          )
+          .join(', ')}.`}
+      />
+    ) : null;
   // The cohort selection is resolved once ids are known AND a valid cohort is
   // selected (the selector auto-selects the stored/first cohort).
   const selectionPending =
@@ -413,11 +435,19 @@ export const OrganizationReportDashboard: React.FC<
       );
     }
     if (!reportHasData) {
+      // Still surface rejected windows above the empty state so the user can
+      // tell "no measurements" apart from "the service refused these dates".
       return (
-        <EmptyState
-          title="No readings in this period"
-          description="Try a different date range or cohort. The report service returns a successful empty result when the selected period has no measurements."
-        />
+        <div className="space-y-5">
+          {unavailableBanner}
+          <EmptyState
+            title="No readings in this period"
+            description={
+              report?.message?.trim() ||
+              'Try a different date range or cohort. The selected period has no measurements.'
+            }
+          />
+        </div>
       );
     }
 
@@ -432,6 +462,7 @@ export const OrganizationReportDashboard: React.FC<
             Updating report...
           </p>
         )}
+        {unavailableBanner}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <ReportMetricCard
             label="Average PM2.5"
@@ -517,11 +548,10 @@ export const OrganizationReportDashboard: React.FC<
                   onChange={handleDateRangeChange}
                   mode="range"
                   maxDate={new Date()}
-                  minDate={
-                    new Date(
-                      Date.now() - (MAX_REPORT_WINDOW_DAYS - 1) * 86400000
-                    )
-                  }
+                  // Any range within the last 92 days is selectable;
+                  // longer periods are split into server-valid windows by
+                  // the analytics service.
+                  minDate={subDays(new Date(), MAX_REPORT_RANGE_DAYS - 1)}
                   placeholder="Select date range"
                   className="w-full"
                   contentClassName="z-[10010]"
@@ -563,6 +593,11 @@ export const OrganizationReportDashboard: React.FC<
             <span aria-hidden="true">·</span>
             <span>UTC hourly aggregates</span>
           </div>
+          <InfoBanner
+            dense
+            className="mt-3"
+            message="Reports support up to 92 days per view. Longer periods are fetched in shorter windows and combined automatically, so they may take a little longer."
+          />
         </CardContent>
       </Card>
       {renderReport()}
