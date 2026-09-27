@@ -26,7 +26,7 @@ import type {
   CohortResponse,
 } from '../types/api';
 import { normalizeCohortIds } from '../utils/cohortUtils';
-import { swrRetryPolicy } from '../lib/retryPolicy';
+import { swrRetryPolicy, isAbortError } from '../lib/retryPolicy';
 
 const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateOnFocus: false,
@@ -40,21 +40,6 @@ const SWR_STABLE_REQUEST_OPTIONS = {
   revalidateIfStale: false,
   dedupingInterval: 5000,
 } as const;
-
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-  if (!candidate) return false;
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
 
 const useAbortableFetcher = <T>(
   fetcher: (signal: AbortSignal) => Promise<T>
