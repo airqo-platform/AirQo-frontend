@@ -200,7 +200,8 @@ const SiteBreakdown: React.FC<{
                   Site
                 </th>
                 <th scope="col" className="px-6 py-3 text-right font-medium">
-                  {getReportPollutantLabel(pollutant)} (µg/m³)
+                  {getReportPollutantLabel(pollutant)}{' '}
+                  <span className="normal-case">(µg/m³)</span>
                 </th>
               </tr>
             </thead>
