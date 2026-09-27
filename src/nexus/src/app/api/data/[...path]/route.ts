@@ -30,6 +30,7 @@ const ALLOWED_PATH_PREFIXES = [
   'devices/measurements',
   'analytics/data-download',
   'analytics/dashboard/chart/data',
+  'analytics/report',
   'predict/daily-forecasting',
   'predict/hourly-forecasting',
 ];
