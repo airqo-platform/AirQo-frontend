@@ -1,7 +1,11 @@
 import { ApiClient, createServerClient } from './apiClient';
+import { isAbortError } from '../lib/retryPolicy';
 import type {
   AnalyticsChartRequest,
   AnalyticsChartResponse,
+  AnalyticsReport,
+  AnalyticsReportRequest,
+  AnalyticsReportResponse,
   ComparisonReadingsResponse,
   ComparisonSiteReading,
   DataDownloadRequest,
@@ -12,6 +16,8 @@ import type {
 
 const CHART_DATA_PATH = '/analytics/dashboard/chart/data';
 const DATA_DOWNLOAD_PATH = '/analytics/data-download';
+const REPORT_PATH = '/analytics/report';
+const MAX_REPORT_WINDOW_DAYS = 27;
 const MAX_CHART_PAGES = 1_000;
 const MAX_DOWNLOAD_PAGES = 1_000;
 
@@ -60,14 +66,77 @@ export const normalizeChartApiType = (
     : 'line';
 };
 
-const isCancellation = (error: unknown): boolean => {
-  const candidate = error as { name?: string; code?: string } | null;
-  return (
-    candidate?.name === 'AbortError' ||
-    candidate?.name === 'CanceledError' ||
-    candidate?.code === 'ERR_CANCELED'
-  );
+export const buildReportPayload = (
+  request: AnalyticsReportRequest
+): AnalyticsReportRequest => {
+  const cohortId = String(request.cohort_id ?? '').trim();
+  const startTime = toApiDateTime(String(request.start_time ?? ''));
+  const endTime = toApiDateTime(String(request.end_time ?? ''), true);
+  const startMs = Date.parse(startTime);
+  const endMs = Date.parse(endTime);
+
+  if (!cohortId) {
+    throw new Error('A cohort is required to load an organization report.');
+  }
+  if (
+    !startTime ||
+    !endTime ||
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs)
+  ) {
+    throw new Error('Choose a valid report date range.');
+  }
+  if (endMs <= startMs) {
+    throw new Error('The report end date must be after the start date.');
+  }
+  if (startMs > Date.now()) {
+    throw new Error('The report start date cannot be in the future.');
+  }
+  if ((endMs - startMs) / (24 * 60 * 60 * 1000) > MAX_REPORT_WINDOW_DAYS) {
+    throw new Error(
+      `The report date range cannot exceed ${MAX_REPORT_WINDOW_DAYS} days.`
+    );
+  }
+
+  return {
+    cohort_id: cohortId,
+    start_time: startTime,
+    end_time: endTime,
+  };
 };
+
+const getReportErrorMessage = (error: unknown): string => {
+  const candidate = error as {
+    response?: { status?: number };
+    status?: number;
+  } | null;
+  const status = candidate?.response?.status ?? candidate?.status;
+
+  if (status === 400) {
+    return 'The report service could not process that date range. Choose a range of 27 days or fewer.';
+  }
+  if (status === 404) {
+    return 'This cohort is no longer available for reporting.';
+  }
+  if (status === 422) {
+    return 'Choose a valid cohort and date range to load the report.';
+  }
+  if (status === 429) {
+    return 'The report service is busy. Wait a moment and try again.';
+  }
+  if (status === 401 || status === 403) {
+    return 'You do not have permission to view this organization report.';
+  }
+  return 'The organization report is temporarily unavailable. Try again shortly.';
+};
+
+const createReportError = (error: unknown): Error =>
+  Object.defineProperty(new Error(getReportErrorMessage(error)), 'cause', {
+    value: error,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
 
 /** Translate app chart filters to the current v2 analytics wire contract. */
 export const buildChartPayload = (
@@ -204,6 +273,32 @@ export class AnalyticsService {
     );
   }
 
+  async getReport(
+    request: AnalyticsReportRequest,
+    signal?: AbortSignal
+  ): Promise<AnalyticsReport> {
+    const payload = buildReportPayload(request);
+
+    let response;
+    try {
+      response = await this.serverClient.post<AnalyticsReportResponse>(
+        REPORT_PATH,
+        payload,
+        { signal, suppressErrorLogging: true }
+      );
+    } catch (error) {
+      if (isAbortError(error) || signal?.aborted) throw error;
+      throw createReportError(error);
+    }
+
+    const report = response.data?.airquality;
+    if (!report || report.status !== 'success') {
+      throw createReportError(new Error('Invalid report response.'));
+    }
+
+    return report;
+  }
+
   /**
    * Fetch every cursor page from the synchronous data-download endpoint.
    * JSON is requested internally because its body carries pagination metadata;
@@ -275,7 +370,7 @@ export class AnalyticsService {
         { signal }
       );
     } catch (error) {
-      if (isCancellation(error) || signal?.aborted) throw error;
+      if (isAbortError(error) || signal?.aborted) throw error;
 
       throw Object.defineProperty(
         new Error('Failed to fetch the latest readings.'),
