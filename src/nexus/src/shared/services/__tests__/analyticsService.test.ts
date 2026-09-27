@@ -12,14 +12,21 @@ const { __mockPost: mockPost } = jest.requireMock('../apiClient') as {
   __mockPost: jest.Mock;
 };
 
-  const { analyticsService, buildChartPayload, normalizeChartApiFrequency } = jest.requireActual(
-  '../analyticsService'
-) as {
+const {
+  analyticsService,
+  buildChartPayload,
+  buildReportPayload,
+  normalizeChartApiFrequency,
+} = jest.requireActual('../analyticsService') as {
   analyticsService: {
     getChartData: (
       request: Record<string, unknown>,
       signal?: AbortSignal
     ) => Promise<Record<string, unknown>>;
+    getReport: (
+      request: Record<string, unknown>,
+      signal?: AbortSignal
+    ) => Promise<unknown>;
     downloadData: (
       request: Record<string, unknown>,
       signal?: AbortSignal
@@ -34,6 +41,9 @@ const { __mockPost: mockPost } = jest.requireMock('../apiClient') as {
     ) => Promise<unknown[]>;
   };
   buildChartPayload: (
+    request: Record<string, unknown>
+  ) => Record<string, unknown>;
+  buildReportPayload: (
     request: Record<string, unknown>
   ) => Record<string, unknown>;
   normalizeChartApiFrequency: (value: string) => string;
@@ -59,6 +69,12 @@ const downloadRequest = {
   pollutants: ['pm2_5'],
   startDateTime: '2026-08-01T00:00:00.000Z',
   sites: ['site-1'],
+};
+
+const reportRequest = {
+  cohort_id: ' cohort-1 ',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-01-20T23:59:59Z',
 };
 
 describe('AnalyticsService.getChartData', () => {
@@ -149,15 +165,13 @@ describe('AnalyticsService.getChartData', () => {
     ).toEqual(
       expect.objectContaining({
         pollutants: ['pm10'],
-        metaDataFields: ['latitude', 'site_id'],
+        metaDataFields: ['site_id', 'latitude'],
       })
     );
   });
 
   it('preserves documented raw and yearly chart frequencies', () => {
-    expect(
-      normalizeChartApiFrequency('raw')
-    ).toBe('raw');
+    expect(normalizeChartApiFrequency('raw')).toBe('raw');
     expect(normalizeChartApiFrequency('yearly')).toBe('yearly');
   });
 
@@ -165,9 +179,9 @@ describe('AnalyticsService.getChartData', () => {
     expect(buildChartPayload({ ...chartRequest, chartType: 'pie' })).toEqual(
       expect.objectContaining({ chartType: 'pie' })
     );
-    expect(buildChartPayload({ ...chartRequest, chartType: 'scatter' })).toEqual(
-      expect.objectContaining({ chartType: 'line' })
-    );
+    expect(
+      buildChartPayload({ ...chartRequest, chartType: 'scatter' })
+    ).toEqual(expect.objectContaining({ chartType: 'line' }));
   });
 
   it('forwards the abort signal and never retries a rejected request', async () => {
@@ -330,14 +344,154 @@ describe('AnalyticsService reading helpers', () => {
       abortError
     );
   });
-
   it('returns comparison readings', async () => {
     const readings = [{ site_id: 'site-1', has_reading: true }];
     mockPost.mockResolvedValueOnce({
       data: { success: true, message: 'ok', readings },
     });
+
     await expect(
       analyticsService.getComparisonReadings([' site-1 '])
     ).resolves.toEqual(readings);
+  });
+});
+
+describe('AnalyticsService.getReport', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('sends the documented cohort report payload through the token client', async () => {
+    const report = {
+      status: 'success',
+      cohort_id: 'cohort-1',
+      devices: { device_ids: ['device-1'], number_of_devices: 1 },
+      period: {
+        startTime: '2024-01-01T00:00:00+00:00',
+        endTime: '2024-01-20T23:59:59+00:00',
+      },
+      daily_mean_pm: [],
+      datetime_mean_pm: [],
+      diurnal: [],
+      annual_pm: [],
+      monthly_pm: [],
+      pm_by_month_year: [],
+      pm_by_month_name: [],
+      site_monthly_mean_pm: [],
+      site_annual_mean_pm: [],
+      site_mean_pm: [],
+      mean_pm_by_city: [],
+      mean_pm_by_country: [],
+      mean_pm_by_region: [],
+      mean_pm_by_day_of_week: [],
+      mean_pm_by_day_hour: [],
+    };
+    mockPost.mockResolvedValueOnce({ data: { airquality: report } });
+
+    await expect(analyticsService.getReport(reportRequest)).resolves.toEqual(
+      report
+    );
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/report',
+      {
+        cohort_id: 'cohort-1',
+        start_time: '2024-01-01T00:00:00Z',
+        end_time: '2024-01-20T23:59:59Z',
+      },
+      { signal: undefined, suppressErrorLogging: true }
+    );
+  });
+
+  it('rejects report windows wider than 27 days before making a request', async () => {
+    await expect(
+      analyticsService.getReport({
+        ...reportRequest,
+        start_time: '2024-01-01T00:00:00Z',
+        end_time: '2024-01-28T23:59:59Z',
+      })
+    ).rejects.toThrow(/cannot exceed 27 days/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('keeps a 27-UTC-date window intact and rejects 28 UTC dates', () => {
+    // Pin the clock so the future-start guard cannot flake regardless of the
+    // machine's date; buildReportPayload only reads it via Date.now().
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      expect(
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-09-01T00:00:00.000Z',
+          end_time: '2026-09-27T23:59:59.999Z',
+        })
+      ).toEqual({
+        cohort_id: 'cohort-1',
+        start_time: '2026-09-01T00:00:00.000Z',
+        end_time: '2026-09-27T23:59:59.999Z',
+      });
+
+      // Sep 1 → Sep 28 is 28 UTC calendar dates, past the backend's limit.
+      expect(() =>
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-09-01T00:00:00.000Z',
+          end_time: '2026-09-28T23:59:59.999Z',
+        })
+      ).toThrow(/cannot exceed 27 days/i);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('rejects invalid report scopes before making a request', async () => {
+    await expect(
+      analyticsService.getReport({ ...reportRequest, cohort_id: ' ' })
+    ).rejects.toThrow(/cohort is required/i);
+    await expect(
+      analyticsService.getReport({
+        ...reportRequest,
+        start_time: '2024-03-31T23:59:59Z',
+        end_time: '2024-01-01T00:00:00Z',
+      })
+    ).rejects.toThrow(/end date must be after/i);
+    await expect(
+      analyticsService.getReport({
+        ...reportRequest,
+        start_time: '2099-01-01T00:00:00Z',
+        end_time: '2099-02-01T00:00:00Z',
+      })
+    ).rejects.toThrow(/future/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('preserves cancellation and sanitizes report failures', async () => {
+    const controller = new AbortController();
+    const cancellation = new Error('aborted');
+    cancellation.name = 'AbortError';
+    mockPost.mockRejectedValueOnce(cancellation);
+
+    await expect(
+      analyticsService.getReport(reportRequest, controller.signal)
+    ).rejects.toBe(cancellation);
+
+    const failure = Object.assign(new Error('private backend detail'), {
+      response: { status: 404 },
+    });
+    mockPost.mockRejectedValueOnce(failure);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /cohort is no longer available/i
+    );
+
+    const rangeFailure = Object.assign(
+      new Error('The requested date range is too wide'),
+      { response: { status: 400 } }
+    );
+    mockPost.mockRejectedValueOnce(rangeFailure);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /27 days or fewer/i
+    );
+    expect(mockPost).toHaveBeenCalledTimes(3);
   });
 });

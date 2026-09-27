@@ -1021,6 +1021,24 @@ export interface CohortResponse {
   cohorts: Cohort[];
 }
 
+// Lightweight cohort projection returned by /devices/cohorts/summary —
+// one call resolves names for a whole id set (no per-cohort lookups).
+export interface CohortSummary {
+  _id: string;
+  name: string;
+  network?: string;
+  visibility?: boolean;
+  cohort_tags?: string[];
+  groups?: string[];
+  createdAt?: string;
+}
+
+export interface CohortsSummaryResponse {
+  success: boolean;
+  message: string;
+  cohorts: CohortSummary[];
+}
+
 // Grids summary types
 export interface GridSite {
   _id: string;
@@ -2016,6 +2034,71 @@ export interface AnalyticsChartResponse {
 }
 
 // Data download types
+export interface AnalyticsReportRequest {
+  cohort_id: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface AnalyticsReportAggregateRow {
+  date?: string;
+  timestamp?: string;
+  hour?: number;
+  day?: string;
+  month?: number;
+  month_name?: string;
+  year?: number;
+  site_name?: string;
+  site_latitude?: number | null;
+  site_longitude?: number | null;
+  city?: string;
+  region?: string;
+  country?: string;
+  pm2_5_raw_value?: number | null;
+  pm2_5_calibrated_value?: number | null;
+  pm10_raw_value?: number | null;
+  pm10_calibrated_value?: number | null;
+  [key: string]: string | number | null | undefined;
+}
+
+export interface AnalyticsReportDeviceSummary {
+  device_ids: string[];
+  number_of_devices: number;
+  'cohort name'?: string[];
+}
+
+export interface AnalyticsReportPeriod {
+  startTime: string;
+  endTime: string;
+}
+
+export interface AnalyticsReport {
+  status: string;
+  message?: string;
+  cohort_id: string;
+  devices: AnalyticsReportDeviceSummary;
+  period: AnalyticsReportPeriod;
+  daily_mean_pm: AnalyticsReportAggregateRow[];
+  datetime_mean_pm: AnalyticsReportAggregateRow[];
+  diurnal: AnalyticsReportAggregateRow[];
+  annual_pm: AnalyticsReportAggregateRow[];
+  monthly_pm: AnalyticsReportAggregateRow[];
+  pm_by_month_year: AnalyticsReportAggregateRow[];
+  pm_by_month_name: AnalyticsReportAggregateRow[];
+  site_monthly_mean_pm: AnalyticsReportAggregateRow[];
+  site_annual_mean_pm: AnalyticsReportAggregateRow[];
+  site_mean_pm: AnalyticsReportAggregateRow[];
+  mean_pm_by_city: AnalyticsReportAggregateRow[];
+  mean_pm_by_country: AnalyticsReportAggregateRow[];
+  mean_pm_by_region: AnalyticsReportAggregateRow[];
+  mean_pm_by_day_of_week: AnalyticsReportAggregateRow[];
+  mean_pm_by_day_hour: AnalyticsReportAggregateRow[];
+}
+
+export interface AnalyticsReportResponse {
+  airquality: AnalyticsReport;
+}
+
 export interface DataDownloadRequest {
   datatype: 'calibrated' | 'raw' | 'averaged' | 'consolidated';
   downloadType: 'csv' | 'json';
