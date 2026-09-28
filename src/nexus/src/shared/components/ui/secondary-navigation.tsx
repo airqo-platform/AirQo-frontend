@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from './button';
 import { Card } from './card';
 import { OrganizationSelector } from '@/shared/components/header/components';
+import { OrgCohortSwitcher } from '@/shared/components/cohorts/OrgCohortSwitcher';
 import { useAppDispatch } from '@/shared/hooks/redux';
 import { toggleSidebar } from '@/shared/store/uiSlice';
 
@@ -25,8 +26,14 @@ export const SecondaryNavigation: React.FC<SecondaryNavigationProps> = ({
   return (
     <div className={cn('relative', className)}>
       <Card className="p-2">
-        <div className="flex items-center justify-between">
-          <OrganizationSelector />
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <OrganizationSelector />
+            <OrgCohortSwitcher
+              className="min-w-0 flex-1"
+              containerClassName="mb-0 min-w-0 flex-1"
+            />
+          </div>
           <Button
             variant="ghost"
             size="sm"

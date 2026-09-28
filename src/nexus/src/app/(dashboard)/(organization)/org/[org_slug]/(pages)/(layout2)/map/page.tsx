@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { MapPage } from '@/modules/airqo-map';
-import { useUser } from '@/shared/hooks/useUser';
-import { useGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { AqAlertTriangle, AqSearchRefraction } from '@airqo/icons-react';
-import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
+import { useOrgCohortContextRequired } from '@/shared/providers/org-cohort-provider';
 
 interface PageProps {
   params: {
@@ -15,46 +13,21 @@ interface PageProps {
   };
 }
 
-const Page: React.FC<PageProps> = ({ params }) => {
-  const { groups, isLoading: userLoading } = useUser();
-  const { org_slug } = params;
-  const normalizedOrgSlug = (org_slug || '').trim().toLowerCase();
-
-  const activeGroup = useMemo(() => {
-    return groups?.find(
-      g => (g.organizationSlug || '').trim().toLowerCase() === normalizedOrgSlug
-    );
-  }, [groups, normalizedOrgSlug]);
-
-  const organizationGroupId = activeGroup?.id || '';
+const Page: React.FC<PageProps> = () => {
+  // Cohort selection lives in the org-wide context (set once in the header).
+  // MapPage takes only the first id of a comma list, so a single cohort id
+  // resolves exactly one cohort — no "All cohorts".
   const {
-    data: groupCohortsResponse,
+    organizationGroup,
+    cohortIds,
+    selectedCohortId,
     isLoading: cohortsLoading,
     error: cohortsError,
-    mutate: refetchGroupCohorts,
-  } = useGroupCohorts(organizationGroupId, !!organizationGroupId);
-  const cohortIds = useMemo(() => {
-    return normalizeCohortIds(groupCohortsResponse?.data ?? []);
-  }, [groupCohortsResponse?.data]);
-  const cohortIdString = useMemo(() => cohortIds.join(','), [cohortIds]);
+    refetch: refetchCohorts,
+  } = useOrgCohortContextRequired();
 
-  if (userLoading) {
-    return (
-      <div className="flex items-center justify-center h-full w-full">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (!activeGroup) {
-    return (
-      <div className="flex items-center justify-center h-full w-full">
-        <p>Organization not found or you do not have access.</p>
-      </div>
-    );
-  }
-
-  // Show loading while fetching cohort IDs
+  // `isLoading` stays true while the organization group is still resolving,
+  // so the not-found branch keys off the group itself + the load state.
   if (cohortsLoading) {
     return (
       <div className="flex items-center justify-center h-full w-full">
@@ -63,20 +36,27 @@ const Page: React.FC<PageProps> = ({ params }) => {
     );
   }
 
-  if (cohortsError) {
+  if (!organizationGroup) {
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <p>Organization not found or you do not have access.</p>
+      </div>
+    );
+  }
+
+  // Only bail when the cohort ids themselves are unavailable; a failed
+  // summary (names) call still leaves enough to render the map — the header
+  // bar surfaces fallback labels and its own retry action.
+  if (cohortsError && !cohortIds.length) {
     return (
       <div className="h-full w-full p-6">
         <EmptyState
           title="Unable to load device groups"
-          description={
-            cohortsError instanceof Error
-              ? cohortsError.message
-              : 'We could not load the organization cohorts. Try again.'
-          }
+          description={cohortsError}
           icon={<AqAlertTriangle size={48} />}
           action={{
             label: 'Retry',
-            onClick: () => void refetchGroupCohorts(),
+            onClick: () => refetchCohorts(),
           }}
           className="min-h-[400px]"
         />
@@ -98,8 +78,11 @@ const Page: React.FC<PageProps> = ({ params }) => {
     );
   }
 
-  // Pass cohort IDs and organization flow flag to MapPage
-  return <MapPage cohortId={cohortIdString} isOrganizationFlow />;
+  // The cohort selector now lives inline in the header top row (above the map
+  // via the shared shell), so the map fills the remaining viewport without a
+  // floating overlay. `navHeight` covers all chrome around the map: MapLayout
+  // p-1 (4+4) + gap-2 (8) + header h-12 (48) — the same math the default uses.
+  return <MapPage cohortId={selectedCohortId} isOrganizationFlow />;
 };
 
 export default Page;

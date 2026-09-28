@@ -29,20 +29,7 @@ import {
   type ExplorerChartType,
 } from '../utils/chartConfig';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-
-const isCancellationError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-  return (
-    candidate?.name === 'AbortError' ||
-    candidate?.name === 'CanceledError' ||
-    candidate?.code === 'ERR_CANCELED' ||
-    candidate?.message === 'canceled'
-  );
-};
+import { isAbortError } from '@/shared/lib/retryPolicy';
 
 export interface UseChartManagementResult {
   charts: ExplorerChartDraft[];
@@ -342,7 +329,7 @@ export const useChartManagement = (
         );
         closeDialog();
       } catch (error) {
-        if (isCancellationError(error)) return;
+        if (isAbortError(error)) return;
         console.error(
           'Failed to save chart configuration:',
           error instanceof Error ? error.message : error
@@ -467,7 +454,7 @@ export const useChartManagement = (
           site_count: draft.siteIds.length,
         });
       } catch (error) {
-        if (isCancellationError(error)) return;
+        if (isAbortError(error)) return;
         console.error(
           'Failed to duplicate chart configuration:',
           error instanceof Error ? error.message : error
@@ -508,7 +495,7 @@ export const useChartManagement = (
         );
         posthog?.capture('analytics_chart_deleted', { title: draft.title });
       } catch (error) {
-        if (isCancellationError(error)) return;
+        if (isAbortError(error)) return;
         console.error(
           'Failed to delete chart configuration:',
           error instanceof Error ? error.message : error

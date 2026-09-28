@@ -100,9 +100,11 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       return getChartLocationLabel({ site: configuredLabel }, locationLabels);
     }
     return getChartLocationLabel(
-      entry.payload ?? {
-        site: String(entry.name || entry.dataKey || ''),
-      },
+      isCategorical
+        ? (entry.payload ?? {
+            site: String(entry.name || entry.dataKey || ''),
+          })
+        : { site: String(entry.name || entry.dataKey || '') },
       locationLabels
     );
   };

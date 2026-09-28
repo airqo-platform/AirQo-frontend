@@ -131,6 +131,44 @@ describe('DynamicChart zoom controls', () => {
       props: { children: 'Gulu Central' },
     });
   });
+  it('uses the displayed series label for non-pie legend payloads', () => {
+    const data: NormalizedChartData[] = [
+      {
+        time: '2026-01-01T00:00:00.000Z',
+        value: 10,
+        site: 'Site A',
+        site_id: 'site-a',
+        device_id: '',
+      },
+      {
+        time: '2026-01-01T00:00:00.000Z',
+        value: 20,
+        site: 'Site B',
+        site_id: 'site-b',
+        device_id: '',
+      },
+    ];
+
+    renderChart(data, { config: { type: 'line' } });
+
+    const legendFormatter = mockChartCalls.Legend.at(-1)?.formatter as
+      | ((value: string, entry: Record<string, unknown>) => React.ReactNode)
+      | undefined;
+    const formattedLegend = legendFormatter?.('Site A', {
+      dataKey: 'Site A',
+      value: 'Site A',
+      payload: {
+        time: '2026-01-01T00:00:00.000Z',
+        'Site A': 10,
+        'Site B': 20,
+      },
+    });
+
+    expect(formattedLegend).toMatchObject({
+      props: { children: 'Site A' },
+    });
+  });
+
   it('shows the zoom pill automatically on dense data', () => {
     renderChart(buildSeries(100));
 

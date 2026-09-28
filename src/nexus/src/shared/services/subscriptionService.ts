@@ -9,6 +9,7 @@ import type {
   TransactionHistoryResponse,
   UserSubscription,
 } from '../types/api';
+import { isAbortError } from '../lib/retryPolicy';
 
 type PrimitiveQueryValue = string | number | boolean;
 
@@ -114,25 +115,6 @@ type NormalizedRateLimits = NonNullable<UserSubscription['apiRateLimits']>;
 const USERS_PROFILE_CANDIDATE_PATHS = ['/users/profile/enhanced'] as const;
 
 const RETRYABLE_PROFILE_STATUSES = new Set([400, 404, 405]);
-
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  if (!candidate) {
-    return false;
-  }
-
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
 
 const getDefaultPlans = (): SubscriptionPlan[] => [
   {

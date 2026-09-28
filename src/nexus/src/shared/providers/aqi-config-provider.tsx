@@ -20,15 +20,7 @@ import type {
   AqiPollutant,
   AqiRangesResponse,
 } from '@/shared/types/aqi';
-
-const isAbortError = (value: unknown): boolean => {
-  if (typeof DOMException !== 'undefined' && value instanceof DOMException) {
-    return value.name === 'AbortError';
-  }
-
-  const error = value as { code?: string; name?: string } | null;
-  return error?.name === 'AbortError' || error?.code === 'ERR_CANCELED';
-};
+import { isAbortError } from '@/shared/lib/retryPolicy';
 
 export const AQI_RANGES_CACHE_KEY = 'config/aqi-ranges';
 

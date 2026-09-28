@@ -21,21 +21,7 @@ import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
-
-const isCancellationError = (error: unknown) => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  return (
-    candidate?.name === 'AbortError' ||
-    candidate?.name === 'CanceledError' ||
-    candidate?.code === 'ERR_CANCELED' ||
-    candidate?.message === 'canceled'
-  );
-};
+import { isAbortError } from '@/shared/lib/retryPolicy';
 
 interface AddSavedLocationsProps {
   isOpen: boolean;
@@ -110,8 +96,7 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
         refreshPreferences?.(),
       ]);
       const failures = results.filter(
-        result =>
-          result.status === 'rejected' && !isCancellationError(result.reason)
+        result => result.status === 'rejected' && !isAbortError(result.reason)
       );
 
       if (failures.length > 0) {

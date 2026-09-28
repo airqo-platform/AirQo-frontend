@@ -12,6 +12,7 @@ export const PAGE_TITLES: Record<string, string> = {
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
   '/org/map': 'Air Quality Map',
+  '/org/air-quality/analytics': 'Air Quality Analysis',
   '/org/data-export': 'Visualization & Data Export',
   '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/org/members': 'Members',
