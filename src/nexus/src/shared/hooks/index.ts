@@ -118,6 +118,13 @@ export {
   useUpdateTokenBypass,
 } from './useAdmin';
 
+// API key usage hooks (System → admin usage analytics)
+export {
+  useApiKeyUsageLeaderboard,
+  useApiKeyUsageTimeseries,
+  useApiKeyUsageDetail,
+} from './useApiKeyUsage';
+
 // Groups hooks
 export {
   useGroupJoinRequests,

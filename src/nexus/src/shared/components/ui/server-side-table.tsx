@@ -49,6 +49,13 @@ export interface ServerSideTableProps<T = TableItem> {
   onSearchChange?: (search: string) => void;
   /** Restrict the built-in client-side search to these columns (null = all) */
   searchableColumns?: string[] | null;
+  /**
+   * Show the built-in search box (default `true`). Set `false` when the
+   * parent owns no search but still passes `searchTerm`/`onSearchChange`:
+   * MultiSelectTable only skips client-side slicing while search is
+   * controlled, so those props keep the server's page intact.
+   */
+  searchable?: boolean;
 
   // Custom header component
   customHeader?: React.ReactNode;
@@ -96,6 +103,8 @@ export function ServerSideTable<T extends TableItem>({
   onSearchChange,
 
   searchableColumns,
+
+  searchable = true,
 
   customHeader,
 
@@ -208,7 +217,7 @@ export function ServerSideTable<T extends TableItem>({
         multiSelect={multiSelect}
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
-        searchable={true} // Enable search in table header
+        searchable={searchable} // Search box visibility is caller-controlled
         searchableColumns={searchableColumns}
         showPagination={showClientPagination} // Enable built-in pagination for client-side operations
         sortable={true}
