@@ -73,22 +73,36 @@ const mapUsageQueryResult = <TData>(query: UseQueryResult<TData, Error>) => ({
  * Shared read-query wrapper. Endpoint hooks below only describe their key and
  * service call; retry, cancellation, stale-data, and result-shape behaviour
  * stays in one place.
+ *
+ * `scopeOwner` identifies the identity scope a key belongs to (the user id for
+ * per-user reads). Previous data is reused as placeholder only while that scope
+ * is unchanged, so switching profiles never paints one user's numbers under
+ * another's name while their request is still in flight. Omit it for
+ * platform-wide reads, which have no per-user identity.
  */
 const useUsageQuery = <TData>(
   queryKey: unknown[],
   queryFn: (signal: AbortSignal) => Promise<TData>,
   enabled = true,
-  placeholderData?: (
-    previousData: TData | undefined,
-    previousQuery?: { queryKey: readonly unknown[] }
-  ) => TData | undefined
+  scopeOwner?: string
 ) => {
   const query = useQuery<TData, Error>({
     queryKey,
     queryFn: ({ signal }) => queryFn(signal),
     enabled,
     ...usageQueryDefaults,
-    ...(placeholderData ? { placeholderData } : {}),
+    ...(scopeOwner !== undefined
+      ? {
+          placeholderData: <T>(previousData: T, previousQuery?: unknown) => {
+            const previousOwner = (
+              previousQuery as { queryKey?: readonly unknown[] } | undefined
+            )?.queryKey?.[2];
+            return (
+              previousOwner === scopeOwner ? previousData : undefined
+            ) as T;
+          },
+        }
+      : {}),
   });
 
   return mapUsageQueryResult(query);
@@ -113,8 +127,7 @@ const useUserUsageQuery = <TData, TParams>(
       return queryFn(userId, params, signal);
     },
     !!userId,
-    (prev, prevQuery) =>
-      prevQuery?.queryKey[2] === (userId ?? 'anonymous') ? prev : undefined
+    userId
   );
 
 // ---------------------------------------------------------------------------
@@ -185,8 +198,7 @@ export const useUsageTimeline = (
       return usageService.getTimeline(userId, params, signal);
     },
     !!userId && !!date,
-    (prev, prevQuery) =>
-      prevQuery?.queryKey[2] === (userId ?? 'anonymous') ? prev : undefined
+    userId
   ) as ReturnType<typeof useUsageQuery<UsageTimelineResponse>>;
 };
 

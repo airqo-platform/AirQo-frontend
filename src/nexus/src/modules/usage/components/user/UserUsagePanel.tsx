@@ -115,7 +115,7 @@ const UserUsagePanel: React.FC<UserUsagePanelProps> = ({ userId }) => {
             onChange={handleMonthChange}
             placeholder="Select month"
             mode="single"
-            aria-label="Select month"
+            id="profile-usage-month"
             className="w-[180px]"
           />
         </div>

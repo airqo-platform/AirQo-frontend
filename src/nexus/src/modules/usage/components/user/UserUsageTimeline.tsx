@@ -177,18 +177,20 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
             {data.tz ? ` · ${data.tz}` : ''}
           </p>
         </div>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          <span className="font-medium">Date</span>
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <label htmlFor="user-usage-date" className="font-medium">
+            Date
+          </label>
           <DatePicker
             key={date}
             value={dateStringToDate(date)}
             onChange={handleDateChange}
             placeholder="Select date"
             mode="single"
-            aria-label="Select date"
+            id="user-usage-date"
             className="w-[180px]"
           />
-        </label>
+        </div>
       </div>
 
       {!hasActivity ? (

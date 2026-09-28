@@ -194,6 +194,10 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'user',
         label: 'User',
+        // Sorting is server-driven here (Sort by / Order controls above): the
+        // table only ever holds the current page, so a client-side header sort
+        // would reorder that page and imply an order the full set does not have.
+        sortable: false,
         cellClassName: 'min-w-[180px]',
         render: (_value: unknown, row: UsageUserRow) => (
           <>
@@ -209,6 +213,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'active_days',
         label: 'Active days',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatNumber(row.active_days),
@@ -216,6 +221,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'total_actions',
         label: 'Actions',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatNumber(row.total_actions),
@@ -223,6 +229,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'page_views',
         label: 'Page views',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatNumber(row.page_views),
@@ -230,6 +237,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'api_calls',
         label: 'API calls',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatNumber(row.api_calls),
@@ -237,6 +245,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'sessions',
         label: 'Sessions',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatNumber(row.sessions),
@@ -244,6 +253,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'total_time_sec',
         label: 'Total time',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           formatDurationSec(row.total_time_sec),
@@ -251,6 +261,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'last_active',
         label: 'Last active',
+        sortable: false,
         cellClassName: 'tabular-nums',
         render: (_value: unknown, row: UsageUserRow) =>
           row.last_active_day ?? DASH,
@@ -258,6 +269,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       {
         key: 'activity',
         label: 'Activity',
+        sortable: false,
         render: (_value: unknown, row: UsageUserRow) => (
           <Sparkline values={row.sparkline ?? []} />
         ),

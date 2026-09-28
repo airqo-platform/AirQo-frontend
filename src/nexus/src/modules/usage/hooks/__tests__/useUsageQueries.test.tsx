@@ -117,6 +117,57 @@ describe('useUsageCalendar', () => {
     expect(key[1]).toBe('calendar');
     expect(key[2]).toBe('user-abc');
   });
+
+  it('does not leak the previous user data as placeholder when userId changes', async () => {
+    // First user resolves; the second user stays pending so the placeholder
+    // window is observable.
+    mockGetCalendar.mockResolvedValueOnce({
+      ...emptyCalendarResponse,
+      total: 42,
+    });
+    mockGetCalendar.mockImplementationOnce(
+      () => new Promise<typeof emptyCalendarResponse>(() => undefined)
+    );
+    const { Wrapper } = makeWrapper();
+
+    const { result, rerender } = renderHook(
+      ({ userId }: { userId: string }) => useUsageCalendar(userId),
+      { wrapper: Wrapper, initialProps: { userId: 'user-a' } }
+    );
+
+    await waitFor(() => expect(result.current.data?.total).toBe(42));
+
+    rerender({ userId: 'user-b' });
+
+    // While user-b loads, user-a's numbers must not be shown as user-b's.
+    expect(result.current.data).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+
+    // The second request is issued for the new user.
+    expect(mockGetCalendar).toHaveBeenLastCalledWith(
+      'user-b',
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  it('reuses previous data as placeholder while the user is unchanged', async () => {
+    mockGetCalendar.mockResolvedValue({ ...emptyCalendarResponse, total: 42 });
+    const { Wrapper } = makeWrapper();
+
+    const { result, rerender } = renderHook(
+      ({ year }: { year: number }) => useUsageCalendar('user-a', { year }),
+      { wrapper: Wrapper, initialProps: { year: 2024 } }
+    );
+
+    await waitFor(() => expect(result.current.data).not.toBeNull());
+
+    rerender({ year: 2025 });
+
+    // Same identity scope: the previous page stays on screen (no empty flash)
+    // while the new request is in flight.
+    expect(result.current.data?.total).toBe(42);
+  });
 });
 
 describe('useUsageUsers', () => {

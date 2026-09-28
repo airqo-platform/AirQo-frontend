@@ -18,6 +18,7 @@ import { DatePickerProps, DateRange } from '../types';
 import { DateUtils } from '../utils/date-utils';
 
 export function DatePicker({
+  id,
   value,
   onChange,
   placeholder = 'Select date',
@@ -230,6 +231,7 @@ export function DatePicker({
     return (
       <>
         <button
+          id={id}
           className={cn(
             'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',
@@ -251,6 +253,7 @@ export function DatePicker({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
+          id={id}
           className={cn(
             'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',

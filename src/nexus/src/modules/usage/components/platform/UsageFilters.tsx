@@ -84,7 +84,7 @@ const UsageFilters: React.FC<UsageFiltersProps> = ({
           }}
           placeholder="Select month"
           mode="single"
-          aria-label="Select month"
+          id="usage-month"
           className="w-[180px]"
         />
         <p id="usage-month-help" className="text-xs text-muted-foreground">
