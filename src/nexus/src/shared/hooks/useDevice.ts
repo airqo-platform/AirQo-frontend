@@ -131,7 +131,9 @@ const useCohortSitesQuery = (
 
   const result = useSWR<CohortSitesResponse>(key, fetchCohortSites, {
     ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoadingRef.current,
+    isPaused: () =>
+      cohortsLoadingRef.current ||
+      (typeof navigator !== 'undefined' && !navigator.onLine),
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';
@@ -178,7 +180,9 @@ const useCohortDevicesQuery = (
 
   const result = useSWR<CohortDevicesResponse>(key, fetchCohortDevices, {
     ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoadingRef.current,
+    isPaused: () =>
+      cohortsLoadingRef.current ||
+      (typeof navigator !== 'undefined' && !navigator.onLine),
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';

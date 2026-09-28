@@ -7,6 +7,7 @@ import { usePostHog } from 'posthog-js/react';
 import { hashId } from '../utils/analytics';
 import { trackAuthEvent } from '../utils/enhancedAnalytics';
 import { trackEvent } from '../utils/analytics';
+import { swrRetryPolicy } from '../lib/retryPolicy';
 import type {
   LoginRequest,
   CheckEmailRequest,
@@ -156,8 +157,10 @@ export const useUserDetails = (userId: string | null) => {
     userId ? () => userDetailsFetcher(userId) : null,
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      shouldRetryOnError: false,
+      // User details are the head of the user -> group -> cohorts -> sites
+      // chain; a stuck user fetch stalls everything, so reconnect
+      // revalidation + bounded network retry must apply (issue #4023).
+      ...swrRetryPolicy,
       // The auth tree mounts more than once per load; reuse the cached
       // profile instead of re-firing the request on each remount.
       revalidateIfStale: false,
@@ -170,8 +173,7 @@ export const useUserDetails = (userId: string | null) => {
 export const useUserRoles = () => {
   return useSWR<UserRolesResponse>('user/roles', userRolesFetcher, {
     revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    shouldRetryOnError: false,
+    ...swrRetryPolicy,
     revalidateIfStale: false,
     dedupingInterval: 10000,
   });
@@ -184,8 +186,7 @@ export const useUserRolesById = (userId: string | null) => {
     userId ? () => userRolesByIdFetcher(userId) : null,
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      shouldRetryOnError: false,
+      ...swrRetryPolicy,
       revalidateIfStale: false,
       dedupingInterval: 10000,
     }

@@ -155,9 +155,9 @@ export interface LocationSelection {
 }
 
 export interface DataDownloadEvent {
-  dataType: 'calibrated' | 'raw';
+  dataType: 'raw' | 'averaged' | 'calibrated' | 'consolidated';
   fileType: 'csv' | 'json';
-  frequency: 'hourly' | 'daily' | 'monthly';
+  frequency: 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   pollutants: string[];
   locationCount?: number;
   deviceCount?: number;

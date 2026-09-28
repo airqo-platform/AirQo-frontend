@@ -32,6 +32,8 @@ import type {
   UpdateGroupDetailsResponse,
   GetUserStatisticsResponse,
   UserStatsBreakdownResponse,
+  UserStatsExportResponse,
+  UserStatsExportSegment,
   GetUsersResponse,
   AcceptEmailInvitationRequest,
   AcceptEmailInvitationResponse,
@@ -521,6 +523,42 @@ export class UserService {
     }
 
     return data as UserStatsBreakdownResponse;
+  }
+
+  // Get paginated user export for a stats segment - authenticated endpoint
+  async getUserStatsExport(params: {
+    segment: UserStatsExportSegment;
+    excludeUnsubscribed?: boolean;
+    limit?: number;
+    skip?: number;
+    signal?: AbortSignal;
+  }): Promise<UserStatsExportResponse> {
+    const query = new URLSearchParams();
+    query.set('segment', params.segment);
+    if (params.excludeUnsubscribed === true) {
+      query.set('exclude_unsubscribed', 'true');
+    }
+    if (typeof params.limit === 'number') {
+      query.set('limit', String(params.limit));
+    }
+    if (typeof params.skip === 'number') {
+      query.set('skip', String(params.skip));
+    }
+
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      UserStatsExportResponse | ApiErrorResponse
+    >(
+      `/users/stats/export?${query.toString()}`,
+      params.signal ? { signal: params.signal } : undefined
+    );
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to export users');
+    }
+
+    return data as UserStatsExportResponse;
   }
 
   // Get users - authenticated endpoint (supports optional email filter)

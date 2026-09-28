@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { RefreshCw, Save, User } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 import { fetchWithAuth } from "@/lib/api-client"
 import { isMockMode, getMockProfile } from "@/lib/mock-data"
 
@@ -49,7 +50,8 @@ export default function SettingsPage() {
 
   // Function to get auth token with proper error handling
   const getAuthToken = () => {
-    const token = localStorage.getItem('access_token')
+    // The platform token, sent as-is like the other Beacon services send it
+    const token = authService.getToken()
     if (!token) {
       throw new Error("Authentication token not found. Please log in again.")
     }
@@ -90,7 +92,7 @@ export default function SettingsPage() {
       const apiPath = `${prefix}/users/me/`
       const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': token
         }
       })
 
@@ -205,7 +207,7 @@ export default function SettingsPage() {
       const response = await fetchWithAuth(`${config.apiUrl}${apiPath}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(updatePayload)

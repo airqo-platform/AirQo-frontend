@@ -1967,16 +1967,26 @@ export interface UpdateOrganizationGroupThemeResponse {
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
+  cursor?: string;
   startDateTime: string;
   endDateTime: string;
   chartType: string;
   frequency: string;
-  pollutant: string;
-  organisation_name: string;
+  pollutants: string[];
+  organisationName?: string;
+  metaDataFields?: Array<'latitude' | 'longitude' | 'site_id'>;
+}
+
+export interface AnalyticsPaginationMetadata {
+  /** Number of records in this response page. */
+  total_count: number;
+  has_more: boolean;
+  next: string | null;
 }
 
 export interface ChartDataPoint {
   site_id?: string;
+  label?: string;
   value?: number | string | { value?: number };
   time?: string | number;
   generated_name?: string;
@@ -2000,17 +2010,19 @@ export interface ChartDataPoint {
 export interface AnalyticsChartResponse {
   status: string;
   message: string;
+  chart_type: string;
   data: ChartDataPoint[];
+  metadata: AnalyticsPaginationMetadata | null;
 }
 
 // Data download types
 export interface DataDownloadRequest {
-  datatype: 'calibrated' | 'raw';
+  datatype: 'calibrated' | 'raw' | 'averaged' | 'consolidated';
   downloadType: 'csv' | 'json';
   endDateTime: string;
-  frequency: 'daily';
+  frequency: 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   minimum: boolean;
-  outputFormat: 'airqo-standard';
+  outputFormat: 'airqo-standard' | 'aqcsv';
   pollutants: string[];
   startDateTime: string;
   sites?: string[];
@@ -2018,11 +2030,22 @@ export interface DataDownloadRequest {
   device_names?: string[];
   metaDataFields?: string[];
   weatherFields?: string[];
-  device_category?: 'lowcost' | 'bam' | 'mobile' | 'gas';
+  device_category?:
+    | 'lowcost'
+    | 'bam'
+    | 'mobile'
+    | 'gas'
+    | 'general'
+    | 'satellite';
+  grid_ids?: string[];
+  cohort_ids?: string[];
+  cursor?: string;
 }
 
 export interface DataDownloadItem {
-  site_name: string;
+  device_id?: string;
+  site_id?: string;
+  site_name?: string;
   pm10?: number;
   pm2_5_calibrated_value?: number;
   pm10_calibrated_value?: number;
@@ -2031,16 +2054,18 @@ export interface DataDownloadItem {
   longitude?: number;
   temperature?: number;
   humidity?: number;
-  datetime: string;
-  network: string;
-  device_name: string;
-  frequency: string;
+  datetime?: string;
+  network?: string;
+  device_name?: string;
+  frequency?: string;
+  [key: string]: unknown;
 }
 
 export interface DataDownloadResponse {
   status: string;
   message: string;
   data: DataDownloadItem[];
+  metadata: AnalyticsPaginationMetadata | null;
 }
 
 // Recent readings types
@@ -2638,6 +2663,37 @@ export interface UserStatsBreakdownResponse {
   data: UserStatsBreakdown;
 }
 
+// User Statistics Export Types (CSV export endpoint)
+export type UserStatsExportSegment = 'total' | 'active' | 'verified' | 'api';
+
+export interface UserStatsExportUser {
+  _id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  organization?: string;
+  country?: string;
+  isActive?: boolean;
+  verified?: boolean;
+  loginCount?: number;
+  lastLogin?: string;
+  createdAt?: string;
+  unsubscribed?: boolean;
+}
+
+export interface UserStatsExportResponse {
+  success: boolean;
+  message: string;
+  segment: UserStatsExportSegment;
+  total: number;
+  unsubscribed_total: number;
+  skip: number;
+  limit: number;
+  has_more: boolean;
+  users: UserStatsExportUser[];
+}
+
 // Subscription Types
 export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
 
@@ -2659,7 +2715,12 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+    | 'active'
+    | 'inactive'
+    | 'past_due'
+    | 'cancelled'
+    | 'trialing'
+    | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2705,7 +2766,12 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+      | 'active'
+      | 'inactive'
+      | 'past_due'
+      | 'cancelled'
+      | 'trialing'
+      | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -2919,7 +2985,12 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
+  | 'good'
+  | 'moderate'
+  | 'u4sg'
+  | 'unhealthy'
+  | 'very_unhealthy'
+  | 'hazardous';
 
 export interface RankingEntry {
   rank: number;

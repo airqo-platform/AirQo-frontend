@@ -17,12 +17,14 @@ export interface AirQualityDataPoint {
   search_name?: string;
   location_name?: string;
   formatted_name?: string;
-  /** Backend d3 chart data carries site_name (no site_id) */
+  /** Current analytics chart rows may include site_name alongside site_id. */
   site_name?: string;
   /** Common alternative time fields returned by various API shapes */
   date?: string;
   timestamp?: string | number;
   datetime?: string;
+  /** Pie chart records use `{label, value}` instead of a timestamp. */
+  label?: string;
   /** Common alternative value fields returned by various API shapes */
   pm2_5?: number | string | { value?: number };
   pm10?: number | string | { value?: number };
@@ -46,10 +48,20 @@ export interface NormalizedChartData {
 }
 
 // Chart filter types
-export type FrequencyType = 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly';
+export type FrequencyType =
+  | 'raw'
+  | 'hourly'
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'yearly';
 export type PollutantType = 'pm2_5' | 'pm10';
 export type StandardsType =
-  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -57,7 +69,6 @@ export interface ChartFilters {
   endDate: string;
   frequency: FrequencyType;
   pollutant: PollutantType;
-  organisation_name?: string;
 }
 
 export interface ChartAPIRequest extends ChartFilters {
@@ -317,7 +328,11 @@ export interface AirQualityStandardsConfig {
 }
 
 export type ChartStandardsType =
-  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;
