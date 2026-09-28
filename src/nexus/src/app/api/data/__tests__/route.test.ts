@@ -87,6 +87,33 @@ describe('/api/data/[...path]', () => {
     expect(init.headers.get('authorization')).toBeNull();
   });
 
+  it('forwards the organization report route with the server API_TOKEN', async () => {
+    const request = makeRequest('analytics/report', {
+      cohort_id: 'cohort-1',
+      start_time: '2024-01-01T00:00:00Z',
+      end_time: '2024-03-31T23:59:59Z',
+    });
+
+    const response = await POST(request, {
+      params: { path: ['analytics', 'report'] },
+    });
+
+    expect(response.status).toBe(200);
+    expect(mockBuildServerApiUrl).toHaveBeenCalledWith('analytics/report');
+    const [upstreamUrl, init] = mockFetch.mock.calls[0];
+    const parsedUrl = new URL(upstreamUrl);
+    expect(parsedUrl.pathname).toBe('/api/v2/analytics/report');
+    expect(parsedUrl.searchParams.get('token')).toBe('server-api-token');
+    expect(parsedUrl.searchParams.get('access_token')).toBe('server-api-token');
+    expect(init.body).toBe(
+      JSON.stringify({
+        cohort_id: 'cohort-1',
+        start_time: '2024-01-01T00:00:00Z',
+        end_time: '2024-03-31T23:59:59Z',
+      })
+    );
+  });
+
   it('allows data-download and rejects the retired D3 client route', async () => {
     const download = makeRequest('analytics/data-download', {});
     await expect(

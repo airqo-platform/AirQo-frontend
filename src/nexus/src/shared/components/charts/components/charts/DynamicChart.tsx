@@ -472,9 +472,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       const payload = (
         entry as LegendPayload & { payload?: NormalizedChartData }
       ).payload;
-      const payloadLabel = payload
-        ? getChartLocationLabel(payload, locationLabels)
-        : getChartLocationLabel({ site: valueLabel }, locationLabels);
+      const payloadLabel =
+        chartType === 'pie' && payload
+          ? getChartLocationLabel(payload, locationLabels)
+          : getChartLocationLabel({ site: valueLabel }, locationLabels);
       const configuredLabel = seriesLabels?.[seriesKey];
       const formattedValue = configuredLabel
         ? getChartLocationLabel({ site: configuredLabel }, locationLabels)
@@ -491,7 +492,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
         </span>
       );
     },
-    [isSeriesHidden, locationLabels, seriesLabels]
+    [chartType, isSeriesHidden, locationLabels, seriesLabels]
   );
 
   // Chart configuration
