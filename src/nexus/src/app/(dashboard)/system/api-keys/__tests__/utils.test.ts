@@ -1,4 +1,4 @@
-import { format, subDays } from 'date-fns';
+import { differenceInCalendarDays, format, subDays } from 'date-fns';
 import {
   buildUsageSeries,
   clampUsageRange,
@@ -41,8 +41,9 @@ describe('api key usage date helpers', () => {
   describe('defaultUsageRange', () => {
     it('spans 7 days ending today', () => {
       const { from, to } = defaultUsageRange();
-      const span =
-        (to!.getTime() - from!.getTime()) / (24 * 60 * 60 * 1000) + 1;
+      // Calendar days, not elapsed hours: a 24h offset miscounts across a DST
+      // transition inside the window.
+      const span = differenceInCalendarDays(to!, from!) + 1;
       expect(span).toBe(7);
     });
   });
@@ -77,8 +78,7 @@ describe('api key usage date helpers', () => {
 
       expect(result.clamped).toBe(true);
       const days =
-        (result.range.to!.getTime() - result.range.from!.getTime()) / 86400000 +
-        1;
+        differenceInCalendarDays(result.range.to!, result.range.from!) + 1;
       expect(days).toBe(API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS);
     });
 

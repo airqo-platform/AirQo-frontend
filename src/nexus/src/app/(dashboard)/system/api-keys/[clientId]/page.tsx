@@ -170,6 +170,16 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     [data?.services]
   );
 
+  /**
+   * The detail query runs with `keepPreviousData`, and App Router reuses this
+   * component when only `[clientId]` changes. That means `data` can still hold
+   * the PREVIOUS key's payload while the new key is loading — or after its
+   * request failed. Rendering on `data` alone would show one key's owner and
+   * usage under another key's URL, so every branch below keys off whether the
+   * retained payload actually belongs to the key in the route.
+   */
+  const hasCurrentData = data?.key.client_id === clientId;
+
   if (isForbiddenError(error)) {
     return <ApiKeyUsageAccessDenied />;
   }
@@ -183,7 +193,7 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     );
   }
 
-  if (error && !data) {
+  if (error && !hasCurrentData) {
     return (
       <div className="p-6 space-y-4">
         <ErrorBanner
@@ -201,7 +211,7 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     );
   }
 
-  if (isLoading && !data) {
+  if (isLoading && !hasCurrentData) {
     return (
       <LoadingState
         className="h-[calc(100vh-200px)]"
@@ -210,7 +220,8 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     );
   }
 
-  if (!data) {
+  // `!data` is implied by `!hasCurrentData` and keeps the narrowing below.
+  if (!data || !hasCurrentData) {
     return (
       <EmptyState
         title="No usage data yet"
