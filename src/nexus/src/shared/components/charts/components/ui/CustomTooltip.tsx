@@ -11,6 +11,10 @@ import type { AqiConfig } from '@/shared/types/aqi';
 interface CustomTooltipProps extends TooltipData {
   className?: string;
   showAirQualityLevel?: boolean;
+  /** Suffix appended to numeric tooltip values (e.g. ' µg/m³'). */
+  tooltipValueSuffix?: string;
+  /** Decimal precision for numeric tooltip values. */
+  tooltipValuePrecision?: number;
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
@@ -66,6 +70,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   label,
   className,
   showAirQualityLevel = true,
+  tooltipValueSuffix = ' µg/m³',
+  tooltipValuePrecision = 1,
   frequency,
   pollutant = 'pm2_5',
   aqiConfig = null,
@@ -142,7 +148,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
             <div className="text-right ml-2 flex-shrink-0">
               <span className="text-sm text-foreground">
                 {typeof entry.value === 'number'
-                  ? `${entry.value.toFixed(1)} µg/m³`
+                  ? `${entry.value.toFixed(tooltipValuePrecision)}${tooltipValueSuffix}`
                   : entry.value}
               </span>
             </div>

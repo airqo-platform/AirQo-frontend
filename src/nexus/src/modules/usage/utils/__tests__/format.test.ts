@@ -10,6 +10,8 @@ import {
   currentUtcMonth,
   currentUtcDate,
   toUtcMonth,
+  resolveMonthSelection,
+  resolveDateSelection,
   normalizeKind,
   retentionCellView,
   usersPagination,
@@ -153,6 +155,80 @@ describe('currentUtcMonth / currentUtcDate / toUtcMonth', () => {
     const curY = now.getUTCFullYear();
     const curM = now.getUTCMonth() + 1;
     expect(y < curY || (y === curY && m <= curM)).toBe(true);
+  });
+});
+
+describe('resolveMonthSelection', () => {
+  it('normalizes any picked day to its YYYY-MM month', () => {
+    // "Sep 15" and "Sep 1" are the same month-granular selection — both
+    // resolve to the same canonical month so the dashboard always updates.
+    expect(resolveMonthSelection(new Date(2025, 8, 15), '2025-12')).toBe(
+      '2025-09'
+    );
+    expect(resolveMonthSelection(new Date(2025, 8, 1), '2025-12')).toBe(
+      '2025-09'
+    );
+  });
+
+  it('keeps past and current-month picks untouched', () => {
+    expect(resolveMonthSelection(new Date(2024, 0, 31), '2025-09')).toBe(
+      '2024-01'
+    );
+    expect(resolveMonthSelection(new Date(2025, 8, 20), '2025-09')).toBe(
+      '2025-09'
+    );
+  });
+
+  it('clamps a future pick to the max month instead of dropping it', () => {
+    expect(resolveMonthSelection(new Date(2026, 0, 15), '2025-09')).toBe(
+      '2025-09'
+    );
+    expect(resolveMonthSelection(new Date(2099, 11, 1), '2025-09')).toBe(
+      '2025-09'
+    );
+  });
+
+  it('defaults the clamp bound to the current UTC month', () => {
+    const futurePick = new Date(new Date().getUTCFullYear() + 2, 0, 10);
+    expect(resolveMonthSelection(futurePick)).toBe(currentUtcMonth());
+  });
+});
+
+describe('resolveDateSelection', () => {
+  it('normalizes a picked day to its YYYY-MM-DD date', () => {
+    expect(resolveDateSelection(new Date(2025, 8, 15), '2025-12-31')).toBe(
+      '2025-09-15'
+    );
+    expect(resolveDateSelection(new Date(2025, 0, 1), '2025-12-31')).toBe(
+      '2025-01-01'
+    );
+  });
+
+  it('keeps past and current-month picks untouched', () => {
+    expect(resolveDateSelection(new Date(2024, 0, 31), '2025-09-15')).toBe(
+      '2024-01-31'
+    );
+    expect(resolveDateSelection(new Date(2025, 8, 15), '2025-09-15')).toBe(
+      '2025-09-15'
+    );
+  });
+
+  it('clamps a future pick to the max date instead of dropping it', () => {
+    expect(resolveDateSelection(new Date(2026, 0, 15), '2025-09-15')).toBe(
+      '2025-09-15'
+    );
+    expect(resolveDateSelection(new Date(2099, 11, 1), '2025-09-15')).toBe(
+      '2025-09-15'
+    );
+  });
+
+  it('defaults the clamp bound to the current UTC date', () => {
+    const futurePick = new Date(
+      new Date().getUTCFullYear() + 2,
+      new Date().getUTCMonth(),
+      new Date().getUTCDate()
+    );
+    expect(resolveDateSelection(futurePick)).toBe(currentUtcDate());
   });
 });
 

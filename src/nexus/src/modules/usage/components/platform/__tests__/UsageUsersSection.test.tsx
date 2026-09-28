@@ -152,7 +152,7 @@ describe('UsageUsersSection — parent-owned pagination', () => {
     jest.clearAllMocks();
   });
 
-  it('a stale data.page=5 cannot override parent page=1: summary shows page 1 and next advances to 2', async () => {
+  it('a stale data.page=5 cannot override parent page=1: footer shows page 1 and next advances to 2', async () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
 
@@ -168,9 +168,16 @@ describe('UsageUsersSection — parent-owned pagination', () => {
       />
     );
 
-    // Summary must reflect the parent-owned page, not the stale echo.
-    expect(screen.getByText(/page 1 of 5/)).toBeInTheDocument();
-    expect(screen.queryByText(/page 5 of/)).not.toBeInTheDocument();
+    // The shared footer reflects the PARENT-owned page (1 of 5) plus the
+    // server total/count — never the stale echoed data.page. The old
+    // "page 1 of 5" summary string came from the removed hand-rolled
+    // pagination; the footer now renders "1 of 5" and the count line.
+    expect(screen.getByText('1 of 5')).toBeInTheDocument();
+    expect(
+      screen.getByText('Showing 1 to 25 of 120 results')
+    ).toBeInTheDocument();
+    // The stale echo must not drive the footer.
+    expect(screen.queryByText('5 of 5')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Next page' }));
 
@@ -178,7 +185,7 @@ describe('UsageUsersSection — parent-owned pagination', () => {
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 
-  it('parent page=3 with stale data.page=1: summary shows page 3 and prev goes back to 2', async () => {
+  it('parent page=3 with stale data.page=1: footer shows page 3 and prev goes back to 2', async () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
 
@@ -192,7 +199,12 @@ describe('UsageUsersSection — parent-owned pagination', () => {
       />
     );
 
-    expect(screen.getByText(/page 3 of 5/)).toBeInTheDocument();
+    // Parent-owned page 3 → "3 of 5"; the stale data.page=1 never appears.
+    expect(screen.getByText('3 of 5')).toBeInTheDocument();
+    expect(
+      screen.getByText('Showing 51 to 75 of 120 results')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('1 of 5')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Previous page' }));
 

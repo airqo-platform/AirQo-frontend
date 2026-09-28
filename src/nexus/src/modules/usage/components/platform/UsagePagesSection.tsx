@@ -6,6 +6,7 @@ import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
 import { SegmentedTabs } from '@/shared/components/ui';
 import type { SegmentedTabOption } from '@/shared/components/ui';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import {
   DASH,
   formatNumber,
@@ -13,7 +14,11 @@ import {
   formatDurationSec,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
-import type { UsageKind, UsagePagesResponse } from '@/shared/types/usage';
+import type {
+  UsageKind,
+  UsagePagesItem,
+  UsagePagesResponse,
+} from '@/shared/types/usage';
 
 /** Backend caps top-pages results at 50. */
 export const USAGE_PAGES_LIMIT = 50;
@@ -21,6 +26,9 @@ export const USAGE_PAGES_LIMIT = 50;
 /**
  * Pages/endpoints section. `kind` is controlled by the parent so it can live
  * alongside the shared filters. Data comes from `useUsagePages` via props.
+ * The ranking is server-defined (top N by count), so the columns are not
+ * sortable — the table is a read-only leaderboard rendered via the shared
+ * ServerSideTable (columns sortable:false; no pagination props).
  */
 export interface UsagePagesSectionProps {
   kind: UsageKind;
@@ -44,7 +52,74 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
   error,
   onRetry,
 }) => {
-  const items = useMemo(() => data?.items ?? [], [data]);
+  const items = useMemo(
+    () => (data?.items ?? []).map(item => ({ ...item, id: item.key })),
+    [data]
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'key',
+        label: kind === 'api' ? 'Endpoint' : 'Page',
+        sortable: false,
+        cellClassName: 'font-mono text-xs align-top',
+        render: (_value: unknown, item: UsagePagesItem) => (
+          <span className="block max-w-[260px] truncate" title={item.key}>
+            {item.key}
+          </span>
+        ),
+      },
+      {
+        key: 'count',
+        label: 'Count',
+        sortable: false,
+        cellClassName: 'tabular-nums align-top',
+        render: (_value: unknown, item: UsagePagesItem) =>
+          formatNumber(item.count),
+      },
+      {
+        key: 'unique_users',
+        label: 'Unique users',
+        sortable: false,
+        cellClassName: 'tabular-nums align-top',
+        render: (_value: unknown, item: UsagePagesItem) =>
+          formatNumber(item.unique_users),
+      },
+      {
+        key: 'adoption_pct',
+        label: 'Adoption',
+        sortable: false,
+        cellClassName: 'tabular-nums align-top',
+        render: (_value: unknown, item: UsagePagesItem) =>
+          formatPercent(item.adoption_pct),
+      },
+      {
+        key: 'share_pct',
+        label: 'Share',
+        sortable: false,
+        cellClassName: 'tabular-nums align-top',
+        render: (_value: unknown, item: UsagePagesItem) =>
+          formatPercent(item.share_pct),
+      },
+      ...(kind === 'page'
+        ? [
+            {
+              key: 'avg_duration_sec',
+              label: 'Avg duration',
+              sortable: false as const,
+              cellClassName: 'tabular-nums align-top',
+              render: (_value: unknown, item: UsagePagesItem) =>
+                item.avg_duration_sec !== undefined &&
+                item.avg_duration_sec !== null
+                  ? formatDurationSec(item.avg_duration_sec)
+                  : DASH,
+            },
+          ]
+        : []),
+    ],
+    [kind]
+  );
 
   if (isLoading && !data) {
     return (
@@ -83,66 +158,11 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
           compact
         />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  {kind === 'api' ? 'Endpoint' : 'Page'}
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Count
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Unique users
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Adoption
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Share
-                </th>
-                {kind === 'page' ? (
-                  <th scope="col" className="py-2 pr-4 font-semibold">
-                    Avg duration
-                  </th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {items.map(item => (
-                <tr key={item.key} className="hover:bg-muted/30">
-                  <td
-                    className="py-2 pr-4 font-mono text-xs align-top max-w-[260px] truncate"
-                    title={item.key}
-                  >
-                    {item.key}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums align-top">
-                    {formatNumber(item.count)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums align-top">
-                    {formatNumber(item.unique_users)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums align-top">
-                    {formatPercent(item.adoption_pct)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums align-top">
-                    {formatPercent(item.share_pct)}
-                  </td>
-                  {kind === 'page' ? (
-                    <td className="py-2 pr-4 tabular-nums align-top whitespace-nowrap">
-                      {item.avg_duration_sec !== undefined &&
-                      item.avg_duration_sec !== null
-                        ? formatDurationSec(item.avg_duration_sec)
-                        : DASH}
-                    </td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ServerSideTable
+          data={items}
+          columns={columns}
+          className="max-h-[480px] overflow-y-auto"
+        />
       )}
 
       <p className="text-xs text-muted-foreground">

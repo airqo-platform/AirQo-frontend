@@ -77,13 +77,18 @@ const mapUsageQueryResult = <TData>(query: UseQueryResult<TData, Error>) => ({
 const useUsageQuery = <TData>(
   queryKey: unknown[],
   queryFn: (signal: AbortSignal) => Promise<TData>,
-  enabled = true
+  enabled = true,
+  placeholderData?: (
+    previousData: TData | undefined,
+    previousQuery?: { queryKey: readonly unknown[] }
+  ) => TData | undefined
 ) => {
   const query = useQuery<TData, Error>({
     queryKey,
     queryFn: ({ signal }) => queryFn(signal),
     enabled,
     ...usageQueryDefaults,
+    ...(placeholderData ? { placeholderData } : {}),
   });
 
   return mapUsageQueryResult(query);
@@ -107,7 +112,9 @@ const useUserUsageQuery = <TData, TParams>(
       }
       return queryFn(userId, params, signal);
     },
-    !!userId
+    !!userId,
+    (prev, prevQuery) =>
+      prevQuery?.queryKey[2] === (userId ?? 'anonymous') ? prev : undefined
   );
 
 // ---------------------------------------------------------------------------
@@ -177,7 +184,9 @@ export const useUsageTimeline = (
       }
       return usageService.getTimeline(userId, params, signal);
     },
-    !!userId && !!date
+    !!userId && !!date,
+    (prev, prevQuery) =>
+      prevQuery?.queryKey[2] === (userId ?? 'anonymous') ? prev : undefined
   ) as ReturnType<typeof useUsageQuery<UsageTimelineResponse>>;
 };
 

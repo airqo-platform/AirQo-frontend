@@ -49,19 +49,10 @@ export interface NormalizedChartData {
 
 // Chart filter types
 export type FrequencyType =
-  | 'raw'
-  | 'hourly'
-  | 'daily'
-  | 'weekly'
-  | 'monthly'
-  | 'yearly';
+  'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type PollutantType = 'pm2_5' | 'pm10';
 export type StandardsType =
-  | 'WHO'
-  | 'NEMA_UGANDA'
-  | 'NEMA_KENYA'
-  | 'SOUTH_AFRICA'
-  | 'NIGERIA';
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -307,6 +298,26 @@ export interface DynamicChartProps {
    * support windowing).
    */
   zoomable?: boolean;
+  /**
+   * Overrides the Y-axis label. Defaults to the pollutant label + units
+   * (e.g. "PM2.5 (µg/m³)"). Usage charts pass "Count".
+   */
+  yAxisLabel?: string;
+  /**
+   * Suffix appended to numeric tooltip values. Defaults to ' µg/m³' in
+   * CustomTooltip. Usage charts pass '' (unitless counts).
+   */
+  tooltipValueSuffix?: string;
+  /**
+   * Decimal precision for numeric tooltip values. Defaults to 1. Usage charts
+   * pass 0 (whole counts).
+   */
+  tooltipValuePrecision?: number;
+  /**
+   * Forwarded to the tooltip to show/hide the air-quality level chip.
+   * Defaults to true in CustomTooltip. Usage counts pass false.
+   */
+  showAirQualityLevel?: boolean;
 }
 
 /** A generic reference line drawn on top of the chart (x or y anchored). */
@@ -328,11 +339,7 @@ export interface AirQualityStandardsConfig {
 }
 
 export type ChartStandardsType =
-  | 'WHO'
-  | 'NEMA_UGANDA'
-  | 'NEMA_KENYA'
-  | 'SOUTH_AFRICA'
-  | 'NIGERIA';
+  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;

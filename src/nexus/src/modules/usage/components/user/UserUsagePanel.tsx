@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Card, Input, PageHeading } from '@/shared/components/ui';
+import { Card, PageHeading } from '@/shared/components/ui';
+import { DatePicker } from '@/shared/components/calendar';
+import type { DatePickerProps } from '@/shared/components/calendar';
 import { isAbortError } from '@/shared/lib/retryPolicy';
 import {
   useUsageBreakdown,
@@ -13,6 +15,7 @@ import {
   currentUtcDate,
   currentUtcMonth,
   normalizeKind,
+  resolveMonthSelection,
 } from '@/modules/usage/utils/format';
 import UserUsageBreakdown from './UserUsageBreakdown';
 import UserUsageCalendar from './UserUsageCalendar';
@@ -26,6 +29,34 @@ export interface UserUsagePanelProps {
 
 const usageError = (error: Error | null): Error | null =>
   error && !isAbortError(error) ? error : null;
+
+/** Payload type emitted by the shared DatePicker's onChange callback. */
+type DatePickerValue = Parameters<NonNullable<DatePickerProps['onChange']>>[0];
+
+/** Extracts the picked Date from any DatePicker onChange payload shape. */
+const pickedDate = (value: DatePickerValue): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  const range = value as { from?: Date | string };
+  const rawFrom = range.from;
+  if (!rawFrom) return null;
+  const from = rawFrom instanceof Date ? rawFrom : new Date(rawFrom);
+  return Number.isNaN(from.getTime()) ? null : from;
+};
+
+const monthStringToDate = (month: string): Date | undefined => {
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) return undefined;
+  const [y, m] = month.split('-').map(Number);
+  // Always the first of the month so the trigger reads the canonical
+  // "Sep 1, 2026" instead of whichever day was last picked.
+  return new Date(y, m - 1, 1);
+};
 
 /**
  * Composes the existing per-user usage views for the profile page. Keeping
@@ -54,11 +85,10 @@ const UserUsagePanel: React.FC<UserUsagePanelProps> = ({ userId }) => {
   const calendar = useUsageCalendar(userId, calendarParams);
   const timeline = useUsageTimeline(userId, timelineDate, 'UTC');
 
-  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value;
-    if (next && next <= currentUtcMonth()) {
-      setMonth(next);
-    }
+  const handleMonthChange = (value: DatePickerValue) => {
+    const date = pickedDate(value);
+    if (!date) return;
+    setMonth(resolveMonthSelection(date));
   };
 
   return (
@@ -76,12 +106,17 @@ const UserUsagePanel: React.FC<UserUsagePanelProps> = ({ userId }) => {
           >
             Month (UTC)
           </label>
-          <Input
-            id="profile-usage-month"
-            type="month"
-            value={month}
-            max={currentUtcMonth()}
+          {/* key={month} remounts the picker on every applied month so its
+              internal value (and trigger label) resets to the canonical
+              first-of-month instead of lingering on the picked day. */}
+          <DatePicker
+            key={month}
+            value={monthStringToDate(month)}
             onChange={handleMonthChange}
+            placeholder="Select month"
+            mode="single"
+            aria-label="Select month"
+            className="w-[180px]"
           />
         </div>
       </Card>

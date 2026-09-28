@@ -209,8 +209,8 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
                       <button
                         key={cell.date}
                         type="button"
-                        role="img"
                         aria-label={label}
+                        aria-pressed={isSelected}
                         title={label}
                         onClick={() => onSelectDate(cell.date)}
                         className={cn(

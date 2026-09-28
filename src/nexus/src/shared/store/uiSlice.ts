@@ -2,12 +2,14 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface UiState {
   sidebarCollapsed: boolean;
+  mobileSidebarOpen: boolean;
   drawers: Record<string, boolean>;
   globalSidebarOpen: boolean;
 }
 
 const initialState: UiState = {
   sidebarCollapsed: false,
+  mobileSidebarOpen: false,
   drawers: {},
   globalSidebarOpen: false,
 };
@@ -21,6 +23,12 @@ const uiSlice = createSlice({
     },
     setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
       state.sidebarCollapsed = action.payload;
+    },
+    toggleMobileSidebar: state => {
+      state.mobileSidebarOpen = !state.mobileSidebarOpen;
+    },
+    setMobileSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.mobileSidebarOpen = action.payload;
     },
     openDrawer: (state, action: PayloadAction<string>) => {
       state.drawers[action.payload] = true;
@@ -40,6 +48,8 @@ const uiSlice = createSlice({
 export const {
   toggleSidebar,
   setSidebarCollapsed,
+  toggleMobileSidebar,
+  setMobileSidebarOpen,
   openDrawer,
   closeDrawer,
   toggleDrawer,

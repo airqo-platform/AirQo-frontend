@@ -162,6 +162,52 @@ export const toUtcMonth = (date: Date): string => {
   return `${y}-${m}`;
 };
 
+/**
+ * Resolves a calendar pick into the canonical "YYYY-MM" month selection.
+ *
+ * The dashboard is month-granular, so any picked day normalises to its month
+ * ("Sep 15" and "Sep 1" are the same selection — the pick is never dropped
+ * for landing on a different day of the already-selected month). A pick in a
+ * month after `maxMonth` (default: the current UTC month) is CLAMPED to
+ * `maxMonth` and still applied — future selections are never silently
+ * ignored, the dashboard always updates.
+ *
+ * Month extraction uses LOCAL calendar fields because the shared DatePicker
+ * emits local Dates (its trigger formats with local date-fns); the clamp
+ * bound is the current UTC month, matching the backend's reporting month.
+ */
+export const resolveMonthSelection = (
+  date: Date,
+  maxMonth: string = currentUtcMonth()
+): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const picked = `${y}-${m}`;
+  return picked > maxMonth ? maxMonth : picked;
+};
+
+/**
+ * Resolves a calendar pick into the canonical "YYYY-MM-DD" date selection.
+ *
+ * The timeline is day-granular; any picked day is returned in ISO date form.
+ * A pick after `maxDate` (default: the current UTC date) is CLAMPED to
+ * `maxDate` and still applied — future selections are never silently ignored,
+ * the timeline always updates to the latest available day. Date extraction
+ * uses LOCAL calendar fields because the shared DatePicker emits local Dates
+ * (its trigger formats with local date-fns); the clamp bound is the current
+ * UTC date, matching the backend's reporting day.
+ */
+export const resolveDateSelection = (
+  date: Date,
+  maxDate: string = currentUtcDate()
+): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const picked = `${y}-${m}-${d}`;
+  return picked > maxDate ? maxDate : picked;
+};
+
 /** Validates and normalises a kind value, defaulting safely. */
 export const normalizeKind = (kind: string | null | undefined): UsageKind => {
   return kind === 'api' ? 'api' : 'page';

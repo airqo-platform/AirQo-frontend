@@ -6,9 +6,8 @@ import { Button } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
 import { ErrorBanner } from '@/shared/components/ui/banner';
-import { SearchField } from '@/shared/components/ui';
 import Select from '@/shared/components/ui/select';
-import { Pagination } from '@/shared/components/ui';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { toast } from '@/shared/components/ui/toast';
 import { AqDownload01 } from '@airqo/icons-react';
 import { isAbortError } from '@/shared/lib/retryPolicy';
@@ -17,7 +16,6 @@ import {
   formatNumber,
   formatDurationSec,
   formatCsvFilename,
-  usersPagination,
   computeSparklineBars,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
@@ -28,14 +26,31 @@ import type {
   UsageUserRow,
 } from '@/shared/types/usage';
 
-const SORT_OPTIONS: { value: UsageSort; label: string }[] = [
-  { value: 'total_actions', label: 'Total actions' },
-  { value: 'active_days', label: 'Active days' },
-  { value: 'page_views', label: 'Page views' },
-  { value: 'api_calls', label: 'API calls' },
-  { value: 'sessions', label: 'Sessions' },
-  { value: 'last_active', label: 'Last active' },
+/**
+ * Sort keys the users endpoint accepts. The "Sort by" + "Order" selects below
+ * drive the SERVER sort through the parent-owned state (the shared table's
+ * header sort is client-side only, so the users table keeps all columns
+ * non-sortable and owns server sorting here). The response's echoed `sort`
+ * (e.g. `last_active` coming back as `last_active_day`) is never used for
+ * header state.
+ */
+const SERVER_SORT_KEYS: readonly UsageSort[] = [
+  'total_actions',
+  'active_days',
+  'page_views',
+  'api_calls',
+  'sessions',
+  'last_active',
 ];
+
+const SERVER_SORT_LABELS: Record<UsageSort, string> = {
+  total_actions: 'Actions',
+  active_days: 'Active days',
+  page_views: 'Page views',
+  api_calls: 'API calls',
+  sessions: 'Sessions',
+  last_active: 'Last active',
+};
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -81,6 +96,8 @@ const Sparkline: React.FC<{ values: number[]; width?: number }> = ({
 /**
  * Users table section. Search is debounced; pagination, sort, page size, and
  * CSV export all flow through the parent-owned filter state and the M1 hooks.
+ * Rendering delegates to the shared `ServerSideTable` (built-in server
+ * pagination/footer + controlled search) — no hand-rolled pagination here.
  */
 export interface UsageUsersSectionProps {
   data: UsageUsersResponse | null;
@@ -100,7 +117,7 @@ export interface UsageUsersSectionProps {
   month: string;
   isExporting: boolean;
   exportError: Error | null;
-  onExport: () => void;
+  onExport: () => Promise<void>;
 }
 
 const identityOf = (row: UsageUserRow): string => {
@@ -108,6 +125,11 @@ const identityOf = (row: UsageUserRow): string => {
   if (row.email && row.email.trim()) return row.email.trim();
   return row.user_id;
 };
+
+const orderOptions: { value: UsageOrder; label: string }[] = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+];
 
 const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
   data,
@@ -145,8 +167,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
     };
   }, []);
 
-  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleSearchInput = (value: string) => {
     setLocalSearch(value);
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -156,22 +177,102 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
     }, DEBOUNCE_MS);
   };
 
-  const handleSearchClear = () => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
-    setLocalSearch('');
-    onSearchChange('');
+  const users = useMemo(
+    () => (data?.users ?? []).map(user => ({ ...user, id: user.user_id })),
+    [data]
+  );
+
+  const totalItems = data?.total ?? 0;
+  const totalPages = useMemo(() => {
+    const resp = data?.pages ?? null;
+    if (resp && resp > 0) return Math.floor(resp);
+    return Math.max(1, Math.ceil(totalItems / pageSize));
+  }, [data, totalItems, pageSize]);
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'user',
+        label: 'User',
+        cellClassName: 'min-w-[180px]',
+        render: (_value: unknown, row: UsageUserRow) => (
+          <>
+            <div className="font-medium truncate">{identityOf(row)}</div>
+            {row.email && row.email !== identityOf(row) ? (
+              <div className="text-xs text-muted-foreground truncate">
+                {row.email}
+              </div>
+            ) : null}
+          </>
+        ),
+      },
+      {
+        key: 'active_days',
+        label: 'Active days',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatNumber(row.active_days),
+      },
+      {
+        key: 'total_actions',
+        label: 'Actions',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatNumber(row.total_actions),
+      },
+      {
+        key: 'page_views',
+        label: 'Page views',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatNumber(row.page_views),
+      },
+      {
+        key: 'api_calls',
+        label: 'API calls',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatNumber(row.api_calls),
+      },
+      {
+        key: 'sessions',
+        label: 'Sessions',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatNumber(row.sessions),
+      },
+      {
+        key: 'total_time_sec',
+        label: 'Total time',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          formatDurationSec(row.total_time_sec),
+      },
+      {
+        key: 'last_active',
+        label: 'Last active',
+        cellClassName: 'tabular-nums',
+        render: (_value: unknown, row: UsageUserRow) =>
+          row.last_active_day ?? DASH,
+      },
+      {
+        key: 'activity',
+        label: 'Activity',
+        render: (_value: unknown, row: UsageUserRow) => (
+          <Sparkline values={row.sparkline ?? []} />
+        ),
+      },
+    ],
+    []
+  );
+
+  const handleSortChange = (event: { target: { value: unknown } }) => {
+    onSortChange(event.target.value as UsageSort);
   };
 
-  const users = useMemo(() => data?.users ?? [], [data]);
-  const pagination = usersPagination(
-    page,
-    pageSize,
-    data?.total ?? 0,
-    data?.pages ?? null
-  );
+  const handleOrderChange = (event: { target: { value: unknown } }) => {
+    onOrderChange(event.target.value as UsageOrder);
+  };
 
   const handleExportClick = async () => {
     try {
@@ -179,8 +280,6 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
       toast.success(`Exported ${formatCsvFilename(month)}`);
     } catch (err) {
       if (isAbortError(err)) return;
-      const message = err instanceof Error ? err.message : 'CSV export failed';
-      toast.error(message);
     }
   };
 
@@ -201,22 +300,7 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
   return (
     <Card className="p-4 space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:flex-1">
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="users-search"
-              className="text-sm font-medium text-foreground"
-            >
-              Search
-            </label>
-            <SearchField
-              id="users-search"
-              value={localSearch}
-              onChange={handleSearchInput}
-              onClear={handleSearchClear}
-              placeholder="Name, email, or id..."
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex-1">
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="users-sort"
@@ -224,17 +308,10 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
             >
               Sort by
             </label>
-            <Select
-              id="users-sort"
-              value={sort}
-              onChange={e => {
-                const target = e.target as { value: UsageSort };
-                onSortChange(target.value);
-              }}
-            >
-              {SORT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+            <Select id="users-sort" value={sort} onChange={handleSortChange}>
+              {SERVER_SORT_KEYS.map(key => (
+                <option key={key} value={key}>
+                  {SERVER_SORT_LABELS[key]}
                 </option>
               ))}
             </Select>
@@ -246,36 +323,10 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
             >
               Order
             </label>
-            <Select
-              id="users-order"
-              value={order}
-              onChange={e => {
-                const target = e.target as { value: UsageOrder };
-                onOrderChange(target.value);
-              }}
-            >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="users-page-size"
-              className="text-sm font-medium text-foreground"
-            >
-              Per page
-            </label>
-            <Select
-              id="users-page-size"
-              value={pageSize}
-              onChange={e => {
-                const target = e.target as { value: string };
-                onPageSizeChange(Number(target.value) || pageSize);
-              }}
-            >
-              {PAGE_SIZE_OPTIONS.map(n => (
-                <option key={n} value={n}>
-                  {n}
+            <Select id="users-order" value={order} onChange={handleOrderChange}>
+              {orderOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </Select>
@@ -309,94 +360,22 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
           compact
         />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  User
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Active days
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Actions
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Page views
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  API calls
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Sessions
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Total time
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Last active
-                </th>
-                <th scope="col" className="py-2 pr-4 font-semibold">
-                  Activity
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {users.map(row => (
-                <tr key={row.user_id} className="hover:bg-muted/30">
-                  <td className="py-2 pr-4 min-w-[180px]">
-                    <div className="font-medium truncate">
-                      {identityOf(row)}
-                    </div>
-                    {row.email && row.email !== identityOf(row) ? (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {row.email}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums">
-                    {formatNumber(row.active_days)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums">
-                    {formatNumber(row.total_actions)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums">
-                    {formatNumber(row.page_views)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums">
-                    {formatNumber(row.api_calls)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums">
-                    {formatNumber(row.sessions)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums whitespace-nowrap">
-                    {formatDurationSec(row.total_time_sec)}
-                  </td>
-                  <td className="py-2 pr-4 tabular-nums whitespace-nowrap">
-                    {row.last_active_day ?? DASH}
-                  </td>
-                  <td className="py-2 pr-4">
-                    <Sparkline values={row.sparkline ?? []} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{pagination.summary}</p>
-        <Pagination
-          currentPage={pagination.currentPage}
+        <ServerSideTable
+          data={users}
+          columns={columns}
+          className="max-h-[480px] overflow-y-auto"
+          searchTerm={localSearch}
+          onSearchChange={handleSearchInput}
+          searchableColumns={['name', 'email', 'user_id']}
+          currentPage={page}
+          totalPages={totalPages}
           pageSize={pageSize}
-          totalItems={data?.total ?? 0}
-          onPrevClick={() => onPageChange(pagination.prevPage)}
-          onNextClick={() => onPageChange(pagination.nextPage)}
+          totalItems={totalItems}
           onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
         />
-      </div>
+      )}
     </Card>
   );
 };

@@ -194,7 +194,7 @@ const UsagePage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeading
-        title="Usage"
+        title="Platform Analytics"
         subtitle={pageSubtitle}
         action={
           <span className="text-xs text-muted-foreground">

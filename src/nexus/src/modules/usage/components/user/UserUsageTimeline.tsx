@@ -4,21 +4,42 @@ import React from 'react';
 import { Card } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
-import { formatNumber } from '@/modules/usage/utils/format';
-import { currentUtcDate } from '@/modules/usage/utils/format';
-import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
+import { DynamicChart } from '@/shared/components/charts';
+import type { NormalizedChartData } from '@/shared/components/charts/types';
+import { DatePicker } from '@/shared/components/calendar';
+import type { DatePickerProps } from '@/shared/components/calendar';
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from 'recharts';
-import { getPrimaryColor } from '@/shared/components/charts/constants';
+  formatNumber,
+  resolveDateSelection,
+} from '@/modules/usage/utils/format';
+import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
 import type { UsageTimelineResponse } from '@/shared/types/usage';
+
+/** Payload type emitted by the shared DatePicker's onChange callback. */
+type DatePickerValue = Parameters<NonNullable<DatePickerProps['onChange']>>[0];
+
+/** Extracts the picked Date from any DatePicker onChange payload shape. */
+const pickedDate = (value: DatePickerValue): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  const range = value as { from?: Date | string };
+  const rawFrom = range.from;
+  if (!rawFrom) return null;
+  const from = rawFrom instanceof Date ? rawFrom : new Date(rawFrom);
+  return Number.isNaN(from.getTime()) ? null : from;
+};
+
+const dateStringToDate = (date: string): Date | undefined => {
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return undefined;
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
 
 export interface UserUsageTimelineProps {
   data: UsageTimelineResponse | null;
@@ -28,6 +49,19 @@ export interface UserUsageTimelineProps {
   date: string;
   onDateChange: (date: string) => void;
 }
+
+/** Series keys for the hourly timeline chart (each becomes one bar series). */
+const SERIES_PAGE_VIEWS = 'pageViews';
+const SERIES_API_CALLS = 'apiCalls';
+
+const SERIES_LABELS: Record<string, string> = {
+  [SERIES_PAGE_VIEWS]: 'Page views',
+  [SERIES_API_CALLS]: 'API calls',
+};
+
+/** Zero-padded "HH:00" bucket label — sorts lexicographically like a time. */
+const hourLabel = (hour: number): string =>
+  `${String(hour).padStart(2, '0')}:00`;
 
 const TopList: React.FC<{
   title: string;
@@ -75,12 +109,11 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
   date,
   onDateChange,
 }) => {
-  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.value;
-    if (!next) return;
-    // Reject future dates client-side — the latest available day is today UTC.
-    const max = currentUtcDate();
-    onDateChange(next > max ? max : next);
+  const handleDateChange = (value: DatePickerValue) => {
+    const picked = pickedDate(value);
+    if (!picked) return;
+    // Clamp future dates client-side — the latest available day is today UTC.
+    onDateChange(resolveDateSelection(picked));
   };
 
   if (isLoading && !data) {
@@ -113,11 +146,22 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
     );
   }
 
-  const chartData = data.hours.map(hour => ({
-    hour: hour.hour,
-    pageViews: hour.page_views,
-    apiCalls: hour.api_calls,
-  }));
+  // One NormalizedChartData point per (hour, series): the shared DynamicChart
+  // groups by the `site` field and pivots each site into its own bar series.
+  const chartData: NormalizedChartData[] = data.hours.flatMap(hour => [
+    {
+      time: hourLabel(hour.hour),
+      value: hour.page_views,
+      site: SERIES_PAGE_VIEWS,
+      device_id: '',
+    },
+    {
+      time: hourLabel(hour.hour),
+      value: hour.api_calls,
+      site: SERIES_API_CALLS,
+      device_id: '',
+    },
+  ]);
 
   const hasActivity = data.page_views > 0 || data.api_calls > 0;
 
@@ -135,12 +179,14 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
         </div>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           <span className="font-medium">Date</span>
-          <input
-            type="date"
-            value={date}
-            max={currentUtcDate()}
+          <DatePicker
+            key={date}
+            value={dateStringToDate(date)}
             onChange={handleDateChange}
-            className="rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
+            placeholder="Select date"
+            mode="single"
+            aria-label="Select date"
+            className="w-[180px]"
           />
         </label>
       </div>
@@ -153,52 +199,26 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
         />
       ) : (
         <>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgb(226,232,240)"
-                />
-                <XAxis
-                  dataKey="hour"
-                  tick={{ fontSize: 12, fill: 'rgb(100,116,139)' }}
-                  tickLine={{ stroke: 'rgb(226,232,240)' }}
-                  axisLine={{ stroke: 'rgb(226,232,240)' }}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 12, fill: 'rgb(100,116,139)' }}
-                  tickLine={{ stroke: 'rgb(226,232,240)' }}
-                  axisLine={{ stroke: 'rgb(226,232,240)' }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                  }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="pageViews"
-                  name="Page views"
-                  fill={getPrimaryColor(0)}
-                  radius={[2, 2, 0, 0]}
-                />
-                <Bar
-                  dataKey="apiCalls"
-                  name="API calls"
-                  fill={getPrimaryColor(1)}
-                  radius={[2, 2, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <DynamicChart
+            data={chartData}
+            config={{
+              type: 'bar',
+              showGrid: true,
+              showTooltip: true,
+              showLegend: true,
+              height: 256,
+              // The x values are "HH:00" bucket labels, not ISO timestamps —
+              // pass them through untouched on the axis and in the tooltip.
+              xAxisTickFormatter: value => value,
+              tooltipDateFormatter: label => String(label),
+            }}
+            seriesLabels={SERIES_LABELS}
+            autoSelectType={false}
+            yAxisLabel="Count"
+            tooltipValueSuffix=""
+            tooltipValuePrecision={0}
+            showAirQualityLevel={false}
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <TopList

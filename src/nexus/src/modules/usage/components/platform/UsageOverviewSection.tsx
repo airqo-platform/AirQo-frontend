@@ -5,17 +5,8 @@ import { Card } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
 import { ChartContainer } from '@/shared/components/charts';
-import { getPrimaryColor } from '@/shared/components/charts/constants';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from 'recharts';
+import { DynamicChart } from '@/shared/components/charts';
+import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { formatNumber, formatPercent } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
@@ -35,6 +26,15 @@ export interface UsageOverviewSectionProps {
   onRetry: () => void;
 }
 
+/** Series keys for the daily activity chart (each becomes one area). */
+const SERIES_ACTIVE_USERS = 'activeUsers';
+const SERIES_PAGE_VIEWS = 'pageViews';
+
+const SERIES_LABELS: Record<string, string> = {
+  [SERIES_ACTIVE_USERS]: 'Active users',
+  [SERIES_PAGE_VIEWS]: 'Page views',
+};
+
 const LifecycleItem: React.FC<{ label: string; value: number }> = ({
   label,
   value,
@@ -52,15 +52,24 @@ const UsageOverviewSection: React.FC<UsageOverviewSectionProps> = ({
   error,
   onRetry,
 }) => {
-  const chartData = useMemo(
+  // One NormalizedChartData point per (day, series): the shared DynamicChart
+  // groups by the `site` field and pivots each site into its own area series.
+  const chartData = useMemo<NormalizedChartData[]>(
     () =>
-      (data?.daily ?? []).map(day => ({
-        date: day.date,
-        activeUsers: day.active_users,
-        pageViews: day.page_views,
-        apiCalls: day.api_calls,
-        sessions: day.sessions,
-      })),
+      (data?.daily ?? []).flatMap(day => [
+        {
+          time: day.date,
+          value: day.active_users,
+          site: SERIES_ACTIVE_USERS,
+          device_id: '',
+        },
+        {
+          time: day.date,
+          value: day.page_views,
+          site: SERIES_PAGE_VIEWS,
+          device_id: '',
+        },
+      ]),
     [data]
   );
 
@@ -137,88 +146,34 @@ const UsageOverviewSection: React.FC<UsageOverviewSectionProps> = ({
       {/* Daily activity chart */}
       <ChartContainer
         title="Daily Activity"
-        subtitle={`Per UTC day`}
+        subtitle="Per UTC day"
         loading={isFetching}
         showMoreButton={false}
         minContentHeight="250px"
+        showReferenceLines={false}
       >
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart
-              data={chartData}
-              margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-            >
-              <defs>
-                <linearGradient id="ov-active" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor={getPrimaryColor(0)}
-                    stopOpacity={0.6}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={getPrimaryColor(0)}
-                    stopOpacity={0.05}
-                  />
-                </linearGradient>
-                <linearGradient id="ov-pv" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor={getPrimaryColor(1)}
-                    stopOpacity={0.6}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={getPrimaryColor(1)}
-                    stopOpacity={0.05}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgb(226,232,240)"
-                strokeOpacity={0.5}
-              />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12, fill: 'rgb(100,116,139)' }}
-                tickLine={{ stroke: 'rgb(226,232,240)' }}
-                axisLine={{ stroke: 'rgb(226,232,240)' }}
-                tickFormatter={v => formatWithPattern(String(v), 'MMM dd')}
-              />
-              <YAxis
-                allowDecimals={false}
-                tick={{ fontSize: 12, fill: 'rgb(100,116,139)' }}
-                tickLine={{ stroke: 'rgb(226,232,240)' }}
-                axisLine={{ stroke: 'rgb(226,232,240)' }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                }}
-              />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="activeUsers"
-                name="Active users"
-                stroke={getPrimaryColor(0)}
-                fill="url(#ov-active)"
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="pageViews"
-                name="Page views"
-                stroke={getPrimaryColor(1)}
-                fill="url(#ov-pv)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <DynamicChart
+            data={chartData}
+            config={{
+              type: 'area',
+              showGrid: true,
+              showTooltip: true,
+              showLegend: true,
+              height: 250,
+              // The x values are ISO day strings — compact "MMM dd" axis
+              // ticks and a full "MMM dd, yyyy" tooltip header.
+              xAxisTickFormatter: value => formatWithPattern(value, 'MMM dd'),
+              tooltipDateFormatter: label =>
+                formatWithPattern(String(label), 'MMM dd, yyyy'),
+            }}
+            seriesLabels={SERIES_LABELS}
+            autoSelectType={false}
+            yAxisLabel="Count"
+            tooltipValueSuffix=""
+            tooltipValuePrecision={0}
+            showAirQualityLevel={false}
+          />
         ) : (
           <div className="flex items-center justify-center min-h-[200px] text-sm text-muted-foreground">
             No daily data for this period.

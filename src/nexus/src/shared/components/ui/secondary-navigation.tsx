@@ -7,7 +7,7 @@ import { Button } from './button';
 import { Card } from './card';
 import { OrganizationSelector } from '@/shared/components/header/components';
 import { useAppDispatch } from '@/shared/hooks/redux';
-import { toggleSidebar } from '@/shared/store/uiSlice';
+import { toggleMobileSidebar } from '@/shared/store/uiSlice';
 
 interface SecondaryNavigationProps {
   className?: string;
@@ -19,7 +19,7 @@ export const SecondaryNavigation: React.FC<SecondaryNavigationProps> = ({
   const dispatch = useAppDispatch();
 
   const handleSidebarToggle = () => {
-    dispatch(toggleSidebar());
+    dispatch(toggleMobileSidebar());
   };
 
   return (

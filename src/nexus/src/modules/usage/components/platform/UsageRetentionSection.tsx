@@ -1,21 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import {
   retentionCellView,
   retentionColorClass,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
-import type { UsageRetentionResponse } from '@/shared/types/usage';
+import type { UsageCohort, UsageRetentionResponse } from '@/shared/types/usage';
 
 /**
  * Retention section — cohort rows with a triangular matrix of retention cells.
  * A null rate is rendered as "—" (no data), not 0%, because 0% and
  * "we don't know" are different states. Color intensity encodes magnitude but
  * the numeric label is always present, so meaning is never color-only.
+ *
+ * Cohorts of size 0 carry no users and no meaningful retention signal, so they
+ * are filtered out; if none remain the empty state is shown.
  */
 export interface UsageRetentionSectionProps {
   data: UsageRetentionResponse | null;
@@ -30,6 +34,67 @@ const UsageRetentionSection: React.FC<UsageRetentionSectionProps> = ({
   error,
   onRetry,
 }) => {
+  const cohorts = useMemo(
+    () => (data?.cohorts ?? []).filter(cohort => cohort.size > 0),
+    [data]
+  );
+  const maxOffset = useMemo(
+    () =>
+      cohorts.reduce((max, c) => Math.max(max, c.retention?.length ?? 0), 0) -
+      1,
+    [cohorts]
+  );
+
+  // Cohort rows are ordered by acquisition month and the M+n offsets are
+  // fixed by the backend — there is nothing meaningful to re-sort, so every
+  // column is non-sortable (onSortChange can never fire).
+  const columns = useMemo(
+    () => [
+      {
+        key: 'cohort',
+        label: 'Cohort',
+        sortable: false,
+        cellClassName: 'font-medium tabular-nums',
+        render: (_value: unknown, cohort: UsageCohort) => cohort.cohort,
+      },
+      {
+        key: 'size',
+        label: 'Size',
+        sortable: false,
+        cellClassName: 'tabular-nums text-muted-foreground',
+        render: (_value: unknown, cohort: UsageCohort) => String(cohort.size),
+      },
+      ...Array.from({ length: maxOffset + 1 }, (_, offsetIdx) => ({
+        key: `m+${offsetIdx}`,
+        label: `M+${offsetIdx}`,
+        sortable: false as const,
+        headerClassName: 'text-center',
+        cellClassName: 'text-center',
+        render: (_value: unknown, cohort: UsageCohort) => {
+          const cell = cohort.retention?.[offsetIdx];
+          const view = retentionCellView(
+            offsetIdx,
+            cohort.size,
+            cell?.rate_pct
+          );
+          // M+0 (the acquisition month) is the baseline cohort size;
+          // render it distinctly to avoid implying 100% "retention".
+          return (
+            <span
+              role="img"
+              aria-label={view.label}
+              title={view.label}
+              className={`inline-flex min-w-[52px] items-center justify-center rounded px-2 py-1 text-xs font-medium tabular-nums ${view.isBaseline ? 'bg-muted/50 text-foreground' : retentionColorClass(cell?.rate_pct)}`}
+            >
+              {view.text}
+            </span>
+          );
+        },
+      })),
+    ],
+    [maxOffset]
+  );
+
   if (isLoading && !data) {
     return (
       <LoadingState text="Loading retention..." className="min-h-[160px]" />
@@ -55,10 +120,6 @@ const UsageRetentionSection: React.FC<UsageRetentionSectionProps> = ({
     );
   }
 
-  const cohorts = data.cohorts ?? [];
-  const maxOffset =
-    cohorts.reduce((max, c) => Math.max(max, c.retention?.length ?? 0), 0) - 1;
-
   if (cohorts.length === 0) {
     return (
       <EmptyState
@@ -81,63 +142,11 @@ const UsageRetentionSection: React.FC<UsageRetentionSectionProps> = ({
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
-              <th scope="col" className="py-2 pr-4 font-semibold">
-                Cohort
-              </th>
-              <th scope="col" className="py-2 pr-4 font-semibold">
-                Size
-              </th>
-              {Array.from({ length: maxOffset + 1 }, (_, i) => (
-                <th
-                  key={i}
-                  scope="col"
-                  className="py-2 pr-4 font-semibold text-center"
-                >
-                  M+{i}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {cohorts.map(cohort => (
-              <tr key={cohort.cohort} className="hover:bg-muted/30">
-                <td className="py-2 pr-4 font-medium tabular-nums whitespace-nowrap">
-                  {cohort.cohort}
-                </td>
-                <td className="py-2 pr-4 tabular-nums text-muted-foreground">
-                  {cohort.size}
-                </td>
-                {Array.from({ length: maxOffset + 1 }, (_, offsetIdx) => {
-                  const cell = cohort.retention?.[offsetIdx];
-                  const view = retentionCellView(
-                    offsetIdx,
-                    cohort.size,
-                    cell?.rate_pct
-                  );
-                  // M+0 (the acquisition month) is the baseline cohort size;
-                  // render it distinctly to avoid implying 100% "retention".
-                  return (
-                    <td key={offsetIdx} className="py-2 pr-4 text-center">
-                      <span
-                        role="img"
-                        aria-label={view.label}
-                        title={view.label}
-                        className={`inline-flex min-w-[52px] items-center justify-center rounded px-2 py-1 text-xs font-medium tabular-nums ${view.isBaseline ? 'bg-muted/50 text-foreground' : retentionColorClass(cell?.rate_pct)}`}
-                      >
-                        {view.text}
-                      </span>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ServerSideTable
+        data={cohorts.map(cohort => ({ ...cohort, id: cohort.cohort }))}
+        columns={columns}
+        className="max-h-[480px] overflow-y-auto"
+      />
     </Card>
   );
 };
