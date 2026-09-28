@@ -1,6 +1,10 @@
 import { differenceInCalendarDays, format, subDays } from 'date-fns';
 import type { DateRange } from '@/shared/components/calendar/types';
-import type { ApiKeyUsageOwner } from '@/shared/types/apiKeyUsage';
+import type { NormalizedChartData } from '@/shared/components/charts/types';
+import type {
+  ApiKeyUsageOwner,
+  ApiKeyUsageTimeseriesData,
+} from '@/shared/types/apiKeyUsage';
 import {
   API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS,
   API_KEY_USAGE_MAX_RANGE_DAYS,
@@ -85,6 +89,63 @@ export const formatUsageLabel = (
     parsed,
     pattern ?? (interval === 'day' ? 'MMM d' : 'MMM d, HH:mm')
   );
+};
+
+/** Series key for the aggregated remainder of all keys outside the top N. */
+export const USAGE_OTHER_SERIES = 'otherKeys';
+/** Series key for the all-keys total line. */
+export const USAGE_TOTAL_SERIES = 'totalCalls';
+
+export interface UsageSeriesBundle {
+  /** One point per (label, series) pair, ready for the shared DynamicChart. */
+  data: NormalizedChartData[];
+  /** Display names keyed by series, for the shared legend + tooltip. */
+  labels: Record<string, string>;
+  /** Number of series actually plotted. */
+  seriesCount: number;
+}
+
+/**
+ * Pivots the endpoint's parallel arrays (`labels` + one array per series) into
+ * the long format the shared chart expects.
+ *
+ * The endpoint returns one entry per label for every series, so the row count
+ * is `labels.length × seriesCount`; a missing or short array is coerced to 0
+ * rather than `undefined` so the chart can never receive a gap. `other` is
+ * only plotted when the API actually reports a non-zero remainder.
+ */
+export const buildUsageSeries = (
+  timeseries: ApiKeyUsageTimeseriesData
+): UsageSeriesBundle => {
+  const includeOther =
+    timeseries.other !== null && timeseries.other.some(value => value > 0);
+  const labels: Record<string, string> = {};
+  const data: NormalizedChartData[] = [];
+
+  const at = (values: number[] | null, index: number): number =>
+    values?.[index] ?? 0;
+
+  timeseries.labels.forEach((label: string, index: number) => {
+    const push = (site: string, value: number) =>
+      data.push({ time: label, value, site, device_id: '' });
+
+    timeseries.series.forEach(
+      (series: ApiKeyUsageTimeseriesData['series'][number]) =>
+        push(series.client_id, at(series.data, index))
+    );
+    if (includeOther) push(USAGE_OTHER_SERIES, at(timeseries.other, index));
+    push(USAGE_TOTAL_SERIES, at(timeseries.total, index));
+  });
+
+  timeseries.series.forEach(series => {
+    labels[series.client_id] = series.owner_name
+      ? `${series.label} — ${series.owner_name}`
+      : series.label;
+  });
+  if (includeOther) labels[USAGE_OTHER_SERIES] = 'Other keys';
+  labels[USAGE_TOTAL_SERIES] = 'All keys';
+
+  return { data, labels, seriesCount: Object.keys(labels).length };
 };
 
 /** Best available label for an owner in compact table cells. */

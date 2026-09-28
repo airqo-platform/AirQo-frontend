@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { Card, EmptyState } from '@/shared/components/ui';
+import { EmptyState } from '@/shared/components/ui';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import type {
   ApiKeyUsageLeaderboardKey,
@@ -79,158 +79,169 @@ const OwnerCell: React.FC<{ owner: ApiKeyUsageOwner | null }> = ({ owner }) => {
  * ServerSideTable.
  *
  * Search is deliberately disabled (`searchable={false}`) while still passing
- * a controlled `searchTerm`/`onSearchChange` — MultiSelectTable only skips
- * its client-side page slicing when search is controlled, so this is what
- * lets a full 20-row server page render instead of the built-in first 10.
+ * a controlled `searchTerm`/`onSearchChange`. That pair is the supported
+ * server-pagination escape hatch: MultiSelectTable only skips its own
+ * client-side page slice when search is controlled, so without it a 20/25/50
+ * -row server page would silently render just the first 10 rows. The API has
+ * no text-search parameter, so the box itself stays hidden.
  */
-const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = ({
-  keys,
-  meta,
-  loading,
-  isRefreshing,
-  page,
-  limit,
-  onPageChange,
-  onLimitChange,
-  onRowClick,
-}) => {
-  const rows = useMemo(
-    () => keys.map(key => ({ ...key, id: key.client_id })),
-    [keys]
-  );
+const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = memo(
+  ({
+    keys,
+    meta,
+    loading,
+    isRefreshing,
+    page,
+    limit,
+    onPageChange,
+    onLimitChange,
+    onRowClick,
+  }) => {
+    const rows = useMemo(
+      () => keys.map(key => ({ ...key, id: key.client_id })),
+      [keys]
+    );
 
-  const columns = useMemo(
-    () => [
-      {
-        key: 'rank',
-        label: '#',
-        sortable: false,
-        width: '3.5rem',
-        render: (_value: unknown, item: LeaderboardRow) => (
-          <span className="tabular-nums text-muted-foreground">
-            {item.rank}
-          </span>
-        ),
-      },
-      {
-        key: 'key_name',
-        label: 'Key',
-        sortable: false,
-        render: (_value: unknown, item: LeaderboardRow) => (
-          <div className="min-w-0 max-w-[20rem]">
-            <div
-              className="truncate font-medium text-foreground"
-              title={item.key_name}
-            >
-              {item.key_name || DASH}
+    const columns = useMemo(
+      () => [
+        {
+          key: 'rank',
+          label: '#',
+          sortable: false,
+          width: '3.5rem',
+          render: (_value: unknown, item: LeaderboardRow) => (
+            <span className="tabular-nums text-muted-foreground">
+              {item.rank}
+            </span>
+          ),
+        },
+        {
+          key: 'key_name',
+          label: 'Key',
+          sortable: false,
+          render: (_value: unknown, item: LeaderboardRow) => (
+            <div className="min-w-0 max-w-[20rem]">
+              <div
+                className="truncate font-medium text-foreground"
+                title={item.key_name}
+              >
+                {item.key_name || DASH}
+              </div>
+              <div
+                className="truncate text-xs text-muted-foreground"
+                title={item.client_name}
+              >
+                {item.client_name}
+              </div>
+              <ApiKeyStatusBadges
+                apiKey={item}
+                className="mt-1 flex flex-wrap gap-1"
+              />
             </div>
-            <div
-              className="truncate text-xs text-muted-foreground"
-              title={item.client_name}
-            >
-              {item.client_name}
-            </div>
-            <ApiKeyStatusBadges
-              apiKey={item}
-              className="mt-1 flex flex-wrap gap-1"
-            />
-          </div>
-        ),
-      },
-      {
-        key: 'owner',
-        label: 'Owner',
-        sortable: false,
-        render: (_value: unknown, item: LeaderboardRow) => (
-          <OwnerCell owner={item.owner} />
-        ),
-      },
-      {
-        key: 'calls',
-        label: 'Calls',
-        sortable: false,
-        cellClassName: 'whitespace-nowrap text-right tabular-nums',
-        headerClassName: 'text-right',
-        render: (_value: unknown, item: LeaderboardRow) =>
-          item.calls.toLocaleString(),
-      },
-      {
-        key: 'share_pct',
-        label: 'Share',
-        sortable: false,
-        cellClassName: 'whitespace-nowrap text-right tabular-nums',
-        headerClassName: 'text-right',
-        render: (_value: unknown, item: LeaderboardRow) =>
-          `${item.share_pct.toFixed(1)}%`,
-      },
-      {
-        key: 'active_days',
-        label: 'Active days',
-        sortable: false,
-        cellClassName: 'whitespace-nowrap text-right tabular-nums',
-        headerClassName: 'text-right',
-        render: (_value: unknown, item: LeaderboardRow) =>
-          item.active_days.toLocaleString(),
-      },
-      {
-        key: 'peak_day_calls',
-        label: 'Peak day',
-        sortable: false,
-        cellClassName: 'whitespace-nowrap text-right tabular-nums',
-        headerClassName: 'text-right',
-        render: (_value: unknown, item: LeaderboardRow) =>
-          item.peak_day_calls.toLocaleString(),
-      },
-      {
-        key: 'last_seen',
-        label: 'Last seen',
-        sortable: false,
-        cellClassName: 'whitespace-nowrap',
-        render: (_value: unknown, item: LeaderboardRow) =>
-          item.last_seen
-            ? formatWithPattern(item.last_seen, 'MMM d, yyyy HH:mm')
-            : '—',
-      },
-    ],
-    []
-  );
+          ),
+        },
+        {
+          key: 'owner',
+          label: 'Owner',
+          sortable: false,
+          render: (_value: unknown, item: LeaderboardRow) => (
+            <OwnerCell owner={item.owner} />
+          ),
+        },
+        {
+          key: 'calls',
+          label: 'Calls',
+          sortable: false,
+          cellClassName: 'whitespace-nowrap text-right tabular-nums',
+          headerClassName: 'text-right',
+          render: (_value: unknown, item: LeaderboardRow) =>
+            item.calls.toLocaleString(),
+        },
+        {
+          key: 'share_pct',
+          label: 'Share',
+          sortable: false,
+          cellClassName: 'whitespace-nowrap text-right tabular-nums',
+          headerClassName: 'text-right',
+          render: (_value: unknown, item: LeaderboardRow) =>
+            `${item.share_pct.toFixed(1)}%`,
+        },
+        {
+          key: 'active_days',
+          label: 'Active days',
+          sortable: false,
+          cellClassName: 'whitespace-nowrap text-right tabular-nums',
+          headerClassName: 'text-right',
+          render: (_value: unknown, item: LeaderboardRow) =>
+            item.active_days.toLocaleString(),
+        },
+        {
+          key: 'peak_day_calls',
+          label: 'Peak day',
+          sortable: false,
+          cellClassName: 'whitespace-nowrap text-right tabular-nums',
+          headerClassName: 'text-right',
+          render: (_value: unknown, item: LeaderboardRow) =>
+            item.peak_day_calls.toLocaleString(),
+        },
+        {
+          key: 'last_seen',
+          label: 'Last seen',
+          sortable: false,
+          cellClassName: 'whitespace-nowrap',
+          render: (_value: unknown, item: LeaderboardRow) =>
+            item.last_seen
+              ? formatWithPattern(item.last_seen, 'MMM d, yyyy HH:mm')
+              : '—',
+        },
+      ],
+      []
+    );
 
-  return (
-    <Card className="space-y-4 p-4">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-foreground">Top API keys</h2>
+    return (
+      <div className="space-y-2">
         <p className="text-xs text-muted-foreground">
-          Ranked by call volume for the selected range. Select a row for that
-          key&apos;s detail view.
+          Ranked by call volume for the selected range. Select a row to open
+          that key&apos;s detail view.
         </p>
-      </div>
 
-      <ServerSideTable<LeaderboardRow>
-        data={rows}
-        columns={columns}
-        loading={loading}
-        isRefreshing={isRefreshing}
-        currentPage={meta?.page ?? page}
-        totalPages={meta?.pages ?? 0}
-        pageSize={meta?.limit ?? limit}
-        totalItems={meta?.total ?? 0}
-        onPageChange={onPageChange}
-        onPageSizeChange={onLimitChange}
-        pageSizeOptions={PAGE_SIZE_OPTIONS}
-        onRowClick={item => onRowClick(item.client_id)}
-        emptyComponent={
-          <EmptyState
-            title="No API key calls in this range"
-            description="API key history starts from the day this feature was deployed, so earlier usage cannot be shown."
-            className="min-h-[240px] border-0 bg-transparent"
-          />
-        }
-        searchable={false}
-        searchTerm=""
-        onSearchChange={noop}
-      />
-    </Card>
-  );
-};
+        {/*
+        `ServerSideTable` renders the shared `MultiSelectTable`, which already
+        supplies its own card, header band and server-pagination footer — so it
+        is used bare here (same as system/users) instead of being nested in
+        another Card. The `title` fills that header band; leaving it empty
+        renders a blank strip.
+      */}
+        <ServerSideTable<LeaderboardRow>
+          title="Top API keys"
+          data={rows}
+          columns={columns}
+          loading={loading}
+          isRefreshing={isRefreshing}
+          currentPage={meta?.page ?? page}
+          totalPages={meta?.pages ?? 0}
+          pageSize={meta?.limit ?? limit}
+          totalItems={meta?.total ?? 0}
+          onPageChange={onPageChange}
+          onPageSizeChange={onLimitChange}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          onRowClick={item => onRowClick(item.client_id)}
+          emptyComponent={
+            <EmptyState
+              title="No API key calls in this range"
+              description="API key history starts from the day this feature was deployed, so earlier usage cannot be shown."
+              className="min-h-[240px] border-0 bg-transparent"
+            />
+          }
+          searchable={false}
+          searchTerm=""
+          onSearchChange={noop}
+        />
+      </div>
+    );
+  }
+);
+
+ApiKeyUsageTable.displayName = 'ApiKeyUsageTable';
 
 export default ApiKeyUsageTable;
