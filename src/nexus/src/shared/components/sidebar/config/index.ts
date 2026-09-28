@@ -314,6 +314,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqBarChartSquareUp,
       },
       {
+        id: 'system-api-keys',
+        label: 'API Key Usage',
+        href: '/system/api-keys',
+        icon: AqKey01,
+      },
+      {
         id: 'system-feedback',
         label: 'Feedback',
         href: '/system/feedback',
@@ -451,6 +457,13 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'User Statistics',
             href: '/system/user-statistics',
             description: 'View analytics and charts for platform users',
+          },
+          {
+            id: 'system-api-keys',
+            label: 'API Key Usage',
+            href: '/system/api-keys',
+            description:
+              'Rank API keys by call volume and inspect per-key usage',
           },
           {
             id: 'system-selfies',

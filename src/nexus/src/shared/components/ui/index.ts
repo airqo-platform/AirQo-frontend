@@ -18,6 +18,7 @@ export { LoadingOverlay } from './loading-overlay';
 export { LoadingState } from './loading-state';
 export { EmptyState } from './empty-state';
 export { ErrorState } from './error-state';
+export { MetricCard, type MetricCardProps } from './metric-card';
 export { Pagination } from './pagination';
 export { SearchField } from './search-field';
 export { default as Select } from './select';

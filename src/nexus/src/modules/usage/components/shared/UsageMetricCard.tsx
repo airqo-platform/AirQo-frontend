@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@/shared/components/ui';
+import { MetricCard } from '@/shared/components/ui';
 
 export interface UsageMetricCardProps {
   label: string;
@@ -17,11 +17,12 @@ const UsageMetricCard: React.FC<UsageMetricCardProps> = ({
   hint,
   valueClassName = 'text-2xl',
 }) => (
-  <Card className="space-y-1 p-4">
-    <p className="text-sm text-muted-foreground">{label}</p>
-    <p className={`${valueClassName} font-bold tabular-nums`}>{value}</p>
-    {hint}
-  </Card>
+  <MetricCard
+    label={label}
+    value={value}
+    hint={hint}
+    valueClassName={valueClassName}
+  />
 );
 
 export default UsageMetricCard;
