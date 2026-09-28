@@ -29,6 +29,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/system/security': 'Security',
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
+  '/system/api-keys': 'API Key Usage',
   '/system/feedback': 'Feedback',
   '/system/team-members': 'Members',
   '/system/surveys': 'Survey Management',
@@ -104,6 +105,10 @@ export const getPageTitle = (pathname: string): string => {
 
     if (pathname.startsWith('/system/user-statistics/')) {
       return 'User Details';
+    }
+
+    if (pathname.startsWith('/system/api-keys/')) {
+      return 'API Key Details';
     }
 
     if (pathname.startsWith('/system/team-members/')) {
