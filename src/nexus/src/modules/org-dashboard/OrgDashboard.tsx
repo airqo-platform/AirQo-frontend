@@ -6,7 +6,7 @@ import { useUser, useOrgGroup } from '@/shared/hooks';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { DashboardHeader } from './components/DashboardHeader';
 import { OrganizationReportDashboard } from './components/OrganizationReportDashboard';
-import { OrgDashboardSkeleton } from './components/OrgDashboardSkeleton';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 
 interface OrgDashboardProps {
   organizationSlug: string;
@@ -64,7 +64,16 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   }
 
   if (isInitialLoading) {
-    return <OrgDashboardSkeleton className={className} />;
+    return (
+      <div
+        className={`flex min-h-[400px] items-center justify-center ${className}`}
+        role="status"
+        aria-live="polite"
+        aria-label="Loading organization dashboard"
+      >
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (

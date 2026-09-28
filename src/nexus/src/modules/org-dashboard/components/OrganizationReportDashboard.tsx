@@ -34,7 +34,7 @@ import type {
   PollutantType,
 } from '@/shared/components/charts/types';
 import { useOrganizationReport } from '../hooks/useOrganizationReport';
-import { OrgReportBodySkeleton } from './OrgDashboardSkeleton';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import {
   formatReportValue,
   getReportDailySeries,
@@ -405,7 +405,16 @@ export const OrganizationReportDashboard: React.FC<
       return null;
     }
     if (selectionPending || reportLoading) {
-      return <OrgReportBodySkeleton />;
+      return (
+        <div
+          className="flex min-h-[300px] items-center justify-center"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading organization report"
+        >
+          <LoadingSpinner />
+        </div>
+      );
     }
     if (cohortIds.length === 0) {
       return (

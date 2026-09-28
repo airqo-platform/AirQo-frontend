@@ -18,6 +18,7 @@ const {
   buildReportPayload,
   getReportMaxAttempts,
   normalizeChartApiFrequency,
+  setReportPacingForTests,
 } = jest.requireActual('../analyticsService') as {
   analyticsService: {
     getChartData: (
@@ -49,6 +50,11 @@ const {
   ) => Record<string, unknown>;
   getReportMaxAttempts: (request: Record<string, unknown>) => number;
   normalizeChartApiFrequency: (value: string) => string;
+  setReportPacingForTests: (overrides: {
+    minSpacingMs?: number;
+    windowMs?: number;
+    maxRequests?: number;
+  }) => void;
 };
 
 const chartRequest = {
@@ -78,6 +84,39 @@ const reportRequest = {
   start_time: '2024-01-01T00:00:00Z',
   end_time: '2024-01-20T23:59:59Z',
 };
+
+/** 60 days in the past, so the future-start guard never rejects it. */
+const longReportRequest = {
+  cohort_id: 'cohort-1',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-03-01T00:00:00Z',
+};
+
+/** Minimal successful-but-empty report body for pacing/429 tests. */
+const buildEmptyReport = (period = longReportRequest) => ({
+  status: 'success',
+  cohort_id: 'cohort-1',
+  devices: { device_ids: [], number_of_devices: 0 },
+  period: {
+    startTime: period.start_time,
+    endTime: period.end_time,
+  },
+  daily_mean_pm: [],
+  datetime_mean_pm: [],
+  diurnal: [],
+  annual_pm: [],
+  monthly_pm: [],
+  pm_by_month_year: [],
+  pm_by_month_name: [],
+  site_monthly_mean_pm: [],
+  site_annual_mean_pm: [],
+  site_mean_pm: [],
+  mean_pm_by_city: [],
+  mean_pm_by_country: [],
+  mean_pm_by_region: [],
+  mean_pm_by_day_of_week: [],
+  mean_pm_by_day_hour: [],
+});
 
 describe('AnalyticsService.getChartData', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -359,7 +398,20 @@ describe('AnalyticsService reading helpers', () => {
 });
 
 describe('AnalyticsService.getReport', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Drop the real 6 s spacing so the adaptive loop runs without wall-clock
+    // delays; the pacing itself is covered by its own test below.
+    setReportPacingForTests({ minSpacingMs: 0, windowMs: 60_000 });
+  });
+
+  afterEach(() => {
+    setReportPacingForTests({
+      minSpacingMs: 6_000,
+      windowMs: 60_000,
+      maxRequests: 10,
+    });
+  });
 
   it('sends the documented cohort report payload through the token client', async () => {
     const report = {
@@ -891,6 +943,9 @@ describe('AnalyticsService.getReport', () => {
     const nowSpy = jest
       .spyOn(Date, 'now')
       .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    // The clock is frozen, so the sliding window can never roll over; raise
+    // the request ceiling so the pacing gate doesn't stall this test.
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
     try {
       const okReport = (start: string, end: string) => ({
         status: 'success',
@@ -999,6 +1054,174 @@ describe('AnalyticsService.getReport', () => {
       expect(mockPost).toHaveBeenCalledTimes(2);
     } finally {
       jest.useRealTimers();
+    }
+  });
+
+  it('honours Retry-After when the service sends it', async () => {
+    jest.useFakeTimers();
+    try {
+      const successReport = {
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: ['device-1'], number_of_devices: 1 },
+        period: {
+          startTime: '2024-01-01T00:00:00Z',
+          endTime: '2024-01-20T23:59:59Z',
+        },
+        daily_mean_pm: [],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      };
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429, headers: { 'retry-after': '2' } },
+      });
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValueOnce({ data: { airquality: successReport } });
+
+      const promise = analyticsService.getReport(reportRequest);
+      await jest.advanceTimersByTimeAsync(1_999);
+      expect(mockPost).toHaveBeenCalledTimes(1);
+      await jest.runAllTimersAsync();
+      await expect(promise).resolves.toMatchObject({ status: 'success' });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('splits a window when the 429 retry comes back as a 400', async () => {
+    jest.useFakeTimers();
+    try {
+      const nowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse('2026-10-01T00:00:00.000Z'));
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      const tooWideError = Object.assign(new Error('too wide'), {
+        response: { status: 400 },
+      });
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockRejectedValueOnce(tooWideError)
+        .mockResolvedValue({
+          data: {
+            airquality: {
+              status: 'success',
+              cohort_id: 'cohort-1',
+              devices: { device_ids: [], number_of_devices: 0 },
+              period: {
+                startTime: '2026-09-01T00:00:00Z',
+                endTime: '2026-09-27T23:59:59Z',
+              },
+              daily_mean_pm: [],
+              datetime_mean_pm: [],
+              diurnal: [],
+              annual_pm: [],
+              monthly_pm: [],
+              pm_by_month_year: [],
+              pm_by_month_name: [],
+              site_monthly_mean_pm: [],
+              site_annual_mean_pm: [],
+              site_mean_pm: [],
+              mean_pm_by_city: [],
+              mean_pm_by_country: [],
+              mean_pm_by_region: [],
+              mean_pm_by_day_of_week: [],
+              mean_pm_by_day_hour: [],
+            },
+          },
+        });
+
+      const promise = analyticsService.getReport(reportRequest);
+      await jest.runAllTimersAsync();
+      await expect(promise).resolves.toMatchObject({ status: 'success' });
+      // Original POST, its 429 retry, then the two split windows.
+      expect(mockPost.mock.calls.length).toBeGreaterThanOrEqual(4);
+      nowSpy.mockRestore();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('records a window as unavailable instead of failing the whole report when 429 retries run out', async () => {
+    jest.useFakeTimers();
+    try {
+      const emptyReport = buildEmptyReport();
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+
+      // First window exhausts its retries; later windows still succeed, so the
+      // successful data must survive alongside the unavailable period.
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValue({ data: { airquality: emptyReport } });
+
+      const promise = analyticsService.getReport(longReportRequest);
+      await jest.runAllTimersAsync();
+      const merged = (await promise) as { unavailablePeriods?: unknown[] };
+
+      expect(merged.unavailablePeriods).toHaveLength(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('throws when every window is rate limited', async () => {
+    jest.useFakeTimers();
+    try {
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      mockPost.mockRejectedValue(rateLimitError);
+
+      const promise = analyticsService.getReport(reportRequest);
+      const assertion = expect(promise).rejects.toThrow();
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('spaces consecutive report POSTs by the configured minimum interval', async () => {
+    // Real timers and a monotonic clock: the spacing under test is a
+    // wall-clock delay. `longReportRequest` is in 2024, so the future-start
+    // guard passes without touching `Date.now` (other tests here pin it).
+    jest.useRealTimers();
+    setReportPacingForTests({ minSpacingMs: 30, windowMs: 60_000 });
+    const mockPostTimes: number[] = [];
+    mockPost.mockImplementation(() => {
+      mockPostTimes.push(performance.now());
+      return Promise.resolve({ data: { airquality: buildEmptyReport() } });
+    });
+
+    try {
+      // A 60-day range becomes three windows, so at least two gaps must be
+      // observed between the POSTs.
+      await analyticsService.getReport(longReportRequest);
+      expect(mockPostTimes.length).toBeGreaterThanOrEqual(3);
+      for (let index = 1; index < mockPostTimes.length; index += 1) {
+        expect(
+          mockPostTimes[index] - mockPostTimes[index - 1]
+        ).toBeGreaterThanOrEqual(25);
+      }
+    } finally {
+      setReportPacingForTests({ minSpacingMs: 0 });
     }
   });
 

@@ -46,8 +46,8 @@ jest.mock('../components/DashboardHeader', () => ({
   ),
 }));
 
-jest.mock('../components/OrgDashboardSkeleton', () => ({
-  OrgDashboardSkeleton: () => <div data-testid="dashboard-skeleton" />,
+jest.mock('@/shared/components/ui/loading-spinner', () => ({
+  LoadingSpinner: () => <div data-testid="dashboard-skeleton" />,
 }));
 
 jest.mock('../components/OrganizationReportDashboard', () => ({

@@ -174,15 +174,16 @@ describe('organization report utilities', () => {
 describe('getReportRequestRange', () => {
   it('keeps the selected local calendar dates as the UTC dates in the payload', () => {
     // Local getters make this independent of the machine timezone: the range
-    // the picker shows (Sep 1 – Sep 27) must be the range the backend sees.
+    // the picker shows (Jun 1 – Jun 27) must be the range the backend sees.
+    // June is deliberately in the past so the future-clamp does not trim it.
     expect(
       getReportRequestRange({
-        from: new Date(2026, 8, 1),
-        to: new Date(2026, 8, 27),
+        from: new Date(2026, 5, 1),
+        to: new Date(2026, 5, 27),
       })
     ).toEqual({
-      startDateTime: '2026-09-01T00:00:00.000Z',
-      endDateTime: '2026-09-27T23:59:59.999Z',
+      startDateTime: '2026-06-01T00:00:00.000Z',
+      endDateTime: '2026-06-27T23:59:59.999Z',
     });
   });
 
@@ -205,5 +206,63 @@ describe('getReportRequestRange', () => {
         to: new Date('not-a-date'),
       })
     ).toThrow(/valid to date/);
+  });
+
+  describe('future-date clamping', () => {
+    // 2026-09-28T01:00:00Z: local midnight for a UTC+3 (Kampala) viewer on
+    // "Sep 28" is already 2026-09-28T00:00:00Z, which is in the future.
+    const NOW = Date.parse('2026-09-28T01:00:00.000Z');
+    let nowSpy: jest.SpyInstance<number, []>;
+
+    beforeEach(() => {
+      nowSpy = jest.spyOn(Date, 'now').mockReturnValue(NOW);
+    });
+
+    afterEach(() => {
+      nowSpy.mockRestore();
+    });
+
+    it('clamps a UTC+ "today" start instead of sending a future timestamp', () => {
+      const localToday = new Date(2026, 8, 28);
+      const range = getReportRequestRange({ from: localToday, to: localToday });
+
+      // Neither end may be in the future, whatever the machine timezone.
+      expect(Date.parse(range.startDateTime)).toBeLessThanOrEqual(NOW);
+      expect(Date.parse(range.endDateTime)).toBeLessThanOrEqual(NOW);
+      expect(Date.parse(range.endDateTime)).toBeGreaterThan(
+        Date.parse(range.startDateTime)
+      );
+    });
+
+    it('keeps a past range untouched by the clamp', () => {
+      expect(
+        getReportRequestRange({
+          from: new Date(2026, 8, 1),
+          to: new Date(2026, 8, 27),
+        })
+      ).toEqual({
+        startDateTime: '2026-09-01T00:00:00.000Z',
+        endDateTime: '2026-09-27T23:59:59.999Z',
+      });
+    });
+
+    it('clamps only the end when the range ends today', () => {
+      const range = getReportRequestRange({
+        from: new Date(2026, 8, 1),
+        to: new Date(2026, 8, 28),
+      });
+
+      expect(range.startDateTime).toBe('2026-09-01T00:00:00.000Z');
+      expect(Date.parse(range.endDateTime)).toBeLessThanOrEqual(NOW);
+    });
+
+    it('rejects a range that lies entirely in the future', () => {
+      expect(() =>
+        getReportRequestRange({
+          from: new Date(2026, 9, 1),
+          to: new Date(2026, 9, 30),
+        })
+      ).toThrow(/has not started yet/);
+    });
   });
 });

@@ -230,6 +230,11 @@ export const formatReportValue = (value: number | null | undefined): string => {
  * shifts the start into the previous UTC day for UTC+ timezones — a displayed
  * "Sep 1 – Sep 27" becomes Aug 31 → Sep 27 (28 UTC dates) and the API
  * responds with HTTP 400 "The requested date range is too wide."
+ *
+ * Both ends are additionally clamped to "now": the API rejects future
+ * timestamps, and a UTC+ user's "today" is already the next UTC day. The
+ * dashboard's own guard compares local instants, so only this payload-level
+ * clamp prevents that nightly failure.
  */
 export const getReportRequestRange = (
   range: DateRange
@@ -244,8 +249,33 @@ export const getReportRequestRange = (
     return `${year}-${month}-${day}`;
   };
 
+  const now = Date.now();
+  const requestedStart = Date.parse(
+    `${utcCalendarDate(range.from, 'from')}T00:00:00.000Z`
+  );
+  const requestedEnd = Date.parse(
+    `${utcCalendarDate(range.to, 'to')}T23:59:59.999Z`
+  );
+
+  // The API rejects a future `start_time`/`end_time`, but the picker speaks
+  // local calendar days while the payload carries UTC day boundaries. In a
+  // UTC+ timezone, "today" midnight is already the next UTC day, so an
+  // untouched value would be a future timestamp. Clamp both ends to now: the
+  // report then covers the elapsed part of the period instead of failing.
+  const startMs = Math.min(requestedStart, now);
+  const endMs = Math.min(requestedEnd, now);
+  // Clamping collapses the range only when the whole requested period is
+  // still ahead of us (e.g. picking a future date). There is nothing to
+  // report yet, and padding the window would only produce another future
+  // timestamp for the API to reject.
+  if (endMs <= startMs) {
+    throw new Error(
+      'The report period has not started yet. Choose an earlier date.'
+    );
+  }
+
   return {
-    startDateTime: `${utcCalendarDate(range.from, 'from')}T00:00:00.000Z`,
-    endDateTime: `${utcCalendarDate(range.to, 'to')}T23:59:59.999Z`,
+    startDateTime: new Date(startMs).toISOString(),
+    endDateTime: new Date(endMs).toISOString(),
   };
 };

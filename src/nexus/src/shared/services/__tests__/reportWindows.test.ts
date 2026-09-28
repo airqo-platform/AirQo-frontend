@@ -184,6 +184,54 @@ describe('mergeReportWindows', () => {
     expect(merged.message).toBeUndefined();
   });
 
+  it("weights site and diurnal means by each window's day count", () => {
+    // Adaptive splitting produces uneven windows: after a rejected month is
+    // halved, a 1-day leaf must not count as much as a 26-day window.
+    const oneDay = makeReport({
+      period: {
+        startTime: '2026-03-01T00:00:00.000Z',
+        endTime: '2026-03-01T23:59:59.999Z',
+      },
+      site_mean_pm: [
+        {
+          site_name: 'Site A',
+          pm2_5_calibrated_value: 100,
+          pm10_calibrated_value: 0,
+        },
+      ],
+      diurnal: [{ hour: 8, pm2_5_calibrated_value: 100 }],
+    });
+    const twentySixDays = makeReport({
+      period: {
+        startTime: '2026-01-01T00:00:00.000Z',
+        endTime: '2026-01-26T23:59:59.999Z',
+      },
+      site_mean_pm: [
+        {
+          site_name: 'Site A',
+          pm2_5_calibrated_value: 10,
+          pm10_calibrated_value: 0,
+        },
+      ],
+      diurnal: [{ hour: 8, pm2_5_calibrated_value: 10 }],
+    });
+
+    const merged = mergeReportWindows([oneDay, twentySixDays], {
+      cohort_id: 'cohort-1',
+      start_time: '2026-01-01T00:00:00.000Z',
+      end_time: '2026-03-01T23:59:59.999Z',
+    });
+
+    // Day-weighted: (100*1 + 10*26) / 27 = 13.33…, not the simple mean of 55.
+    expect(merged.site_mean_pm).toHaveLength(1);
+    const siteValue = Number(merged.site_mean_pm[0].pm2_5_calibrated_value);
+    expect(siteValue).toBeCloseTo((100 * 1 + 10 * 26) / 27, 5);
+    expect(siteValue).toBeLessThan(20);
+
+    const diurnalValue = Number(merged.diurnal[0].pm2_5_calibrated_value);
+    expect(diurnalValue).toBeCloseTo((100 * 1 + 10 * 26) / 27, 5);
+  });
+
   it('synthesizes the backend no-data message when every window is empty', () => {
     const merged = mergeReportWindows(
       [

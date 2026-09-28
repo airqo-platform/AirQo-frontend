@@ -332,48 +332,86 @@ const concatDedupeSorted = (
 const PM_FIELD_PATTERN = /^pm(2_5|10)_/;
 
 /**
- * Average the numeric `pm2_5_*` / `pm10_*` fields across a group of rows.
- * The first row is used as the template, so identity fields (site name,
- * lat/long, hour, ...) and any non-PM fields keep their first value.
+ * Inclusive UTC calendar-day count for a window, used as the merge weight.
+ * The backend returns no per-row sample counts, so a window's own span is the
+ * only available proxy for how many days each of its means represents.
  */
-const averagePMFields = (
-  rows: AnalyticsReportAggregateRow[]
+const periodDayCount = (report: AnalyticsReport): number => {
+  const start = Date.parse(String(report.period?.startTime ?? ''));
+  const end = Date.parse(String(report.period?.endTime ?? ''));
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return 1;
+  }
+  return Math.max(
+    1,
+    Math.floor(end / MS_PER_DAY) - Math.floor(start / MS_PER_DAY) + 1
+  );
+};
+
+/**
+ * Collects each report's rows together with that report's day weight, so a
+ * 1-day window is not averaged equally with a 26-day one after the adaptive
+ * loop splits a rejected range.
+ */
+const collectWeightedRows = (
+  reports: AnalyticsReport[],
+  select: (report: AnalyticsReport) => unknown
+): { row: AnalyticsReportAggregateRow; weight: number }[] =>
+  reports.flatMap(report => {
+    const weight = periodDayCount(report);
+    return getRows(select(report)).map(row => ({ row, weight }));
+  });
+
+/**
+ * Weighted mean of the numeric `pm2_5_*` / `pm10_*` fields. Identity fields
+ * (site name, lat/long, hour, ...) come from the first row of the group, so
+ * only the PM values are recombined.
+ */
+const averagePMFieldsWeighted = (
+  entries: { row: AnalyticsReportAggregateRow; weight: number }[]
 ): AnalyticsReportAggregateRow => {
-  const merged: AnalyticsReportAggregateRow = { ...rows[0] };
+  const merged: AnalyticsReportAggregateRow = { ...entries[0].row };
   const pmFields = new Set<string>();
-  rows.forEach(row => {
+  entries.forEach(({ row }) => {
     Object.keys(row).forEach(key => {
       if (PM_FIELD_PATTERN.test(key)) pmFields.add(key);
     });
   });
   pmFields.forEach(field => {
-    const values = rows
-      .map(row => row[field])
-      .filter(
-        (value): value is number =>
-          typeof value === 'number' && Number.isFinite(value)
-      );
-    merged[field] =
-      values.length > 0
-        ? values.reduce((sum, value) => sum + value, 0) / values.length
-        : null;
+    let weightedSum = 0;
+    let totalWeight = 0;
+    entries.forEach(({ row, weight }) => {
+      const value = row[field];
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        weightedSum += value * weight;
+        totalWeight += weight;
+      }
+    });
+    merged[field] = totalWeight > 0 ? weightedSum / totalWeight : null;
   });
   return merged;
 };
 
-/** Group rows by a natural key and average each group's PM fields. */
-const groupAndAverage = (
-  rows: AnalyticsReportAggregateRow[],
+/**
+ * Group weighted rows by a natural key and take each group's weighted mean.
+ * `keyOf` receives the row and its position within its source report, so
+ * index-based fallbacks stay stable per window.
+ */
+const weightedGroupAndAverage = (
+  entries: { row: AnalyticsReportAggregateRow; weight: number }[],
   keyOf: (row: AnalyticsReportAggregateRow, index: number) => string
 ): AnalyticsReportAggregateRow[] => {
-  const groups = new Map<string, AnalyticsReportAggregateRow[]>();
-  rows.forEach((row, index) => {
-    const key = keyOf(row, index);
+  const groups = new Map<
+    string,
+    { row: AnalyticsReportAggregateRow; weight: number }[]
+  >();
+  entries.forEach((entry, index) => {
+    const key = keyOf(entry.row, index);
     const group = groups.get(key);
-    if (group) group.push(row);
-    else groups.set(key, [row]);
+    if (group) group.push(entry);
+    else groups.set(key, [entry]);
   });
-  return Array.from(groups.values(), averagePMFields);
+  return Array.from(groups.values(), averagePMFieldsWeighted);
 };
 
 const siteKey = (row: AnalyticsReportAggregateRow, index: number): string => {
@@ -402,7 +440,16 @@ const dayHourKey = (
   return `day:${day}|hour:${row.hour}`;
 };
 
-/** Concat and dedupe by the row's distinguishing fields (JSON fallback). */
+/**
+ * Concat and dedupe by the row's distinguishing fields (JSON fallback).
+ *
+ * Used for the monthly/annual and region aggregates that the dashboard does
+ * not currently render: they keep the first window's row for a shared key, so
+ * a key split across two windows reflects only that first window. This is a
+ * known limitation rather than an oversight — weight-accurate merging needs
+ * per-row sample counts the backend does not return, and no consumer reads
+ * these arrays today (see `hasReportData`, the only current reference).
+ */
 const concatDedupeByFields = (
   rows: AnalyticsReportAggregateRow[],
   fields: string[]
@@ -518,8 +565,12 @@ export const mergeReportWindows = (
     },
     daily_mean_pm: dailyMeanPm,
     datetime_mean_pm: datetimeMeanPm,
-    diurnal: groupAndAverage(
-      concatRows(reports, report => report.diurnal),
+    // The dashboard renders diurnal ("Typical day profile") and site_mean_pm
+    // ("Site comparison"), so these are day-weighted across merged windows
+    // rather than averaged as bare means-of-means. The backend returns no
+    // per-row sample counts, so each window's own span is the weight.
+    diurnal: weightedGroupAndAverage(
+      collectWeightedRows(reports, report => report.diurnal),
       hourKey
     ),
     annual_pm: concatDedupeByFields(
@@ -546,8 +597,8 @@ export const mergeReportWindows = (
       concatRows(reports, report => report.site_annual_mean_pm),
       ['site_name', 'year']
     ),
-    site_mean_pm: groupAndAverage(
-      concatRows(reports, report => report.site_mean_pm),
+    site_mean_pm: weightedGroupAndAverage(
+      collectWeightedRows(reports, report => report.site_mean_pm),
       siteKey
     ),
     mean_pm_by_city: concatDedupeByFields(
@@ -562,12 +613,12 @@ export const mergeReportWindows = (
       concatRows(reports, report => report.mean_pm_by_region),
       ['region']
     ),
-    mean_pm_by_day_of_week: groupAndAverage(
-      concatRows(reports, report => report.mean_pm_by_day_of_week),
+    mean_pm_by_day_of_week: weightedGroupAndAverage(
+      collectWeightedRows(reports, report => report.mean_pm_by_day_of_week),
       dayKey
     ),
-    mean_pm_by_day_hour: groupAndAverage(
-      concatRows(reports, report => report.mean_pm_by_day_hour),
+    mean_pm_by_day_hour: weightedGroupAndAverage(
+      collectWeightedRows(reports, report => report.mean_pm_by_day_hour),
       dayHourKey
     ),
   };
