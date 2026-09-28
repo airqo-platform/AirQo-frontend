@@ -180,6 +180,22 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Inspect platform user statistics and account activity.',
     },
   },
+  '/system/api-keys': {
+    title: 'API Key Usage',
+    description: 'Rank API keys by call volume and inspect per-key usage.',
+    openGraph: {
+      title: 'API Key Usage | AirQo Nexus',
+      description: 'Rank API keys by call volume and inspect per-key usage.',
+    },
+  },
+  '/system/api-keys/[clientId]': {
+    title: 'API Key Details',
+    description: "Inspect one API key's usage, owner, routes and source IPs.",
+    openGraph: {
+      title: 'API Key Details | AirQo Nexus',
+      description: "Inspect one API key's usage, owner, routes and source IPs.",
+    },
+  },
   '/system/learn': {
     title: 'Course Management',
     description: 'Create and manage AirQo Learn course content.',
@@ -252,6 +268,9 @@ export function generatePageMetadata(pathname: string): Metadata {
   }
   if (pathname.startsWith('/system/feedback/')) {
     pageKey = '/system/feedback/[id]';
+  }
+  if (pathname.startsWith('/system/api-keys/')) {
+    pageKey = '/system/api-keys/[clientId]';
   }
   if (pathname.startsWith('/system/team-members/')) {
     pageKey = '/system/team-members/[memberId]';
