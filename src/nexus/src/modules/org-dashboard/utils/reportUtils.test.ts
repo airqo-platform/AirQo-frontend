@@ -264,5 +264,37 @@ describe('getReportRequestRange', () => {
         })
       ).toThrow(/has not started yet/);
     });
+
+    it('uses local midnight for a viewer selecting their local today', () => {
+      // Pick an instant whose local date is unambiguously "today" for the
+      // viewer, then select that same local day in the picker. The payload
+      // must start at the viewer's local midnight (capped at now), not at the
+      // UTC-day boundary, or a UTC+ viewer's range would collapse.
+      const NOW = Date.parse('2026-09-27T22:00:00.000Z');
+      const localNow = new Date(NOW);
+      const localMidnight = new Date(localNow);
+      localMidnight.setHours(0, 0, 0, 0);
+      const expectedStart = new Date(
+        Math.min(localMidnight.getTime(), NOW)
+      ).toISOString();
+
+      // Construct the picker's "today" from the same local calendar date.
+      const pickerToday = new Date(
+        localNow.getFullYear(),
+        localNow.getMonth(),
+        localNow.getDate()
+      );
+
+      const range = getReportRequestRange({
+        from: pickerToday,
+        to: pickerToday,
+      });
+
+      expect(range.startDateTime).toBe(expectedStart);
+      expect(Date.parse(range.startDateTime)).toBeLessThanOrEqual(NOW);
+      expect(Date.parse(range.endDateTime)).toBeGreaterThan(
+        Date.parse(range.startDateTime)
+      );
+    });
   });
 });

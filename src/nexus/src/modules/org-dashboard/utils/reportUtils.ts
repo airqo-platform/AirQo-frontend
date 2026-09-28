@@ -250,19 +250,34 @@ export const getReportRequestRange = (
   };
 
   const now = Date.now();
-  const requestedStart = Date.parse(
-    `${utcCalendarDate(range.from, 'from')}T00:00:00.000Z`
-  );
-  const requestedEnd = Date.parse(
-    `${utcCalendarDate(range.to, 'to')}T23:59:59.999Z`
-  );
+  const fromCalendarDate = utcCalendarDate(range.from, 'from');
+  const toCalendarDate = utcCalendarDate(range.to, 'to');
+  const requestedStart = Date.parse(`${fromCalendarDate}T00:00:00.000Z`);
+  const requestedEnd = Date.parse(`${toCalendarDate}T23:59:59.999Z`);
 
   // The API rejects a future `start_time`/`end_time`, but the picker speaks
   // local calendar days while the payload carries UTC day boundaries. In a
   // UTC+ timezone, "today" midnight is already the next UTC day, so an
   // untouched value would be a future timestamp. Clamp both ends to now: the
   // report then covers the elapsed part of the period instead of failing.
-  const startMs = Math.min(requestedStart, now);
+  //
+  // For a start that is *today* in the viewer's own timezone, use that day's
+  // local midnight rather than its UTC-day boundary — otherwise a UTC+ viewer
+  // selecting today gets a start after `now`, both ends clamp to the same
+  // instant, and the range collapses to nothing.
+  const localNow = new Date(now);
+  const localTodayStart = new Date(localNow);
+  localTodayStart.setHours(0, 0, 0, 0);
+  const currentLocalDate = [
+    localNow.getFullYear(),
+    String(localNow.getMonth() + 1).padStart(2, '0'),
+    String(localNow.getDate()).padStart(2, '0'),
+  ].join('-');
+
+  const startMs =
+    fromCalendarDate === currentLocalDate
+      ? Math.min(localTodayStart.getTime(), now)
+      : Math.min(requestedStart, now);
   const endMs = Math.min(requestedEnd, now);
   // Clamping collapses the range only when the whole requested period is
   // still ahead of us (e.g. picking a future date). There is nothing to
