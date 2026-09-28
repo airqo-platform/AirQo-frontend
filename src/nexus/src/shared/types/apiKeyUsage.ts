@@ -22,7 +22,12 @@ export interface ApiKeyUsageOwner {
   organisations: ApiKeyUsageOwnerOrganisation[];
 }
 
-export interface ApiKeyUsageKey {
+// Declared as type aliases (not interfaces) on purpose: the shared tables
+// require an index signature for their row constraint, and only object *type*
+// aliases get an implicit one — interfaces would force every consumer to widen
+// its types with `[key: string]: unknown`.
+
+export type ApiKeyUsageKey = {
   client_id: string;
   key_name: string;
   client_name: string;
@@ -32,7 +37,7 @@ export interface ApiKeyUsageKey {
   key_expires: string | null;
   deleted: boolean;
   owner: ApiKeyUsageOwner | null;
-}
+};
 
 export interface ApiKeyUsageRange {
   from: string;
@@ -52,7 +57,7 @@ export interface ApiKeyUsageMeta {
   pages: number;
 }
 
-export interface ApiKeyUsageLeaderboardKey extends ApiKeyUsageKey {
+export type ApiKeyUsageLeaderboardKey = ApiKeyUsageKey & {
   rank: number;
   calls: number;
   share_pct: number;
@@ -63,7 +68,7 @@ export interface ApiKeyUsageLeaderboardKey extends ApiKeyUsageKey {
   first_seen: string | null;
   last_seen: string | null;
   last_ip: string | null;
-}
+};
 
 export interface ApiKeyUsageLeaderboardData {
   range: ApiKeyUsageRange;

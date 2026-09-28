@@ -1,91 +1,59 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Button, Card, MetricCard } from '@/shared/components/ui';
 import {
   DataTable,
   type DataTableColumn,
 } from '@/shared/components/ui/data-table';
-import { ChartContainer, DynamicChart } from '@/shared/components/charts';
-import { resolveDefaultSeriesColor } from '@/shared/components/charts/colors';
-import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import type {
   ApiKeyUsageDetailTotals,
   ApiKeyUsageKey,
 } from '@/shared/types/apiKeyUsage';
-
-const BADGE_BASE =
-  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium';
+import ApiKeyStatusBadges from './ApiKeyStatusBadges';
 
 const noop = () => undefined;
 
-const sectionLabel =
-  'text-xs font-medium uppercase tracking-wide text-muted-foreground';
-
-const primaryChip =
-  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border border-primary/30 bg-primary/10 text-primary';
-
-const secondaryChip =
-  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border border-border bg-muted text-muted-foreground';
-
 /**
- * Identity card for one API key: what the key is, its status badges, when it
- * expires, and who owns it (with a link into that user's usage pages).
+ * Identity card for one API key: what the key is, its status, when it expires,
+ * and who owns it (linked to that user's usage pages).
  */
 export const ApiKeyOwnerCard: React.FC<{ apiKey: ApiKeyUsageKey }> = ({
   apiKey,
 }) => {
   const owner = apiKey.owner;
-  // Everyone belongs to `airqo`, which is always listed last — so the first
-  // organisation is the one that identifies the owner's team, which is why
-  // the chip at index 0 gets the primary (emphasised) styling.
 
   return (
-    <Card className="p-4 space-y-4">
+    <Card className="space-y-4 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <h3
-            className="text-base font-semibold text-foreground truncate"
+            className="truncate text-base font-semibold text-foreground"
             title={apiKey.key_name}
           >
             {apiKey.key_name || '—'}
           </h3>
           <p
-            className="text-sm text-muted-foreground truncate"
+            className="truncate text-sm text-muted-foreground"
             title={apiKey.client_name}
           >
             {apiKey.client_name}
           </p>
           <p
-            className="text-xs text-muted-foreground truncate"
+            className="truncate text-xs text-muted-foreground"
             title={apiKey.client_id}
           >
             {apiKey.client_id}
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          <span className={`${BADGE_BASE} bg-primary/10 text-primary`}>
-            {apiKey.tier}
-          </span>
-          {!apiKey.client_active && (
-            <span className={`${BADGE_BASE} bg-amber-100 text-amber-800`}>
-              Inactive
-            </span>
-          )}
-          {apiKey.auto_suspended && (
-            <span className={`${BADGE_BASE} bg-red-100 text-red-800`}>
-              Suspended
-            </span>
-          )}
-          {apiKey.deleted && (
-            <span className={`${BADGE_BASE} bg-gray-100 text-gray-800`}>
-              Deleted
-            </span>
-          )}
-        </div>
+        <ApiKeyStatusBadges
+          apiKey={apiKey}
+          showTier
+          className="flex flex-wrap gap-1.5"
+        />
       </div>
 
       <div className="text-sm">
@@ -100,23 +68,30 @@ export const ApiKeyOwnerCard: React.FC<{ apiKey: ApiKeyUsageKey }> = ({
       {owner ? (
         <div className="space-y-3 border-t border-border pt-4">
           <div className="space-y-0.5">
-            <p className={sectionLabel}>Owner</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Owner
+            </p>
             <p className="text-sm font-medium text-foreground">
               {owner.name ?? 'No name set'}
             </p>
             {owner.email && (
-              <p className="text-sm text-muted-foreground truncate">
+              <p className="truncate text-sm text-muted-foreground">
                 {owner.email}
               </p>
             )}
           </div>
 
-          {owner.organisations.length > 0 && (
+          {owner.organisations?.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {owner.organisations.map((organisation, index) => (
                 <span
                   key={organisation.group_id}
-                  className={index === 0 ? primaryChip : secondaryChip}
+                  title={index === 0 ? 'Primary organisation' : undefined}
+                  className={
+                    index === 0
+                      ? 'inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary'
+                      : 'inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground'
+                  }
                 >
                   {organisation.title}
                 </span>
@@ -139,7 +114,7 @@ export const ApiKeyOwnerCard: React.FC<{ apiKey: ApiKeyUsageKey }> = ({
   );
 };
 
-/** Four stat cards summarising a key's usage in the selected range. */
+/** Stat cards summarising a key's usage in the selected range. */
 export const ApiKeyTotalsCards: React.FC<{
   totals: ApiKeyUsageDetailTotals;
 }> = ({ totals }) => (
@@ -170,90 +145,6 @@ export const ApiKeyTotalsCards: React.FC<{
   </div>
 );
 
-/** Series key for the single value series drawn by the breakdown charts. */
-const BREAKDOWN_SERIES = 'value';
-
-export interface ApiKeyBarChartCardProps<
-  T extends { name: string; value: number },
-> {
-  title: string;
-  subtitle?: string;
-  data: T[];
-  /** Index into the shared chart palette (default 0). */
-  colorIndex?: number;
-  height?: number;
-  /** Formats the x-axis tick labels (category names). */
-  formatX?: (value: string) => string;
-  /** Y-axis caption, e.g. "Calls". */
-  valueLabel?: string;
-  emptyText?: string;
-}
-
-/**
- * Single-series breakdown chart (days in range, hour-of-day profile…)
- * built on the shared `ChartContainer` + `DynamicChart`, so its axis, tooltip
- * and legend chrome matches every other analytics chart in the app.
- */
-export function ApiKeyBarChartCard<T extends { name: string; value: number }>({
-  title,
-  subtitle,
-  data,
-  colorIndex = 0,
-  height = 280,
-  formatX,
-  valueLabel,
-  emptyText,
-}: ApiKeyBarChartCardProps<T>): React.ReactElement {
-  const isEmpty = data.every(point => point.value === 0);
-
-  const chartData = useMemo<NormalizedChartData[]>(
-    () =>
-      data.map(point => ({
-        time: point.name,
-        value: point.value,
-        site: BREAKDOWN_SERIES,
-        device_id: '',
-      })),
-    [data]
-  );
-
-  return (
-    <ChartContainer
-      title={title}
-      subtitle={subtitle}
-      showMoreButton={false}
-      showReferenceLines={false}
-      minContentHeight={`${height + 20}px`}
-    >
-      {isEmpty ? (
-        <div className="flex items-center justify-center" style={{ height }}>
-          <p className="text-sm text-muted-foreground">
-            {emptyText ?? 'No data available'}
-          </p>
-        </div>
-      ) : (
-        <DynamicChart
-          data={chartData}
-          config={{
-            type: 'bar',
-            showGrid: true,
-            showTooltip: true,
-            showLegend: false,
-            color: resolveDefaultSeriesColor(colorIndex, false),
-            height,
-            ...(formatX ? { xAxisTickFormatter: formatX } : {}),
-          }}
-          autoSelectType={false}
-          yAxisLabel={valueLabel}
-          tooltipValueSuffix=""
-          tooltipValuePrecision={0}
-          showAirQualityLevel={false}
-        />
-      )}
-    </ChartContainer>
-  );
-}
-
 export interface ApiKeyBreakdownTableProps<T> {
   title: string;
   subtitle?: string;
@@ -264,9 +155,9 @@ export interface ApiKeyBreakdownTableProps<T> {
 }
 
 /**
- * Static breakdown table (services, routes, hours, IPs) in a card. Sorting
- * is caller-owned, so the shared DataTable runs in its non-interactive
- * controlled-sort mode.
+ * Static breakdown table (routes, source IPs) in a card. Sorting is
+ * caller-owned — the shared DataTable runs in its non-interactive controlled
+ * mode, since these lists are already ranked by the API.
  */
 export function ApiKeyBreakdownTable<T>({
   title,
@@ -277,7 +168,7 @@ export function ApiKeyBreakdownTable<T>({
   emptyText,
 }: ApiKeyBreakdownTableProps<T>): React.ReactElement {
   return (
-    <Card className="p-4 space-y-3">
+    <Card className="space-y-3 p-4">
       <div className="min-w-0">
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
         {subtitle && (

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { format, startOfToday, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { AqArrowLeft, AqRefreshCw05 } from '@airqo/icons-react';
 import {
   Button,
@@ -14,8 +14,6 @@ import {
   type DateRange,
 } from '@/shared/components/ui';
 import { ErrorBanner } from '@/shared/components/ui/banner';
-import { PermissionGuard } from '@/shared/components';
-import { AccessDenied } from '@/shared/components/AccessDenied';
 import { ChartContainer, StatsPieChart } from '@/shared/components/charts';
 import { type DataTableColumn } from '@/shared/components/ui/data-table';
 import {
@@ -30,15 +28,22 @@ import type {
   ApiKeyUsageRoute,
 } from '@/shared/types/apiKeyUsage';
 import ApiKeyUsageFilters from '../components/ApiKeyUsageFilters';
+import { ApiKeyBarChartCard } from '../components/ApiKeyChartCard';
+import ApiKeyUsageGuard, {
+  ApiKeyUsageAccessDenied,
+} from '../components/ApiKeyUsageGuard';
 import {
-  ApiKeyBarChartCard,
   ApiKeyBreakdownTable,
   ApiKeyOwnerCard,
   ApiKeyTotalsCards,
 } from '../components/ApiKeyDetailSections';
-
-const toApiDay = (date: Date | undefined): string | undefined =>
-  date ? format(date, 'yyyy-MM-dd') : undefined;
+import {
+  API_KEY_USAGE_MAX_RANGE_DAYS,
+  clampUsageRange,
+  defaultUsageRange,
+  toApiDay,
+  usageRangeLimitMessage,
+} from '../utils';
 
 const METHOD_BADGE =
   'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground';
@@ -100,10 +105,7 @@ const ApiKeyUsageDetailPage: React.FC = () => {
   const router = useRouter();
   const clientId = (useParams()?.clientId as string) ?? '';
 
-  const [range, setRange] = useState<DateRange>({
-    from: subDays(startOfToday(), 6),
-    to: startOfToday(),
-  });
+  const [range, setRange] = useState<DateRange>(defaultUsageRange);
 
   const detailParams = useMemo(
     () => ({ from: toApiDay(range.from), to: toApiDay(range.to) }),
@@ -126,17 +128,50 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     }
   }, [mutateDetail]);
 
+  /** The detail endpoint caps ranges at 92 days too — trim before requesting. */
   const handleRangeChange = useCallback((next: DateRange) => {
-    setRange(next);
+    const { range: clamped, clamped: wasClamped } = clampUsageRange(
+      next,
+      API_KEY_USAGE_MAX_RANGE_DAYS
+    );
+
+    if (wasClamped) {
+      toast.info(usageRangeLimitMessage('day', API_KEY_USAGE_MAX_RANGE_DAYS));
+    }
+
+    setRange(clamped);
   }, []);
 
+  // Derived before any early return so hook order stays stable across
+  // loading → loaded → error transitions. Memoized so the charts' internal
+  // grouping only re-runs when the payload changes, not on every revalidation.
+  const dailyPoints = useMemo(
+    () =>
+      (data?.daily ?? []).map(point => ({
+        name: point.day,
+        value: point.calls,
+      })),
+    [data?.daily]
+  );
+  const hourPoints = useMemo(
+    () =>
+      (data?.hours_utc ?? []).map(entry => ({
+        name: String(entry.hour).padStart(2, '0'),
+        value: entry.calls,
+      })),
+    [data?.hours_utc]
+  );
+  const servicePoints = useMemo(
+    () =>
+      (data?.services ?? []).map(entry => ({
+        name: entry.service,
+        value: entry.calls,
+      })),
+    [data?.services]
+  );
+
   if (isForbiddenError(error)) {
-    return (
-      <AccessDenied
-        title="Access Denied"
-        message="You do not have the required permissions to view API key usage."
-      />
-    );
+    return <ApiKeyUsageAccessDenied />;
   }
 
   if (isNotFoundError(error)) {
@@ -184,20 +219,8 @@ const ApiKeyUsageDetailPage: React.FC = () => {
     );
   }
 
-  const { key, totals, daily, services, routes, hours_utc, ips } = data;
-
-  const dailyPoints = daily.map(point => ({
-    name: point.day,
-    value: point.calls,
-  }));
-  const servicePoints = services.map(entry => ({
-    name: entry.service,
-    value: entry.calls,
-  }));
-  const hourPoints = hours_utc.map(entry => ({
-    name: String(entry.hour).padStart(2, '0'),
-    value: entry.calls,
-  }));
+  const { key, totals, routes, ips } = data;
+  const hasServices = servicePoints.length > 0;
 
   return (
     <div className="space-y-6">
@@ -220,7 +243,6 @@ const ApiKeyUsageDetailPage: React.FC = () => {
         onRangeChange={handleRangeChange}
         onRefresh={handleRefresh}
         isRefreshing={isValidating}
-        title="Filters"
         description="Date range applies to every section below. Day buckets are UTC."
       />
 
@@ -235,7 +257,7 @@ const ApiKeyUsageDetailPage: React.FC = () => {
           valueLabel="Calls"
         />
 
-        {services.length > 0 ? (
+        {hasServices ? (
           <ChartContainer
             title="Calls by service"
             subtitle="Split across gateway services"
@@ -282,13 +304,9 @@ const ApiKeyUsageDetailPage: React.FC = () => {
 };
 
 const ProtectedApiKeyUsageDetailPage: React.FC = () => (
-  <PermissionGuard
-    requiredPermissions={['AUDIT_VIEW', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}
-    accessDeniedTitle="Access Denied"
-    accessDeniedMessage="You do not have the required permissions to view API key usage."
-  >
+  <ApiKeyUsageGuard>
     <ApiKeyUsageDetailPage />
-  </PermissionGuard>
+  </ApiKeyUsageGuard>
 );
 
 export default ProtectedApiKeyUsageDetailPage;

@@ -1,15 +1,11 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { format } from 'date-fns';
-import {
-  EmptyState,
-  SegmentedTabs,
-  type SegmentedTabOption,
-} from '@/shared/components/ui';
-import { ChartContainer, DynamicChart } from '@/shared/components/charts';
+import { SegmentedTabs, type SegmentedTabOption } from '@/shared/components/ui';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import type { ApiKeyUsageTimeseriesData } from '@/shared/types/apiKeyUsage';
+import ApiKeyChartCard from './ApiKeyChartCard';
+import { formatUsageLabel } from '../utils';
 
 /** Series key for the aggregated remainder of all keys outside the top N. */
 const OTHER_SERIES = 'otherKeys';
@@ -21,6 +17,9 @@ const INTERVAL_OPTIONS: SegmentedTabOption<'day' | 'hour'>[] = [
   { value: 'hour', label: 'Hour' },
 ];
 
+const NO_CALLS_DESCRIPTION =
+  'Data starts from the day this feature was deployed, so earlier usage is not available.';
+
 export interface ApiKeyUsageChartProps {
   data?: ApiKeyUsageTimeseriesData;
   interval: 'day' | 'hour';
@@ -31,37 +30,13 @@ export interface ApiKeyUsageChartProps {
 }
 
 /**
- * `day` labels are UTC calendar days (`YYYY-MM-DD`): formatting them as local
- * dates keeps the printed day identical in every timezone.
- * `hour` labels are UTC ISO instants, so they are converted to the viewer's
- * local time — all timestamps are displayed in local time.
- */
-const formatAxisLabel = (value: string, interval: 'day' | 'hour'): string => {
-  const parsed =
-    interval === 'day' ? new Date(`${value}T00:00:00`) : new Date(value);
-  if (Number.isNaN(parsed.getTime())) return String(value);
-  return interval === 'day'
-    ? format(parsed, 'MMM d')
-    : format(parsed, 'MMM d, HH:mm');
-};
-
-const formatTooltipLabel = (
-  value: string,
-  interval: 'day' | 'hour'
-): string => {
-  const parsed =
-    interval === 'day' ? new Date(`${value}T00:00:00`) : new Date(value);
-  if (Number.isNaN(parsed.getTime())) return String(value);
-  return interval === 'day'
-    ? format(parsed, 'MMM d, yyyy')
-    : format(parsed, 'MMM d, yyyy HH:mm');
-};
-
-/**
  * "Calls over time" for the busiest API keys. Presentational — the page owns
- * fetching and the day/hour interval. Renders the shared `ChartContainer` +
- * `DynamicChart` so axis, tooltip, legend and zoom behaviour match every other
- * analytics chart in the app.
+ * fetching and the day/hour interval.
+ *
+ * The endpoint returns per-label arrays, so each label is pivoted into one
+ * point per series: every top key, the aggregated `other` remainder (when the
+ * API reports it) and the all-keys total. Hourly buckets are UTC instants and
+ * are rendered in local time; day buckets keep their UTC calendar day.
  */
 const ApiKeyUsageChart: React.FC<ApiKeyUsageChartProps> = ({
   data,
@@ -71,34 +46,28 @@ const ApiKeyUsageChart: React.FC<ApiKeyUsageChartProps> = ({
   error = null,
   onRefresh,
 }) => {
-  const { chartData, seriesLabels, hasCalls } = useMemo(() => {
+  const { chartData, seriesLabels } = useMemo(() => {
     if (!data) {
       return {
         chartData: [] as NormalizedChartData[],
         seriesLabels: {} as Record<string, string>,
-        hasCalls: false,
       };
     }
 
-    const showOther =
-      data.other !== null && data.other.some(value => value > 0);
-    const labels: Record<string, string> = {};
+    const includeOther = data.other !== null && data.other.some(v => v > 0);
     const rows: NormalizedChartData[] = [];
+    const labels: Record<string, string> = {};
 
     data.labels.forEach((label, index) => {
-      const row = (site: string, value: number) => {
+      const push = (site: string, value: number) =>
         rows.push({ time: label, value, site, device_id: '' });
-      };
 
-      data.series.forEach(series => {
-        row(series.client_id, series.data[index] ?? 0);
-      });
-
-      if (showOther && data.other) {
-        row(OTHER_SERIES, data.other[index] ?? 0);
-      }
-
-      row(TOTAL_SERIES, data.total[index] ?? 0);
+      data.series.forEach(series =>
+        push(series.client_id, series.data[index] ?? 0)
+      );
+      if (includeOther && data.other)
+        push(OTHER_SERIES, data.other[index] ?? 0);
+      push(TOTAL_SERIES, data.total[index] ?? 0);
     });
 
     data.series.forEach(series => {
@@ -106,32 +75,31 @@ const ApiKeyUsageChart: React.FC<ApiKeyUsageChartProps> = ({
         ? `${series.label} — ${series.owner_name}`
         : series.label;
     });
-
-    if (showOther) {
-      labels[OTHER_SERIES] = 'Other keys';
-    }
+    if (includeOther) labels[OTHER_SERIES] = 'Other keys';
     labels[TOTAL_SERIES] = 'All keys';
 
-    return {
-      chartData: rows,
-      seriesLabels: labels,
-      hasCalls: data.total.some(value => value > 0),
-    };
+    return { chartData: rows, seriesLabels: labels };
   }, [data]);
 
-  // Never paint "No calls recorded" over a load that hasn't landed yet.
-  const showEmptyState = !hasCalls && !(loading && !data);
-
   return (
-    <ChartContainer
+    <ApiKeyChartCard
       title="API key calls over time"
       subtitle="Busiest keys, plus all keys combined"
-      showMoreButton={false}
-      showReferenceLines={false}
+      data={chartData}
+      type="area"
+      seriesLabels={seriesLabels}
+      valueLabel="Calls"
+      formatX={value => formatUsageLabel(value, { interval })}
+      formatTooltipLabel={value =>
+        formatUsageLabel(String(value), {
+          interval,
+          pattern: interval === 'day' ? 'MMM d, yyyy' : 'MMM d, yyyy HH:mm',
+        })
+      }
+      emptyDescription={NO_CALLS_DESCRIPTION}
       loading={loading}
       error={error}
       onRefresh={onRefresh}
-      minContentHeight="300px"
       toolbar={
         <SegmentedTabs
           ariaLabel="Usage interval"
@@ -140,35 +108,7 @@ const ApiKeyUsageChart: React.FC<ApiKeyUsageChartProps> = ({
           onChange={onIntervalChange}
         />
       }
-    >
-      {showEmptyState ? (
-        <EmptyState
-          compact
-          title="No calls recorded"
-          description="Data starts from the day this feature was deployed, so earlier usage is not available."
-        />
-      ) : (
-        <DynamicChart
-          data={chartData}
-          config={{
-            type: 'area',
-            showGrid: true,
-            showTooltip: true,
-            showLegend: true,
-            height: 300,
-            xAxisTickFormatter: value => formatAxisLabel(value, interval),
-            tooltipDateFormatter: label =>
-              formatTooltipLabel(String(label), interval),
-          }}
-          seriesLabels={seriesLabels}
-          autoSelectType={false}
-          yAxisLabel="Calls"
-          tooltipValueSuffix=""
-          tooltipValuePrecision={0}
-          showAirQualityLevel={false}
-        />
-      )}
-    </ChartContainer>
+    />
   );
 };
 

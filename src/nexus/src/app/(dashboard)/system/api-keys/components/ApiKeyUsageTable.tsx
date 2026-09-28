@@ -1,16 +1,35 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { Card, EmptyState } from '@/shared/components/ui';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import type {
   ApiKeyUsageLeaderboardKey,
   ApiKeyUsageMeta,
+  ApiKeyUsageOwner,
 } from '@/shared/types/apiKeyUsage';
+import ApiKeyStatusBadges from './ApiKeyStatusBadges';
+import { ownerDisplayName, ownerPrimaryOrganisation } from '../utils';
 
 /** Row-count choices, matching the other admin analytics tables. */
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+const DASH = '—';
+
+/**
+ * MultiSelectTable keys rows by `id`; client_id is unique per dataset, so it
+ * doubles as the row key.
+ */
+type LeaderboardRow = ApiKeyUsageLeaderboardKey & { id: string };
+
+/**
+ * ServerSideTable only forwards search props when BOTH are defined, and
+ * MultiSelectTable treats a defined handler as "server-side search" — which is
+ * what keeps the full server page from being sliced to its internal page size.
+ * This API has no text-search param, so the box stays hidden.
+ */
+const noop = () => undefined;
 
 export interface ApiKeyUsageTableProps {
   keys: ApiKeyUsageLeaderboardKey[];
@@ -24,33 +43,13 @@ export interface ApiKeyUsageTableProps {
   onRowClick: (clientId: string) => void;
 }
 
-/**
- * MultiSelectTable keys rows by `id`; client_id is unique per dataset.
- * The index signature mirrors ServerSideTable's `TableItem` constraint —
- * plain interfaces don't get one implicitly.
- */
-type LeaderboardRow = ApiKeyUsageLeaderboardKey & {
-  id: string;
-  [key: string]: unknown;
-};
-
-const BADGE_BASE =
-  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium';
-
-const BADGE_SUSPENDED = `${BADGE_BASE} bg-red-100 text-red-800`;
-const BADGE_DELETED = `${BADGE_BASE} bg-gray-100 text-gray-800`;
-const BADGE_INACTIVE = `${BADGE_BASE} bg-amber-100 text-amber-800`;
-
-const OwnerCell: React.FC<{ owner: ApiKeyUsageLeaderboardKey['owner'] }> = ({
-  owner,
-}) => {
+const OwnerCell: React.FC<{ owner: ApiKeyUsageOwner | null }> = ({ owner }) => {
   if (!owner) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-muted-foreground">{DASH}</span>;
   }
 
-  // `airqo` is always the last organisation, so index 0 is the owner's team.
-  const team = owner.organisations?.[0]?.title;
-  const primary = owner.name || owner.email || '—';
+  const team = ownerPrimaryOrganisation(owner);
+  const primary = ownerDisplayName(owner);
 
   return (
     <div className="min-w-0 max-w-[18rem]">
@@ -100,11 +99,6 @@ const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = ({
     [keys]
   );
 
-  // Stable identity: ServerSideTable only forwards search props when BOTH
-  // are defined, and MultiSelectTable treats a defined handler as
-  // "server-side search" (no client-side slicing).
-  const stableNoop = useCallback(() => undefined, []);
-
   const columns = useMemo(
     () => [
       {
@@ -128,7 +122,7 @@ const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = ({
               className="truncate font-medium text-foreground"
               title={item.key_name}
             >
-              {item.key_name || '—'}
+              {item.key_name || DASH}
             </div>
             <div
               className="truncate text-xs text-muted-foreground"
@@ -136,19 +130,10 @@ const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = ({
             >
               {item.client_name}
             </div>
-            {(item.auto_suspended ||
-              item.deleted ||
-              item.client_active === false) && (
-              <div className="mt-1 flex flex-wrap gap-1">
-                {item.auto_suspended && (
-                  <span className={BADGE_SUSPENDED}>Suspended</span>
-                )}
-                {item.deleted && <span className={BADGE_DELETED}>Deleted</span>}
-                {item.client_active === false && (
-                  <span className={BADGE_INACTIVE}>Inactive</span>
-                )}
-              </div>
-            )}
+            <ApiKeyStatusBadges
+              apiKey={item}
+              className="mt-1 flex flex-wrap gap-1"
+            />
           </div>
         ),
       },
@@ -242,7 +227,7 @@ const ApiKeyUsageTable: React.FC<ApiKeyUsageTableProps> = ({
         }
         searchable={false}
         searchTerm=""
-        onSearchChange={stableNoop}
+        onSearchChange={noop}
       />
     </Card>
   );

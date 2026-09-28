@@ -2,12 +2,6 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  differenceInCalendarDays,
-  format,
-  startOfToday,
-  subDays,
-} from 'date-fns';
 import { AqRefreshCw05 } from '@airqo/icons-react';
 import {
   Button,
@@ -18,8 +12,6 @@ import {
   type DateRange,
 } from '@/shared/components/ui';
 import { ErrorBanner } from '@/shared/components/ui/banner';
-import { PermissionGuard } from '@/shared/components';
-import { AccessDenied } from '@/shared/components/AccessDenied';
 import {
   isForbiddenError,
   getUserFriendlyErrorMessage,
@@ -27,8 +19,6 @@ import {
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
 import {
   API_KEY_USAGE_DEFAULT_LIMIT,
-  API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS,
-  API_KEY_USAGE_MAX_RANGE_DAYS,
   useApiKeyUsageLeaderboard,
   useApiKeyUsageTimeseries,
 } from '@/shared/hooks/useApiKeyUsage';
@@ -36,45 +26,25 @@ import type { ApiKeyUsageLeaderboardParams } from '@/shared/types/apiKeyUsage';
 import ApiKeyUsageFilters from './components/ApiKeyUsageFilters';
 import ApiKeyUsageChart from './components/ApiKeyUsageChart';
 import ApiKeyUsageTable from './components/ApiKeyUsageTable';
+import ApiKeyUsageGuard, {
+  ApiKeyUsageAccessDenied,
+} from './components/ApiKeyUsageGuard';
 import ExportApiKeyUsageButton from './components/ExportApiKeyUsageButton';
+import {
+  clampUsageRange,
+  defaultUsageRange,
+  maxDaysForInterval,
+  toApiDay,
+  usageRangeLimitMessage,
+} from './utils';
 
 type SortOption = NonNullable<ApiKeyUsageLeaderboardParams['sort']>;
 type Interval = 'day' | 'hour';
 
-/** `from`/`to` travel to the API as UTC calendar days (`YYYY-MM-DD`). */
-const toApiDay = (date: Date | undefined): string | undefined =>
-  date ? format(date, 'yyyy-MM-dd') : undefined;
-
-/**
- * Both endpoints cap the inclusive day count (92 daily, 14 hourly). Longer
- * picks are clamped back from `to` and announced instead of silently
- * rejected by the API with a 400.
- */
-const clampRange = (next: DateRange, interval: Interval): DateRange => {
-  const { from, to } = next;
-  if (!from || !to) return next;
-
-  const maxDays =
-    interval === 'hour'
-      ? API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS
-      : API_KEY_USAGE_MAX_RANGE_DAYS;
-
-  if (differenceInCalendarDays(to, from) + 1 <= maxDays) return next;
-
-  toast.info(
-    `The ${interval === 'hour' ? 'hourly' : 'daily'} view supports at most ${maxDays} days. The range was shortened to the last ${maxDays} days.`
-  );
-
-  return { from: subDays(to, maxDays - 1), to };
-};
-
 const ApiKeyUsagePage: React.FC = () => {
   const router = useRouter();
 
-  const [range, setRange] = useState<DateRange>({
-    from: subDays(startOfToday(), 6),
-    to: startOfToday(),
-  });
+  const [range, setRange] = useState<DateRange>(defaultUsageRange);
   const [service, setService] = useState('analytics');
   const [sort, setSort] = useState<SortOption>('calls');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
@@ -135,18 +105,43 @@ const ApiKeyUsagePage: React.FC = () => {
     (lbError && !leaderboardData) || (tsError && !timeseriesData);
   const hasStaleError = !fatalError && Boolean(lbError || tsError);
 
-  const handleRangeChange = useCallback(
-    (next: DateRange) => {
-      setRange(clampRange(next, interval));
-      setPage(1);
+  /**
+   * Applies a range, trimming it to the endpoint's cap for `nextInterval`.
+   * `clampUsageRange` is pure, so the toast is raised here rather than inside a
+   * state updater (which React may invoke twice).
+   */
+  const applyRange = useCallback(
+    (next: DateRange, nextInterval: Interval, resetPage = true) => {
+      const { range: clamped, clamped: wasClamped } = clampUsageRange(
+        next,
+        maxDaysForInterval(nextInterval)
+      );
+
+      if (wasClamped) {
+        toast.info(
+          usageRangeLimitMessage(nextInterval, maxDaysForInterval(nextInterval))
+        );
+      }
+
+      setRange(clamped);
+      if (resetPage) setPage(1);
     },
-    [interval]
+    []
   );
 
-  const handleIntervalChange = useCallback((next: Interval) => {
-    if (next === 'hour') setRange(current => clampRange(current, 'hour'));
-    setInterval(next);
-  }, []);
+  const handleRangeChange = useCallback(
+    (next: DateRange) => applyRange(next, interval),
+    [applyRange, interval]
+  );
+
+  const handleIntervalChange = useCallback(
+    (next: Interval) => {
+      if (next === interval) return;
+      setInterval(next);
+      applyRange(range, next, false);
+    },
+    [applyRange, interval, range]
+  );
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -160,12 +155,7 @@ const ApiKeyUsagePage: React.FC = () => {
   }, [mutateLeaderboard, mutateTimeseries]);
 
   if (isForbiddenError(lbError) || isForbiddenError(tsError)) {
-    return (
-      <AccessDenied
-        title="Access Denied"
-        message="You do not have the required permissions to view API key usage."
-      />
-    );
+    return <ApiKeyUsageAccessDenied />;
   }
 
   if (isInitialLoading) {
@@ -321,13 +311,9 @@ const ApiKeyUsagePage: React.FC = () => {
 };
 
 const ProtectedApiKeyUsagePage: React.FC = () => (
-  <PermissionGuard
-    requiredPermissions={['AUDIT_VIEW', 'SYSTEM_ADMIN', 'SUPER_ADMIN']}
-    accessDeniedTitle="Access Denied"
-    accessDeniedMessage="You do not have the required permissions to view API key usage."
-  >
+  <ApiKeyUsageGuard>
     <ApiKeyUsagePage />
-  </PermissionGuard>
+  </ApiKeyUsageGuard>
 );
 
 export default ProtectedApiKeyUsagePage;
