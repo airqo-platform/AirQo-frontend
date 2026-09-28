@@ -50,6 +50,8 @@ export interface RangeCalendarProps {
 }
 
 export interface DatePickerProps {
+  /** Id for the trigger button, so a <label htmlFor> can name it. */
+  id?: string;
   value?: Date | DateRange;
   onChange?: (
     date: Date | DateRange | string | { from: string; to: string } | undefined

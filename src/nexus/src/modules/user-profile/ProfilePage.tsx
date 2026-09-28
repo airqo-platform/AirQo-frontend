@@ -13,9 +13,11 @@ import {
   AqKey01,
   AqPalette,
   AqCreditCard01,
+  AqPresentationChart02,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
+import UserUsagePanel from '@/modules/usage/components/user/UserUsagePanel';
 
 interface ExtendedSessionUser {
   id?: string;
@@ -34,6 +36,7 @@ const TAB_PARAM_MAP: Record<string, number> = {
   subscription: 3,
   'org-invites': 4,
   theme: 5,
+  usage: 6,
 };
 
 const TAB_ID_TO_PARAM: Record<number, string> = Object.fromEntries(
@@ -49,7 +52,8 @@ const ProfilePage: React.FC = () => {
     return tabParam && tabParam in TAB_PARAM_MAP ? TAB_PARAM_MAP[tabParam] : 0;
   });
 
-  const userId = (session?.user as ExtendedSessionUser)?._id;
+  const sessionUser = session?.user as ExtendedSessionUser | undefined;
+  const userId = sessionUser?._id || sessionUser?.id;
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -93,6 +97,11 @@ const ProfilePage: React.FC = () => {
     { id: 3, title: 'Subscription', component: () => <BillingPage /> },
     { id: 4, title: 'Team Invites', component: () => <OrgInvitesTab /> },
     { id: 5, title: 'Theme', component: () => <ThemeManager /> },
+    {
+      id: 6,
+      title: 'Usage',
+      component: userId ? () => <UserUsagePanel userId={userId} /> : null,
+    },
   ];
 
   return (
@@ -134,6 +143,12 @@ const ProfilePage: React.FC = () => {
                   )}
                   {tab.id === 5 && (
                     <AqPalette size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 6 && (
+                    <AqPresentationChart02
+                      size={14}
+                      className="sm:w-4 sm:h-4"
+                    />
                   )}
                   {tab.title}
                 </span>

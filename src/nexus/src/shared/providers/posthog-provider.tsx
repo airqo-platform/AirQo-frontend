@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useSelector } from 'react-redux';
 import { usePageTracking } from '@/shared/hooks/usePageTracking';
+import { useUsageTracking } from '@/shared/hooks/useUsageTracking';
 import { selectActiveGroup, selectUser } from '@/shared/store/selectors';
 import { AIRQO_APP_NAME } from '@/shared/utils/analyticsConstants';
 
@@ -19,6 +20,7 @@ function AnalyticsBridge() {
   const previousGroupRef = useRef<string | null>(null);
 
   usePageTracking();
+  useUsageTracking();
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {

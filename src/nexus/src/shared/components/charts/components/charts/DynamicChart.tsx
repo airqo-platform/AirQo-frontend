@@ -80,6 +80,8 @@ interface HoverAwareTooltipProps extends TooltipData {
   isCategorical?: boolean;
   className?: string;
   showAirQualityLevel?: boolean;
+  tooltipValueSuffix?: string;
+  tooltipValuePrecision?: number;
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
@@ -236,6 +238,10 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   seriesLabels,
   locationLabels,
   zoomable,
+  yAxisLabel,
+  tooltipValueSuffix,
+  tooltipValuePrecision,
+  showAirQualityLevel,
 }) => {
   const [internalHiddenSeries, setInternalHiddenSeries] = useState<Set<string>>(
     new Set()
@@ -575,7 +581,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
       tickLine={AXIS_CONFIG.tickLine}
       axisLine={AXIS_CONFIG.axisLine}
       label={{
-        value: `${getPollutantLabel(pollutant)} (${getPollutantUnits(pollutant)})`,
+        value:
+          yAxisLabel ??
+          `${getPollutantLabel(pollutant)} (${getPollutantUnits(pollutant)})`,
         angle: 0,
         position: 'top',
         offset: 30,
@@ -604,6 +612,9 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
             locationLabels={locationLabels}
             tooltipDateFormatter={chartConfig.tooltipDateFormatter}
             isCategorical={chartType === 'pie'}
+            tooltipValueSuffix={tooltipValueSuffix}
+            tooltipValuePrecision={tooltipValuePrecision}
+            showAirQualityLevel={showAirQualityLevel}
           />
         }
         wrapperStyle={{ zIndex: 9999 }}

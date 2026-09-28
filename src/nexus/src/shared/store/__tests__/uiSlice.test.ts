@@ -2,6 +2,8 @@ import type { Reducer } from '@reduxjs/toolkit';
 import reducer, {
   toggleSidebar,
   setSidebarCollapsed,
+  toggleMobileSidebar,
+  setMobileSidebarOpen,
   openDrawer,
   closeDrawer,
   toggleDrawer,
@@ -13,6 +15,7 @@ const uiReducer = reducer as Reducer<UiState>;
 
 const initialState: UiState = {
   sidebarCollapsed: false,
+  mobileSidebarOpen: false,
   drawers: {},
   globalSidebarOpen: false,
 };
@@ -45,6 +48,38 @@ describe('uiSlice', () => {
       const stateWithSidebar = { ...initialState, sidebarCollapsed: true };
       const state = uiReducer(stateWithSidebar, setSidebarCollapsed(false));
       expect(state.sidebarCollapsed).toBe(false);
+    });
+  });
+
+  describe('toggleMobileSidebar', () => {
+    it('toggles from false to true', () => {
+      const state = uiReducer(initialState, toggleMobileSidebar());
+      expect(state.mobileSidebarOpen).toBe(true);
+    });
+
+    it('toggles from true to false', () => {
+      const stateWithDrawer = { ...initialState, mobileSidebarOpen: true };
+      const state = uiReducer(stateWithDrawer, toggleMobileSidebar());
+      expect(state.mobileSidebarOpen).toBe(false);
+    });
+
+    it('does not change sidebarCollapsed', () => {
+      const state = uiReducer(initialState, toggleMobileSidebar());
+      expect(state.sidebarCollapsed).toBe(false);
+    });
+  });
+
+  describe('setMobileSidebarOpen', () => {
+    it('sets true', () => {
+      const state = uiReducer(initialState, setMobileSidebarOpen(true));
+      expect(state.mobileSidebarOpen).toBe(true);
+      expect(state.sidebarCollapsed).toBe(false);
+    });
+
+    it('sets false', () => {
+      const stateWithDrawer = { ...initialState, mobileSidebarOpen: true };
+      const state = uiReducer(stateWithDrawer, setMobileSidebarOpen(false));
+      expect(state.mobileSidebarOpen).toBe(false);
     });
   });
 
