@@ -11,6 +11,7 @@ import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
 import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
+import { supportsForecastOverlay } from '@/shared/components/charts/utils';
 import SelectField from '@/shared/components/ui/select';
 import { DatePicker } from '@/shared/components/calendar';
 import type { DateRange } from '@/shared/components/calendar';
@@ -40,6 +41,7 @@ import {
   enrichChartDataSiteIds,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
+import ForecastToggle from './ForecastToggle';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import type {
   ChartType,
@@ -200,6 +202,15 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const forecastUsable =
     pollutantOverride === 'pm2_5' && draft.siteIds.length > 0;
 
+  // Forecast is a TEMPORAL overlay: future buckets after the last observed one,
+  // drawn dashed, with a "Now" boundary. Pie/radar aggregate one value per
+  // series across the whole range and have no time axis, so the overlay cannot
+  // be drawn — and merging the rows would silently double-count each series'
+  // total into the pie. The toggle therefore stays explained-but-disabled for
+  // those types and the forecast payload is dropped entirely.
+  const forecastSupported = supportsForecastOverlay(chartTypeOverride);
+  const forecastActive = forecastEnabled && forecastUsable && forecastSupported;
+
   // The guideline the chart compares against: annual for monthly data,
   // 24-hour for every other frequency (same rule as the overview cards).
   const guidelinePeriod = getGuidelinePeriod(draft.frequency);
@@ -223,7 +234,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
       queryKey: ['map', 'forecast', 'daily', siteId],
       queryFn: async ({ signal }) =>
         deviceService.getDailyForecast(siteId, signal),
-      enabled: forecastEnabled && forecastUsable,
+      enabled: forecastActive,
       networkMode: 'online',
       retry: false,
       staleTime: 1000 * 60 * 30,
@@ -274,7 +285,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   const forecastSeries = useMemo<ForecastSeries[]>(() => {
-    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
+    if (!forecastActive || enrichedChartData.length === 0) {
       return [];
     }
     const observedTimes = enrichedChartData
@@ -340,14 +351,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   }, [
     enrichedChartData,
     draft.frequency,
-    forecastEnabled,
+    forecastActive,
     forecastItemsBySite,
-    forecastUsable,
     seriesDisplayName,
   ]);
 
   const nowLine = useMemo(() => {
-    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
+    if (!forecastActive || enrichedChartData.length === 0) {
       return undefined;
     }
     const times = enrichedChartData
@@ -365,7 +375,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           },
         ]
       : undefined;
-  }, [enrichedChartData, forecastEnabled, forecastUsable]);
+  }, [enrichedChartData, forecastActive]);
 
   const mergedData = useMemo(
     () =>
@@ -595,33 +605,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           </>
         }
         toolbarActions={
-          forecastUsable ? (
-            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground">
-              Forecast
-              <button
-                type="button"
-                role="switch"
-                aria-checked={forecastEnabled}
-                aria-label="Forecast"
-                onClick={onForecastToggle}
-                className={cn(
-                  'relative h-5 w-9 rounded-full transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-                  forecastEnabled ? 'bg-primary' : 'bg-muted'
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 motion-reduce:transition-none',
-                    forecastEnabled && 'translate-x-4'
-                  )}
-                />
-              </button>
-            </label>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              Forecast is available for PM₂.₅ charts
-            </span>
-          )
+          <ForecastToggle
+            usable={forecastUsable}
+            supported={forecastSupported}
+            enabled={forecastEnabled}
+            onToggle={onForecastToggle}
+            onSwitchToTimeSeries={() => void handleChartTypeChange('line')}
+          />
         }
         menuItems={
           isFixed ? undefined : (
