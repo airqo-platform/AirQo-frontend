@@ -61,9 +61,9 @@ const ForecastToggle: React.FC<ForecastToggleProps> = ({
             aria-checked={enabled}
             aria-label="Forecast (unavailable for this chart type)"
             aria-disabled="true"
-            // Present for pointer parity with the enabled switch; the switch
-            // itself is inert because the state is unsupported.
-            onClick={onSwitchToTimeSeries}
+            // Inert: a control announced as disabled must not act. The chart
+            // type changes only through the explicit "Use line chart" action
+            // below, so pointer and keyboard behave the same.
             className={cn(
               'relative h-5 w-9 cursor-not-allowed rounded-full bg-muted opacity-60 transition-opacity motion-reduce:transition-none',
               enabled && 'bg-primary'

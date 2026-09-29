@@ -117,4 +117,45 @@ describe('computePieLabelPositions', () => {
       expect(Number.isFinite(position.y)).toBe(true);
     });
   });
+
+  it('does not let a negative slice shrink the others’ angles', () => {
+    // Recharts never draws a negative slice, so it must not consume any of the
+    // circle either — otherwise every other label rotates.
+    const withNegative = computePieLabelPositions(
+      [
+        { name: 'A', value: 10, color: '#1' },
+        { name: 'B', value: -100, color: '#2' },
+      ],
+      geometry
+    );
+    const withoutNegative = computePieLabelPositions(
+      [
+        { name: 'A', value: 10, color: '#1' },
+        { name: 'B', value: 0, color: '#2' },
+      ],
+      geometry
+    );
+
+    expect(withNegative[0].angle).toBeCloseTo(withoutNegative[0].angle, 5);
+    expect(withNegative[0].x).toBeCloseTo(withoutNegative[0].x, 5);
+  });
+
+  it('centres on the plot area, not the wrapper, when a legend is shown', () => {
+    // Recharts shortens the plot area for a bottom legend, so the pie centre
+    // moves up by half the legend height. Labels must follow it.
+    const legendHeight = 40;
+    const plain = computePieLabelPositions(
+      [{ name: 'Only', value: 10, color: '#00f' }],
+      geometry
+    );
+    const withLegend = computePieLabelPositions(
+      [{ name: 'Only', value: 10, color: '#00f' }],
+      { ...geometry, legendHeight }
+    );
+
+    const offset = legendHeight / 2;
+    expect(plain[0].y - withLegend[0].y).toBeCloseTo(offset, 5);
+    // Horizontal position is unaffected by a bottom legend.
+    expect(withLegend[0].x).toBeCloseTo(plain[0].x, 5);
+  });
 });

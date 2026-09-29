@@ -65,8 +65,15 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
   const [search, setSearch] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset the search when the list switches (pages ↔ endpoints).
+  // Reset the search when the list switches (pages ↔ endpoints). The pending
+  // debounce is cancelled too, otherwise a query typed just before the switch
+  // lands afterwards and filters the NEW list with the old text.
   useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
     setSearch('');
     setLocalSearch('');
   }, [kind]);
@@ -193,17 +200,33 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
       </div>
 
       {data && items.length === 0 ? (
-        <EmptyState
-          title={search ? 'No matching pages' : 'No data for this period'}
-          description={
-            search
-              ? `No ${
+        // With an active query the table still renders, so the search box stays
+        // available and the user can correct or clear it.
+        search ? (
+          <ServerSideTable
+            data={items}
+            columns={columns}
+            searchableColumns={['key']}
+            searchTerm={localSearch}
+            onSearchChange={handleSearchInput}
+            emptyComponent={
+              <EmptyState
+                title="No matching pages"
+                description={`No ${
                   kind === 'api' ? 'endpoint' : 'page'
-                } matches “${search}”.`
-              : `No ${kind} activity recorded yet.`
-          }
-          compact
-        />
+                } matches “${search}”.`}
+                className="min-h-[160px] border-0 bg-transparent"
+                compact
+              />
+            }
+          />
+        ) : (
+          <EmptyState
+            title="No data for this period"
+            description={`No ${kind} activity recorded yet.`}
+            compact
+          />
+        )
       ) : (
         <ServerSideTable
           data={items}

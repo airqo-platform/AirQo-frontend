@@ -30,6 +30,12 @@ export interface PieLabelGeometry {
   gap?: number;
   /** Length of the connector line between pie edge and text. */
   lineLength?: number;
+  /**
+   * Height Recharts reserves for a bottom legend. The pie is centred in the
+   * PLOT AREA (chart height minus that reservation), so the overlay has to use
+   * the same centre or its labels drift off their slices.
+   */
+  legendHeight?: number;
 }
 
 const RAD = Math.PI / 180;
@@ -43,18 +49,36 @@ const RAD = Math.PI / 180;
  * exported pie lost its values while HTML (title, subtitle, legend) came
  * through. Drawing the labels as HTML makes the export match the screen.
  */
+/**
+ * Recharts never draws a negative or non-finite slice, so they must not shift
+ * the other slices' angles either. Sanitised once, for both the total and the
+ * per-slice sweep.
+ */
+const toPositive = (value: number): number =>
+  Number.isFinite(value) && value > 0 ? value : 0;
+
 export const computePieLabelPositions = (
   slices: PieSlice[],
-  { width, height, radius, gap = 22, lineLength = 14 }: PieLabelGeometry
+  {
+    width,
+    height,
+    radius,
+    gap = 22,
+    lineLength = 14,
+    legendHeight = 0,
+  }: PieLabelGeometry
 ): PieLabelPosition[] => {
-  const total = slices.reduce((sum, slice) => sum + (slice.value || 0), 0);
+  const total = slices.reduce((sum, slice) => sum + toPositive(slice.value), 0);
 
   if (total <= 0 || width <= 0 || height <= 0) {
     return [];
   }
 
   const cx = width / 2;
-  const cy = height / 2;
+  // Match Recharts: the pie is centred in the PLOT AREA, which a bottom legend
+  // shortens by its own height. Using the wrapper centre would offset every
+  // label downwards by half the legend.
+  const cy = (height - legendHeight) / 2;
   const positions: PieLabelPosition[] = [];
   // Recharts draws a pie starting at 12 o'clock and sweeping clockwise. Screen
   // coordinates put y downwards, so 12 o'clock is -90° (0° = east, -90° =
@@ -63,7 +87,7 @@ export const computePieLabelPositions = (
   let cursor = -90;
 
   slices.forEach(slice => {
-    const sweep = ((slice.value || 0) / total) * 360;
+    const sweep = (toPositive(slice.value) / total) * 360;
     const mid = cursor + sweep / 2;
     const radians = mid * RAD;
     const cos = Math.cos(radians);
@@ -116,8 +140,10 @@ const PieValueLabels: React.FC<PieValueLabelsProps> = ({
       className="pointer-events-none absolute inset-0 overflow-visible"
       aria-hidden="true"
     >
-      {positions.map(position => (
-        <React.Fragment key={position.name}>
+      {positions.map((position, index) => (
+        // Slice names can repeat (e.g. the same value under two sheets), so the
+        // index keeps the key unique.
+        <React.Fragment key={`${position.name}-${index}`}>
           <div
             className="absolute h-px origin-left"
             style={{
@@ -186,6 +212,48 @@ export const useElementSize = (
   }, [ref]);
 
   return size;
+};
+
+/**
+ * Measures the space Recharts reserves for a bottom legend.
+ *
+ * The legend is rendered inside the chart's own SVG, so it is read back from
+ * the chart wrapper (Recharts' stable `recharts-legend-wrapper` class) rather
+ * than hard-coded — a wrong constant here silently misplaces every label.
+ */
+export const useLegendHeight = (
+  ref: React.RefObject<HTMLElement | null>,
+  active: boolean
+): number => {
+  const [legendHeight, setLegendHeight] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element || !active) {
+      setLegendHeight(0);
+      return;
+    }
+
+    const measure = () => {
+      const legend = element.querySelector<SVGGElement>(
+        '.recharts-legend-wrapper'
+      );
+      const next = legend ? legend.getBoundingClientRect().height : 0;
+      setLegendHeight(previous => (previous === next ? previous : next));
+    };
+
+    measure();
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(measure);
+    observer?.observe(element);
+
+    return () => observer?.disconnect();
+  }, [ref, active]);
+
+  return legendHeight;
 };
 
 export { PieValueLabels };

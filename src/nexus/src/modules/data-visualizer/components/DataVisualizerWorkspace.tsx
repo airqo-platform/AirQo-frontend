@@ -916,6 +916,13 @@ export const DataVisualizerWorkspace: React.FC<
         activeChartId,
       })
         .then(savedDraft => {
+          // A save that lands during/after a clear must not re-arm the draft:
+          // the restore effect sees "empty workspace + draft" and would bring
+          // back exactly what the user just deleted.
+          if (isClearingRef.current) {
+            return;
+          }
+
           setDraft(savedDraft);
           setLastSavedAt(savedDraft.savedAt);
         })
@@ -1255,8 +1262,16 @@ export const DataVisualizerWorkspace: React.FC<
 
       // If the write outlasted the wait, sweep once more when it finishes so
       // the cleared draft cannot come back. Non-blocking: the dialog is free.
+      // Only sweep if this is still the newest save — otherwise the user has
+      // already uploaded new work, and deleting again would destroy it.
       if (!saveSettled && inFlight) {
-        void inFlight.then(() => deleteWorkspaceDraft()).catch(() => undefined);
+        void inFlight
+          .then(() =>
+            pendingSaveRef.current === inFlight
+              ? deleteWorkspaceDraft()
+              : undefined
+          )
+          .catch(() => undefined);
       }
     } catch (error) {
       // The in-memory workspace is already empty; report that the stored copy
@@ -1270,6 +1285,7 @@ export const DataVisualizerWorkspace: React.FC<
       // Always release the dialog. Without this, any rejected or stalled await
       // above left it spinning until the page was reloaded.
       setIsSavingDraft(false);
+      setIsClearingWorkspace(false);
       setIsClearConfirmOpen(false);
       isClearingRef.current = false;
     }

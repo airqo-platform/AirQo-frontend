@@ -50,7 +50,11 @@ import { ChartZoomScrubber } from '@/shared/components/charts/components/ui/Char
 import { PanScaleReporter } from '@/shared/components/charts/components/ui/PanScaleReporter';
 import { useChartZoom } from '@/shared/components/charts/hooks/useChartZoom';
 import { useChartPan } from '@/shared/components/charts/hooks/useChartPan';
-import { PieValueLabels, useElementSize } from '../utils/PieValueLabels';
+import {
+  PieValueLabels,
+  useElementSize,
+  useLegendHeight,
+} from '../utils/PieValueLabels';
 import { decimateRows } from '@/shared/components/charts/utils';
 import {
   ZOOM_CONFIG,
@@ -600,6 +604,10 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
 
   // Measured wrapper size, used to place the pie's HTML value labels.
   const wrapperSize = useElementSize(wrapperRef);
+  const legendHeight = useLegendHeight(
+    wrapperRef,
+    config.type === 'pie' && config.showLegend !== false
+  );
 
   const visibleData = React.useMemo(() => {
     if (!zoomRange || zoomRange.endIndex >= model.data.length) {
@@ -1491,6 +1499,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             width: wrapperSize.width,
             height: wrapperSize.height,
             radius: PIE_OUTER_RADIUS,
+            legendHeight,
           }}
         />
       )}

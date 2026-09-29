@@ -200,10 +200,16 @@ const rowSignature = (rows: UploadedDataRow[]): string => {
 
   const first = rows[0];
   const last = rows[rows.length - 1];
+  // Column names participate in the signature: a different sheet can share a
+  // row count and a leading timestamp while holding entirely different data.
+  // Values are read by KEY — indexing a row with a number yields undefined, so
+  // the previous sample could not distinguish sheets at all.
+  const firstKeys = Object.keys(first);
+  const lastKeys = Object.keys(last);
 
-  return `${rows.length}:${Object.keys(first).length}:${String(
-    first[Object.keys(first)[0]]
-  )}:${String(last[Object.keys(last).length - 1])}`;
+  return `${rows.length}:${firstKeys.join(',')}:${String(
+    first[firstKeys[0]]
+  )}:${String(last[lastKeys[lastKeys.length - 1]])}`;
 };
 
 export const saveWorkspaceDraft = async (
@@ -264,9 +270,20 @@ export const saveWorkspaceDraft = async (
       ...dataset,
       rows: [] as UploadedDataRow[],
     }));
-    await runDraftTransaction(DRAFT_STORE, 'readwrite', store =>
-      store.put(record)
-    );
+
+    try {
+      await runDraftTransaction(DRAFT_STORE, 'readwrite', store =>
+        store.put(record)
+      );
+    } catch (fallbackError) {
+      // Keep the ORIGINAL rows failure: it is the actionable cause (usually
+      // quota), and the caller reports the save as unsuccessful.
+      console.warn(
+        'Could not persist the chart setup after the rows write failed:',
+        fallbackError
+      );
+    }
+
     throw error;
   }
 
@@ -364,6 +381,12 @@ export const deleteWorkspaceDraft = async () => {
       transaction.onerror = () =>
         reject(
           transaction.error || new Error('Draft storage transaction failed.')
+        );
+      // An abort can settle without an error event; without this the promise
+      // would never settle.
+      transaction.onabort = () =>
+        reject(
+          transaction.error || new Error('Draft storage transaction aborted.')
         );
     });
   } finally {
