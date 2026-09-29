@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useId } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Input, TextInput } from '@/shared/components/ui';
 import { AqPlus, AqTrash01 } from '@airqo/icons-react';
 import type { BillingLineItem } from '@/shared/types/billing';
@@ -43,12 +43,24 @@ const InvoiceLineItemsEditor: React.FC<InvoiceLineItemsEditorProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const reactId = useId();
-  const rows: LineRow[] = (value ?? []).map((item, idx) => ({
+  const items = value ?? [];
+
+  // Row ids live in a ref that runs alongside `value`: a fresh id per render
+  // would change the React key and remount the row, dropping input focus as
+  // soon as the first character is typed into a new row.
+  const idsRef = useRef<string[]>([]);
+  if (idsRef.current.length < items.length) {
+    const missing = items.length - idsRef.current.length;
+    idsRef.current = [
+      ...idsRef.current,
+      ...Array.from({ length: missing }, () => newRow().id),
+    ];
+  }
+  idsRef.current.length = items.length;
+
+  const rows: LineRow[] = items.map((item, idx) => ({
     ...item,
-    id: item.item
-      ? `${reactId}-${idx}`
-      : `${reactId}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+    id: idsRef.current[idx],
   }));
 
   const emit = useCallback(
@@ -66,11 +78,14 @@ const InvoiceLineItemsEditor: React.FC<InvoiceLineItemsEditorProps> = ({
   );
 
   const handleAdd = useCallback(() => {
-    emit([...rows, newRow()]);
+    const row = newRow();
+    idsRef.current = [...idsRef.current, row.id];
+    emit([...rows, row]);
   }, [rows, emit]);
 
   const handleRemove = useCallback(
     (id: string) => {
+      idsRef.current = idsRef.current.filter(existing => existing !== id);
       emit(rows.filter(row => row.id !== id));
     },
     [rows, emit]

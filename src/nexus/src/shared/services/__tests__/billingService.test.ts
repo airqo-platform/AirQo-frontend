@@ -88,6 +88,7 @@ const { billingService, normalizeSummaryBuckets } = jest.requireActual(
       id: string,
       opts?: Record<string, unknown>
     ) => Promise<unknown>;
+    getInvoice: (id: string, signal?: AbortSignal) => Promise<unknown>;
   };
   normalizeSummaryBuckets: (summary: unknown) => unknown[];
 };
@@ -203,6 +204,42 @@ describe('BillingService.recordPayment', () => {
   });
 });
 
+describe('BillingService invoice normalization', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('keeps normalized ids and nested entities when the payload is spread first (regression)', async () => {
+    // `...raw` used to be spread last, which replaced the normalized `id`
+    // (string) and the normalized `customer`/`line_items` with their raw forms.
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          _id: 'inv_1',
+          id: 42,
+          customer: { _id: 'cus_1' },
+          line_items: [{ quantity: '3', unit_price: '25.5' }],
+          activity: [{ type: 'created' }],
+        },
+      },
+    });
+
+    const invoice = (await billingService.getInvoice('inv_1')) as {
+      id: string;
+      customer?: { id?: string };
+      line_items?: { quantity: number; unit_price: number }[];
+      activity?: { id?: string }[];
+    };
+
+    expect(invoice.id).toBe('inv_1');
+    expect(invoice.customer?.id).toBe('cus_1');
+    expect(invoice.line_items?.[0]).toMatchObject({
+      quantity: 3,
+      unit_price: 25.5,
+    });
+    expect(invoice.activity?.[0]).toMatchObject({ type: 'created' });
+  });
+});
+
 describe('BillingService error extraction', () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -265,6 +302,26 @@ describe('BillingService error extraction', () => {
       billingService.recordPayment('inv_1', { amount: 50 })
     ).rejects.toThrow('Number in use');
   });
+
+  it('keeps the HTTP status on the normalized error so callers can branch on 409/422', async () => {
+    const serverError = Object.assign(
+      new Error('Request failed with status code 409'),
+      {
+        response: {
+          status: 409,
+          data: { success: false, errors: { message: 'Number in use' } },
+        },
+      }
+    );
+    mockPost.mockRejectedValueOnce(serverError);
+
+    const thrown = (await billingService
+      .recordPayment('inv_1', { amount: 50 })
+      .catch(error => error)) as { response?: { status?: number } };
+
+    // Billing UI uses this to trigger a refetch on stale-record conflicts.
+    expect(thrown.response?.status).toBe(409);
+  });
 });
 
 describe('BillingService blob PDF error decoding', () => {
@@ -284,6 +341,20 @@ describe('BillingService blob PDF error decoding', () => {
     await expect(billingService.getInvoicePdf('inv_1')).rejects.toThrow(
       'Invoice has not been finalized'
     );
+  });
+
+  it('keeps the HTTP status on Blob PDF errors', async () => {
+    const blob = new Blob(
+      [JSON.stringify({ success: false, errors: { message: 'Not allowed' } })],
+      { type: 'application/json' }
+    );
+    mockGet.mockRejectedValueOnce({ response: { status: 403, data: blob } });
+
+    const thrown = (await billingService
+      .getInvoicePdf('inv_1')
+      .catch(error => error)) as { response?: { status?: number } };
+
+    expect(thrown.response?.status).toBe(403);
   });
 
   it('returns the fallback message when the error blob is non-JSON (regression)', async () => {

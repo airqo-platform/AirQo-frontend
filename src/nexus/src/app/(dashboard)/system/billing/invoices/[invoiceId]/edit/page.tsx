@@ -15,7 +15,6 @@ import {
 } from '@/modules/system-billing/lib/queries';
 import { useBillingQuery } from '@/modules/system-billing/lib/hooks';
 import { getBillingErrorMessage } from '@/modules/system-billing/lib/errors';
-import { toast } from '@/shared/components/ui/toast';
 
 const EditInvoicePage: React.FC = () => {
   const params = useParams();
@@ -95,7 +94,6 @@ const EditInvoicePage: React.FC = () => {
           mode="edit"
           invoice={invoice}
           onSaved={updated => {
-            toast.success('Invoice updated');
             router.push(`/system/billing/invoices/${updated.id}`);
           }}
         />

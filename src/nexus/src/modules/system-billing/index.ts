@@ -29,6 +29,7 @@ export {
   toDateInputValue,
   toDateTimeInputValue,
   fromDateInputValue,
+  nowAsDateTimeInputValue,
   toLocalDate,
   toDateInputString,
   fromDateTimeInputValue,

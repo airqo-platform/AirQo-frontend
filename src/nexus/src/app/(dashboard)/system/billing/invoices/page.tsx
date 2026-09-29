@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Button,
   EmptyState,
@@ -51,10 +51,15 @@ type InvoiceFilters = {
 
 const PAGE_SIZE_OPTIONS = [10, 20, 40];
 
-const InvoicesPage: React.FC = () => {
+const InvoicesPageInner: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const statusDeepLink = searchParams?.get('status') ?? '';
+
   const list = useBillingList<InvoiceFilters>({
-    defaultFilters: {},
+    defaultFilters: statusDeepLink
+      ? { status: [statusDeepLink as BillingInvoiceStatus] }
+      : {},
     defaultLimit: DEFAULT_LIST_LIMIT,
   });
   const { status, kind } = list.filters;
@@ -143,7 +148,7 @@ const InvoicesPage: React.FC = () => {
       },
       {
         key: 'due',
-        label: 'Due',
+        label: 'Due date',
         render: (_value: unknown, item: BillingInvoice) => (
           <span className="whitespace-nowrap">
             {formatBillingDate(item.due_date)}
@@ -162,7 +167,7 @@ const InvoicesPage: React.FC = () => {
       },
       {
         key: 'amount_due',
-        label: 'Due',
+        label: 'Amount due',
         render: (_value: unknown, item: BillingInvoice) => (
           <CurrencyAmount
             amount={resolveInvoiceAmountDue(item)}
@@ -276,5 +281,11 @@ const InvoicesPage: React.FC = () => {
     </div>
   );
 };
+
+const InvoicesPage: React.FC = () => (
+  <Suspense fallback={<LoadingState text="Loading invoices..." />}>
+    <InvoicesPageInner />
+  </Suspense>
+);
 
 export default InvoicesPage;

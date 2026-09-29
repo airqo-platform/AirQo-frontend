@@ -105,7 +105,30 @@ const extractErrorMessage = (
  * envelopes would be silently dropped and the caller would only ever see
  * "Request failed with status code 409".
  */
-const toBillingError = (error: unknown, fallback: string): Error => {
+/**
+ * Errors carry the original HTTP response so callers can still branch on
+ * status (e.g. 409 "record changed" -> refetch, 422 -> email guidance) after
+ * the message has been normalized.
+ */
+export type BillingServiceError = Error & {
+  response?: { status?: number; data?: unknown };
+};
+
+const withResponse = (
+  message: string,
+  response?: { status?: number; data?: unknown }
+): BillingServiceError => {
+  const error = new Error(message) as BillingServiceError;
+  if (response) {
+    error.response = { status: response.status, data: response.data };
+  }
+  return error;
+};
+
+const toBillingError = (
+  error: unknown,
+  fallback: string
+): BillingServiceError => {
   if (error && typeof error === 'object' && 'response' in error) {
     const axiosError = error as {
       response?: { data?: BillingApiErrorPayload; status?: number };
@@ -115,14 +138,14 @@ const toBillingError = (error: unknown, fallback: string): Error => {
       axiosError.response?.data,
       axiosError.message || fallback
     );
-    return new Error(message);
+    return withResponse(message, axiosError.response);
   }
 
   if (error instanceof Error) {
-    return error;
+    return error as BillingServiceError;
   }
 
-  return new Error(fallback);
+  return withResponse(fallback);
 };
 
 /**
@@ -130,15 +153,22 @@ const toBillingError = (error: unknown, fallback: string): Error => {
  * (missing blob, non-JSON body, empty payload) throws a normalized Error
  * carrying the fallback. Never lets a raw SyntaxError escape.
  */
-const throwBlobError = async (blob: Blob, fallback: string): Promise<never> => {
+const throwBlobError = async (
+  blob: Blob,
+  fallback: string,
+  status?: number
+): Promise<never> => {
   let parsed: BillingApiErrorPayload | undefined;
   try {
     const text = await blob.text();
     parsed = JSON.parse(text) as BillingApiErrorPayload;
   } catch {
-    throw new Error(fallback);
+    throw withResponse(fallback, { status });
   }
-  throw new Error(extractErrorMessage(parsed, fallback));
+  throw withResponse(extractErrorMessage(parsed, fallback), {
+    status,
+    data: parsed,
+  });
 };
 
 /**
@@ -213,11 +243,11 @@ const injectCurrency = (
 };
 
 const normalizeSeller = (raw: any): BillingSeller => ({
+  ...raw,
   name: raw?.name ?? '',
   address_lines: Array.isArray(raw?.address_lines) ? raw.address_lines : [],
   email: raw?.email,
   phone: raw?.phone,
-  ...raw,
 });
 
 const normalizePaymentInstructions = (
@@ -246,6 +276,7 @@ const normalizeCustomer = (raw: any): BillingCustomer => {
   const id = String(raw?._id ?? raw?.id ?? '');
   if (!id) throw new Error('Customer record is missing an id');
   return {
+    ...raw,
     id,
     _id: raw?._id != null ? String(raw._id) : undefined,
     name: raw?.name,
@@ -262,7 +293,6 @@ const normalizeCustomer = (raw: any): BillingCustomer => {
     outstanding_balance: raw?.outstanding_balance,
     created_at: raw?.created_at,
     updated_at: raw?.updated_at,
-    ...raw,
   };
 };
 
@@ -275,6 +305,7 @@ const normalizeLineItem = (raw: any): BillingLineItem => ({
 });
 
 const normalizeActivity = (raw: any): BillingInvoiceActivity => ({
+  ...raw,
   id: raw?.id != null ? String(raw.id) : undefined,
   _id: raw?._id != null ? String(raw._id) : undefined,
   type: raw?.type,
@@ -282,7 +313,6 @@ const normalizeActivity = (raw: any): BillingInvoiceActivity => ({
   note: raw?.note,
   at: raw?.at,
   created_at: raw?.created_at,
-  ...raw,
 });
 
 const normalizeInvoice = (raw: any): BillingInvoice => {
@@ -308,6 +338,7 @@ const normalizeInvoice = (raw: any): BillingInvoice => {
     typeof terms === 'string' || Array.isArray(terms) ? terms : undefined;
 
   return {
+    ...raw,
     id,
     _id: raw?._id != null ? String(raw._id) : undefined,
     kind: raw?.kind,
@@ -345,7 +376,6 @@ const normalizeInvoice = (raw: any): BillingInvoice => {
     activity,
     created_at: raw?.created_at,
     updated_at: raw?.updated_at,
-    ...raw,
   };
 };
 
@@ -353,6 +383,7 @@ const normalizePayment = (raw: any): BillingPayment => {
   const id = String(raw?._id ?? raw?.id ?? '');
   if (!id) throw new Error('Payment record is missing an id');
   return {
+    ...raw,
     id,
     _id: raw?._id != null ? String(raw._id) : undefined,
     receipt_number: raw?.receipt_number,
@@ -371,7 +402,6 @@ const normalizePayment = (raw: any): BillingPayment => {
     notes: raw?.notes,
     created_at: raw?.created_at,
     updated_at: raw?.updated_at,
-    ...raw,
   };
 };
 
@@ -383,6 +413,7 @@ const normalizeSettings = (raw: any): BillingSettings => {
   const catalog = raw?.catalog ? normalizeCatalog(raw.catalog) : undefined;
 
   return {
+    ...raw,
     seller,
     payment_instructions: paymentInstructions,
     catalog,
@@ -400,7 +431,6 @@ const normalizeSettings = (raw: any): BillingSettings => {
     reminders_enabled: raw?.reminders_enabled,
     reminder_days_before_due: raw?.reminder_days_before_due,
     reminder_days_after_due: raw?.reminder_days_after_due,
-    ...raw,
   };
 };
 
@@ -697,9 +727,15 @@ export class BillingService {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as { response?: { data?: Blob } };
+      const axiosError = error as {
+        response?: { data?: Blob; status?: number };
+      };
       if (axiosError?.response?.data instanceof Blob) {
-        await throwBlobError(axiosError.response.data, 'Failed to load PDF');
+        await throwBlobError(
+          axiosError.response.data,
+          'Failed to load PDF',
+          axiosError.response.status
+        );
       }
       throw toBillingError(error, 'Failed to load invoice PDF');
       // Unreachable — throwBlobError/toBillingError always throw — but keeps
@@ -875,11 +911,14 @@ export class BillingService {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as { response?: { data?: Blob } };
+      const axiosError = error as {
+        response?: { data?: Blob; status?: number };
+      };
       if (axiosError?.response?.data instanceof Blob) {
         await throwBlobError(
           axiosError.response.data,
-          'Failed to load receipt'
+          'Failed to load receipt',
+          axiosError.response.status
         );
       }
       throw toBillingError(error, 'Failed to load receipt PDF');
@@ -988,9 +1027,15 @@ export class BillingService {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as { response?: { data?: Blob } };
+      const axiosError = error as {
+        response?: { data?: Blob; status?: number };
+      };
       if (axiosError?.response?.data instanceof Blob) {
-        await throwBlobError(axiosError.response.data, 'Failed to load PDF');
+        await throwBlobError(
+          axiosError.response.data,
+          'Failed to load PDF',
+          axiosError.response.status
+        );
       }
       throw toBillingError(error, 'Failed to load group invoice PDF');
     }
@@ -1047,11 +1092,14 @@ export class BillingService {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as { response?: { data?: Blob } };
+      const axiosError = error as {
+        response?: { data?: Blob; status?: number };
+      };
       if (axiosError?.response?.data instanceof Blob) {
         await throwBlobError(
           axiosError.response.data,
-          'Failed to load receipt'
+          'Failed to load receipt',
+          axiosError.response.status
         );
       }
       throw toBillingError(error, 'Failed to load group receipt PDF');

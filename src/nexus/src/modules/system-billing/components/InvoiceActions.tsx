@@ -202,7 +202,9 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
             {isDraft && (
               <>
                 <DropdownMenuItem
-                  onClick={() => router.push(`./${invoice.id}/edit`)}
+                  onClick={() =>
+                    router.push(`/system/billing/invoices/${invoice.id}/edit`)
+                  }
                 >
                   <span className="inline-flex items-center gap-2">
                     <AqEdit05 className="w-4 h-4" /> Edit

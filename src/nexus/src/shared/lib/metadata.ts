@@ -312,7 +312,13 @@ export function generatePageMetadata(pathname: string): Metadata {
   if (pathname.startsWith('/system/billing/customers/')) {
     pageKey = '/system/billing/customers/[customerId]';
   }
-  if (pathname.startsWith('/system/billing/invoices/')) {
+  // `invoices/new` and `invoices/<id>/edit` are their own screens; only real
+  // invoice detail routes get the Invoice Details metadata.
+  if (
+    pathname.startsWith('/system/billing/invoices/') &&
+    !pathname.startsWith('/system/billing/invoices/new') &&
+    !pathname.endsWith('/edit')
+  ) {
     pageKey = '/system/billing/invoices/[invoiceId]';
   }
 

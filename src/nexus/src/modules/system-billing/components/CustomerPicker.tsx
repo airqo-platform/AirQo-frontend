@@ -52,11 +52,20 @@ const CustomerPicker: React.FC<CustomerPickerProps> = ({
     signal => billingFetchers.listCustomers(signal, params)
   );
 
+  // The list query is disabled while the popover is closed, so the selected
+  // customer is resolved by id as well — otherwise the name is lost on close,
+  // on first render with a pre-filled id, and for archived customers (the
+  // search is scoped to active ones).
+  const { data: selectedCustomerData } = useBillingQuery(
+    value ? billingKeys.customer(value) : null,
+    signal => billingFetchers.getCustomer(signal, value)
+  );
+
   const customers = useMemo(() => data?.items ?? [], [data]);
 
   const selectedCustomer = useMemo(
-    () => customers.find(c => c.id === value),
-    [customers, value]
+    () => customers.find(c => c.id === value) ?? selectedCustomerData,
+    [customers, value, selectedCustomerData]
   );
 
   useEffect(() => {

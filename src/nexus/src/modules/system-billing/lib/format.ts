@@ -81,6 +81,14 @@ export const toDateInputValue = (value: string | null | undefined): string => {
   return format(date, 'yyyy-MM-dd');
 };
 
+/**
+ * Current local time as a `datetime-local` input value. Must not use
+ * `toISOString()`: that is UTC, and the value is parsed back as local time by
+ * `fromDateTimeInputValue`, which would shift the saved instant by the offset.
+ */
+export const nowAsDateTimeInputValue = (): string =>
+  format(new Date(), "yyyy-MM-dd'T'HH:mm");
+
 export const toDateTimeInputValue = (
   value: string | null | undefined
 ): string => {

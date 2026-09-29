@@ -6,7 +6,10 @@ import { Input } from '@/shared/components/ui';
 import { billingService } from '@/shared/services/billingService';
 import type { BillingInvoice } from '@/shared/types/billing';
 import { useBillingAction } from '@/modules/system-billing/lib/hooks';
-import { fromDateTimeInputValue } from '@/modules/system-billing/lib/format';
+import {
+  fromDateTimeInputValue,
+  nowAsDateTimeInputValue,
+} from '@/modules/system-billing/lib/format';
 
 interface MarkSentDialogProps {
   isOpen: boolean;
@@ -21,16 +24,14 @@ const MarkSentDialog: React.FC<MarkSentDialogProps> = ({
   invoice,
   onSuccess,
 }) => {
-  const [sentAt, setSentAt] = useState(() =>
-    new Date().toISOString().slice(0, 16)
-  );
+  const [sentAt, setSentAt] = useState(nowAsDateTimeInputValue);
   const [note, setNote] = useState('');
   const { run, isBusy } = useBillingAction();
   const isSubmitting = isBusy('mark-sent');
 
   useEffect(() => {
     if (!isOpen) return;
-    setSentAt(new Date().toISOString().slice(0, 16));
+    setSentAt(nowAsDateTimeInputValue());
     setNote('');
   }, [isOpen]);
 

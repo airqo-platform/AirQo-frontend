@@ -27,10 +27,12 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
   );
   const hasMultipleCurrencies = currencies.length > 1;
 
-  const bucket =
-    buckets.find(b => b.currency === currency) ??
-    buckets.find(b => b.currency === currency) ??
-    buckets[0];
+  const bucket = buckets.find(b => b.currency === currency) ?? buckets[0];
+
+  // Format with the currency of the bucket actually shown: when no bucket
+  // matches (and the tabs are therefore hidden) the amounts would otherwise be
+  // labelled with a currency the user cannot switch away from.
+  const displayCurrency = bucket?.currency ?? currency;
 
   if (!summary || buckets.length === 0) {
     return (
@@ -53,7 +55,7 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
         <div className="flex justify-end">
           <SegmentedTabs
             options={currencyTabs}
-            value={currency}
+            value={displayCurrency}
             onChange={onCurrencyChange}
             ariaLabel="Currency"
           />
@@ -63,7 +65,7 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Outstanding"
-          value={formatMoney(bucket?.outstanding_amount, currency)}
+          value={formatMoney(bucket?.outstanding_amount, displayCurrency)}
           hint={
             <span className="text-xs text-muted-foreground">
               {bucket?.outstanding_count ?? 0} invoice
@@ -73,7 +75,7 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
         />
         <MetricCard
           label="Overdue"
-          value={formatMoney(bucket?.overdue_amount, currency)}
+          value={formatMoney(bucket?.overdue_amount, displayCurrency)}
           hint={
             <span className="text-xs text-muted-foreground">
               {bucket?.overdue_count ?? 0} invoice
@@ -83,14 +85,14 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
         />
         <MetricCard
           label="Invoiced (period)"
-          value={formatMoney(bucket?.invoiced_amount, currency)}
+          value={formatMoney(bucket?.invoiced_amount, displayCurrency)}
           hint={
             <span className="text-xs text-muted-foreground">{`${summary.from ?? '—'} → ${summary.to ?? '—'}`}</span>
           }
         />
         <MetricCard
           label="Collected (period)"
-          value={formatMoney(bucket?.collected_amount, currency)}
+          value={formatMoney(bucket?.collected_amount, displayCurrency)}
         />
       </div>
 

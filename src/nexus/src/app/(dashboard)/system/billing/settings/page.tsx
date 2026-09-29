@@ -93,6 +93,16 @@ const parseList = (value: string): string[] =>
     .map(l => l.trim())
     .filter(Boolean);
 
+/**
+ * Reminder offsets must be whole, non-negative day counts. `Number('3d')` is
+ * NaN, which `JSON.stringify` would send as `null` and fail server validation
+ * with an unclear message, so unusable entries are dropped here.
+ */
+const parseDayList = (value: string): number[] =>
+  parseList(value)
+    .map(Number)
+    .filter(n => Number.isInteger(n) && n >= 0);
+
 const toNumberOrUndefined = (value: string): number | undefined => {
   if (value.trim() === '') return undefined;
   const n = Number(value);
@@ -215,12 +225,8 @@ const BillingSettingsPage: React.FC = () => {
         },
         billing_cc_emails: parseList(draft.billing_cc_emails),
         reminders_enabled: draft.reminders_enabled,
-        reminder_days_before_due: parseList(draft.reminder_days_before_due).map(
-          Number
-        ),
-        reminder_days_after_due: parseList(draft.reminder_days_after_due).map(
-          Number
-        ),
+        reminder_days_before_due: parseDayList(draft.reminder_days_before_due),
+        reminder_days_after_due: parseDayList(draft.reminder_days_after_due),
       };
       await billingService.updateSettings(payload);
       toast.success('Billing settings saved');

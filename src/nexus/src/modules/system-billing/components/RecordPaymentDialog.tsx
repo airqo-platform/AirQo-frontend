@@ -16,6 +16,7 @@ import {
 import {
   formatMoney,
   fromDateTimeInputValue,
+  nowAsDateTimeInputValue,
 } from '@/modules/system-billing/lib/format';
 
 interface RecordPaymentDialogProps {
@@ -45,9 +46,7 @@ const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
   );
   const [method, setMethod] = useState<BillingPaymentMethod>('bank_transfer');
   const [reference, setReference] = useState('');
-  const [paidAt, setPaidAt] = useState(() =>
-    new Date().toISOString().slice(0, 16)
-  );
+  const [paidAt, setPaidAt] = useState(nowAsDateTimeInputValue);
   const [isPastReceipt, setIsPastReceipt] = useState(false);
   const [receiptNumber, setReceiptNumber] = useState('');
   const [notes, setNotes] = useState('');
@@ -61,7 +60,7 @@ const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
     setAmount(remaining > 0 ? String(remaining) : '0');
     setMethod('bank_transfer');
     setReference('');
-    setPaidAt(new Date().toISOString().slice(0, 16));
+    setPaidAt(nowAsDateTimeInputValue());
     setIsPastReceipt(false);
     setReceiptNumber('');
     setNotes('');
