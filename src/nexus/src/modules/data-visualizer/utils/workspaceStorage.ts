@@ -97,12 +97,29 @@ export const describeStorageError = (error: unknown): string => {
 };
 
 /**
- * Proves a value can be persisted before handing it to IndexedDB. A
- * non-cloneable value (a File handle, a function, a DOM node) otherwise fails
- * opaquely and takes the whole save with it.
+ * Proves a value can be persisted before handing it to IndexedDB, so an
+ * unserialisable value is reported with context instead of failing opaquely.
+ *
+ * Only run for SMALL payloads: `structuredClone` itself is synchronous
+ * main-thread work, and IndexedDB clones the value again on `put`. Running it
+ * over a full 50k-row dataset doubled the cost of every autosave and made the
+ * tab stutter, so large payloads skip the check — `put` still rejects with a
+ * DataCloneError, which `describeStorageError` classifies.
  */
-const assertCloneable = (value: unknown, context: string): void => {
+const CLONE_CHECK_MAX_ROWS = 500;
+
+const assertCloneable = (
+  value: unknown,
+  context: string,
+  // Config records have their rows stripped, so they are always "small".
+  rowCount = 0
+): void => {
   if (typeof structuredClone !== 'function') {
+    return;
+  }
+
+  // Large payloads skip the pre-check — see the note above.
+  if (rowCount > CLONE_CHECK_MAX_ROWS) {
     return;
   }
 
@@ -227,7 +244,11 @@ export const saveWorkspaceDraft = async (
         rows: dataset.rows,
       };
 
-      assertCloneable(stored, `Rows for "${dataset.fileName || dataset.id}"`);
+      assertCloneable(
+        stored,
+        `Rows for "${dataset.fileName || dataset.id}"`,
+        dataset.rows.length
+      );
 
       await runDraftTransaction(DATA_STORE, 'readwrite', store =>
         store.put(stored)

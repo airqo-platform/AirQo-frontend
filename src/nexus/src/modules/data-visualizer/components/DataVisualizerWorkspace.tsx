@@ -83,6 +83,7 @@ import {
   describeStorageError,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
+import Dialog from '@/shared/components/ui/dialog';
 import {
   FileUploadProgress,
   type FileUploadProgressItem,
@@ -587,6 +588,13 @@ export const DataVisualizerWorkspace: React.FC<
   // resolves, so the toolbar can show an honest "Saving… / All changes saved"
   // status instead of relying on a manual Save button.
   const [isSavingDraft, setIsSavingDraft] = React.useState(false);
+  // Read by the autosave effect and the exit flush, which run outside render.
+  // Clearing sets this so a large write can never start while the workspace is
+  // being torn down — that is what made "Clear" appear to freeze the tab.
+  const isClearingRef = React.useRef(false);
+  // The in-flight autosave, so a clear can wait for it. Without this, a save
+  // already writing rows would finish AFTER the delete and put the draft back.
+  const pendingSaveRef = React.useRef<Promise<unknown> | null>(null);
   // Files whose rows could not be restored with the draft. Kept visible (not
   // just toasted) because "my charts are empty" is not something a user should
   // have to diagnose themselves.
@@ -598,6 +606,10 @@ export const DataVisualizerWorkspace: React.FC<
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
   const [isTutorialDialogOpen, setIsTutorialDialogOpen] = React.useState(false);
+  // Clear is destructive and unrecoverable, so it is gated behind an explicit
+  // confirmation rather than firing on a single click.
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = React.useState(false);
+  const [isClearingWorkspace, setIsClearingWorkspace] = React.useState(false);
   const [showDataInspector, setShowDataInspector] = React.useState(false);
   const [showFieldGuide, setShowFieldGuide] = React.useState(false);
   const [displayMode, setDisplayMode] =
@@ -822,7 +834,7 @@ export const DataVisualizerWorkspace: React.FC<
   // after a short debounce, so there is nothing for the user to remember to
   // press and nothing that can be lost by navigating away mid-edit.
   React.useEffect(() => {
-    if (datasets.length === 0) {
+    if (datasets.length === 0 || isClearingRef.current) {
       return;
     }
 
@@ -831,7 +843,7 @@ export const DataVisualizerWorkspace: React.FC<
     const timeout = window.setTimeout(() => {
       const { sourceFiles, datasetFileMap } = buildDraftFileState();
 
-      saveWorkspaceDraft({
+      const savePromise = saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
         datasets,
         sourceFiles,
@@ -870,6 +882,9 @@ export const DataVisualizerWorkspace: React.FC<
         .finally(() => {
           setIsSavingDraft(false);
         });
+
+      // Expose the in-flight write so a clear can wait for it to settle.
+      pendingSaveRef.current = savePromise.catch(() => undefined);
     }, 1200);
 
     return () => window.clearTimeout(timeout);
@@ -1129,6 +1144,15 @@ export const DataVisualizerWorkspace: React.FC<
     const previousDatasetCount = datasets.length;
     const previousChartCount = charts.length;
 
+    setIsClearingWorkspace(true);
+    isClearingRef.current = true;
+
+    // Order matters: the draft reference is dropped FIRST, in the same batch as
+    // the empty workspace. Clearing datasets/charts while `draft` was still set
+    // would let the auto-restore effect see "empty workspace + saved draft" and
+    // immediately restore what the user just deleted.
+    setDraft(null);
+    setLastSavedAt(null);
     setDatasets([]);
     setCharts([]);
     setActiveChartId(undefined);
@@ -1138,10 +1162,41 @@ export const DataVisualizerWorkspace: React.FC<
     setShowDataInspector(false);
     setShowFieldGuide(false);
     setDisplayMode('focused');
+    setDraftDatasetsMissingRows([]);
+    // Allow a future save failure to warn again after a deliberate clear.
+    hasWarnedAboutDraftSave.current = false;
     sourceFilesRef.current.clear();
-    await deleteWorkspaceDraft().catch(() => undefined);
-    setDraft(null);
-    setLastSavedAt(null);
+
+    // Let the browser paint the emptied workspace BEFORE the storage delete.
+    // Deleting a large draft store is real work; doing it inline with the state
+    // update is what froze the tab on big datasets.
+    await new Promise<void>(resolve => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => resolve());
+      } else {
+        setTimeout(resolve, 0);
+      }
+    });
+
+    // An autosave may already be writing rows. Let it finish first, otherwise
+    // it would land after the delete and resurrect the draft the user cleared.
+    await pendingSaveRef.current;
+
+    try {
+      await deleteWorkspaceDraft();
+    } catch (error) {
+      // The in-memory workspace is already empty; report that the stored copy
+      // survived rather than claiming everything was removed.
+      console.warn('Could not delete visualizer draft:', error);
+      toast.warning(
+        'Cleared, but the saved copy remains',
+        `${describeStorageError(error)} Re-uploading will overwrite it.`
+      );
+    }
+
+    setIsSavingDraft(false);
+    setIsClearConfirmOpen(false);
+    isClearingRef.current = false;
     trackVisualizerEvent('air_quality_explorer_workspace_cleared', {
       dataset_count: previousDatasetCount,
       chart_count: previousChartCount,
@@ -1448,7 +1503,9 @@ export const DataVisualizerWorkspace: React.FC<
   React.useEffect(() => {
     const flush = () => {
       const current = latestWorkspaceRef.current;
-      if (current.datasets.length === 0) {
+      // Never write a workspace that is being cleared: the rows are already
+      // gone from state and re-persisting them would resurrect the draft.
+      if (current.datasets.length === 0 || isClearingRef.current) {
         return;
       }
 
@@ -1760,7 +1817,7 @@ export const DataVisualizerWorkspace: React.FC<
                   size="sm"
                   variant="ghost"
                   className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void resetWorkspace()}
+                  onClick={() => setIsClearConfirmOpen(true)}
                 >
                   Clear
                 </Button>
@@ -2318,6 +2375,53 @@ export const DataVisualizerWorkspace: React.FC<
         onClose={() => setIsTutorialDialogOpen(false)}
         videoUrl={DATA_VISUALIZER_TUTORIAL_VIDEO_URL}
       />
+
+      {/*
+        Clearing empties the workspace AND deletes the stored draft, so it is
+        confirmed first. The copy names exactly what is lost — including the
+        autosaved draft, which is the only copy outside this tab.
+      */}
+      <Dialog
+        isOpen={isClearConfirmOpen}
+        onClose={() => {
+          if (!isClearingWorkspace) setIsClearConfirmOpen(false);
+        }}
+        title="Clear this workspace?"
+        subtitle="This removes your uploaded data and every chart from this browser."
+        size="md"
+        showCloseButton
+        showFooter
+        primaryAction={{
+          label: 'Clear everything',
+          variant: 'danger',
+          loading: isClearingWorkspace,
+          onClick: () => void resetWorkspace(),
+        }}
+        secondaryAction={{
+          label: 'Keep my work',
+          variant: 'outlined',
+          disabled: isClearingWorkspace,
+          onClick: () => setIsClearConfirmOpen(false),
+        }}
+      >
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            You are about to delete{' '}
+            <span className="font-semibold text-foreground">
+              {datasets.length} dataset{datasets.length === 1 ? '' : 's'}
+            </span>{' '}
+            and{' '}
+            <span className="font-semibold text-foreground">
+              {charts.length} chart{charts.length === 1 ? '' : 's'}
+            </span>
+            , including the autosaved draft you can restore later.
+          </p>
+          <p>
+            Your original files stay on your computer, but this analysis cannot
+            be recovered once cleared.
+          </p>
+        </div>
+      </Dialog>
     </div>
   );
 };
