@@ -146,6 +146,39 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Configure organization-wide settings and preferences.',
     },
   },
+  '/system/billing': {
+    title: 'Billing',
+    description: 'Manage invoices, customers, payments, and billing settings.',
+    openGraph: {
+      title: 'Billing | AirQo Nexus',
+      description:
+        'Manage invoices, customers, payments, and billing settings.',
+    },
+  },
+  '/system/billing/settings': {
+    title: 'Billing Settings',
+    description: 'Configure seller details, defaults, and numbering.',
+    openGraph: {
+      title: 'Billing Settings | AirQo Nexus',
+      description: 'Configure seller details, defaults, and numbering.',
+    },
+  },
+  '/system/billing/customers/[customerId]': {
+    title: 'Customer Details',
+    description: 'View customer details, balances, and invoices.',
+    openGraph: {
+      title: 'Customer Details | AirQo Nexus',
+      description: 'View customer details, balances, and invoices.',
+    },
+  },
+  '/system/billing/invoices/[invoiceId]': {
+    title: 'Invoice Details',
+    description: 'View invoice details, line items, and activity.',
+    openGraph: {
+      title: 'Invoice Details | AirQo Nexus',
+      description: 'View invoice details, line items, and activity.',
+    },
+  },
   '/system/clients': {
     title: 'API Clients',
     description: 'Manage API clients for platform integrations.',
@@ -274,6 +307,13 @@ export function generatePageMetadata(pathname: string): Metadata {
   }
   if (pathname.startsWith('/system/team-members/')) {
     pageKey = '/system/team-members/[memberId]';
+  }
+
+  if (pathname.startsWith('/system/billing/customers/')) {
+    pageKey = '/system/billing/customers/[customerId]';
+  }
+  if (pathname.startsWith('/system/billing/invoices/')) {
+    pageKey = '/system/billing/invoices/[invoiceId]';
   }
 
   if (pathname.startsWith('/system/learn/')) {

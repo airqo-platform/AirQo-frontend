@@ -23,6 +23,8 @@ export const PAGE_TITLES: Record<string, string> = {
   '/request-organization': 'Organization',
 
   // System routes (platform-wide admin features)
+  '/system/billing': 'Billing',
+  '/system/billing/settings': 'Billing Settings',
   '/system/clients': 'API Clients',
   '/system/email-configs': 'Email Configuration',
   '/system/aqi-ranges': 'AQI Ranges',
@@ -113,6 +115,29 @@ export const getPageTitle = (pathname: string): string => {
 
     if (pathname.startsWith('/system/team-members/')) {
       return 'Team Member Details';
+    }
+
+    if (pathname.startsWith('/system/billing/invoices/new')) {
+      return 'New Invoice';
+    }
+
+    if (
+      pathname.startsWith('/system/billing/invoices/') &&
+      pathname.endsWith('/edit')
+    ) {
+      return 'Edit Invoice';
+    }
+
+    if (pathname.startsWith('/system/billing/invoices/')) {
+      return 'Invoice Details';
+    }
+
+    if (pathname.startsWith('/system/billing/customers/')) {
+      return 'Customer Details';
+    }
+
+    if (pathname.startsWith('/system/billing')) {
+      return 'Billing';
     }
 
     const parts = pathname.split('/');
