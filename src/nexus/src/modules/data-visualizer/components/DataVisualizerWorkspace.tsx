@@ -659,6 +659,11 @@ export const DataVisualizerWorkspace: React.FC<
   // The in-flight autosave, so a clear can wait for it. Without this, a save
   // already writing rows would finish AFTER the delete and put the draft back.
   const pendingSaveRef = React.useRef<Promise<unknown> | null>(null);
+  // Bumped whenever the autosave observes a change. The page-exit flush writes
+  // WITHOUT setting pendingSaveRef, so the identity check alone cannot tell
+  // "nothing new happened" from "new work was written by the flush" — this
+  // counter can.
+  const workspaceGenerationRef = React.useRef(0);
   // Files whose rows could not be restored with the draft. Kept visible (not
   // just toasted) because "my charts are empty" is not something a user should
   // have to diagnose themselves.
@@ -902,6 +907,7 @@ export const DataVisualizerWorkspace: React.FC<
       return;
     }
 
+    workspaceGenerationRef.current += 1;
     setIsSavingDraft(true);
 
     const timeout = window.setTimeout(() => {
@@ -1214,6 +1220,9 @@ export const DataVisualizerWorkspace: React.FC<
   const resetWorkspace = React.useCallback(async () => {
     const previousDatasetCount = datasets.length;
     const previousChartCount = charts.length;
+    // Captured before clearing: the delayed sweep only runs while the workspace
+    // is still exactly the one that was cleared.
+    const clearGeneration = workspaceGenerationRef.current;
 
     setIsClearingWorkspace(true);
     isClearingRef.current = true;
@@ -1262,12 +1271,15 @@ export const DataVisualizerWorkspace: React.FC<
 
       // If the write outlasted the wait, sweep once more when it finishes so
       // the cleared draft cannot come back. Non-blocking: the dialog is free.
-      // Only sweep if this is still the newest save — otherwise the user has
-      // already uploaded new work, and deleting again would destroy it.
+      // Skipped unless this is still the newest save AND the workspace has not
+      // been edited since the clear began — otherwise the user has already
+      // uploaded new work (which the page-exit flush can persist without
+      // touching pendingSaveRef) and deleting again would destroy it.
       if (!saveSettled && inFlight) {
         void inFlight
           .then(() =>
-            pendingSaveRef.current === inFlight
+            pendingSaveRef.current === inFlight &&
+            workspaceGenerationRef.current === clearGeneration
               ? deleteWorkspaceDraft()
               : undefined
           )

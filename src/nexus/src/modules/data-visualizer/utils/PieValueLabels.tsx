@@ -87,7 +87,15 @@ export const computePieLabelPositions = (
   let cursor = -90;
 
   slices.forEach(slice => {
-    const sweep = (toPositive(slice.value) / total) * 360;
+    const value = toPositive(slice.value);
+
+    // Recharts draws no sector for a zero/negative slice, so it gets no label
+    // and no connector either — a label pointing at nothing is worse than none.
+    if (value <= 0) {
+      return;
+    }
+
+    const sweep = (value / total) * 360;
     const mid = cursor + sweep / 2;
     const radians = mid * RAD;
     const cos = Math.cos(radians);
@@ -227,31 +235,64 @@ export const useLegendHeight = (
 ): number => {
   const [legendHeight, setLegendHeight] = useState(0);
 
-  useEffect(() => {
+  const measure = React.useCallback(() => {
     const element = ref.current;
 
-    if (!element || !active) {
+    if (!element) {
       setLegendHeight(0);
       return;
     }
 
-    const measure = () => {
-      const legend = element.querySelector<SVGGElement>(
-        '.recharts-legend-wrapper'
-      );
-      const next = legend ? legend.getBoundingClientRect().height : 0;
-      setLegendHeight(previous => (previous === next ? previous : next));
-    };
+    const legend = element.querySelector<SVGGElement>(
+      '.recharts-legend-wrapper'
+    );
+    const next = legend ? legend.getBoundingClientRect().height : 0;
+    setLegendHeight(previous => (previous === next ? previous : next));
+  }, [ref]);
 
-    measure();
-    const observer =
+  // Re-measure whenever the legend's box changes. The chart wrapper has a fixed
+  // height and never resizes, so it cannot report a legend that wrapped to a
+  // second line — the legend node itself must be observed, and re-observed if
+  // Recharts replaces it. This runs on real layout changes only, not per render.
+  React.useEffect(() => {
+    if (!active) {
+      setLegendHeight(0);
+      return;
+    }
+
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const resizeObserver =
       typeof ResizeObserver === 'undefined'
         ? null
         : new ResizeObserver(measure);
-    observer?.observe(element);
+    const mutationObserver =
+      typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver(measure);
 
-    return () => observer?.disconnect();
-  }, [ref, active]);
+    const observeLegend = () => {
+      if (!resizeObserver) return;
+      resizeObserver.disconnect();
+      resizeObserver.observe(element);
+      const legend = element.querySelector('.recharts-legend-wrapper');
+      if (legend) {
+        resizeObserver.observe(legend);
+      }
+    };
+
+    observeLegend();
+    measure();
+    mutationObserver?.observe(element, { childList: true, subtree: true });
+
+    return () => {
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [active, ref, measure]);
 
   return legendHeight;
 };

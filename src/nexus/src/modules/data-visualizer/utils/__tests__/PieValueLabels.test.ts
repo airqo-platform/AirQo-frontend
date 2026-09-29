@@ -111,7 +111,8 @@ describe('computePieLabelPositions', () => {
       geometry
     );
 
-    expect(positions).toHaveLength(3);
+    // Only the real slice is labelled; the others are not drawn by Recharts.
+    expect(positions).toHaveLength(1);
     positions.forEach(position => {
       expect(Number.isFinite(position.x)).toBe(true);
       expect(Number.isFinite(position.y)).toBe(true);
@@ -138,6 +139,22 @@ describe('computePieLabelPositions', () => {
 
     expect(withNegative[0].angle).toBeCloseTo(withoutNegative[0].angle, 5);
     expect(withNegative[0].x).toBeCloseTo(withoutNegative[0].x, 5);
+  });
+
+  it('labels no sector for a zero or negative slice', () => {
+    // Recharts draws nothing for these, so a label + connector would point at
+    // an empty patch of the circle.
+    const positions = computePieLabelPositions(
+      [
+        { name: 'A', value: 10, color: '#1' },
+        { name: 'Zero', value: 0, color: '#2' },
+        { name: 'Negative', value: -8, color: '#3' },
+      ],
+      geometry
+    );
+
+    expect(positions).toHaveLength(1);
+    expect(positions[0].name).toBe('A');
   });
 
   it('centres on the plot area, not the wrapper, when a legend is shown', () => {
