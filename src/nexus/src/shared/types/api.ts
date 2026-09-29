@@ -2118,7 +2118,12 @@ export interface DataDownloadRequest {
   metaDataFields?: string[];
   weatherFields?: string[];
   device_category?:
-    'lowcost' | 'bam' | 'mobile' | 'gas' | 'general' | 'satellite';
+    | 'lowcost'
+    | 'bam'
+    | 'mobile'
+    | 'gas'
+    | 'general'
+    | 'satellite';
   grid_ids?: string[];
   cohort_ids?: string[];
   cursor?: string;
@@ -2797,7 +2802,12 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+    | 'active'
+    | 'inactive'
+    | 'past_due'
+    | 'cancelled'
+    | 'trialing'
+    | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2843,7 +2853,12 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+      | 'active'
+      | 'inactive'
+      | 'past_due'
+      | 'cancelled'
+      | 'trialing'
+      | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -3057,7 +3072,12 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
+  | 'good'
+  | 'moderate'
+  | 'u4sg'
+  | 'unhealthy'
+  | 'very_unhealthy'
+  | 'hazardous';
 
 export interface RankingEntry {
   rank: number;
@@ -3148,6 +3168,17 @@ export interface UserChartConfig {
   subTitle?: string;
   chartType: string;
   days?: number;
+  /**
+   * Explicit saved range (ISO). `days` alone cannot round-trip a custom
+   * window — it only says "N days", which reloads as "N days ending today" —
+   * so the exact boundaries are persisted alongside it. Older charts (and
+   * deployments that don't return these) fall back to the client sidecar and
+   * then to `days`; see persistedConfigToDraft.
+   */
+  startDate?: string;
+  endDate?: string;
+  /** Human-readable period label mirroring the saved range. */
+  period?: Period;
   results?: number;
   showLegend?: boolean;
   showGrid?: boolean;
@@ -3187,6 +3218,12 @@ export interface CreateChartRequest {
   group_id?: string;
   tenant?: string;
   period?: Period;
+  /**
+   * Exact saved range (ISO). Sent at the top level, like `period`, so the
+   * window survives a reload instead of being re-derived from `days`.
+   */
+  startDate?: string;
+  endDate?: string;
   device_ids?: string[];
   site_ids?: string[];
   chartConfig: {
@@ -3211,6 +3248,9 @@ export interface CreateChartRequest {
 /** Partial update — fields go top-level (no chartConfig wrapper) */
 export interface UpdateChartRequest {
   period?: Period;
+  /** Exact saved range (ISO) — see CreateChartRequest.startDate. */
+  startDate?: string;
+  endDate?: string;
   title?: string;
   subTitle?: string;
   chartType?: string;

@@ -162,6 +162,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     handleForecastToggle,
     handleEditTitle,
     handleChartTypeChange,
+    handleDateRangeChange,
     handleNamesResolved,
   } = useChartManagement(groupId, !isInitialLoading);
 
@@ -378,6 +379,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
                     onRequestDelete={handleRequestDelete}
                     onEditTitle={handleEditTitle}
                     onChartTypeChange={handleChartTypeChange}
+                    onDateRangeChange={handleDateRangeChange}
                     onDuplicate={handleDuplicate}
                   />
                 ))}

@@ -778,17 +778,17 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   const yAxisDomain = getYAxisDomain(model, referenceLines);
   const showXAxisLabel = config.showXAxisLabel !== false;
   const showYAxisLabel = config.showYAxisLabel !== false;
-  const xAxisLabel =
-    (config.xAxisLabel || formatColumnLabel(config.xColumn))
-      .trim()
-      .slice(0, 80) || 'Record order';
-  const yAxisLabel =
-    (
-      config.yAxisLabel ||
-      formatMeasurementLabel(model.yLabel || config.metricColumn)
-    )
-      .trim()
-      .slice(0, 80) || 'Value';
+  // `undefined` = automatic (derive from the selected column); `''` = the user
+  // explicitly cleared the label, so the axis is drawn without one.
+  const xAxisLabel = (config.xAxisLabel ?? formatColumnLabel(config.xColumn))
+    .trim()
+    .slice(0, 80);
+  const yAxisLabel = (
+    config.yAxisLabel ??
+    formatMeasurementLabel(model.yLabel || config.metricColumn)
+  )
+    .trim()
+    .slice(0, 80);
   const cartesianMargin = {
     top: 34,
     right: 28,

@@ -12,6 +12,8 @@ import { useQueries } from '@tanstack/react-query';
 import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
 import { supportsForecastOverlay } from '@/shared/components/charts/utils';
+import { toast } from '@/shared/components/ui';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 import SelectField from '@/shared/components/ui/select';
 import { DatePicker } from '@/shared/components/calendar';
 import type { DateRange } from '@/shared/components/calendar';
@@ -75,6 +77,20 @@ interface AnalyticsChartCardProps {
     draftId: string,
     chartType: ExplorerChartType
   ) => Promise<void>;
+  /**
+   * Persists a toolbar date-range pick to the saved chart configuration; when
+   * omitted (or `isFixed`), the pick is local-only and resets on reload.
+   *
+   * The preferences API stores a day COUNT (`days`) plus a `period` label, so
+   * an exact custom range cannot round-trip through it — the client sidecar
+   * (localStorage) is what `persistedConfigToDraft` reads the range back from.
+   * Callers must therefore persist the range through the same path as
+   * `onChartTypeChange` so the sidecar is written too.
+   */
+  onDateRangeChange?: (
+    draftId: string,
+    range: { startDate: string; endDate: string }
+  ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
   /** When true, hides edit/duplicate/delete menu items and inline title editing */
   isFixed?: boolean;
@@ -130,6 +146,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onRequestDelete,
   onEditTitle,
   onChartTypeChange,
+  onDateRangeChange,
   onDuplicate,
   isFixed = false,
   footerAction,
@@ -167,6 +184,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const chartTypeSelectionRef = useRef<{ type: ExplorerChartType } | null>(
     null
   );
+  // Same idea for the date range: only the pick that is STILL the latest may
+  // revert the override when its save fails.
+  const dateRangeSelectionRef = useRef<{
+    startDate: string;
+    endDate: string;
+  } | null>(null);
 
   const { config: aqiConfig } = useAqiConfig(pollutantOverride);
 
@@ -512,8 +535,45 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     if (typeof value === 'object' && 'from' in value && 'to' in value) {
       const { from, to } = value;
       if (typeof from === 'string' && typeof to === 'string') {
-        setDateRangeOverride({ startDate: from, endDate: to });
+        const range = { startDate: from, endDate: to };
+        setDateRangeOverride(range);
+        void persistDateRange(range);
       }
+    }
+  };
+
+  /**
+   * Applies a date-range pick optimistically and persists it. The exact range
+   * is stored client-side (the API only keeps a day count), so a failed save
+   * would otherwise leave the user staring at a range that silently resets on
+   * the next reload — revert to the saved range and say so.
+   */
+  const persistDateRange = async (range: {
+    startDate: string;
+    endDate: string;
+  }) => {
+    if (isFixed || !onDateRangeChange) return;
+    dateRangeSelectionRef.current = range;
+    try {
+      await onDateRangeChange(draft.id, range);
+    } catch (err) {
+      if (isAbortError(err)) return;
+      // Only revert if this pick is still the latest — a newer selection owns
+      // the UI when an older request fails late. (`dateRangeOverride` is not
+      // usable here: the closure would capture a stale pre-pick value.)
+      if (dateRangeSelectionRef.current === range) {
+        setDateRangeOverride({
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+        });
+      }
+      console.error('Failed to persist date range', err);
+      toast.error(
+        'Date range not saved',
+        getUserFriendlyErrorMessage(err, {
+          Default: 'The selected date range could not be saved.',
+        })
+      );
     }
   };
 

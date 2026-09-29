@@ -12,6 +12,9 @@ import {
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
 import type { UsageCohort, UsageRetentionResponse } from '@/shared/types/usage';
 
+/** Stable no-op handler — see the controlled-search note on the table below. */
+const noop = () => undefined;
+
 /**
  * Retention section — cohort rows with a triangular matrix of retention cells.
  * A null rate is rendered as "—" (no data), not 0%, because 0% and
@@ -142,10 +145,19 @@ const UsageRetentionSection: React.FC<UsageRetentionSectionProps> = ({
         </p>
       </div>
 
+      {/*
+        Controlled search with the box hidden: this endpoint returns the full
+        cohort set with no pagination, and without a controlled
+        `onSearchChange` the shared table would silently render only its default
+        first 10 rows. A search box over a handful of cohort rows is noise, so
+        it stays hidden rather than becoming a control that has to work.
+      */}
       <ServerSideTable
         data={cohorts.map(cohort => ({ ...cohort, id: cohort.cohort }))}
         columns={columns}
-        className="max-h-[480px] overflow-y-auto"
+        searchable={false}
+        searchTerm=""
+        onSearchChange={noop}
       />
     </Card>
   );

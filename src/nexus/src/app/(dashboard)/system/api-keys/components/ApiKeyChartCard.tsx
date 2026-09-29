@@ -12,13 +12,6 @@ import type {
 /** Series key used when a chart carries a single value series. */
 const SINGLE_SERIES = 'value';
 
-export interface UsageLabelOptions {
-  /** `day` buckets are UTC calendar days; `hour` buckets are UTC instants. */
-  interval: 'day' | 'hour';
-  /** Overrides the default MMM d / MMM d, HH:mm tick label. */
-  pattern?: string;
-}
-
 export interface ApiKeyChartCardProps {
   title: string;
   subtitle?: string;

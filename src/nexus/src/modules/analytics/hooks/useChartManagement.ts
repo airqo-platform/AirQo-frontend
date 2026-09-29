@@ -67,6 +67,15 @@ export interface UseChartManagementResult {
     draftId: string,
     chartType: ExplorerChartType
   ) => Promise<void>;
+  /**
+   * Persists a quick date-range pick (card toolbar) through the same path as
+   * the dialog save, so the client-side sidecar keeps the EXACT range: the API
+   * only stores a day count, which reloads as "N days ending today".
+   */
+  handleDateRangeChange: (
+    draftId: string,
+    range: { startDate: string; endDate: string }
+  ) => Promise<void>;
   handleNamesResolved: (names: Map<string, string>) => void;
 }
 
@@ -278,6 +287,10 @@ export const useChartManagement = (
           request: {
             group_id: groupId || undefined,
             period: buildChartPeriod(draft.startDate, draft.endDate),
+            // Top-level like `period`: the exact window, so the chart reloads
+            // with the range the user picked rather than "N days ending today".
+            startDate: draft.startDate,
+            endDate: draft.endDate,
             site_ids: draft.siteIds,
             chartConfig: {
               ...draftToPersistedConfig(draft, fieldId),
@@ -365,22 +378,25 @@ export const useChartManagement = (
     [charts, persistDraft, posthog, siteNames]
   );
 
-  // Quick chart-type switch from the card toolbar — persists via the SAME
-  // path as the draft dialog (persistDraft → draftToUpdateRequest), so the
-  // API payload mapping stays identical (Line→line, Bar→bar, Area→sidecar
-  // + Line). Errors propagate to the caller (the card reverts its override).
+  // Quick chart-type switch and quick date-range pick from the card toolbar —
+  // both persist via the SAME path as the draft dialog
+  // (persistDraft → draftToUpdateRequest), so the API payload mapping stays
+  // identical (Line→line, Bar→bar, Area→sidecar + Line) and the client-side
+  // sidecar — the only place an exact custom range is stored — is written too.
+  // Errors propagate to the caller (the card reverts its override).
   //
-  // Persistences are SERIALIZED PER CHART: two rapid selections (Bar then
-  // Area) each fire a PUT, and without ordering an out-of-order completion
-  // could leave the server with a non-final type (last-writer-wins).
-  // Chaining per chartId guarantees the final selection is persisted last.
-  // Only this handler is queued — it is the only rapid-fire path; dialog
-  // save, title edit and duplicate are single-shot, user-paced actions.
-  const chartTypePersistQueueRef = useRef(new Map<string, Promise<unknown>>());
+  // These persistences are SERIALIZED PER CHART: two rapid selections (Bar
+  // then Area, or one range then another) each fire a PUT, and without ordering
+  // an out-of-order completion could leave the server with a non-final value
+  // (last-writer-wins). Chaining per chartId guarantees the final selection is
+  // persisted last. Only these handlers are queued — they are the only
+  // rapid-fire paths; dialog save, title edit and duplicate are single-shot,
+  // user-paced actions.
+  const persistQueueRef = useRef(new Map<string, Promise<unknown>>());
 
-  const enqueueChartTypePersist = useCallback(
+  const enqueuePersist = useCallback(
     (chartId: string, task: () => Promise<unknown>): Promise<unknown> => {
-      const queue = chartTypePersistQueueRef.current;
+      const queue = persistQueueRef.current;
       const previous = queue.get(chartId);
       // A rejected predecessor must neither block nor fail this task — its
       // error was already delivered to its own caller. The queue can never
@@ -415,11 +431,30 @@ export const useChartManagement = (
 
       const updated: ExplorerChartDraft = { ...chartToUpdate, chartType };
       const namesSnapshot = Object.fromEntries(siteNames);
-      await enqueueChartTypePersist(draftId, () =>
-        persistDraft(updated, namesSnapshot)
-      );
+      await enqueuePersist(draftId, () => persistDraft(updated, namesSnapshot));
     },
-    [charts, siteNames, persistDraft, enqueueChartTypePersist]
+    [charts, siteNames, persistDraft, enqueuePersist]
+  );
+
+  /**
+   * Persists a quick date-range pick from the card toolbar.
+   *
+   * The preferences API only stores `days` (a count) and a `period` label, so
+   * `persistedConfigToDraft` reconstructs "N days ending today" from it — a
+   * custom range such as Aug 3–Aug 9 can only come back from the client sidecar.
+   * `persistDraft` writes the sidecar (and rolls it back if the PUT fails), so
+   * reusing it here is what makes the picked range survive a reload.
+   */
+  const handleDateRangeChange = useCallback(
+    async (draftId: string, range: { startDate: string; endDate: string }) => {
+      const chartToUpdate = charts.find(chart => chart.id === draftId);
+      if (!chartToUpdate) return;
+
+      const updated: ExplorerChartDraft = { ...chartToUpdate, ...range };
+      const namesSnapshot = Object.fromEntries(siteNames);
+      await enqueuePersist(draftId, () => persistDraft(updated, namesSnapshot));
+    },
+    [charts, siteNames, persistDraft, enqueuePersist]
   );
 
   // Duplicates the chart via the server copy endpoint (includes scope +
@@ -546,6 +581,7 @@ export const useChartManagement = (
     handleForecastToggle,
     handleEditTitle,
     handleChartTypeChange,
+    handleDateRangeChange,
     handleNamesResolved,
   };
 };

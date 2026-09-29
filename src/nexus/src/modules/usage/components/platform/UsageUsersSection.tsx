@@ -311,6 +311,14 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
 
   return (
     <Card className="p-4 space-y-4">
+      <div>
+        <h3 className="text-base font-semibold text-foreground">Top users</h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          Per-user activity for the selected month. Sorting, export and
+          pagination all follow the filters below.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex-1">
           <div className="flex flex-col gap-1.5">
@@ -375,7 +383,6 @@ const UsageUsersSection: React.FC<UsageUsersSectionProps> = ({
         <ServerSideTable
           data={users}
           columns={columns}
-          className="max-h-[480px] overflow-y-auto"
           searchTerm={localSearch}
           onSearchChange={handleSearchInput}
           searchableColumns={['name', 'email', 'user_id']}

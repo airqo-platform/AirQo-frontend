@@ -8,6 +8,7 @@ import {
   AqPlus,
   AqPlayCircle,
   AqRefreshCcw01,
+  AqRefreshCw05,
   AqTable,
   AqTrash01,
   AqUploadCloud01,
@@ -580,6 +581,13 @@ export const DataVisualizerWorkspace: React.FC<
     null
   );
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
+  // True from the moment a change is queued for autosave until the write
+  // resolves, so the toolbar can show an honest "Saving… / All changes saved"
+  // status instead of relying on a manual Save button.
+  const [isSavingDraft, setIsSavingDraft] = React.useState(false);
+  // Autosave failures are toasted once per session: a browser that refuses
+  // storage must never lose work silently, but must not spam either.
+  const hasWarnedAboutDraftSave = React.useRef(false);
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
   const [isTutorialDialogOpen, setIsTutorialDialogOpen] = React.useState(false);
@@ -795,10 +803,16 @@ export const DataVisualizerWorkspace: React.FC<
     };
   }, []);
 
+  // ── Autosave ───────────────────────────────────────────────────────────────
+  // The draft IS the save. Every dataset/chart change is written to IndexedDB
+  // after a short debounce, so there is nothing for the user to remember to
+  // press and nothing that can be lost by navigating away mid-edit.
   React.useEffect(() => {
     if (datasets.length === 0) {
       return;
     }
+
+    setIsSavingDraft(true);
 
     const timeout = window.setTimeout(() => {
       const { sourceFiles, datasetFileMap } = buildDraftFileState();
@@ -817,6 +831,17 @@ export const DataVisualizerWorkspace: React.FC<
         })
         .catch(error => {
           console.warn('Could not autosave visualizer draft:', error);
+
+          if (!hasWarnedAboutDraftSave.current) {
+            hasWarnedAboutDraftSave.current = true;
+            toast.warning(
+              'Draft not saving',
+              'Your browser is refusing to store this draft. Keep this tab open and free up site data if you can.'
+            );
+          }
+        })
+        .finally(() => {
+          setIsSavingDraft(false);
         });
     }, 1200);
 
@@ -1096,7 +1121,7 @@ export const DataVisualizerWorkspace: React.FC<
     });
   }, [charts.length, datasets.length, trackVisualizerEvent]);
 
-  const restoreDraft = () => {
+  const restoreDraft = React.useCallback(() => {
     if (!draft) {
       return;
     }
@@ -1122,7 +1147,24 @@ export const DataVisualizerWorkspace: React.FC<
       chart_count: draft.charts.length,
       source_file_count: draft.sourceFiles?.length ?? 0,
     });
-  };
+  }, [
+    draft,
+    normalizeChartsForDatasets,
+    restoreDraftFileSources,
+    trackVisualizerEvent,
+  ]);
+
+  // Coming back to an empty workspace with a stored draft should just continue
+  // the work — asking the user to re-confirm a restore they never opted out of
+  // is the main reason drafts felt "stuck". Runs once, and only when there is
+  // nothing to overwrite.
+  React.useEffect(() => {
+    if (!draft || charts.length > 0 || datasets.length > 0) {
+      return;
+    }
+
+    restoreDraft();
+  }, [draft, charts.length, datasets.length, restoreDraft]);
 
   const addChart = (type: VisualizerChartType) => {
     if (datasets.length === 0 || workspaceProfile.numericColumns.length === 0) {
@@ -1339,44 +1381,59 @@ export const DataVisualizerWorkspace: React.FC<
     void handleFiles(event.dataTransfer.files);
   };
 
-  const saveNow = async () => {
-    if (datasets.length === 0) {
-      return;
-    }
+  // The manual Save button is gone (autosave covers it), which leaves one real
+  // gap: edits made inside the autosave debounce window are lost if the tab is
+  // closed or backgrounded first. This flushes the CURRENT workspace state on
+  // the way out, reading from a ref so it never writes a stale snapshot.
+  const latestWorkspaceRef = React.useRef<{
+    charts: VisualizerChartConfig[];
+    datasets: UploadedDataset[];
+    activeChartId: string | undefined;
+  }>({ charts: [], datasets: [], activeChartId: undefined });
 
-    const { sourceFiles, datasetFileMap } = buildDraftFileState();
+  latestWorkspaceRef.current = {
+    charts,
+    datasets,
+    activeChartId,
+  };
 
-    try {
-      const savedDraft = await saveWorkspaceDraft({
+  React.useEffect(() => {
+    const flush = () => {
+      const current = latestWorkspaceRef.current;
+      if (current.datasets.length === 0) {
+        return;
+      }
+
+      const { sourceFiles, datasetFileMap } = buildDraftFileState();
+
+      // Best-effort: page teardown gives no reliable await window, so failures
+      // are logged and left to the next autosave tick.
+      void saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
-        datasets,
+        datasets: current.datasets,
         sourceFiles,
         datasetFileMap,
-        charts,
-        activeChartId,
+        charts: current.charts,
+        activeChartId: current.activeChartId,
+      }).catch(error => {
+        console.warn('Could not flush visualizer draft on exit:', error);
       });
-      setDraft(savedDraft);
-      setLastSavedAt(savedDraft.savedAt);
-      toast.success('Draft saved', 'You can return later to continue.');
-      trackVisualizerEvent('air_quality_explorer_draft_saved', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        source_file_count: sourceFiles.length,
-        manual: true,
-      });
-    } catch (error) {
-      console.warn('Could not save visualizer draft:', error);
-      toast.warning(
-        'Draft not saved',
-        'Your browser could not keep this draft right now. You can continue working in this tab.'
-      );
-      trackVisualizerEvent('air_quality_explorer_draft_save_failed', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        manual: true,
-      });
-    }
-  };
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flush();
+      }
+    };
+
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [buildDraftFileState]);
 
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
@@ -1613,14 +1670,31 @@ export const DataVisualizerWorkspace: React.FC<
                   {showDataInspector ? 'Hide data review' : 'Review data'}
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void saveNow()}
+                {/*
+                  No Save button: the draft autosaves after every change, so
+                  this is a status, not an action. Saying "saved" only when it
+                  is true is what makes the private-draft warning below
+                  trustworthy.
+                */}
+                <span
+                  className="flex shrink-0 items-center gap-1.5 px-2 text-xs text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
                 >
-                  Save draft
-                </Button>
+                  {isSavingDraft ? (
+                    <>
+                      <AqRefreshCw05
+                        className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none"
+                        aria-hidden="true"
+                      />{' '}
+                      Saving…
+                    </>
+                  ) : lastSavedAt ? (
+                    <>All changes saved · {formatDraftSavedAt(lastSavedAt)}</>
+                  ) : (
+                    'Autosaves as you work'
+                  )}
+                </span>
 
                 <Button
                   size="sm"
