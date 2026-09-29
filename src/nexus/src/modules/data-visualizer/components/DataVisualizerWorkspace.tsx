@@ -555,6 +555,70 @@ const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
   };
 };
 
+/**
+ * Waits for the next paint so heavy storage work never blocks the frame, with a
+ * timer fallback — `requestAnimationFrame` does not fire in a hidden tab.
+ */
+const yieldToPaint = (): Promise<void> =>
+  new Promise<void>(resolve => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(finish);
+    }
+
+    setTimeout(finish, 50);
+  });
+
+/**
+ * Awaits `work`, but never longer than `ms`.
+ *
+ * IndexedDB work is asynchronous and can stall (a connection blocked by another
+ * tab, a transaction that never completes). A user action must not hang on it,
+ * so a timeout surfaces as a failure the caller can report instead of an
+ * indefinite wait with a spinner on screen.
+ */
+const settleWithin = async <T,>(
+  work: Promise<T> | null | undefined,
+  ms: number
+): Promise<T | undefined> => {
+  if (!work) {
+    return undefined;
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      work,
+      // Rejects on timeout so the caller reports a failed delete instead of
+      // quietly assuming the storage is clean.
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new DOMException(
+                `Timed out after ${Math.round(ms / 1000)}s`,
+                'TimeoutError'
+              )
+            ),
+          ms
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+};
+
 export const DataVisualizerWorkspace: React.FC<
   DataVisualizerWorkspaceProps
 > = ({
@@ -1167,36 +1231,49 @@ export const DataVisualizerWorkspace: React.FC<
     hasWarnedAboutDraftSave.current = false;
     sourceFilesRef.current.clear();
 
-    // Let the browser paint the emptied workspace BEFORE the storage delete.
-    // Deleting a large draft store is real work; doing it inline with the state
-    // update is what froze the tab on big datasets.
-    await new Promise<void>(resolve => {
-      if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => resolve());
-      } else {
-        setTimeout(resolve, 0);
-      }
-    });
-
-    // An autosave may already be writing rows. Let it finish first, otherwise
-    // it would land after the delete and resurrect the draft the user cleared.
-    await pendingSaveRef.current;
-
     try {
-      await deleteWorkspaceDraft();
+      // Let the browser paint the emptied workspace BEFORE the storage work, so
+      // clearing large datasets never looks frozen.
+      await yieldToPaint();
+
+      // An autosave may already be writing rows. It must settle before the
+      // delete, otherwise it lands afterwards and resurrects the draft — but
+      // only wait briefly, so a stuck write can never hold the dialog open.
+      const inFlight = pendingSaveRef.current;
+      let saveSettled = false;
+
+      if (inFlight) {
+        try {
+          await settleWithin(inFlight, 2000);
+          saveSettled = true;
+        } catch {
+          saveSettled = false;
+        }
+      }
+
+      await settleWithin(deleteWorkspaceDraft(), 5000);
+
+      // If the write outlasted the wait, sweep once more when it finishes so
+      // the cleared draft cannot come back. Non-blocking: the dialog is free.
+      if (!saveSettled && inFlight) {
+        void inFlight.then(() => deleteWorkspaceDraft()).catch(() => undefined);
+      }
     } catch (error) {
       // The in-memory workspace is already empty; report that the stored copy
       // survived rather than claiming everything was removed.
       console.warn('Could not delete visualizer draft:', error);
       toast.warning(
-        'Cleared, but the saved copy remains',
-        `${describeStorageError(error)} Re-uploading will overwrite it.`
+        'Cleared, but the saved copy may remain',
+        `${describeStorageError(error)} Reloading will show you what's still stored.`
       );
+    } finally {
+      // Always release the dialog. Without this, any rejected or stalled await
+      // above left it spinning until the page was reloaded.
+      setIsSavingDraft(false);
+      setIsClearConfirmOpen(false);
+      isClearingRef.current = false;
     }
 
-    setIsSavingDraft(false);
-    setIsClearConfirmOpen(false);
-    isClearingRef.current = false;
     trackVisualizerEvent('air_quality_explorer_workspace_cleared', {
       dataset_count: previousDatasetCount,
       chart_count: previousChartCount,
