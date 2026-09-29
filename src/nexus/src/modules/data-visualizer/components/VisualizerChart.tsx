@@ -50,6 +50,7 @@ import { ChartZoomScrubber } from '@/shared/components/charts/components/ui/Char
 import { PanScaleReporter } from '@/shared/components/charts/components/ui/PanScaleReporter';
 import { useChartZoom } from '@/shared/components/charts/hooks/useChartZoom';
 import { useChartPan } from '@/shared/components/charts/hooks/useChartPan';
+import { PieValueLabels, useElementSize } from '../utils/PieValueLabels';
 import { decimateRows } from '@/shared/components/charts/utils';
 import {
   ZOOM_CONFIG,
@@ -96,7 +97,8 @@ const PURPLE_RGB: RgbColor = [124, 58, 237];
 const TEAL_RGB: RgbColor = [15, 118, 110];
 const CHART_AXIS_COLOR = '#64748b';
 const CHART_GRID_COLOR = '#e2e8f0';
-
+/** Pie radius, shared by the chart and the HTML value-label overlay. */
+const PIE_OUTER_RADIUS = 120;
 const clampColorChannel = (value: number) =>
   Math.max(0, Math.min(255, Math.round(value)));
 
@@ -595,6 +597,10 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     isZoomed,
     pan,
   });
+
+  // Measured wrapper size, used to place the pie's HTML value labels.
+  const wrapperSize = useElementSize(wrapperRef);
+
   const visibleData = React.useMemo(() => {
     if (!zoomRange || zoomRange.endIndex >= model.data.length) {
       return model.data;
@@ -713,6 +719,20 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         ? primaryPalette[index % primaryPalette.length]
         : getAirQualityColor(level);
     })();
+
+  // Slices for the pie's HTML value-label overlay (see PieValueLabels).
+  // Deliberately NOT memoised: this sits after the "No chart data" early
+  // return, where a hook would violate the rules of hooks, and the map is a
+  // cheap pass over the (already grouped) pie slices.
+  const pieValueKey = config.type === 'pie' ? model.seriesKeys[0] : undefined;
+  const pieSlices = pieValueKey
+    ? model.data.map((entry, index) => {
+        const name = String(entry[model.xKey] ?? `Segment ${index + 1}`);
+        const value = Number(entry[pieValueKey]);
+
+        return { name, value, color: getChartPieColor(name, index) };
+      })
+    : [];
   const grid = config.showGrid ? (
     <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
   ) : null;
@@ -1120,8 +1140,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             name={model.seriesLabels[valueKey] ?? valueKey}
             cx="50%"
             cy="50%"
-            outerRadius={120}
-            label={({ name, value }) => `${name}: ${formatNumber(value)}`}
+            outerRadius={PIE_OUTER_RADIUS}
+            isAnimationActive={false}
+            // Value labels are drawn as an HTML overlay (see PieValueLabels) so
+            // they survive chart export; recharts' SVG text does not.
+            label={false}
           >
             {model.data.map((entry, index) => {
               const label = String(entry[model.xKey] ?? `Segment ${index + 1}`);
@@ -1461,6 +1484,16 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         {renderChart()}
       </ResponsiveContainer>
+      {config.type === 'pie' && (
+        <PieValueLabels
+          slices={pieSlices}
+          geometry={{
+            width: wrapperSize.width,
+            height: wrapperSize.height,
+            radius: PIE_OUTER_RADIUS,
+          }}
+        />
+      )}
       {isZoomed && (
         <ChartZoomScrubber
           totalPoints={model.data.length}
