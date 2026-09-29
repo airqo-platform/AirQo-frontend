@@ -79,6 +79,7 @@ import {
   deleteWorkspaceDraft,
   loadWorkspaceDraft,
   saveWorkspaceDraft,
+  requestPersistentWorkspaceStorage,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
 import {
@@ -683,7 +684,8 @@ export const DataVisualizerWorkspace: React.FC<
           size: file.size,
           type: file.type,
           lastModified: file.lastModified,
-          file,
+          // Metadata only: storing the blob duplicated the whole upload on
+          // every autosave and is the main cause of save failures.
         });
       }
 
@@ -803,6 +805,12 @@ export const DataVisualizerWorkspace: React.FC<
     };
   }, []);
 
+  // Ask the browser to keep this draft instead of evicting it under pressure.
+  // Best-effort: silently ignored when unsupported or denied.
+  React.useEffect(() => {
+    void requestPersistentWorkspaceStorage().catch(() => false);
+  }, []);
+
   // ── Autosave ───────────────────────────────────────────────────────────────
   // The draft IS the save. Every dataset/chart change is written to IndexedDB
   // after a short debounce, so there is nothing for the user to remember to
@@ -834,9 +842,20 @@ export const DataVisualizerWorkspace: React.FC<
 
           if (!hasWarnedAboutDraftSave.current) {
             hasWarnedAboutDraftSave.current = true;
+
+            // The rows are the only part that can fail (quota); the chart
+            // configuration is still written, so say which survived rather
+            // than implying the whole draft was lost.
+            const isQuotaError =
+              error instanceof DOMException &&
+              (error.name === 'QuotaExceededError' ||
+                error.name === 'UnknownError');
+
             toast.warning(
-              'Draft not saving',
-              'Your browser is refusing to store this draft. Keep this tab open and free up site data if you can.'
+              isQuotaError ? 'Chart setup saved, data not' : 'Draft not saving',
+              isQuotaError
+                ? 'This dataset is too large for your browser to store, so your charts are saved without the rows. Reduce the file size to keep a restorable draft.'
+                : 'Your browser is refusing to store this draft. Keep this tab open and free up site data if you can.'
             );
           }
         })
