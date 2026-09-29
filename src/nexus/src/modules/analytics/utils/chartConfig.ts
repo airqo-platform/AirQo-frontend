@@ -359,10 +359,19 @@ export const persistedConfigToDraft = (
 ): ExplorerChartDraft => {
   const days =
     typeof config.days === 'number' && config.days > 0 ? config.days : 7;
-  const hasCustomRange = Boolean(sidecar.startDate && sidecar.endDate);
-  const range = hasCustomRange
-    ? { startDate: sidecar.startDate, endDate: sidecar.endDate }
-    : deriveRangeFromDays(days);
+  // Range precedence: the server-stored window is authoritative (it survives a
+  // new device or cleared storage), then the client sidecar (charts saved
+  // before the range was persisted server-side), then the day count — which
+  // only ever means "N days ending today".
+  const serverRange =
+    config.startDate && config.endDate
+      ? { startDate: config.startDate, endDate: config.endDate }
+      : null;
+  const sidecarRange =
+    sidecar.startDate && sidecar.endDate
+      ? { startDate: sidecar.startDate, endDate: sidecar.endDate }
+      : null;
+  const range = serverRange ?? sidecarRange ?? deriveRangeFromDays(days);
 
   // Build siteNames: server names (config.sites, authoritative) then
   // sidecar.siteNames fills remaining gaps (legacy browsers).
@@ -431,6 +440,10 @@ export const draftToPersistedConfig = (
   title: draft.title.trim() || 'Untitled chart',
   subTitle: draft.subtitle.trim() || undefined,
   chartType: draft.chartType === 'Area' ? 'Line' : draft.chartType,
+  // NOTE: the saved window is NOT part of this object. `chartConfig` is the
+  // create-time settings envelope, and the API validates that envelope
+  // strictly — the exact range travels TOP-LEVEL (next to `period`) on both
+  // create and update, so it must not be duplicated in here.
   days: computeDaysFromRange(draft.startDate, draft.endDate),
   showLegend: draft.showLegend,
   showGrid: draft.showGrid,
@@ -455,6 +468,10 @@ export const draftToUpdateRequest = (
 
   return {
     period: buildChartPeriod(draft.startDate, draft.endDate),
+    // The saved window, so a reload restores exactly what the user picked
+    // instead of re-deriving "N days ending today" from `days`.
+    startDate: draft.startDate,
+    endDate: draft.endDate,
     title: persisted.title,
     // Send an empty string intentionally so clearing a subtitle removes the
     // previous server value instead of leaving stale text behind.

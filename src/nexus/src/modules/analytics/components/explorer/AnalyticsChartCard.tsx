@@ -11,6 +11,9 @@ import { cn } from '@/shared/lib/utils';
 import { useQueries } from '@tanstack/react-query';
 import { AqEdit02, AqCopy01, AqTrash01 } from '@airqo/icons-react';
 import { ChartContainer, DynamicChart } from '@/shared/components/charts';
+import { supportsForecastOverlay } from '@/shared/components/charts/utils';
+import { toast } from '@/shared/components/ui';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 import SelectField from '@/shared/components/ui/select';
 import { DatePicker } from '@/shared/components/calendar';
 import type { DateRange } from '@/shared/components/calendar';
@@ -40,6 +43,7 @@ import {
   enrichChartDataSiteIds,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
+import ForecastToggle from './ForecastToggle';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import type {
   ChartType,
@@ -72,6 +76,20 @@ interface AnalyticsChartCardProps {
   onChartTypeChange?: (
     draftId: string,
     chartType: ExplorerChartType
+  ) => Promise<void>;
+  /**
+   * Persists a toolbar date-range pick to the saved chart configuration; when
+   * omitted (or `isFixed`), the pick is local-only and resets on reload.
+   *
+   * The preferences API stores a day COUNT (`days`) plus a `period` label, so
+   * an exact custom range cannot round-trip through it — the client sidecar
+   * (localStorage) is what `persistedConfigToDraft` reads the range back from.
+   * Callers must therefore persist the range through the same path as
+   * `onChartTypeChange` so the sidecar is written too.
+   */
+  onDateRangeChange?: (
+    draftId: string,
+    range: { startDate: string; endDate: string }
   ) => Promise<void>;
   onDuplicate: (draft: ExplorerChartDraft) => Promise<void>;
   /** When true, hides edit/duplicate/delete menu items and inline title editing */
@@ -128,6 +146,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   onRequestDelete,
   onEditTitle,
   onChartTypeChange,
+  onDateRangeChange,
   onDuplicate,
   isFixed = false,
   footerAction,
@@ -165,6 +184,12 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const chartTypeSelectionRef = useRef<{ type: ExplorerChartType } | null>(
     null
   );
+  // Same idea for the date range: only the pick that is STILL the latest may
+  // revert the override when its save fails.
+  const dateRangeSelectionRef = useRef<{
+    startDate: string;
+    endDate: string;
+  } | null>(null);
 
   const { config: aqiConfig } = useAqiConfig(pollutantOverride);
 
@@ -200,6 +225,15 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   const forecastUsable =
     pollutantOverride === 'pm2_5' && draft.siteIds.length > 0;
 
+  // Forecast is a TEMPORAL overlay: future buckets after the last observed one,
+  // drawn dashed, with a "Now" boundary. Pie/radar aggregate one value per
+  // series across the whole range and have no time axis, so the overlay cannot
+  // be drawn — and merging the rows would silently double-count each series'
+  // total into the pie. The toggle therefore stays explained-but-disabled for
+  // those types and the forecast payload is dropped entirely.
+  const forecastSupported = supportsForecastOverlay(chartTypeOverride);
+  const forecastActive = forecastEnabled && forecastUsable && forecastSupported;
+
   // The guideline the chart compares against: annual for monthly data,
   // 24-hour for every other frequency (same rule as the overview cards).
   const guidelinePeriod = getGuidelinePeriod(draft.frequency);
@@ -223,7 +257,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
       queryKey: ['map', 'forecast', 'daily', siteId],
       queryFn: async ({ signal }) =>
         deviceService.getDailyForecast(siteId, signal),
-      enabled: forecastEnabled && forecastUsable,
+      enabled: forecastActive,
       networkMode: 'online',
       retry: false,
       staleTime: 1000 * 60 * 30,
@@ -274,7 +308,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   );
 
   const forecastSeries = useMemo<ForecastSeries[]>(() => {
-    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
+    if (!forecastActive || enrichedChartData.length === 0) {
       return [];
     }
     const observedTimes = enrichedChartData
@@ -340,14 +374,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
   }, [
     enrichedChartData,
     draft.frequency,
-    forecastEnabled,
+    forecastActive,
     forecastItemsBySite,
-    forecastUsable,
     seriesDisplayName,
   ]);
 
   const nowLine = useMemo(() => {
-    if (!forecastEnabled || !forecastUsable || enrichedChartData.length === 0) {
+    if (!forecastActive || enrichedChartData.length === 0) {
       return undefined;
     }
     const times = enrichedChartData
@@ -365,7 +398,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           },
         ]
       : undefined;
-  }, [enrichedChartData, forecastEnabled, forecastUsable]);
+  }, [enrichedChartData, forecastActive]);
 
   const mergedData = useMemo(
     () =>
@@ -502,8 +535,45 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
     if (typeof value === 'object' && 'from' in value && 'to' in value) {
       const { from, to } = value;
       if (typeof from === 'string' && typeof to === 'string') {
-        setDateRangeOverride({ startDate: from, endDate: to });
+        const range = { startDate: from, endDate: to };
+        setDateRangeOverride(range);
+        void persistDateRange(range);
       }
+    }
+  };
+
+  /**
+   * Applies a date-range pick optimistically and persists it. The exact range
+   * is stored client-side (the API only keeps a day count), so a failed save
+   * would otherwise leave the user staring at a range that silently resets on
+   * the next reload — revert to the saved range and say so.
+   */
+  const persistDateRange = async (range: {
+    startDate: string;
+    endDate: string;
+  }) => {
+    if (isFixed || !onDateRangeChange) return;
+    dateRangeSelectionRef.current = range;
+    try {
+      await onDateRangeChange(draft.id, range);
+    } catch (err) {
+      if (isAbortError(err)) return;
+      // Only revert if this pick is still the latest — a newer selection owns
+      // the UI when an older request fails late. (`dateRangeOverride` is not
+      // usable here: the closure would capture a stale pre-pick value.)
+      if (dateRangeSelectionRef.current === range) {
+        setDateRangeOverride({
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+        });
+      }
+      console.error('Failed to persist date range', err);
+      toast.error(
+        'Date range not saved',
+        getUserFriendlyErrorMessage(err, {
+          Default: 'The selected date range could not be saved.',
+        })
+      );
     }
   };
 
@@ -595,33 +665,13 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
           </>
         }
         toolbarActions={
-          forecastUsable ? (
-            <label className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium text-foreground">
-              Forecast
-              <button
-                type="button"
-                role="switch"
-                aria-checked={forecastEnabled}
-                aria-label="Forecast"
-                onClick={onForecastToggle}
-                className={cn(
-                  'relative h-5 w-9 rounded-full transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-                  forecastEnabled ? 'bg-primary' : 'bg-muted'
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 motion-reduce:transition-none',
-                    forecastEnabled && 'translate-x-4'
-                  )}
-                />
-              </button>
-            </label>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              Forecast is available for PM₂.₅ charts
-            </span>
-          )
+          <ForecastToggle
+            usable={forecastUsable}
+            supported={forecastSupported}
+            enabled={forecastEnabled}
+            onToggle={onForecastToggle}
+            onSwitchToTimeSeries={() => void handleChartTypeChange('line')}
+          />
         }
         menuItems={
           isFixed ? undefined : (

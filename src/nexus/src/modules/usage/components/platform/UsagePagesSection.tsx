@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from '@/shared/components/ui';
 import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
@@ -23,12 +23,20 @@ import type {
 /** Backend caps top-pages results at 50. */
 export const USAGE_PAGES_LIMIT = 50;
 
+const DEBOUNCE_MS = 400;
+
 /**
  * Pages/endpoints section. `kind` is controlled by the parent so it can live
  * alongside the shared filters. Data comes from `useUsagePages` via props.
  * The ranking is server-defined (top N by count), so the columns are not
- * sortable — the table is a read-only leaderboard rendered via the shared
- * ServerSideTable (columns sortable:false; no pagination props).
+ * sortable and the table is a read-only leaderboard.
+ *
+ * This endpoint returns a fixed top-N with no pagination, so the table is given
+ * a CONTROLLED search (`searchTerm` + `onSearchChange`). That pair is the
+ * supported way to tell the shared MultiSelectTable that the server already
+ * sent the complete set: without it, MultiSelectTable falls back to its own
+ * client-side page size and silently renders just the first 10 rows. Search
+ * filtering therefore lives here, over the full result set, debounced.
  */
 export interface UsagePagesSectionProps {
   kind: UsageKind;
@@ -52,10 +60,50 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
   error,
   onRetry,
 }) => {
-  const items = useMemo(
-    () => (data?.items ?? []).map(item => ({ ...item, id: item.key })),
-    [data]
-  );
+  // Local (instant) search box value, debounced into the applied filter.
+  const [localSearch, setLocalSearch] = useState('');
+  const [search, setSearch] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reset the search when the list switches (pages ↔ endpoints). The pending
+  // debounce is cancelled too, otherwise a query typed just before the switch
+  // lands afterwards and filters the NEW list with the old text.
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    setSearch('');
+    setLocalSearch('');
+  }, [kind]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleSearchInput = (value: string) => {
+    setLocalSearch(value);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setSearch(value.trim());
+    }, DEBOUNCE_MS);
+  };
+
+  const items = useMemo(() => {
+    const all = data?.items ?? [];
+    const needle = search.toLowerCase();
+    const filtered = needle
+      ? all.filter(item => item.key.toLowerCase().includes(needle))
+      : all;
+    return filtered.map(item => ({ ...item, id: item.key }));
+  }, [data, search]);
 
   const columns = useMemo(
     () => [
@@ -152,16 +200,40 @@ const UsagePagesSection: React.FC<UsagePagesSectionProps> = ({
       </div>
 
       {data && items.length === 0 ? (
-        <EmptyState
-          title="No data for this period"
-          description={`No ${kind} activity recorded yet.`}
-          compact
-        />
+        // With an active query the table still renders, so the search box stays
+        // available and the user can correct or clear it.
+        search ? (
+          <ServerSideTable
+            data={items}
+            columns={columns}
+            searchableColumns={['key']}
+            searchTerm={localSearch}
+            onSearchChange={handleSearchInput}
+            emptyComponent={
+              <EmptyState
+                title="No matching pages"
+                description={`No ${
+                  kind === 'api' ? 'endpoint' : 'page'
+                } matches “${search}”.`}
+                className="min-h-[160px] border-0 bg-transparent"
+                compact
+              />
+            }
+          />
+        ) : (
+          <EmptyState
+            title="No data for this period"
+            description={`No ${kind} activity recorded yet.`}
+            compact
+          />
+        )
       ) : (
         <ServerSideTable
           data={items}
           columns={columns}
-          className="max-h-[480px] overflow-y-auto"
+          searchableColumns={['key']}
+          searchTerm={localSearch}
+          onSearchChange={handleSearchInput}
         />
       )}
 

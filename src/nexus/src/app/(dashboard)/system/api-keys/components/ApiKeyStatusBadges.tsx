@@ -6,7 +6,7 @@ import type { ApiKeyUsageKey } from '@/shared/types/apiKeyUsage';
 const BADGE_BASE =
   'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium';
 
-export interface StatusBadge {
+interface StatusBadge {
   key: string;
   label: string;
   className: string;

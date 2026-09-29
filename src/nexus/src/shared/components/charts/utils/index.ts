@@ -428,6 +428,27 @@ export const decimateRows = <T extends Record<string, unknown>>(
 };
 
 /**
+ * Chart types that plot a value against a time axis.
+ *
+ * Composition charts (`pie`, `radar`) aggregate one value per series over the
+ * whole selected range, so they have no "last observed bucket" to project
+ * forward from — a forecast overlay (future buckets, a dashed continuation and
+ * a "Now" boundary) has nothing to attach to. Feeding forecast rows into them
+ * would also double-count each series' total, so callers must drop the
+ * forecast payload entirely rather than let it merge into the data.
+ */
+export const FORECAST_CAPABLE_CHART_TYPES: readonly ChartType[] = [
+  'line',
+  'area',
+  'bar',
+  'scatter',
+];
+
+/** True when `chartType` has a time axis and can render a forecast overlay. */
+export const supportsForecastOverlay = (chartType: ChartType): boolean =>
+  FORECAST_CAPABLE_CHART_TYPES.includes(chartType);
+
+/**
  * Automatically selects the best chart type based on data characteristics
  *
  * The scatter branch is gated on raw/hourly frequencies: small daily/weekly/

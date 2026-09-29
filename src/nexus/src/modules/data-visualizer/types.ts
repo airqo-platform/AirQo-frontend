@@ -29,7 +29,12 @@ export interface VisualizerDraftSourceFile {
   size: number;
   type: string;
   lastModified: number;
-  file: File;
+  /**
+   * Optional: the original File. Drafts store metadata only — persisting the
+   * blob duplicated the whole upload on every autosave and exhausted the
+   * storage quota. Legacy records may still carry it.
+   */
+  file?: File;
 }
 
 export type ColumnKind = 'time' | 'numeric' | 'dimension' | 'mixed' | 'empty';
