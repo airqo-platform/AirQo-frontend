@@ -33,6 +33,16 @@ const openWorkspaceDb = (): Promise<IDBDatabase> =>
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
+    // Without a timeout, an open blocked by another tab on an older version
+    // never settles and saving silently wedges forever.
+    const timeout = setTimeout(() => {
+      reject(
+        new Error(
+          'Draft storage is blocked by another tab. Close other AirQo tabs and reload.'
+        )
+      );
+    }, 5000);
+
     request.onupgradeneeded = () => {
       const db = request.result;
 
@@ -44,10 +54,67 @@ const openWorkspaceDb = (): Promise<IDBDatabase> =>
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () =>
+    request.onsuccess = () => {
+      clearTimeout(timeout);
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      clearTimeout(timeout);
       reject(request.error || new Error('Could not open draft storage.'));
+    };
+    request.onblocked = () => {
+      clearTimeout(timeout);
+      reject(
+        new Error(
+          'Draft storage upgrade is blocked by another AirQo tab. Close it and reload.'
+        )
+      );
+    };
   });
+
+/**
+ * Explains an IndexedDB failure instead of surfacing a bare "saving failed".
+ * The four causes need very different user actions, so they are named.
+ */
+export const describeStorageError = (error: unknown): string => {
+  const name = error instanceof DOMException ? error.name : '';
+  const message = error instanceof Error ? error.message : String(error);
+
+  switch (name) {
+    case 'QuotaExceededError':
+      return 'The draft is too large for this browser to store.';
+    case 'DataCloneError':
+      return 'Part of the draft could not be stored (it holds a value the browser cannot save).';
+    case 'InvalidStateError':
+      return 'Draft storage is not available in this browser mode.';
+    case 'SecurityError':
+      return 'This browser blocked storage for the site.';
+    case 'UnknownError':
+      return 'The browser could not store the draft (usually out of space, or private browsing).';
+    default:
+      return message;
+  }
+};
+
+/**
+ * Proves a value can be persisted before handing it to IndexedDB. A
+ * non-cloneable value (a File handle, a function, a DOM node) otherwise fails
+ * opaquely and takes the whole save with it.
+ */
+const assertCloneable = (value: unknown, context: string): void => {
+  if (typeof structuredClone !== 'function') {
+    return;
+  }
+
+  try {
+    structuredClone(value);
+  } catch (error) {
+    throw new DOMException(
+      `${context} could not be saved: ${describeStorageError(error)}`,
+      'DataCloneError'
+    );
+  }
+};
 
 const runDraftTransaction = async <T>(
   storeName: string,
@@ -160,6 +227,8 @@ export const saveWorkspaceDraft = async (
         rows: dataset.rows,
       };
 
+      assertCloneable(stored, `Rows for "${dataset.fileName || dataset.id}"`);
+
       await runDraftTransaction(DATA_STORE, 'readwrite', store =>
         store.put(stored)
       );
@@ -192,12 +261,40 @@ export const saveWorkspaceDraft = async (
     );
   }
 
+  // The config is the part users cannot recreate, so it is validated and
+  // written on its own — a rows failure must not take the chart setup with it.
+  assertCloneable(record, 'Chart setup');
+
   await runDraftTransaction(DRAFT_STORE, 'readwrite', store =>
     store.put(record)
   );
 
   return record as VisualizerWorkspaceDraft;
 };
+
+/**
+ * Reassembles a draft from its stored config and the rows kept in the data
+ * store.
+ *
+ * Backward compatibility matters here: drafts written before the split stored
+ * their rows INLINE in the config record. Those must be honoured — reading only
+ * the data store would silently restore every legacy draft with zero rows,
+ * which looks exactly like a lost draft ("no chartable metrics").
+ *
+ * Precedence per dataset: rows from the data store (current layout) → rows
+ * still present inline (legacy layout) → empty.
+ */
+export const reassembleDraft = (
+  record: DraftRecord,
+  storedRows: Record<string, UploadedDataRow[]>
+): VisualizerWorkspaceDraft =>
+  ({
+    ...record,
+    datasets: (record.datasets ?? []).map(dataset => ({
+      ...dataset,
+      rows: storedRows[dataset.id] ?? dataset.rows ?? [],
+    })),
+  }) as VisualizerWorkspaceDraft;
 
 export const loadWorkspaceDraft =
   async (): Promise<VisualizerWorkspaceDraft | null> => {
@@ -211,20 +308,24 @@ export const loadWorkspaceDraft =
       return null;
     }
 
-    // Reattach the rows kept in the data store.
-    const datasets = await Promise.all(
-      (record.datasets ?? []).map(async dataset => {
+    const datasets = record.datasets ?? [];
+    const storedRows: Record<string, UploadedDataRow[]> = {};
+
+    await Promise.all(
+      datasets.map(async dataset => {
         const stored = await runDraftTransaction<StoredDatasetData | undefined>(
           DATA_STORE,
           'readonly',
           store => store.get(dataset.id)
         );
 
-        return { ...dataset, rows: stored?.rows ?? [] };
+        if (stored?.rows?.length) {
+          storedRows[dataset.id] = stored.rows;
+        }
       })
     );
 
-    return { ...record, datasets } as VisualizerWorkspaceDraft;
+    return reassembleDraft(record, storedRows);
   };
 
 export const deleteWorkspaceDraft = async () => {

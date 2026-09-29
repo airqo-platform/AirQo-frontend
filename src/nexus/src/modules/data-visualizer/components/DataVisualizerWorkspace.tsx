@@ -80,6 +80,7 @@ import {
   loadWorkspaceDraft,
   saveWorkspaceDraft,
   requestPersistentWorkspaceStorage,
+  describeStorageError,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
 import {
@@ -586,6 +587,11 @@ export const DataVisualizerWorkspace: React.FC<
   // resolves, so the toolbar can show an honest "Saving… / All changes saved"
   // status instead of relying on a manual Save button.
   const [isSavingDraft, setIsSavingDraft] = React.useState(false);
+  // Files whose rows could not be restored with the draft. Kept visible (not
+  // just toasted) because "my charts are empty" is not something a user should
+  // have to diagnose themselves.
+  const [draftDatasetsMissingRows, setDraftDatasetsMissingRows] =
+    React.useState<string[]>([]);
   // Autosave failures are toasted once per session: a browser that refuses
   // storage must never lose work silently, but must not spam either.
   const hasWarnedAboutDraftSave = React.useRef(false);
@@ -843,19 +849,21 @@ export const DataVisualizerWorkspace: React.FC<
           if (!hasWarnedAboutDraftSave.current) {
             hasWarnedAboutDraftSave.current = true;
 
-            // The rows are the only part that can fail (quota); the chart
-            // configuration is still written, so say which survived rather
-            // than implying the whole draft was lost.
-            const isQuotaError =
+            // Name the actual cause — quota, an unserialisable value, private
+            // browsing or a blocked connection each need a different action,
+            // and a generic "saving failed" helps nobody diagnose it.
+            const reason = describeStorageError(error);
+            const isDataOnlyFailure =
               error instanceof DOMException &&
-              (error.name === 'QuotaExceededError' ||
-                error.name === 'UnknownError');
+              error.name === 'QuotaExceededError';
 
             toast.warning(
-              isQuotaError ? 'Chart setup saved, data not' : 'Draft not saving',
-              isQuotaError
-                ? 'This dataset is too large for your browser to store, so your charts are saved without the rows. Reduce the file size to keep a restorable draft.'
-                : 'Your browser is refusing to store this draft. Keep this tab open and free up site data if you can.'
+              isDataOnlyFailure
+                ? 'Chart setup saved, data not'
+                : 'Draft not saving',
+              isDataOnlyFailure
+                ? `${reason} Your charts are saved, but this file's rows are not — re-add a smaller file to plot again.`
+                : `${reason} Keep this tab open and free up site data if you can.`
             );
           }
         })
@@ -1160,11 +1168,32 @@ export const DataVisualizerWorkspace: React.FC<
     );
     setDisplayMode('focused');
     setLastSavedAt(draft.savedAt);
-    toast.success('Draft restored', 'Your previous work is ready to continue.');
+
+    // Charts cannot plot without rows. If a dataset came back empty, say so
+    // plainly and point at the fix, rather than leaving "No chart data" panels
+    // that look like a lost draft.
+    const datasetsWithoutRows = draft.datasets
+      .filter(dataset => dataset.rows.length === 0)
+      .map(dataset => dataset.fileName || dataset.label);
+    setDraftDatasetsMissingRows(datasetsWithoutRows);
+
+    if (datasetsWithoutRows.length > 0) {
+      toast.warning(
+        'Draft restored without its data',
+        'Your chart setup came back, but the uploaded rows did not. Re-add the file(s) to plot again.'
+      );
+    } else {
+      toast.success(
+        'Draft restored',
+        'Your previous work is ready to continue.'
+      );
+    }
+
     trackVisualizerEvent('air_quality_explorer_draft_restored', {
       dataset_count: draft.datasets.length,
       chart_count: draft.charts.length,
       source_file_count: draft.sourceFiles?.length ?? 0,
+      datasets_missing_rows: datasetsWithoutRows.length,
     });
   }, [
     draft,
@@ -1593,6 +1622,18 @@ export const DataVisualizerWorkspace: React.FC<
               Restore
             </Button>
           }
+          dense
+        />
+      )}
+
+      {draftDatasetsMissingRows.length > 0 && (
+        <WarningBanner
+          title="Charts can't be drawn yet"
+          message={`Your chart setup was restored, but the rows for ${
+            draftDatasetsMissingRows.length === 1
+              ? `"${draftDatasetsMissingRows[0]}"`
+              : `${draftDatasetsMissingRows.length} file(s)`
+          } were not stored with the draft. Re-add the file to plot again.`}
           dense
         />
       )}
