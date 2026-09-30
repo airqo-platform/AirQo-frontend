@@ -13,24 +13,21 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@/shared/components/ui/card', () => {
-  const React = require('react');
-  return {
-    Card: React.forwardRef(
-      (
-        {
-          children,
-          ...props
-        }: React.HTMLAttributes<HTMLDivElement> & {
-          children?: React.ReactNode;
-        },
-        ref: React.Ref<HTMLDivElement>
-      ) => (
-        <div ref={ref} {...props}>
-          {children}
-        </div>
-      )
-    ),
-  };
+  const React = jest.requireActual<typeof import('react')>('react');
+
+  const Card = React.forwardRef<
+    HTMLDivElement,
+    React.HTMLAttributes<HTMLDivElement>
+  >(function Card({ children, ...props }, ref) {
+    return (
+      <div ref={ref} {...props}>
+        {children}
+      </div>
+    );
+  });
+  Card.displayName = 'Card';
+
+  return { Card };
 });
 
 import { HomeShortcutGuide } from '../HomeShortcutGuide';

@@ -11,6 +11,7 @@ interface BuildContinueItemsOptions {
   draft: VisualizerWorkspaceDraft | null;
   preference: UserPreference | null;
   charts: UserChartConfig[];
+  savedLocationCount: number;
 }
 
 export const getHomeExperienceMode = ({
@@ -39,6 +40,7 @@ export const buildContinueItems = ({
   draft,
   preference,
   charts,
+  savedLocationCount,
 }: BuildContinueItemsOptions): HomeExperienceItem[] => {
   const items: HomeExperienceItem[] = [];
   const latestComparison = [...comparisons].sort(
@@ -68,7 +70,6 @@ export const buildContinueItems = ({
     });
   }
 
-  const savedLocationCount = preference?.selected_sites?.length ?? 0;
   if (savedLocationCount > 0) {
     items.push({
       type: 'saved-locations',

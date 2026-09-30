@@ -60,6 +60,7 @@ describe('home experience utilities', () => {
       draft,
       preference,
       charts,
+      savedLocationCount: 2,
     });
 
     expect(items).toHaveLength(3);
@@ -77,10 +78,26 @@ describe('home experience utilities', () => {
       draft: null,
       preference: null,
       charts: [{ _id: 'chart-one' }] as UserChartConfig[],
+      savedLocationCount: 0,
     });
 
     expect(items).toHaveLength(1);
     expect(items[0]).toEqual(expect.objectContaining({ type: 'saved-charts' }));
     expect(items[0]).not.toHaveProperty('timestamp');
+  });
+
+  it('uses the normalized saved location count instead of selected site objects', () => {
+    const items = buildContinueItems({
+      comparisons: [],
+      draft: null,
+      preference: {
+        selected_sites: [{ _id: 'one' }],
+      } as UserPreference,
+      charts: [],
+      savedLocationCount: 3,
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0].description).toBe('Review readings for 3 saved locations.');
   });
 });

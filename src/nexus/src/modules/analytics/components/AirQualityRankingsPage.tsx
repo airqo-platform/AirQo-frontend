@@ -74,11 +74,27 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
   const { config: aqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig('pm2_5');
 
-  const [tab, setTab] = useState<RankingsTab>(readStoredRankingsTab);
+  const [tab, setTab] = useState<RankingsTab>(() => {
+    const storedTab = readStoredRankingsTab();
+    if (typeof window === 'undefined') return storedTab;
+    const homeStart = new URLSearchParams(window.location.search).get(
+      'homeStart'
+    );
+    return homeStart === 'view-rankings' ? 'live' : storedTab;
+  });
   const [level, setLevel] = useState<RankingsLevel>('country');
   const [sort, setSort] = useState<RankingsSort>('worst');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [country, setCountry] = useState<string>('');
+
+  // The rankings tour describes the live controls. A saved history tab would
+  // leave those targets unmounted, so enter the live tab before the guide opens.
+  useEffect(() => {
+    const homeStart = new URLSearchParams(window.location.search).get(
+      'homeStart'
+    );
+    if (homeStart === 'view-rankings') setTab('live');
+  }, []);
 
   // Persist the active tab so a refresh returns to the same view.
   useEffect(() => {

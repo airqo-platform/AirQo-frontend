@@ -23,6 +23,22 @@ const findVisibleTarget = (selector: string): HTMLElement | null =>
     return rect.width > 0 && rect.height > 0;
   }) ?? null;
 
+export const PRODUCT_TOUR_STEP_EVENT = 'nexus-product-tour-step';
+
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  'a[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+const getFocusable = (container: HTMLElement): HTMLElement[] =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+  ).filter(element => !element.hasAttribute('disabled'));
+
 export function ProductTour({
   steps,
   onClose,
@@ -38,6 +54,21 @@ export function ProductTour({
   useEffect(() => {
     nextButtonRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent(PRODUCT_TOUR_STEP_EVENT, {
+        detail: { target: currentStep?.target ?? null },
+      })
+    );
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent(PRODUCT_TOUR_STEP_EVENT, {
+          detail: { target: null },
+        })
+      );
+    };
+  }, [currentStep]);
 
   useEffect(() => {
     if (!currentStep) return;
@@ -114,6 +145,25 @@ export function ProductTour({
       if (event.key === 'ArrowLeft' && index > 0) {
         setIndex(value => value - 1);
       }
+      if (event.key !== 'Tab' || !cardRef.current) return;
+
+      const focusable = getFocusable(cardRef.current);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const inside =
+        active instanceof HTMLElement && cardRef.current.contains(active);
+
+      if (!inside || (event.shiftKey && active === first)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -131,10 +181,8 @@ export function ProductTour({
   };
 
   return (
-    <div
-      className="pointer-events-none fixed inset-0 z-[80]"
-      data-testid="product-tour"
-    >
+    <div className="fixed inset-0 z-[80]" data-testid="product-tour">
+      <div className="absolute inset-0" aria-hidden="true" />
       {targetRect ? (
         <div
           aria-hidden="true"

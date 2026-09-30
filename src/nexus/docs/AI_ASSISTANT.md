@@ -23,9 +23,9 @@ Client UI (FAB → Drawer)
        ▼
   Provider abstraction (provider.ts)
        │
-       ├─ createOpenAICompatibleProvider   ← POST /chat/completions, parse SSE
-       ├─ createDevFallbackProvider        ← dev stub when no agent URL
-       └─ getAiProvider()                  ← picks based on agentUrl presence
+       └─ getAiProvider()                  ← selects by AI_PROVIDER_MODE
+            ├─ prototype → createPrototypeProvider()   ← scripted guidance
+            └─ external  → createOpenAICompatibleProvider   ← POST /chat/completions
        │
        ▼
   External AI Agent API  (OpenAI-compatible /chat/completions)
@@ -73,18 +73,17 @@ src/app/api/ai/assistant/
 | `AI_AGENT_URL` | `""` | External AI agent endpoint (base URL). The provider appends `/chat/completions`. Server-side only. |
 | `AI_AGENT_API_KEY` | `""` | Optional auth key for the agent. Sent as `Authorization: Bearer <key>`. Server-side only. |
 
-### Quick start (no agent endpoint — dev fallback)
+### Quick start (scripted prototype)
 
 ```bash
 # .env.local
 NEXT_PUBLIC_AI_ENABLED=true
 AI_PROVIDER_MODE=prototype
-AI_AGENT_URL=
 ```
 
-This shows the FAB and opens the drawer. Without an agent URL, the dev fallback
-yields a short message explaining that no agent is configured. The full streaming
-UI flow is testable without any external service.
+`getAiProvider()` selects `createPrototypeProvider()` when `AI_PROVIDER_MODE`
+is `prototype`. That provider returns scripted guidance, so the drawer and
+streaming UI work without an external agent.
 
 ### Connecting an external agent
 

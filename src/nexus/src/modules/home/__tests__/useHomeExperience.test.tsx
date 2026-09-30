@@ -154,6 +154,22 @@ describe('useHomeExperience', () => {
     );
   });
 
+  it('counts saved locations from normalized site ids', async () => {
+    mockPreferences.selectedSiteIds = ['s1', 's2'];
+    mockPreferences.preferences = { selected_sites: [{ _id: 's1' }] };
+
+    const { result } = renderHook(() => useHomeExperience());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.counts.savedLocations).toBe(2);
+    expect(result.current.continueItems).toEqual([
+      expect.objectContaining({
+        type: 'saved-locations',
+        description: 'Review readings for 2 saved locations.',
+      }),
+    ]);
+  });
+
   it('requests at most three sites in one measurements-only readings call', async () => {
     mockPreferences.selectedSiteIds = ['s1', 's2', 's3', 's4'];
 

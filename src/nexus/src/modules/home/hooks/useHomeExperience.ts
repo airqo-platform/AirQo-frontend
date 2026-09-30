@@ -118,6 +118,7 @@ export const useHomeExperience = (
         draft,
         preference: preferences.preferences,
         charts: chartItems,
+        savedLocationCount: counts.savedLocations,
       }),
       locationUpdates,
       counts,
