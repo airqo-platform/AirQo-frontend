@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import {
+  addDays,
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  isSameDay,
+  isSameMonth,
+  isWithinInterval,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 import { AqChevronLeft } from '@airqo/icons-react';
 import { AqChevronRight } from '@airqo/icons-react';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -9,101 +22,8 @@ import { DateRange } from '../types';
 import { YearSelector } from './YearSelector';
 import { CalendarFooter } from './CalendarFooter';
 
-// Optimized date utilities
-const dateUtils = {
-  addMonths: (date: Date, months: number) => {
-    const d = new Date(date);
-    d.setMonth(d.getMonth() + months);
-    return d;
-  },
-
-  startOfMonth: (date: Date) =>
-    new Date(date.getFullYear(), date.getMonth(), 1),
-  endOfMonth: (date: Date) =>
-    new Date(date.getFullYear(), date.getMonth() + 1, 0),
-
-  startOfWeek: (date: Date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    // Weeks start on Monday: Mon=0, Tue=1, ..., Sun=6
-    // getDay() returns: Sun=0, Mon=1, ..., Sat=6
-    // Formula: (day + 6) % 7 converts Mon-start offset
-    d.setDate(d.getDate() - ((day + 6) % 7));
-    return d;
-  },
-
-  eachDayOfInterval: (start: Date, end: Date) => {
-    const days: Date[] = [];
-    const current = new Date(start);
-    while (current <= end) {
-      days.push(new Date(current));
-      current.setDate(current.getDate() + 1);
-    }
-    return days;
-  },
-
-  isSameDay: (d1: Date, d2: Date) =>
-    d1.getDate() === d2.getDate() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getFullYear() === d2.getFullYear(),
-
-  isSameMonth: (d1: Date, d2: Date) =>
-    d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear(),
-
-  isWithinRange: (date: Date, from: Date, to: Date) =>
-    date >= from && date <= to,
-
-  addDays: (date: Date, days: number) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + days);
-    return d;
-  },
-
-  formatDate: (
-    date: Date,
-    format: 'full' | 'month-year' | 'short-month' | 'day'
-  ) => {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const fullMonths = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    switch (format) {
-      case 'full':
-        return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-      case 'month-year':
-        return `${fullMonths[date.getMonth()]} ${date.getFullYear()}`;
-      case 'short-month':
-        return months[date.getMonth()];
-      case 'day':
-        return date.getDate().toString();
-    }
-  },
-};
+/** Weeks start on Monday, so the grid leads with the row containing the 1st. */
+const WEEK_STARTS_ON = 1 as const;
 
 interface CoreCalendarProps {
   numberOfMonths?: number;
@@ -112,6 +32,12 @@ interface CoreCalendarProps {
   initialRange?: DateRange;
   selectedRange?: DateRange; // For controlled mode
   onRangeChange?: (range: DateRange) => void; // For controlled mode
+  /** Earliest selectable day (inclusive). Omit for no lower bound. */
+  minDate?: Date;
+  /** Latest selectable day (inclusive). Omit for no upper bound. */
+  maxDate?: Date;
+  /** Extra per-day predicate, applied on top of `minDate`/`maxDate`. */
+  disabled?: (date: Date) => boolean;
   children?: React.ReactNode; // For presets sidebar
 }
 
@@ -122,36 +48,72 @@ export function Calendar({
   initialRange,
   selectedRange: controlledRange,
   onRangeChange,
+  minDate,
+  maxDate,
+  disabled,
   children,
 }: CoreCalendarProps) {
   const [displayMonth, setDisplayMonth] = useState(
-    initialRange?.from ? dateUtils.startOfMonth(initialRange.from) : new Date()
+    initialRange?.from ? startOfMonth(initialRange.from) : new Date()
   );
   const [internalRange, setInternalRange] = useState<DateRange>(
     initialRange || { from: undefined, to: undefined }
   );
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
 
+  // Bounds are compared as local calendar days: every cell in the grid is a
+  // local midnight already, so comparing instants would make an upper bound
+  // of "today at 00:00" reject today itself.
+  const minDayMs = minDate ? startOfDay(minDate).getTime() : null;
+  const maxDayMs = maxDate ? startOfDay(maxDate).getTime() : null;
+  const isDayDisabled = useCallback(
+    (day: Date) => {
+      const time = startOfDay(day).getTime();
+      if (minDayMs !== null && time < minDayMs) return true;
+      if (maxDayMs !== null && time > maxDayMs) return true;
+      return disabled ? Boolean(disabled(day)) : false;
+    },
+    [minDayMs, maxDayMs, disabled]
+  );
+  // Month arrows stop at the edges of the selectable window so a bounded
+  // calendar can never page into a month where nothing is selectable.
+  const isMonthReachable = useCallback(
+    (offset: number) => {
+      const first = startOfMonth(addMonths(displayMonth, offset));
+      const last = endOfMonth(addMonths(displayMonth, offset));
+      if (minDayMs !== null && startOfDay(last).getTime() < minDayMs)
+        return false;
+      if (maxDayMs !== null && startOfDay(first).getTime() > maxDayMs)
+        return false;
+      return true;
+    },
+    [displayMonth, minDayMs, maxDayMs]
+  );
+
   // Use controlled range if provided, otherwise use internal state
   const selectedRange =
     controlledRange !== undefined ? controlledRange : internalRange;
 
   // Generate calendar days for display
-  const calendarMonths = useMemo(() => {
-    return Array.from({ length: numberOfMonths }, (_, i) => {
-      const month = dateUtils.addMonths(displayMonth, i);
-      const start = dateUtils.startOfWeek(dateUtils.startOfMonth(month));
-      const end = new Date(dateUtils.endOfMonth(month));
-      // Extend to end of week (Sunday) for Monday-start weeks
-      // (7 - getDay()) % 7 adds 0 for Sunday, 6 for Monday, etc.
-      end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
+  const calendarMonths = useMemo(
+    () =>
+      Array.from({ length: numberOfMonths }, (_, i) => {
+        const month = addMonths(displayMonth, i);
+        // Pad to whole Monday-start weeks on both sides so every month renders
+        // a stable 6-row grid instead of reflowing between 4, 5 and 6 rows.
+        const gridStart = startOfWeek(startOfMonth(month), {
+          weekStartsOn: WEEK_STARTS_ON,
+        });
+        const lastDay = endOfMonth(month);
+        const gridEnd = addDays(lastDay, (7 - lastDay.getDay()) % 7);
 
-      return {
-        month,
-        days: dateUtils.eachDayOfInterval(start, end),
-      };
-    });
-  }, [displayMonth, numberOfMonths]);
+        return {
+          month,
+          days: eachDayOfInterval({ start: gridStart, end: gridEnd }),
+        };
+      }),
+    [displayMonth, numberOfMonths]
+  );
 
   const handleDateSelect = useCallback(
     (date: Date) => {
@@ -178,30 +140,34 @@ export function Calendar({
   }, []);
 
   const getDayClassName = useCallback(
-    (day: Date, isCurrentMonth: boolean) => {
+    (day: Date, isCurrentMonth: boolean, isDisabled: boolean) => {
       if (!isCurrentMonth)
         return 'text-muted-foreground/40 cursor-default hover:bg-transparent';
+      if (isDisabled)
+        return 'text-muted-foreground/40 cursor-not-allowed hover:bg-transparent';
 
-      const isToday = dateUtils.isSameDay(day, new Date());
-      const isStart =
-        selectedRange.from && dateUtils.isSameDay(day, selectedRange.from);
-      const isEnd =
-        selectedRange.to && dateUtils.isSameDay(day, selectedRange.to);
+      const isToday = isSameDay(day, new Date());
+      const isStart = selectedRange.from && isSameDay(day, selectedRange.from);
+      const isEnd = selectedRange.to && isSameDay(day, selectedRange.to);
       const isSelected = isStart || isEnd;
       const isInRange =
         selectedRange.from &&
         selectedRange.to &&
-        dateUtils.isWithinRange(day, selectedRange.from, selectedRange.to) &&
+        isWithinInterval(day, {
+          start: selectedRange.from,
+          end: selectedRange.to,
+        }) &&
         !isSelected;
       const isHovered =
         hoveredDate &&
         selectedRange.from &&
         !selectedRange.to &&
-        dateUtils.isWithinRange(
-          day,
-          selectedRange.from < hoveredDate ? selectedRange.from : hoveredDate,
-          selectedRange.from > hoveredDate ? selectedRange.from : hoveredDate
-        );
+        isWithinInterval(day, {
+          start:
+            selectedRange.from < hoveredDate ? selectedRange.from : hoveredDate,
+          end:
+            selectedRange.from > hoveredDate ? selectedRange.from : hoveredDate,
+        });
 
       const classes = [
         // Use relative positioning to allow layering; selected days receive higher z-index
@@ -260,8 +226,10 @@ export function Calendar({
                         variant="outlined"
                         size="sm"
                         onClick={() =>
-                          setDisplayMonth(dateUtils.addMonths(displayMonth, -1))
+                          setDisplayMonth(addMonths(displayMonth, -1))
                         }
+                        disabled={!isMonthReachable(-1)}
+                        aria-label="Previous month"
                         className="h-8 w-8 p-0 hover:bg-accent"
                         Icon={AqChevronLeft}
                       />
@@ -269,9 +237,7 @@ export function Calendar({
                     {monthIndex !== 0 && <div className="w-8" />}
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">
-                        {dateUtils.formatDate(month, 'short-month')}
-                      </span>
+                      <span className="text-sm">{format(month, 'MMM')}</span>
                       {monthIndex === 0 && (
                         <YearSelector
                           currentYear={currentYear}
@@ -288,8 +254,10 @@ export function Calendar({
                         variant="outlined"
                         size="sm"
                         onClick={() =>
-                          setDisplayMonth(dateUtils.addMonths(displayMonth, 1))
+                          setDisplayMonth(addMonths(displayMonth, 1))
                         }
+                        disabled={!isMonthReachable(1)}
+                        aria-label="Next month"
                         className="h-8 w-8 p-0 hover:bg-accent"
                         Icon={AqChevronRight}
                       />
@@ -313,23 +281,33 @@ export function Calendar({
                   </div>
 
                   <div className="grid grid-cols-7 gap-0">
-                    {/* Static list — always 42-day grid, never reorders */}
-                    {days.map((day, i) => {
-                      const isCurrentMonth = dateUtils.isSameMonth(day, month);
+                    {/* Whole Monday-start weeks, so a month renders 4, 5 or 6
+                        rows depending on the month. Keyed by the day itself
+                        rather than the index: the list changes length between
+                        months, and an index key would let React reuse the wrong
+                        cell. */}
+                    {days.map(day => {
+                      const isCurrentMonth = isSameMonth(day, month);
+                      const isDisabled = isDayDisabled(day);
+                      const isSelectable = isCurrentMonth && !isDisabled;
                       return (
                         <button
-                          key={i}
-                          onClick={() =>
-                            isCurrentMonth && handleDateSelect(day)
-                          }
+                          key={day.getTime()}
+                          type="button"
+                          onClick={() => isSelectable && handleDateSelect(day)}
                           onMouseEnter={() =>
-                            isCurrentMonth && setHoveredDate(day)
+                            isSelectable && setHoveredDate(day)
                           }
                           onMouseLeave={() => setHoveredDate(null)}
-                          disabled={!isCurrentMonth}
-                          className={getDayClassName(day, isCurrentMonth)}
+                          disabled={!isSelectable}
+                          aria-disabled={!isSelectable}
+                          className={getDayClassName(
+                            day,
+                            isCurrentMonth,
+                            isDisabled
+                          )}
                         >
-                          {dateUtils.formatDate(day, 'day')}
+                          {format(day, 'd')}
                         </button>
                       );
                     })}

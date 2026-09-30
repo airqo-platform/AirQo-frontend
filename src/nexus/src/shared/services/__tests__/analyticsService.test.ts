@@ -16,8 +16,9 @@ const {
   analyticsService,
   buildChartPayload,
   buildReportPayload,
-  getReportMaxAttempts,
   normalizeChartApiFrequency,
+  REPORT_MAX_POSTS,
+  REPORT_MAX_SPLIT_DEPTH,
   setReportPacingForTests,
 } = jest.requireActual('../analyticsService') as {
   analyticsService: {
@@ -48,7 +49,8 @@ const {
   buildReportPayload: (
     request: Record<string, unknown>
   ) => Record<string, unknown>;
-  getReportMaxAttempts: (request: Record<string, unknown>) => number;
+  REPORT_MAX_POSTS: number;
+  REPORT_MAX_SPLIT_DEPTH: number;
   normalizeChartApiFrequency: (value: string) => string;
   setReportPacingForTests: (overrides: {
     minSpacingMs?: number;
@@ -559,23 +561,16 @@ describe('AnalyticsService.getReport', () => {
     }
   });
 
-  it('derives the POST cap from the requested range, with a floor for short ranges', () => {
-    // 92 dates → 2 * 92 + 8, enough headroom for a full worst-case split.
-    expect(
-      getReportMaxAttempts({
-        cohort_id: 'cohort-1',
-        start_time: '2026-06-01',
-        end_time: '2026-08-31',
-      })
-    ).toBe(192);
-    // 5 dates → 2 * 5 + 8 = 18, so the 24-POST floor applies.
-    expect(
-      getReportMaxAttempts({
-        cohort_id: 'cohort-1',
-        start_time: '2026-01-01',
-        end_time: '2026-01-05',
-      })
-    ).toBe(24);
+  it('caps report POSTs at a flat ceiling instead of scaling with the range', () => {
+    // The request-storm guard. The cap used to be `2 * D + 8`, derived from
+    // the range so that a worst-case split down to 1-day leaves always fitted
+    // — which meant one rejected date selection could fan out into ~60 paced
+    // POSTs. A short range and the longest supported range now get the same
+    // budget, because splitting is a bounded fallback, not a search.
+    expect(REPORT_MAX_POSTS).toBe(12);
+    // One halving per window is enough to tell "too wide" apart from
+    // "no data in this month"; deeper recursion only multiplies requests.
+    expect(REPORT_MAX_SPLIT_DEPTH).toBe(1);
   });
 
   it('keeps a 92-UTC-date range intact and rejects 93 UTC dates', () => {
@@ -871,15 +866,9 @@ describe('AnalyticsService.getReport', () => {
         }
       );
 
-      // The POST cap is derived from the requested range, so the worst-case
-      // split of 92 days (2 * 92 - 1 = 183 POSTs) always fits below it.
-      expect(
-        getReportMaxAttempts({
-          cohort_id: 'cohort-1',
-          start_time: '2026-06-01',
-          end_time: '2026-08-31',
-        })
-      ).toBe(192);
+      // The POST ceiling is flat, so this range can never fan out into a
+      // request per split node.
+      expect(REPORT_MAX_POSTS).toBe(12);
 
       const report = await analyticsService.getReport({
         cohort_id: 'cohort-1',
@@ -887,20 +876,36 @@ describe('AnalyticsService.getReport', () => {
         end_time: '2026-08-31',
       });
 
-      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(192);
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
 
       const merged = report as {
         unavailablePeriods: { startTime: string; endTime: string }[];
         daily_mean_pm: { date: string }[];
       };
       expect(merged.unavailablePeriods.length).toBeGreaterThan(0);
-      // Every rejected (split down to 1 day) and skipped (known-bad month)
-      // window is recorded — no queued window may be dropped silently.
+      // Every rejected (split down to the depth budget) and skipped
+      // (known-bad month) window is recorded — no queued window may be
+      // dropped silently.
       expect(
         merged.unavailablePeriods.every(
           p => p.startTime.slice(0, 7) === '2026-08'
         )
       ).toBe(true);
+
+      // A window that ran out of split budget is NOT evidence that its month
+      // is unusable, so the month must not be blacklisted: the later
+      // Aug 21–31 window still has to be attempted and recorded.
+      const unavailableDays = new Set<string>();
+      for (const period of merged.unavailablePeriods) {
+        const start = Date.parse(`${period.startTime.slice(0, 10)}T00:00:00Z`);
+        const end = Date.parse(`${period.endTime.slice(0, 10)}T00:00:00Z`);
+        for (let ms = start; ms <= end; ms += 24 * 60 * 60 * 1000) {
+          unavailableDays.add(new Date(ms).toISOString().slice(0, 10));
+        }
+      }
+      expect(unavailableDays.has('2026-08-01')).toBe(true);
+      expect(unavailableDays.has('2026-08-20')).toBe(true);
+      expect(unavailableDays.has('2026-08-31')).toBe(true);
 
       // Coverage proof: the successful windows plus the unavailable periods
       // must tile the requested range with every calendar day exactly once
@@ -938,7 +943,7 @@ describe('AnalyticsService.getReport', () => {
     }
   });
 
-  it('fits a worst-case full split of a 92-day range under the derived cap', async () => {
+  it('gives up on a fully rejected range instead of splitting down to single days', async () => {
     // Pin clock to avoid future-start guard flake.
     const nowSpy = jest
       .spyOn(Date, 'now')
@@ -974,9 +979,9 @@ describe('AnalyticsService.getReport', () => {
       const rangeError = Object.assign(new Error('range too wide'), {
         response: { status: 400 },
       });
-      // Reject every window wider than a single day so the adaptive loop
-      // splits all the way down to one-day leaves — the theoretical worst
-      // case (2 * D - 1 nodes per window tree) for this range.
+      // Reject every window wider than a single day. This is the pathological
+      // case: the loop used to keep halving until every window was a 1-day
+      // leaf, which turned one selection into ~180 paced POSTs.
       mockPost.mockImplementation(
         async (
           _path: string,
@@ -991,24 +996,99 @@ describe('AnalyticsService.getReport', () => {
         }
       );
 
-      const report = await analyticsService.getReport({
+      // Nothing above a single day is usable, so the report fails — but it must
+      // fail after a handful of requests rather than after exhausting the tree.
+      await expect(
+        analyticsService.getReport({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01',
+          end_time: '2026-08-31',
+        })
+      ).rejects.toThrow();
+
+      // 4 initial windows, each tried once plus one halving of its two halves.
+      // The old recursion kept halving to 1-day leaves and issued ~183 POSTs
+      // for the same range, paced 6 s apart.
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+      expect(mockPost.mock.calls.length).toBe(12);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('keeps serving the windows that succeed when a sibling window is written off', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
         cohort_id: 'cohort-1',
-        start_time: '2026-06-01',
-        end_time: '2026-08-31',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
       });
 
-      // The cap derives from the range (2 * 92 + 8 = 192), so the whole
-      // split tree is attempted instead of being cut off mid-split.
-      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(192);
-      expect(mockPost.mock.calls.length).toBeGreaterThan(92);
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      // Jun 20 → Jul 20 (31 dates, two windows: Jun 20–Jul 16 and Jul 17–20).
+      // June is rejected at every size; July is fine.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (body.start_time.slice(0, 7) === '2026-06') throw rangeError;
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
 
-      // No window was dropped: every day of the range came back and nothing
-      // had to be written off as unavailable.
-      expect(report).not.toHaveProperty('unavailablePeriods');
-      const merged = report as { daily_mean_pm: { date: string }[] };
-      expect(merged.daily_mean_pm).toHaveLength(92);
-      expect(merged.daily_mean_pm[0].date).toBe('2026-06-01');
-      expect(merged.daily_mean_pm[91].date).toBe('2026-08-31');
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-20',
+        end_time: '2026-07-20',
+      });
+
+      const merged = report as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+        daily_mean_pm: { date: string }[];
+      };
+      // The June window is written off after one halving and surfaced, not
+      // silently retried away.
+      expect(merged.unavailablePeriods).toHaveLength(1);
+      expect(merged.unavailablePeriods[0].startTime.slice(0, 10)).toBe(
+        '2026-06-20'
+      );
+      expect(merged.unavailablePeriods[0].endTime.slice(0, 10)).toBe(
+        '2026-06-30'
+      );
+      // July still renders.
+      expect(merged.daily_mean_pm.map(row => row.date)).toEqual([
+        '2026-07-01',
+        '2026-07-17',
+      ]);
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
     } finally {
       nowSpy.mockRestore();
     }

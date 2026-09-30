@@ -213,3 +213,37 @@ export const DATE_FORMATS = {
   SHORT_DATE: 'MM/dd',
   MONTH_YEAR: 'MMMM yyyy',
 } as const;
+
+/** `yyyy-MM-dd`, the value shape of a native `<input type="date">`. */
+export const ISO_DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * `yyyy-MM-dd` -> a **local** Date at midnight.
+ *
+ * `new Date('2026-09-30')` is parsed as UTC, which lands on the previous day
+ * for every positive-offset (UTC+) viewer, so the parts are read explicitly and
+ * the round trip is verified: `new Date(2026, 1, 31)` is a *valid* Date that
+ * silently rolls forward to Mar 3, so validity alone is not enough.
+ *
+ * Returns `undefined` when the value is empty, malformed, or a date that does
+ * not exist.
+ */
+export const toLocalDate = (
+  value: string | null | undefined
+): Date | undefined => {
+  if (!value || !ISO_DATE_ONLY.test(value.trim())) return undefined;
+  const [year, month, day] = value.trim().split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+    ? date
+    : undefined;
+};
+
+/**
+ * local Date -> `yyyy-MM-dd`, for native date inputs and the date-only
+ * `from`/`to` query parameters the API takes.
+ */
+export const toDateInputString = (date: Date | null | undefined): string =>
+  date instanceof Date && isValid(date) ? format(date, 'yyyy-MM-dd') : '';

@@ -10,6 +10,9 @@ interface RangeCalendarProps {
   onApply?: (value: DateRange) => void;
   onCancel?: () => void;
   initialRange?: DateRange;
+  minDate?: Date;
+  maxDate?: Date;
+  disabled?: (date: Date) => boolean;
 }
 
 export function RangeCalendar({
@@ -17,6 +20,9 @@ export function RangeCalendar({
   onApply,
   onCancel,
   initialRange,
+  minDate,
+  maxDate,
+  disabled,
 }: RangeCalendarProps) {
   // Responsive: show 1 month on mobile, 2 months on desktop
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -66,6 +72,9 @@ export function RangeCalendar({
       initialRange={initialRange}
       selectedRange={selectedRange}
       onRangeChange={handleRangeChange}
+      minDate={minDate}
+      maxDate={maxDate}
+      disabled={disabled}
     >
       {presetSidebar}
     </Calendar>

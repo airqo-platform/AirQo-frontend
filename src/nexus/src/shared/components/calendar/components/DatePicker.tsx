@@ -23,6 +23,9 @@ export function DatePicker({
   onChange,
   placeholder = 'Select date',
   mode: propMode,
+  minDate,
+  maxDate,
+  disabled,
   className,
   align = 'start',
   maxWidth,
@@ -161,6 +164,9 @@ export function DatePicker({
               ? { from: internalValue, to: internalValue }
               : (internalValue as DateRange | undefined)
           }
+          minDate={minDate}
+          maxDate={maxDate}
+          disabled={disabled}
         />
       ) : (
         <RangeCalendar
@@ -168,6 +174,9 @@ export function DatePicker({
           onApply={handleApply}
           onCancel={handleCancel}
           initialRange={internalValue as DateRange | undefined}
+          minDate={minDate}
+          maxDate={maxDate}
+          disabled={disabled}
         />
       )}
     </>

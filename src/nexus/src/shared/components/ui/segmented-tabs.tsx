@@ -105,9 +105,9 @@ function OptionElement({
     size === 'sm' ? 'text-xs py-1.5 px-4' : 'text-sm py-2.5 px-4',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
     isActive
-      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-    disabled && 'opacity-50 cursor-not-allowed'
+      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10'
+      : 'text-gray-600 dark:text-gray-400 hover:bg-white/70 hover:text-gray-900 dark:hover:bg-gray-700/70 dark:hover:text-gray-100 cursor-pointer',
+    disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent'
   );
 
   const content = (

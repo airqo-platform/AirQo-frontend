@@ -8,12 +8,18 @@ interface SingleCalendarProps {
   onApply?: (value: DateRange) => void;
   onCancel?: () => void;
   initialRange?: DateRange;
+  minDate?: Date;
+  maxDate?: Date;
+  disabled?: (date: Date) => boolean;
 }
 
 export function SingleCalendar({
   onApply,
   onCancel,
   initialRange,
+  minDate,
+  maxDate,
+  disabled,
 }: SingleCalendarProps) {
   const [selectedRange, setSelectedRange] = React.useState<DateRange>(
     initialRange || { from: undefined, to: undefined }
@@ -31,6 +37,9 @@ export function SingleCalendar({
       initialRange={initialRange}
       selectedRange={selectedRange}
       onRangeChange={handleRangeChange}
+      minDate={minDate}
+      maxDate={maxDate}
+      disabled={disabled}
     />
   );
 }
