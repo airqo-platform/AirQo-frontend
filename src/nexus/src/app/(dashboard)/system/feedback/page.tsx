@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
 import { PermissionGuard } from '@/shared/components';
@@ -12,7 +13,6 @@ import {
   LoadingState,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { AqEye } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
 import { toast } from '@/shared/components/ui/toast';
 import {
@@ -208,6 +208,15 @@ const FeedbackListContent: React.FC = () => {
     [router]
   );
 
+  // `FeedbackRow.id` is the submission `_id`, normalised when the rows are
+  // built so the table can key on it.
+  const handleViewFeedbackRow = useCallback(
+    (item: FeedbackRow) => {
+      handleViewFeedback(item.id);
+    },
+    [handleViewFeedback]
+  );
+
   const handleBulkStatusUpdate = useCallback(async () => {
     if (selectedIds.size === 0) return;
 
@@ -250,16 +259,21 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'subject',
         label: 'Subject',
-        minWidth: '240px',
-        maxWidth: '360px',
+        minWidth: '220px',
+        maxWidth: '320px',
         render: (_value: unknown, item: FeedbackRow) => (
           <div className="flex items-center gap-2">
-            <p
-              className="font-medium text-foreground truncate"
+            {/* A real link, not just a clickable row: it keeps the row
+                keyboard-reachable and supports open-in-new-tab, which a
+                <tr onClick> does not. The row click is suppressed for
+                interactive targets by the table. */}
+            <Link
+              href={`/system/feedback/${item.id}`}
+              className="font-medium text-foreground truncate hover:underline"
               title={item.subject}
             >
               {item.subject}
-            </p>
+            </Link>
             {item.actionable && (
               <span className="inline-flex shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
                 Actionable
@@ -271,7 +285,7 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'category',
         label: 'Category',
-        minWidth: '140px',
+        minWidth: '130px',
         cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-foreground">
@@ -282,7 +296,7 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'status',
         label: 'Status',
-        minWidth: '120px',
+        minWidth: '110px',
         cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span
@@ -297,7 +311,7 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'rating',
         label: 'Rating',
-        minWidth: '90px',
+        minWidth: '80px',
         cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span className="text-sm font-medium text-foreground">
@@ -308,8 +322,8 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'email',
         label: 'Email',
-        minWidth: '220px',
-        maxWidth: '280px',
+        minWidth: '200px',
+        maxWidth: '240px',
         cellClassName: 'whitespace-nowrap',
         render: (value: unknown) => (
           <span
@@ -323,7 +337,7 @@ const FeedbackListContent: React.FC = () => {
       {
         key: 'createdAt',
         label: 'Submitted',
-        minWidth: '190px',
+        minWidth: '180px',
         cellClassName: 'whitespace-nowrap',
         render: (_value: unknown, item: FeedbackRow) => (
           <div className="flex flex-col gap-0.5">
@@ -338,27 +352,11 @@ const FeedbackListContent: React.FC = () => {
           </div>
         ),
       },
-      {
-        key: 'actions',
-        label: 'Actions',
-        minWidth: '96px',
-        cellClassName: 'whitespace-nowrap',
-        render: (_value: unknown, item: FeedbackRow) => (
-          <Button
-            variant="ghost"
-            paddingStyles="h-8 px-3"
-            Icon={AqEye}
-            iconPosition="start"
-            onClick={() => handleViewFeedback(item._id)}
-            title="View feedback details"
-            aria-label={`View feedback ${item.subject}`}
-          >
-            View
-          </Button>
-        ),
-      },
+      // No per-row "View" action: it was the widest fixed column and pushed
+      // itself off-screen behind a horizontal scrollbar. The whole row is
+      // clickable and the subject is a link instead.
     ],
-    [handleViewFeedback]
+    []
   );
 
   const summaryCards = [
@@ -534,6 +532,7 @@ const FeedbackListContent: React.FC = () => {
         multiSelect={true}
         selectedItems={Array.from(selectedIds)}
         onSelectedItemsChange={ids => setSelectedIds(new Set(ids.map(String)))}
+        onRowClick={handleViewFeedbackRow}
       />
     </div>
   );

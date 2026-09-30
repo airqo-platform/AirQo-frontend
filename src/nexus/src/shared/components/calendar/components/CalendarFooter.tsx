@@ -58,6 +58,12 @@ const dateUtils = {
 
 interface CalendarFooterProps {
   numberOfMonths: number;
+  /**
+   * A single-date picker has no period to describe, so the end-of-range box and
+   * the start/end time pair are hidden: showing them offered a second control
+   * the user could fill in that the value could never carry.
+   */
+  mode?: 'single' | 'range';
   selectedRange: DateRange;
   onCancel: () => void;
   onApply: () => void;
@@ -65,6 +71,7 @@ interface CalendarFooterProps {
 
 export function CalendarFooter({
   numberOfMonths,
+  mode = 'range',
   selectedRange,
   onCancel,
   onApply,
@@ -72,6 +79,7 @@ export function CalendarFooter({
   const [startTime, setStartTime] = useState('12:00');
   const [endTime, setEndTime] = useState('11:59');
   const [includeTime, setIncludeTime] = useState(false);
+  const isSingle = mode === 'single';
 
   return (
     <div className="border-t border-border bg-muted/20 p-3">
@@ -85,7 +93,7 @@ export function CalendarFooter({
           <div className="grid grid-flow-col auto-cols-max gap-2">
             <Input
               type="text"
-              placeholder="Start date"
+              placeholder={isSingle ? 'Select date' : 'Start date'}
               value={
                 selectedRange.from
                   ? dateUtils.formatDate(selectedRange.from, 'full')
@@ -98,24 +106,26 @@ export function CalendarFooter({
               className="h-9 flex-shrink-0 text-sm"
               containerClassName="mb-0"
             />
-            <Input
-              type="text"
-              placeholder="End date"
-              value={
-                selectedRange.to
-                  ? dateUtils.formatDate(selectedRange.to, 'full')
-                  : ''
-              }
-              style={{
-                width: 118,
-              }}
-              readOnly
-              className="h-9 flex-shrink-0 text-sm"
-              containerClassName="mb-0"
-            />
+            {!isSingle && (
+              <Input
+                type="text"
+                placeholder="End date"
+                value={
+                  selectedRange.to
+                    ? dateUtils.formatDate(selectedRange.to, 'full')
+                    : ''
+                }
+                style={{
+                  width: 118,
+                }}
+                readOnly
+                className="h-9 flex-shrink-0 text-sm"
+                containerClassName="mb-0"
+              />
+            )}
           </div>
 
-          {includeTime && (
+          {includeTime && !isSingle && (
             <div className="grid grid-flow-col auto-cols-max gap-2">
               <Input
                 type="time"
@@ -140,19 +150,23 @@ export function CalendarFooter({
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="include-time-checkbox"
-              checked={includeTime}
-              onCheckedChange={setIncludeTime}
-            />
-            <label
-              htmlFor="include-time-checkbox"
-              className="text-sm text-muted-foreground"
-            >
-              Include Time
-            </label>
-          </div>
+          {/* A single date carries no period, so there is no time-of-day range
+              to include. */}
+          {!isSingle && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="include-time-checkbox"
+                checked={includeTime}
+                onCheckedChange={setIncludeTime}
+              />
+              <label
+                htmlFor="include-time-checkbox"
+                className="text-sm text-muted-foreground"
+              >
+                Include Time
+              </label>
+            </div>
+          )}
         </div>
 
         <div

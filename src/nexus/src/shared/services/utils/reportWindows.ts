@@ -19,10 +19,16 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export const REPORT_WINDOW_DAYS = 27;
 
 /**
- * Overall cap for a single report view. The report route is rate limited to
- * 10 requests / 60 s per client, and longer ranges are fetched as one
- * request per `REPORT_WINDOW_DAYS` window; 92 days needs at most 4 windows,
- * which keeps the BFF token safely inside that limit.
+ * Transport-level cap for a single `getReport` call: the widest range the
+ * adaptive window/merge loop below is asked to handle. The report route is
+ * rate limited to 10 requests / 60 s per client, and longer ranges need one
+ * request per `REPORT_WINDOW_DAYS` window; 92 days is at most 4 windows, which
+ * keeps the BFF token safely inside that limit.
+ *
+ * This is NOT the product limit. The report service itself is month-scoped, so
+ * the organization report view caps the user's selection at 31 days
+ * (`MAX_REPORT_PERIOD_DAYS` in the org-dashboard module) before a request is
+ * built. This constant stays as the backstop for any caller that skips it.
  */
 export const MAX_REPORT_RANGE_DAYS = 92;
 

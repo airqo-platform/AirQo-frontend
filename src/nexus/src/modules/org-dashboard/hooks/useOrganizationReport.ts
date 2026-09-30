@@ -6,8 +6,10 @@ import { analyticsService } from '@/shared/services/analyticsService';
 import { isAbortError } from '@/shared/lib/retryPolicy';
 import type { AnalyticsReport } from '@/shared/types/api';
 
-export const ORGANIZATION_REPORT_STALE_TIME_MS = 5 * 60 * 1000;
-export const ORGANIZATION_REPORT_GC_TIME_MS = 30 * 60 * 1000;
+// Module-private: nothing outside this hook reads them, so exporting them only
+// widens the module's API surface.
+const ORGANIZATION_REPORT_STALE_TIME_MS = 5 * 60 * 1000;
+const ORGANIZATION_REPORT_GC_TIME_MS = 30 * 60 * 1000;
 
 interface UseOrganizationReportOptions {
   groupId: string;
