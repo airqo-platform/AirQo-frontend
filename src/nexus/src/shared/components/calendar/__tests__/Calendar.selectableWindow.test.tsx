@@ -175,18 +175,17 @@ describe('Calendar single-date selection', () => {
 
   it('does not need a second click before Apply carries the new date', () => {
     const onApply = jest.fn();
-    render(
-      <Calendar
-        numberOfMonths={1}
-        mode="single"
-        onRangeChange={jest.fn()}
-        onApply={onApply}
-      />
-    );
+    // Seeded through the helper so the grid shows September 2026. Without
+    // `initialRange` the grid falls back to the current month, and `day(12)`
+    // would be the 12th of whenever the suite happens to run — the assertion
+    // below would then only pass during September 2026.
+    render(single({ onApply }));
 
     fireEvent.click(day(12)!);
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
+    // One click, and Apply already carries it: from and to are both set, so
+    // there is no half-finished range left to complete.
     expect(onApply).toHaveBeenCalledWith({
       from: new Date(2026, 8, 12),
       to: new Date(2026, 8, 12),
