@@ -22,6 +22,7 @@ import {
   AqImage01,
   AqShieldZap,
   AqTrophy01,
+  AqReceipt,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -260,6 +261,12 @@ const systemSidebarConfig: NavGroup[] = [
     label: 'Platform',
     items: [
       {
+        id: 'system-billing',
+        label: 'Billing',
+        href: '/system/billing',
+        icon: AqReceipt,
+      },
+      {
         id: 'system-email-configs',
         label: 'Email Configuration',
         href: '/system/email-configs',
@@ -383,6 +390,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'API Clients',
             href: '/system/clients',
             description: 'Manage API clients across the platform',
+          },
+          {
+            id: 'system-billing',
+            label: 'Billing',
+            href: '/system/billing',
+            description: 'Manage invoices, customers, and billing settings',
           },
           {
             id: 'system-security',

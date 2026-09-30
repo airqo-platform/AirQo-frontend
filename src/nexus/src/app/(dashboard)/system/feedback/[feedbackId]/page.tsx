@@ -811,6 +811,12 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
             <div className="flex items-end gap-3">
               <Select
                 label="Assignee"
+                // The staff list grows with the org, so scrolling it to find one
+                // person is unusable. The filter matches on name, and on the
+                // email carried in `data-search` so it is not displayed twice.
+                searchable
+                searchPlaceholder="Search by name or email…"
+                noOptionsMessage="No team member matches"
                 value={assigneeId}
                 onChange={e =>
                   setAssigneeId(
@@ -832,8 +838,12 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                     lastName: string;
                     email: string;
                   }) => (
-                    <option key={member._id} value={member._id}>
-                      {member.firstName} {member.lastName} ({member.email})
+                    <option
+                      key={member._id}
+                      value={member._id}
+                      data-search={`${member.firstName} ${member.lastName} ${member.email}`}
+                    >
+                      {member.firstName} {member.lastName}
                     </option>
                   )
                 )}

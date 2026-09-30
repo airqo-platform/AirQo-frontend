@@ -1,12 +1,17 @@
 import type { AnalyticsReport } from '@/shared/types/api';
 import {
   formatReportValue,
+  getPickedReportDate,
   getReportDailySeries,
   getReportDiurnalSeries,
+  getReportPeriodDayCount,
+  getReportPeriodError,
+  getReportPeriodInputBounds,
   getReportRequestRange,
   getReportSiteRows,
   getReportSummary,
   hasReportData,
+  MAX_REPORT_PERIOD_DAYS,
 } from './reportUtils';
 
 const createReport = (
@@ -296,5 +301,199 @@ describe('getReportRequestRange', () => {
         Date.parse(range.startDateTime)
       );
     });
+  });
+});
+
+const rangeOf = (from: Date, to: Date) => ({ from, to });
+
+// Fixed "now" (Nov 15 2026) so the future-date guard cannot flake with the
+// machine clock and the September ranges below stay in the past.
+const NOW = new Date(2026, 10, 15, 9, 0, 0);
+
+describe('report period limit', () => {
+  it('caps the report period at the backend month limit', () => {
+    expect(MAX_REPORT_PERIOD_DAYS).toBe(31);
+
+    // Sep 1 → Oct 1 is exactly 31 inclusive dates: still allowed.
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 9, 1)),
+        NOW
+      )
+    ).toBeNull();
+    // One more date crosses the cap.
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 9, 2)),
+        NOW
+      )
+    ).toMatch(/up to 31 days/i);
+  });
+
+  it('counts the period in inclusive calendar days', () => {
+    // A single day is valid; two days apart is 3 dates and still valid.
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 8, 1)),
+        NOW
+      )
+    ).toBeNull();
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 8, 3)),
+        NOW
+      )
+    ).toBeNull();
+  });
+
+  it('rejects a missing, inverted or future period', () => {
+    expect(
+      getReportPeriodError({ from: undefined, to: new Date(2026, 8, 1) }, NOW)
+    ).toMatch(/start and end date/i);
+    expect(
+      getReportPeriodError({ from: new Date(2026, 8, 10), to: undefined }, NOW)
+    ).toMatch(/start and end date/i);
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 8, 20), new Date(2026, 8, 10)),
+        NOW
+      )
+    ).toMatch(/on or after the start date/i);
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 10, 14), new Date(2026, 10, 20)),
+        NOW
+      )
+    ).toMatch(/cannot run into the future/i);
+    // A start date that has not arrived yet.
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 10, 16), new Date(2026, 10, 20)),
+        NOW
+      )
+    ).toMatch(/cannot run into the future/i);
+  });
+
+  it('accepts a period ending today, whose end is stored as end-of-day', () => {
+    // End-of-day today is always ahead of `now`; rejecting on instants would
+    // make the default "up to today" range permanently invalid.
+    expect(
+      getReportPeriodError(
+        rangeOf(
+          new Date(2026, 10, 15),
+          new Date(2026, 10, 15, 23, 59, 59, 999)
+        ),
+        NOW
+      )
+    ).toBeNull();
+    expect(
+      getReportPeriodError(
+        rangeOf(new Date(2026, 9, 16), new Date(2026, 10, 15, 23, 59, 59, 999)),
+        NOW
+      )
+    ).toBeNull();
+  });
+});
+
+describe('getReportPeriodDayCount', () => {
+  it('counts inclusive calendar days so the hint and the guard agree', () => {
+    // Both the "N of 31 days" hint and the validity guard read this, so it is
+    // inclusive: one selected day is 1, and a start/end 30 days apart is 31 —
+    // which is exactly the cap the report view allows.
+    expect(
+      getReportPeriodDayCount(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 8, 1))
+      )
+    ).toBe(1);
+    expect(
+      getReportPeriodDayCount(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 8, 31))
+      )
+    ).toBe(31);
+    // Sep 1 → Oct 1 is still exactly 31 inclusive dates.
+    expect(
+      getReportPeriodDayCount(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 9, 1))
+      )
+    ).toBe(31);
+    // One day past the cap.
+    expect(
+      getReportPeriodDayCount(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 9, 2))
+      )
+    ).toBe(32);
+    expect(getReportPeriodDayCount({ from: undefined, to: undefined })).toBe(0);
+    expect(
+      getReportPeriodDayCount({ from: new Date(2026, 8, 1), to: undefined })
+    ).toBe(0);
+  });
+});
+
+describe('report period bounds', () => {
+  it('caps the end bound at start + 30 days so the calendar cannot exceed the limit', () => {
+    // Start Sep 1 → the last selectable end is Oct 1 (31 inclusive dates),
+    // which is before "today", so the cap wins over the today bound.
+    expect(
+      getReportPeriodInputBounds(
+        rangeOf(new Date(2026, 8, 1), new Date(2026, 8, 5)),
+        NOW
+      ).maxEnd
+    ).toEqual(new Date(2026, 9, 1));
+
+    // A start whose cap lands after today is capped by today instead.
+    expect(
+      getReportPeriodInputBounds(
+        rangeOf(new Date(2026, 9, 20), new Date(2026, 9, 25)),
+        NOW
+      ).maxEnd
+    ).toEqual(new Date(2026, 10, 15));
+  });
+
+  it('never lets the start pass the end, and never offers a future date', () => {
+    const bounds = getReportPeriodInputBounds(
+      rangeOf(new Date(2026, 8, 4), new Date(2026, 8, 10)),
+      NOW
+    );
+
+    expect(bounds.minEnd).toEqual(new Date(2026, 8, 4));
+    expect(bounds.maxStart).toEqual(new Date(2026, 8, 10));
+    // Sep 4 + 30 days = Oct 4, which is before "today" (Nov 15).
+    expect(bounds.maxEnd).toEqual(new Date(2026, 9, 4));
+
+    // Before a start is chosen the only bound is today.
+    expect(
+      getReportPeriodInputBounds({ from: undefined, to: undefined }, NOW)
+    ).toEqual({
+      minEnd: undefined,
+      maxStart: new Date(2026, 10, 15),
+      maxEnd: new Date(2026, 10, 15),
+    });
+  });
+});
+
+describe('getPickedReportDate', () => {
+  const picked = new Date(2026, 8, 4);
+
+  it('passes through the Date the picker emits in single mode', () => {
+    expect(getPickedReportDate(picked)).toBe(picked);
+  });
+
+  it('coerces the string and range shapes the onChange contract allows', () => {
+    expect(getPickedReportDate('2026-09-04')).toEqual(new Date(2026, 8, 4));
+    expect(
+      getPickedReportDate({ from: '2026-09-04', to: '2026-09-30' })
+    ).toEqual(new Date(2026, 8, 4));
+    expect(getPickedReportDate({ from: picked, to: picked })).toBe(picked);
+  });
+
+  it('returns null for anything unusable so the selection is left alone', () => {
+    expect(getPickedReportDate(undefined)).toBeNull();
+    expect(getPickedReportDate(null)).toBeNull();
+    expect(getPickedReportDate('')).toBeNull();
+    expect(getPickedReportDate('not-a-date')).toBeNull();
+    expect(getPickedReportDate('2026-02-31')).toBeNull();
+    expect(getPickedReportDate(new Date('nope'))).toBeNull();
+    expect(getPickedReportDate({ to: '2026-09-30' })).toBeNull();
+    expect(getPickedReportDate(42)).toBeNull();
   });
 });

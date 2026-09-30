@@ -2,7 +2,6 @@ import { ApiClient, createServerClient } from './apiClient';
 import { isAbortError } from '../lib/retryPolicy';
 import {
   buildReportWindows,
-  countWindowDays,
   getWindowDateParts,
   MAX_REPORT_RANGE_DAYS,
   mergeReportWindows,
@@ -31,20 +30,19 @@ const MAX_CHART_PAGES = 1_000;
 const MAX_DOWNLOAD_PAGES = 1_000;
 
 // Report adaptive-fetch constants. Per-window retry policy is bounded: at most
-// `REPORT_429_MAX_ATTEMPTS` 429 attempts for a single window and a hard cap on
-// total network POSTs — counted per request actually sent, never per loop
-// iteration — so pathological windows can't loop indefinitely. The cap is
-// derived from the requested range (see `getReportMaxAttempts`) instead of a
-// fixed constant, so worst-case splitting of any supported range always fits
-// below it.
+// `REPORT_429_MAX_ATTEMPTS` 429 attempts for a single window, at most
+// `REPORT_MAX_SPLIT_DEPTH` halvings of a rejected window, and a hard ceiling
+// on total network POSTs (`REPORT_MAX_POSTS`) — counted per request actually
+// sent, never per loop iteration — so pathological windows can neither loop
+// indefinitely nor turn one selection into a request storm.
 const REPORT_429_RETRY_DELAY_MS = 5_000;
 const REPORT_429_MAX_ATTEMPTS = 2;
-const REPORT_MIN_MAX_ATTEMPTS = 24;
 
 // The analytics service rate-limits every route to 10 requests / 60 s per
-// client IP, and isolating a rejected month can need ~50 windows. Sequential
-// execution alone does not stay under that ceiling (a rejected window answers
-// in ~200 ms), so every report POST is spaced out instead.
+// client IP, and sequential execution alone does not stay under that ceiling
+// (a rejected window answers in ~200 ms), so every report POST is spaced out
+// instead. Spacing only guards the ceiling — it is not a licence to send
+// dozens of requests, which is why the POST count is capped above.
 const REPORT_RATE_LIMIT_MAX = 10;
 const REPORT_RATE_LIMIT_WINDOW_MS = 60_000;
 const REPORT_MIN_SPACING_MS = 6_000;
@@ -146,16 +144,70 @@ export const buildReportPayload = (
 };
 
 /**
- * Hard cap on network POSTs for a single `getReport` call, derived from the
- * requested range rather than a fixed constant. Fully splitting a D-day range
- * down to 1-day windows issues at most `2 * D - 1` POSTs (one per split node
- * plus one per leaf) and only one 429 retry is ever allowed, so `2 * D + 8`
- * always leaves headroom for the worst case. `REPORT_MIN_MAX_ATTEMPTS` keeps
- * the backstop sane for very short ranges. Skipped known-bad-month windows
- * are never POSTed and therefore never count against the cap.
+ * Hard ceiling on network POSTs for a single `getReport` call.
+ *
+ * A small absolute number, not a function of the range. The report view caps a
+ * period at 31 days, so a request starts as at most two `REPORT_WINDOW_DAYS`
+ * windows; with `REPORT_MAX_SPLIT_DEPTH` halvings and one 429 retry per window
+ * the worst case is 12 POSTs.
+ *
+ * The previous `2 * D + 8` formula existed so a full binary split down to 1-day
+ * leaves would always fit, which turned one rejected date selection into ~60
+ * paced POSTs at 31 days and ~183 at the 92-day service cap — minutes of
+ * requests that also tripped the backend's own 10 req/60 s limit and piled 429
+ * retries on top. Splitting is a bounded fallback, not a brute-force search, so
+ * the cap has to be a real ceiling.
+ *
+ * Windows still queued when the cap is hit are recorded as unavailable so
+ * nothing is silently dropped.
  */
-export const getReportMaxAttempts = (request: AnalyticsReportRequest): number =>
-  Math.max(REPORT_MIN_MAX_ATTEMPTS, 2 * countWindowDays(request) + 8);
+export const REPORT_MAX_POSTS = 12;
+
+/**
+ * How many times a rejected window may be halved before it is written off.
+ * One halving is enough to tell "this range is too wide" (both halves succeed)
+ * apart from "this month has no usable data" (both halves still fail). Going
+ * deeper only multiplies requests without changing the outcome.
+ */
+export const REPORT_MAX_SPLIT_DEPTH = 1;
+
+/**
+ * Longest server-supplied message accepted for display. The report service
+ * answers with short human sentences ("The requested date range is too wide.
+ * Shorten the date range."), so this only ever trims a pathological payload
+ * rather than shaping normal ones.
+ */
+const MAX_SERVER_MESSAGE_LENGTH = 300;
+
+/**
+ * The report service's own explanation from a failed response body, or `null`.
+ *
+ * The backend rejects a bad range with a message written for the person looking
+ * at the screen, and discarding it in favour of our own generic copy leaves the
+ * user with "temporarily unavailable" and no idea what to change. Only a string
+ * field on a JSON object is read, so an HTML error page from a proxy or gateway
+ * cannot leak through as a message.
+ */
+const readServerMessage = (error: unknown): string | null => {
+  const body = (error as { response?: { data?: unknown } } | null)?.response
+    ?.data;
+  if (!body || typeof body !== 'object') return null;
+
+  const fields = body as { message?: unknown; error?: unknown };
+  const raw =
+    typeof fields.message === 'string'
+      ? fields.message
+      : typeof fields.error === 'string'
+        ? fields.error
+        : null;
+  if (!raw) return null;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  return trimmed.length > MAX_SERVER_MESSAGE_LENGTH
+    ? `${trimmed.slice(0, MAX_SERVER_MESSAGE_LENGTH - 1).trimEnd()}…`
+    : trimmed;
+};
 
 const getReportErrorMessage = (error: unknown): string => {
   const candidate = error as {
@@ -164,11 +216,23 @@ const getReportErrorMessage = (error: unknown): string => {
   } | null;
   const status = candidate?.response?.status ?? candidate?.status;
 
-  if (status === 400) {
-    return 'The report service could not process that date range. Choose a range of 27 days or fewer.';
+  // Auth failures keep our own copy: the server's text is not written for this
+  // screen, and there is no reason to echo anything auth-related back.
+  if (status === 401 || status === 403) {
+    return 'You do not have permission to view this organization report.';
   }
   if (status === 404) {
     return 'This cohort is no longer available for reporting.';
+  }
+
+  // Everywhere else the service's own wording is more specific than ours —
+  // it names the actual reason ("too wide", "month not processed") instead of
+  // guessing from a status code.
+  const serverMessage = readServerMessage(error);
+  if (serverMessage) return serverMessage;
+
+  if (status === 400) {
+    return 'The report service could not process that date range. Choose a shorter period.';
   }
   if (status === 422) {
     return 'Choose a valid cohort and date range to load the report.';
@@ -176,19 +240,29 @@ const getReportErrorMessage = (error: unknown): string => {
   if (status === 429) {
     return 'The report service is busy. Wait a moment and try again.';
   }
-  if (status === 401 || status === 403) {
-    return 'You do not have permission to view this organization report.';
-  }
   return 'The organization report is temporarily unavailable. Try again shortly.';
 };
 
-const createReportError = (error: unknown): Error =>
-  Object.defineProperty(new Error(getReportErrorMessage(error)), 'cause', {
-    value: error,
-    enumerable: false,
-    configurable: true,
-    writable: true,
-  });
+const createReportError = (error: unknown, fallbackMessage?: string): Error =>
+  Object.defineProperty(
+    new Error(fallbackMessage ?? getReportErrorMessage(error)),
+    'cause',
+    {
+      value: error,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    }
+  );
+
+/**
+ * Shown when the whole period produced no usable windows and the service gave
+ * no reason of its own. Says what is missing and what to try, instead of the
+ * old "temporarily unavailable", which described a transient fault the user
+ * could do nothing about and hid the fact that this is about missing data.
+ */
+const NO_REPORT_DATA_MESSAGE =
+  'No air quality readings were returned for this period. Try a different date range, or check that the selected cohort has devices reporting.';
 
 /**
  * Error to surface when the caller aborts while `getReport` is waiting out a
@@ -242,12 +316,26 @@ const rethrowCancellation = (error: unknown, signal?: AbortSignal): void => {
 /**
  * Result of one windowed report POST. `split` means the backend rejected the
  * window's range and the caller should halve it; `rate-limited` means the
- * window exhausted its 429 retries and should be recorded as unavailable.
+ * window could not be fetched and should be recorded as unavailable — either
+ * because it exhausted its 429 retries or because the caller's POST budget ran
+ * out first. The caller handles both the same way, so the kind does not
+ * distinguish them.
+ *
+ * A failure carries the underlying `error` even when it is not rethrown: a 400
+ * becomes a split rather than an exception, so without this the service's own
+ * explanation of *why* the range was refused is gone by the time the loop gives
+ * up, and the user is left with a generic "temporarily unavailable".
  */
 type ReportWindowOutcome =
   | { kind: 'success'; report: AnalyticsReport }
-  | { kind: 'split' }
-  | { kind: 'rate-limited' };
+  | { kind: 'split'; error: unknown }
+  | { kind: 'rate-limited'; error?: unknown };
+
+/** A queued window plus how many times it has already been halved. */
+type ReportQueueEntry = {
+  window: AnalyticsReportRequest;
+  depth: number;
+};
 
 /**
  * Sliding-window gate for report POSTs: at most `REPORT_RATE_LIMIT_MAX`
@@ -487,14 +575,26 @@ export class AnalyticsService {
    * per-window 429 policy. Returns the outcome so the caller can decide
    * between splitting, recording the window as unavailable, or collecting the
    * report. Every non-recoverable error (401/403/404/5xx/abort) throws, and so
-   * does a response without a successful `airquality` payload.
+   * does a response without a successful `airquality` payload. `hasBudget` is
+   * consulted before every attempt so the caller's POST ceiling holds across
+   * the 429 retry, not just across queued windows.
    */
   private async postReportWindow(
     window: AnalyticsReportRequest,
     signal: AbortSignal | undefined,
+    hasBudget: () => boolean,
     onAttempt: () => void
   ): Promise<ReportWindowOutcome> {
     for (let attempt = 1; attempt <= REPORT_429_MAX_ATTEMPTS; attempt += 1) {
+      // The budget must be re-checked per attempt, not once per queued
+      // window: a 429 retry is a second POST, so a window entered with the
+      // counter one short of the cap would otherwise overshoot
+      // `REPORT_MAX_POSTS` by one. Stopping here keeps the ceiling hard —
+      // the window surfaces as rate-limited, which the caller records as
+      // unavailable just like a window that exhausted its retries.
+      if (!hasBudget()) {
+        return { kind: 'rate-limited' };
+      }
       await reserveReportRequestSlot(signal);
 
       try {
@@ -517,16 +617,17 @@ export class AnalyticsService {
             ?.status ?? (error as { status?: number } | null)?.status;
 
         // 400/422 is a splittable range error, on the first try or on a retry:
-        // let the caller split instead of failing the whole report.
+        // let the caller split instead of failing the whole report. The error
+        // rides along so the caller can still explain the refusal.
         if (status === 400 || status === 422) {
-          return { kind: 'split' };
+          return { kind: 'split', error };
         }
 
         if (status === 429) {
           // Bounded per-window retry. Exhausting it makes this window
           // unavailable rather than discarding the windows that succeeded.
           if (attempt >= REPORT_429_MAX_ATTEMPTS) {
-            return { kind: 'rate-limited' };
+            return { kind: 'rate-limited', error };
           }
           // Honour `Retry-After` when the analytics service sends it. The
           // wait races the abort signal, so cancelling during it surfaces as
@@ -549,17 +650,19 @@ export class AnalyticsService {
    * Fetch the cohort report for the requested period. The backend enforces a
    * per-request window (27 UTC calendar dates on staging), and separately
    * rejects some month-crossing and bad-month ranges (verified live: May &
-   * Aug 2026 always fail, Jun→Jul boundary fails). So this is an adaptive
-   * loop rather than a fire-and-merge `Promise.all`:
+   * Aug 2026 always fail, Jun→Jul boundary fails). So this is a bounded
+   * adaptive loop rather than a fire-and-merge `Promise.all`:
    *
    * 1. Queue the initial ≤27-day windows.
    * 2. For each window: skip it when it lies entirely inside a known-bad month
    *    (`failedMonths`); POST it through `postReportWindow`; on success collect
    *    it.
-   * 3. On a splittable failure (HTTP 400 / 422), split via `splitReportWindow`
-   *    and push the parts to the front of the queue (depth-first). A 1-day
-   *    window that fails as splittable is terminal — record its month as bad
-   *    and mark the period unavailable.
+   * 3. On a splittable failure (HTTP 400 / 422), halve the window once via
+   *    `splitReportWindow` and push the parts to the front of the queue
+   *    (depth-first). Two things stop the recursion: a 1-day window that still
+   *    fails is terminal (its month is recorded as bad so later windows inside
+   *    it are skipped without a POST), and the depth budget running out, which
+   *    writes the window off without blacklisting its month.
    * 4. HTTP 429 is retried per window by `postReportWindow`; when a window
    *    exhausts its retries it is recorded as unavailable so already-fetched
    *    windows still render. Any other error (401/403/404/5xx/abort) throws
@@ -569,17 +672,25 @@ export class AnalyticsService {
    *
    * Requests are paced to the analytics service's 10 req/60 s per-route limit
    * rather than relying on sequential execution, which a fast 400 would
-   * otherwise outrun. `getReportMaxAttempts` bounds the network POSTs (skipped
-   * windows never count); when the cap is hit every window still queued is
-   * recorded as unavailable so none is silently dropped.
+   * otherwise outrun. Two independent ceilings keep that pacing from turning
+   * into a request storm: `REPORT_MAX_SPLIT_DEPTH` bounds how far a rejected
+   * window is chased, and `REPORT_MAX_POSTS` is a hard ceiling on POSTs (skipped
+   * windows never count). When the cap is hit every window still queued is
+   * recorded as unavailable so none is silently dropped, and the user sees the
+   * written-off days in the warning banner instead of watching the page retry
+   * for minutes.
    */
   async getReport(
     request: AnalyticsReportRequest,
     signal?: AbortSignal
   ): Promise<AnalyticsReport> {
     const payload = buildReportPayload(request);
-    const queue = buildReportWindows(payload);
-    const maxAttempts = getReportMaxAttempts(payload);
+    const maxAttempts = REPORT_MAX_POSTS;
+    // `depth` counts halvings so a rejected window cannot be split down to
+    // 1-day leaves (see `REPORT_MAX_SPLIT_DEPTH`).
+    const queue: ReportQueueEntry[] = buildReportWindows(payload).map(
+      window => ({ window, depth: 0 })
+    );
 
     const successful: AnalyticsReport[] = [];
     const unavailable: AnalyticsReportPeriod[] = [];
@@ -587,6 +698,11 @@ export class AnalyticsService {
     // Counted per network POST actually sent (the 429 retry counts too);
     // skipped and queued windows never increment it.
     let attempts = 0;
+    // Most recent window rejection, kept so that giving up can explain itself.
+    // A 400/422 becomes a split rather than a throw, so without this the
+    // service's reason for refusing the range is gone by the time the loop
+    // ends, and the user only ever sees a generic failure.
+    let lastWindowError: unknown = null;
 
     const monthKeyOf = (datePart: string): string => datePart.slice(0, 7);
 
@@ -596,7 +712,7 @@ export class AnalyticsService {
         // so nothing is silently lost, while keeping the windows that already
         // succeeded. If nothing succeeded, the post-loop check throws.
         while (queue.length > 0) {
-          const leftover = queue.shift()!;
+          const leftover = queue.shift()!.window;
           unavailable.push({
             startTime: String(leftover.start_time ?? '').trim(),
             endTime: String(leftover.end_time ?? '').trim(),
@@ -605,7 +721,7 @@ export class AnalyticsService {
         break;
       }
 
-      const window = queue.shift()!;
+      const { window, depth } = queue.shift()!;
       const { startDate, endDate } = getWindowDateParts(window);
       const startMonth = monthKeyOf(startDate);
       const endMonth = monthKeyOf(endDate);
@@ -619,9 +735,14 @@ export class AnalyticsService {
         continue;
       }
 
-      const outcome = await this.postReportWindow(window, signal, () => {
-        attempts += 1;
-      });
+      const outcome = await this.postReportWindow(
+        window,
+        signal,
+        () => attempts < maxAttempts,
+        () => {
+          attempts += 1;
+        }
+      );
 
       if (outcome.kind === 'success') {
         successful.push(outcome.report);
@@ -631,6 +752,7 @@ export class AnalyticsService {
       if (outcome.kind === 'rate-limited') {
         // Retries exhausted for this window. Record it and keep the windows
         // that already succeeded instead of discarding the whole report.
+        lastWindowError = outcome.error ?? lastWindowError;
         unavailable.push({
           startTime: String(window.start_time ?? '').trim(),
           endTime: String(window.end_time ?? '').trim(),
@@ -638,30 +760,43 @@ export class AnalyticsService {
         continue;
       }
 
-      // Splittable range error (400/422): split the window and push the parts
-      // to the front of the queue (depth-first). A 1-day window that fails as
-      // splittable is terminal — record its month as bad and mark the period
-      // unavailable.
+      // Splittable range error (400/422). Halve the window once and push the
+      // parts to the front of the queue (depth-first) while the depth budget
+      // allows it. Two outcomes stop the recursion:
+      //
+      // - the window cannot be split any further (a 1-day leaf): terminal, so
+      //   its month is recorded as bad and later windows inside it are skipped
+      //   without spending a POST;
+      // - the depth budget is spent but the window is still splittable: the
+      //   rejection is not yet localised, so the window is simply written off.
+      //   Its month is NOT marked bad — a genuinely too-wide range would
+      //   otherwise blacklist the rest of a perfectly good month.
       const parts = splitReportWindow(window);
-      if (!parts) {
-        const { startDate: winStart } = getWindowDateParts(window);
-        const winMonth = winStart.slice(0, 7);
-        if (winMonth) failedMonths.add(winMonth);
-        unavailable.push({
-          startTime: String(window.start_time ?? '').trim(),
-          endTime: String(window.end_time ?? '').trim(),
-        });
-      } else {
-        queue.unshift(...parts);
+      if (parts && depth < REPORT_MAX_SPLIT_DEPTH) {
+        lastWindowError = outcome.error;
+        queue.unshift(
+          ...parts.map(part => ({ window: part, depth: depth + 1 }))
+        );
+        continue;
       }
+      if (!parts) {
+        const winMonth = startDate.slice(0, 7);
+        if (winMonth) failedMonths.add(winMonth);
+      }
+      unavailable.push({
+        startTime: String(window.start_time ?? '').trim(),
+        endTime: String(window.end_time ?? '').trim(),
+      });
     }
 
     if (successful.length === 0) {
-      throw createReportError(
-        new Error(
-          'The report service could not return data for any period in the selected range.'
-        )
-      );
+      // The service's own reason wins: it names what was actually wrong with
+      // the range ("too wide", a month it cannot process) where a status code
+      // only tells us something failed. Only when it said nothing is this a
+      // genuine no-data outcome, and then the copy says so.
+      throw lastWindowError
+        ? createReportError(lastWindowError)
+        : createReportError(null, NO_REPORT_DATA_MESSAGE);
     }
 
     // Single successful window and nothing unavailable: fast path.

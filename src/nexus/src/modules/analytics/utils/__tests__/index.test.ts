@@ -508,7 +508,10 @@ describe('getAirQualityColor', () => {
       'very-unhealthy',
       'hazardous',
     ];
-    const colors = new Set(levels.map(getAirQualityColor));
+    // Wrapped in an arrow, not passed by reference: the shared
+    // `getAirQualityColor(level, config)` takes a second argument, so
+    // `levels.map(getAirQualityColor)` would hand it the array index.
+    const colors = new Set(levels.map(level => getAirQualityColor(level)));
     expect(colors.size).toBe(levels.length);
   });
 });

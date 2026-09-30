@@ -20,3 +20,4 @@ export { aqiConfigService } from './aqiConfigService';
 export { rankingsService } from './rankingsService';
 export { usageService } from './usageService';
 export { apiKeyUsageService } from './apiKeyUsageService';
+export { billingService } from './billingService';

@@ -11,16 +11,9 @@ import {
   getPollutantLabel,
   getPollutantUnits,
 } from '@/shared/components/charts/utils';
-// Use centralized air quality utilities
-import {
-  AIR_QUALITY_STANDARDS,
-  getAirQualityLevel as getSharedAirQualityLevel,
-  getAirQualityColor as getSharedAirQualityColor,
-  getAirQualityLabel as getSharedAirQualityLabel,
-  mapAqiCategoryToLevel as mapSharedAqiCategoryToLevel,
-  type PollutantType,
-  type StandardsOrganization,
-} from '@/shared/utils/airQuality';
+// Use centralized air quality utilities. These are also re-exported below so
+// this module stays a one-stop import for its consumers.
+import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RecentReading } from '@/shared/types/api';
 import type { AqiConfig } from '@/shared/types/aqi';
@@ -42,68 +35,23 @@ export {
 };
 
 /**
- * Determine air quality level based on pollutant value using shared utility
- * @param value - Pollutant concentration value
- * @param pollutant - Pollutant type (pm2_5, pm10, no2, o3, co, so2)
- * @returns Air quality level
+ * Air-quality level/label/colour/threshold lookups are owned by
+ * `@/shared/utils/airQuality` and re-exported unchanged.
+ *
+ * These used to be thin wrapper functions here that only forwarded to the
+ * shared implementations, which meant two names for one behaviour and two
+ * places to keep in sync — `getAirQualityThreshold` had even been reimplemented
+ * inline, duplicating a level→label map that shared already had. Re-exporting
+ * keeps this module's public API intact for existing importers while leaving a
+ * single implementation.
  */
-export const getAirQualityLevel = (
-  value: number | null | undefined,
-  pollutant: PollutantType = 'pm2_5',
-  config?: AqiConfig | null
-): AirQualityLevel => {
-  return getSharedAirQualityLevel(value, pollutant, config);
-};
-
-/**
- * Get air quality threshold data by level using shared standards
- * @param level - Air quality level
- * @returns Threshold configuration
- */
-export const getAirQualityThreshold = (level: AirQualityLevel) => {
-  const levelMapping: Record<AirQualityLevel, string> = {
-    good: 'Good',
-    moderate: 'Moderate',
-    'unhealthy-sensitive-groups': 'Unhealthy for Sensitive Groups',
-    unhealthy: 'Unhealthy',
-    'very-unhealthy': 'Very Unhealthy',
-    hazardous: 'Hazardous',
-    'no-value': '',
-  };
-
-  return AIR_QUALITY_STANDARDS.find(std => std.level === levelMapping[level]);
-};
-
-/**
- * Map an incoming `aqi_category` string to the internal AirQualityLevel keys
- * Uses the centralized utility for consistency
- */
-export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
-  return mapSharedAqiCategoryToLevel(category);
-};
-
-/**
- * Get label for air quality level using centralized utility
- * @param level - Air quality level
- * @returns Human readable label
- */
-export const getAirQualityLabel = (
-  level: AirQualityLevel,
-  organization: StandardsOrganization = 'WHO',
-  pollutant: 'PM2.5' | 'PM10' = 'PM2.5',
-  config?: AqiConfig | null
-): string => {
-  return getSharedAirQualityLabel(level, organization, pollutant, config);
-};
-
-/**
- * Get color for air quality level using centralized utility
- * @param level - Air quality level
- * @returns Hex color string
- */
-export const getAirQualityColor = (level: AirQualityLevel): string => {
-  return getSharedAirQualityColor(level);
-};
+export {
+  getAirQualityLevel,
+  getAirQualityLabel,
+  getAirQualityColor,
+  getAirQualityThreshold,
+  mapAqiCategoryToLevel,
+} from '@/shared/utils/airQuality';
 
 /**
  * Format PM2.5 value for display

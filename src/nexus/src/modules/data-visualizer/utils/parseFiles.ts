@@ -71,8 +71,18 @@ const createAbortError = (signal?: AbortSignal) => {
   return error;
 };
 
-export const isAbortError = (error: unknown): error is Error =>
-  error instanceof Error && error.name === 'AbortError';
+import { isAbortError } from '@/shared/lib/retryPolicy';
+
+/**
+ * Re-exported from `@/shared/lib/retryPolicy` rather than reimplemented.
+ *
+ * The local copy was a narrower `error instanceof Error && name === 'AbortError'`
+ * check, which misses the non-`Error` cancellation objects some fetch/axios
+ * layers reject with (`{ name: 'AbortError' }`, `code: 'ERR_CANCELED'`). The
+ * shared predicate covers those too, so an upload cancelled that way is now
+ * reported as cancelled instead of as a parse failure.
+ */
+export { isAbortError };
 
 const throwIfAborted = (signal?: AbortSignal) => {
   if (signal?.aborted) {

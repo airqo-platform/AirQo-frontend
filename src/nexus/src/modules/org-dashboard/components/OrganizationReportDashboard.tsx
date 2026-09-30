@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { differenceInCalendarDays, format, subDays } from 'date-fns';
+import { endOfDay, format, startOfDay, startOfMonth } from 'date-fns';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
@@ -27,7 +27,6 @@ import {
 } from '@/shared/utils/airQuality';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { useOrgCohortContextRequired } from '@/shared/providers/org-cohort-provider';
-import { MAX_REPORT_RANGE_DAYS } from '@/shared/services/analyticsService';
 import { mergeUnavailablePeriods } from '@/shared/services/utils/reportWindows';
 import type {
   NormalizedChartData,
@@ -37,13 +36,19 @@ import { useOrganizationReport } from '../hooks/useOrganizationReport';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import {
   formatReportValue,
+  getPickedReportDate,
   getReportDailySeries,
   getReportDiurnalSeries,
+  getReportPeriodDayCount,
+  getReportPeriodError,
+  getReportPeriodInputBounds,
   getReportPollutantLabel,
   getReportRequestRange,
   getReportSiteRows,
   getReportSummary,
   hasReportData,
+  MAX_REPORT_PERIOD_DAYS,
+  REPORT_PERIOD_INCOMPLETE_MESSAGE,
   REPORT_POLLUTANT_OPTIONS,
   type ReportSiteRow,
 } from '../utils/reportUtils';
@@ -74,17 +79,21 @@ interface ReportChartProps {
   className?: string;
 }
 
-// Default to a single server-valid window; longer selections are split
-// into consecutive windows and merged by the analytics service.
-const DEFAULT_REPORT_RANGE_DAYS = 27;
-
+/**
+ * Default selection: the current month to date — the 1st through today.
+ *
+ * A calendar month is never longer than `MAX_REPORT_PERIOD_DAYS`, so this
+ * default can never breach the cap, and it always ends on a day that has
+ * actually happened, so the future-date guard never rejects it. Anything the
+ * report service cannot process inside the month is surfaced as an excluded
+ * period rather than silently averaged in.
+ */
 const getDefaultReportRange = (): DateRange => {
-  const to = new Date();
-  to.setHours(23, 59, 59, 999);
-  const from = new Date(to);
-  from.setDate(from.getDate() - (DEFAULT_REPORT_RANGE_DAYS - 1));
-  from.setHours(0, 0, 0, 0);
-  return { from, to };
+  const now = new Date();
+  return {
+    from: startOfMonth(now),
+    to: endOfDay(now),
+  };
 };
 
 const formatReportDate = (value: string): string => {
@@ -287,18 +296,20 @@ export const OrganizationReportDashboard: React.FC<
       return null;
     }
   }, [dateRange]);
-  const rangeDays =
-    dateRange.from && dateRange.to
-      ? differenceInCalendarDays(dateRange.to, dateRange.from) + 1
-      : 0;
+  // One "now" per render, shared by the guard and the calendar bounds so the
+  // two can never be computed against different days. Deliberately not memoised
+  // on `dateRange`: a view left open across midnight would otherwise keep
+  // offering yesterday as "today".
+  const now = new Date();
+  const rangeDays = getReportPeriodDayCount(dateRange);
+  // `backendRange` is null only when the payload builder refuses the selection,
+  // which is always a case `getReportPeriodError` already reports on. The
+  // fallback is what stops a selection the guard does not know about yet from
+  // being requested with empty start/end timestamps.
   const rangeError =
-    !backendRange || rangeDays <= 0
-      ? 'Choose a start and end date for the report.'
-      : dateRange.from && dateRange.from.getTime() > Date.now()
-        ? 'The report start date cannot be in the future.'
-        : rangeDays > MAX_REPORT_RANGE_DAYS
-          ? 'Reports support up to 92 days. Choose a shorter range.'
-          : null;
+    getReportPeriodError(dateRange, now) ??
+    (backendRange ? null : REPORT_PERIOD_INCOMPLETE_MESSAGE);
+  const periodBounds = getReportPeriodInputBounds(dateRange, now);
   const reportEnabled = !!effectiveCohortId && !rangeError;
   const {
     report,
@@ -363,34 +374,32 @@ export const OrganizationReportDashboard: React.FC<
   const selectionPending =
     cohortsLoading || (cohortIds.length > 0 && !effectiveCohortId);
 
-  const handleDateRangeChange = (value: unknown) => {
-    if (!value) return;
-    if (value instanceof Date) {
-      setDateRange({ from: value, to: value });
-      return;
-    }
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) {
-        setDateRange({ from: date, to: date });
-      }
-      return;
-    }
-    if (typeof value === 'object' && 'from' in value && 'to' in value) {
-      const fromValue = (value as { from: Date | string }).from;
-      const toValue = (value as { to: Date | string }).to;
-      const from =
-        typeof fromValue === 'string' ? new Date(fromValue) : fromValue;
-      const to = typeof toValue === 'string' ? new Date(toValue) : toValue;
-      if (
-        from &&
-        to &&
-        !Number.isNaN(from.getTime()) &&
-        !Number.isNaN(to.getTime())
-      ) {
-        setDateRange({ from, to });
-      }
-    }
+  // Two explicit pickers rather than one range calendar: the cap is *relative*
+  // to the chosen start, and a range calendar's min/max are absolute, so it
+  // cannot grey out "start + 30 days and beyond" before the start is known. Two
+  // independent calendars can, via the bounds below.
+  //
+  // Each side also drags the other with it, so the user never has to undo an
+  // inverted selection before the 31-day rule can be checked.
+  const handleStartDateChange = (value: unknown) => {
+    const picked = getPickedReportDate(value);
+    if (!picked) return;
+    const from = startOfDay(picked);
+    setDateRange(current => ({
+      from,
+      to: current.to && current.to >= from ? current.to : endOfDay(picked),
+    }));
+  };
+
+  const handleEndDateChange = (value: unknown) => {
+    const picked = getPickedReportDate(value);
+    if (!picked) return;
+    const to = endOfDay(picked);
+    setDateRange(current => ({
+      from:
+        current.from && current.from <= to ? current.from : startOfDay(picked),
+      to,
+    }));
   };
 
   const handleRefresh = () => {
@@ -407,12 +416,25 @@ export const OrganizationReportDashboard: React.FC<
     if (selectionPending || reportLoading) {
       return (
         <div
-          className="flex min-h-[300px] items-center justify-center"
+          className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center"
           role="status"
           aria-live="polite"
           aria-label="Loading organization report"
         >
           <LoadingSpinner />
+          <div className="space-y-1">
+            <p className="text-sm text-foreground">
+              Loading the organization report…
+            </p>
+            {/* The report service paces its requests and retries any window it
+                refuses, so a period it cannot process can take several seconds
+                to come back with an answer. Without this the wait reads as a
+                hang and the eventual message arrives as a surprise. */}
+            <p className="max-w-md text-xs text-muted-foreground">
+              The report service checks each period in the range separately, so
+              this can take a few seconds.
+            </p>
+          </div>
         </div>
       );
     }
@@ -549,23 +571,70 @@ export const OrganizationReportDashboard: React.FC<
       <Card>
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <p className="mb-2 text-sm text-foreground">Reporting period</p>
-                <DatePicker
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                  mode="range"
-                  maxDate={new Date()}
-                  // Any range within the last 92 days is selectable;
-                  // longer periods are split into server-valid windows by
-                  // the analytics service.
-                  minDate={subDays(new Date(), MAX_REPORT_RANGE_DAYS - 1)}
-                  placeholder="Select date range"
-                  className="w-full"
-                  contentClassName="z-[10010]"
-                />
+            <div className="min-w-0 flex-1">
+              <p
+                id="report-period-label"
+                className="mb-2 text-sm text-foreground"
+              >
+                Reporting period
+              </p>
+              {/* A bounded inline group rather than a two-column grid: the grid
+                  stretched the two pickers out to the far edges of the card,
+                  which read as two unrelated controls instead of one period. */}
+              <div
+                role="group"
+                aria-labelledby="report-period-label"
+                className="flex flex-wrap items-end gap-x-2 gap-y-3"
+              >
+                <div className="min-w-0">
+                  <label
+                    htmlFor="report-period-start"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  >
+                    From
+                  </label>
+                  <DatePicker
+                    id="report-period-start"
+                    mode="single"
+                    value={dateRange.from}
+                    onChange={handleStartDateChange}
+                    maxDate={periodBounds.maxStart}
+                    placeholder="Start date"
+                    className="w-44"
+                    contentClassName="z-[10010]"
+                  />
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="mb-3 select-none text-muted-foreground"
+                >
+                  –
+                </span>
+                <div className="min-w-0">
+                  <label
+                    htmlFor="report-period-end"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  >
+                    To
+                  </label>
+                  <DatePicker
+                    id="report-period-end"
+                    mode="single"
+                    value={dateRange.to}
+                    onChange={handleEndDateChange}
+                    minDate={periodBounds.minEnd}
+                    maxDate={periodBounds.maxEnd}
+                    placeholder="End date"
+                    className="w-44"
+                    contentClassName="z-[10010]"
+                  />
+                </div>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {rangeDays > 0 && rangeDays <= MAX_REPORT_PERIOD_DAYS
+                  ? `${rangeDays} of ${MAX_REPORT_PERIOD_DAYS} days selected.`
+                  : `Select up to ${MAX_REPORT_PERIOD_DAYS} days of data.`}
+              </p>
             </div>
             <div className="flex items-center gap-2 lg:pb-0">
               <SegmentedTabs
@@ -605,7 +674,7 @@ export const OrganizationReportDashboard: React.FC<
           <InfoBanner
             dense
             className="mt-3"
-            message="Reports support up to 92 days per view. Longer periods are fetched in shorter windows and combined automatically, so they may take a little longer."
+            message={`A report covers a single period of up to ${MAX_REPORT_PERIOD_DAYS} days — pick a start and end date inside that window. Longer periods are refused by the report service, and any days it cannot process are listed as excluded rather than silently averaged in.`}
           />
         </CardContent>
       </Card>
