@@ -5,6 +5,7 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 import AnalyticsContentSection from './AnalyticsContentSection';
 import AppDownloadSection from './AppDownloadSection';
+import EarthshotFinalistSection from './EarthshotFinalistSection';
 import HomeDeferredSections from './HomeDeferredSections';
 // import HomeDevConSection from './HomeDevConSection';
 import HomePlayerSection from './HomePlayerSection';
@@ -43,6 +44,9 @@ const HomePage = () => {
     <div className="space-y-20">
       {/* Home Player Section */}
       <HomePlayerSection />
+
+      {/* Earthshot Finalist Announcement – top-level recognition */}
+      <EarthshotFinalistSection />
 
       <HomeDeferredSections />
 

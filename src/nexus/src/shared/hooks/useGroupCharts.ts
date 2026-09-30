@@ -122,8 +122,7 @@ export const useUpdateGroupChart = () => {
       const listKey = chartsKey(arg.groupId);
       const updated = result?.data;
       mutate(
-        cacheKey =>
-          typeof cacheKey === 'string' && cacheKey === listKey,
+        cacheKey => typeof cacheKey === 'string' && cacheKey === listKey,
         (current: UserChartConfig[] | undefined) => {
           if (!Array.isArray(current) || !updated?._id) return current;
           return current.map(item =>
@@ -135,6 +134,15 @@ export const useUpdateGroupChart = () => {
                   // ids when the response omits them.
                   site_ids: arg.request.site_ids ?? item.site_ids,
                   device_ids: arg.request.device_ids ?? item.device_ids,
+                  // Same for the saved window: the response may not echo it,
+                  // and the cached copy's stale value would otherwise outrank
+                  // the freshly written sidecar until the next refetch.
+                  ...(arg.request.startDate
+                    ? { startDate: arg.request.startDate }
+                    : {}),
+                  ...(arg.request.endDate
+                    ? { endDate: arg.request.endDate }
+                    : {}),
                 }
               : item
           );
@@ -157,22 +165,15 @@ export const useCopyGroupChart = () => {
 
   return useSWRMutation(
     `${CHARTS_KEY_PREFIX}/copy`,
-    async (
-      key,
-      { arg }: { arg: { groupId: string; chartId: string } }
-    ) => {
+    async (key, { arg }: { arg: { groupId: string; chartId: string } }) => {
       const result = await preferencesService.copyChart(arg.chartId);
       const listKey = chartsKey(arg.groupId);
       const copy = result?.data;
       mutate(
-        cacheKey =>
-          typeof cacheKey === 'string' && cacheKey === listKey,
+        cacheKey => typeof cacheKey === 'string' && cacheKey === listKey,
         (current: UserChartConfig[] | undefined) => {
           if (!copy?._id) return current;
-          return [
-            copy,
-            ...(Array.isArray(current) ? current : []),
-          ];
+          return [copy, ...(Array.isArray(current) ? current : [])];
         },
         { revalidate: false }
       );
@@ -190,15 +191,11 @@ export const useDeleteGroupChart = () => {
 
   return useSWRMutation(
     `${CHARTS_KEY_PREFIX}/delete`,
-    async (
-      key,
-      { arg }: { arg: { groupId: string; chartId: string } }
-    ) => {
+    async (key, { arg }: { arg: { groupId: string; chartId: string } }) => {
       const result = await preferencesService.deleteChart(arg.chartId);
       const listKey = chartsKey(arg.groupId);
       mutate(
-        cacheKey =>
-          typeof cacheKey === 'string' && cacheKey === listKey,
+        cacheKey => typeof cacheKey === 'string' && cacheKey === listKey,
         (current: UserChartConfig[] | undefined) => {
           if (!Array.isArray(current)) return current;
           return current.filter(item => item._id !== arg.chartId);

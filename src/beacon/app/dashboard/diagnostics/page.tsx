@@ -85,7 +85,9 @@ const yesterdayUtc = () => new Date(Date.now() - 86_400_000).toISOString().slice
 
 const truncate = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
-const deviceDiagnosticsHref = (deviceId: string) => `/dashboard/devices/${encodeURIComponent(deviceId)}/diagnostics`;
+// The route and the diagnostics API use the device id; the name is only carried along for display.
+const deviceDiagnosticsHref = (deviceId: string, deviceName?: string | null) =>
+  `/dashboard/devices/${encodeURIComponent(deviceId)}/diagnostics${deviceName ? `?name=${encodeURIComponent(deviceName)}` : ""}`;
 
 export default function FleetDiagnosticsPage() {
   const { activeGroup, loading: groupLoading } = useGroup();
@@ -533,17 +535,24 @@ export default function FleetDiagnosticsPage() {
                   <tbody className="divide-y divide-gray-100">
                     {summary.worst_devices.map((device) => (
                       <tr key={device.device_id} className="hover:bg-slate-50/70">
-                        <td className="py-2.5 px-3 max-w-[10rem]">
+                        <td className="py-2.5 px-3 max-w-[14rem]">
                           <Link
-                            href={deviceDiagnosticsHref(device.device_id)}
-                            className="font-mono font-semibold text-primary hover:underline truncate block"
+                            href={deviceDiagnosticsHref(device.device_id, device.device_name)}
+                            className="font-semibold text-primary hover:underline truncate block"
+                            title={device.device_id}
                           >
-                            {device.device_id}
+                            {device.device_name || device.device_id}
                           </Link>
-                          {device.top_cause_code && (
-                            <div className="font-mono text-[10px] text-gray-400 truncate" title={device.top_cause_code}>
-                              {device.top_cause_code}
+                          {device.headline ? (
+                            <div className="text-[10px] text-gray-500 line-clamp-2" title={device.headline}>
+                              {device.headline}
                             </div>
+                          ) : (
+                            device.top_cause_code && (
+                              <div className="font-mono text-[10px] text-gray-400 truncate" title={device.top_cause_code}>
+                                {device.top_cause_code}
+                              </div>
+                            )
                           )}
                         </td>
                         <td className="py-2.5 px-2 text-center">
@@ -578,6 +587,26 @@ export default function FleetDiagnosticsPage() {
                   <CardDescription className="text-xs text-gray-500">
                     Every issue detected on {formatDiagnosisDate(summary.diagnosis_date)}, most severe and longest-running first
                   </CardDescription>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {[
+                      { label: "Degrading trends", check: "DEGRADING_TREND" },
+                      { label: "Outages after low charge", check: "LOW_CHARGE_OUTAGE" },
+                      { label: "Sensors outside tolerance", check: "SENSOR_ERROR_MARGIN" },
+                    ].map((quick) => (
+                      <button
+                        key={quick.check}
+                        type="button"
+                        onClick={() => applyFilters({ ...EMPTY_FILTERS, check_type: quick.check })}
+                        className={`text-[11px] px-2 py-1 rounded-lg border font-medium ${
+                          filters.check_type === quick.check
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {quick.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <form
@@ -699,7 +728,9 @@ export default function FleetDiagnosticsPage() {
                     ) : (
                       issues.map((issue) => (
                         <tr key={`${issue.device_id}-${issue.issue_code}`} className="hover:bg-slate-50/70 align-top">
-                          <td className="py-3 px-4 font-mono font-semibold text-gray-900 whitespace-nowrap">{issue.device_id}</td>
+                          <td className="py-3 px-4 font-semibold text-gray-900 whitespace-nowrap" title={issue.device_id}>
+                            {issue.device_name || issue.device_id}
+                          </td>
                           <td className="py-3 px-3 max-w-sm">
                             <div className="font-semibold text-gray-900">{issue.title}</div>
                             {issue.description && <div className="text-[11px] text-gray-500 line-clamp-2">{issue.description}</div>}
@@ -722,7 +753,7 @@ export default function FleetDiagnosticsPage() {
                             )}
                           </td>
                           <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <Link href={deviceDiagnosticsHref(issue.device_id)}>
+                            <Link href={deviceDiagnosticsHref(issue.device_id, issue.device_name)}>
                               <Button
                                 size="sm"
                                 variant="outline"

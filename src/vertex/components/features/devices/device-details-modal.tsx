@@ -46,7 +46,7 @@ const deviceUpdateSchema = z.object({
   claim_status: z.enum(["claimed", "unclaimed"]).optional(),
   // Read-only fields for display
   network: z.string().optional(),
-  status: z.enum(["not deployed", "deployed", "recalled", "online", "offline"]).optional(),
+  status: z.enum(["not deployed", "deployed", "recalled", "decommissioned", "online", "offline"]).optional(),
   isActive: z.boolean().optional(),
   isOnline: z.boolean().optional(),
   createdAt: z.string().optional(),

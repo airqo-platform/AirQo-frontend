@@ -29,7 +29,8 @@ const ALLOWED_PATH_PREFIXES = [
   'devices/grids/countries',
   'devices/measurements',
   'analytics/data-download',
-  'analytics/dashboard/chart/d3/data',
+  'analytics/dashboard/chart/data',
+  'analytics/report',
   'predict/daily-forecasting',
   'predict/hourly-forecasting',
 ];

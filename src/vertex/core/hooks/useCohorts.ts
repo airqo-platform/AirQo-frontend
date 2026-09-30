@@ -7,6 +7,7 @@ import {
 import { AxiosError } from 'axios';
 import {
   Cohort,
+  CohortSlugCheckResponse,
   CohortsSummaryResponse,
   GroupCohortsResponse,
 } from '@/app/types/cohorts';
@@ -275,6 +276,24 @@ export const useCreateCohort = (options?: UseCreateCohortOptions) => {
     });
 }
 
+/**
+ * Live availability preview for a self-service cohort_slug. Callers should
+ * debounce `slug` — every distinct value is a request.
+ */
+export const useCohortSlugAvailability = (
+  slug: string,
+  options: { groupSlug?: string; enabled?: boolean } = {}
+) => {
+  const trimmed = slug.trim();
+  return useQuery<CohortSlugCheckResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['cohortSlugAvailability', trimmed, options.groupSlug ?? null],
+    queryFn: ({ signal }) => cohortsApi.checkCohortSlug(trimmed, options.groupSlug, signal),
+    enabled: (options.enabled ?? true) && trimmed.length > 0,
+    staleTime: 30_000,
+    retry: false,
+  });
+};
+
 interface UseCreateCohortWithDevicesOptions {
   onSuccess?: (data: { success: boolean; message: string; cohort: Cohort }) => void;
   onError?: (error: AxiosError) => void;
@@ -290,6 +309,8 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       network,
       deviceIds,
       cohort_tags,
+      cohort_slug,
+      group_slug,
       groupId,
       userId,
     }: {
@@ -297,10 +318,21 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       network: string;
       deviceIds: string[];
       cohort_tags?: string[];
+      /** Optional self-service identifier; omitted from the request when blank. */
+      cohort_slug?: string;
+      /** Org slug the backend prefixes onto cohort_slug; only sent alongside one. */
+      group_slug?: string;
       groupId?: string;
       userId?: string;
     }) => {
-      const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
+      const requestedSlug = cohort_slug?.trim();
+      const createResp = await cohortsApi.createCohort({
+        name,
+        network,
+        cohort_tags,
+        ...(requestedSlug ? { cohort_slug: requestedSlug } : {}),
+        ...(requestedSlug && group_slug ? { group_slug } : {}),
+      });
       const cohortId = createResp?.cohort?._id;
       if (!cohortId) throw new Error('Cohort created but missing id');
       if (Array.isArray(deviceIds) && deviceIds.length > 0) {

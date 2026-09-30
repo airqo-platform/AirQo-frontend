@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DeviceDiagnosticsPanel } from "@/components/diagnostics/DeviceDiagnosticsPanel";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ export default function DeviceDiagnosticInspectorPage() {
 
   const rawId = params?.id || params?.deviceId || "";
   const deviceId = Array.isArray(rawId) ? rawId[0] : rawId;
+
+  const deviceName = useSearchParams()?.get("name") || deviceId;
 
   const [windowHours, setWindowHours] = useState<number>(24);
 
@@ -79,7 +81,7 @@ export default function DeviceDiagnosticInspectorPage() {
               Device Diagnostic Inspector
             </h1>
             <p className="text-xs text-gray-500 font-mono">
-              Target Device: <strong className="text-gray-900">{deviceId}</strong>
+              Target Device: <strong className="text-gray-900" title={deviceId}>{deviceName}</strong>
             </p>
           </div>
         </div>
@@ -111,7 +113,7 @@ export default function DeviceDiagnosticInspectorPage() {
       </div>
 
       {deviceId ? (
-        <DeviceDiagnosticsPanel deviceId={deviceId} windowHours={windowHours} />
+        <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} windowHours={windowHours} />
       ) : (
         <p className="text-sm text-gray-500">No device selected.</p>
       )}

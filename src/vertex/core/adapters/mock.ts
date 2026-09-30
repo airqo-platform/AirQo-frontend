@@ -25,6 +25,7 @@ import type {
   DateRange,
   DeviceDeployInput,
   DeviceRecallInput,
+  DeviceDecommissionInput,
   Reading,
   VertexAdapter,
 } from "./types";
@@ -251,6 +252,13 @@ export const mockAdapter: VertexAdapter = (() => {
       return {
         success: true,
         message: `[mock] ${deviceName} recalled using ${recallData.recallType}`,
+      };
+    },
+
+    async decommissionDevice(deviceName: string, decommissionData: DeviceDecommissionInput) {
+      return {
+        success: true,
+        message: `[mock] ${deviceName} decommissioned${decommissionData.reason ? `: ${decommissionData.reason}` : ""}`,
       };
     },
 

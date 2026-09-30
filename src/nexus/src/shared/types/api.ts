@@ -1021,6 +1021,24 @@ export interface CohortResponse {
   cohorts: Cohort[];
 }
 
+// Lightweight cohort projection returned by /devices/cohorts/summary —
+// one call resolves names for a whole id set (no per-cohort lookups).
+export interface CohortSummary {
+  _id: string;
+  name: string;
+  network?: string;
+  visibility?: boolean;
+  cohort_tags?: string[];
+  groups?: string[];
+  createdAt?: string;
+}
+
+export interface CohortsSummaryResponse {
+  success: boolean;
+  message: string;
+  cohorts: CohortSummary[];
+}
+
 // Grids summary types
 export interface GridSite {
   _id: string;
@@ -1967,16 +1985,26 @@ export interface UpdateOrganizationGroupThemeResponse {
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
+  cursor?: string;
   startDateTime: string;
   endDateTime: string;
   chartType: string;
   frequency: string;
-  pollutant: string;
-  organisation_name: string;
+  pollutants: string[];
+  organisationName?: string;
+  metaDataFields?: Array<'latitude' | 'longitude' | 'site_id'>;
+}
+
+export interface AnalyticsPaginationMetadata {
+  /** Number of records in this response page. */
+  total_count: number;
+  has_more: boolean;
+  next: string | null;
 }
 
 export interface ChartDataPoint {
   site_id?: string;
+  label?: string;
   value?: number | string | { value?: number };
   time?: string | number;
   generated_name?: string;
@@ -2000,17 +2028,88 @@ export interface ChartDataPoint {
 export interface AnalyticsChartResponse {
   status: string;
   message: string;
+  chart_type: string;
   data: ChartDataPoint[];
+  metadata: AnalyticsPaginationMetadata | null;
 }
 
 // Data download types
+export interface AnalyticsReportRequest {
+  cohort_id: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface AnalyticsReportAggregateRow {
+  date?: string;
+  timestamp?: string;
+  hour?: number;
+  day?: string;
+  month?: number;
+  month_name?: string;
+  year?: number;
+  site_name?: string;
+  site_latitude?: number | null;
+  site_longitude?: number | null;
+  city?: string;
+  region?: string;
+  country?: string;
+  pm2_5_raw_value?: number | null;
+  pm2_5_calibrated_value?: number | null;
+  pm10_raw_value?: number | null;
+  pm10_calibrated_value?: number | null;
+  [key: string]: string | number | null | undefined;
+}
+
+export interface AnalyticsReportDeviceSummary {
+  device_ids: string[];
+  number_of_devices: number;
+  'cohort name'?: string[];
+}
+
+export interface AnalyticsReportPeriod {
+  startTime: string;
+  endTime: string;
+}
+
+export interface AnalyticsReport {
+  status: string;
+  message?: string;
+  // Client-populated (not returned by the backend): list of periods the report
+  // service rejected after adaptive splitting. Lets the UI flag gaps in the
+  // merged totals. Undefined when every window succeeded.
+  unavailablePeriods?: AnalyticsReportPeriod[];
+  cohort_id: string;
+  devices: AnalyticsReportDeviceSummary;
+  period: AnalyticsReportPeriod;
+  daily_mean_pm: AnalyticsReportAggregateRow[];
+  datetime_mean_pm: AnalyticsReportAggregateRow[];
+  diurnal: AnalyticsReportAggregateRow[];
+  annual_pm: AnalyticsReportAggregateRow[];
+  monthly_pm: AnalyticsReportAggregateRow[];
+  pm_by_month_year: AnalyticsReportAggregateRow[];
+  pm_by_month_name: AnalyticsReportAggregateRow[];
+  site_monthly_mean_pm: AnalyticsReportAggregateRow[];
+  site_annual_mean_pm: AnalyticsReportAggregateRow[];
+  site_mean_pm: AnalyticsReportAggregateRow[];
+  mean_pm_by_city: AnalyticsReportAggregateRow[];
+  mean_pm_by_country: AnalyticsReportAggregateRow[];
+  mean_pm_by_region: AnalyticsReportAggregateRow[];
+  mean_pm_by_day_of_week: AnalyticsReportAggregateRow[];
+  mean_pm_by_day_hour: AnalyticsReportAggregateRow[];
+}
+
+export interface AnalyticsReportResponse {
+  airquality: AnalyticsReport;
+}
+
 export interface DataDownloadRequest {
-  datatype: 'calibrated' | 'raw';
+  datatype: 'calibrated' | 'raw' | 'averaged' | 'consolidated';
   downloadType: 'csv' | 'json';
   endDateTime: string;
-  frequency: 'daily';
+  frequency: 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   minimum: boolean;
-  outputFormat: 'airqo-standard';
+  outputFormat: 'airqo-standard' | 'aqcsv';
   pollutants: string[];
   startDateTime: string;
   sites?: string[];
@@ -2018,11 +2117,22 @@ export interface DataDownloadRequest {
   device_names?: string[];
   metaDataFields?: string[];
   weatherFields?: string[];
-  device_category?: 'lowcost' | 'bam' | 'mobile' | 'gas';
+  device_category?:
+    | 'lowcost'
+    | 'bam'
+    | 'mobile'
+    | 'gas'
+    | 'general'
+    | 'satellite';
+  grid_ids?: string[];
+  cohort_ids?: string[];
+  cursor?: string;
 }
 
 export interface DataDownloadItem {
-  site_name: string;
+  device_id?: string;
+  site_id?: string;
+  site_name?: string;
   pm10?: number;
   pm2_5_calibrated_value?: number;
   pm10_calibrated_value?: number;
@@ -2031,16 +2141,18 @@ export interface DataDownloadItem {
   longitude?: number;
   temperature?: number;
   humidity?: number;
-  datetime: string;
-  network: string;
-  device_name: string;
-  frequency: string;
+  datetime?: string;
+  network?: string;
+  device_name?: string;
+  frequency?: string;
+  [key: string]: unknown;
 }
 
 export interface DataDownloadResponse {
   status: string;
   message: string;
   data: DataDownloadItem[];
+  metadata: AnalyticsPaginationMetadata | null;
 }
 
 // Recent readings types
@@ -2638,6 +2750,37 @@ export interface UserStatsBreakdownResponse {
   data: UserStatsBreakdown;
 }
 
+// User Statistics Export Types (CSV export endpoint)
+export type UserStatsExportSegment = 'total' | 'active' | 'verified' | 'api';
+
+export interface UserStatsExportUser {
+  _id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  organization?: string;
+  country?: string;
+  isActive?: boolean;
+  verified?: boolean;
+  loginCount?: number;
+  lastLogin?: string;
+  createdAt?: string;
+  unsubscribed?: boolean;
+}
+
+export interface UserStatsExportResponse {
+  success: boolean;
+  message: string;
+  segment: UserStatsExportSegment;
+  total: number;
+  unsubscribed_total: number;
+  skip: number;
+  limit: number;
+  has_more: boolean;
+  users: UserStatsExportUser[];
+}
+
 // Subscription Types
 export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
 
@@ -2659,7 +2802,12 @@ export interface SubscriptionPlan {
 export interface UserSubscription {
   tier: SubscriptionTier;
   status:
-    'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+    | 'active'
+    | 'inactive'
+    | 'past_due'
+    | 'cancelled'
+    | 'trialing'
+    | 'paused';
   nextBillingDate?: string | null;
   lastRenewalDate?: string | null;
   automaticRenewal?: boolean;
@@ -2705,7 +2853,12 @@ export interface GetSubscriptionResponse {
   message: string;
   data?: {
     status:
-      'active' | 'inactive' | 'past_due' | 'cancelled' | 'trialing' | 'paused';
+      | 'active'
+      | 'inactive'
+      | 'past_due'
+      | 'cancelled'
+      | 'trialing'
+      | 'paused';
     tier: SubscriptionTier;
     nextBillingDate?: string | null;
   };
@@ -2919,7 +3072,12 @@ export interface RankingsHistoryParams {
 // AQI category strings as returned by the rankings API (snake_case keys,
 // e.g. "u4sg", "very_unhealthy"). See mapAqiCategoryToLevel for mapping.
 export type RankingsAqiCategory =
-  'good' | 'moderate' | 'u4sg' | 'unhealthy' | 'very_unhealthy' | 'hazardous';
+  | 'good'
+  | 'moderate'
+  | 'u4sg'
+  | 'unhealthy'
+  | 'very_unhealthy'
+  | 'hazardous';
 
 export interface RankingEntry {
   rank: number;
@@ -3010,6 +3168,17 @@ export interface UserChartConfig {
   subTitle?: string;
   chartType: string;
   days?: number;
+  /**
+   * Explicit saved range (ISO). `days` alone cannot round-trip a custom
+   * window — it only says "N days", which reloads as "N days ending today" —
+   * so the exact boundaries are persisted alongside it. Older charts (and
+   * deployments that don't return these) fall back to the client sidecar and
+   * then to `days`; see persistedConfigToDraft.
+   */
+  startDate?: string;
+  endDate?: string;
+  /** Human-readable period label mirroring the saved range. */
+  period?: Period;
   results?: number;
   showLegend?: boolean;
   showGrid?: boolean;
@@ -3049,6 +3218,12 @@ export interface CreateChartRequest {
   group_id?: string;
   tenant?: string;
   period?: Period;
+  /**
+   * Exact saved range (ISO). Sent at the top level, like `period`, so the
+   * window survives a reload instead of being re-derived from `days`.
+   */
+  startDate?: string;
+  endDate?: string;
   device_ids?: string[];
   site_ids?: string[];
   chartConfig: {
@@ -3073,6 +3248,9 @@ export interface CreateChartRequest {
 /** Partial update — fields go top-level (no chartConfig wrapper) */
 export interface UpdateChartRequest {
   period?: Period;
+  /** Exact saved range (ISO) — see CreateChartRequest.startDate. */
+  startDate?: string;
+  endDate?: string;
   title?: string;
   subTitle?: string;
   chartType?: string;

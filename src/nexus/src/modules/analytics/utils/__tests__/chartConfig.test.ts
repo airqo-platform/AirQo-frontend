@@ -55,7 +55,8 @@ describe('chartConfig utils', () => {
     it('normalizes frequency values with fallback', () => {
       expect(normalizeFrequency('hourly')).toBe('hourly');
       expect(normalizeFrequency('Weekly')).toBe('weekly');
-      expect(normalizeFrequency('raw')).toBe('daily');
+      expect(normalizeFrequency('raw')).toBe('raw');
+      expect(normalizeFrequency('yearly')).toBe('yearly');
       expect(normalizeFrequency(undefined)).toBe('daily');
     });
 
@@ -63,7 +64,7 @@ describe('chartConfig utils', () => {
       expect(normalizeExplorerChartType('Line')).toBe('Line');
       expect(normalizeExplorerChartType('area')).toBe('Area');
       expect(normalizeExplorerChartType('Column')).toBe('Bar');
-      expect(normalizeExplorerChartType('pie')).toBe('Line');
+      expect(normalizeExplorerChartType('pie')).toBe('Pie');
     });
   });
 
@@ -175,6 +176,51 @@ describe('chartConfig utils', () => {
     it('falls back to the persisted color for legacy drafts', () => {
       const draft = persistedConfigToDraft(PERSISTED);
       expect(draft.color).toBe('#d62020');
+    });
+
+    it('prefers the server-stored range over the sidecar and over days', () => {
+      // A custom range is stored server-side (startDate/endDate on the chart
+      // document). It must win over the local sidecar, and over the `days`
+      // fallback that would otherwise reload as "N days ending today".
+      const serverRange = {
+        startDate: '2026-08-03T00:00:00.000Z',
+        endDate: '2026-08-09T23:59:59.999Z',
+      };
+
+      const draft = persistedConfigToDraft(
+        { ...PERSISTED, ...serverRange },
+        {
+          ...DEFAULT_CHART_SIDECAR,
+          startDate: '2026-01-01T00:00:00.000Z',
+          endDate: '2026-01-07T23:59:59.999Z',
+        }
+      );
+
+      expect(draft.startDate).toBe(serverRange.startDate);
+      expect(draft.endDate).toBe(serverRange.endDate);
+    });
+
+    it('falls back to the sidecar when the server has no stored range', () => {
+      // Legacy charts: server stores only `days`, so the sidecar is the source
+      // of truth for the exact window.
+      const draft = persistedConfigToDraft(PERSISTED, {
+        ...DEFAULT_CHART_SIDECAR,
+        ...RANGE,
+      });
+
+      expect(draft.startDate).toBe(RANGE.startDate);
+      expect(draft.endDate).toBe(RANGE.endDate);
+    });
+
+    it('ignores a half-written server range and falls back safely', () => {
+      const draft = persistedConfigToDraft({
+        ...PERSISTED,
+        startDate: '2026-08-03T00:00:00.000Z',
+        endDate: undefined,
+      });
+
+      expect(draft.startDate).toBeTruthy();
+      expect(draft.endDate).toBeTruthy();
     });
   });
 

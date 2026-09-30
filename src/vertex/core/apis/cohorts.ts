@@ -1,4 +1,4 @@
-import { Cohort, CohortsSummaryResponse, GroupCohortsResponse, OriginalCohortResponse, PersonalUserCohortsResponse } from "@/app/types/cohorts";
+import { Cohort, CohortSlugCheckResponse, CohortsSummaryResponse, GroupCohortsResponse, OriginalCohortResponse, PersonalUserCohortsResponse } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export interface GetCohortsSummaryParams {
@@ -91,7 +91,25 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohort: async (payload: { name: string; network: string; cohort_tags?: string[] }) => {
+  /**
+   * Previews whether a self-service cohort_slug is available. The backend
+   * sanitises the requested value the same way it does on create, so
+   * `candidate_slug` is what would actually be stored.
+   */
+  checkCohortSlug: async (slug: string, groupSlug?: string, signal?: AbortSignal): Promise<CohortSlugCheckResponse> => {
+    try {
+      const queryParams = new URLSearchParams({ slug });
+      if (groupSlug) queryParams.set("group_slug", groupSlug);
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/check-slug?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' }, signal }
+      );
+      return response.data as CohortSlugCheckResponse;
+    } catch (error) {
+      throw error;
+    }
+  },
+  createCohort: async (payload: { name: string; network: string; cohort_tags?: string[]; cohort_slug?: string; group_slug?: string }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts`,
@@ -172,7 +190,7 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string; cohort_tags?: string[] }) => {
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string; cohort_tags?: string[]; cohort_slug?: string; group_slug?: string }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts/from-cohorts`,

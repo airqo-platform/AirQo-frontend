@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 
 interface DashboardHeaderProps {
   organizationTitle: string;
+  description?: string;
   className?: string;
 }
 
@@ -18,27 +18,15 @@ const formatOrgName = (name: string, maxLen = 30): string => {
   return titled.length > maxLen ? `${titled.slice(0, maxLen - 1)}…` : titled;
 };
 
-/**
- * Organization dashboard header — title and an empty-state placeholder
- * waiting for a backend overview API.
- */
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   organizationTitle,
+  description = 'Cohort-level air quality trends and coverage for this organization.',
   className,
-}) => {
-  return (
-    <div className={cn('space-y-3', className)}>
-      <h1 className="truncate text-2xl text-foreground">
-        {formatOrgName(organizationTitle)}
-      </h1>
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <p className="text-sm text-muted-foreground">
-            Overview coming soon — insights for this organization will appear
-            here.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+}) => (
+  <div className={cn('space-y-1', className)}>
+    <h1 className="truncate text-2xl text-foreground">
+      {formatOrgName(organizationTitle)}
+    </h1>
+    <p className="text-sm text-muted-foreground">{description}</p>
+  </div>
+);

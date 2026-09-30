@@ -59,6 +59,7 @@ import {
 import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
+import { useOrgCohortContext } from '@/shared/providers/org-cohort-provider';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { rememberSiteSlug } from './hooks/useResolveSiteByName';
 import { toSiteSlug } from './utils/siteDetails';
@@ -111,7 +112,7 @@ const DataExportPage = () => {
   const pathname = usePathname();
   const router = useRouter();
   const posthog = usePostHog();
-  const { activeGroup, groups, isLoading: userLoading } = useUser();
+  const { activeGroup, isLoading: userLoading } = useUser();
   const { switchGroup } = useUserActions();
   const { hasPermission } = useRBAC();
   const canDownload = hasPermission('DATA_EXPORT');
@@ -126,20 +127,14 @@ const DataExportPage = () => {
     const segments = pathname.split('/').filter(Boolean);
     return segments[1]?.toLowerCase() ?? null;
   }, [isOrgFlow, pathname]);
-  const organizationGroup = useMemo(() => {
-    if (!isOrgFlow || !orgSlugFromPath) {
-      return null;
-    }
 
-    return (
-      groups?.find(
-        group =>
-          (group.organizationSlug || '').trim().toLowerCase() ===
-          orgSlugFromPath
-      ) || null
-    );
-  }, [groups, isOrgFlow, orgSlugFromPath]);
+  // The org shell resolves the organization group (and the org-wide cohort
+  // selection) once in the provider above this page; consume it instead of
+  // re-deriving the group from the user's group list here. Null in user flow.
+  const orgCohortsCtx = useOrgCohortContext();
+  const organizationGroup = orgCohortsCtx?.organizationGroup ?? null;
   const organizationGroupId = organizationGroup?.id || '';
+  const orgSelectedCohortId = orgCohortsCtx?.selectedCohortId ?? '';
   const isOrgUnresolved =
     isOrgFlow && !userLoading && !!orgSlugFromPath && !organizationGroup;
   const isOrgContextReady =
@@ -386,7 +381,11 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedDevicesForActions,
     setSelectedDevices,
-    isOrgContextReady
+    // Org flow waits for the header cohort selection: the context owns the
+    // cohort resolution, and sites/devices must only ever fetch the single
+    // selected cohort (never the full org cohort list).
+    isOrgContextReady && (!isOrgFlow || !!orgSelectedCohortId),
+    isOrgFlow && orgSelectedCohortId ? [orgSelectedCohortId] : []
   );
 
   const selectedDeviceNamesForExport = useMemo(() => {
@@ -646,9 +645,25 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading =
-    isGroupSyncing || groupCohortsHook.isLoading || currentHook.isLoading;
+    isGroupSyncing ||
+    // Org flow: the context owns cohort resolution (the local group-cohorts
+    // hook is disabled), so its loading state drives the table spinner.
+    (isOrgFlow ? !!orgCohortsCtx?.isLoading : groupCohortsHook.isLoading) ||
+    currentHook.isLoading;
   const tableRefreshing =
     !tableLoading && (currentHook.isValidating || isRefreshing);
+  // Cohort-driven tabs (sites/devices): a failed cohort fetch leaves the
+  // table with no data and no error of its own — surface the cohort error
+  // so the user sees a real message instead of "No data available". Org
+  // flow reads it from the context; user flow from the local hook.
+  const cohortErrorMessage =
+    activeTab === 'sites' || activeTab === 'devices'
+      ? isOrgFlow
+        ? (orgCohortsCtx?.error ?? null)
+        : groupCohortsHook.error
+          ? (groupCohortsHook.error.message ?? 'Failed to load cohorts')
+          : null
+      : null;
   const compactTableRows =
     activeTab === 'devices' ||
     activeTab === 'countries' ||
@@ -970,6 +985,18 @@ const DataExportPage = () => {
     }
   }, [currentHook, isGroupSyncing, isRefreshing]);
 
+  // Table-level Retry: when the cohort fetch is the active failure, revalidate
+  // cohorts first (the sites/devices key stays paused until cohorts settle),
+  // then refresh the current tab. Destructured so the callback keeps a stable
+  // identity (SWR's mutate is memoized; error only changes on transitions).
+  const { error: cohortsError, mutate: cohortsMutate } = groupCohortsHook;
+  const handleTableRefresh = useCallback(async () => {
+    if (cohortsError) {
+      void cohortsMutate?.();
+    }
+    await handleRefreshCurrentTab();
+  }, [cohortsError, cohortsMutate, handleRefreshCurrentTab]);
+
   const savePreparedDownload = async (
     download: PreparedDownloadResult,
     format: FinalSaveFormat
@@ -1025,9 +1052,11 @@ const DataExportPage = () => {
       });
 
       trackDataDownload(posthog, {
-        dataType: dataType as 'calibrated' | 'raw',
+        dataType: dataType as
+          'raw' | 'averaged' | 'calibrated' | 'consolidated',
         fileType: format as 'csv' | 'json',
-        frequency: frequency as 'hourly' | 'daily' | 'monthly',
+        frequency: frequency as
+          'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly',
         pollutants: selectedPollutants,
         locationCount: download.locationCount,
         startDate: dateRange?.from?.toISOString() || '',
@@ -1337,7 +1366,8 @@ const DataExportPage = () => {
                 columns={config.columns}
                 loading={tableLoading}
                 isRefreshing={tableRefreshing}
-                error={currentHook.error?.message || null}
+                error={currentHook.error?.message || cohortErrorMessage || null}
+                onRefresh={handleTableRefresh}
                 currentPage={currentState.page}
                 totalPages={meta.totalPages}
                 pageSize={currentState.pageSize}

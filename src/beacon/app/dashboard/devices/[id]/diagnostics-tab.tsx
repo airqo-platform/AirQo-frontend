@@ -11,7 +11,8 @@ interface DiagnosticsTabProps {
   deviceName?: string;
 }
 
-export default function DiagnosticsTab({ deviceId }: DiagnosticsTabProps) {
+export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabProps) {
+  const nameQuery = deviceName ? `?name=${encodeURIComponent(deviceName)}` : "";
   return (
     <div className="space-y-6">
       {/* Top Banner with Full Screen Inspector Link */}
@@ -21,7 +22,7 @@ export default function DiagnosticsTab({ deviceId }: DiagnosticsTabProps) {
           <h3 className="text-base font-bold text-gray-900">Device Diagnostics</h3>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/dashboard/devices/${deviceId}/diagnostics`}>
+          <Link href={`/dashboard/devices/${encodeURIComponent(deviceId)}/diagnostics${nameQuery}`}>
             <Button variant="outline" size="sm" className="h-8 text-xs bg-white gap-1.5 text-blue-700 border-blue-200 hover:bg-blue-50">
               <ExternalLink className="w-3.5 h-3.5" />
               Full-Screen Inspector
@@ -36,7 +37,7 @@ export default function DiagnosticsTab({ deviceId }: DiagnosticsTabProps) {
         </div>
       </div>
 
-      <DeviceDiagnosticsPanel deviceId={deviceId} />
+      <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} />
     </div>
   );
 }

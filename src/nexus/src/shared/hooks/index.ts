@@ -71,6 +71,13 @@ export {
   useActiveGroupCohortDevicesWithState,
 } from './useDevice';
 
+// Organization cohorts hooks
+export {
+  useOrgCohorts,
+  useOrgCohortSelection,
+  type OrgCohortOption,
+} from './useOrgCohorts';
+
 // Sites data hooks
 export { useSitesData } from './useSitesData';
 
@@ -110,6 +117,13 @@ export {
   useBypassedTokens,
   useUpdateTokenBypass,
 } from './useAdmin';
+
+// API key usage hooks (System → admin usage analytics)
+export {
+  useApiKeyUsageLeaderboard,
+  useApiKeyUsageTimeseries,
+  useApiKeyUsageDetail,
+} from './useApiKeyUsage';
 
 // Groups hooks
 export {

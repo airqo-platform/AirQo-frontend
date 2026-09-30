@@ -19,7 +19,11 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   className,
 }) => {
   const pathname = usePathname();
-  const { canAccessAdminPanel, hasAnyPermissionInActiveGroup } = useRBAC();
+  const {
+    canAccessAdminPanel,
+    hasAnyPermissionInActiveGroup,
+    hasAnyPermission,
+  } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -84,6 +88,10 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         .map(group => ({
           ...group,
           items: group.items.filter(item => {
+            if (item.id === 'system-api-keys') {
+              return canAccessAdmin || hasAnyPermission(['AUDIT_VIEW']);
+            }
+
             if (item.id === 'system-feedback') {
               return canAccessAdmin;
             }
@@ -99,6 +107,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                 'system-security',
                 'system-org-requests',
                 'system-user-statistics',
+                'system-usage',
               ].includes(item.id)
             ) {
               return canAccessAdmin;
@@ -121,7 +130,13 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [flow, orgSlug, canAccessAdminPanel, hasAnyPermissionInActiveGroup]);
+  }, [
+    flow,
+    orgSlug,
+    canAccessAdminPanel,
+    hasAnyPermissionInActiveGroup,
+    hasAnyPermission,
+  ]);
 
   const shouldShowFeedbackAction = !pathname.startsWith('/system/feedback');
 
@@ -132,7 +147,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
 
   return (
     <div className={cn('flex h-full w-full flex-col py-6', className)}>
-      <div className="flex-1 px-3">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3">
         {sidebarConfig.map((group, index) => (
           <React.Fragment key={group.id}>
             {index > 0 && isCollapsed && (
@@ -178,7 +193,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
       {shouldShowFeedbackAction && (
         <div
           className={cn(
-            'px-3 pt-4 border-t border-border',
+            'shrink-0 px-3 pt-4 border-t border-border',
             // keep a bit tighter vertical spacing when collapsed
             isCollapsed ? 'py-2' : ''
           )}

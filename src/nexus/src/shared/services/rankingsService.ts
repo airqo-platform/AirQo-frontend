@@ -8,25 +8,7 @@ import type {
   RankingsCountriesResponse,
   ApiErrorResponse,
 } from '../types/api';
-
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  if (!candidate) {
-    return false;
-  }
-
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
+import { isAbortError } from '../lib/retryPolicy';
 
 /**
  * Client for the African AQI rankings endpoints

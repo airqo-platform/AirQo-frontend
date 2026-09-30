@@ -30,6 +30,7 @@ import {
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { useCohort } from '@/shared/hooks';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 import { AqAlertTriangle } from '@airqo/icons-react';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import type { PollutantType } from '@/shared/utils/airQuality';
@@ -279,24 +280,10 @@ const MapPage: React.FC<MapPageProps> = ({
     mutate: refetchCohort,
   } = useCohort(primaryCohortId, isOrganizationFlow && !!primaryCohortId);
 
-  const isCohortFetchCanceled = React.useMemo(() => {
-    if (!cohortError) {
-      return false;
-    }
-
-    const candidate = cohortError as {
-      name?: string;
-      code?: string;
-      message?: string;
-    };
-
-    return (
-      candidate.name === 'AbortError' ||
-      candidate.name === 'CanceledError' ||
-      candidate.code === 'ERR_CANCELED' ||
-      candidate.message === 'canceled'
-    );
-  }, [cohortError]);
+  const isCohortFetchCanceled = React.useMemo(
+    () => !!cohortError && isAbortError(cohortError),
+    [cohortError]
+  );
 
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
@@ -438,8 +425,7 @@ const MapPage: React.FC<MapPageProps> = ({
         dispatch(
           setSelectedLocation({
             ...matchedReading,
-            lastUpdated:
-              matchedReading.updatedAt || new Date().toISOString(),
+            lastUpdated: matchedReading.updatedAt || new Date().toISOString(),
           })
         );
       } else {

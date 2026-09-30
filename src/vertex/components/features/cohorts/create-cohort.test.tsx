@@ -14,6 +14,7 @@ setupResizeObserverMock();
 
 vi.mock("@/core/hooks/useCohorts", () => ({
   useCreateCohortWithDevices: vi.fn(),
+  useCohortSlugAvailability: vi.fn(() => ({ data: undefined, error: null, isFetching: false })),
 }));
 
 vi.mock("@/core/hooks/useDevices", () => ({
@@ -265,6 +266,69 @@ describe("CreateCohortDialog", () => {
     });
     const [payload] = createSpy.mock.calls[0];
     expect(payload.userId).toBeUndefined();
+  });
+
+  it("sends a trimmed custom cohort ID and, for external orgs, the org slug for namespacing", async () => {
+    vi.mocked(useUserContext).mockReturnValue({
+      isExternalOrg: true,
+      activeGroup: { _id: "group-1", organization_slug: "kcca" },
+    } as unknown as ReturnType<typeof useUserContext>);
+    const createSpy = vi.fn();
+    mockCreateCohort(createSpy);
+    const user = userEvent.setup();
+    render(<CreateCohortDialog open onOpenChange={vi.fn()} />);
+    await settleDialogFocus();
+
+    await user.type(dialog().getByLabelText(/^Cohort name/), "Nairobi CBD");
+    await user.type(dialog().getByLabelText(/Custom cohort ID/), "  Nairobi CBD 2026 ");
+    await selectNetwork(user, "airqo");
+    await user.click(dialog().getByRole("button", { name: "Review & Create" }));
+
+    expect(dialog().getByText("nairobi-cbd-2026")).toBeInTheDocument();
+
+    await user.click(dialog().getByRole("button", { name: "Confirm & Create" }));
+
+    await waitFor(() => {
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ cohort_slug: "Nairobi CBD 2026", group_slug: "kcca" }),
+        expect.anything()
+      );
+    });
+  });
+
+  it("omits the custom cohort ID from the payload when it is left blank", async () => {
+    const createSpy = vi.fn();
+    mockCreateCohort(createSpy);
+    const user = userEvent.setup();
+    render(<CreateCohortDialog open onOpenChange={vi.fn()} />);
+    await settleDialogFocus();
+
+    await user.type(dialog().getByLabelText(/^Cohort name/), "Plain Cohort");
+    await selectNetwork(user, "airqo");
+    await user.click(dialog().getByRole("button", { name: "Review & Create" }));
+    await user.click(dialog().getByRole("button", { name: "Confirm & Create" }));
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    const [payload] = createSpy.mock.calls[0];
+    expect(payload).not.toHaveProperty("cohort_slug");
+    expect(payload).not.toHaveProperty("group_slug");
+  });
+
+  it("rejects a custom cohort ID that sanitises to fewer than 3 characters", async () => {
+    mockCreateCohort(vi.fn());
+    const user = userEvent.setup();
+    render(<CreateCohortDialog open onOpenChange={vi.fn()} />);
+    await settleDialogFocus();
+
+    await user.type(dialog().getByLabelText(/^Cohort name/), "Plain Cohort");
+    await user.type(dialog().getByLabelText(/Custom cohort ID/), "a!");
+    await selectNetwork(user, "airqo");
+    await user.click(dialog().getByRole("button", { name: "Review & Create" }));
+
+    expect(
+      dialog().getByText("Custom ID must contain at least 3 letters or numbers.")
+    ).toBeInTheDocument();
+    expect(dialog().queryByRole("button", { name: "Confirm & Create" })).not.toBeInTheDocument();
   });
 
   it("routes userId for non-admin, non-external-org pages", async () => {

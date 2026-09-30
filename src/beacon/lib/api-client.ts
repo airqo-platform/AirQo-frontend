@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { signOut } from 'next-auth/react';
 import { sendToSlack } from '@/lib/logger';
+import { checkReachability, isLikelyOffline, reportRequestFailure } from '@/lib/network-status';
+import { isConnectivityError } from '@/lib/retry';
 // Import authService lazily inside handleUnauthorized to avoid a circular dependency with services/api-service.
 
 let isLoggingOut = false;
@@ -55,15 +57,24 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error.response?.status;
+    const method = error.config?.method?.toUpperCase();
+    const context = { statusCode: status, url: error.config?.url, method };
 
     if (status === 401) {
       await handleUnauthorized();
-    } else if (!status || status >= 500) {
-      sendToSlack("API request failed", error, {
-        statusCode: status,
-        url: error.config?.url,
-        method: error.config?.method?.toUpperCase(),
-      });
+    } else if (status >= 500) {
+      sendToSlack("API request failed", error, { ...context, failureType: "server" });
+    } else if (!status && isConnectivityError(error)) {
+      // No response: usually the user's connection, not a backend incident.
+      // Only alert when our own server is reachable, i.e. the request itself failed.
+      reportRequestFailure(error, method);
+      if (typeof window !== "undefined" && !isLikelyOffline()) {
+        void checkReachability().then((reachable) => {
+          if (reachable) {
+            sendToSlack("API request failed: no response", error, { ...context, failureType: "no_response" });
+          }
+        });
+      }
     }
     return Promise.reject(error);
   },

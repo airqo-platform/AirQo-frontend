@@ -50,6 +50,10 @@ import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import { normalizePollutant } from '@/modules/analytics/utils/chartConfig';
 import { toDateString } from '@/shared/services/analyticsService';
 import { isAbortError } from '@/shared/lib/retryPolicy';
+import {
+  enrichChartDataSiteIds,
+  normalizeLocationName,
+} from '@/modules/analytics/utils/chartLabels';
 
 type MoreInsightsProps = {
   activeTab?: 'sites' | 'devices';
@@ -100,6 +104,13 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const visibleSiteIds = useMemo(() => {
     return Array.from(visibleSites);
   }, [visibleSites]);
+  const selectedSiteNamesById = useMemo(
+    () =>
+      new Map(
+        selectedSites.map(site => [site._id, getSiteDisplayName(site)])
+      ),
+    [selectedSites]
+  );
   // The chart API accepts line/bar data requests. Area is a presentation
   // choice rendered by DynamicChart from the same line-series response.
   const chartRequestType = chartType === 'area' ? 'line' : chartType;
@@ -179,6 +190,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
   // Chart data state
   const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [chartRequestFailed, setChartRequestFailed] = useState(false);
 
   // Fetch data when dependencies change and ignore stale responses when the
   // dialog closes or a different site/group context replaces the current one.
@@ -196,6 +208,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       !dateRange?.to
     ) {
       setChartData([]);
+      setChartRequestFailed(false);
       return () => {
         isActive = false;
         controller.abort();
@@ -203,6 +216,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     }
 
     setChartData([]);
+    setChartRequestFailed(false);
 
     const run = async () => {
       try {
@@ -212,8 +226,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           endDateTime: toDateString(dateRange.to.toISOString()),
           chartType: chartRequestType,
           frequency: frequency,
-          pollutant: normalizePollutant(pollutant),
-          organisation_name: '',
+          pollutants: [normalizePollutant(pollutant)],
           signal: controller.signal,
         });
 
@@ -229,11 +242,15 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           const transformed = normalizeAirQualityData(
             response.data as ChartDataPoint[]
           );
-          setChartData(transformed);
+          setChartData(
+            enrichChartDataSiteIds(transformed, selectedSiteNamesById)
+          );
+          setChartRequestFailed(false);
           return;
         }
 
         setChartData([]);
+        setChartRequestFailed(false);
       } catch (error) {
         // Cancelled requests must never surface as a user-facing failure
         // (AGENTS.md abort lifecycle).
@@ -250,6 +267,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           (error as { message?: unknown })?.message ?? error
         );
         setChartData([]);
+        setChartRequestFailed(true);
       }
     };
 
@@ -267,12 +285,14 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     isOpen,
     pollutant,
     visibleSiteIds,
+    selectedSiteNamesById,
   ]);
 
   // Initialize visible sites when selectedSites changes or dialog opens
   React.useEffect(() => {
     if (!isOpen) {
       setChartData([]);
+      setChartRequestFailed(false);
       setVisibleSites(new Set());
       setSearchQuery('');
       return;
@@ -280,6 +300,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
     if (selectedSites.length === 0) {
       setChartData([]);
+      setChartRequestFailed(false);
       setVisibleSites(new Set());
       setSearchQuery('');
       return;
@@ -291,6 +312,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
     );
     setSearchQuery('');
     setChartData([]);
+    setChartRequestFailed(false);
   }, [dialogContextKey, isOpen, selectedSites]);
 
   // Handle site visibility toggle (for chart display)
@@ -412,11 +434,11 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
           datatype: dataTypeToUse,
           downloadType: 'csv' as const,
           endDateTime,
-          frequency: frequency as 'daily',
-          minimum: true,
+          frequency,
+          minimum: false,
           outputFormat: 'airqo-standard' as const,
           pollutants: [pollutant],
-          metaDataFields: ['latitude', 'longitude'],
+          metaDataFields: ['latitude', 'longitude', 'site_id'],
           weatherFields: ['temperature', 'humidity'],
           startDateTime,
           sites: visibleSiteIds,
@@ -428,7 +450,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         trackDataDownload(posthog, {
           dataType: dataTypeToUse,
           fileType: 'csv',
-          frequency: frequency as 'hourly' | 'daily' | 'monthly',
+          frequency,
           pollutants: [pollutant],
           locationCount: visibleSiteIds.length,
           startDate: startDateTime,
@@ -477,9 +499,23 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       ),
     [filteredChartData]
   );
+  const chartSiteNames = useMemo(
+    () =>
+      new Set(
+        filteredChartData
+          .map(point => normalizeLocationName(String(point.site ?? '')))
+          .filter(Boolean)
+      ),
+    [filteredChartData]
+  );
   const locationsWithoutData = useMemo(
-    () => visibleSiteIds.filter(siteId => !chartSiteIds.has(siteId)).length,
-    [chartSiteIds, visibleSiteIds]
+    () =>
+      visibleSiteIds.filter(siteId => {
+        if (chartSiteIds.has(siteId)) return false;
+        const selectedName = selectedSiteNamesById.get(siteId);
+        return !selectedName || !chartSiteNames.has(normalizeLocationName(selectedName));
+      }).length,
+    [chartSiteIds, chartSiteNames, selectedSiteNamesById, visibleSiteIds]
   );
 
   // Sidebar content with location cards
@@ -648,6 +684,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
         </div>
 
         {!isChartLoading &&
+          !chartRequestFailed &&
           visibleSiteIds.length > 0 &&
           locationsWithoutData > 0 && (
             <Banner

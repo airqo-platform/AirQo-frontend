@@ -92,6 +92,17 @@ export interface DeviceRecallInput {
   userName?: string;
 }
 
+export interface DeviceDecommissionInput {
+  /** Optional free text (max 500 chars) stored on the activity description. */
+  reason?: string;
+  user_id: string;
+  date: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  userName?: string;
+}
+
 export interface CreateDeviceInput {
   long_name: string;
   category: string;

@@ -24,6 +24,8 @@ interface CohortDetailsCardProps {
   onShowDetailsModal: () => void;
   loading: boolean;
   cohort_tags?: string[];
+  /** Self-service ID chosen at creation, when the cohort has one. */
+  cohortSlug?: string;
 }
 
 const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
@@ -33,6 +35,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
   onShowDetailsModal,
   loading,
   cohort_tags,
+  cohortSlug,
 }) => {
   const [isVisibilityDialogOpen, setIsVisibilityDialogOpen] = useState(false);
   const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
@@ -46,6 +49,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
 
   const { showBanner } = useBanner();
   const { handleCopy } = useClipboard({ successMessage: 'Cohort ID copied to clipboard' });
+  const { handleCopy: handleCopyCustomId } = useClipboard({ successMessage: 'Custom ID copied to clipboard' });
   const { showBannerWithDelay } = useBannerWithDelay();
   const { mutateAsync: updateCohort, isPending } = useUpdateCohortDetails();
   const { data: originalData } = useOriginalCohort(id, { enabled: !!isDuplicate });
@@ -205,6 +209,29 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({
                 />
               </div>
             </div>
+
+            {cohortSlug && (
+              <div>
+                <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">
+                  Custom ID
+                </div>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="text-sm font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-hide max-w-full"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {cohortSlug}
+                  </div>
+                  <ReusableButton
+                    variant="text"
+                    onClick={() => handleCopyCustomId(cohortSlug)}
+                    className="p-1"
+                    Icon={AqCopy01}
+                    aria-label="Copy custom ID"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {originalCohort && (

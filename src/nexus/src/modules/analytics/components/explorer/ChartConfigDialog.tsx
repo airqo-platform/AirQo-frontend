@@ -33,6 +33,7 @@ const CHART_TYPE_OPTIONS: { value: ExplorerChartType; label: string }[] = [
   { value: 'Line', label: 'Line' },
   { value: 'Area', label: 'Area' },
   { value: 'Bar', label: 'Bar' },
+  { value: 'Pie', label: 'Pie' },
 ];
 
 const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
@@ -41,10 +42,12 @@ const POLLUTANT_OPTIONS: { value: PollutantType; label: string }[] = [
 ];
 
 const FREQUENCY_OPTIONS: { value: FrequencyType; label: string }[] = [
+  { value: 'raw', label: 'Raw Data' },
   { value: 'hourly', label: 'Hourly' },
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
+  { value: 'yearly', label: 'Yearly' },
 ];
 
 interface ChartConfigDialogProps {

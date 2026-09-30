@@ -1,12 +1,15 @@
 import { config } from "@/lib/config";
 import { fetchWithAuth } from "@/lib/api-client";
+import authService from "@/services/api-service";
 import {
   DailyDiagnosticsRunRequest,
   DailyDiagnosticsRunResponse,
   DeviceDailyDiagnostic,
   DeviceDailyDiagnosticSummary,
   DeviceHealthSnapshot,
+  DeviceIndicatorSeries,
   DeviceIssueSummary,
+  DeviceTrends,
   DiagnosticEvaluationResult,
   DiagnosticFeedbackCreate,
   DiagnosticTemplate,
@@ -17,22 +20,19 @@ import {
   ProfileDiagnosticReadiness,
 } from "@/types/diagnostics";
 
-const getBaseUrl = () => {
-  if (typeof window !== "undefined") {
-    return process.env.NEXT_PUBLIC_BEACON_API_URL || config.apiUrl || "http://localhost:8000";
-  }
-  return process.env.NEXT_PUBLIC_BEACON_API_URL || "http://localhost:8000";
-};
+// Same routing and auth as the other Beacon services: the Beacon API sits behind the platform
+// gateway at /api/v1/beacon (plain /api/v1 when running against a local API), and the gateway
+// expects the platform token as-is in Authorization. Anything else is rejected with 401, which
+// fetchWithAuth treats as an expired session and signs the user out.
+const getBaseUrl = () => `${config.apiUrl}${config.beaconApiPrefix}`;
 
 const getAuthHeaders = (): HeadersInit => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+  const token = authService.getToken();
+  if (token) {
+    headers["Authorization"] = token;
   }
   return headers;
 };
@@ -123,12 +123,12 @@ const buildQuery = (params: Record<string, string | number | boolean | string[] 
 export const diagnosticsService = {
   /**
    * Fetch Latest Device Health & Diagnoses (null when the device has never been evaluated)
-   * GET /api/v1/diagnostics/devices/{device_id}/health
+   * GET /diagnostics/devices/{device_id}/health
    */
   async getDeviceHealth(deviceId: string): Promise<DeviceHealthSnapshot | null> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health`,
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/health`,
       {
         headers: getAuthHeaders(),
       }
@@ -139,12 +139,12 @@ export const diagnosticsService = {
 
   /**
    * Fetch Historical Health Trajectory
-   * GET /api/v1/diagnostics/devices/{device_id}/health/history?limit=30
+   * GET /diagnostics/devices/{device_id}/health/history?limit=30
    */
   async getDeviceHealthHistory(deviceId: string, limit: number = 30): Promise<DeviceHealthSnapshot[]> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/health/history?limit=${limit}`,
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/health/history?limit=${limit}`,
       {
         headers: getAuthHeaders(),
       }
@@ -156,7 +156,7 @@ export const diagnosticsService = {
 
   /**
    * Run Live On-Demand Device Evaluation
-   * POST /api/v1/diagnostics/evaluate/{device_id}?save_snapshot=true
+   * POST /diagnostics/evaluate/{device_id}?save_snapshot=true
    * Throws DiagnosticsApiError (422, isProfileNotDiagnosable) when the device has no usable profile.
    */
   async evaluateDevice(
@@ -165,7 +165,7 @@ export const diagnosticsService = {
   ): Promise<DiagnosticEvaluationResult> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/evaluate/${encodeURIComponent(deviceId)}?save_snapshot=true`,
+      `${baseUrl}/diagnostics/evaluate/${encodeURIComponent(deviceId)}?save_snapshot=true`,
       {
         method: "POST",
         headers: getAuthHeaders(),
@@ -178,7 +178,7 @@ export const diagnosticsService = {
 
   /**
    * Ad-Hoc Payload Evaluation (Simulator / Bench Tester)
-   * POST /api/v1/diagnostics/evaluate-payload
+   * POST /diagnostics/evaluate-payload
    * context accepts `expected_interval_seconds` and `policy` overrides.
    */
   async evaluatePayload(payload: {
@@ -189,7 +189,7 @@ export const diagnosticsService = {
     profile_id?: string;
   }): Promise<DiagnosticEvaluationResult> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/evaluate-payload`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/evaluate-payload`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
@@ -200,11 +200,11 @@ export const diagnosticsService = {
 
   /**
    * Submit Field Technician Feedback
-   * POST /api/v1/diagnostics/feedback
+   * POST /diagnostics/feedback
    */
   async submitFeedback(feedback: DiagnosticFeedbackCreate): Promise<{ success: boolean; data?: any; error?: string }> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/feedback`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/feedback`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(feedback),
@@ -216,7 +216,7 @@ export const diagnosticsService = {
 
   /**
    * Fetch Registered Device Profiles
-   * GET /api/v1/diagnostics/profiles?skip=0&limit=100&category=...
+   * GET /diagnostics/profiles?skip=0&limit=100&category=...
    */
   async getProfiles(filters?: { skip?: number; limit?: number; category?: string }): Promise<DeviceProfile[]> {
     const baseUrl = getBaseUrl();
@@ -225,7 +225,7 @@ export const diagnosticsService = {
       limit: filters?.limit,
       category: filters?.category && filters.category !== "all" ? filters.category : undefined,
     });
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles${qs}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/profiles${qs}`, {
       headers: getAuthHeaders(),
     });
     await raiseForStatus(res, "Failed to fetch device profiles");
@@ -235,12 +235,12 @@ export const diagnosticsService = {
 
   /**
    * Get Single Device Profile with complete component tree
-   * GET /api/v1/diagnostics/profiles/{profile_id}
+   * GET /diagnostics/profiles/{profile_id}
    */
   async getProfile(profileId: string): Promise<DeviceProfile> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(profileId)}`,
+      `${baseUrl}/diagnostics/profiles/${encodeURIComponent(profileId)}`,
       {
         headers: getAuthHeaders(),
       }
@@ -251,12 +251,12 @@ export const diagnosticsService = {
 
   /**
    * What the diagnostic engine is missing to analyse devices on this profile
-   * GET /api/v1/diagnostics/profiles/{profile_id}/diagnostic-readiness
+   * GET /diagnostics/profiles/{profile_id}/diagnostic-readiness
    */
   async getProfileReadiness(profileId: string): Promise<ProfileDiagnosticReadiness> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(profileId)}/diagnostic-readiness`,
+      `${baseUrl}/diagnostics/profiles/${encodeURIComponent(profileId)}/diagnostic-readiness`,
       {
         headers: getAuthHeaders(),
       }
@@ -267,11 +267,11 @@ export const diagnosticsService = {
 
   /**
    * Save / Create Device Profile
-   * POST /api/v1/diagnostics/profiles
+   * POST /diagnostics/profiles
    */
   async createProfile(profile: Partial<DeviceProfile>): Promise<DeviceProfile> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/profiles`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(profile),
@@ -282,7 +282,7 @@ export const diagnosticsService = {
 
   /**
    * Update Device Profile
-   * PUT /api/v1/diagnostics/profiles/{id}
+   * PUT /diagnostics/profiles/{id}
    */
   async updateProfile(id: string, profile: Partial<DeviceProfile>): Promise<DeviceProfile> {
     const baseUrl = getBaseUrl();
@@ -294,7 +294,7 @@ export const diagnosticsService = {
       sanitized.vendor = sanitized.vendor.name || undefined;
     }
 
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(id)}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/profiles/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
@@ -305,11 +305,11 @@ export const diagnosticsService = {
 
   /**
    * Delete Device Profile
-   * DELETE /api/v1/diagnostics/profiles/{id}
+   * DELETE /diagnostics/profiles/{id}
    */
   async deleteProfile(id: string): Promise<{ success: boolean }> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/profiles/${encodeURIComponent(id)}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/profiles/${encodeURIComponent(id)}`, {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
@@ -319,12 +319,12 @@ export const diagnosticsService = {
 
   /**
    * Fetch Diagnostic Templates & Rule Packs
-   * GET /api/v1/diagnostics/templates?skip=0&limit=100
+   * GET /diagnostics/templates?skip=0&limit=100
    */
   async getTemplates(params?: { skip?: number; limit?: number }): Promise<DiagnosticTemplate[]> {
     const baseUrl = getBaseUrl();
     const qs = buildQuery({ skip: params?.skip, limit: params?.limit });
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates${qs}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/templates${qs}`, {
       headers: getAuthHeaders(),
     });
     await raiseForStatus(res, "Failed to fetch diagnostic templates");
@@ -334,11 +334,11 @@ export const diagnosticsService = {
 
   /**
    * Get Specific Diagnostic Template
-   * GET /api/v1/diagnostics/templates/{template_id}
+   * GET /diagnostics/templates/{template_id}
    */
   async getTemplate(templateId: string): Promise<DiagnosticTemplate> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates/${encodeURIComponent(templateId)}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/templates/${encodeURIComponent(templateId)}`, {
       headers: getAuthHeaders(),
     });
     await raiseForStatus(res, `Failed to fetch diagnostic template ${templateId}`);
@@ -347,7 +347,7 @@ export const diagnosticsService = {
 
   /**
    * Save / Create Diagnostic Template
-   * POST /api/v1/diagnostics/templates
+   * POST /diagnostics/templates
    */
   async createTemplate(template: Partial<DiagnosticTemplate>): Promise<DiagnosticTemplate> {
     const baseUrl = getBaseUrl();
@@ -356,7 +356,7 @@ export const diagnosticsService = {
       sanitized.target_component_type = sanitized.category;
     }
 
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/templates`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
@@ -367,7 +367,7 @@ export const diagnosticsService = {
 
   /**
    * Update Diagnostic Template
-   * PUT /api/v1/diagnostics/templates/{template_id}
+   * PUT /diagnostics/templates/{template_id}
    */
   async updateTemplate(templateId: string, template: Partial<DiagnosticTemplate>): Promise<DiagnosticTemplate> {
     const baseUrl = getBaseUrl();
@@ -376,7 +376,7 @@ export const diagnosticsService = {
       sanitized.target_component_type = sanitized.category;
     }
 
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates/${encodeURIComponent(templateId)}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/templates/${encodeURIComponent(templateId)}`, {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify(sanitized),
@@ -387,11 +387,11 @@ export const diagnosticsService = {
 
   /**
    * Delete Diagnostic Template
-   * DELETE /api/v1/diagnostics/templates/{template_id}
+   * DELETE /diagnostics/templates/{template_id}
    */
   async deleteTemplate(templateId: string): Promise<{ success: boolean }> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/templates/${encodeURIComponent(templateId)}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/templates/${encodeURIComponent(templateId)}`, {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
@@ -401,11 +401,11 @@ export const diagnosticsService = {
 
   /**
    * Reset / Seed Default Profiles and Templates
-   * POST /api/v1/diagnostics/seed-defaults
+   * POST /diagnostics/seed-defaults
    */
   async seedDefaults(): Promise<{ message: string; profiles_seeded?: number; templates_seeded?: number }> {
     const baseUrl = getBaseUrl();
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/seed-defaults`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/seed-defaults`, {
       method: "POST",
       headers: getAuthHeaders(),
     });
@@ -417,7 +417,7 @@ export const diagnosticsService = {
 
   /**
    * Day-by-day diagnosis history for a device (newest first)
-   * GET /api/v1/diagnostics/devices/{device_id}/daily
+   * GET /diagnostics/devices/{device_id}/daily
    */
   async getDeviceDailyDiagnostics(
     deviceId: string,
@@ -426,7 +426,7 @@ export const diagnosticsService = {
     const baseUrl = getBaseUrl();
     const qs = buildQuery({ ...filters });
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/daily${qs}`,
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/daily${qs}`,
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, `Failed to fetch daily diagnostics for device ${deviceId}`);
@@ -436,12 +436,12 @@ export const diagnosticsService = {
 
   /**
    * Full diagnosis for one device-day (evidence, causes, issues, metric summary)
-   * GET /api/v1/diagnostics/devices/{device_id}/daily/{diagnosis_date}
+   * GET /diagnostics/devices/{device_id}/daily/{diagnosis_date}
    */
   async getDeviceDailyDiagnostic(deviceId: string, diagnosisDate: string): Promise<DeviceDailyDiagnostic> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/daily/${encodeURIComponent(diagnosisDate)}`,
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/daily/${encodeURIComponent(diagnosisDate)}`,
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, `Failed to fetch diagnosis for ${deviceId} on ${diagnosisDate}`);
@@ -450,12 +450,12 @@ export const diagnosticsService = {
 
   /**
    * Recurring / active issues and daily health trend for a device
-   * GET /api/v1/diagnostics/devices/{device_id}/issues?days=30
+   * GET /diagnostics/devices/{device_id}/issues?days=30
    */
   async getDeviceIssueSummary(deviceId: string, days: number = 30): Promise<DeviceIssueSummary> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/devices/${encodeURIComponent(deviceId)}/issues${buildQuery({ days })}`,
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/issues${buildQuery({ days })}`,
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, `Failed to fetch issue summary for device ${deviceId}`);
@@ -463,13 +463,44 @@ export const diagnosticsService = {
   },
 
   /**
+   * Daily indicator time series per component (charge cycle, coverage, sensor agreement, generation)
+   * GET /diagnostics/devices/{device_id}/indicators?days=30&component=&indicator=
+   */
+  async getDeviceIndicators(
+    deviceId: string,
+    params?: { days?: number; component?: string; indicator?: string }
+  ): Promise<DeviceIndicatorSeries> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/indicators${buildQuery({ ...params })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch indicators for device ${deviceId}`);
+    return await res.json();
+  },
+
+  /**
+   * Multi-day trends of the device's indicators, degrading first
+   * GET /diagnostics/devices/{device_id}/trends?window_days=&as_of=
+   */
+  async getDeviceTrends(deviceId: string, params?: { window_days?: number; as_of?: string }): Promise<DeviceTrends> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(
+      `${baseUrl}/diagnostics/devices/${encodeURIComponent(deviceId)}/trends${buildQuery({ ...params })}`,
+      { headers: getAuthHeaders() }
+    );
+    await raiseForStatus(res, `Failed to fetch trends for device ${deviceId}`);
+    return await res.json();
+  },
+
+  /**
    * Fleet health for one day (defaults to the latest diagnosed day)
-   * GET /api/v1/diagnostics/fleet/daily-summary
+   * GET /diagnostics/fleet/daily-summary
    */
   async getFleetDailySummary(params?: { diagnosis_date?: string; top_n?: number }): Promise<FleetDailySummary> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/fleet/daily-summary${buildQuery({ ...params })}`,
+      `${baseUrl}/diagnostics/fleet/daily-summary${buildQuery({ ...params })}`,
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, "Failed to fetch fleet daily summary");
@@ -478,12 +509,12 @@ export const diagnosticsService = {
 
   /**
    * Search detected issues across the fleet
-   * GET /api/v1/diagnostics/fleet/issues
+   * GET /diagnostics/fleet/issues
    */
   async getFleetIssues(filters?: FleetIssueFilters): Promise<FleetIssue[]> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
-      `${baseUrl}/api/v1/diagnostics/fleet/issues${buildQuery({ ...filters })}`,
+      `${baseUrl}/diagnostics/fleet/issues${buildQuery({ ...filters })}`,
       { headers: getAuthHeaders() }
     );
     await raiseForStatus(res, "Failed to fetch fleet issues");
@@ -493,7 +524,7 @@ export const diagnosticsService = {
 
   /**
    * Run or backfill daily diagnostics in the background (only days with raw data, max 14 days back)
-   * POST /api/v1/diagnostics/daily/run
+   * POST /diagnostics/daily/run
    */
   async triggerDailyRun(request: DailyDiagnosticsRunRequest = {}): Promise<DailyDiagnosticsRunResponse> {
     const baseUrl = getBaseUrl();
@@ -504,7 +535,7 @@ export const diagnosticsService = {
       force: request.force || undefined,
       lookback_days: request.lookback_days,
     });
-    const res = await fetchWithAuth(`${baseUrl}/api/v1/diagnostics/daily/run${qs}`, {
+    const res = await fetchWithAuth(`${baseUrl}/diagnostics/daily/run${qs}`, {
       method: "POST",
       headers: getAuthHeaders(),
     });

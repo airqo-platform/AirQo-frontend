@@ -1,5 +1,23 @@
 import type { NormalizedChartData } from '@/shared/components/charts/types';
+import { isLikelySiteId } from '@/shared/components/charts/utils';
 import { isUnknownPlaceholder } from './chartConfig';
+
+export const normalizeLocationName = (value: string): string =>
+  value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[,_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const getSafeChartLabel = (value: unknown): string => {
+  const label = typeof value === 'string' ? value.trim() : '';
+  if (!label || isUnknownPlaceholder(label) || isLikelySiteId(label)) {
+    return '';
+  }
+  return label;
+};
 
 /**
  * Chart series key (the name the data API returns) per site_id — recharts
@@ -10,8 +28,8 @@ export const buildDataKeyBySiteId = (
 ): Map<string, string> => {
   const map = new Map<string, string>();
   chartData.forEach(point => {
-    const siteKey = String(point.site ?? '');
-    const siteId = String(point.site_id ?? '');
+    const siteKey = String(point.site ?? '').trim();
+    const siteId = String(point.site_id ?? '').trim();
     if (siteKey && siteId && !map.has(siteId)) map.set(siteId, siteKey);
   });
   return map;
@@ -28,10 +46,10 @@ export const buildSiteLabels = (
 ): Record<string, string> => {
   const labels: Record<string, string> = {};
   chartData.forEach(point => {
-    const siteId = String(point.site_id ?? '');
+    const siteId = String(point.site_id ?? '').trim();
     if (!siteId) return;
     const name =
-      siteNames.get(siteId) ?? (point.site ? String(point.site) : undefined);
+      getSafeChartLabel(siteNames.get(siteId)) || getSafeChartLabel(point.site);
     if (name) labels[siteId] = name;
   });
   return labels;
@@ -51,12 +69,13 @@ export const buildSeriesLabels = (
 ): Record<string, string> => {
   const labels: Record<string, string> = {};
   chartData.forEach(point => {
-    const siteKey = String(point.site ?? '');
-    const siteId = String(point.site_id ?? '');
+    const siteKey = String(point.site ?? '').trim();
+    const siteId = String(point.site_id ?? '').trim();
     if (!siteKey || !siteId) return;
-    // ALWAYS set: sidecar name wins, d3 data name is the guaranteed fallback.
-    // This ensures the legend never shows raw ids or empty placeholders.
-    labels[siteKey] = siteLabels[siteId] ?? siteKey;
+    labels[siteKey] =
+      getSafeChartLabel(siteLabels[siteId]) ||
+      getSafeChartLabel(siteKey) ||
+      'Unknown Location';
   });
   const uniqueSiteKeys = new Set(
     chartData.map(point => String(point.site ?? '')).filter(Boolean)
@@ -65,25 +84,26 @@ export const buildSeriesLabels = (
     const first = chartData.find(point => point.site && point.site_id);
     const siteId = first ? String(first.site_id) : '';
     const label =
-      (siteId ? siteLabels[siteId] : undefined) ??
-      (first ? String(first.site) : undefined);
-    if (label) labels['value'] = label;
+      (siteId ? getSafeChartLabel(siteLabels[siteId]) : '') ||
+      getSafeChartLabel(first?.site) ||
+      'Unknown Location';
+    labels['value'] = label;
   }
   return labels;
 };
 
 /**
- * Reverse-match chart data points that carry a `site` display name but no
- * `site_id` (the backend d3 chart-data shape: `{site_name, pm2_5, ...}`)
- * against the app's known siteNames Map (id → name).
+ * Reverse-match chart data points against the app's known siteNames Map
+ * (id → name). Handles both named chart rows and the pie API's categorical
+ * `{label, value}` rows, where `label` can be the site id when site_id metadata
+ * was requested.
  *
- * When a point's `site` exactly matches a name in the reverse map and the
- * point has no `site_id`, the corresponding id is filled in.  When a point
- * already has a `site_id`, its `site` is canonicalised to the sidecar/config
- * name so series keys stay consistent with the picker.
+ * When a point's label/site/time matches a known id or display name and it has
+ * no `site_id`, the corresponding id is filled in. Existing ids are preserved
+ * and their display names are canonicalised to the picker/config value.
  *
- * Returns a NEW array (no mutation of inputs).  Unknown/placeholder names
- * are skipped; case-sensitive exact match only.
+ * Returns a NEW array (no mutation of inputs). Unknown/placeholder names are
+ * skipped; name matching is case/spacing/punctuation-insensitive.
  */
 export const enrichChartDataSiteIds = (
   chartData: NormalizedChartData[],
@@ -91,40 +111,72 @@ export const enrichChartDataSiteIds = (
 ): NormalizedChartData[] => {
   if (chartData.length === 0 || siteNames.size === 0) return chartData;
 
-  // Build reverse map: name → first id.  Skip placeholder / empty names.
+  const nameById = new Map<string, string>();
   const nameToId = new Map<string, string>();
   siteNames.forEach((name, id) => {
-    if (!isUnknownPlaceholder(name) && name.trim() && !nameToId.has(name)) {
-      nameToId.set(name, id);
+    const siteId = String(id).trim();
+    const displayName = typeof name === 'string' ? name.trim() : '';
+    if (
+      !siteId ||
+      !displayName ||
+      isUnknownPlaceholder(displayName) ||
+      isLikelySiteId(displayName)
+    ) {
+      return;
+    }
+    nameById.set(siteId, displayName);
+
+    const normalizedName = normalizeLocationName(displayName);
+    if (normalizedName && !nameToId.has(normalizedName)) {
+      nameToId.set(normalizedName, siteId);
     }
   });
 
-  if (nameToId.size === 0) return chartData;
+  if (nameById.size === 0) return chartData;
 
   return chartData.map(point => {
-    const currentSiteId = String(point.site_id ?? '');
-    const currentSite = String(point.site ?? '');
+    const currentSiteId = String(point.site_id ?? '').trim();
+    const currentSite = String(point.site ?? '').trim();
+    const identityCandidates = [point.label, currentSite, point.time]
+      .map(value => (typeof value === 'string' ? value.trim() : ''))
+      .filter(Boolean);
+    const matchedId = currentSiteId
+      ? nameById.has(currentSiteId)
+        ? currentSiteId
+        : undefined
+      : identityCandidates.find(candidate => nameById.has(candidate));
 
-    // Case 1: no site_id yet — try to fill from name match
+    if (matchedId) {
+      const canonicalName = nameById.get(matchedId) ?? currentSite;
+      return {
+        ...point,
+        site_id: matchedId,
+        site: canonicalName,
+        site_name: point.site_name ?? canonicalName,
+      };
+    }
+
     if (!currentSiteId && currentSite && !isUnknownPlaceholder(currentSite)) {
-      const matchedId = nameToId.get(currentSite);
-      if (matchedId) {
-        // Canonicalise site to the sidecar/config name for consistent keys
-        const canonicalName = siteNames.get(matchedId) ?? currentSite;
+      const matchedNameId = nameToId.get(normalizeLocationName(currentSite));
+      if (matchedNameId) {
+        const canonicalName = nameById.get(matchedNameId) ?? currentSite;
         return {
           ...point,
-          site_id: matchedId,
+          site_id: matchedNameId,
           site: canonicalName,
+          site_name: point.site_name ?? canonicalName,
         };
       }
     }
 
-    // Case 2: site_id already present — canonicalise site name if sidecar
-    // has a name for it (ensures series keys match picker labels).
     if (currentSiteId) {
-      const knownName = siteNames.get(currentSiteId);
+      const knownName = nameById.get(currentSiteId);
       if (knownName && knownName !== currentSite) {
-        return { ...point, site: knownName };
+        return {
+          ...point,
+          site: knownName,
+          site_name: point.site_name ?? knownName,
+        };
       }
     }
 

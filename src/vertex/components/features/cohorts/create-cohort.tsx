@@ -27,6 +27,19 @@ import { Label } from "@/components/ui/label";
 import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
 import { buildCohortName, sanitizeCohortInput } from "@/core/utils/cohortName";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import CohortSlugAvailabilityHint from "./cohort-slug-availability-hint";
+
+// Mirrors the backend's cohort_slug sanitisation: lowercase, anything that is
+// not a letter or digit becomes a hyphen, leading/trailing hyphens dropped.
+export const sanitizeCohortSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const COHORT_SLUG_MAX_LENGTH = 50;
+const COHORT_SLUG_MIN_LENGTH = 3;
 
 export type PreselectedDevice = { value: string; label: string };
 
@@ -53,7 +66,19 @@ const formSchema = z.object({
   }),
   devices: z.array(z.string()).optional(),
   cohort_tags: z.array(z.string()).optional(),
+  cohort_slug: z
+    .string()
+    .max(COHORT_SLUG_MAX_LENGTH, { message: `Custom ID must be at most ${COHORT_SLUG_MAX_LENGTH} characters.` })
+    .optional(),
 }).superRefine((values, ctx) => {
+  const requestedSlug = values.cohort_slug?.trim();
+  if (requestedSlug && sanitizeCohortSlug(requestedSlug).length < COHORT_SLUG_MIN_LENGTH) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Custom ID must contain at least ${COHORT_SLUG_MIN_LENGTH} letters or numbers.`,
+      path: ["cohort_slug"],
+    });
+  }
   const isOrganizational = values.cohort_tags?.includes("organizational");
   if (isOrganizational) {
     if (!values.city?.trim()) {
@@ -95,12 +120,17 @@ export function CreateCohortDialog({
       network: preselectedNetwork || "",
       devices: preselectedDevices.map((d) => d.value),
       cohort_tags: [],
+      cohort_slug: "",
     },
   });
 
   type CohortStep = "form" | "confirmation" | "success";
   const [step, setStep] = useState<CohortStep>("form");
-  const [createdCohort, setCreatedCohort] = useState<{ _id: string; name: string } | null>(null);
+  const [createdCohort, setCreatedCohort] = useState<{ _id: string; name: string; cohort_slug?: string } | null>(null);
+  // External orgs get their custom IDs namespaced under the org slug by the
+  // backend; pass it through so the availability preview matches what will
+  // actually be stored.
+  const groupSlug = isExternalOrg ? activeGroup?.organization_slug : undefined;
 
   const selectedNetwork = form.watch("network");
   const [deviceSearch, setDeviceSearch] = useState("");
@@ -155,6 +185,7 @@ export function CreateCohortDialog({
         network: preselectedNetwork || "",
         devices: preselectedDevices.map((d) => d.value),
         cohort_tags: [],
+        cohort_slug: "",
       });
       setDeviceSearch("");
       setStep("form");
@@ -281,6 +312,14 @@ export function CreateCohortDialog({
       payload.cohort_tags = values.cohort_tags;
     }
 
+    const requestedSlug = values.cohort_slug?.trim();
+    if (requestedSlug) {
+      payload.cohort_slug = requestedSlug;
+      if (groupSlug) {
+        payload.group_slug = groupSlug;
+      }
+    }
+
     if (isExternalOrg && activeGroup?._id) {
       payload.groupId = activeGroup._id;
     } else if (!isExternalOrg && !isAdminPage && userDetails?._id) {
@@ -334,6 +373,7 @@ export function CreateCohortDialog({
   const derivedName = isOrganizational
     ? buildCohortName(formValues.city || "", formValues.projectName || "", formValues.funder)
     : (formValues.name || "").trim();
+  const requestedSlug = (form.watch("cohort_slug") || "").trim();
 
   return (
     <ReusableDialog
@@ -496,6 +536,29 @@ export function CreateCohortDialog({
                 )}
               />
             )}
+            <FormField
+              control={form.control}
+              name="cohort_slug"
+              render={({ field }) => (
+                <div className="space-y-1.5">
+                  <ReusableInputField
+                    label="Custom cohort ID (optional)"
+                    placeholder="e.g. nairobi-cbd-2026"
+                    maxLength={COHORT_SLUG_MAX_LENGTH}
+                    description={
+                      form.formState.errors.cohort_slug
+                        ? undefined
+                        : "A short, memorable ID you can use in the API instead of the system-generated one. Lowercase letters, numbers and hyphens."
+                    }
+                    {...field}
+                    error={form.formState.errors.cohort_slug?.message}
+                  />
+                  {!form.formState.errors.cohort_slug && (
+                    <CohortSlugAvailabilityHint slug={field.value || ""} groupSlug={groupSlug} />
+                  )}
+                </div>
+              )}
+            />
             {!hideDeviceSelection && (
               <FormField
                 control={form.control}
@@ -553,6 +616,11 @@ export function CreateCohortDialog({
             <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
               You are about to create a cohort named <span className="font-semibold text-gray-900 dark:text-white">{derivedName}</span> in the <span className="font-semibold text-gray-900 dark:text-white">{formValues.network}</span> network.
             </p>
+            {requestedSlug && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
+                Requested custom ID: <span className="font-mono font-semibold text-gray-900 dark:text-white">{sanitizeCohortSlug(requestedSlug)}</span>
+              </p>
+            )}
             {!hideDeviceSelection && (
               <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-900 dark:text-white font-medium">
@@ -579,6 +647,11 @@ export function CreateCohortDialog({
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">
               Cohort <span className="font-medium text-gray-900 dark:text-white">{createdCohort.name}</span> has been created{hideDeviceSelection ? '.' : ` with ${formValues.devices?.length || 0} devices.`}
             </p>
+            {createdCohort.cohort_slug && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">
+                Custom ID: <span className="font-mono font-medium text-gray-900 dark:text-white">{createdCohort.cohort_slug}</span>
+              </p>
+            )}
           </div>
         </div>
       )}

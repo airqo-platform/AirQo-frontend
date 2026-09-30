@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
@@ -48,6 +49,9 @@ export function RelationshipModal({
   const [sourceComponent, setSourceComponent] = useState<string>("");
   const [targetComponent, setTargetComponent] = useState<string>("");
   const [relationType, setRelationType] = useState<string>("POWERS");
+  // Tolerance for MEASURES_SAME_AS pairs: readings agree when |a - b| <= max(absolute, relative x mean)
+  const [toleranceAbs, setToleranceAbs] = useState<string>("");
+  const [toleranceRelPct, setToleranceRelPct] = useState<string>("");
 
   const components = useMemo(() => profile.components || [], [profile.components]);
 
@@ -64,6 +68,9 @@ export function RelationshipModal({
         setSourceComponent(validNames.has(details.sourceName) ? details.sourceName : fallbackSource);
         setTargetComponent(validNames.has(details.targetName) ? details.targetName : fallbackTarget);
         setRelationType(details.relationType || "POWERS");
+        const tolerance = rel.meta_data?.tolerance;
+        setToleranceAbs(typeof tolerance?.absolute === "number" ? String(tolerance.absolute) : "");
+        setToleranceRelPct(typeof tolerance?.relative === "number" ? String(+(tolerance.relative * 100).toFixed(4)) : "");
       } else {
         setSourceComponent(preselectedSource || components[0]?.name || "");
         setTargetComponent(
@@ -74,6 +81,8 @@ export function RelationshipModal({
           ""
         );
         setRelationType("POWERS");
+        setToleranceAbs("");
+        setToleranceRelPct("");
       }
     }
   }, [open, isEditing, relationshipIndex, preselectedSource, preselectedTarget, profile.relationships, components]);
@@ -83,6 +92,21 @@ export function RelationshipModal({
       toast({
         title: "Selection Required",
         description: "Please choose both source and target subsystem components.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const isPair = relationType === "MEASURES_SAME_AS";
+    const absValue = toleranceAbs.trim() !== "" ? Number(toleranceAbs) : null;
+    const relPct = toleranceRelPct.trim() !== "" ? Number(toleranceRelPct) : null;
+    if (
+      isPair &&
+      ((absValue !== null && !(absValue >= 0)) || (relPct !== null && !(relPct >= 0 && relPct <= 100)))
+    ) {
+      toast({
+        title: "Invalid Tolerance",
+        description: "Absolute tolerance must be 0 or more, and relative tolerance between 0 and 100%.",
         variant: "destructive",
       });
       return;
@@ -106,6 +130,18 @@ export function RelationshipModal({
       relation_type: relationType as any,
       relationship_type: relationType as any,
     };
+
+    // Keep other metadata keys; tolerance only applies to sensor pairs.
+    const { tolerance: _previousTolerance, ...otherMeta } = (existingRel as ComponentRelationship).meta_data || {};
+    const tolerance =
+      isPair && (absValue !== null || relPct !== null)
+        ? {
+            ...(absValue !== null ? { absolute: absValue } : {}),
+            ...(relPct !== null ? { relative: relPct / 100 } : {}),
+          }
+        : null;
+    const nextMeta = { ...otherMeta, ...(tolerance ? { tolerance } : {}) };
+    relObj.meta_data = Object.keys(nextMeta).length > 0 ? nextMeta : null;
 
     if (isEditing && relationshipIndex !== null && relationshipIndex >= 0) {
       currentRelationships[relationshipIndex] = relObj;
@@ -205,6 +241,43 @@ export function RelationshipModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {relationType === "MEASURES_SAME_AS" && (
+              <div className="space-y-1.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <Label className="text-xs font-semibold text-gray-700">Agreement Tolerance</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[11px] text-gray-500">Absolute (metric units)</span>
+                    <Input
+                      type="number"
+                      step="any"
+                      min={0}
+                      value={toleranceAbs}
+                      onChange={(e) => setToleranceAbs(e.target.value)}
+                      placeholder="e.g. 10"
+                      className="h-8 text-xs font-mono bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[11px] text-gray-500">Relative (% of level)</span>
+                    <Input
+                      type="number"
+                      step="any"
+                      min={0}
+                      max={100}
+                      value={toleranceRelPct}
+                      onChange={(e) => setToleranceRelPct(e.target.value)}
+                      placeholder="e.g. 20"
+                      className="h-8 text-xs font-mono bg-white"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Two readings agree when their difference is within the larger of the two. Without a tolerance the
+                  pair is only checked for correlation, not error margin.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

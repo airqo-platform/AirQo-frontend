@@ -725,6 +725,11 @@ const ReusableTable = <T extends TableItem>({
         params.set(fullKey, typeof value === 'object' ? JSON.stringify(value) : String(value));
       }
     });
+    // Only write when the query string actually changes. router.replace hands
+    // back a new searchParams object even for an identical URL, which recreates
+    // this callback and every handler built on it; an unconditional replace
+    // therefore re-triggers effects that depend on those handlers (see #4000).
+    if (params.toString() === searchParams.toString()) return;
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [tableId, searchParams, router, pathname, pageSize, initialFilters]);
 
@@ -1078,8 +1083,11 @@ const ReusableTable = <T extends TableItem>({
     // Don't run validation while loading, as `totalPages` might be stale from `keepPreviousData`.
     if (loading) return;
 
-    if (finalCurrentPage > totalPages || finalCurrentPage < 1 || !Number.isFinite(finalCurrentPage)) {
-      handlePageChange(totalPages > 0 ? Math.min(Math.max(1, finalCurrentPage), totalPages) : 1);
+    // An empty table still has one (empty) page. Treating it as zero pages
+    // made page 1 look out of range, so this effect "corrected" it forever.
+    const lastPage = Math.max(1, totalPages);
+    if (finalCurrentPage > lastPage || finalCurrentPage < 1 || !Number.isFinite(finalCurrentPage)) {
+      handlePageChange(Math.min(Math.max(1, finalCurrentPage), lastPage));
     }
   }, [finalCurrentPage, totalPages, handlePageChange, loading]);
 

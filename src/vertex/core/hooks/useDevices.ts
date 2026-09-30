@@ -16,6 +16,7 @@ import {
 import { adapter } from '../adapters';
 import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
+import { isSameMyDevicesResultSet } from "./myDevicesQueryKey";
 import { useMemo } from 'react';
 import type {
   DevicesSummaryResponse,
@@ -34,6 +35,7 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
+  MyDevicesStatusFilter,
   PrepareDeviceResponse,
   BulkPrepareResponse,
   CreateShippingBatchResponse,
@@ -177,11 +179,17 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
 export const useMyDevices = (
   userId: string,
   organizationId?: string,
-  options: { enabled?: boolean } = {}
+  options: {
+    enabled?: boolean;
+    /** Applied server-side, across every matching device. */
+    status?: MyDevicesStatusFilter;
+    limit?: number;
+    skip?: number;
+  } = {}
 ) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userDetails = useAppSelector((state) => state.user.userDetails);
-  const { enabled = true } = options;
+  const { enabled = true, status, limit, skip } = options;
 
   // The user profile is fetched from Redux state
   // We use optional chaining and fallbacks to ensure safety
@@ -199,17 +207,32 @@ export const useMyDevices = (
     : userDetails?.group_ids || [];
   const cohortIds = personalCohortIds && personalCohortIds.length > 0 ? personalCohortIds : (userDetails?.cohort_ids || []);
 
+  // The last two slots are limit/skip; everything before them identifies the
+  // result set itself.
+  const queryKey = [
+    "myDevices",
+    userId,
+    organizationId || activeGroup?._id,
+    groupIds,
+    cohortIds,
+    status ?? null,
+    limit ?? null,
+    skip ?? null,
+  ];
+
   const query = useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
-    queryKey: [
-      "myDevices",
-      userId,
-      organizationId || activeGroup?._id,
-      groupIds,
-      cohortIds,
-    ],
-    queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds),
+    queryKey,
+    queryFn: () => adapter.getMyDevices(userId, groupIds, cohortIds, { status, limit, skip }),
     enabled: !!userId && enabled && !!userDetails && !isPersonalCohortsLoading,
     staleTime: 60_000, // 1 minute
+    // Keep the current page on screen while the next one loads, so paging
+    // doesn't flash an empty table. Only across pagination changes: React
+    // Query reports placeholder data as loaded, so reusing it for a different
+    // status would show the old rows and total under the new filter.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery && isSameMyDevicesResultSet(previousQuery.queryKey, queryKey)
+        ? previous
+        : undefined,
   });
 
   return {
@@ -713,6 +736,34 @@ export const useRecallDevice = () => {
       };
     }) => adapter.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['device-details'] });
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
+    },
+  });
+};
+
+export const useDecommissionDevice = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      deviceName,
+      decommissionData,
+    }: {
+      deviceName: string;
+      decommissionData: {
+        reason?: string;
+        user_id: string;
+        date: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userName?: string;
+      };
+    }) => adapter.decommissionDevice(deviceName, decommissionData),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });

@@ -26,71 +26,8 @@ import type {
   CohortResponse,
 } from '../types/api';
 import { normalizeCohortIds } from '../utils/cohortUtils';
-import { swrRetryPolicy } from '../lib/retryPolicy';
-
-const SWR_STABLE_REQUEST_OPTIONS = {
-  revalidateOnFocus: false,
-  revalidateOnReconnect: true,
-  ...swrRetryPolicy,
-  errorRetryCount: 1,
-  // The auth tree mounts more than once per page load; a remount must reuse
-  // the cached response instead of re-firing the request. Freshness is
-  // handled by key changes (group switch), explicit mutations and the
-  // group-switch invalidation.
-  revalidateIfStale: false,
-  dedupingInterval: 5000,
-} as const;
-
-const isAbortError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-  if (!candidate) return false;
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
-
-const useAbortableFetcher = <T>(
-  fetcher: (signal: AbortSignal) => Promise<T>
-) => {
-  const abortRef = useRef<AbortController | null>(null);
-
-  // NOTE: no abort on unmount. SWR deduplicates subscribers on the same key
-  // and shares one in-flight request between them — a StrictMode remount
-  // subscribes to the SAME in-flight request, and aborting it on unmount
-  // leaves the remount with a "canceled" error that nothing re-triggers
-  // (shouldRetryOnError only retries 429). The request is still aborted when
-  // a NEW fetch supersedes it (revalidation / key change), and the AbortSignal
-  // keeps working for per-request cancellation.
-
-  const cancel = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-  }, []);
-
-  const wrappedFetcher = useCallback(async () => {
-    // Abort the previous in-flight request when a new fetch supersedes it.
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      return await fetcher(controller.signal);
-    } finally {
-      if (abortRef.current === controller) {
-        abortRef.current = null;
-      }
-    }
-  }, [fetcher]);
-
-  return { fetcher: wrappedFetcher, cancel };
-};
+import { isAbortError } from '../lib/retryPolicy';
+import { STABLE_SWR_OPTIONS, useAbortableFetcher } from './useAbortableSWR';
 
 export interface ActiveGroupCohortsState {
   cohortIds: string[];
@@ -130,8 +67,10 @@ const useCohortSitesQuery = (
   }, [cohortsLoading, cancel]);
 
   const result = useSWR<CohortSitesResponse>(key, fetchCohortSites, {
-    ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoadingRef.current,
+    ...STABLE_SWR_OPTIONS,
+    isPaused: () =>
+      cohortsLoadingRef.current ||
+      (typeof navigator !== 'undefined' && !navigator.onLine),
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';
@@ -177,8 +116,10 @@ const useCohortDevicesQuery = (
   }, [cohortsLoading, cancel]);
 
   const result = useSWR<CohortDevicesResponse>(key, fetchCohortDevices, {
-    ...SWR_STABLE_REQUEST_OPTIONS,
-    isPaused: () => cohortsLoadingRef.current,
+    ...STABLE_SWR_OPTIONS,
+    isPaused: () =>
+      cohortsLoadingRef.current ||
+      (typeof navigator !== 'undefined' && !navigator.onLine),
   });
   const resolvedError = isAbortError(result.error) ? null : result.error;
   const hasData = typeof result.data !== 'undefined';
@@ -205,7 +146,7 @@ export const useSitesSummary = (
     )
   );
 
-  return useSWR<SitesSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
+  return useSWR<SitesSummaryResponse>(key, fetcher, STABLE_SWR_OPTIONS);
 };
 
 // Token-based sites summary hook
@@ -222,7 +163,7 @@ export const useSitesSummaryWithToken = (
     )
   );
 
-  return useSWR<SitesSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
+  return useSWR<SitesSummaryResponse>(key, fetcher, STABLE_SWR_OPTIONS);
 };
 
 // Authenticated grids summary hook
@@ -240,7 +181,7 @@ export const useGridsSummary = (
     )
   );
 
-  return useSWR<GridsSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
+  return useSWR<GridsSummaryResponse>(key, fetcher, STABLE_SWR_OPTIONS);
 };
 
 // Token-based grids summary hook
@@ -258,7 +199,7 @@ export const useGridsSummaryWithToken = (
     )
   );
 
-  return useSWR<GridsSummaryResponse>(key, fetcher, SWR_STABLE_REQUEST_OPTIONS);
+  return useSWR<GridsSummaryResponse>(key, fetcher, STABLE_SWR_OPTIONS);
 };
 
 // Cohort sites hook
@@ -279,7 +220,7 @@ export const useCohortSites = (
       ? ['cohort/sites', cohortIds, params]
       : null,
     fetchCohortSites,
-    SWR_STABLE_REQUEST_OPTIONS
+    STABLE_SWR_OPTIONS
   );
 
   return {
@@ -331,7 +272,7 @@ export const useCohortDevices = (
       ? ['cohort/devices', cohortIds, params]
       : null,
     fetchCohortDevices,
-    SWR_STABLE_REQUEST_OPTIONS
+    STABLE_SWR_OPTIONS
   );
 
   return {
@@ -355,11 +296,7 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
     )
   );
 
-  const result = useSWR<GroupCohortsResponse>(
-    key,
-    fetcher,
-    SWR_STABLE_REQUEST_OPTIONS
-  );
+  const result = useSWR<GroupCohortsResponse>(key, fetcher, STABLE_SWR_OPTIONS);
 
   // A canceled error can land on the key (e.g. a superseded fetch); SWR's
   // shouldRetryOnError only retries 429 so nothing re-fires it — re-trigger
@@ -392,7 +329,7 @@ export const useCohort = (cohortId: string, enabled = true) => {
   );
 
   const result = useSWR<CohortResponse>(key, fetcher, {
-    ...SWR_STABLE_REQUEST_OPTIONS,
+    ...STABLE_SWR_OPTIONS,
   });
 
   return {
@@ -477,7 +414,7 @@ export const useActiveGroupCohorts = (enabled = true) => {
     shouldFetch ? ['group/cohorts', groupId] : null,
     fetchGroupCohorts,
     {
-      ...SWR_STABLE_REQUEST_OPTIONS,
+      ...STABLE_SWR_OPTIONS,
       dedupingInterval: 30000, // Cache for 30 seconds
       onSuccess: data => {
         if (!enabled || !groupId || latestGroupIdRef.current !== groupId) {

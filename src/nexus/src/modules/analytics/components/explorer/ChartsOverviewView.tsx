@@ -21,6 +21,7 @@ import {
   buildDataKeyBySiteId,
   buildSiteLabels,
   buildSeriesLabels,
+  enrichChartDataSiteIds,
 } from '../../utils/chartLabels';
 import { getDefaultSiteColor } from '../../utils/siteColors';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -82,17 +83,21 @@ const OverviewChartCard: React.FC<{
     draft.siteIds.length > 0
   );
 
-  const dataKeyBySiteId = useMemo(
-    () => buildDataKeyBySiteId(chartData),
-    [chartData]
-  );
-  const siteLabels = useMemo(
-    () => buildSiteLabels(chartData, siteNames),
+  const enrichedChartData = useMemo(
+    () => enrichChartDataSiteIds(chartData, siteNames),
     [chartData, siteNames]
   );
+  const dataKeyBySiteId = useMemo(
+    () => buildDataKeyBySiteId(enrichedChartData),
+    [enrichedChartData]
+  );
+  const siteLabels = useMemo(
+    () => buildSiteLabels(enrichedChartData, siteNames),
+    [enrichedChartData, siteNames]
+  );
   const seriesLabels = useMemo(
-    () => buildSeriesLabels(chartData, siteLabels),
-    [chartData, siteLabels]
+    () => buildSeriesLabels(enrichedChartData, siteLabels),
+    [enrichedChartData, siteLabels]
   );
 
   // Series colors resolve EXACTLY like the list view: explicit picks win,
@@ -178,9 +183,13 @@ const OverviewChartCard: React.FC<{
             "No data available" placeholder flashing underneath. */}
         {isLoading ? null : (
           <DynamicChart
-            data={chartData}
+            data={enrichedChartData}
             config={{
-              type: draft.chartType.toLowerCase() as 'line' | 'area' | 'bar',
+              type: draft.chartType.toLowerCase() as
+                | 'line'
+                | 'area'
+                | 'bar'
+                | 'pie',
               showGrid: draft.showGrid,
               showTooltip: draft.showTooltip,
               showLegend: draft.showLegend,
@@ -205,6 +214,7 @@ const OverviewChartCard: React.FC<{
             // must never disagree with the chart's frequency.
             referenceLinePeriod={getGuidelinePeriod(draft.frequency)}
             seriesLabels={seriesLabels}
+            locationLabels={{ ...Object.fromEntries(siteNames), ...siteLabels }}
           />
         )}
       </ChartContainer>

@@ -24,8 +24,17 @@ vi.mock("@/core/hooks/useBannerWithDelay", () => ({
   useBannerWithDelay: () => ({ showBannerWithDelay: showBannerWithDelayMock }),
 }));
 
+// One spy per success message, so a test can tell which copy handler a
+// button used and therefore which toast the user would see.
+const clipboard = vi.hoisted(() => ({
+  handlers: new Map<string, ReturnType<typeof vi.fn>>(),
+}));
 vi.mock("@/core/hooks/useClipboard", () => ({
-  useClipboard: () => ({ handleCopy: vi.fn() }),
+  useClipboard: (options?: { successMessage?: string }) => {
+    const message = options?.successMessage ?? "";
+    if (!clipboard.handlers.has(message)) clipboard.handlers.set(message, vi.fn());
+    return { handleCopy: clipboard.handlers.get(message)! };
+  },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -63,6 +72,29 @@ describe("CohortDetailsCard", () => {
     expect(screen.getByText("Kampala Cohort")).toBeInTheDocument();
     expect(screen.getByText("cohort-1")).toBeInTheDocument();
     expect(screen.getByText("individual")).toBeInTheDocument();
+  });
+
+  it("shows the custom ID row only when the cohort has a slug", () => {
+    mockUpdateCohort(vi.fn());
+    const { rerender } = render(<CohortDetailsCard {...DEFAULT_PROPS} />);
+    expect(screen.queryByText("Custom ID")).not.toBeInTheDocument();
+
+    rerender(<CohortDetailsCard {...DEFAULT_PROPS} cohortSlug="kcca-nairobi-cbd" />);
+    expect(screen.getByText("Custom ID")).toBeInTheDocument();
+    expect(screen.getByText("kcca-nairobi-cbd")).toBeInTheDocument();
+  });
+
+  it("copies the custom ID with its own success message", async () => {
+    mockUpdateCohort(vi.fn());
+    const user = userEvent.setup();
+    render(<CohortDetailsCard {...DEFAULT_PROPS} cohortSlug="kcca-nairobi-cbd" />);
+
+    await user.click(screen.getByRole("button", { name: "Copy custom ID" }));
+
+    expect(clipboard.handlers.get("Custom ID copied to clipboard")).toHaveBeenCalledWith(
+      "kcca-nairobi-cbd"
+    );
+    expect(clipboard.handlers.get("Cohort ID copied to clipboard")).not.toHaveBeenCalled();
   });
 
   it("shows None when there are no tags", () => {

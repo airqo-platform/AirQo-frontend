@@ -406,9 +406,10 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       dataset_count: nextIds.size,
     });
   };
-  const xAxisLabel = chart.xAxisLabel || formatColumnLabel(chart.xColumn);
+  // Nullish, not `||`: an explicitly cleared label ('') must stay cleared.
+  const xAxisLabel = chart.xAxisLabel ?? formatColumnLabel(chart.xColumn);
   const yAxisLabel =
-    chart.yAxisLabel || formatMeasurementLabel(chart.metricColumn);
+    chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn);
   const compareLabel = chart.compareColumn
     ? formatColumnLabel(chart.compareColumn)
     : 'No series grouping';
@@ -858,20 +859,31 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       </option>
                     ))}
                   </Select>
-                  <Input
-                    label="Y-axis label"
-                    value={
-                      chart.yAxisLabel ??
-                      formatMeasurementLabel(chart.metricColumn)
-                    }
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      updateChart({
-                        yAxisLabel: event.target.value || undefined,
-                      })
-                    }
-                    containerClassName="mb-0"
-                    maxLength={CHART_AXIS_LABEL_MAX}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      label="Y-axis label"
+                      // `undefined` = follow the column automatically;
+                      // `''` = the user cleared it, so the axis stays unlabelled.
+                      value={chart.yAxisLabel ?? ''}
+                      placeholder={formatMeasurementLabel(chart.metricColumn)}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        updateChart({
+                          yAxisLabel: event.target.value,
+                        })
+                      }
+                      containerClassName="mb-0"
+                      maxLength={CHART_AXIS_LABEL_MAX}
+                    />
+                    {chart.yAxisLabel !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => updateChart({ yAxisLabel: undefined })}
+                        className="self-start text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Use automatic label
+                      </button>
+                    )}
+                  </div>
                   <Select
                     label="X axis time or category"
                     value={chart.xColumn || ''}
@@ -906,17 +918,29 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       </option>
                     ))}
                   </Select>
-                  <Input
-                    label="X-axis label"
-                    value={chart.xAxisLabel ?? formatColumnLabel(chart.xColumn)}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      updateChart({
-                        xAxisLabel: event.target.value || undefined,
-                      })
-                    }
-                    containerClassName="mb-0"
-                    maxLength={CHART_AXIS_LABEL_MAX}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      label="X-axis label"
+                      value={chart.xAxisLabel ?? ''}
+                      placeholder={formatColumnLabel(chart.xColumn)}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        updateChart({
+                          xAxisLabel: event.target.value,
+                        })
+                      }
+                      containerClassName="mb-0"
+                      maxLength={CHART_AXIS_LABEL_MAX}
+                    />
+                    {chart.xAxisLabel !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => updateChart({ xAxisLabel: undefined })}
+                        className="self-start text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Use automatic label
+                      </button>
+                    )}
+                  </div>
                   <Select
                     label="Series / compare by"
                     value={chart.compareColumn || ''}

@@ -1,5 +1,11 @@
 export interface Cohort {
   _id: string;
+  /**
+   * Optional self-service identifier chosen at creation time (lowercase
+   * letters, digits and hyphens). Accepted anywhere a cohort id is, alongside
+   * the Mongo `_id`.
+   */
+  cohort_slug?: string;
   visibility: boolean;
   cohort_tags: string[];
   cohort_codes: string[];
@@ -103,4 +109,17 @@ interface Device {
   serial_number: string;
   api_code: string;
   long_name: string;
+}
+
+/** Response of GET /devices/cohorts/check-slug. */
+export interface CohortSlugCheckResponse {
+  success: boolean;
+  message: string;
+  slug_check: {
+    /** The slug the backend would actually store, after sanitisation. */
+    candidate_slug: string;
+    available: boolean;
+    /** null when available; otherwise "taken", "too_short", "reserved" or "objectid_shape". */
+    reason: "taken" | "too_short" | "reserved" | "objectid_shape" | null;
+  };
 }

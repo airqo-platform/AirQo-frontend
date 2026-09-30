@@ -8,6 +8,7 @@ import {
   AqPlus,
   AqPlayCircle,
   AqRefreshCcw01,
+  AqRefreshCw05,
   AqTable,
   AqTrash01,
   AqUploadCloud01,
@@ -78,8 +79,11 @@ import {
   deleteWorkspaceDraft,
   loadWorkspaceDraft,
   saveWorkspaceDraft,
+  requestPersistentWorkspaceStorage,
+  describeStorageError,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
+import Dialog from '@/shared/components/ui/dialog';
 import {
   FileUploadProgress,
   type FileUploadProgressItem,
@@ -551,6 +555,70 @@ const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
   };
 };
 
+/**
+ * Waits for the next paint so heavy storage work never blocks the frame, with a
+ * timer fallback — `requestAnimationFrame` does not fire in a hidden tab.
+ */
+const yieldToPaint = (): Promise<void> =>
+  new Promise<void>(resolve => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(finish);
+    }
+
+    setTimeout(finish, 50);
+  });
+
+/**
+ * Awaits `work`, but never longer than `ms`.
+ *
+ * IndexedDB work is asynchronous and can stall (a connection blocked by another
+ * tab, a transaction that never completes). A user action must not hang on it,
+ * so a timeout surfaces as a failure the caller can report instead of an
+ * indefinite wait with a spinner on screen.
+ */
+const settleWithin = async <T,>(
+  work: Promise<T> | null | undefined,
+  ms: number
+): Promise<T | undefined> => {
+  if (!work) {
+    return undefined;
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      work,
+      // Rejects on timeout so the caller reports a failed delete instead of
+      // quietly assuming the storage is clean.
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new DOMException(
+                `Timed out after ${Math.round(ms / 1000)}s`,
+                'TimeoutError'
+              )
+            ),
+          ms
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+};
+
 export const DataVisualizerWorkspace: React.FC<
   DataVisualizerWorkspaceProps
 > = ({
@@ -580,9 +648,37 @@ export const DataVisualizerWorkspace: React.FC<
     null
   );
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
+  // True from the moment a change is queued for autosave until the write
+  // resolves, so the toolbar can show an honest "Saving… / All changes saved"
+  // status instead of relying on a manual Save button.
+  const [isSavingDraft, setIsSavingDraft] = React.useState(false);
+  // Read by the autosave effect and the exit flush, which run outside render.
+  // Clearing sets this so a large write can never start while the workspace is
+  // being torn down — that is what made "Clear" appear to freeze the tab.
+  const isClearingRef = React.useRef(false);
+  // The in-flight autosave, so a clear can wait for it. Without this, a save
+  // already writing rows would finish AFTER the delete and put the draft back.
+  const pendingSaveRef = React.useRef<Promise<unknown> | null>(null);
+  // Bumped whenever the autosave observes a change. The page-exit flush writes
+  // WITHOUT setting pendingSaveRef, so the identity check alone cannot tell
+  // "nothing new happened" from "new work was written by the flush" — this
+  // counter can.
+  const workspaceGenerationRef = React.useRef(0);
+  // Files whose rows could not be restored with the draft. Kept visible (not
+  // just toasted) because "my charts are empty" is not something a user should
+  // have to diagnose themselves.
+  const [draftDatasetsMissingRows, setDraftDatasetsMissingRows] =
+    React.useState<string[]>([]);
+  // Autosave failures are toasted once per session: a browser that refuses
+  // storage must never lose work silently, but must not spam either.
+  const hasWarnedAboutDraftSave = React.useRef(false);
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
   const [isTutorialDialogOpen, setIsTutorialDialogOpen] = React.useState(false);
+  // Clear is destructive and unrecoverable, so it is gated behind an explicit
+  // confirmation rather than firing on a single click.
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = React.useState(false);
+  const [isClearingWorkspace, setIsClearingWorkspace] = React.useState(false);
   const [showDataInspector, setShowDataInspector] = React.useState(false);
   const [showFieldGuide, setShowFieldGuide] = React.useState(false);
   const [displayMode, setDisplayMode] =
@@ -675,7 +771,8 @@ export const DataVisualizerWorkspace: React.FC<
           size: file.size,
           type: file.type,
           lastModified: file.lastModified,
-          file,
+          // Metadata only: storing the blob duplicated the whole upload on
+          // every autosave and is the main cause of save failures.
         });
       }
 
@@ -795,15 +892,28 @@ export const DataVisualizerWorkspace: React.FC<
     };
   }, []);
 
+  // Ask the browser to keep this draft instead of evicting it under pressure.
+  // Best-effort: silently ignored when unsupported or denied.
   React.useEffect(() => {
-    if (datasets.length === 0) {
+    void requestPersistentWorkspaceStorage().catch(() => false);
+  }, []);
+
+  // ── Autosave ───────────────────────────────────────────────────────────────
+  // The draft IS the save. Every dataset/chart change is written to IndexedDB
+  // after a short debounce, so there is nothing for the user to remember to
+  // press and nothing that can be lost by navigating away mid-edit.
+  React.useEffect(() => {
+    if (datasets.length === 0 || isClearingRef.current) {
       return;
     }
+
+    workspaceGenerationRef.current += 1;
+    setIsSavingDraft(true);
 
     const timeout = window.setTimeout(() => {
       const { sourceFiles, datasetFileMap } = buildDraftFileState();
 
-      saveWorkspaceDraft({
+      const savePromise = saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
         datasets,
         sourceFiles,
@@ -812,12 +922,46 @@ export const DataVisualizerWorkspace: React.FC<
         activeChartId,
       })
         .then(savedDraft => {
+          // A save that lands during/after a clear must not re-arm the draft:
+          // the restore effect sees "empty workspace + draft" and would bring
+          // back exactly what the user just deleted.
+          if (isClearingRef.current) {
+            return;
+          }
+
           setDraft(savedDraft);
           setLastSavedAt(savedDraft.savedAt);
         })
         .catch(error => {
           console.warn('Could not autosave visualizer draft:', error);
+
+          if (!hasWarnedAboutDraftSave.current) {
+            hasWarnedAboutDraftSave.current = true;
+
+            // Name the actual cause — quota, an unserialisable value, private
+            // browsing or a blocked connection each need a different action,
+            // and a generic "saving failed" helps nobody diagnose it.
+            const reason = describeStorageError(error);
+            const isDataOnlyFailure =
+              error instanceof DOMException &&
+              error.name === 'QuotaExceededError';
+
+            toast.warning(
+              isDataOnlyFailure
+                ? 'Chart setup saved, data not'
+                : 'Draft not saving',
+              isDataOnlyFailure
+                ? `${reason} Your charts are saved, but this file's rows are not — re-add a smaller file to plot again.`
+                : `${reason} Keep this tab open and free up site data if you can.`
+            );
+          }
+        })
+        .finally(() => {
+          setIsSavingDraft(false);
         });
+
+      // Expose the in-flight write so a clear can wait for it to settle.
+      pendingSaveRef.current = savePromise.catch(() => undefined);
     }, 1200);
 
     return () => window.clearTimeout(timeout);
@@ -1076,7 +1220,19 @@ export const DataVisualizerWorkspace: React.FC<
   const resetWorkspace = React.useCallback(async () => {
     const previousDatasetCount = datasets.length;
     const previousChartCount = charts.length;
+    // Captured before clearing: the delayed sweep only runs while the workspace
+    // is still exactly the one that was cleared.
+    const clearGeneration = workspaceGenerationRef.current;
 
+    setIsClearingWorkspace(true);
+    isClearingRef.current = true;
+
+    // Order matters: the draft reference is dropped FIRST, in the same batch as
+    // the empty workspace. Clearing datasets/charts while `draft` was still set
+    // would let the auto-restore effect see "empty workspace + saved draft" and
+    // immediately restore what the user just deleted.
+    setDraft(null);
+    setLastSavedAt(null);
     setDatasets([]);
     setCharts([]);
     setActiveChartId(undefined);
@@ -1086,17 +1242,73 @@ export const DataVisualizerWorkspace: React.FC<
     setShowDataInspector(false);
     setShowFieldGuide(false);
     setDisplayMode('focused');
+    setDraftDatasetsMissingRows([]);
+    // Allow a future save failure to warn again after a deliberate clear.
+    hasWarnedAboutDraftSave.current = false;
     sourceFilesRef.current.clear();
-    await deleteWorkspaceDraft().catch(() => undefined);
-    setDraft(null);
-    setLastSavedAt(null);
+
+    try {
+      // Let the browser paint the emptied workspace BEFORE the storage work, so
+      // clearing large datasets never looks frozen.
+      await yieldToPaint();
+
+      // An autosave may already be writing rows. It must settle before the
+      // delete, otherwise it lands afterwards and resurrects the draft — but
+      // only wait briefly, so a stuck write can never hold the dialog open.
+      const inFlight = pendingSaveRef.current;
+      let saveSettled = false;
+
+      if (inFlight) {
+        try {
+          await settleWithin(inFlight, 2000);
+          saveSettled = true;
+        } catch {
+          saveSettled = false;
+        }
+      }
+
+      await settleWithin(deleteWorkspaceDraft(), 5000);
+
+      // If the write outlasted the wait, sweep once more when it finishes so
+      // the cleared draft cannot come back. Non-blocking: the dialog is free.
+      // Skipped unless this is still the newest save AND the workspace has not
+      // been edited since the clear began — otherwise the user has already
+      // uploaded new work (which the page-exit flush can persist without
+      // touching pendingSaveRef) and deleting again would destroy it.
+      if (!saveSettled && inFlight) {
+        void inFlight
+          .then(() =>
+            pendingSaveRef.current === inFlight &&
+            workspaceGenerationRef.current === clearGeneration
+              ? deleteWorkspaceDraft()
+              : undefined
+          )
+          .catch(() => undefined);
+      }
+    } catch (error) {
+      // The in-memory workspace is already empty; report that the stored copy
+      // survived rather than claiming everything was removed.
+      console.warn('Could not delete visualizer draft:', error);
+      toast.warning(
+        'Cleared, but the saved copy may remain',
+        `${describeStorageError(error)} Reloading will show you what's still stored.`
+      );
+    } finally {
+      // Always release the dialog. Without this, any rejected or stalled await
+      // above left it spinning until the page was reloaded.
+      setIsSavingDraft(false);
+      setIsClearingWorkspace(false);
+      setIsClearConfirmOpen(false);
+      isClearingRef.current = false;
+    }
+
     trackVisualizerEvent('air_quality_explorer_workspace_cleared', {
       dataset_count: previousDatasetCount,
       chart_count: previousChartCount,
     });
   }, [charts.length, datasets.length, trackVisualizerEvent]);
 
-  const restoreDraft = () => {
+  const restoreDraft = React.useCallback(() => {
     if (!draft) {
       return;
     }
@@ -1116,13 +1328,51 @@ export const DataVisualizerWorkspace: React.FC<
     );
     setDisplayMode('focused');
     setLastSavedAt(draft.savedAt);
-    toast.success('Draft restored', 'Your previous work is ready to continue.');
+
+    // Charts cannot plot without rows. If a dataset came back empty, say so
+    // plainly and point at the fix, rather than leaving "No chart data" panels
+    // that look like a lost draft.
+    const datasetsWithoutRows = draft.datasets
+      .filter(dataset => dataset.rows.length === 0)
+      .map(dataset => dataset.fileName || dataset.label);
+    setDraftDatasetsMissingRows(datasetsWithoutRows);
+
+    if (datasetsWithoutRows.length > 0) {
+      toast.warning(
+        'Draft restored without its data',
+        'Your chart setup came back, but the uploaded rows did not. Re-add the file(s) to plot again.'
+      );
+    } else {
+      toast.success(
+        'Draft restored',
+        'Your previous work is ready to continue.'
+      );
+    }
+
     trackVisualizerEvent('air_quality_explorer_draft_restored', {
       dataset_count: draft.datasets.length,
       chart_count: draft.charts.length,
       source_file_count: draft.sourceFiles?.length ?? 0,
+      datasets_missing_rows: datasetsWithoutRows.length,
     });
-  };
+  }, [
+    draft,
+    normalizeChartsForDatasets,
+    restoreDraftFileSources,
+    trackVisualizerEvent,
+  ]);
+
+  // Coming back to an empty workspace with a stored draft should just continue
+  // the work — asking the user to re-confirm a restore they never opted out of
+  // is the main reason drafts felt "stuck". Runs once, and only when there is
+  // nothing to overwrite.
+  React.useEffect(() => {
+    if (!draft || charts.length > 0 || datasets.length > 0) {
+      return;
+    }
+
+    restoreDraft();
+  }, [draft, charts.length, datasets.length, restoreDraft]);
 
   const addChart = (type: VisualizerChartType) => {
     if (datasets.length === 0 || workspaceProfile.numericColumns.length === 0) {
@@ -1339,44 +1589,61 @@ export const DataVisualizerWorkspace: React.FC<
     void handleFiles(event.dataTransfer.files);
   };
 
-  const saveNow = async () => {
-    if (datasets.length === 0) {
-      return;
-    }
+  // The manual Save button is gone (autosave covers it), which leaves one real
+  // gap: edits made inside the autosave debounce window are lost if the tab is
+  // closed or backgrounded first. This flushes the CURRENT workspace state on
+  // the way out, reading from a ref so it never writes a stale snapshot.
+  const latestWorkspaceRef = React.useRef<{
+    charts: VisualizerChartConfig[];
+    datasets: UploadedDataset[];
+    activeChartId: string | undefined;
+  }>({ charts: [], datasets: [], activeChartId: undefined });
 
-    const { sourceFiles, datasetFileMap } = buildDraftFileState();
+  latestWorkspaceRef.current = {
+    charts,
+    datasets,
+    activeChartId,
+  };
 
-    try {
-      const savedDraft = await saveWorkspaceDraft({
+  React.useEffect(() => {
+    const flush = () => {
+      const current = latestWorkspaceRef.current;
+      // Never write a workspace that is being cleared: the rows are already
+      // gone from state and re-persisting them would resurrect the draft.
+      if (current.datasets.length === 0 || isClearingRef.current) {
+        return;
+      }
+
+      const { sourceFiles, datasetFileMap } = buildDraftFileState();
+
+      // Best-effort: page teardown gives no reliable await window, so failures
+      // are logged and left to the next autosave tick.
+      void saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
-        datasets,
+        datasets: current.datasets,
         sourceFiles,
         datasetFileMap,
-        charts,
-        activeChartId,
+        charts: current.charts,
+        activeChartId: current.activeChartId,
+      }).catch(error => {
+        console.warn('Could not flush visualizer draft on exit:', error);
       });
-      setDraft(savedDraft);
-      setLastSavedAt(savedDraft.savedAt);
-      toast.success('Draft saved', 'You can return later to continue.');
-      trackVisualizerEvent('air_quality_explorer_draft_saved', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        source_file_count: sourceFiles.length,
-        manual: true,
-      });
-    } catch (error) {
-      console.warn('Could not save visualizer draft:', error);
-      toast.warning(
-        'Draft not saved',
-        'Your browser could not keep this draft right now. You can continue working in this tab.'
-      );
-      trackVisualizerEvent('air_quality_explorer_draft_save_failed', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        manual: true,
-      });
-    }
-  };
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flush();
+      }
+    };
+
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [buildDraftFileState]);
 
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
@@ -1521,6 +1788,18 @@ export const DataVisualizerWorkspace: React.FC<
         />
       )}
 
+      {draftDatasetsMissingRows.length > 0 && (
+        <WarningBanner
+          title="Charts can't be drawn yet"
+          message={`Your chart setup was restored, but the rows for ${
+            draftDatasetsMissingRows.length === 1
+              ? `"${draftDatasetsMissingRows[0]}"`
+              : `${draftDatasetsMissingRows.length} file(s)`
+          } were not stored with the draft. Re-add the file to plot again.`}
+          dense
+        />
+      )}
+
       {datasets.length > 0 &&
         datasetQualitySummary &&
         datasetQualitySummary.severity === 'warning' && (
@@ -1613,20 +1892,37 @@ export const DataVisualizerWorkspace: React.FC<
                   {showDataInspector ? 'Hide data review' : 'Review data'}
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void saveNow()}
+                {/*
+                  No Save button: the draft autosaves after every change, so
+                  this is a status, not an action. Saying "saved" only when it
+                  is true is what makes the private-draft warning below
+                  trustworthy.
+                */}
+                <span
+                  className="flex shrink-0 items-center gap-1.5 px-2 text-xs text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
                 >
-                  Save draft
-                </Button>
+                  {isSavingDraft ? (
+                    <>
+                      <AqRefreshCw05
+                        className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none"
+                        aria-hidden="true"
+                      />{' '}
+                      Saving…
+                    </>
+                  ) : lastSavedAt ? (
+                    <>All changes saved · {formatDraftSavedAt(lastSavedAt)}</>
+                  ) : (
+                    'Autosaves as you work'
+                  )}
+                </span>
 
                 <Button
                   size="sm"
                   variant="ghost"
                   className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void resetWorkspace()}
+                  onClick={() => setIsClearConfirmOpen(true)}
                 >
                   Clear
                 </Button>
@@ -2184,6 +2480,53 @@ export const DataVisualizerWorkspace: React.FC<
         onClose={() => setIsTutorialDialogOpen(false)}
         videoUrl={DATA_VISUALIZER_TUTORIAL_VIDEO_URL}
       />
+
+      {/*
+        Clearing empties the workspace AND deletes the stored draft, so it is
+        confirmed first. The copy names exactly what is lost — including the
+        autosaved draft, which is the only copy outside this tab.
+      */}
+      <Dialog
+        isOpen={isClearConfirmOpen}
+        onClose={() => {
+          if (!isClearingWorkspace) setIsClearConfirmOpen(false);
+        }}
+        title="Clear this workspace?"
+        subtitle="This removes your uploaded data and every chart from this browser."
+        size="md"
+        showCloseButton
+        showFooter
+        primaryAction={{
+          label: 'Clear everything',
+          variant: 'danger',
+          loading: isClearingWorkspace,
+          onClick: () => void resetWorkspace(),
+        }}
+        secondaryAction={{
+          label: 'Keep my work',
+          variant: 'outlined',
+          disabled: isClearingWorkspace,
+          onClick: () => setIsClearConfirmOpen(false),
+        }}
+      >
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            You are about to delete{' '}
+            <span className="font-semibold text-foreground">
+              {datasets.length} dataset{datasets.length === 1 ? '' : 's'}
+            </span>{' '}
+            and{' '}
+            <span className="font-semibold text-foreground">
+              {charts.length} chart{charts.length === 1 ? '' : 's'}
+            </span>
+            , including the autosaved draft you can restore later.
+          </p>
+          <p>
+            Your original files stay on your computer, but this analysis cannot
+            be recovered once cleared.
+          </p>
+        </div>
+      </Dialog>
     </div>
   );
 };

@@ -71,6 +71,7 @@ jest.mock('@/modules/analytics/hooks/useChartManagement', () => ({
     handleForecastToggle: jest.fn(),
     handleEditTitle: jest.fn(),
     handleChartTypeChange: jest.fn(),
+    handleDateRangeChange: jest.fn(),
     handleNamesResolved: jest.fn(),
   }),
 }));
