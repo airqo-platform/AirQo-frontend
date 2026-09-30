@@ -34,7 +34,11 @@ export const PlaceUpdateCard = ({
 
   return (
     <Card
-      className="flex h-full flex-col overflow-hidden border-t-[3px] ring-1 ring-transparent transition-all hover:shadow-md hover:ring-primary/25 motion-reduce:transition-none"
+      // `border-t-border` is required: without an explicit colour the 3px
+      // status strip falls back to `currentColor` and renders as a dark bar.
+      // The inline borderTopColor below overrides it with the AQI category
+      // colour when a reading exists.
+      className="flex h-full flex-col overflow-hidden border-t-[3px] border-t-border ring-1 ring-transparent transition-all hover:shadow-md hover:ring-primary/25 motion-reduce:transition-none"
       style={statusColor ? { borderTopColor: statusColor } : undefined}
       data-testid="home-place-update"
     >
@@ -54,7 +58,7 @@ export const PlaceUpdateCard = ({
           <StatusIcon className="h-7 w-7" />
         </span>
       </CardHeader>
-      <CardContent className="flex items-end justify-between gap-2 p-4 pb-3">
+      <CardContent className="flex items-end justify-between gap-2 px-4 pb-2 pt-1">
         <div>
           <span className="text-2xl font-semibold tabular-nums text-foreground">
             {location.aqiIndex ?? '—'}
@@ -68,7 +72,9 @@ export const PlaceUpdateCard = ({
           {location.aqiCategory || 'No reading yet'}
         </span>
       </CardContent>
-      <CardFooter className="border-t border-border bg-muted/20 px-2 py-1">
+      {/* mt-auto pins the action to the bottom so cards of equal height line up
+          the same way the other home cards do. */}
+      <CardFooter className="mt-auto border-t border-border bg-muted/20 px-2 py-1">
         <Button
           variant="text"
           size="sm"

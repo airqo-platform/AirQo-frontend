@@ -236,6 +236,27 @@ describe('AdaptiveHomePage', () => {
     );
   });
 
+  it('keeps the status strip neutral when a location has no reading yet', () => {
+    mockExperience.mode = 'returning';
+    mockExperience.activeComparison = { id: 'c1', name: 'Gulu' };
+    mockExperience.locationUpdates = [
+      {
+        name: 'Akwa',
+        href: '/user/air-quality/analytics/sites/akwa?site_id=site-2',
+        aqiIndex: null,
+        aqiCategory: null,
+      },
+    ];
+
+    renderHome();
+
+    const placeCard = screen.getByTestId('home-place-update');
+    expect(placeCard).toHaveClass('border-t-[3px]', 'border-t-border');
+    // No inline override, so the token neutral colour applies — never currentColor.
+    expect(placeCard.style.borderTopColor).toBe('');
+    expect(placeCard).toHaveTextContent('No reading yet');
+  });
+
   it('shows resumable artifacts and place updates for returning users', async () => {
     mockExperience.mode = 'returning';
     mockExperience.counts = {
@@ -274,6 +295,12 @@ describe('AdaptiveHomePage', () => {
       'Makerere University'
     );
     expect(screen.getByTestId('home-place-update')).toHaveTextContent('Good');
+    // The 3px status strip must carry an explicit token colour. Without one it
+    // inherits `currentColor` and renders as a dark bar across the card top.
+    const placeCard = screen.getByTestId('home-place-update');
+    expect(placeCard).toHaveClass('border-t-[3px]', 'border-t-border');
+    // A reading paints the strip with the AQI category colour inline.
+    expect(placeCard.style.borderTopColor).not.toBe('');
     expect(
       screen.getByRole('button', { name: 'See readings' })
     ).toBeInTheDocument();

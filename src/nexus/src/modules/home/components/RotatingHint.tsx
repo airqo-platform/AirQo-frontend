@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AqArrowRight, AqLightbulb02 } from '@airqo/icons-react';
 import { HOME_HINTS } from '../constants';
 
@@ -16,12 +16,10 @@ export const RotatingHint = ({
 }) => {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  // Bumped once per cycle to remount the ring so its fill restarts from empty.
-  const [cycle, setCycle] = useState(0);
-  const [isFilling, setIsFilling] = useState(false);
   // With reduced motion (or no matchMedia) the hint never rotates, so a
   // countdown ring would sit frozen at zero and mislead — hide it instead.
   const [isRotationDisabled, setIsRotationDisabled] = useState(false);
+  const arcRef = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
     const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -30,26 +28,45 @@ export const RotatingHint = ({
       return;
     }
 
-    // Flip a frame later so the browser has painted the empty ring first and
-    // the transition to full actually runs.
-    let startFrame = window.requestAnimationFrame(() => setIsFilling(true));
-    let fadeTimer = 0;
+    // One clock drives both the ring fill and the hint swap. They therefore
+    // cannot drift apart, and the fill is recomputed from elapsed time on every
+    // frame — so it self-corrects if a frame is dropped or the tab is hidden,
+    // instead of freezing part-way through like a one-shot CSS transition.
+    const startedAt = performance.now();
+    let lastCycle = 0;
+    let frame = 0;
+    let swapTimer = 0;
 
-    const interval = window.setInterval(() => {
-      setCycle(current => current + 1);
-      setIsFilling(false);
-      startFrame = window.requestAnimationFrame(() => setIsFilling(true));
-      setVisible(false);
-      fadeTimer = window.setTimeout(() => {
-        setIndex(current => (current + 1) % HOME_HINTS.length);
-        setVisible(true);
-      }, HINT_FADE_MS);
-    }, HINT_INTERVAL_MS);
+    const tick = (now: number) => {
+      const elapsed = Math.max(0, now - startedAt);
+      const cycle = Math.floor(elapsed / HINT_INTERVAL_MS);
+      const progress = (elapsed % HINT_INTERVAL_MS) / HINT_INTERVAL_MS;
+
+      const arc = arcRef.current;
+      if (arc) {
+        // Empty at 0%, full at 100% of the cycle.
+        arc.style.strokeDashoffset = String(
+          RING_CIRCUMFERENCE * (1 - progress)
+        );
+      }
+
+      if (cycle !== lastCycle) {
+        lastCycle = cycle;
+        setVisible(false);
+        swapTimer = window.setTimeout(() => {
+          setIndex(cycle % HOME_HINTS.length);
+          setVisible(true);
+        }, HINT_FADE_MS);
+      }
+
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    frame = window.requestAnimationFrame(tick);
 
     return () => {
-      window.cancelAnimationFrame(startFrame);
-      window.clearInterval(interval);
-      window.clearTimeout(fadeTimer);
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(swapTimer);
     };
   }, []);
 
@@ -59,7 +76,6 @@ export const RotatingHint = ({
     <div className="relative flex h-full min-h-28 flex-col justify-between overflow-hidden rounded-xl border border-primary/15 bg-primary/[0.03] p-4 shadow-sm transition-colors hover:border-primary/30 motion-reduce:transition-none sm:p-5">
       {!isRotationDisabled && (
         <svg
-          key={cycle}
           viewBox="0 0 20 20"
           aria-hidden="true"
           data-testid="home-hint-progress"
@@ -74,6 +90,7 @@ export const RotatingHint = ({
             className="stroke-primary/20"
           />
           <circle
+            ref={arcRef}
             cx="10"
             cy="10"
             r={RING_RADIUS}
@@ -82,11 +99,6 @@ export const RotatingHint = ({
             strokeLinecap="round"
             className="stroke-primary"
             strokeDasharray={RING_CIRCUMFERENCE}
-            style={{
-              // Fills clockwise from twelve o'clock across one full cycle.
-              strokeDashoffset: isFilling ? 0 : RING_CIRCUMFERENCE,
-              transition: `stroke-dashoffset ${HINT_INTERVAL_MS}ms linear`,
-            }}
           />
         </svg>
       )}
