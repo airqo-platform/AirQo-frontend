@@ -377,6 +377,12 @@ html {
   }
 }
 
+/* Hide the server-rendered login page while an OAuth token handoff is being
+   picked up (see OAUTH_HANDOFF_ATTRIBUTE in core/auth/oauth-session.ts). */
+html[data-oauth-handoff] body > * {
+  visibility: hidden;
+}
+
 /* ==========================================================================
      SCROLLBARS
      ========================================================================== */

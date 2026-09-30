@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState, useSyncExternalStore } from 'react';
 import { useSession, SessionProvider, getSession, signIn } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,6 +40,7 @@ import {
   verifyBackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
   clearBackendOAuthSignedOutFlag,
+  OAUTH_HANDOFF_ATTRIBUTE,
 } from './oauth-session';
 import { waitForSession } from './waitForSession';
 
@@ -181,6 +182,23 @@ const ACCOUNT_DELETION_TTL_MS = 5 * 60 * 1000;
 const ACCOUNT_DELETION_USER_IDENTIFIER_KEY = 'account_deleted_user_identifier';
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
+
+/**
+ * Routes that render without a session (login, auth-error, download).
+ */
+export const isPublicPath = (pathname: string) =>
+  publicRoutes.some((route) => matchesRoute(pathname, route));
+
+const subscribeToNothing = () => () => {};
+
+/**
+ * False while hydrating server-rendered HTML, true afterwards (and on any
+ * client-only mount). Lets a component change its output based on browser-only
+ * state without the first client render diverging from the server HTML.
+ */
+function useIsHydrated() {
+  return useSyncExternalStore(subscribeToNothing, () => true, () => false);
+}
 
 /**
  * Redirects authenticated users away from auth routes
@@ -379,9 +397,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const hasStartedLogoutRef = useRef(false);
 
   const isAuthRoute = authRoutes.some((route) => matchesRoute(pathname, route));
-  const isPublicRoute = publicRoutes.some((route) =>
-    matchesRoute(pathname, route)
-  );
+  const isPublicRoute = isPublicPath(pathname);
 
   const clearAccountDeletionFlags = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -768,12 +784,24 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { update, status } = useSession();
+  // Public routes are server-rendered and the server can't see the URL hash,
+  // so on /login (where the desktop app hands off OAuth tokens) the page can
+  // only switch to the loading state once hydration is done.
+  const isHydrated = useIsHydrated();
 
   useEffect(() => {
     if (status === 'authenticated' && isHandlingOAuthRef.current) {
       isHandlingOAuthRef.current = false;
     }
   }, [status]);
+
+  // The inline script in the root layout hides the server-rendered page while
+  // an OAuth token is in the URL. Once hydrated, this component owns that UI.
+  useEffect(() => {
+    if (isHydrated) {
+      document.documentElement.removeAttribute(OAUTH_HANDOFF_ATTRIBUTE);
+    }
+  }, [isHydrated]);
 
   useEffect(() => {
     if (hasInitiatedBootstrapRef.current) return;
@@ -876,7 +904,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
   }, [router, pathname, update]);
 
   // Keep blocking if we successfully handed off the token but NextAuth hasn't flushed its authenticated state yet
-  if ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current)) {
+  if (isHydrated && ((isBootstrapping && isHandlingOAuthRef.current) || (status === 'unauthenticated' && isHandlingOAuthRef.current))) {
     return <SessionLoadingState />;
   }
 

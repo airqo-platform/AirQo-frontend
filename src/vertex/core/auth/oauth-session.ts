@@ -6,6 +6,18 @@ const LAST_USED_OAUTH_PROVIDER_KEY = 'vertex:last-oauth-provider';
 const OAUTH_PROFILE_FETCH_TIMEOUT_MS = 10000;
 const OAUTH_SIGNED_OUT_FLAG = 'vertex:oauth-signed-out';
 
+/**
+ * Set on <html> while /login is loaded with an OAuth token in its hash (the
+ * desktop app's vertex://login handoff). The login page is server-rendered but
+ * the server can't see the hash, so this keeps the login form hidden until
+ * TokenHandoffHandler hydrates and shows the loading state instead.
+ */
+export const OAUTH_HANDOFF_ATTRIBUTE = 'data-oauth-handoff';
+
+/** Inline script for the root layout's <head>; runs before the page paints. */
+export const getOAuthHandoffScript = (): string =>
+  `if(location.pathname==='/login'&&location.hash.indexOf('${OAUTH_FRAGMENT_TOKEN_KEY}=')!==-1){document.documentElement.setAttribute('${OAUTH_HANDOFF_ATTRIBUTE}','')}`;
+
 export const SUPPORTED_SOCIAL_AUTH_PROVIDERS = [
   'google',
   'github',

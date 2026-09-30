@@ -59,6 +59,7 @@ export const metadata: Metadata = {
 };
 
 import { getThemeScript } from '@/lib/theme-utils';
+import { getOAuthHandoffScript } from '@/core/auth/oauth-session';
 
 export default async function RootLayout({
   children,
@@ -80,6 +81,10 @@ export default async function RootLayout({
         <script
           id="theme-script"
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}
+        />
+        <script
+          id="oauth-handoff-script"
+          dangerouslySetInnerHTML={{ __html: getOAuthHandoffScript() }}
         />
       </head>
       <ClientLayout session={session}>{children}</ClientLayout>

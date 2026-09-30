@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSession, signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
@@ -29,6 +29,7 @@ import { waitForSession } from "@/core/auth/waitForSession";
 import { motion, AnimatePresence } from "framer-motion";
 import { vertexConfig } from "@/vertex.config";
 import { useDetectedPlatform } from "@/core/hooks/useDetectedPlatform";
+import SessionLoadingState from "@/components/layout/loading/session-loading";
 
 
 const loginSchema = z.object({
@@ -36,7 +37,7 @@ const loginSchema = z.object({
   password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
 })
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { showBanner, hideBanner } = useBanner();
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email');
@@ -398,5 +399,15 @@ export default function LoginPage() {
       </main>
       <CookieInfoBanner />
     </div>
+  )
+}
+
+// The page reads useSearchParams(), which needs a Suspense boundary for Next
+// to render it on the server.
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<SessionLoadingState />}>
+      <LoginPageContent />
+    </Suspense>
   )
 }
