@@ -11,7 +11,8 @@ import { useDispatch } from 'react-redux';
 import { HiCheck } from 'react-icons/hi';
 import { AqChevronDown, AqPlus, AqTrash01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { useUser } from '@/shared/hooks/useUser';
@@ -356,6 +357,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     null
   );
   const router = useRouter();
+  // Recorded on location links so the detail page's breadcrumb returns here.
+  const pathname = usePathname();
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -594,10 +597,13 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
           ? `/org/${organizationSlug}/data-export/sites`
           : '/user/air-quality/analytics/sites';
       void router.push(
-        `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`
+        withSiteDetailsFrom(
+          `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`,
+          pathname
+        )
       );
     },
-    [router, isOrganizationFlow, organizationSlug]
+    [router, isOrganizationFlow, organizationSlug, pathname]
   );
 
   return (

@@ -23,6 +23,9 @@ const mockExperience: HomeExperienceData = {
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   useSearchParams: () => new URLSearchParams(),
+  // Location cards record their origin so the site page's breadcrumb returns
+  // here; the home route is that origin.
+  usePathname: () => '/user/home',
 }));
 
 let mockFirstName = 'Amina';
@@ -355,8 +358,9 @@ describe('AdaptiveHomePage', () => {
     await userEvent
       .setup()
       .click(screen.getByRole('button', { name: 'See readings' }));
+    // The origin is appended so the site page's breadcrumb returns to home.
     expect(mockPush).toHaveBeenCalledWith(
-      '/user/air-quality/analytics/sites/makerere-university?site_id=site-1'
+      '/user/air-quality/analytics/sites/makerere-university?site_id=site-1&from=%2Fuser%2Fhome'
     );
 
     await userEvent

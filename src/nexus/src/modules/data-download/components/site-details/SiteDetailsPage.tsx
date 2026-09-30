@@ -2,7 +2,12 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { cn } from '@/shared/lib/utils';
+import {
+  SITE_DETAILS_FROM_PARAM,
+  resolveSiteDetailsBackTarget,
+} from '@/shared/lib/siteDetailsNavigation';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { Button } from '@/shared/components/ui/button';
@@ -20,7 +25,7 @@ interface SiteDetailsPageProps {
   siteSlug: string;
   /** The authoritative site id from the source row, when available. */
   siteId?: string;
-  /** Base href of the data-export page (the breadcrumb root) */
+  /** Base href of the host page, used when no origin was recorded. */
   backHref: string;
   /** Map route for the current account context (user or organization). */
   mapHref?: string;
@@ -99,6 +104,20 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
   // the mode the user has selected (hourly by default), so loading the page
   // fires exactly one forecast request instead of hourly + daily.
 
+  // The breadcrumb returns the user to whichever page opened this location.
+  // `from` is recorded by every entry point (home, analytics, data export);
+  // without it — direct link or bookmark — the host page's props are used.
+  const searchParams = useSearchParams();
+  const backTarget = useMemo(
+    () =>
+      resolveSiteDetailsBackTarget({
+        from: searchParams?.get(SITE_DETAILS_FROM_PARAM),
+        fallbackHref: backHref,
+        fallbackLabel: backLabel,
+      }),
+    [searchParams, backHref, backLabel]
+  );
+
   // Priority: resolved site name > raw slug fallback
   const displayName = siteIdFromRoute ? siteSlug : resolvedName || siteSlug;
 
@@ -134,10 +153,10 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
         <ol className="flex items-center gap-1.5 list-none p-0 m-0 text-muted-foreground">
           <li>
             <Link
-              href={backHref}
+              href={backTarget.href}
               className="transition-colors hover:text-foreground"
             >
-              {backLabel}
+              {backTarget.label}
             </Link>
           </li>
           <li className="flex items-center gap-1.5" aria-hidden="true">
@@ -177,8 +196,12 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
       {/* Forecast — full width, before health */}
       <SiteForecastCard siteId={siteId} siteName={displayName} />
 
-      {/* Health recommendation — full width */}
-      <SiteHealthRecommendationsCard />
+      {/* Health recommendation — full width. The reading carries the API
+          health_tips, so it must be handed down or the card has no advice. */}
+      <SiteHealthRecommendationsCard
+        reading={currentReading}
+        isLoading={readingPending}
+      />
     </div>
   );
 };

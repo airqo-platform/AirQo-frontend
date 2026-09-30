@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { AqGlobe05 } from '@airqo/icons-react';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import {
   Card,
   CardContent,
@@ -27,6 +29,9 @@ export const PlaceUpdateCard = ({
   location: HomeLocationUpdate;
   onOpen: () => void;
 }) => {
+  // Recorded so the location page's breadcrumb returns here instead of the
+  // analytics tab, whatever route this card is rendered from.
+  const pathname = usePathname();
   const level = mapAqiCategoryToLevel(location.aqiCategory ?? undefined);
   const hasReading = location.aqiIndex !== null && level !== 'no-value';
   const StatusIcon = hasReading ? getAirQualityIcon(level) : AqGlobe05;
@@ -78,7 +83,7 @@ export const PlaceUpdateCard = ({
         <Button
           variant="text"
           size="sm"
-          path={location.href || READINGS_HREF}
+          path={withSiteDetailsFrom(location.href || READINGS_HREF, pathname)}
           onClick={onOpen}
           showTextOnMobile
         >
