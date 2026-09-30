@@ -235,11 +235,42 @@ const INTERNAL_ID_PHRASE_PATTERN = new RegExp(
  * cohort id into the dashboard's empty state. Copy is left untouched apart from
  * the removed identifiers, and punctuation left dangling by a removal is tidied.
  */
+/** Prepositions that can be left dangling once an identifier is removed. */
+const DANGLING_PREPOSITIONS = 'for|of|in|on|at|from|with|by';
+
+/**
+ * Strip internal identifiers from a service-provided message before it is shown
+ * to a user. Report copy originates from the API and previously leaked the
+ * cohort id into the dashboard empty state.
+ *
+ * Removing an identifier also removes the words that introduced it, so each
+ * step below also repairs the grammar that removal leaves behind: a doubled
+ * word ("for for") and a preposition with nothing after it ("… available for.").
+ */
 export const sanitizeReportMessage = (message: string): string =>
   message
     .replace(INTERNAL_ID_PHRASE_PATTERN, '')
     .replace(OBJECT_ID_PATTERN, '')
     .replace(/\(\s*\)/g, '')
+    // "for in", "of for" — keep the second preposition and drop the first,
+    // which was left stranded by the removal.
+    .replace(
+      new RegExp(
+        String.raw`\b(?:${DANGLING_PREPOSITIONS})\s+(${DANGLING_PREPOSITIONS})\b`,
+        'gi'
+      ),
+      '$1'
+    )
+    .replace(/\b([A-Za-z]+)(\s+\1\b)+/gi, '$1')
+    // A preposition left with no object: before punctuation or at the end.
+    .replace(
+      new RegExp(String.raw`\b(?:${DANGLING_PREPOSITIONS})\s*([.,;:])`, 'gi'),
+      '$1'
+    )
+    .replace(
+      new RegExp(String.raw`\s+\b(?:${DANGLING_PREPOSITIONS})\s*$`, 'i'),
+      ''
+    )
     .replace(/\s+([.,;:])/g, '$1')
     .replace(/\s{2,}/g, ' ')
     .trim();
