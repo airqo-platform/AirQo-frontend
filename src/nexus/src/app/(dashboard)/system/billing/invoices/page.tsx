@@ -56,14 +56,26 @@ type InvoiceFilters = {
 
 const PAGE_SIZE_OPTIONS = [10, 20, 40];
 
+// Statuses that actually render as a tab — the exact set statusOptions below
+// builds from. Doubles as the allow-list for the ?status= deep-link, so an
+// unknown value is treated as absent instead of being cast into an API filter
+// that matches no tab (BillingInvoiceStatus ends in `(string & {})`, so the
+// old cast could never fail at compile time).
+const TAB_INVOICE_STATUSES = DEFAULT_INVOICE_STATUS_ORDER.filter(
+  value => INVOICE_STATUS_META[value]
+);
+
 const InvoicesPageInner: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const statusDeepLink = searchParams?.get('status') ?? '';
+  const statusDeepLinkFilter = TAB_INVOICE_STATUSES.find(
+    value => value === statusDeepLink
+  );
 
   const list = useBillingList<InvoiceFilters>({
-    defaultFilters: statusDeepLink
-      ? { status: [statusDeepLink as BillingInvoiceStatus] }
+    defaultFilters: statusDeepLinkFilter
+      ? { status: [statusDeepLinkFilter] }
       : {},
     defaultLimit: DEFAULT_LIST_LIMIT,
   });
@@ -75,9 +87,9 @@ const InvoicesPageInner: React.FC = () => {
   const statusOptions = useMemo(
     () => [
       { value: 'all' as StatusFilter, label: 'All' },
-      ...DEFAULT_INVOICE_STATUS_ORDER.filter(
-        value => INVOICE_STATUS_META[value]
-      ).map(value => ({
+      // Same TAB_INVOICE_STATUSES source as the deep-link validation, so a
+      // filter value can never exist without a matching tab.
+      ...TAB_INVOICE_STATUSES.map(value => ({
         value: value as StatusFilter,
         label: INVOICE_STATUS_META[value].label,
       })),

@@ -1241,7 +1241,25 @@ const MultiSelectTable = <T extends TableItem>({
                           ? 'transition-colors hover:bg-muted/50 cursor-pointer'
                           : 'transition-colors hover:bg-muted/50'
                       }
-                      onClick={onRowClick ? () => onRowClick(item) : undefined}
+                      onClick={
+                        onRowClick
+                          ? event => {
+                              // A link or button rendered inside a cell owns its
+                              // own click. Without this the row handler also
+                              // fires, so a cell containing a link to the same
+                              // place would navigate twice.
+                              const target = event.target as HTMLElement | null;
+                              if (
+                                target?.closest?.(
+                                  'a, button, input, select, textarea, [role="button"]'
+                                )
+                              ) {
+                                return;
+                              }
+                              onRowClick(item);
+                            }
+                          : undefined
+                      }
                     >
                       {displayColumns.map(column => (
                         <td

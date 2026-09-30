@@ -59,6 +59,26 @@ const {
   }) => void;
 };
 
+// Windowing helpers are used to derive the exact wire payloads the service
+// posts, so the budget regression test's mock always matches the real queue
+// shape instead of re-pinning boundary dates here.
+const { buildReportWindows, splitReportWindow } = jest.requireActual(
+  '../utils/reportWindows'
+) as {
+  buildReportWindows: (request: Record<string, unknown>) => {
+    start_time: string;
+    end_time: string;
+  }[];
+  splitReportWindow: (
+    window: Record<string, unknown>
+  ) =>
+    | [
+        { start_time: string; end_time: string },
+        { start_time: string; end_time: string },
+      ]
+    | null;
+};
+
 const chartRequest = {
   sites: ['site-1'],
   startDateTime: '2026-08-01T00:00:00.000Z',
@@ -1400,6 +1420,159 @@ describe('AnalyticsService.getReport', () => {
       expect(report).not.toHaveProperty('message');
     } finally {
       nowSpy.mockRestore();
+    }
+  });
+
+  it('does not let a 429 retry push the report past the POST ceiling', async () => {
+    jest.useFakeTimers();
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    // The clock is frozen, so the sliding window can never roll over; raise
+    // the request ceiling so the pacing gate doesn't stall this test.
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+
+      // The four initial windows are rejected once so their split halves queue
+      // enough windows to walk the shared attempt counter up to the cap;
+      // every window that is neither initial nor a designated success is rate
+      // limited on every attempt.
+      const windowKey = (window: { start_time: string; end_time: string }) =>
+        `${window.start_time}|${window.end_time}`;
+      const initialWindows = buildReportWindows(
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01',
+          end_time: '2026-08-31',
+        })
+      );
+      const halves = initialWindows.flatMap(
+        window => splitReportWindow(window) ?? []
+      );
+      const initialKeys = new Set(initialWindows.map(windowKey));
+      // First half of window 2 (Jun 28 → Jun 30) and first half of window 3
+      // (Jul 25 → Jul 31): after them the counter sits on 11, so the next
+      // window's first POST is the 12th and its 429 retry would be the 13th.
+      const successKeys = new Set([windowKey(halves[2]), windowKey(halves[4])]);
+      const successRanges: { start: string; end: string }[] = [];
+
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          const key = windowKey(body);
+          if (initialKeys.has(key)) throw rangeError;
+          if (successKeys.has(key)) {
+            successRanges.push({
+              start: body.start_time.slice(0, 10),
+              end: body.end_time.slice(0, 10),
+            });
+            return {
+              data: { airquality: okReport(body.start_time, body.end_time) },
+            };
+          }
+          throw rateLimitError;
+        }
+      );
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      await jest.runAllTimersAsync();
+      const merged = (await promise) as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+      };
+
+      // The hard ceiling: a window entered one short of the cap may still
+      // send its first POST, but its 429 retry must not follow it.
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+
+      // The window written off mid-queue (Aug 1 → Aug 20) and the window that
+      // was still queued behind it (Aug 21 → Aug 31, drained by the cap) both
+      // surface as unavailable, and together with the successes they tile all
+      // 92 days exactly once — nothing dropped, nothing counted twice.
+      expect(merged.unavailablePeriods).toHaveLength(5);
+      const coverage = new Map<string, number>();
+      const cover = (start: string, end: string) => {
+        const dayMs = 24 * 60 * 60 * 1000;
+        for (
+          let ms = Date.parse(`${start}T00:00:00.000Z`);
+          ms <= Date.parse(`${end}T00:00:00.000Z`);
+          ms += dayMs
+        ) {
+          const day = new Date(ms).toISOString().slice(0, 10);
+          coverage.set(day, (coverage.get(day) ?? 0) + 1);
+        }
+      };
+      successRanges.forEach(range => cover(range.start, range.end));
+      merged.unavailablePeriods.forEach(period =>
+        cover(period.startTime.slice(0, 10), period.endTime.slice(0, 10))
+      );
+      expect(coverage.size).toBe(92);
+      coverage.forEach((count, day) => {
+        expect({ day, count }).toEqual({ day, count: 1 });
+      });
+
+      // Same walk with nothing succeeding: exhausting the budget with an
+      // empty success list must still throw the report error rather than
+      // return an empty report — and it must not overspend the ceiling doing
+      // so either.
+      mockPost.mockClear();
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (initialKeys.has(windowKey(body))) throw rangeError;
+          throw rateLimitError;
+        }
+      );
+
+      const failing = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(failing).rejects.toThrow();
+      await jest.runAllTimersAsync();
+      await assertion;
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
     }
   });
 });

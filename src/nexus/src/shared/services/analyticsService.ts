@@ -256,7 +256,10 @@ const rethrowCancellation = (error: unknown, signal?: AbortSignal): void => {
 /**
  * Result of one windowed report POST. `split` means the backend rejected the
  * window's range and the caller should halve it; `rate-limited` means the
- * window exhausted its 429 retries and should be recorded as unavailable.
+ * window could not be fetched and should be recorded as unavailable, either
+ * because it exhausted its 429 retries or because the caller's POST budget ran
+ * out first. The caller handles both the same way, so the kind does not
+ * distinguish them.
  */
 type ReportWindowOutcome =
   | { kind: 'success'; report: AnalyticsReport }
@@ -507,14 +510,26 @@ export class AnalyticsService {
    * per-window 429 policy. Returns the outcome so the caller can decide
    * between splitting, recording the window as unavailable, or collecting the
    * report. Every non-recoverable error (401/403/404/5xx/abort) throws, and so
-   * does a response without a successful `airquality` payload.
+   * does a response without a successful `airquality` payload. `hasBudget` is
+   * consulted before every attempt so the caller's POST ceiling holds across
+   * the 429 retry, not just across queued windows.
    */
   private async postReportWindow(
     window: AnalyticsReportRequest,
     signal: AbortSignal | undefined,
+    hasBudget: () => boolean,
     onAttempt: () => void
   ): Promise<ReportWindowOutcome> {
     for (let attempt = 1; attempt <= REPORT_429_MAX_ATTEMPTS; attempt += 1) {
+      // The budget must be re-checked per attempt, not once per queued
+      // window: a 429 retry is a second POST, so a window entered with the
+      // counter one short of the cap would otherwise overshoot
+      // `REPORT_MAX_POSTS` by one. Stopping here keeps the ceiling hard —
+      // the window surfaces as rate-limited, which the caller records as
+      // unavailable just like a window that exhausted its retries.
+      if (!hasBudget()) {
+        return { kind: 'rate-limited' };
+      }
       await reserveReportRequestSlot(signal);
 
       try {
@@ -649,9 +664,14 @@ export class AnalyticsService {
         continue;
       }
 
-      const outcome = await this.postReportWindow(window, signal, () => {
-        attempts += 1;
-      });
+      const outcome = await this.postReportWindow(
+        window,
+        signal,
+        () => attempts < maxAttempts,
+        () => {
+          attempts += 1;
+        }
+      );
 
       if (outcome.kind === 'success') {
         successful.push(outcome.report);
