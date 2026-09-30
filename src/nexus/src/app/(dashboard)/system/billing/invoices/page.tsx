@@ -12,13 +12,18 @@ import {
   SegmentedTabs,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { AqPlus, AqRefreshCw05 } from '@airqo/icons-react';
+import { AqPlus, AqRefreshCw05, AqReceipt } from '@airqo/icons-react';
 import type {
   BillingInvoice,
   BillingInvoiceKind,
   BillingInvoiceStatus,
 } from '@/shared/types/billing';
-import { BillingStatusBadge, CurrencyAmount } from '@/modules/system-billing';
+import {
+  BillingFilterBar,
+  BillingStatusBadge,
+  CurrencyAmount,
+  FilterGroup,
+} from '@/modules/system-billing';
 import {
   DEFAULT_LIST_LIMIT,
   DEFAULT_INVOICE_STATUS_ORDER,
@@ -82,7 +87,9 @@ const InvoicesPageInner: React.FC = () => {
 
   const kindOptions = useMemo(
     () => [
-      { value: 'all' as KindFilter, label: 'All' },
+      // "All types" rather than a second "All", which sat next to the status
+      // group's own "All" and read as part of the same control.
+      { value: 'all' as KindFilter, label: 'All types' },
       ...Object.values(INVOICE_KIND_META).map(meta => ({
         value: meta.value as KindFilter,
         label: meta.label,
@@ -215,37 +222,50 @@ const InvoicesPageInner: React.FC = () => {
         action={pageAction}
       />
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-full sm:w-auto sm:min-w-[260px]">
-            <SearchField
-              placeholder="Search invoices…"
-              value={list.searchInput}
-              onChange={event => list.setSearchInput(event.target.value)}
-              onClear={() => list.setSearchInput('')}
-            />
-          </div>
-        </div>
+      <BillingFilterBar
+        fields={[
+          {
+            label: 'Search',
+            className: 'sm:col-span-2 lg:col-span-1',
+            children: (
+              <SearchField
+                placeholder="Search invoices…"
+                value={list.searchInput}
+                onChange={event => list.setSearchInput(event.target.value)}
+                onClear={() => list.setSearchInput('')}
+              />
+            ),
+          },
+        ]}
+        groups={
+          <>
+            <FilterGroup label="Status">
+              <SegmentedTabs
+                options={statusOptions}
+                value={statusFilter}
+                onChange={value =>
+                  list.setFilter(
+                    'status',
+                    value === 'all' ? undefined : [value]
+                  )
+                }
+                ariaLabel="Filter invoices by status"
+              />
+            </FilterGroup>
 
-        <div className="-mx-1 flex flex-wrap gap-2 px-1">
-          <SegmentedTabs
-            options={statusOptions}
-            value={statusFilter}
-            onChange={value =>
-              list.setFilter('status', value === 'all' ? undefined : [value])
-            }
-            ariaLabel="Filter invoices by status"
-          />
-          <SegmentedTabs
-            options={kindOptions}
-            value={kindFilter}
-            onChange={value =>
-              list.setFilter('kind', value === 'all' ? undefined : value)
-            }
-            ariaLabel="Filter invoices by kind"
-          />
-        </div>
-      </div>
+            <FilterGroup label="Type">
+              <SegmentedTabs
+                options={kindOptions}
+                value={kindFilter}
+                onChange={value =>
+                  list.setFilter('kind', value === 'all' ? undefined : value)
+                }
+                ariaLabel="Filter invoices by kind"
+              />
+            </FilterGroup>
+          </>
+        }
+      />
 
       {invoicesError ? (
         <ErrorState
@@ -257,6 +277,7 @@ const InvoicesPageInner: React.FC = () => {
         <LoadingState text="Loading invoices..." />
       ) : invoices.length === 0 ? (
         <EmptyState
+          icon={<AqReceipt />}
           title="No invoices found"
           description="Create your first invoice to get started."
           action={{

@@ -18,6 +18,7 @@ import {
   AqRefreshCw05,
   AqArchive,
   AqShieldTick,
+  AqUsers01,
 } from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
@@ -25,9 +26,11 @@ import Dialog from '@/shared/components/ui/dialog';
 import { billingService } from '@/shared/services/billingService';
 import type { BillingCustomer } from '@/shared/types/billing';
 import {
+  BillingFilterBar,
   CustomerStatusBadge,
   CurrencyAmount,
   CustomerFormDialog,
+  FilterGroup,
 } from '@/modules/system-billing';
 import {
   CUSTOMER_PAGE_SIZE_OPTIONS,
@@ -277,27 +280,38 @@ const CustomersPage: React.FC = () => {
         action={pageAction}
       />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="w-full sm:w-auto sm:min-w-[260px]">
-          <SearchField
-            placeholder="Search customers…"
-            value={list.searchInput}
-            onChange={event => list.setSearchInput(event.target.value)}
-            onClear={() => list.setSearchInput('')}
-          />
-        </div>
-        <SegmentedTabs
-          options={STATUS_OPTIONS}
-          value={statusFilter}
-          onChange={value =>
-            list.setFilter(
-              'status',
-              value === 'all' ? undefined : (value as CustomerFilters['status'])
-            )
-          }
-          ariaLabel="Filter customers by status"
-        />
-      </div>
+      <BillingFilterBar
+        fields={[
+          {
+            label: 'Search',
+            children: (
+              <SearchField
+                placeholder="Search customers…"
+                value={list.searchInput}
+                onChange={event => list.setSearchInput(event.target.value)}
+                onClear={() => list.setSearchInput('')}
+              />
+            ),
+          },
+        ]}
+        groups={
+          <FilterGroup label="Status">
+            <SegmentedTabs
+              options={STATUS_OPTIONS}
+              value={statusFilter}
+              onChange={value =>
+                list.setFilter(
+                  'status',
+                  value === 'all'
+                    ? undefined
+                    : (value as CustomerFilters['status'])
+                )
+              }
+              ariaLabel="Filter customers by status"
+            />
+          </FilterGroup>
+        }
+      />
 
       {customersError ? (
         <ErrorState
@@ -309,6 +323,7 @@ const CustomersPage: React.FC = () => {
         <LoadingState text="Loading customers..." />
       ) : customers.length === 0 ? (
         <EmptyState
+          icon={<AqUsers01 />}
           title="No customers found"
           description="Create your first customer to start invoicing."
           action={{ label: 'New customer', onClick: openCreate }}

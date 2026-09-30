@@ -4,8 +4,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Button,
-  Card,
   EmptyState,
+  ErrorState,
   LoadingState,
   PageHeading,
 } from '@/shared/components/ui';
@@ -15,10 +15,15 @@ import {
   AqReceipt,
   AqSettings01,
   AqRefreshCw05,
+  AqShieldTick,
 } from '@airqo/icons-react';
 import { useRouter } from 'next/navigation';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { BillingDateRange, SummaryTiles } from '@/modules/system-billing';
+import {
+  BillingDateRange,
+  BillingFilterBar,
+  SummaryTiles,
+} from '@/modules/system-billing';
 import { BillingStatusBadge, CurrencyAmount } from '@/modules/system-billing';
 import { DEFAULT_LIST_LIMIT } from '@/modules/system-billing/constants';
 import {
@@ -199,37 +204,34 @@ const BillingDashboard: React.FC = () => {
         action={quickActions}
       />
 
-      <Card className="p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <BillingDateRange
-            id="billing-range"
-            from={from}
-            to={to}
-            onChange={range => {
-              setFrom(range.from);
-              setTo(range.to);
-            }}
-          />
-        </div>
-      </Card>
+      <BillingFilterBar
+        fields={[
+          {
+            label: 'Date range',
+            className: 'sm:col-span-1',
+            children: (
+              <BillingDateRange
+                id="billing-range"
+                showLabel={false}
+                className="w-full"
+                from={from}
+                to={to}
+                onChange={range => {
+                  setFrom(range.from);
+                  setTo(range.to);
+                }}
+              />
+            ),
+          },
+        ]}
+      />
 
       {summaryError ? (
-        <Card className="p-6">
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-destructive">
-              {getBillingErrorMessage(summaryError)}
-            </p>
-            <div>
-              <Button
-                variant="outlined"
-                Icon={AqRefreshCw05}
-                onClick={handleRefresh}
-              >
-                Retry
-              </Button>
-            </div>
-          </div>
-        </Card>
+        <ErrorState
+          title="Could not load the billing summary"
+          description={getBillingErrorMessage(summaryError)}
+          retryAction={{ label: 'Retry', onClick: handleRefresh }}
+        />
       ) : (
         <SummaryTiles
           summary={summary}
@@ -255,21 +257,27 @@ const BillingDashboard: React.FC = () => {
         {overdueLoading ? (
           <LoadingState text="Loading overdue invoices..." />
         ) : overdueError ? (
-          <Card className="p-4">
-            <p className="text-sm text-muted-foreground">
-              {getBillingErrorMessage(overdueError)}
-            </p>
-          </Card>
-        ) : overdueInvoices.length === 0 ? (
-          <EmptyState
-            title="No overdue invoices"
-            description="All caught up. Overdue invoices will appear here."
+          <ErrorState
+            compact
+            title="Could not load overdue invoices"
+            description={getBillingErrorMessage(overdueError)}
           />
         ) : (
           <ServerSideTable
             data={overdueInvoices as unknown as { id: string }[]}
             columns={overdueColumns}
             searchable={false}
+            // Matches the app's in-table empty state (transparent, borderless)
+            // so the section keeps its table chrome when there is nothing to show.
+            emptyComponent={
+              <EmptyState
+                compact
+                icon={<AqShieldTick />}
+                className="border-0 bg-transparent"
+                title="No overdue invoices"
+                description="All caught up. Overdue invoices will appear here."
+              />
+            }
           />
         )}
       </div>

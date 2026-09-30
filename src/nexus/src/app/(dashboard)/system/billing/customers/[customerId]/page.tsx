@@ -12,7 +12,13 @@ import {
   PageHeading,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { AqArrowLeft, AqEdit05, AqPlus } from '@airqo/icons-react';
+import {
+  AqArrowLeft,
+  AqEdit05,
+  AqPlus,
+  AqReceipt,
+  AqUsers01,
+} from '@airqo/icons-react';
 import type { BillingInvoice } from '@/shared/types/billing';
 import {
   BillingStatusBadge,
@@ -173,7 +179,11 @@ const CustomerDetailPage: React.FC = () => {
           </div>
         </Card>
       ) : !customer ? (
-        <EmptyState title="Customer not found" />
+        <EmptyState
+          icon={<AqUsers01 />}
+          title="Customer not found"
+          description="This customer may have been removed, or the link is out of date."
+        />
       ) : (
         <>
           <PageHeading
@@ -278,6 +288,8 @@ const CustomerDetailPage: React.FC = () => {
               />
             ) : invoices.length === 0 ? (
               <EmptyState
+                compact
+                icon={<AqReceipt />}
                 title="No invoices yet"
                 description="Create the first invoice for this customer."
               />

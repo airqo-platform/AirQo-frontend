@@ -13,14 +13,16 @@ import {
   Select,
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { AqRefreshCw05 } from '@airqo/icons-react';
+import { AqRefreshCw05, AqCreditCard01 } from '@airqo/icons-react';
 import type {
   BillingPayment,
   BillingPaymentMethod,
 } from '@/shared/types/billing';
 import {
   BillingDateRange,
+  BillingFilterBar,
   CurrencyAmount,
+  FilterGroup,
   PaymentReceiptActions,
   PaymentStatusBadge,
 } from '@/modules/system-billing';
@@ -194,59 +196,72 @@ const PaymentsPageInner: React.FC = () => {
         }
       />
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-full sm:w-auto sm:min-w-[240px]">
-            <SearchField
-              placeholder="Search payments…"
-              value={list.searchInput}
-              onChange={event => list.setSearchInput(event.target.value)}
-              onClear={() => list.setSearchInput('')}
-            />
-          </div>
-
-          <div className="w-full sm:w-auto sm:min-w-[180px]">
-            <Select
-              label="Method"
-              containerClassName="!mb-0"
-              value={methodFilter}
-              onChange={event =>
-                list.setFilter(
-                  'method',
-                  event.target.value === 'all'
-                    ? undefined
-                    : (event.target.value as BillingPaymentMethod)
-                )
+      <BillingFilterBar
+        fields={[
+          {
+            label: 'Search',
+            children: (
+              <SearchField
+                placeholder="Search payments…"
+                value={list.searchInput}
+                onChange={event => list.setSearchInput(event.target.value)}
+                onClear={() => list.setSearchInput('')}
+              />
+            ),
+          },
+          {
+            label: 'Method',
+            children: (
+              <Select
+                containerClassName="!mb-0"
+                value={methodFilter}
+                onChange={event =>
+                  list.setFilter(
+                    'method',
+                    event.target.value === 'all'
+                      ? undefined
+                      : (event.target.value as BillingPaymentMethod)
+                  )
+                }
+              >
+                {METHOD_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            ),
+          },
+          {
+            label: 'Date range',
+            children: (
+              <BillingDateRange
+                id="payments-range"
+                showLabel={false}
+                className="w-full"
+                from={list.filters.from}
+                to={list.filters.to}
+                onChange={range => {
+                  list.setFilter('from', range.from || undefined);
+                  list.setFilter('to', range.to || undefined);
+                }}
+              />
+            ),
+          },
+        ]}
+        groups={
+          <FilterGroup label="Status">
+            <SegmentedTabs
+              options={STATUS_OPTIONS}
+              value={statusFilter}
+              onChange={value =>
+                list.setFilter('status', value === 'all' ? undefined : [value])
               }
-            >
-              {METHOD_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <BillingDateRange
-            id="payments-range"
-            from={list.filters.from}
-            to={list.filters.to}
-            onChange={range => {
-              list.setFilter('from', range.from || undefined);
-              list.setFilter('to', range.to || undefined);
-            }}
-          />
-        </div>
-
-        <SegmentedTabs
-          options={STATUS_OPTIONS}
-          value={statusFilter}
-          onChange={value =>
-            list.setFilter('status', value === 'all' ? undefined : [value])
-          }
-          ariaLabel="Filter payments by status"
-        />
-      </div>
+              ariaLabel="Filter payments by status"
+            />
+          </FilterGroup>
+        }
+      />
 
       {paymentsError ? (
         <ErrorState
@@ -257,7 +272,11 @@ const PaymentsPageInner: React.FC = () => {
       ) : paymentsLoading ? (
         <LoadingState text="Loading payments..." />
       ) : payments.length === 0 ? (
-        <EmptyState title="No payments found" />
+        <EmptyState
+          icon={<AqCreditCard01 />}
+          title="No payments found"
+          description="Payments recorded against invoices appear here."
+        />
       ) : (
         <ServerSideTable
           data={payments as unknown as { id: string }[]}
