@@ -25,8 +25,10 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+let mockFirstName = 'Amina';
+
 jest.mock('next-auth/react', () => ({
-  useSession: () => ({ data: { user: { firstName: 'Amina' } } }),
+  useSession: () => ({ data: { user: { firstName: mockFirstName } } }),
 }));
 
 jest.mock('posthog-js/react', () => ({
@@ -115,6 +117,7 @@ describe('AdaptiveHomePage', () => {
     mockOpenWithPrompt.mockReset();
     mockOpenAi.mockReset();
     mockAiEnabled = true;
+    mockFirstName = 'Amina';
     Object.assign(mockExperience, {
       mode: 'new',
       continueItems: [],
@@ -125,6 +128,32 @@ describe('AdaptiveHomePage', () => {
       updatesLoading: false,
       hasPartialError: false,
     });
+  });
+
+  it('capitalizes a lowercase account name in the greeting', () => {
+    mockFirstName = 'paul';
+
+    renderHome();
+
+    expect(screen.getByText('Welcome, Paul')).toBeInTheDocument();
+    expect(screen.queryByText('Welcome, paul')).toBeNull();
+  });
+
+  it('preserves intentional casing in the greeting', () => {
+    mockFirstName = 'McDonald';
+    mockExperience.mode = 'returning';
+
+    renderHome();
+
+    expect(screen.getByText('Welcome back, McDonald')).toBeInTheDocument();
+  });
+
+  it('falls back to a neutral greeting when no first name is stored', () => {
+    mockFirstName = '';
+
+    renderHome();
+
+    expect(screen.getByText('Welcome, There')).toBeInTheDocument();
   });
 
   it('renders the discovery homepage without empty resume sections', () => {
@@ -223,8 +252,12 @@ describe('AdaptiveHomePage', () => {
       }
     );
 
-    // The greeting carries the colour instead of a panel around the header.
-    expect(screen.getByText('Welcome, Amina')).toHaveClass('text-primary');
+    // The greeting stays neutral — primary is reserved for the interactive
+    // surfaces below, so the header keeps its quiet, scannable top.
+    expect(screen.getByText('Welcome, Amina')).toHaveClass(
+      'text-muted-foreground'
+    );
+    expect(screen.getByText('Welcome, Amina')).not.toHaveClass('text-primary');
 
     // Interactive tiles are tinted with the primary token, never raw hex.
     const outcomeIcon = screen
