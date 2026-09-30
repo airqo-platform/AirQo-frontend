@@ -382,7 +382,7 @@ export const getReportPeriodError = (
 };
 
 export interface ReportPeriodInputBounds {
-  /** Earliest selectable end date. */
+  /** Earliest selectable end date: never before the current start. */
   minEnd?: Date;
   /** Latest selectable start date: never after the current end, never future. */
   maxStart?: Date;
@@ -394,11 +394,16 @@ const earlierDate = (left: Date, right: Date): Date =>
   left.getTime() <= right.getTime() ? left : right;
 
 /**
- * `min`/`max` bounds handed to the shared `DatePicker` instances. Today caps
- * both ends, the end cannot sit before the start, and it can never sit more
- * than `MAX_REPORT_PERIOD_DAYS - 1` days after it — so the calendar greys out
- * days that would exceed the cap instead of offering a period the report
- * service refuses.
+ * `min`/`max` bounds handed to the two report-period `DatePicker` instances.
+ * Today caps both ends, the end cannot sit before the start, and it can never
+ * sit more than `MAX_REPORT_PERIOD_DAYS - 1` days after it — so each calendar
+ * greys out days that would exceed the cap instead of offering a period the
+ * report service refuses.
+ *
+ * This is why the view uses two pickers rather than one range calendar: the cap
+ * is *relative* to the chosen start, and a range calendar's `min`/`max` are
+ * absolute, so it cannot express "start + 30 and beyond" before the start is
+ * known.
  *
  * `getReportPeriodError` remains the authority: the bounds only stop the user
  * from picking an invalid day, they do not protect the request.

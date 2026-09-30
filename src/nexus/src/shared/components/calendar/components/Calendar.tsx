@@ -27,6 +27,15 @@ const WEEK_STARTS_ON = 1 as const;
 
 interface CoreCalendarProps {
   numberOfMonths?: number;
+  /**
+   * How many days one click selects. `'range'` (the default) needs a start and
+   * an end click. `'single'` completes on the first click.
+   *
+   * This must be threaded all the way down: the grid used to always run its
+   * two-click range logic, so a single-date picker asked the user for a second
+   * click it had no use for, and left the end-of-range box empty.
+   */
+  mode?: 'single' | 'range';
   onApply?: (value: DateRange) => void;
   onCancel?: () => void;
   initialRange?: DateRange;
@@ -43,6 +52,7 @@ interface CoreCalendarProps {
 
 export function Calendar({
   numberOfMonths = 2,
+  mode = 'range',
   onApply,
   onCancel,
   initialRange,
@@ -118,6 +128,11 @@ export function Calendar({
   const handleDateSelect = useCallback(
     (date: Date) => {
       const newRange = (() => {
+        // A single-date picker completes on the first click. Returning
+        // `{ from, to: undefined }` here (the old unconditional behaviour) left
+        // the end-of-range box empty and made the user click a second day they
+        // had no reason to pick before Apply would even mean something.
+        if (mode === 'single') return { from: date, to: date };
         // Always allow range selection for API consistency
         if (!selectedRange.from || selectedRange.to)
           return { from: date, to: undefined };
@@ -132,7 +147,7 @@ export function Calendar({
         setInternalRange(newRange);
       }
     },
-    [selectedRange, controlledRange, onRangeChange]
+    [mode, selectedRange, controlledRange, onRangeChange]
   );
 
   const handleYearChange = useCallback((year: number) => {
@@ -320,6 +335,7 @@ export function Calendar({
 
         <CalendarFooter
           numberOfMonths={numberOfMonths}
+          mode={mode}
           selectedRange={selectedRange}
           onCancel={() => {
             // First call the custom onCancel if provided (for dialog close)

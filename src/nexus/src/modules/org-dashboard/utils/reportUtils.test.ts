@@ -457,6 +457,7 @@ describe('report period bounds', () => {
 
     expect(bounds.minEnd).toEqual(new Date(2026, 8, 4));
     expect(bounds.maxStart).toEqual(new Date(2026, 8, 10));
+    // Sep 4 + 30 days = Oct 4, which is before "today" (Nov 15).
     expect(bounds.maxEnd).toEqual(new Date(2026, 9, 4));
 
     // Before a start is chosen the only bound is today.

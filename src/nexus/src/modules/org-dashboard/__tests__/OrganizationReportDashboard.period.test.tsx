@@ -74,16 +74,19 @@ jest.mock('@/shared/components/calendar', () => {
     onChange,
     minDate,
     maxDate,
+    mode,
   }: {
     id?: string;
     value?: Date;
     onChange?: (value: Date) => void;
     minDate?: Date;
     maxDate?: Date;
+    mode?: 'single' | 'range';
   }) => (
     <input
       id={id}
       type="date"
+      data-mode={mode}
       value={format(value)}
       data-min={format(minDate)}
       data-max={format(maxDate)}
@@ -140,6 +143,18 @@ const refreshButton = () =>
 const pickDate = (input: HTMLInputElement, value: string) =>
   fireEvent.change(input, { target: { value } });
 
+/** What the component actually committed, read back off the controlled inputs. */
+const selectedRange = () => ({
+  from: startPicker().value,
+  to: endPicker().value,
+});
+
+const isoDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    '0'
+  )}-${String(date.getDate()).padStart(2, '0')}`;
+
 const lastRequest = () =>
   mockUseOrganizationReport.mock.calls.at(-1)?.[0] as {
     startTime: string;
@@ -152,40 +167,60 @@ describe('OrganizationReportDashboard reporting period', () => {
     mockUseOrganizationReport.mockClear();
   });
 
-  it('uses the shared date picker twice, not raw date inputs', () => {
+  it('uses two single date pickers, not raw date inputs', () => {
     render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
 
     const period = screen.getByRole('group', { name: 'Reporting period' });
     expect(period).toBeInTheDocument();
+    // Both ends stay individually addressable: the cap is relative to the
+    // start, so each calendar needs its own bounds.
     expect(startPicker()).toBeInTheDocument();
     expect(endPicker()).toBeInTheDocument();
-    // The range calendar's presets sidebar is gone.
+    expect(startPicker()).toHaveAttribute('data-mode', 'single');
+    expect(endPicker()).toHaveAttribute('data-mode', 'single');
+    // The range calendar's presets sidebar is gone — "Last 90 days" and
+    // "This year" are both far wider than the report service accepts.
     expect(screen.queryByText('Last 90 days')).not.toBeInTheDocument();
     expect(screen.queryByText('This month')).not.toBeInTheDocument();
-    expect(screen.queryByText('Select date range')).not.toBeInTheDocument();
   });
 
-  it('defaults to a period that already fits the 31-day limit', () => {
+  it('defaults to the current month to date', () => {
     render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
 
+    const now = new Date();
+    // The 1st of this month through today: the report opens on the month the
+    // user is living in rather than an arbitrary trailing window.
+    expect(startPicker().value).toBe(
+      isoDate(new Date(now.getFullYear(), now.getMonth(), 1))
+    );
+    expect(endPicker().value).toBe(isoDate(now));
+
+    const { from, to } = selectedRange();
     const days =
-      (Date.parse(`${endPicker().value}T00:00:00Z`) -
-        Date.parse(`${startPicker().value}T00:00:00Z`)) /
+      (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
         86_400_000 +
       1;
+    // A calendar month is never longer than the cap, so the default can never
+    // land on a selection the report service would refuse.
     expect(days).toBeGreaterThan(0);
     expect(days).toBeLessThanOrEqual(31);
     expect(
       screen.getByText(`${days} of 31 days selected.`)
     ).toBeInTheDocument();
+    // It also always ends on a day that has happened, so the future guard is
+    // satisfied and the report is requestable immediately.
     expect(lastRequest().enabled).toBe(true);
+    expect(refreshButton()).not.toBeDisabled();
   });
 
-  it('caps the end picker at start + 30 days so the calendar cannot exceed the limit', () => {
+  it('caps each calendar so the 31-day limit cannot be picked', () => {
     render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
 
     pickDate(startPicker(), START);
 
+    // This is what two pickers buy over one range calendar: the end greys out
+    // at start + 30 days, because the cap is relative to the start and only a
+    // calendar bound on the start can express that.
     expect(endPicker()).toHaveAttribute('data-max', CAP_END);
     expect(endPicker()).toHaveAttribute('data-min', START);
     // The start can never pass the end, and never a future date. Moving the
@@ -193,13 +228,23 @@ describe('OrganizationReportDashboard reporting period', () => {
     expect(startPicker()).toHaveAttribute('data-max', endPicker().value);
   });
 
+  it('never offers a future date on either calendar', () => {
+    render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
+
+    // The default period ends today and is exactly 31 days long, so both
+    // calendars cap at today: there is no report data for a day that has not
+    // happened yet.
+    expect(startPicker()).toHaveAttribute('data-max', isoDate(new Date()));
+    expect(endPicker()).toHaveAttribute('data-max', isoDate(new Date()));
+  });
+
   it('blocks the report and explains the limit when the period runs past 31 days', () => {
     render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
 
-    // Moving the start back leaves the end on today, which is now more than
-    // 31 dates away. The calendar greys those days out, so the guard has to
-    // reject the selection too.
+    // The calendars grey the invalid days out, so reaching this needs a
+    // hostile payload — the guard is the backstop, not the primary defence.
     pickDate(startPicker(), START);
+    pickDate(endPicker(), '2026-12-24');
 
     expect(
       screen.getByText(/choose a period of 31 days or fewer/i)
@@ -227,6 +272,21 @@ describe('OrganizationReportDashboard reporting period', () => {
     expect(refreshButton()).not.toBeDisabled();
   });
 
+  it('keeps a shorter selection exactly as picked', () => {
+    render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
+
+    pickDate(startPicker(), START);
+    pickDate(endPicker(), '2026-06-10');
+
+    expect(selectedRange()).toEqual({ from: START, to: '2026-06-10' });
+    expect(screen.getByText('10 of 31 days selected.')).toBeInTheDocument();
+    expect(lastRequest()).toMatchObject({
+      enabled: true,
+      startTime: '2026-06-01T00:00:00.000Z',
+      endTime: '2026-06-10T23:59:59.999Z',
+    });
+  });
+
   it('drags the end along when the start is moved past it', () => {
     render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
 
@@ -235,8 +295,24 @@ describe('OrganizationReportDashboard reporting period', () => {
 
     // A start after the end must never produce an inverted range.
     pickDate(startPicker(), '2026-06-10');
-    expect(startPicker().value).toBe('2026-06-10');
-    expect(endPicker().value).toBe('2026-06-10');
+    expect(selectedRange()).toEqual({ from: '2026-06-10', to: '2026-06-10' });
+  });
+
+  it('blocks the report when a selection lands in the future', () => {
+    render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
+
+    // The grid greys future days out, so this needs a hostile payload to
+    // reach — the guard is the backstop, not the primary defence.
+    const future = new Date();
+    future.setDate(future.getDate() + 5);
+    const iso = isoDate(future);
+
+    pickDate(startPicker(), iso);
+    pickDate(endPicker(), iso);
+
+    expect(screen.getByText(/cannot run into the future/i)).toBeInTheDocument();
+    expect(lastRequest().enabled).toBe(false);
+    expect(refreshButton()).toBeDisabled();
   });
 
   it('states the month limit in the info banner', () => {

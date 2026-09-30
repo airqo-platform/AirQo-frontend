@@ -32,6 +32,9 @@ export function SingleCalendar({
   return (
     <Calendar
       numberOfMonths={1}
+      // One click selects the day. Without this the grid ran its two-click
+      // range logic and left the end-of-range box empty after a single pick.
+      mode="single"
       onApply={onApply}
       onCancel={onCancel}
       initialRange={initialRange}

@@ -676,6 +676,110 @@ describe('AnalyticsService.getReport', () => {
     expect(mockPost).toHaveBeenCalledTimes(3);
   });
 
+  it("surfaces the report service's own reason instead of a generic failure", async () => {
+    // A 400 becomes a split rather than a throw, so the reason used to be
+    // discarded before anything could show it, and the give-up path built a
+    // fresh status-less error. The user saw "temporarily unavailable" for a
+    // range the service had plainly explained.
+    jest.useFakeTimers();
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      // Exactly the body the analytics route returns for a refused range.
+      const rangeTooWide = Object.assign(new Error('Request failed with 400'), {
+        response: {
+          status: 400,
+          data: {
+            message:
+              'The requested date range is too wide. Shorten the date range.',
+            status: 'error',
+            data: null,
+            metadata: null,
+          },
+        },
+      });
+      mockPost.mockRejectedValue(rangeTooWide);
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(promise).rejects.toThrow(
+        'The requested date range is too wide. Shorten the date range.'
+      );
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('explains a missing-data outcome when the service gives no reason', async () => {
+    // No usable window and nothing said: the copy has to name what is missing
+    // and what to do, not describe a transient fault the user cannot act on.
+    jest.useFakeTimers();
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      // A 400 with no message in the body: the cap is known, the reason is not.
+      const silentRejection = Object.assign(new Error('Request failed'), {
+        response: { status: 400, data: { status: 'error', data: null } },
+      });
+      mockPost.mockRejectedValue(silentRejection);
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(promise).rejects.toThrow(
+        /no air quality readings were returned/i
+      );
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps its own copy for an auth failure rather than echoing the server', async () => {
+    // The service's text is written for its own clients; auth wording is the
+    // one place where echoing server text back is not worth the risk.
+    const unauthorized = Object.assign(new Error('Request failed with 401'), {
+      response: {
+        status: 401,
+        data: { message: 'token=abc123 expired for user 42' },
+      },
+    });
+    mockPost.mockRejectedValue(unauthorized);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /do not have permission/i
+    );
+  });
+
+  it('truncates an unreasonably long server message', async () => {
+    const verbose = Object.assign(new Error('Request failed with 400'), {
+      response: {
+        status: 400,
+        data: { message: 'x'.repeat(5000) },
+      },
+    });
+    mockPost.mockRejectedValueOnce(verbose).mockRejectedValueOnce(verbose);
+
+    const assertion = expect(
+      analyticsService.getReport(reportRequest)
+    ).rejects.toThrow(/^x{299}…$/);
+    await assertion;
+  });
+
   it('splits a Jun→Jul-spanning window on 400 and merges the two halves', async () => {
     // Pin clock to avoid future-start guard flake.
     const nowSpy = jest

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Calendar } from '../components/Calendar';
 
 // The month arrows render through the shared Button, which calls useRouter()
@@ -127,5 +127,115 @@ describe('Calendar selectable window', () => {
     expect(
       screen.getByRole('button', { name: 'Previous month' })
     ).toBeEnabled();
+  });
+});
+
+describe('Calendar single-date selection', () => {
+  // The regression: the grid used to run its two-click range logic in every
+  // mode, so one click on a single-date picker produced `{ from, to: undefined }`
+  // — an empty end box and a second click the user had no reason to make.
+  const single = (
+    props: Partial<React.ComponentProps<typeof Calendar>> = {}
+  ) => (
+    <Calendar
+      numberOfMonths={1}
+      mode="single"
+      initialRange={{ from: new Date(2026, 8, 4), to: new Date(2026, 8, 4) }}
+      {...props}
+    />
+  );
+
+  it('completes on the first click, with no end left to pick', () => {
+    const onRangeChange = jest.fn();
+    render(single({ onRangeChange }));
+
+    fireEvent.click(day(12)!);
+
+    expect(onRangeChange).toHaveBeenCalledTimes(1);
+    // Both ends set to the clicked day: nothing is left half-finished.
+    expect(onRangeChange).toHaveBeenCalledWith({
+      from: new Date(2026, 8, 12),
+      to: new Date(2026, 8, 12),
+    });
+  });
+
+  it('replaces the previous value on each click rather than starting a new range', () => {
+    const onRangeChange = jest.fn();
+    render(single({ onRangeChange }));
+
+    fireEvent.click(day(12)!);
+    fireEvent.click(day(20)!);
+
+    // A second click overwrites; it never grows into a 12→20 range.
+    expect(onRangeChange).toHaveBeenLastCalledWith({
+      from: new Date(2026, 8, 20),
+      to: new Date(2026, 8, 20),
+    });
+  });
+
+  it('does not need a second click before Apply carries the new date', () => {
+    const onApply = jest.fn();
+    render(
+      <Calendar
+        numberOfMonths={1}
+        mode="single"
+        onRangeChange={jest.fn()}
+        onApply={onApply}
+      />
+    );
+
+    fireEvent.click(day(12)!);
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(onApply).toHaveBeenCalledWith({
+      from: new Date(2026, 8, 12),
+      to: new Date(2026, 8, 12),
+    });
+  });
+
+  it('still reports a disabled day as unselectable', () => {
+    const onRangeChange = jest.fn();
+    render(single({ onRangeChange, minDate: new Date(2026, 8, 10) }));
+
+    fireEvent.click(day(5)!);
+    expect(onRangeChange).not.toHaveBeenCalled();
+
+    fireEvent.click(day(12)!);
+    expect(onRangeChange).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CalendarFooter single-mode chrome', () => {
+  // A single date has no period, so the end-of-range box and the time-range
+  // pair are controls whose value could never be carried anywhere.
+  const footerInputs = () =>
+    Array.from(document.querySelectorAll<HTMLInputElement>('input'));
+
+  it('shows one date box and no time controls in single mode', () => {
+    render(
+      <Calendar
+        numberOfMonths={1}
+        mode="single"
+        initialRange={{ from: new Date(2026, 8, 4), to: new Date(2026, 8, 4) }}
+      />
+    );
+
+    expect(footerInputs()).toHaveLength(1);
+    expect(footerInputs()[0]).toHaveValue('Sep 4, 2026');
+    expect(screen.queryByText('Include Time')).not.toBeInTheDocument();
+  });
+
+  it('keeps both date boxes and the time toggle in range mode', () => {
+    render(
+      <Calendar
+        numberOfMonths={1}
+        initialRange={{ from: new Date(2026, 8, 4), to: new Date(2026, 8, 10) }}
+      />
+    );
+
+    expect(footerInputs()).toHaveLength(2);
+    expect(footerInputs()[0]).toHaveValue('Sep 4, 2026');
+    expect(footerInputs()[1]).toHaveValue('Sep 10, 2026');
+    expect(screen.getByText('Include Time')).toBeInTheDocument();
   });
 });

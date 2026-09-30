@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { endOfDay, format, startOfDay, subDays } from 'date-fns';
+import { endOfDay, format, startOfDay, startOfMonth } from 'date-fns';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
@@ -79,14 +79,19 @@ interface ReportChartProps {
   className?: string;
 }
 
-// Default to a single server-valid window; longer selections are split
-// into consecutive windows and merged by the analytics service.
-const DEFAULT_REPORT_RANGE_DAYS = 27;
-
+/**
+ * Default selection: the current month to date — the 1st through today.
+ *
+ * A calendar month is never longer than `MAX_REPORT_PERIOD_DAYS`, so this
+ * default can never breach the cap, and it always ends on a day that has
+ * actually happened, so the future-date guard never rejects it. Anything the
+ * report service cannot process inside the month is surfaced as an excluded
+ * period rather than silently averaged in.
+ */
 const getDefaultReportRange = (): DateRange => {
   const now = new Date();
   return {
-    from: startOfDay(subDays(now, DEFAULT_REPORT_RANGE_DAYS - 1)),
+    from: startOfMonth(now),
     to: endOfDay(now),
   };
 };
@@ -369,9 +374,13 @@ export const OrganizationReportDashboard: React.FC<
   const selectionPending =
     cohortsLoading || (cohortIds.length > 0 && !effectiveCohortId);
 
-  // The two pickers keep the range ordered: picking a start after the current
-  // end moves the end with it (and vice versa) so the user never has to undo
-  // an inverted selection before the 31-day rule can be checked.
+  // Two explicit pickers rather than one range calendar: the cap is *relative*
+  // to the chosen start, and a range calendar's min/max are absolute, so it
+  // cannot grey out "start + 30 days and beyond" before the start is known. Two
+  // independent calendars can, via the bounds below.
+  //
+  // Each side also drags the other with it, so the user never has to undo an
+  // inverted selection before the 31-day rule can be checked.
   const handleStartDateChange = (value: unknown) => {
     const picked = getPickedReportDate(value);
     if (!picked) return;
@@ -407,12 +416,25 @@ export const OrganizationReportDashboard: React.FC<
     if (selectionPending || reportLoading) {
       return (
         <div
-          className="flex min-h-[300px] items-center justify-center"
+          className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center"
           role="status"
           aria-live="polite"
           aria-label="Loading organization report"
         >
           <LoadingSpinner />
+          <div className="space-y-1">
+            <p className="text-sm text-foreground">
+              Loading the organization report…
+            </p>
+            {/* The report service paces its requests and retries any window it
+                refuses, so a period it cannot process can take several seconds
+                to come back with an answer. Without this the wait reads as a
+                hang and the eventual message arrives as a surprise. */}
+            <p className="max-w-md text-xs text-muted-foreground">
+              The report service checks each period in the range separately, so
+              this can take a few seconds.
+            </p>
+          </div>
         </div>
       );
     }
@@ -556,15 +578,18 @@ export const OrganizationReportDashboard: React.FC<
               >
                 Reporting period
               </p>
+              {/* A bounded inline group rather than a two-column grid: the grid
+                  stretched the two pickers out to the far edges of the card,
+                  which read as two unrelated controls instead of one period. */}
               <div
                 role="group"
                 aria-labelledby="report-period-label"
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                className="flex flex-wrap items-end gap-x-2 gap-y-3"
               >
                 <div className="min-w-0">
                   <label
                     htmlFor="report-period-start"
-                    className="mb-2 block text-sm text-foreground"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
                   >
                     From
                   </label>
@@ -575,14 +600,20 @@ export const OrganizationReportDashboard: React.FC<
                     onChange={handleStartDateChange}
                     maxDate={periodBounds.maxStart}
                     placeholder="Start date"
-                    className="w-full"
+                    className="w-44"
                     contentClassName="z-[10010]"
                   />
                 </div>
+                <span
+                  aria-hidden="true"
+                  className="mb-3 select-none text-muted-foreground"
+                >
+                  –
+                </span>
                 <div className="min-w-0">
                   <label
                     htmlFor="report-period-end"
-                    className="mb-2 block text-sm text-foreground"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
                   >
                     To
                   </label>
@@ -594,7 +625,7 @@ export const OrganizationReportDashboard: React.FC<
                     minDate={periodBounds.minEnd}
                     maxDate={periodBounds.maxEnd}
                     placeholder="End date"
-                    className="w-full"
+                    className="w-44"
                     contentClassName="z-[10010]"
                   />
                 </div>
