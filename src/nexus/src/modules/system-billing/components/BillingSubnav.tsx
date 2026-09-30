@@ -10,9 +10,10 @@ import {
   AqUsers01,
 } from '@airqo/icons-react';
 import {
+  Card,
   SegmentedTabs,
   type SegmentedTabOption,
-} from '@/shared/components/ui/segmented-tabs';
+} from '@/shared/components/ui';
 import { BILLING_NAV } from '../constants';
 
 type BillingSection = keyof typeof BILLING_NAV;
@@ -64,20 +65,23 @@ const BillingSubnav: React.FC = () => {
   );
 
   return (
-    <nav aria-label="Billing sections" className="w-full min-w-0">
-      {/* Horizontal scroll keeps every section reachable on narrow screens
-          without the control growing past the viewport. */}
-      <div className="max-w-full overflow-x-auto pb-1">
-        <SegmentedTabs
-          options={options}
-          value={resolveSection(pathname)}
-          getHref={section => BILLING_NAV[section]}
-          ariaLabel="Billing sections"
-          size="md"
-          className="min-w-max"
-        />
-      </div>
-    </nav>
+    <Card className="w-full min-w-0 border border-border/70 p-2 shadow-sm sm:p-3">
+      <nav aria-label="Billing sections" className="w-full min-w-0">
+        {/* Horizontal scroll keeps every section reachable on narrow screens
+            without the control growing past the viewport. The thin scrollbar
+            doubles as the affordance that there is more to the right. */}
+        <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:rounded-full [&::-webkit-scrollbar]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600">
+          <SegmentedTabs
+            options={options}
+            value={resolveSection(pathname)}
+            getHref={section => BILLING_NAV[section]}
+            ariaLabel="Billing sections"
+            size="md"
+            className="min-w-max"
+          />
+        </div>
+      </nav>
+    </Card>
   );
 };
 

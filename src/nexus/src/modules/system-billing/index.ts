@@ -1,5 +1,8 @@
 export { default as BillingSubnav } from './components/BillingSubnav';
 export { default as BillingDateRange } from './components/BillingDateRange';
+export { default as FilterGroup } from './components/FilterGroup';
+export { default as BillingFilterBar } from './components/BillingFilterBar';
+export type { BillingFilterField } from './components/BillingFilterBar';
 export { default as BillingStatusBadge } from './components/BillingStatusBadge';
 export { CustomerStatusBadge } from './components/BillingStatusBadge';
 export { PaymentStatusBadge } from './components/BillingStatusBadge';

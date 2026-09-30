@@ -1,3 +1,5 @@
+import { addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
+import { toLocalDate } from '@/shared/utils/dateUtils';
 import type {
   AnalyticsReport,
   AnalyticsReportAggregateRow,
@@ -292,5 +294,128 @@ export const getReportRequestRange = (
   return {
     startDateTime: new Date(startMs).toISOString(),
     endDateTime: new Date(endMs).toISOString(),
+  };
+};
+
+/**
+ * Maximum length of a single organization report period, counted in inclusive
+ * calendar days. The analytics report route is month-scoped: the backend
+ * documents a report as one month of data and refuses anything wider, so the
+ * selection is capped here rather than letting the request travel to the
+ * rate-limited report endpoint to come back rejected.
+ *
+ * This is the product limit for the report view. The service's own
+ * `MAX_REPORT_RANGE_DAYS` stays a transport-level backstop for the adaptive
+ * window/merge loop, not the number this view offers.
+ */
+export const MAX_REPORT_PERIOD_DAYS = 31;
+
+/**
+ * Normalise a shared `DatePicker` payload into a local `Date`.
+ *
+ * The picker emits a `Date` in single mode, but its `onChange` contract also
+ * allows an ISO string or a `{ from, to }` range, so every shape is coerced
+ * here rather than at the call site. `null` means "nothing usable" and the
+ * caller must leave the current selection untouched.
+ */
+const asLocalDate = (value: unknown): Date | null => {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  return typeof value === 'string' ? (toLocalDate(value) ?? null) : null;
+};
+
+export const getPickedReportDate = (value: unknown): Date | null => {
+  if (
+    value &&
+    typeof value === 'object' &&
+    !(value instanceof Date) &&
+    'from' in value
+  ) {
+    return asLocalDate((value as { from: unknown }).from);
+  }
+  return asLocalDate(value);
+};
+
+/** Message for a selection that is missing an end, or is not yet choosable. */
+export const REPORT_PERIOD_INCOMPLETE_MESSAGE =
+  'Choose a start and end date for the report.';
+
+/**
+ * Inclusive calendar days in the selection, or `0` when it is incomplete.
+ *
+ * Both the validity guard and the "N of 31 days selected" hint read this, so
+ * the number shown to the user can never disagree with the number the guard
+ * rejected the selection over.
+ */
+export const getReportPeriodDayCount = (range: DateRange): number =>
+  range.from && range.to
+    ? differenceInCalendarDays(range.to, range.from) + 1
+    : 0;
+
+/**
+ * Why the selected period cannot be requested, or `null` when it is valid.
+ * Single source of truth for the limit so the date pickers and the report body
+ * can never disagree about it.
+ */
+export const getReportPeriodError = (
+  range: DateRange,
+  now: Date = new Date()
+): string | null => {
+  const { from, to } = range;
+  if (!from || !to) return REPORT_PERIOD_INCOMPLETE_MESSAGE;
+  // Compared as calendar days, not instants: a period that ends today is
+  // stored with an end-of-day timestamp, which is always ahead of `now`.
+  // Rejecting on instants would make the default "up to today" range
+  // permanently invalid — `getReportRequestRange` is what clamps the payload
+  // to now.
+  const today = startOfDay(now).getTime();
+  if (startOfDay(from).getTime() > today || startOfDay(to).getTime() > today) {
+    return 'The report period cannot run into the future.';
+  }
+  const days = getReportPeriodDayCount(range);
+  if (days <= 0) return 'The end date must be on or after the start date.';
+  if (days > MAX_REPORT_PERIOD_DAYS) {
+    return `Reports cover up to ${MAX_REPORT_PERIOD_DAYS} days. Choose a period of ${MAX_REPORT_PERIOD_DAYS} days or fewer.`;
+  }
+  return null;
+};
+
+export interface ReportPeriodInputBounds {
+  /** Earliest selectable end date. */
+  minEnd?: Date;
+  /** Latest selectable start date: never after the current end, never future. */
+  maxStart?: Date;
+  /** Latest selectable end date: never future, never past the period cap. */
+  maxEnd?: Date;
+}
+
+const earlierDate = (left: Date, right: Date): Date =>
+  left.getTime() <= right.getTime() ? left : right;
+
+/**
+ * `min`/`max` bounds handed to the shared `DatePicker` instances. Today caps
+ * both ends, the end cannot sit before the start, and it can never sit more
+ * than `MAX_REPORT_PERIOD_DAYS - 1` days after it — so the calendar greys out
+ * days that would exceed the cap instead of offering a period the report
+ * service refuses.
+ *
+ * `getReportPeriodError` remains the authority: the bounds only stop the user
+ * from picking an invalid day, they do not protect the request.
+ */
+export const getReportPeriodInputBounds = (
+  range: DateRange,
+  now: Date = new Date()
+): ReportPeriodInputBounds => {
+  const today = startOfDay(now);
+  const { from, to } = range;
+  const capEnd = from
+    ? addDays(startOfDay(from), MAX_REPORT_PERIOD_DAYS - 1)
+    : null;
+
+  return {
+    minEnd: from,
+    maxStart: to ? earlierDate(startOfDay(to), today) : today,
+    maxEnd: capEnd ? earlierDate(capEnd, today) : today,
   };
 };

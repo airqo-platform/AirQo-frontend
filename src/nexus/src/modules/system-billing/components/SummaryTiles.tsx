@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card } from '@/shared/components/ui';
-import { MetricCard, SegmentedTabs } from '@/shared/components/ui';
+import { EmptyState, MetricCard, SegmentedTabs } from '@/shared/components/ui';
+import { AqWallet01 } from '@airqo/icons-react';
 import type { BillingSummary } from '@/shared/types/billing';
 import { formatMoney } from '../lib/format';
 
@@ -36,11 +36,12 @@ const SummaryTiles: React.FC<SummaryTilesProps> = ({
 
   if (!summary || buckets.length === 0) {
     return (
-      <Card className="p-6">
-        <p className="text-sm text-muted-foreground">
-          No billing data available for the selected period.
-        </p>
-      </Card>
+      <EmptyState
+        compact
+        icon={<AqWallet01 />}
+        title="No billing data for this period"
+        description="Once invoices are issued in the selected date range, outstanding, overdue and collected totals appear here."
+      />
     );
   }
 

@@ -1,4 +1,5 @@
 import { format, isValid, parseISO } from 'date-fns';
+import { ISO_DATE_ONLY } from '@/shared/utils/dateUtils';
 import {
   FALLBACK_CURRENCY,
   INVOICE_KIND_META,
@@ -12,7 +13,6 @@ import type {
   BillingPaymentMethod,
 } from '@/shared/types/billing';
 
-const ISO_DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const DASH = '—';
 
 const isValidCurrencyCode = (code: unknown): code is string =>
@@ -113,22 +113,13 @@ export const fromDateInputValue = (value: string): string => {
 const ISO_DATETIME_LOCAL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
 
 /**
- * `yyyy-MM-dd` -> a *local* Date, so a day picked in the calendar renders as the
- * same day in the input regardless of the viewer's timezone (parsing as UTC
- * would shift it a day either way).
+ * Re-exported from `@/shared/utils/dateUtils` rather than reimplemented: the
+ * calendar → `<input type="date">` round trip is used by the billing filters,
+ * the report period pickers and the shared calendar, and a second copy is how
+ * the two drift apart (the local version silently accepted `2026-02-31` and
+ * rolled it forward to Mar 3).
  */
-export const toLocalDate = (
-  value: string | null | undefined
-): Date | undefined => {
-  if (!value || !ISO_DATE_ONLY.test(value)) return undefined;
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return isValid(date) ? date : undefined;
-};
-
-/** local Date -> `yyyy-MM-dd` for date inputs and date-only API filters. */
-export const toDateInputString = (date: Date | null | undefined): string =>
-  date && isValid(date) ? format(date, 'yyyy-MM-dd') : '';
+export { toLocalDate, toDateInputString } from '@/shared/utils/dateUtils';
 
 /**
  * `datetime-local` input value (`yyyy-MM-ddTHH:mm[:ss]`) -> ISO instant.
