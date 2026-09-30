@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import type {
   AiFeatureId,
   AiMessage,
@@ -57,6 +58,7 @@ export function useAiAssistant(
   options?: UseAiAssistantOptions
 ): UseAiAssistantReturn {
   const { feature, context } = options ?? {};
+  const posthog = usePostHog();
 
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -91,6 +93,10 @@ export function useAiAssistant(
     async (content: string) => {
       const trimmed = content.trim();
       if (!trimmed || isStreaming) return;
+
+      posthog?.capture('ask_airqo_prompt_submitted', {
+        feature: feature ?? 'general',
+      });
 
       setError(null);
 
@@ -229,6 +235,17 @@ export function useAiAssistant(
                       : m
                   )
                 );
+              } else if (event.type === 'action') {
+                setMessages(prev =>
+                  prev.map(message =>
+                    message.id === assistantMessage.id
+                      ? {
+                          ...message,
+                          actions: [event.action],
+                        }
+                      : message
+                  )
+                );
               } else if (event.type === 'done') {
                 // Stream complete
               }
@@ -266,7 +283,7 @@ export function useAiAssistant(
         abortRef.current = null;
       }
     },
-    [isStreaming, feature, context]
+    [isStreaming, feature, context, posthog]
   );
 
   /* -------- Stop streaming -------- */

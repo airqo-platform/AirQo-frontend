@@ -1452,7 +1452,7 @@ export const DataVisualizerWorkspace: React.FC<
   ]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-tour="visualizer-workspace">
       <input
         ref={fileInputRef}
         type="file"
@@ -1820,7 +1820,7 @@ export const DataVisualizerWorkspace: React.FC<
       )}
 
       {showUploadPanel && (
-        <Card>
+        <Card data-tour="visualizer-upload">
           <CardHeader className="p-4 pb-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="flex items-center gap-2 text-base text-foreground">

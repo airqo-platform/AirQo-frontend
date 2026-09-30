@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
 import {
   AqTrash01,
   AqXClose,
@@ -12,6 +14,7 @@ import {
 import { cn } from '@/shared/lib/utils';
 import type { AiMessage, AiFeatureId } from '../types';
 import { FEATURE_LABELS } from '../constants';
+import { getAllowlistedAssistantAction } from '../actions';
 
 /* -------------------------------------------------------------------------- */
 /*  Shimmer skeleton                                                           */
@@ -91,6 +94,8 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
   reset,
   suggestedPrompts,
 }) => {
+  const router = useRouter();
+  const posthog = usePostHog();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -100,14 +105,13 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
   useEffect(() => {
     if (isOpen) {
       triggerRef.current = document.activeElement as HTMLElement;
+      posthog?.capture('ask_airqo_opened', { feature });
     }
-  }, [isOpen]);
+  }, [feature, isOpen, posthog]);
 
   // Auto-scroll to bottom on new messages (instant)
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView();
-    }
+    messagesEndRef.current?.scrollIntoView?.();
   }, [messages]);
 
   // Focus input immediately when drawer opens
@@ -187,9 +191,7 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
   // Detect if the last assistant message is waiting for its first delta
   const lastMsg = messages[messages.length - 1];
   const showShimmer =
-    isStreaming &&
-    lastMsg?.role === 'assistant' &&
-    lastMsg.content === '';
+    isStreaming && lastMsg?.role === 'assistant' && lastMsg.content === '';
 
   if (!isOpen) return null;
 
@@ -197,7 +199,7 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
     <div
       role="dialog"
       aria-modal="false"
-      aria-label="AI Assistant"
+      aria-label="Ask AirQo"
       className={cn(
         'fixed inset-1 z-[10001] flex flex-col overflow-hidden bg-background shadow-2xl border border-border',
         // Mobile: full-width floating panel with gap on all sides
@@ -206,164 +208,199 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
         'md:inset-x-auto md:right-1 md:top-1 md:bottom-1 md:w-[400px] md:rounded-lg'
       )}
     >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <AqMagicWand01 className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-foreground">
-                AI Assistant
-              </h2>
-              <p className="text-xs text-muted-foreground">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+            <AqMagicWand01 className="h-4 w-4 text-foreground" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">Ask AirQo</h2>
+            <div className="flex items-center gap-2">
+              <p className="mb-0 text-xs text-muted-foreground">
                 {featureLabel}
               </p>
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground">
+                BETA
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            {hasUserMessages && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                aria-label="Clear chat"
-                title="Clear chat"
-              >
-                <AqTrash01 className="h-4 w-4" />
-              </button>
-            )}
+        </div>
+        <div className="flex items-center gap-1">
+          {hasUserMessages && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleReset}
               className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              aria-label="Close assistant"
-              title="Close"
+              aria-label="Clear chat"
+              title="Clear chat"
             >
-              <AqXClose className="h-4 w-4" />
+              <AqTrash01 className="h-4 w-4" />
             </button>
-          </div>
-        </div>
-
-        {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 sm:px-5">
-          {showSuggestions && (
-            <div className="space-y-3">
-              <p className="text-center text-xs text-muted-foreground">
-                Suggested prompts
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {suggestedPrompts!.map(prompt => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => handleSuggestedPrompt(prompt)}
-                    disabled={isStreaming}
-                    className={cn(
-                      'rounded-full border border-border px-3 py-1.5',
-                      'text-xs text-muted-foreground',
-                      'transition-colors hover:bg-muted hover:text-foreground',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                      'disabled:opacity-50'
-                    )}
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
           )}
-
-          {messages.map(msg => {
-            const isUser = msg.role === 'user';
-            return (
-              <div
-                key={msg.id}
-                className={cn('flex gap-2', isUser ? 'justify-end' : 'justify-start')}
-              >
-                {/* Assistant avatar */}
-                {!isUser && <AssistantAvatar />}
-
-                <div
-                  className={cn(
-                    'max-w-[85%] rounded-xl px-3 py-2 text-sm',
-                    isUser
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-card text-card-foreground border border-border'
-                  )}
-                >
-                  {msg.content ? (
-                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                  ) : isStreaming && showShimmer ? (
-                    <MessageSkeleton />
-                  ) : isStreaming ? (
-                    <StreamingIndicator />
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
-
-          {error && !isStreaming && (
-            <p className="text-center text-xs text-destructive">{error}</p>
-          )}
-
-          <div ref={messagesEndRef} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Close assistant"
+            title="Close"
+          >
+            <AqXClose className="h-4 w-4" />
+          </button>
         </div>
+      </div>
 
-        {/* Input area */}
-        <form
-          onSubmit={handleSubmit}
-          className="border-t border-border px-4 py-3 sm:px-5"
-        >
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask about air quality..."
-              rows={1}
-              maxLength={4000}
-              className={cn(
-                'flex-1 resize-none rounded-md border border-border bg-background',
-                'px-3 py-2 text-sm text-foreground',
-                'placeholder:text-muted-foreground',
-                'focus:outline-none focus:ring-2 focus:ring-primary',
-                'max-h-24'
-              )}
-              aria-label="Message input"
-            />
-            <div className="flex gap-1">
-              {isStreaming ? (
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 sm:px-5">
+        {showSuggestions && (
+          <div className="space-y-3">
+            <p className="text-center text-xs text-muted-foreground">
+              Suggested prompts
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {suggestedPrompts!.map(prompt => (
                 <button
+                  key={prompt}
                   type="button"
-                  onClick={stop}
+                  onClick={() => handleSuggestedPrompt(prompt)}
+                  disabled={isStreaming}
                   className={cn(
-                    'rounded-md bg-destructive p-2 text-destructive-foreground',
-                    'hover:bg-destructive/90 transition-colors'
+                    'rounded-full border border-border px-3 py-1.5',
+                    'text-xs text-muted-foreground',
+                    'transition-colors hover:bg-muted hover:text-foreground',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    'disabled:opacity-50'
                   )}
-                  aria-label="Stop generating"
                 >
-                  <AqPauseSquare className="h-4 w-4" />
+                  {prompt}
                 </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!input.trim()}
-                  className={cn(
-                    'rounded-md bg-primary p-2 text-primary-foreground',
-                    'hover:bg-primary/90 transition-colors',
-                    'disabled:opacity-50 disabled:cursor-not-allowed'
-                  )}
-                  aria-label="Send message"
-                >
-                  <AqArrowRight className="h-4 w-4" />
-                </button>
-              )}
+              ))}
             </div>
           </div>
-        </form>
+        )}
+
+        {messages.map(msg => {
+          const isUser = msg.role === 'user';
+          return (
+            <div
+              key={msg.id}
+              className={cn(
+                'flex gap-2',
+                isUser ? 'justify-end' : 'justify-start'
+              )}
+            >
+              {/* Assistant avatar */}
+              {!isUser && <AssistantAvatar />}
+
+              <div
+                className={cn(
+                  'max-w-[85%] rounded-xl px-3 py-2 text-sm',
+                  isUser
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-card text-card-foreground border border-border'
+                )}
+              >
+                {msg.content ? (
+                  <>
+                    <p className="mb-0 whitespace-pre-wrap break-words">
+                      {msg.content}
+                    </p>
+                    {msg.actions?.map(candidate => {
+                      const action = getAllowlistedAssistantAction(candidate);
+                      if (!action) return null;
+                      return (
+                        <button
+                          key={action.id}
+                          type="button"
+                          onClick={() => {
+                            posthog?.capture('ask_airqo_action_selected', {
+                              action_id: action.id,
+                              feature,
+                            });
+                            router.push(action.href);
+                            onClose();
+                          }}
+                          className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        >
+                          {action.label}
+                          <AqArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      );
+                    })}
+                  </>
+                ) : isStreaming && showShimmer ? (
+                  <MessageSkeleton />
+                ) : isStreaming ? (
+                  <StreamingIndicator />
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {error && !isStreaming && (
+          <p className="text-center text-xs text-destructive">{error}</p>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input area */}
+      <form
+        onSubmit={handleSubmit}
+        className="border-t border-border px-4 py-3 sm:px-5"
+      >
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          Beta guidance only. Nothing is saved or changed in your account.
+        </p>
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about air quality..."
+            rows={1}
+            maxLength={4000}
+            className={cn(
+              'flex-1 resize-none rounded-md border border-border bg-background',
+              'px-3 py-2 text-sm text-foreground',
+              'placeholder:text-muted-foreground',
+              'focus:outline-none focus:ring-2 focus:ring-primary',
+              'max-h-24'
+            )}
+            aria-label="Message input"
+          />
+          <div className="flex gap-1">
+            {isStreaming ? (
+              <button
+                type="button"
+                onClick={stop}
+                className={cn(
+                  'rounded-md bg-destructive p-2 text-destructive-foreground',
+                  'hover:bg-destructive/90 transition-colors'
+                )}
+                aria-label="Stop generating"
+              >
+                <AqPauseSquare className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                className={cn(
+                  'rounded-md bg-primary p-2 text-primary-foreground',
+                  'hover:bg-primary/90 transition-colors',
+                  'disabled:opacity-50 disabled:cursor-not-allowed'
+                )}
+                aria-label="Send message"
+              >
+                <AqArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </form>
     </div>,
     document.body
   );

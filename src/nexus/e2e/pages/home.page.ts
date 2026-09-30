@@ -64,4 +64,17 @@ export class HomePage extends BasePage {
   async hasVideoThumbnail(): Promise<boolean> {
     return this.isDisplayed(HomePage.VIDEO_THUMBNAIL, 3);
   }
+
+  async isAdaptiveHome(): Promise<boolean> {
+    const heading = await this.getWelcomeText();
+    return heading.includes('What would you like to look at?');
+  }
+
+  async hasText(text: string): Promise<boolean> {
+    return this.isDisplayed(By.xpath(`//*[contains(., '${text}')]`), 5);
+  }
+
+  async openOutcome(label: string): Promise<void> {
+    await this.click(By.xpath(`//button[contains(., '${label}')]`));
+  }
 }

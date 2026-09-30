@@ -202,7 +202,7 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
       {tab === 'live' ? (
         <>
           {/* Filter controls — compact, organized in one row */}
-          <Card>
+          <Card data-tour="rankings-controls">
             <CardContent className="flex flex-wrap items-center gap-3 p-3">
               <div className="flex items-center gap-2">
                 <SegmentedTabs
@@ -258,14 +258,16 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
             totalCount={rankingsMeta?.total ?? null}
           />
 
-          <RankingsLeaderboard
-            rankings={rankings}
-            aqiConfig={aqiConfig ?? null}
-            isLoading={rankingsLoading}
-            error={rankingsError}
-            onRetry={() => void refetchRankings()}
-            totalCount={rankingsMeta?.total ?? null}
-          />
+          <div data-tour="rankings-content">
+            <RankingsLeaderboard
+              rankings={rankings}
+              aqiConfig={aqiConfig ?? null}
+              isLoading={rankingsLoading}
+              error={rankingsError}
+              onRetry={() => void refetchRankings()}
+              totalCount={rankingsMeta?.total ?? null}
+            />
+          </div>
         </>
       ) : (
         <>

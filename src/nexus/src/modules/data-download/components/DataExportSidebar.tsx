@@ -176,6 +176,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     <>
       {/* Sidebar - Hidden by default on mobile, always visible on desktop */}
       <aside
+        data-tour="export-config"
         className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-card text-card-foreground border-r border-border p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
       >
         <div className="space-y-4">

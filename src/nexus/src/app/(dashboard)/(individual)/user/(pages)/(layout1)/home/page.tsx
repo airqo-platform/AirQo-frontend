@@ -11,8 +11,16 @@ import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { useEnvironmentAwareUrl } from '@/shared/hooks';
+import AdaptiveHomePage from '@/modules/home/AdaptiveHomePage';
+
+const HOME_V2_ENABLED =
+  process.env.NEXT_PUBLIC_HOME_V2_ENABLED === 'true';
 
 export default function HomePage() {
+  return HOME_V2_ENABLED ? <AdaptiveHomePage /> : <LegacyHomePage />;
+}
+
+function LegacyHomePage() {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDataAccessOpen, setIsDataAccessOpen] = useState(false);

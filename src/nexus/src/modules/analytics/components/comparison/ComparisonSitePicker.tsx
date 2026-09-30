@@ -117,7 +117,7 @@ export const ComparisonSitePicker: React.FC<ComparisonSitePickerProps> = ({
   );
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-3', className)} data-tour="comparison-picker">
       {/* Selected items strip */}
       {selectedSiteIds.length > 0 && (
         <div className="rounded-md border border-border bg-muted/30 p-2">
