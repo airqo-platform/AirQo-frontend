@@ -324,3 +324,113 @@ describe('OrganizationReportDashboard reporting period', () => {
     expect(screen.queryByText(/92 days/i)).not.toBeInTheDocument();
   });
 });
+
+describe('OrganizationReportDashboard default period on a pinned date', () => {
+  // The real clock cannot demonstrate "the 5th of a month" — it only ever runs
+  // on today's date. Pinning the clock makes the default rule testable: the
+  // 1st of the month through today, and nothing beyond.
+  //
+  // Dates are pinned in the past so the future-date guard cannot mask the
+  // default's own behaviour.
+  const atMiddayOn = (year: number, month: number, day: number) =>
+    new Date(year, month, day, 12, 0, 0, 0);
+
+  const renderAt = (now: Date) => {
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
+    return render(<OrganizationReportDashboard organizationTitle="Acme Org" />);
+  };
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  beforeEach(() => {
+    mockUseOrganizationReport.mockClear();
+  });
+
+  it.each([
+    ['the 1st', atMiddayOn(2026, 5, 1), '2026-06-01', '2026-06-01', 1],
+    ['the 5th', atMiddayOn(2026, 5, 5), '2026-06-01', '2026-06-05', 5],
+    ['the 15th', atMiddayOn(2026, 5, 15), '2026-06-01', '2026-06-15', 15],
+    [
+      'the last day of a 31-day month',
+      atMiddayOn(2026, 6, 31),
+      '2026-07-01',
+      '2026-07-31',
+      31,
+    ],
+    [
+      'the last day of a 30-day month',
+      atMiddayOn(2026, 8, 30),
+      '2026-09-01',
+      '2026-09-30',
+      30,
+    ],
+  ])(
+    'runs the 1st of the month through today on %s',
+    (_label, now, expectedFrom, expectedTo, expectedDays) => {
+      renderAt(now as Date);
+
+      expect(startPicker().value).toBe(expectedFrom);
+      expect(endPicker().value).toBe(expectedTo);
+      // The count the guard and the hint share, so they cannot disagree.
+      expect(
+        screen.getByText(`${expectedDays} of 31 days selected.`)
+      ).toBeInTheDocument();
+      // Ends on a day that has happened, so it is requestable straight away.
+      expect(lastRequest().enabled).toBe(true);
+      expect(refreshButton()).not.toBeDisabled();
+    }
+  );
+
+  it('never defaults past the 31-day cap, on any day of a 31-day month', () => {
+    // The only way a month-wide default could breach the cap is a month with
+    // more days than the cap allows. There is none — but pin the worst case
+    // anyway so the rule is enforced rather than assumed.
+    jest.useFakeTimers();
+    for (let day = 1; day <= 31; day += 1) {
+      jest.setSystemTime(atMiddayOn(2026, 6, day));
+      const { unmount } = render(
+        <OrganizationReportDashboard organizationTitle="Acme Org" />
+      );
+
+      const from = startPicker().value;
+      const to = endPicker().value;
+      const days =
+        (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+          86_400_000 +
+        1;
+      expect(from).toBe('2026-07-01');
+      expect(days).toBe(day);
+      expect(days).toBeLessThanOrEqual(31);
+      expect(lastRequest().enabled).toBe(true);
+
+      unmount();
+    }
+  });
+
+  it('rolls over to the new month on the 1st', () => {
+    renderAt(atMiddayOn(2026, 6, 1));
+
+    // The month boundary must not carry the previous month forward.
+    expect(startPicker().value).toBe('2026-07-01');
+    expect(endPicker().value).toBe('2026-07-01');
+    expect(screen.getByText('1 of 31 days selected.')).toBeInTheDocument();
+  });
+
+  it('starts a new month on the 1st, not at the cap', () => {
+    // Guards the original bug directly: a trailing "last N days" default would
+    // report 30/31 on Sep 30 and then jump to 1/31 on Oct 1, straddling two
+    // months. A month-to-date default never does.
+    const lastDayOfSeptember = renderAt(atMiddayOn(2026, 8, 30));
+    expect(screen.getByText('30 of 31 days selected.')).toBeInTheDocument();
+    expect(startPicker().value).toBe('2026-09-01');
+    lastDayOfSeptember.unmount();
+
+    const firstDayOfOctober = renderAt(atMiddayOn(2026, 9, 1));
+    expect(screen.getByText('1 of 31 days selected.')).toBeInTheDocument();
+    expect(startPicker().value).toBe('2026-10-01');
+    firstDayOfOctober.unmount();
+  });
+});
