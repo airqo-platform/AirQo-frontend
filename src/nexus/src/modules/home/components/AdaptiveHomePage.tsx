@@ -14,7 +14,6 @@ import {
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { EmptyState } from '@/shared/components/ui/empty-state';
-import { capitalizeWords } from '@/shared/lib/utils';
 import VideoModal from '@/modules/user-checklist/components/VideoModal';
 import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
 import { useHomeExperience } from '../hooks/useHomeExperience';
@@ -44,11 +43,13 @@ export default function AdaptiveHomePage() {
   const trackedModeRef = useRef<string | null>(null);
 
   // Account names are stored as entered, so `paul` would greet as "paul".
-  // `capitalizeWords` lifts the first letter of each word and leaves the rest
-  // untouched, so intentional casing such as "McDonald" survives.
-  const firstName = capitalizeWords(
+  // Only the first character of each whitespace-separated word is upper-cased:
+  // a `\b\w` boundary is ASCII-only and mangles accented names ("élodie" →
+  // "éLodie"), while this keeps the rest of the name intact ("joséphine" →
+  // "Joséphine", "McDonald" unchanged).
+  const firstName = (
     (session?.user as { firstName?: string } | undefined)?.firstName || 'there'
-  );
+  ).replace(/(^|\s)\S/g, wordStart => wordStart.toUpperCase());
 
   useEffect(() => {
     if (experience.isLoading) return;

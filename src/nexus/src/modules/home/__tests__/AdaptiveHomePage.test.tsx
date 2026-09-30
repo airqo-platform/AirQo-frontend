@@ -151,6 +151,23 @@ describe('AdaptiveHomePage', () => {
     expect(screen.getByText('Welcome back, McDonald')).toBeInTheDocument();
   });
 
+  it('capitalizes accented names without breaking the rest of the name', () => {
+    mockFirstName = 'élodie';
+
+    renderHome();
+
+    expect(screen.getByText('Welcome, Élodie')).toBeInTheDocument();
+  });
+
+  it('capitalizes each word of an accented name', () => {
+    mockFirstName = 'joséphine';
+
+    renderHome();
+
+    // A `\b\w` boundary is ASCII-only and would render this "JoséPhine".
+    expect(screen.getByText('Welcome, Joséphine')).toBeInTheDocument();
+  });
+
   it('falls back to a neutral greeting when no first name is stored', () => {
     mockFirstName = '';
 

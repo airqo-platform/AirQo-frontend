@@ -219,24 +219,31 @@ export const hasReportData = (report: AnalyticsReport | null): boolean => {
 const OBJECT_ID_PATTERN = /\b[0-9a-f]{24}\b/gi;
 
 /**
- * An internal identifier following a resource word: either it contains a digit
- * or it is long enough not to be a readable name ("cohort 67aaf…", "group 12",
- * "device airqo-g5187"). Readable names such as "site Kampala" are left alone.
+ * A token that follows a resource word and identifies something internal: it
+ * contains at least one digit ("cohort 67aaf…", "group 12", "cohort-1",
+ * "device airqo-g5187"). Bare ObjectIds are handled by the pattern above.
+ *
+ * Length alone is deliberately NOT a signal — a readable name can be long
+ * ("site Johannesburg"), and stripping it would delete information the user
+ * needs. Names without digits are therefore preserved, including multi-word
+ * ones such as "site Gulu Main Market".
  */
-const IDENTIFIER_TOKEN = String.raw`[A-Za-z0-9_-]*\d[A-Za-z0-9_-]*|[A-Za-z0-9_-]{12,}`;
-const INTERNAL_ID_PHRASE_PATTERN = new RegExp(
-  String.raw`\b(?:cohort|group|device|site|organization)\s+(?:${IDENTIFIER_TOKEN})\b`,
-  'gi'
-);
+const INTERNAL_ID_PHRASE_PATTERN =
+  /\b(?:cohort|group|device|site|organization)\s+[A-Za-z0-9_-]*\d[A-Za-z0-9_-]*\b/gi;
 
 /**
- * Strip internal identifiers from a service-provided message before it is shown
- * to a user. Report copy originates from the API and previously leaked the
- * cohort id into the dashboard's empty state. Copy is left untouched apart from
- * the removed identifiers, and punctuation left dangling by a removal is tidied.
+ * Prepositions that can be left dangling once an identifier is removed, e.g.
+ * "… available for cohort <id>." leaving "… available for.". Spelled out per
+ * pattern so every expression stays a plain literal.
  */
-/** Prepositions that can be left dangling once an identifier is removed. */
-const DANGLING_PREPOSITIONS = 'for|of|in|on|at|from|with|by';
+const PREPOSITIONS = 'for|of|in|on|at|from|with|by';
+const PREPOSITION_THEN_PREPOSITION = new RegExp(
+  String.raw`\b(?:${PREPOSITIONS})\s+(${PREPOSITIONS})\b`,
+  'gi'
+);
+const PREPOSITION_BEFORE_PUNCTUATION =
+  /\b(?:for|of|in|on|at|from|with|by)\s*([.,;:])/gi;
+const TRAILING_PREPOSITION = /\s+\b(?:for|of|in|on|at|from|with|by)\s*$/i;
 
 /**
  * Strip internal identifiers from a service-provided message before it is shown
@@ -254,23 +261,11 @@ export const sanitizeReportMessage = (message: string): string =>
     .replace(/\(\s*\)/g, '')
     // "for in", "of for" — keep the second preposition and drop the first,
     // which was left stranded by the removal.
-    .replace(
-      new RegExp(
-        String.raw`\b(?:${DANGLING_PREPOSITIONS})\s+(${DANGLING_PREPOSITIONS})\b`,
-        'gi'
-      ),
-      '$1'
-    )
+    .replace(PREPOSITION_THEN_PREPOSITION, '$1')
     .replace(/\b([A-Za-z]+)(\s+\1\b)+/gi, '$1')
     // A preposition left with no object: before punctuation or at the end.
-    .replace(
-      new RegExp(String.raw`\b(?:${DANGLING_PREPOSITIONS})\s*([.,;:])`, 'gi'),
-      '$1'
-    )
-    .replace(
-      new RegExp(String.raw`\s+\b(?:${DANGLING_PREPOSITIONS})\s*$`, 'i'),
-      ''
-    )
+    .replace(PREPOSITION_BEFORE_PUNCTUATION, '$1')
+    .replace(TRAILING_PREPOSITION, '')
     .replace(/\s+([.,;:])/g, '$1')
     .replace(/\s{2,}/g, ' ')
     .trim();

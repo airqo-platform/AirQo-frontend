@@ -59,6 +59,18 @@ describe('sanitizeReportMessage', () => {
     expect(sanitizeReportMessage('')).toBe('');
   });
 
+  it('keeps a long readable name — length alone is not an identifier', () => {
+    // "Johannesburg" is 12 characters; a length-only rule deleted the name.
+    expect(
+      sanitizeReportMessage(
+        'No data available for site Johannesburg in that window.'
+      )
+    ).toBe('No data available for site Johannesburg in that window.');
+    expect(
+      sanitizeReportMessage('No data available for site Gulu Main Market.')
+    ).toBe('No data available for site Gulu Main Market.');
+  });
+
   it('tidies punctuation left dangling by a removal', () => {
     expect(sanitizeReportMessage('No data for cohort abc123def456.')).toBe(
       'No data.'
