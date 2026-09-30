@@ -232,27 +232,6 @@ jobs:
 
           jq -r 'to_entries | .[] | "\(.key)=\(.value|tojson)"' secrets.json > src/nexus/.env
 
-          # Staging is the first place the adaptive homepage and Ask AirQo
-          # prototype are enabled. Production keeps both flags off.
-          python3 - << 'PY'
-          from pathlib import Path
-          path = Path("src/nexus/.env")
-          overrides = {
-              "NEXT_PUBLIC_HOME_V2_ENABLED": "true",
-              "NEXT_PUBLIC_HOME_DEMO_ENABLED": "false",
-              "NEXT_PUBLIC_AI_ENABLED": "true",
-              "AI_PROVIDER_MODE": "prototype",
-          }
-          kept = []
-          for line in path.read_text().splitlines():
-              key = line.split("=", 1)[0]
-              if key not in overrides:
-                  kept.append(line)
-          for key, value in overrides.items():
-              kept.append(f"{key}={value}")
-          path.write_text("\n".join(kept) + "\n")
-          PY
-
       - name: Build and Push Docker Image
         run: |
           cd src/nexus/

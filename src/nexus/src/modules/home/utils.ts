@@ -4,7 +4,40 @@ import type {
   UserPreference,
 } from '@/shared/types/api';
 import type { VisualizerWorkspaceDraft } from '@/modules/data-visualizer/types';
-import type { HomeExperienceItem, HomeExperienceMode } from './types';
+import { formatRelativeTime, parseDate } from '@/shared/utils/dateUtils';
+import type {
+  HomeDemoMode,
+  HomeExperienceItem,
+  HomeExperienceMode,
+} from './types';
+
+/**
+ * Read-only `?homeDemo=new|returning|loading|error` states used for design and
+ * QA review. They are only honoured outside production builds, so a deployed
+ * environment can never render fabricated data — and no extra environment
+ * variable is needed to switch them off.
+ */
+export const parseDemoMode = (
+  value: string | null
+): HomeDemoMode | undefined => {
+  if (process.env.NODE_ENV === 'production') return undefined;
+  return value === 'new' ||
+    value === 'returning' ||
+    value === 'loading' ||
+    value === 'error'
+    ? value
+    : undefined;
+};
+
+/**
+ * Shared relative-time formatting for the homepage, but `null` instead of the
+ * shared `'N/A'` / `'Invalid Date'` fallbacks so callers can substitute their
+ * own copy (e.g. "Saved place" on an update card).
+ */
+export const formatHomeTimestamp = (value?: string | null): string | null => {
+  if (!value || !parseDate(value)) return null;
+  return formatRelativeTime(value);
+};
 
 interface BuildContinueItemsOptions {
   comparisons: SavedComparison[];
@@ -31,8 +64,7 @@ export const getHomeExperienceMode = ({
 
 const validTimestamp = (value?: string | null): string | undefined => {
   if (!value) return undefined;
-  const time = new Date(value).getTime();
-  return Number.isFinite(time) ? value : undefined;
+  return parseDate(value) ? value : undefined;
 };
 
 export const buildContinueItems = ({

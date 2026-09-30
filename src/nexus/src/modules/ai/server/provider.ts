@@ -235,10 +235,15 @@ export function createOpenAICompatibleProvider(config: {
       });
 
       if (!response.ok) {
-        const errorBody = await response.text().catch(() => 'Unknown error');
-        throw new Error(
-          `AI agent returned status ${response.status}: ${errorBody.slice(0, 200)}`
-        );
+        // Drain the upstream body so the connection can be reused, but never
+        // embed it in the error — it may contain tokens or upstream internals
+        // that must not reach logs or the browser.
+        await response.text().catch(() => undefined);
+        const error = new Error(
+          `AI agent returned status ${response.status}`
+        ) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
       }
 
       const reader = response.body?.getReader();

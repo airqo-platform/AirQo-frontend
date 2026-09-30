@@ -28,6 +28,7 @@ const mockComparisons = {
     id: string;
     name: string;
     site_ids: string[];
+    sites: Array<{ id: string; name?: string; location?: string }>;
     updated_at: string;
   }>,
   isLoading: false,
@@ -73,11 +74,6 @@ jest.mock('@/modules/analytics/hooks/useRecentReadings', () => ({
 
 jest.mock('@/modules/data-visualizer/utils/workspaceStorage', () => ({
   loadWorkspaceDraft: () => mockLoadWorkspaceDraft(),
-}));
-
-jest.mock('@/shared/utils/siteUtils', () => ({
-  getSiteDisplayName: (site: { name?: string }) =>
-    site.name || 'Saved location',
 }));
 
 import { useHomeExperience } from '../hooks/useHomeExperience';
@@ -127,6 +123,7 @@ describe('useHomeExperience', () => {
         id: 'comp-1',
         name: 'Keep me',
         site_ids: ['site-1'],
+        sites: [{ id: 'site-1', location: 'Keep me site' }],
         updated_at: '2026-02-01T00:00:00.000Z',
       },
     ];
@@ -170,25 +167,116 @@ describe('useHomeExperience', () => {
     ]);
   });
 
-  it('requests at most three sites in one measurements-only readings call', async () => {
-    mockPreferences.selectedSiteIds = ['s1', 's2', 's3', 's4'];
+  it('drives the updates section from the most recent saved comparison', async () => {
+    // Two saved comparisons; the list is already sorted `updated_at desc`,
+    // so index 0 is the one the comparison table auto-loads.
+    mockComparisons.comparisons = [
+      {
+        id: 'comp-new',
+        name: 'Newest comparison',
+        site_ids: ['a', 'b', 'c', 'd', 'e'],
+        sites: [
+          { id: 'a', location: 'Makerere University' },
+          { id: 'b', name: 'Central Kampala' },
+          { id: 'c' },
+          { id: 'd', location: 'Kololo' },
+          { id: 'e', location: 'Entebbe' },
+        ],
+        updated_at: '2026-02-01T00:00:00.000Z',
+      },
+      {
+        id: 'comp-old',
+        name: 'Older comparison',
+        site_ids: ['x', 'y'],
+        sites: [
+          { id: 'x', location: 'Old comparison site' },
+          { id: 'y', location: 'Second old site' },
+        ],
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    mockReadings.readings = [
+      {
+        site_id: 'a',
+        aqi_index: 42,
+        aqi_category: 'Good',
+        time: '2026-03-01T00:00:00.000Z',
+      },
+      {
+        site_id: 'x',
+        aqi_index: 99,
+        aqi_category: 'Hazardous',
+        time: '2026-01-01T00:00:00.000Z',
+      },
+    ];
 
-    renderHook(() => useHomeExperience());
+    const { result } = renderHook(() => useHomeExperience());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(result.current.activeComparison).toEqual({
+      id: 'comp-new',
+      name: 'Newest comparison',
+    });
+    expect(result.current.counts.comparisons).toBe(2);
     expect(mockRecentOptions.at(-1)).toEqual(
       expect.objectContaining({
         enabled: true,
         measurementsOnly: true,
         keepPreviousData: false,
-        siteIds: ['s1', 's2', 's3'],
+        siteIds: ['a', 'b', 'c'],
         groupId: 'group-1',
       })
+    );
+    expect(result.current.locationUpdates).toEqual([
+      {
+        name: 'Makerere University',
+        href: '/user/air-quality/analytics/sites/makerere-university?site_id=a',
+        aqiIndex: 42,
+        aqiCategory: 'Good',
+        measuredAt: '2026-03-01T00:00:00.000Z',
+      },
+      {
+        name: 'Central Kampala',
+        href: '/user/air-quality/analytics/sites/central-kampala?site_id=b',
+        aqiIndex: null,
+        aqiCategory: null,
+        measuredAt: undefined,
+      },
+      {
+        name: 'Saved location',
+        href: '/user/air-quality/analytics?view=comparison',
+        aqiIndex: null,
+        aqiCategory: null,
+        measuredAt: undefined,
+      },
+    ]);
+
+    const updates = JSON.stringify(result.current.locationUpdates);
+    expect(updates).not.toContain('Old comparison site');
+    expect(updates).not.toContain('site_id=x');
+  });
+
+  it('skips readings and updates when there are no saved comparisons', async () => {
+    const { result } = renderHook(() => useHomeExperience());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.activeComparison).toBeNull();
+    expect(result.current.locationUpdates).toEqual([]);
+    expect(mockRecentOptions.at(-1)).toEqual(
+      expect.objectContaining({ enabled: false, siteIds: [] })
     );
   });
 
   it('drops readings that belong to a previous selection', async () => {
-    mockPreferences.selectedSiteIds = ['new-site'];
-    mockPreferences.selectedSites = [{ _id: 'new-site', name: 'New place' }];
+    mockComparisons.comparisons = [
+      {
+        id: 'comp-1',
+        name: 'Current comparison',
+        site_ids: ['new-site'],
+        sites: [{ id: 'new-site', location: 'New place' }],
+        updated_at: '2026-02-01T00:00:00.000Z',
+      },
+    ];
     mockReadings.readings = [
       {
         site_id: 'old-site',

@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AqArrowLeft, AqArrowRight, AqXClose } from '@airqo/icons-react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
+import {
+  PRODUCT_TOUR_STEP_EVENT,
+  type ProductTourStepEventDetail,
+} from '@/shared/lib/tourEvents';
 
 export interface ProductTourStep {
   target: string;
@@ -23,7 +28,23 @@ const findVisibleTarget = (selector: string): HTMLElement | null =>
     return rect.width > 0 && rect.height > 0;
   }) ?? null;
 
-export const PRODUCT_TOUR_STEP_EVENT = 'nexus-product-tour-step';
+/**
+ * Overlay layer for the tour. Sits above every page layer that could cover
+ * it (MapPage banners at z-[10000], map controls at z-[1100], dialogs at
+ * z-[10001]) while staying below the global loading overlay
+ * (z-[2147483647]) so an in-flight request can still surface above the tour.
+ */
+export const PRODUCT_TOUR_Z_INDEX = 10050;
+
+interface ViewportSize {
+  width: number;
+  height: number;
+}
+
+const readViewportSize = (): ViewportSize => ({
+  width: window.visualViewport?.width ?? window.innerWidth,
+  height: window.visualViewport?.height ?? window.innerHeight,
+});
 
 const FOCUSABLE_SELECTOR = [
   'button:not([disabled])',
@@ -47,23 +68,56 @@ export function ProductTour({
   const [index, setIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [popover, setPopover] = useState({ top: 16, left: 16 });
+  // Portal mount guard: `document.body` only exists after hydration, so the
+  // overlay is rendered on the client only (SSR renders nothing).
+  const [mounted, setMounted] = useState(false);
+  // Tracked viewport (visual viewport when available) so the card is
+  // re-clamped on resize/orientation changes instead of drifting off screen.
+  const [viewport, setViewport] = useState<ViewportSize>(() =>
+    typeof window === 'undefined' ? { width: 0, height: 0 } : readViewportSize()
+  );
   const nextButtonRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const currentStep = steps[index];
 
   useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     nextButtonRef.current?.focus();
+  }, [mounted]);
+
+  useEffect(() => {
+    const syncViewport = () =>
+      setViewport(previous => {
+        const next = readViewportSize();
+        return previous.width === next.width && previous.height === next.height
+          ? previous
+          : next;
+      });
+    const visualViewport = window.visualViewport;
+    window.addEventListener('resize', syncViewport);
+    window.addEventListener('orientationchange', syncViewport);
+    visualViewport?.addEventListener('resize', syncViewport);
+    return () => {
+      window.removeEventListener('resize', syncViewport);
+      window.removeEventListener('orientationchange', syncViewport);
+      visualViewport?.removeEventListener('resize', syncViewport);
+    };
   }, []);
 
   useEffect(() => {
     window.dispatchEvent(
-      new CustomEvent(PRODUCT_TOUR_STEP_EVENT, {
+      new CustomEvent<ProductTourStepEventDetail>(PRODUCT_TOUR_STEP_EVENT, {
         detail: { target: currentStep?.target ?? null },
       })
     );
     return () => {
       window.dispatchEvent(
-        new CustomEvent(PRODUCT_TOUR_STEP_EVENT, {
+        new CustomEvent<ProductTourStepEventDetail>(PRODUCT_TOUR_STEP_EVENT, {
           detail: { target: null },
         })
       );
@@ -93,10 +147,12 @@ export function ProductTour({
     observer.observe(document.body, { childList: true, subtree: true });
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
     };
   }, [currentStep]);
 
@@ -106,35 +162,44 @@ export function ProductTour({
     const cardRect = card.getBoundingClientRect();
     const margin = 16;
     const gap = 14;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const viewportWidth = viewport.width;
+    const viewportHeight = viewport.height;
+    // Clamp targets: a 16px gutter inside the visual viewport, never a
+    // negative offset and never past the right/bottom edge — at 320px wide
+    // this keeps `left >= 16` and `left + cardWidth <= 320`.
+    const maxLeft = Math.max(margin, viewportWidth - cardRect.width - margin);
+    const maxTop = Math.max(margin, viewportHeight - cardRect.height - margin);
+    const clampLeft = (value: number) =>
+      Math.min(Math.max(margin, value), maxLeft);
+    const clampTop = (value: number) =>
+      Math.min(Math.max(margin, value), maxTop);
+
+    let top: number;
+    let left: number;
 
     if (!targetRect) {
-      setPopover({
-        top: Math.max(margin, viewportHeight - cardRect.height - margin),
-        left: Math.max(margin, (viewportWidth - cardRect.width) / 2),
-      });
-      return;
+      top = viewportHeight - cardRect.height - margin;
+      left = (viewportWidth - cardRect.width) / 2;
+    } else {
+      top = targetRect.bottom + gap;
+      if (top + cardRect.height > viewportHeight - margin) {
+        top = targetRect.top - gap - cardRect.height;
+      }
+      if (top < margin) {
+        top = viewportHeight - cardRect.height - margin;
+      }
+
+      left = targetRect.left;
+      if (left + cardRect.width > viewportWidth - margin) {
+        left = viewportWidth - cardRect.width - margin;
+      }
     }
 
-    let top = targetRect.bottom + gap;
-    if (top + cardRect.height > viewportHeight - margin) {
-      top = targetRect.top - gap - cardRect.height;
-    }
-    if (top < margin) {
-      top = Math.max(margin, viewportHeight - cardRect.height - margin);
-    }
-
-    let left = targetRect.left;
-    if (left + cardRect.width > viewportWidth - margin) {
-      left = viewportWidth - cardRect.width - margin;
-    }
-
-    setPopover({
-      top,
-      left: Math.max(margin, left),
-    });
-  }, [currentStep, targetRect]);
+    const next = { top: clampTop(top), left: clampLeft(left) };
+    setPopover(previous =>
+      previous.top === next.top && previous.left === next.left ? previous : next
+    );
+  }, [mounted, viewport, currentStep, targetRect]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -180,16 +245,22 @@ export function ProductTour({
     actionable?.focus();
   };
 
-  return (
-    <div className="fixed inset-0 z-[80]" data-testid="product-tour">
+  const overlay = (
+    <div
+      className="fixed inset-0"
+      style={{ zIndex: PRODUCT_TOUR_Z_INDEX }}
+      data-testid="product-tour"
+    >
       <div className="absolute inset-0" aria-hidden="true" />
       {targetRect ? (
         <div
           aria-hidden="true"
           className="pointer-events-none fixed rounded-md bg-transparent shadow-[0_0_0_9999px_rgb(0_0_0/0.45)] ring-2 ring-foreground/80 transition-[top,left,width,height] duration-200 motion-reduce:transition-none"
           style={{
-            top: Math.max(8, targetRect.top - 6),
-            left: Math.max(8, targetRect.left - 6),
+            // Clamp at 0 (never negative) so the cutout still fully contains
+            // targets that hug the viewport edge.
+            top: Math.max(0, targetRect.top - 6),
+            left: Math.max(0, targetRect.left - 6),
             width: targetRect.width + 12,
             height: targetRect.height + 12,
           }}
@@ -202,7 +273,7 @@ export function ProductTour({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="pointer-events-auto fixed w-[min(24rem,calc(100vw-2rem))] border border-border bg-card p-5 shadow-xl"
+        className="pointer-events-auto fixed w-[min(24rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border bg-card p-5 shadow-xl"
         style={{ top: popover.top, left: popover.left }}
       >
         <div className="flex items-start justify-between gap-3">
@@ -274,4 +345,8 @@ export function ProductTour({
       </Card>
     </div>
   );
+
+  // Portalled to document.body so no stacking context from page content
+  // (map, banners, drawers) can ever paint above the tour.
+  return mounted ? createPortal(overlay, document.body) : null;
 }

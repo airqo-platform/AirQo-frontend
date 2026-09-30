@@ -1,9 +1,11 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useHomeStart } from '@/shared/hooks/useHomeStart';
 import { ProductTour, type ProductTourStep } from './ProductTour';
 
-const GUIDES: Record<
+/** Tour content per `homeStart` value; pathnames must match OUTCOME_ACTIONS. */
+export const GUIDES: Record<
   string,
   { pathname: string; title: string; steps: ProductTourStep[] }
 > = {
@@ -121,7 +123,8 @@ export function HomeShortcutGuide() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const guide = GUIDES[searchParams.get('homeStart') ?? ''];
+  const homeStart = useHomeStart();
+  const guide = GUIDES[homeStart ?? ''];
 
   if (!guide || guide.pathname !== pathname) return null;
 
@@ -134,5 +137,7 @@ export function HomeShortcutGuide() {
     });
   };
 
-  return <ProductTour steps={guide.steps} title={guide.title} onClose={close} />;
+  return (
+    <ProductTour steps={guide.steps} title={guide.title} onClose={close} />
+  );
 }

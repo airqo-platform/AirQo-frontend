@@ -8,11 +8,14 @@ import { useSavedComparisons } from '@/modules/analytics/hooks/useSavedCompariso
 import { useRecentReadings } from '@/modules/analytics/hooks/useRecentReadings';
 import { loadWorkspaceDraft } from '@/modules/data-visualizer/utils/workspaceStorage';
 import type { VisualizerWorkspaceDraft } from '@/modules/data-visualizer/types';
-import { getSiteDisplayName } from '@/shared/utils/siteUtils';
 import { toSiteSlug } from '@/modules/data-download/utils/siteDetails';
 import { buildContinueItems, getHomeExperienceMode } from '../utils';
 import { getHomeDemoData } from '../demoData';
+import { READINGS_HREF } from '../constants';
 import type { HomeDemoMode, HomeExperienceData } from '../types';
+
+/** Number of comparison sites surfaced as update cards on the homepage. */
+const MAX_UPDATE_CARDS = 3;
 
 export const useHomeExperience = (
   demoMode?: HomeDemoMode
@@ -58,41 +61,42 @@ export const useHomeExperience = (
       });
   }, [enabled, groupId]);
 
-  const selectedSiteIds = useMemo(
-    () => preferences.selectedSiteIds.slice(0, 3),
-    [preferences.selectedSiteIds]
+  // The saved-comparisons list is sorted by `updated_at desc`, so index 0 is
+  // the comparison the comparison table itself auto-loads (ComparisonView).
+  const activeComparison = savedComparisons.comparisons[0] ?? null;
+  const siteIds = useMemo(
+    () => activeComparison?.site_ids.slice(0, MAX_UPDATE_CARDS) ?? [],
+    [activeComparison]
   );
   const recentReadings = useRecentReadings({
     userId,
     groupId,
-    siteIds: selectedSiteIds,
-    enabled,
+    siteIds,
+    enabled: enabled && siteIds.length > 0,
     measurementsOnly: true,
     keepPreviousData: false,
   });
 
   const realData = useMemo<HomeExperienceData>(() => {
     const chartItems = charts.data ?? [];
-    const selectedSitesById = new Map(
-      preferences.selectedSites.map(site => [site._id, site])
-    );
     const readingsBySiteId = new Map(
       recentReadings.readings
-        .filter(reading => selectedSiteIds.includes(reading.site_id))
+        .filter(reading => siteIds.includes(reading.site_id))
         .map(reading => [reading.site_id, reading])
     );
     const updatesLoading =
-      enabled && selectedSiteIds.length > 0 && recentReadings.isLoading;
+      enabled && siteIds.length > 0 && recentReadings.isLoading;
     const locationUpdates = updatesLoading
       ? []
-      : selectedSiteIds.map(siteId => {
-          const site = selectedSitesById.get(siteId);
+      : siteIds.map(siteId => {
+          const site = activeComparison?.sites.find(item => item.id === siteId);
+          const displayName = site?.location ?? site?.name ?? null;
           const reading = readingsBySiteId.get(siteId);
           return {
-            name: site ? getSiteDisplayName(site) : 'Saved location',
-            href: site
-              ? `/user/air-quality/analytics/sites/${toSiteSlug(getSiteDisplayName(site))}?site_id=${encodeURIComponent(siteId)}`
-              : '/user/air-quality/analytics?view=comparison',
+            name: displayName ?? 'Saved location',
+            href: displayName
+              ? `/user/air-quality/analytics/sites/${toSiteSlug(displayName)}?site_id=${encodeURIComponent(siteId)}`
+              : READINGS_HREF,
             aqiIndex: reading?.aqi_index ?? null,
             aqiCategory: reading?.aqi_category ?? null,
             measuredAt: reading?.time,
@@ -120,6 +124,9 @@ export const useHomeExperience = (
         charts: chartItems,
         savedLocationCount: counts.savedLocations,
       }),
+      activeComparison: activeComparison
+        ? { id: activeComparison.id, name: activeComparison.name }
+        : null,
       locationUpdates,
       counts,
       isLoading:
@@ -138,6 +145,7 @@ export const useHomeExperience = (
       ),
     };
   }, [
+    activeComparison,
     charts.data,
     charts.error,
     charts.isLoading,
@@ -149,14 +157,13 @@ export const useHomeExperience = (
     preferences.isLoading,
     preferences.preferences,
     preferences.selectedSiteIds,
-    preferences.selectedSites,
     recentReadings.error,
     recentReadings.isLoading,
     recentReadings.readings,
     savedComparisons.comparisons,
     savedComparisons.error,
     savedComparisons.isLoading,
-    selectedSiteIds,
+    siteIds,
     userLoading,
   ]);
 

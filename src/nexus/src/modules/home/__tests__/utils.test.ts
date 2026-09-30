@@ -4,7 +4,12 @@ import type {
   UserPreference,
 } from '@/shared/types/api';
 import type { VisualizerWorkspaceDraft } from '@/modules/data-visualizer/types';
-import { buildContinueItems, getHomeExperienceMode } from '../utils';
+import {
+  buildContinueItems,
+  formatHomeTimestamp,
+  getHomeExperienceMode,
+  parseDemoMode,
+} from '../utils';
 
 describe('home experience utilities', () => {
   it('classifies users with no saved work as new', () => {
@@ -99,5 +104,46 @@ describe('home experience utilities', () => {
 
     expect(items).toHaveLength(1);
     expect(items[0].description).toBe('Review readings for 3 saved locations.');
+  });
+});
+
+describe('formatHomeTimestamp', () => {
+  it('returns null instead of the shared fallbacks for unusable input', () => {
+    expect(formatHomeTimestamp(undefined)).toBeNull();
+    expect(formatHomeTimestamp(null)).toBeNull();
+    expect(formatHomeTimestamp('')).toBeNull();
+    expect(formatHomeTimestamp('not-a-date')).toBeNull();
+  });
+
+  it('formats a valid timestamp with the shared relative-time helper', () => {
+    const formatted = formatHomeTimestamp(new Date().toISOString());
+
+    expect(formatted).toBeTruthy();
+    expect(formatted).not.toBe('N/A');
+    expect(formatted).not.toBe('Invalid Date');
+  });
+});
+
+describe('parseDemoMode', () => {
+  it('never accepts unknown demo modes', () => {
+    expect(parseDemoMode('nonsense')).toBeUndefined();
+    expect(parseDemoMode(null)).toBeUndefined();
+  });
+
+  it('accepts known modes outside production builds only', () => {
+    // process.env.NODE_ENV is typed read-only, so swap through a mutable view.
+    const env = process.env as { NODE_ENV?: string };
+    const originalNodeEnv = env.NODE_ENV;
+    const isProductionBuild = originalNodeEnv === 'production';
+
+    // Jest runs with NODE_ENV=test, so demo states are available here.
+    expect(parseDemoMode('returning')).toBe('returning');
+
+    env.NODE_ENV = isProductionBuild ? 'development' : 'production';
+    try {
+      expect(parseDemoMode('returning')).toBeUndefined();
+    } finally {
+      env.NODE_ENV = originalNodeEnv;
+    }
   });
 });

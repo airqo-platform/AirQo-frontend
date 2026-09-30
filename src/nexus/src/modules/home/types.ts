@@ -1,10 +1,7 @@
 export type HomeExperienceMode = 'new' | 'returning';
 
 export type HomeExperienceItemType =
-  | 'comparison'
-  | 'visualizer-draft'
-  | 'saved-locations'
-  | 'saved-charts';
+  'comparison' | 'visualizer-draft' | 'saved-locations' | 'saved-charts';
 
 export interface HomeExperienceItem {
   type: HomeExperienceItemType;
@@ -33,6 +30,8 @@ export interface HomeExperienceCounts {
 export interface HomeExperienceData {
   mode: HomeExperienceMode;
   continueItems: HomeExperienceItem[];
+  /** Most recent saved comparison driving the "Updates from your places" section. */
+  activeComparison: { id: string; name: string } | null;
   locationUpdates: HomeLocationUpdate[];
   counts: HomeExperienceCounts;
   isLoading: boolean;

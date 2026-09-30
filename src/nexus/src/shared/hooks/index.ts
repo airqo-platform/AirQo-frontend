@@ -138,6 +138,9 @@ export {
 // Organization group resolution
 export { useOrgGroup } from './useOrgGroup';
 
+// Home handoff query param
+export { useHomeStart } from './useHomeStart';
+
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';

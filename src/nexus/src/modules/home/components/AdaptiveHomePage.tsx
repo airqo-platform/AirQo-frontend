@@ -6,249 +6,28 @@ import { useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
 import {
   AqArrowRight,
-  AqDownload01,
-  AqGlobe05,
-  AqLightbulb02,
   AqMagicWand01,
   AqPlayCircle,
   AqPresentationChart02,
-  AqTrophy01,
   AqUpload01,
 } from '@airqo/icons-react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import ReusableDialog from '@/shared/components/ui/dialog';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 import VideoModal from '@/modules/user-checklist/components/VideoModal';
 import { useAiAssistantContext } from '@/modules/ai/context/ai-assistant-provider';
-import { useEnvironmentAwareUrl } from '@/shared/hooks';
-import {
-  getAirQualityColor,
-  getAirQualityIcon,
-  mapAqiCategoryToLevel,
-} from '@/shared/utils/airQuality';
-import { useHomeExperience } from './hooks/useHomeExperience';
-import type {
-  HomeDemoMode,
-  HomeExperienceItem,
-  HomeLocationUpdate,
-} from './types';
-
-const HOME_DEMO_ENABLED = process.env.NEXT_PUBLIC_HOME_DEMO_ENABLED === 'true';
-
-const OUTCOME_ACTIONS = [
-  {
-    id: 'compare-places',
-    title: 'Compare places',
-    description: 'Review current readings from several locations side-by-side.',
-    href: '/user/air-quality/analytics?view=comparison&homeStart=compare-places',
-    icon: AqPresentationChart02,
-  },
-  {
-    id: 'analyze-trends',
-    title: 'Analyze trends',
-    description:
-      'Build and save charts for the pollutants and periods you need.',
-    href: '/user/air-quality/analytics?view=trends&homeStart=analyze-trends',
-    icon: AqPresentationChart02,
-  },
-  {
-    id: 'explore-location',
-    title: 'Explore a location',
-    description: 'See current conditions, forecasts, and health guidance.',
-    href: '/user/map?homeStart=explore-location',
-    icon: AqGlobe05,
-  },
-  {
-    id: 'visualize-data',
-    title: 'Visualize my data',
-    description: 'Upload a file and turn it into export-ready charts or maps.',
-    href: '/user/data-visualizer?homeStart=visualize-data',
-    icon: AqUpload01,
-  },
-  {
-    id: 'export-data',
-    title: 'Export data',
-    description: 'Configure and preview AirQo data for your own analysis.',
-    href: '/user/data-export?homeStart=export-data',
-    icon: AqDownload01,
-  },
-  {
-    id: 'view-rankings',
-    title: 'Compare cities and countries',
-    description:
-      'Explore live and historical air-quality rankings across Africa.',
-    href: '/user/air-quality/rankings?homeStart=view-rankings',
-    icon: AqTrophy01,
-  },
-] as const;
-
-const READINGS_HREF = '/user/air-quality/analytics?view=comparison';
-
-const HOME_HINTS = [
-  {
-    text: 'Compare a few places in one table.',
-    href: READINGS_HREF,
-  },
-  {
-    text: 'Build a chart for the places you care about.',
-    href: '/user/air-quality/analytics?view=trends',
-  },
-  {
-    text: 'See which cities are cleanest across Africa.',
-    href: '/user/air-quality/rankings',
-  },
-  {
-    text: 'Export data for your own analysis.',
-    href: '/user/data-export',
-  },
-  {
-    text: 'Turn a spreadsheet into a chart or map.',
-    href: '/user/data-visualizer',
-  },
-] as const;
-
-const RotatingHint = ({ onSelect }: { onSelect: (href: string) => void }) => {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    if (!media || media.matches) return;
-
-    let fadeTimer = 0;
-    const interval = window.setInterval(() => {
-      setVisible(false);
-      fadeTimer = window.setTimeout(() => {
-        setIndex(current => (current + 1) % HOME_HINTS.length);
-        setVisible(true);
-      }, 220);
-    }, 5600);
-
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(fadeTimer);
-    };
-  }, []);
-
-  const hint = HOME_HINTS[index];
-
-  return (
-    <div className="relative flex h-full min-h-28 flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
-      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        <AqLightbulb02 className="h-4 w-4" />
-        Try this in Nexus
-      </div>
-      <p
-        data-testid="home-hint"
-        className={`relative mb-0 text-base font-medium text-foreground transition-opacity duration-300 motion-reduce:transition-none ${
-          visible ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => onSelect(hint.href)}
-          className="group inline-flex items-center gap-2 rounded-sm text-left underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          {hint.text}
-          <AqArrowRight className="h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
-        </button>
-      </p>
-    </div>
-  );
-};
-
-const parseDemoMode = (value: string | null): HomeDemoMode | undefined => {
-  if (!HOME_DEMO_ENABLED) return undefined;
-  return value === 'new' ||
-    value === 'returning' ||
-    value === 'loading' ||
-    value === 'error'
-    ? value
-    : undefined;
-};
-
-const formatRelativeTime = (value?: string): string | null => {
-  if (!value) return null;
-  const timestamp = new Date(value).getTime();
-  if (!Number.isFinite(timestamp)) return null;
-  const elapsedMinutes = Math.max(
-    1,
-    Math.round((Date.now() - timestamp) / 60_000)
-  );
-  if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
-  const hours = Math.round(elapsedMinutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
-};
+import { useHomeExperience } from '../hooks/useHomeExperience';
+import { OUTCOME_ACTIONS, READINGS_HREF } from '../constants';
+import { formatHomeTimestamp, parseDemoMode } from '../utils';
+import { RotatingHint } from './RotatingHint';
+import { PlaceUpdateCard } from './PlaceUpdateCard';
+import { DataAccessDialog } from './DataAccessDialog';
+import type { HomeExperienceItem } from '../types';
 
 const ContinueIcon = ({ item }: { item: HomeExperienceItem }) => {
   const Icon =
     item.iconName === 'visualize' ? AqUpload01 : AqPresentationChart02;
   return <Icon className="h-5 w-5" />;
-};
-
-const PlaceUpdateCard = ({
-  location,
-  onOpen,
-}: {
-  location: HomeLocationUpdate;
-  onOpen: () => void;
-}) => {
-  const level = mapAqiCategoryToLevel(location.aqiCategory ?? undefined);
-  const hasReading = location.aqiIndex !== null && level !== 'no-value';
-  const StatusIcon = hasReading ? getAirQualityIcon(level) : AqGlobe05;
-  const statusColor = hasReading ? getAirQualityColor(level) : undefined;
-
-  return (
-    <Card
-      className="flex h-full flex-col overflow-hidden border-t-[3px]"
-      style={statusColor ? { borderTopColor: statusColor } : undefined}
-      data-testid="home-place-update"
-    >
-      <div className="flex flex-1 items-start justify-between gap-3 p-4">
-        <div className="min-w-0">
-          <p className="mb-0 truncate font-medium text-foreground">
-            {location.name}
-          </p>
-          <p className="mb-0 mt-1 text-xs text-muted-foreground">
-            {formatRelativeTime(location.measuredAt) || 'Saved place'}
-          </p>
-        </div>
-        <span
-          className="shrink-0 text-muted-foreground"
-          style={statusColor ? { color: statusColor } : undefined}
-        >
-          <StatusIcon className="h-7 w-7" />
-        </span>
-      </div>
-      <div className="flex items-end justify-between gap-2 px-4 pb-3">
-        <div>
-          <span className="text-2xl font-semibold tabular-nums text-foreground">
-            {location.aqiIndex ?? '—'}
-          </span>
-          <span className="ml-1 text-xs text-muted-foreground">AQI</span>
-        </div>
-        <span
-          className="max-w-[55%] truncate text-right text-sm font-medium text-muted-foreground"
-          style={statusColor ? { color: statusColor } : undefined}
-        >
-          {location.aqiCategory || 'No reading yet'}
-        </span>
-      </div>
-      <div className="border-t border-border bg-muted/20 px-2 py-1">
-        <Button
-          variant="text"
-          size="sm"
-          path={location.href || READINGS_HREF}
-          onClick={onOpen}
-          showTextOnMobile
-        >
-          See readings
-        </Button>
-      </div>
-    </Card>
-  );
 };
 
 export default function AdaptiveHomePage() {
@@ -263,12 +42,6 @@ export default function AdaptiveHomePage() {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const trackedModeRef = useRef<string | null>(null);
 
-  const fairUsagePolicyUrl = useEnvironmentAwareUrl(
-    'https://platform.airqo.net/docs/data-access/fair-usage-policy/'
-  );
-  const researchersGuideUrl = useEnvironmentAwareUrl(
-    'https://platform.airqo.net/docs/data-access/researchers-guide/'
-  );
   const firstName =
     (session?.user as { firstName?: string } | undefined)?.firstName || 'there';
 
@@ -301,6 +74,17 @@ export default function AdaptiveHomePage() {
     });
     router.push(href);
   };
+
+  const showUpdatesSkeleton =
+    !experience.isLoading && experience.updatesLoading;
+  const showUpdatesCards =
+    !experience.isLoading &&
+    !experience.updatesLoading &&
+    Boolean(experience.activeComparison) &&
+    experience.locationUpdates.length > 0;
+  // The empty state already offers a "Compare places" call to action pointing at
+  // the same tab, so "View all" is only rendered once there is something to see.
+  const showUpdatesEmpty = !showUpdatesSkeleton && !showUpdatesCards;
 
   return (
     <div className="space-y-7">
@@ -362,9 +146,9 @@ export default function AdaptiveHomePage() {
                   <span className="mt-1 block text-sm text-muted-foreground">
                     {item.description}
                   </span>
-                  {formatRelativeTime(item.timestamp) && (
+                  {formatHomeTimestamp(item.timestamp) && (
                     <span className="mt-2 block text-xs text-muted-foreground">
-                      {formatRelativeTime(item.timestamp)}
+                      {formatHomeTimestamp(item.timestamp)}
                     </span>
                   )}
                 </span>
@@ -400,7 +184,7 @@ export default function AdaptiveHomePage() {
                 Get a guided starting point for your next question.
               </span>
             </span>
-            <AqArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
+            <AqArrowRight className="h-5 w-5 text-muted-foreground transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
           </button>
         )}
         <RotatingHint
@@ -447,39 +231,78 @@ export default function AdaptiveHomePage() {
         </div>
       </section>
 
-      {!experience.isLoading && experience.updatesLoading ? (
-        <section aria-label="Loading place updates" className="space-y-3">
-          <div className="h-6 w-56 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-          <div className="grid gap-3 md:grid-cols-3">
-            {[0, 1, 2].map(item => (
-              <div
-                key={item}
-                className="h-24 animate-pulse rounded-md bg-muted motion-reduce:animate-none"
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {!experience.isLoading && experience.locationUpdates.length > 0 && (
+      {!experience.isLoading && (
         <section aria-labelledby="updates-heading" className="space-y-4">
-          <h2 id="updates-heading" className="text-xl font-medium">
-            Updates from your places
-          </h2>
-          <div className="grid gap-3 md:grid-cols-3">
-            {experience.locationUpdates.map((location, index) => (
-              <PlaceUpdateCard
-                key={`${location.name}-${index}`}
-                location={location}
-                onOpen={() =>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 id="updates-heading" className="text-xl font-medium">
+                Updates from your places
+              </h2>
+            </div>
+            {!showUpdatesEmpty && (
+              <Button
+                variant="text"
+                size="sm"
+                path={READINGS_HREF}
+                onClick={() =>
                   posthog?.capture('home_action_selected', {
-                    action_type: 'place-update',
+                    action_type: 'view-all-comparisons',
                     experience_mode: experience.mode,
                   })
                 }
-              />
-            ))}
+                showTextOnMobile
+              >
+                View all
+              </Button>
+            )}
           </div>
+
+          {showUpdatesSkeleton ? (
+            <div
+              role="status"
+              aria-label="Loading place updates"
+              className="space-y-3"
+            >
+              <div className="grid gap-3 md:grid-cols-3">
+                {[0, 1, 2].map(item => (
+                  <div
+                    key={item}
+                    className="h-24 animate-pulse rounded-md bg-muted motion-reduce:animate-none"
+                  />
+                ))}
+              </div>
+            </div>
+          ) : showUpdatesCards ? (
+            <div className="grid gap-3 md:grid-cols-3">
+              {experience.locationUpdates.map((location, index) => (
+                <PlaceUpdateCard
+                  key={`${location.name}-${index}`}
+                  location={location}
+                  onOpen={() =>
+                    posthog?.capture('home_action_selected', {
+                      action_type: 'place-update',
+                      experience_mode: experience.mode,
+                    })
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              compact
+              title="No saved locations yet"
+              description="Save the locations you care about and their latest readings will show up here."
+              action={{
+                label: 'Compare places',
+                onClick: () =>
+                  navigate(
+                    READINGS_HREF,
+                    'home_action_selected',
+                    'empty-state-comparisons'
+                  ),
+              }}
+            />
+          )}
         </section>
       )}
 
@@ -516,40 +339,10 @@ export default function AdaptiveHomePage() {
 
       <VideoModal isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
 
-      <ReusableDialog
+      <DataAccessDialog
         isOpen={isDataAccessOpen}
         onClose={() => setIsDataAccessOpen(false)}
-        title="Data Access & Usage"
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Access guidance on how to use and share AirQo data responsibly.
-          </p>
-          <ul className="list-disc space-y-2 pl-6">
-            <li>
-              <a
-                href={fairUsagePolicyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline"
-              >
-                Fair Usage Policy
-              </a>
-            </li>
-            <li>
-              <a
-                href={researchersGuideUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline"
-              >
-                Researchers Guide
-              </a>
-            </li>
-          </ul>
-        </div>
-      </ReusableDialog>
+      />
     </div>
   );
 }

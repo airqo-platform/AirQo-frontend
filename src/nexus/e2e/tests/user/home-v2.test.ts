@@ -10,7 +10,8 @@ import { Config } from '../../config';
  * the checklist homepage while NEXT_PUBLIC_HOME_V2_ENABLED is false.
  *
  * Run against a build that has the homepage enabled. Set E2E_HOME_DEMO=true
- * only when NEXT_PUBLIC_HOME_DEMO_ENABLED was enabled at build time.
+ * only when the app under test is a non-production build, since the
+ * `?homeDemo=` states are ignored in production builds.
  */
 const homeV2Enabled = process.env.E2E_HOME_V2 === 'true';
 const homeDemoEnabled = process.env.E2E_HOME_DEMO === 'true';

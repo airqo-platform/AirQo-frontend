@@ -1,5 +1,5 @@
 import { MapLayout } from '@/shared/layouts/MapLayout';
-import { HomeShortcutGuide } from '@/modules/home/HomeShortcutGuide';
+import { HomeShortcutGuide } from '@/modules/home/components/HomeShortcutGuide';
 
 export default function MapPageLayout({
   children,

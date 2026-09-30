@@ -30,7 +30,8 @@ jest.mock('@/shared/components/ui/card', () => {
   return { Card };
 });
 
-import { HomeShortcutGuide } from '../HomeShortcutGuide';
+import { GUIDES, HomeShortcutGuide } from '../components/HomeShortcutGuide';
+import { OUTCOME_ACTIONS } from '../constants';
 
 describe('HomeShortcutGuide', () => {
   beforeEach(() => {
@@ -64,5 +65,18 @@ describe('HomeShortcutGuide', () => {
     params = new URLSearchParams();
     rerender(<HomeShortcutGuide />);
     expect(screen.queryByTestId('product-tour')).toBeNull();
+  });
+
+  it('keeps every guide pathname aligned with its outcome action', () => {
+    expect(OUTCOME_ACTIONS.length).toBeGreaterThan(0);
+
+    for (const action of OUTCOME_ACTIONS) {
+      const href = new URL(action.href, 'https://nexus.example');
+      const homeStart = href.searchParams.get('homeStart');
+      expect(homeStart).toBeTruthy();
+      const guide = GUIDES[homeStart as string];
+      expect(guide).toBeDefined();
+      expect(guide.pathname).toBe(href.pathname);
+    }
   });
 });

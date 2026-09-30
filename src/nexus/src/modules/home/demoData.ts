@@ -12,6 +12,7 @@ export const getHomeDemoData = (mode: HomeDemoMode): HomeExperienceData => {
     return {
       mode: 'new',
       continueItems: [],
+      activeComparison: null,
       locationUpdates: [],
       counts: EMPTY_COUNTS,
       isLoading: true,
@@ -23,6 +24,7 @@ export const getHomeDemoData = (mode: HomeDemoMode): HomeExperienceData => {
   if (mode === 'returning') {
     return {
       mode: 'returning',
+      activeComparison: { id: 'demo-comparison', name: 'Kampala and Nairobi' },
       continueItems: [
         {
           type: 'comparison',
@@ -77,6 +79,7 @@ export const getHomeDemoData = (mode: HomeDemoMode): HomeExperienceData => {
   return {
     mode: 'new',
     continueItems: [],
+    activeComparison: null,
     locationUpdates: [],
     counts: EMPTY_COUNTS,
     isLoading: false,

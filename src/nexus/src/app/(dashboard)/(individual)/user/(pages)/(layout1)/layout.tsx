@@ -1,7 +1,7 @@
 'use client';
 
 import { MainLayout } from '@/shared/layouts/MainLayout';
-import { HomeShortcutGuide } from '@/modules/home/HomeShortcutGuide';
+import { HomeShortcutGuide } from '@/modules/home/components/HomeShortcutGuide';
 
 export default function PagesLayout({
   children,

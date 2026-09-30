@@ -12,6 +12,7 @@ let mockAiEnabled = true;
 const mockExperience: HomeExperienceData = {
   mode: 'new',
   continueItems: [],
+  activeComparison: null,
   locationUpdates: [],
   counts: { savedLocations: 0, charts: 0, comparisons: 0, drafts: 0 },
   isLoading: false,
@@ -48,8 +49,8 @@ jest.mock('@/shared/hooks', () => ({
   useEnvironmentAwareUrl: (url: string) => url,
 }));
 
-jest.mock('@/shared/components/ui/card', () => ({
-  Card: ({
+jest.mock('@/shared/components/ui/card', () => {
+  const passthrough = ({
     children,
     className,
     ...props
@@ -57,8 +58,34 @@ jest.mock('@/shared/components/ui/card', () => ({
     <div className={className} {...props}>
       {children}
     </div>
-  ),
-}));
+  );
+  const passthroughEl = ({
+    children,
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 className={className} {...props}>
+      {children}
+    </h3>
+  );
+  const passthroughP = ({
+    children,
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLParagraphElement>) => (
+    <p className={className} {...props}>
+      {children}
+    </p>
+  );
+  return {
+    Card: passthrough,
+    CardHeader: passthrough,
+    CardContent: passthrough,
+    CardFooter: passthrough,
+    CardTitle: passthroughEl,
+    CardDescription: passthroughP,
+  };
+});
 
 jest.mock('@/modules/user-checklist/components/VideoModal', () => ({
   __esModule: true,
@@ -70,7 +97,7 @@ jest.mock('@/shared/components/ui/dialog', () => ({
   default: () => null,
 }));
 
-import AdaptiveHomePage from '../AdaptiveHomePage';
+import AdaptiveHomePage from '../components/AdaptiveHomePage';
 
 const renderHome = () =>
   render(
@@ -91,6 +118,7 @@ describe('AdaptiveHomePage', () => {
     Object.assign(mockExperience, {
       mode: 'new',
       continueItems: [],
+      activeComparison: null,
       locationUpdates: [],
       counts: { savedLocations: 0, charts: 0, comparisons: 0, drafts: 0 },
       isLoading: false,
@@ -112,8 +140,10 @@ describe('AdaptiveHomePage', () => {
       screen.queryByRole('heading', { name: 'Continue your work' })
     ).toBeNull();
     expect(
-      screen.queryByRole('heading', { name: 'Updates from your places' })
-    ).toBeNull();
+      screen.getByRole('heading', { name: 'Updates from your places' })
+    ).toBeInTheDocument();
+    // Nothing to view yet, so the section offers its empty-state action only.
+    expect(screen.queryByRole('button', { name: 'View all' })).toBeNull();
     expect(
       screen.getByRole('heading', { name: 'Jump right in' })
     ).toBeInTheDocument();
@@ -129,7 +159,7 @@ describe('AdaptiveHomePage', () => {
   it('uses theme tokens and responsive grids for compact and wide layouts', () => {
     renderHome();
 
-    const outcomes = screen.getByRole('button', { name: /Compare places/ });
+    const outcomes = screen.getByTestId('home-outcome-compare-places');
     expect(outcomes.className).toContain('focus-visible:ring-primary');
     expect(
       document.querySelector('.sm\\:grid-cols-2.xl\\:grid-cols-3')
@@ -145,24 +175,27 @@ describe('AdaptiveHomePage', () => {
 
     const routes: Array<[string, string]> = [
       [
-        'Compare places',
+        'home-outcome-compare-places',
         '/user/air-quality/analytics?view=comparison&homeStart=compare-places',
       ],
       [
-        'Analyze trends',
+        'home-outcome-analyze-trends',
         '/user/air-quality/analytics?view=trends&homeStart=analyze-trends',
       ],
-      ['Explore a location', '/user/map?homeStart=explore-location'],
-      ['Visualize my data', '/user/data-visualizer?homeStart=visualize-data'],
-      ['Export data', '/user/data-export?homeStart=export-data'],
+      ['home-outcome-explore-location', '/user/map?homeStart=explore-location'],
       [
-        'Compare cities and countries',
+        'home-outcome-visualize-data',
+        '/user/data-visualizer?homeStart=visualize-data',
+      ],
+      ['home-outcome-export-data', '/user/data-export?homeStart=export-data'],
+      [
+        'home-outcome-view-rankings',
         '/user/air-quality/rankings?homeStart=view-rankings',
       ],
     ];
 
-    for (const [label, href] of routes) {
-      await user.click(screen.getByRole('button', { name: new RegExp(label) }));
+    for (const [testId, href] of routes) {
+      await user.click(screen.getByTestId(testId));
       expect(mockPush).toHaveBeenCalledWith(href);
     }
   });
@@ -192,6 +225,10 @@ describe('AdaptiveHomePage', () => {
         aqiCategory: 'Good',
       },
     ];
+    mockExperience.activeComparison = {
+      id: 'c1',
+      name: 'Kampala and Nairobi',
+    };
 
     renderHome();
 
@@ -205,12 +242,74 @@ describe('AdaptiveHomePage', () => {
       screen.getByRole('button', { name: 'See readings' })
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'View map' })).toBeNull();
+
+    const updates = screen.getByRole('region', {
+      name: 'Updates from your places',
+    });
+    // The section title stands alone — the saved group name is not surfaced.
+    expect(updates).not.toHaveTextContent('Kampala and Nairobi');
+    expect(updates).toContainElement(screen.getByTestId('home-place-update'));
+    expect(
+      screen.getByRole('heading', { name: 'Updates from your places' })
+    ).toBeInTheDocument();
+    expect(updates).toContainElement(
+      screen.getByRole('button', { name: 'View all' })
+    );
+
     await userEvent
       .setup()
       .click(screen.getByRole('button', { name: 'See readings' }));
     expect(mockPush).toHaveBeenCalledWith(
       '/user/air-quality/analytics/sites/makerere-university?site_id=site-1'
     );
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: 'View all' }));
+    expect(mockPush).toHaveBeenCalledWith(
+      '/user/air-quality/analytics?view=comparison'
+    );
+  });
+
+  it('offers a compare-places action when there are no saved locations', async () => {
+    renderHome();
+
+    expect(
+      screen.getByRole('heading', { name: 'Updates from your places' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'No saved locations yet' })
+    ).toBeInTheDocument();
+    // The empty state carries its own call to action, so "View all" is hidden.
+    expect(screen.queryByRole('button', { name: 'View all' })).toBeNull();
+    expect(screen.queryByTestId('home-place-update')).toBeNull();
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: 'Compare places' }));
+    expect(mockPush).toHaveBeenCalledWith(
+      '/user/air-quality/analytics?view=comparison'
+    );
+  });
+
+  it('keeps the updates header visible while place updates load', () => {
+    mockExperience.updatesLoading = true;
+
+    renderHome();
+
+    expect(
+      screen.getByRole('heading', { name: 'Updates from your places' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'View all' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('status', { name: 'Loading place updates' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'No saved locations yet' })
+    ).toBeNull();
+    expect(screen.queryByTestId('home-place-update')).toBeNull();
   });
 
   it('stays usable when a data source fails without showing a raw error', () => {
@@ -222,9 +321,7 @@ describe('AdaptiveHomePage', () => {
       screen.queryByText(/personalized updates are unavailable/i)
     ).toBeNull();
     expect(screen.queryByText(/TypeError|token|stack/i)).toBeNull();
-    expect(
-      screen.getByRole('button', { name: /Compare places/ })
-    ).toBeEnabled();
+    expect(screen.getByTestId('home-outcome-compare-places')).toBeEnabled();
   });
 
   it('puts recent work ahead of the shortcuts', () => {

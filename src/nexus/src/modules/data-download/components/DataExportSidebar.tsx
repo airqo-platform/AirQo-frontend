@@ -11,7 +11,11 @@ import {
   POLLUTANT_LABELS,
   DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
-import { PRODUCT_TOUR_STEP_EVENT } from '@/modules/home/ProductTour';
+import {
+  PRODUCT_TOUR_STEP_EVENT,
+  type ProductTourStepEventDetail,
+} from '@/shared/lib/tourEvents';
+import { useHomeStart } from '@/shared/hooks/useHomeStart';
 
 interface DataExportSidebarProps {
   // State
@@ -126,6 +130,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     );
   }, [dateRange]);
   const [pollutantError, setPollutantError] = useState<string | null>(null);
+  const homeStart = useHomeStart();
 
   // Body scroll lock when mobile sidebar is open
   useEffect(() => {
@@ -147,22 +152,19 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
       if (target === '[data-tour="export-locations"]') setSidebarOpen(false);
     };
 
-    const homeStart = new URLSearchParams(window.location.search).get(
-      'homeStart'
-    );
     if (homeStart === 'export-data') {
       syncSidebar('[data-tour="export-config"]');
     }
 
     const handleStep = (event: Event) => {
-      const target = (event as CustomEvent<{ target?: string | null }>).detail
+      const target = (event as CustomEvent<ProductTourStepEventDetail>).detail
         ?.target;
       syncSidebar(target ?? null);
     };
     window.addEventListener(PRODUCT_TOUR_STEP_EVENT, handleStep);
     return () =>
       window.removeEventListener(PRODUCT_TOUR_STEP_EVENT, handleStep);
-  }, [setSidebarOpen]);
+  }, [setSidebarOpen, homeStart]);
 
   // Escape key to close mobile sidebar
   useEffect(() => {

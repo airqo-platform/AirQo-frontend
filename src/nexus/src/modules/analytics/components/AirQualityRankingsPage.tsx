@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { useHomeStart } from '@/shared/hooks/useHomeStart';
 import { useRankings } from '../hooks/useRankings';
 import { useRankingsHistory } from '../hooks/useRankingsHistory';
 import { useRankingCountries } from '../hooks/useRankingCountries';
@@ -74,12 +75,10 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
   const { config: aqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig('pm2_5');
 
+  const homeStart = useHomeStart();
+
   const [tab, setTab] = useState<RankingsTab>(() => {
     const storedTab = readStoredRankingsTab();
-    if (typeof window === 'undefined') return storedTab;
-    const homeStart = new URLSearchParams(window.location.search).get(
-      'homeStart'
-    );
     return homeStart === 'view-rankings' ? 'live' : storedTab;
   });
   const [level, setLevel] = useState<RankingsLevel>('country');
@@ -90,11 +89,8 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
   // The rankings tour describes the live controls. A saved history tab would
   // leave those targets unmounted, so enter the live tab before the guide opens.
   useEffect(() => {
-    const homeStart = new URLSearchParams(window.location.search).get(
-      'homeStart'
-    );
     if (homeStart === 'view-rankings') setTab('live');
-  }, []);
+  }, [homeStart]);
 
   // Persist the active tab so a refresh returns to the same view.
   useEffect(() => {

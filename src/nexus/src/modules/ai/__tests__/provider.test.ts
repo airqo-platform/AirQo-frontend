@@ -481,6 +481,35 @@ describe('createOpenAICompatibleProvider', () => {
     ).rejects.toThrow('AI agent returned status 401');
   });
 
+  it('never exposes the upstream error body in the thrown message', async () => {
+    const marker = 'SECRET_UPSTREAM_BODY';
+    const errorResponse = new Response(
+      `${marker}: invalid api key sk-leaked-key`,
+      { status: 502 }
+    );
+    global.fetch = jest.fn().mockResolvedValue(errorResponse);
+
+    const provider = createOpenAICompatibleProvider(makeConfig());
+
+    const failure = await collect(
+      provider.streamChat({
+        messages: TEST_MESSAGES,
+        system: TEST_SYSTEM,
+      })
+    ).then(
+      () => {
+        throw new Error('expected the stream to reject on a non-OK response');
+      },
+      (err: unknown) => err
+    );
+
+    expect(failure).toBeInstanceOf(Error);
+    const message = (failure as Error).message;
+    expect(message).toContain('502');
+    expect(message).not.toContain(marker);
+    expect(message).not.toContain('sk-leaked-key');
+  });
+
   it('passes the AbortSignal through to fetch', async () => {
     mockFetchSse(['OK']);
     const controller = new AbortController();

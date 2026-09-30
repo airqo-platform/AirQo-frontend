@@ -71,6 +71,13 @@ const bodySchema = z.object({
   context: z.unknown().optional(),
 });
 
+/**
+ * User-safe copy for stream failures. Raw `err.message` may embed upstream
+ * AI-agent response bodies — those must never reach the browser.
+ */
+const STREAM_ERROR_MESSAGE =
+  'The AI assistant encountered a problem. Please try again.';
+
 export async function POST(request: NextRequest) {
   /* ---------- Session guard ---------- */
   const session = await getServerSession(authOptions);
@@ -187,13 +194,18 @@ export async function POST(request: NextRequest) {
         ) {
           // Client disconnected — just close silently
         } else {
-          send({
-            type: 'error',
-            message:
-              err instanceof Error
-                ? err.message
-                : 'An unexpected error occurred',
-          });
+          // Sanitized server-side log: status only, never the message/payload.
+          const status =
+            err instanceof Error &&
+            typeof (err as { status?: unknown }).status === 'number'
+              ? (err as unknown as { status: number }).status
+              : undefined;
+          if (status !== undefined) {
+            console.error('AI assistant stream failed', { status });
+          } else {
+            console.error('AI assistant stream failed');
+          }
+          send({ type: 'error', message: STREAM_ERROR_MESSAGE });
         }
       } finally {
         controller.close();
