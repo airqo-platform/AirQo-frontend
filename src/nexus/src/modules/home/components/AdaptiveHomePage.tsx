@@ -88,9 +88,11 @@ export default function AdaptiveHomePage() {
 
   return (
     <div className="space-y-7">
+      {/* The greeting line carries the primary colour; the rest of the header
+          stays as plain type so the page keeps its quiet, scannable top. */}
       <header className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <p className="mb-0 text-sm text-muted-foreground">
+          <p className="mb-0 text-sm font-medium text-primary">
             {experience.mode === 'returning' ? 'Welcome back' : 'Welcome'},{' '}
             {firstName}
           </p>
@@ -118,15 +120,21 @@ export default function AdaptiveHomePage() {
       ) : experience.continueItems.length > 0 ? (
         <section aria-labelledby="continue-heading" className="space-y-4">
           <div>
-            <h2 id="continue-heading" className="text-xl font-medium">
-              Continue your work
-            </h2>
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden="true"
+                className="inline-block h-5 w-1 shrink-0 rounded-full bg-primary"
+              />
+              <h2 id="continue-heading" className="text-xl font-medium">
+                Continue your work
+              </h2>
+            </div>
             <p className="mb-0 mt-1 text-sm text-muted-foreground">
               Pick up a saved analysis without rebuilding your setup.
             </p>
           </div>
           <div className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-3">
-            {experience.continueItems.map(item => (
+            {experience.continueItems.map((item, index) => (
               <button
                 key={`${item.type}-${item.title}`}
                 type="button"
@@ -134,9 +142,21 @@ export default function AdaptiveHomePage() {
                 onClick={() =>
                   navigate(item.href, 'home_continue_selected', item.type)
                 }
-                className="group flex h-full w-full items-start gap-3 border-b border-border p-4 text-left transition-colors last:border-b-0 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset motion-reduce:transition-none md:border-b-0 md:border-r md:last:border-r-0"
+                className={`group flex h-full w-full items-start gap-3 border-b border-border p-4 text-left transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset motion-reduce:transition-none md:border-b-0 md:border-r md:last:border-r-0 ${
+                  // The most recent item is the one to resume, so it carries the
+                  // primary tint that gives the section its focal point.
+                  index === 0
+                    ? 'bg-primary/[0.04] hover:bg-primary/[0.08]'
+                    : 'hover:bg-muted/60'
+                }`}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors motion-reduce:transition-none ${
+                    index === 0
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-muted text-foreground'
+                  }`}
+                >
                   <ContinueIcon item={item} />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -168,15 +188,15 @@ export default function AdaptiveHomePage() {
             type="button"
             aria-label="Open Ask AirQo"
             onClick={openAi}
-            className="group flex min-h-28 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:p-5"
+            className="group flex min-h-28 w-full items-center gap-4 rounded-xl border border-primary/15 bg-card p-4 text-left shadow-sm ring-1 ring-transparent transition-colors hover:border-primary/30 hover:bg-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:p-5"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <AqMagicWand01 className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
                 Ask AirQo
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
                   BETA
                 </span>
               </span>
@@ -184,7 +204,7 @@ export default function AdaptiveHomePage() {
                 Get a guided starting point for your next question.
               </span>
             </span>
-            <AqArrowRight className="h-5 w-5 text-muted-foreground transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
+            <AqArrowRight className="h-5 w-5 text-muted-foreground transition-transform motion-reduce:transition-none group-hover:translate-x-0.5 group-hover:text-primary" />
           </button>
         )}
         <RotatingHint
@@ -193,16 +213,22 @@ export default function AdaptiveHomePage() {
       </section>
 
       <section aria-labelledby="start-heading" className="space-y-4">
-        <h2 id="start-heading" className="text-xl font-medium">
-          Jump right in
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden="true"
+            className="inline-block h-5 w-1 shrink-0 rounded-full bg-primary"
+          />
+          <h2 id="start-heading" className="text-xl font-medium">
+            Jump right in
+          </h2>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
           {OUTCOME_ACTIONS.map(action => {
             const Icon = action.icon;
             return (
               <Card
                 key={action.id}
-                className="h-full transition-shadow hover:shadow-md motion-reduce:transition-none"
+                className="h-full ring-1 ring-transparent transition-all hover:shadow-md hover:ring-primary/25 motion-reduce:transition-none"
               >
                 <button
                   type="button"
@@ -212,7 +238,7 @@ export default function AdaptiveHomePage() {
                   }
                   className="group flex h-full w-full items-start gap-4 p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 motion-reduce:transition-none">
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -234,7 +260,11 @@ export default function AdaptiveHomePage() {
       {!experience.isLoading && (
         <section aria-labelledby="updates-heading" className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span
+                aria-hidden="true"
+                className="inline-block h-5 w-1 shrink-0 rounded-full bg-primary"
+              />
               <h2 id="updates-heading" className="text-xl font-medium">
                 Updates from your places
               </h2>

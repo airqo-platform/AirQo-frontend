@@ -34,8 +34,8 @@ export const RotatingHint = ({
   const hint = HOME_HINTS[index];
 
   return (
-    <div className="relative flex h-full min-h-28 flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
-      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="relative flex h-full min-h-28 flex-col justify-between overflow-hidden rounded-xl border border-primary/15 bg-primary/[0.03] p-4 shadow-sm transition-colors hover:border-primary/30 motion-reduce:transition-none sm:p-5">
+      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
         <AqLightbulb02 className="h-4 w-4" />
         Try this in Nexus
       </div>
@@ -51,7 +51,7 @@ export const RotatingHint = ({
           className="group inline-flex items-center gap-2 rounded-sm text-left underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {hint.text}
-          <AqArrowRight className="h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
+          <AqArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform motion-reduce:transition-none group-hover:translate-x-0.5" />
         </button>
       </p>
     </div>

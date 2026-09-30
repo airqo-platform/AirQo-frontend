@@ -34,7 +34,7 @@ export const PlaceUpdateCard = ({
 
   return (
     <Card
-      className="flex h-full flex-col overflow-hidden border-t-[3px]"
+      className="flex h-full flex-col overflow-hidden border-t-[3px] ring-1 ring-transparent transition-all hover:shadow-md hover:ring-primary/25 motion-reduce:transition-none"
       style={statusColor ? { borderTopColor: statusColor } : undefined}
       data-testid="home-place-update"
     >

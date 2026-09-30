@@ -200,6 +200,42 @@ describe('AdaptiveHomePage', () => {
     }
   });
 
+  it('keeps the primary colour the single accent across the page', () => {
+    mockExperience.continueItems = [
+      {
+        type: 'comparison',
+        title: 'Kampala and Nairobi',
+        description: 'Continue comparing 2 locations.',
+        href: '/user/air-quality/analytics?view=comparison',
+        timestamp: '2026-01-01T00:00:00.000Z',
+        iconName: 'compare',
+      },
+    ];
+    renderHome();
+
+    // Every section title is anchored by the same primary marker.
+    ['Continue your work', 'Jump right in', 'Updates from your places'].forEach(
+      name => {
+        const heading = screen.getByRole('heading', { name });
+        expect(
+          heading.parentElement?.querySelector('span[aria-hidden="true"]')
+        ).toHaveClass('bg-primary');
+      }
+    );
+
+    // The greeting carries the colour instead of a panel around the header.
+    expect(screen.getByText('Welcome, Amina')).toHaveClass('text-primary');
+
+    // Interactive tiles are tinted with the primary token, never raw hex.
+    const outcomeIcon = screen
+      .getByTestId('home-outcome-compare-places')
+      .querySelector('span.rounded-md');
+    expect(outcomeIcon).toHaveClass('bg-primary/10', 'text-primary');
+    expect(screen.getByTestId('home-hint').closest('div')).toHaveClass(
+      'bg-primary/[0.03]'
+    );
+  });
+
   it('shows resumable artifacts and place updates for returning users', async () => {
     mockExperience.mode = 'returning';
     mockExperience.counts = {
