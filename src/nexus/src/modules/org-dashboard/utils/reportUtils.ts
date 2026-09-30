@@ -215,6 +215,35 @@ export const hasReportData = (report: AnalyticsReport | null): boolean => {
   ].some(rows => Array.isArray(rows) && rows.length > 0);
 };
 
+/** A 24-character hex token — the shape of a Mongo ObjectId. */
+const OBJECT_ID_PATTERN = /\b[0-9a-f]{24}\b/gi;
+
+/**
+ * An internal identifier following a resource word: either it contains a digit
+ * or it is long enough not to be a readable name ("cohort 67aaf…", "group 12",
+ * "device airqo-g5187"). Readable names such as "site Kampala" are left alone.
+ */
+const IDENTIFIER_TOKEN = String.raw`[A-Za-z0-9_-]*\d[A-Za-z0-9_-]*|[A-Za-z0-9_-]{12,}`;
+const INTERNAL_ID_PHRASE_PATTERN = new RegExp(
+  String.raw`\b(?:cohort|group|device|site|organization)\s+(?:${IDENTIFIER_TOKEN})\b`,
+  'gi'
+);
+
+/**
+ * Strip internal identifiers from a service-provided message before it is shown
+ * to a user. Report copy originates from the API and previously leaked the
+ * cohort id into the dashboard's empty state. Copy is left untouched apart from
+ * the removed identifiers, and punctuation left dangling by a removal is tidied.
+ */
+export const sanitizeReportMessage = (message: string): string =>
+  message
+    .replace(INTERNAL_ID_PHRASE_PATTERN, '')
+    .replace(OBJECT_ID_PATTERN, '')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s+([.,;:])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
 export const formatReportValue = (value: number | null | undefined): string => {
   const numericValue = finiteNumber(value);
   if (numericValue === null) return '—';

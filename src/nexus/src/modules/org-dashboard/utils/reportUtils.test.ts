@@ -12,7 +12,62 @@ import {
   getReportSummary,
   hasReportData,
   MAX_REPORT_PERIOD_DAYS,
+  sanitizeReportMessage,
 } from './reportUtils';
+
+describe('sanitizeReportMessage', () => {
+  it('removes a leaked cohort id from service copy', () => {
+    // The exact string that reached the dashboard empty state.
+    expect(
+      sanitizeReportMessage(
+        'No data available for cohort 67aaf6796bb3cc001374cd0b for the selected period (2026-09-30 to 2026-09-30).'
+      )
+    ).toBe(
+      'No data available for the selected period (2026-09-30 to 2026-09-30).'
+    );
+  });
+
+  it('removes identifiers for other internal resources', () => {
+    expect(
+      sanitizeReportMessage('No data available for group 12 in that window.')
+    ).toBe('No data available in that window.');
+    expect(
+      sanitizeReportMessage('No data available for device airqo-g5187.')
+    ).toBe('No data available.');
+    expect(
+      sanitizeReportMessage(
+        'No data available for cohort cohort-1 for the period.'
+      )
+    ).toBe('No data available for the period.');
+  });
+
+  it('removes a bare ObjectId even without a resource word', () => {
+    expect(
+      sanitizeReportMessage('Lookup 67aaf6796bb3cc001374cd0b failed.')
+    ).toBe('Lookup failed.');
+  });
+
+  it('leaves readable names and ordinary copy untouched', () => {
+    expect(
+      sanitizeReportMessage(
+        'No data available for site Kampala in that window.'
+      )
+    ).toBe('No data available for site Kampala in that window.');
+    expect(sanitizeReportMessage('Try a different date range or cohort.')).toBe(
+      'Try a different date range or cohort.'
+    );
+    expect(sanitizeReportMessage('')).toBe('');
+  });
+
+  it('tidies punctuation left dangling by a removal', () => {
+    expect(sanitizeReportMessage('No data for cohort abc123def456.')).toBe(
+      'No data.'
+    );
+    expect(sanitizeReportMessage('Values for device abc123def456 ()')).toBe(
+      'Values'
+    );
+  });
+});
 
 const createReport = (
   overrides: Partial<AnalyticsReport> = {}
