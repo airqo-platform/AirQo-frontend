@@ -129,6 +129,34 @@ describe('isComparisonReadingsUnavailable', () => {
   });
 });
 
+describe('useRecentReadings measurements-only flow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fetches recent readings once and skips comparison metadata', async () => {
+    mockGetRecentReadings.mockResolvedValueOnce([makeRecentReading()]);
+
+    const { result } = renderHook(
+      () =>
+        useRecentReadings({
+          userId: 'user-1',
+          groupId: 'group-1',
+          siteIds: ['site-1', 'site-2'],
+          measurementsOnly: true,
+          keepPreviousData: false,
+        }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockGetRecentReadings).toHaveBeenCalledTimes(1);
+    expect(mockGetComparisonReadings).not.toHaveBeenCalled();
+    expect(result.current.readings[0]?.aqi_category).toBe('Moderate');
+  });
+});
+
 describe('useRecentReadings two-call merge flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();

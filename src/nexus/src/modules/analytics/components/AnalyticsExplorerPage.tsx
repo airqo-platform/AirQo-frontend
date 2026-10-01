@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
 import { usePostHog } from 'posthog-js/react';
 import { cn } from '@/shared/lib/utils';
@@ -135,9 +136,21 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     readStoredTrendsLayout(isOrganizationFlow)
   );
 
+  const searchParams = useSearchParams();
+  const requestedView = searchParams.get('view');
   const [activeTab, setActiveTab] = useState<OverviewTab>(() =>
-    readStoredOverviewTab(isOrganizationFlow)
+    requestedView === 'comparison' || requestedView === 'trends'
+      ? requestedView
+      : readStoredOverviewTab(isOrganizationFlow)
   );
+
+  // Deep links from Home and Ask AirQo can arrive while this route is already
+  // mounted. Honor the requested tab without overriding later manual choices.
+  useEffect(() => {
+    if (requestedView === 'comparison' || requestedView === 'trends') {
+      setActiveTab(requestedView);
+    }
+  }, [requestedView]);
 
   const {
     charts,
@@ -405,7 +418,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
     >
       <div className={cn('space-y-4', className)}>
         {/* Page-level view switcher — Trends (charts) vs Comparison table */}
-        <Card className="w-fit">
+        <Card className="w-fit" data-tour="analytics-views">
           <CardContent className="p-2">
             <SegmentedTabs
               ariaLabel="Analytics views"
@@ -437,7 +450,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
             organizationSlug={organizationSlug}
           />
         ) : (
-          renderTrendsView()
+          <div data-tour="trends-content">{renderTrendsView()}</div>
         )}
 
         {activeTab === 'trends' && (

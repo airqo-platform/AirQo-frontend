@@ -570,6 +570,7 @@ const MapPage: React.FC<MapPageProps> = ({
       >
         {/* Sidebar wrapper — sets CSS custom property for MapSidebar */}
         <div
+          data-tour="map-sidebar"
           className="flex-none md:ml-2"
           style={
             {
@@ -581,7 +582,10 @@ const MapPage: React.FC<MapPageProps> = ({
         </div>
 
         {/* Map wrapper — fills remaining width, clips map overflow */}
-        <div className="flex-1 min-w-0 relative overflow-hidden">
+        <div
+          data-tour="map-canvas"
+          className="flex-1 min-w-0 relative overflow-hidden"
+        >
           {hasNoMapData ? (
             <PrivateOrgBanner />
           ) : showEmptyCohortState ? (
@@ -606,6 +610,7 @@ const MapPage: React.FC<MapPageProps> = ({
       >
         {/* Map pane — 55% of remaining viewport space, explicitly fixed */}
         <div
+          data-tour="map-canvas"
           className="relative overflow-hidden flex-none min-w-0"
           style={{ height: '55%' }}
         >
@@ -629,6 +634,7 @@ const MapPage: React.FC<MapPageProps> = ({
 
         {/* Sidebar pane — 45% of remaining viewport space, containment wall */}
         <div
+          data-tour="map-sidebar"
           className="flex-none overflow-hidden min-w-0"
           style={
             {

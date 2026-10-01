@@ -553,11 +553,16 @@ export const mergeReportWindows = (
 
   return {
     status: 'success',
-    // Match the backend's empty-result wording with the overall period so
-    // the dashboard's no-data state stays accurate across merged windows.
+    // Empty-result wording for the overall period. The cohort id is
+    // intentionally omitted: this string is rendered verbatim in the
+    // dashboard empty state and an internal identifier must never reach the UI.
+    // A single-day period reads as one date rather than a repeated range.
     ...(primaryIsEmpty
       ? {
-          message: `No data available for cohort ${cohortId} for the selected period (${startDate} to ${endDate}).`,
+          message:
+            startDate === endDate
+              ? `No data available for ${startDate}.`
+              : `No data available for the selected period (${startDate} to ${endDate}).`,
         }
       : {}),
     ...(unavailablePeriods && unavailablePeriods.length > 0

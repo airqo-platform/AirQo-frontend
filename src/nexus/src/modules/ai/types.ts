@@ -5,6 +5,21 @@ export interface AiMessage {
   role: AiRole;
   content: string;
   createdAt?: number;
+  actions?: AiAssistantAction[];
+}
+
+export type AiAssistantActionId =
+  | 'open-map'
+  | 'compare-locations'
+  | 'open-saved-charts'
+  | 'upload-dataset'
+  | 'configure-export'
+  | 'view-rankings';
+
+export interface AiAssistantAction {
+  id: AiAssistantActionId;
+  label: string;
+  href: string;
 }
 
 export type AiFeatureId =
@@ -33,5 +48,6 @@ export interface AiChatRequest {
 
 export type AiStreamEvent =
   | { type: 'delta'; content: string }
+  | { type: 'action'; action: AiAssistantAction }
   | { type: 'done' }
   | { type: 'error'; message: string };

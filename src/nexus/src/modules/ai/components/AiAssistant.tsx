@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import type { AiFeatureId } from '../types';
 import { getPageMetadata } from '../context/ai-feature-context';
@@ -20,15 +20,37 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
   const pageContext = useAiPageContext();
   const pageMeta = getPageMetadata(pathname);
   const feature = propFeature ?? pageMeta.feature;
-  const { isOpen, isEnabled, close } = useAiAssistantContext();
+  const {
+    isOpen,
+    isEnabled,
+    pendingPrompt,
+    pendingContext,
+    consumePendingPrompt,
+    close,
+  } = useAiAssistantContext();
 
   // Build a rich context object with page detection + page-provided overrides
-  const context = {
-    pathname,
-    pageTitle: pageContext.pageTitle ?? pageMeta.pageTitle,
-    pageDescription: pageContext.pageDescription ?? pageMeta.pageDescription,
-    data: pageContext.data,
-  };
+  const context = useMemo(
+    () => ({
+      pathname,
+      pageTitle: pageContext.pageTitle ?? pageMeta.pageTitle,
+      pageDescription:
+        pageContext.pageDescription ?? pageMeta.pageDescription,
+      data: pageContext.data,
+      ...(pendingContext && typeof pendingContext === 'object'
+        ? pendingContext
+        : {}),
+    }),
+    [
+      pathname,
+      pageContext.pageTitle,
+      pageContext.pageDescription,
+      pageContext.data,
+      pageMeta.pageTitle,
+      pageMeta.pageDescription,
+      pendingContext,
+    ]
+  );
 
   const {
     messages,
@@ -39,6 +61,19 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({
     reset,
     config,
   } = useAiAssistant({ feature, context });
+
+  useEffect(() => {
+    if (!isOpen || !pendingPrompt || isStreaming) return;
+    const prompt = pendingPrompt;
+    consumePendingPrompt();
+    void sendMessage(prompt);
+  }, [
+    consumePendingPrompt,
+    isOpen,
+    isStreaming,
+    pendingPrompt,
+    sendMessage,
+  ]);
 
   // Don't render anything when AI is not enabled
   if (!isEnabled) return null;

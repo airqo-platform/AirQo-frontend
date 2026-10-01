@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
@@ -865,10 +866,13 @@ const DataExportPage = () => {
       const slug = toSiteSlug(navigationData.displayName);
       rememberSiteSlug(slug, navigationData);
       router.push(
-        `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+        withSiteDetailsFrom(
+          `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`,
+          pathname
+        )
       );
     },
-    [activeTab, exportBaseHref, router]
+    [activeTab, exportBaseHref, router, pathname]
   );
 
   // Keep selected sites cache synchronized as table pages/search results change.
@@ -1265,7 +1269,10 @@ const DataExportPage = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
+          <main
+            data-tour="export-locations"
+            className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out"
+          >
             <div className="gap-4 md:px-4 flex-col flex flex-1">
               {/* Help Banner */}
               {showHelpBanner && (

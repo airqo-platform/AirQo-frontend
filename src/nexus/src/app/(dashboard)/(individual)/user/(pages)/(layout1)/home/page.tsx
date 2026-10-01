@@ -7,22 +7,19 @@ import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
 import { AqDownloadCloud01, AqBuilding07 } from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
-import ReusableDialog from '@/shared/components/ui/dialog';
 import PlayIcon from '@/shared/components/ui/play-icon';
 import { InfoBanner } from '@/shared/components/ui/banner';
-import { useEnvironmentAwareUrl } from '@/shared/hooks';
+import { AdaptiveHomePage, DataAccessDialog } from '@/modules/home/components';
+import { ADAPTIVE_HOME_ENABLED } from '@/modules/home/constants';
 
 export default function HomePage() {
+  return ADAPTIVE_HOME_ENABLED ? <AdaptiveHomePage /> : <LegacyHomePage />;
+}
+
+function LegacyHomePage() {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDataAccessOpen, setIsDataAccessOpen] = useState(false);
-
-  const fairUsagePolicyUrl = useEnvironmentAwareUrl(
-    'https://platform.airqo.net/docs/data-access/fair-usage-policy/'
-  );
-  const researchersGuideUrl = useEnvironmentAwareUrl(
-    'https://platform.airqo.net/docs/data-access/researchers-guide/'
-  );
 
   const handleModal = () => setIsModalOpen(!isModalOpen);
 
@@ -141,42 +138,10 @@ export default function HomePage() {
         </div>
       </Card>
 
-      <ReusableDialog
+      <DataAccessDialog
         isOpen={isDataAccessOpen}
         onClose={() => setIsDataAccessOpen(false)}
-        title="Data Access & Usage"
-        subtitle=""
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Access guidance on how to use and share AirQo data responsibly.
-          </p>
-
-          <ul className="list-disc pl-6 space-y-2">
-            <li>
-              <a
-                href={fairUsagePolicyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline"
-              >
-                Fair Usage Policy
-              </a>
-            </li>
-            <li>
-              <a
-                href={researchersGuideUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline"
-              >
-                Researchers Guide
-              </a>
-            </li>
-          </ul>
-        </div>
-      </ReusableDialog>
+      />
     </div>
   );
 }

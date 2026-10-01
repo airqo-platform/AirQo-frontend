@@ -11,6 +11,11 @@ import {
   POLLUTANT_LABELS,
   DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
+import {
+  PRODUCT_TOUR_STEP_EVENT,
+  type ProductTourStepEventDetail,
+} from '@/shared/lib/tourEvents';
+import { useHomeStart } from '@/shared/hooks/useHomeStart';
 
 interface DataExportSidebarProps {
   // State
@@ -62,9 +67,7 @@ const FieldLabel = ({
   tooltip?: string;
 }) => (
   <span className="inline-flex items-center gap-1.5">
-    <span className="text-sm font-medium text-muted-foreground">
-      {label}
-    </span>
+    <span className="text-sm font-medium text-muted-foreground">{label}</span>
     {tooltip && (
       <Tooltip content={tooltip} placement="top">
         <span className="text-muted-foreground/60 hover:text-muted-foreground cursor-help">
@@ -127,6 +130,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     );
   }, [dateRange]);
   const [pollutantError, setPollutantError] = useState<string | null>(null);
+  const homeStart = useHomeStart();
 
   // Body scroll lock when mobile sidebar is open
   useEffect(() => {
@@ -137,6 +141,30 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
       };
     }
   }, [sidebarOpen]);
+
+  // The export tour's configuration step lives in this sidebar. On small
+  // screens the sidebar starts closed, so open it while that step is active.
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    const syncSidebar = (target: string | null) => {
+      if (!mobileQuery.matches) return;
+      if (target === '[data-tour="export-config"]') setSidebarOpen(true);
+      if (target === '[data-tour="export-locations"]') setSidebarOpen(false);
+    };
+
+    if (homeStart === 'export-data') {
+      syncSidebar('[data-tour="export-config"]');
+    }
+
+    const handleStep = (event: Event) => {
+      const target = (event as CustomEvent<ProductTourStepEventDetail>).detail
+        ?.target;
+      syncSidebar(target ?? null);
+    };
+    window.addEventListener(PRODUCT_TOUR_STEP_EVENT, handleStep);
+    return () =>
+      window.removeEventListener(PRODUCT_TOUR_STEP_EVENT, handleStep);
+  }, [setSidebarOpen, homeStart]);
 
   // Escape key to close mobile sidebar
   useEffect(() => {
@@ -176,12 +204,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     <>
       {/* Sidebar - Hidden by default on mobile, always visible on desktop */}
       <aside
+        data-tour="export-config"
         className={`hidden lg:flex lg:static top-0 left-0 z-[60] lg:w-64 h-full lg:h-auto bg-card text-card-foreground border-r border-border p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-all duration-300 ease-in-out`}
       >
         <div className="space-y-4">
-          <h2 className="text-lg text-foreground">
-            Export Configuration
-          </h2>
+          <h2 className="text-lg text-foreground">Export Configuration</h2>
 
           {/* File Title Input - First */}
           <div className="space-y-1">
@@ -280,7 +307,10 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                       handlePollutantChange(pollutant, checked)
                     }
                   />
-                  <label htmlFor={`desktop-${pollutant}`} className="ml-2 text-sm">
+                  <label
+                    htmlFor={`desktop-${pollutant}`}
+                    className="ml-2 text-sm"
+                  >
                     {
                       POLLUTANT_LABELS[
                         pollutant as keyof typeof POLLUTANT_LABELS
@@ -321,6 +351,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
       {/* Mobile/Tablet Sidebar - Below lg breakpoint */}
       <aside
+        data-tour="export-config"
         role="dialog"
         aria-modal="true"
         aria-label="Export Configuration"
@@ -443,7 +474,10 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                         handlePollutantChange(pollutant, checked)
                       }
                     />
-                    <label htmlFor={`mobile-${pollutant}`} className="ml-2 text-sm">
+                    <label
+                      htmlFor={`mobile-${pollutant}`}
+                      className="ml-2 text-sm"
+                    >
                       {
                         POLLUTANT_LABELS[
                           pollutant as keyof typeof POLLUTANT_LABELS

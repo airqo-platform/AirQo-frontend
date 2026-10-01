@@ -246,9 +246,21 @@ describe('mergeReportWindows', () => {
 
     expect(merged.daily_mean_pm).toEqual([]);
     expect(merged.datetime_mean_pm).toEqual([]);
+    // The synthesized message carries the merged period but never the cohort
+    // id: it is rendered verbatim in the dashboard empty state.
     expect(merged.message).toBe(
-      'No data available for cohort cohort-1 for the selected period (2026-01-01 to 2026-02-23).'
+      'No data available for the selected period (2026-01-01 to 2026-02-23).'
     );
+  });
+
+  it('reads a single-day period as one date rather than a repeated range', () => {
+    const merged = mergeReportWindows([makeReport()], {
+      ...request,
+      start_time: '2026-03-04',
+      end_time: '2026-03-04',
+    });
+
+    expect(merged.message).toBe('No data available for 2026-03-04.');
   });
 
   it('attaches unavailablePeriods to the merged report when provided', () => {

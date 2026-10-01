@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { useHomeStart } from '@/shared/hooks/useHomeStart';
 import { useRankings } from '../hooks/useRankings';
 import { useRankingsHistory } from '../hooks/useRankingsHistory';
 import { useRankingCountries } from '../hooks/useRankingCountries';
@@ -74,11 +75,22 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
   const { config: aqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig('pm2_5');
 
-  const [tab, setTab] = useState<RankingsTab>(readStoredRankingsTab);
+  const homeStart = useHomeStart();
+
+  const [tab, setTab] = useState<RankingsTab>(() => {
+    const storedTab = readStoredRankingsTab();
+    return homeStart === 'view-rankings' ? 'live' : storedTab;
+  });
   const [level, setLevel] = useState<RankingsLevel>('country');
   const [sort, setSort] = useState<RankingsSort>('worst');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [country, setCountry] = useState<string>('');
+
+  // The rankings tour describes the live controls. A saved history tab would
+  // leave those targets unmounted, so enter the live tab before the guide opens.
+  useEffect(() => {
+    if (homeStart === 'view-rankings') setTab('live');
+  }, [homeStart]);
 
   // Persist the active tab so a refresh returns to the same view.
   useEffect(() => {
@@ -202,7 +214,7 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
       {tab === 'live' ? (
         <>
           {/* Filter controls — compact, organized in one row */}
-          <Card>
+          <Card data-tour="rankings-controls">
             <CardContent className="flex flex-wrap items-center gap-3 p-3">
               <div className="flex items-center gap-2">
                 <SegmentedTabs
@@ -258,14 +270,16 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
             totalCount={rankingsMeta?.total ?? null}
           />
 
-          <RankingsLeaderboard
-            rankings={rankings}
-            aqiConfig={aqiConfig ?? null}
-            isLoading={rankingsLoading}
-            error={rankingsError}
-            onRetry={() => void refetchRankings()}
-            totalCount={rankingsMeta?.total ?? null}
-          />
+          <div data-tour="rankings-content">
+            <RankingsLeaderboard
+              rankings={rankings}
+              aqiConfig={aqiConfig ?? null}
+              isLoading={rankingsLoading}
+              error={rankingsError}
+              onRetry={() => void refetchRankings()}
+              totalCount={rankingsMeta?.total ?? null}
+            />
+          </div>
         </>
       ) : (
         <>

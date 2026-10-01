@@ -34,14 +34,19 @@ export const isComparisonReadingsUnavailable = (error: unknown): boolean => {
 export const buildRecentReadingsKey = (
   userId: string | undefined,
   groupId: string | undefined,
-  siteIds: string[]
-): unknown[] => [
-  'analytics',
-  'recent-readings',
-  userId ?? 'anonymous',
-  groupId ?? 'no-active-group',
-  [...siteIds].sort(),
-];
+  siteIds: string[],
+  scope: 'merged' | 'measurements' = 'merged'
+): unknown[] => {
+  const key: unknown[] = [
+    'analytics',
+    'recent-readings',
+    userId ?? 'anonymous',
+    groupId ?? 'no-active-group',
+    [...siteIds].sort(),
+  ];
+  if (scope === 'measurements') key.push('measurements');
+  return key;
+};
 
 export interface UseRecentReadingsOptions {
   userId?: string;
@@ -49,6 +54,17 @@ export interface UseRecentReadingsOptions {
   /** Live selection of site ids to fetch the latest reading for. */
   siteIds: string[];
   enabled?: boolean;
+  /**
+   * Home only needs measurements. Skip the comparisons metadata request so
+   * the page makes one bounded readings call.
+   */
+  measurementsOnly?: boolean;
+  /**
+   * Comparison view keeps the previous selection visible while the next
+   * request loads. Home must not: a group switch should not paint the
+   * previous group's readings.
+   */
+  keepPreviousData?: boolean;
 }
 
 export interface UseRecentReadingsResult {
@@ -80,11 +96,19 @@ export const useRecentReadings = ({
   groupId,
   siteIds,
   enabled = true,
+  measurementsOnly = false,
+  keepPreviousData = true,
 }: UseRecentReadingsOptions): UseRecentReadingsResult => {
   // Sorted copy keeps the key stable regardless of selection order.
   const queryKey = useMemo(
-    () => buildRecentReadingsKey(userId, groupId, siteIds),
-    [userId, groupId, siteIds]
+    () =>
+      buildRecentReadingsKey(
+        userId,
+        groupId,
+        siteIds,
+        measurementsOnly ? 'measurements' : 'merged'
+      ),
+    [measurementsOnly, userId, groupId, siteIds]
   );
 
   const shouldFetch = enabled && siteIds.length > 0 && !!userId && !!groupId;
@@ -92,6 +116,10 @@ export const useRecentReadings = ({
   const query = useQuery<RecentReading[], Error>({
     queryKey,
     queryFn: async ({ signal }) => {
+      if (measurementsOnly) {
+        return analyticsService.getRecentReadings(siteIds, signal);
+      }
+
       const [comparisonResult, recentResult] = await Promise.allSettled([
         analyticsService.getComparisonReadings(siteIds, signal),
         analyticsService.getRecentReadings(siteIds, signal),
@@ -123,7 +151,9 @@ export const useRecentReadings = ({
     refetchOnReconnect: false,
     staleTime: CHART_DATA_STALE_TIME_MS,
     gcTime: ANALYTICS_QUERY_GC_TIME_MS,
-    placeholderData: previousData => previousData,
+    ...(keepPreviousData
+      ? { placeholderData: (previousData?: RecentReading[]) => previousData }
+      : {}),
   });
 
   return {

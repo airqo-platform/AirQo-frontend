@@ -50,6 +50,7 @@ import {
   MAX_REPORT_PERIOD_DAYS,
   REPORT_PERIOD_INCOMPLETE_MESSAGE,
   REPORT_POLLUTANT_OPTIONS,
+  sanitizeReportMessage,
   type ReportSiteRow,
 } from '../utils/reportUtils';
 
@@ -474,7 +475,9 @@ export const OrganizationReportDashboard: React.FC<
           <EmptyState
             title="No readings in this period"
             description={
-              report?.message?.trim() ||
+              // Service copy is sanitized so an internal identifier (e.g. a
+              // cohort id) can never be shown to a user.
+              sanitizeReportMessage(report?.message ?? '') ||
               'Try a different date range or cohort. The selected period has no measurements.'
             }
           />
@@ -674,7 +677,7 @@ export const OrganizationReportDashboard: React.FC<
           <InfoBanner
             dense
             className="mt-3"
-            message={`A report covers a single period of up to ${MAX_REPORT_PERIOD_DAYS} days — pick a start and end date inside that window. Longer periods are refused by the report service, and any days it cannot process are listed as excluded rather than silently averaged in.`}
+            message={`A report covers a single period of up to ${MAX_REPORT_PERIOD_DAYS} days — pick a start and end date inside that window.`}
           />
         </CardContent>
       </Card>

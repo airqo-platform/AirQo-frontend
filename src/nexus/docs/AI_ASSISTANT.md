@@ -1,4 +1,4 @@
-# AI Assistant Module
+# Ask AirQo Module
 
 A clean foundation for integrating an external AI agent into the AirQo Nexus app.
 The module streams responses, is feature-aware (knows which page the user is on),
@@ -23,9 +23,9 @@ Client UI (FAB → Drawer)
        ▼
   Provider abstraction (provider.ts)
        │
-       ├─ createOpenAICompatibleProvider   ← POST /chat/completions, parse SSE
-       ├─ createDevFallbackProvider        ← dev stub when no agent URL
-       └─ getAiProvider()                  ← picks based on agentUrl presence
+       └─ getAiProvider()                  ← selects by AI_PROVIDER_MODE
+            ├─ prototype → createPrototypeProvider()   ← scripted guidance
+            └─ external  → createOpenAICompatibleProvider   ← POST /chat/completions
        │
        ▼
   External AI Agent API  (OpenAI-compatible /chat/completions)
@@ -69,26 +69,28 @@ src/app/api/ai/assistant/
 | Variable | Default | Description |
 |---|---|---|
 | `NEXT_PUBLIC_AI_ENABLED` | `false` | Single application-wide toggle. Must be `"true"` to show the FAB and enable the API. |
+| `AI_PROVIDER_MODE` | unset (disabled) | `prototype` for scripted guidance or `external` for the configured agent endpoint. Any other value returns a disabled response. |
 | `AI_AGENT_URL` | `""` | External AI agent endpoint (base URL). The provider appends `/chat/completions`. Server-side only. |
 | `AI_AGENT_API_KEY` | `""` | Optional auth key for the agent. Sent as `Authorization: Bearer <key>`. Server-side only. |
 
-### Quick start (no agent endpoint — dev fallback)
+### Quick start (scripted prototype)
 
 ```bash
 # .env.local
 NEXT_PUBLIC_AI_ENABLED=true
-AI_AGENT_URL=
+AI_PROVIDER_MODE=prototype
 ```
 
-This shows the FAB and opens the drawer. Without an agent URL, the dev fallback
-yields a short message explaining that no agent is configured. The full streaming
-UI flow is testable without any external service.
+`getAiProvider()` selects `createPrototypeProvider()` when `AI_PROVIDER_MODE`
+is `prototype`. That provider returns scripted guidance, so the drawer and
+streaming UI work without an external agent.
 
 ### Connecting an external agent
 
 ```bash
 # .env.local
 NEXT_PUBLIC_AI_ENABLED=true
+AI_PROVIDER_MODE=external
 AI_AGENT_URL=https://your-agent.example.com/v1
 AI_AGENT_API_KEY=your-secret-key
 ```
