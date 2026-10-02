@@ -192,6 +192,8 @@ const VALID_STANDARDS: ReadonlySet<string> = new Set([
   'WHO',
   'NEMA_UGANDA',
   'NEMA_KENYA',
+  'RWANDA',
+  'GHANA',
   'SOUTH_AFRICA',
   'NIGERIA',
 ]);

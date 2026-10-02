@@ -3,7 +3,7 @@
 import React from 'react';
 import { ReferenceLine } from 'recharts';
 import { PollutantType, StandardsType } from '../../types';
-import { REFERENCE_LINES } from '../../constants';
+import { getCurrentAirQualityLimits, REFERENCE_LINES } from '../../constants';
 import { getPollutantLabel } from '../../utils';
 
 interface CustomReferenceLineProps {
@@ -77,6 +77,8 @@ const STANDARDS_SHORT_LABELS: Record<StandardsType, string> = {
   WHO: 'WHO 2021',
   NEMA_UGANDA: 'NEMA (UG)',
   NEMA_KENYA: 'NEMA (KE)',
+  RWANDA: 'RSB/EAS (RW)',
+  GHANA: 'GS 1236:2019 (GH)',
   SOUTH_AFRICA: 'NEM:AQA (ZA)',
   NIGERIA: 'NESREA (NG)',
 };
@@ -110,6 +112,15 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
   ) => {
     const pollutantKey = normalizePollutant(rawPollutant as string);
     const standardsKey = rawStandards || 'WHO';
+
+    if (pollutantKey === 'pm2_5' || pollutantKey === 'pm10') {
+      const limits = getCurrentAirQualityLimits(
+        standardsKey,
+        pollutantKey === 'pm10' ? 'PM10' : 'PM2.5'
+      );
+      return preferPeriod === '24hr' ? limits.daily : limits.annual;
+    }
+
     const referenceLine = REFERENCE_LINES[standardsKey];
 
     if (!referenceLine) return null;

@@ -44,7 +44,7 @@ import {
   formatMeasurementLabel,
 } from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
-import { REFERENCE_LINES } from '@/shared/utils/airQuality';
+import { getCurrentReferenceLines } from '@/shared/utils/airQuality';
 import { ChartZoomControls } from '@/shared/components/charts/components/ui/ChartZoomControls';
 import { ChartZoomScrubber } from '@/shared/components/charts/components/ui/ChartZoomScrubber';
 import { PanScaleReporter } from '@/shared/components/charts/components/ui/PanScaleReporter';
@@ -400,25 +400,31 @@ const getReferenceLines = (
     return customLines;
   }
 
-  const standard = REFERENCE_LINES[config.standards];
+  const standard = getCurrentReferenceLines(config.standards);
   const annual =
     pollutant === 'pm10' ? standard.PM10_ANNUAL : standard.PM25_ANNUAL;
   const daily = pollutant === 'pm10' ? standard.PM10_24HR : standard.PM25_24HR;
   const standardsLabel = config.standards.replace('NEMA_', 'NEMA ');
 
-  return [
-    {
+  const standardLines: ReferenceLineDescriptor[] = [];
+
+  if (typeof annual === 'number' && Number.isFinite(annual)) {
+    standardLines.push({
       value: annual,
       label: `${standardsLabel} annual`,
       color: '#DC2626',
-    },
-    {
+    });
+  }
+
+  if (typeof daily === 'number' && Number.isFinite(daily)) {
+    standardLines.push({
       value: daily,
       label: `${standardsLabel} 24h`,
       color: '#F97316',
-    },
-    ...customLines,
-  ];
+    });
+  }
+
+  return [...standardLines, ...customLines];
 };
 
 const getNumericSeriesValues = (model: ChartSeriesModel) =>

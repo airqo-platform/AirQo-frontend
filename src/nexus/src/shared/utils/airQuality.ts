@@ -46,6 +46,8 @@ export type StandardsOrganization =
   | 'WHO'
   | 'NEMA_UGANDA'
   | 'NEMA_KENYA'
+  | 'RWANDA'
+  | 'GHANA'
   | 'SOUTH_AFRICA'
   | 'NIGERIA';
 
@@ -68,8 +70,44 @@ export interface AirQualityInfo {
 }
 
 export interface StandardValues {
-  pm2_5: number;
+  pm2_5: number | null;
   pm10: number;
+}
+
+export type StandardPollutant = 'PM2.5' | 'PM10';
+
+export interface AirQualityLimitSet {
+  annual: number | null;
+  daily: number | null;
+  annualExceedanceRule?: string;
+  dailyExceedanceRule?: string;
+  context?: string;
+  areaLimits?: Array<{
+    area: string;
+    annual: number;
+    daily: number;
+    dailyExceedanceRule?: string;
+  }>;
+  nextPhase?: {
+    effectiveDate: string;
+    starts: string;
+    annual: number;
+    daily: number;
+  };
+  unavailableReason?: string;
+}
+
+export interface AirQualityStandardSource {
+  label: string;
+  url: string;
+}
+
+export interface OfficialAirQualityStandard {
+  kind: string;
+  instrument: string;
+  sources: AirQualityStandardSource[];
+  note?: string;
+  pollutants: Record<StandardPollutant, AirQualityLimitSet>;
 }
 
 // ========================================
@@ -536,45 +574,10 @@ export const SOUTH_AFRICA_PM10_STANDARDS: AirQualityStandard[] = [
 // of 2021, Official Gazette No. 161 of 2021) — National Environmental
 // Standards and Regulations Enforcement Agency (NESREA).
 
-export const NIGERIA_PM25_STANDARDS: AirQualityStandard[] = [
-  {
-    level: 'Good',
-    range: { min: 0, max: 10 },
-    color: '#10B981', // green-500
-    description: 'Well below the NESREA annual standard - Good air quality',
-  },
-  {
-    level: 'Moderate',
-    range: { min: 10, max: 20 },
-    color: '#F59E0B', // amber-500
-    description: 'Within the NESREA annual standard (20 µg/m³) - Acceptable',
-  },
-  {
-    level: 'Unhealthy for Sensitive Groups',
-    range: { min: 20, max: 40 },
-    color: '#EF4444', // red-500
-    description:
-      'Above the NESREA annual but within 24-hour standard (40 µg/m³)',
-  },
-  {
-    level: 'Unhealthy',
-    range: { min: 40, max: 60 },
-    color: '#8B5CF6', // violet-500
-    description: 'Above the NESREA 24-hour standard',
-  },
-  {
-    level: 'Very Unhealthy',
-    range: { min: 60, max: 120 },
-    color: '#DC2626', // red-600
-    description: 'Significantly above the NESREA standards',
-  },
-  {
-    level: 'Hazardous',
-    range: { min: 120, max: Infinity },
-    color: '#7C2D12', // red-900
-    description: 'Health emergency - Take immediate action',
-  },
-];
+// The 2021 Gazette lists numeric PM2.5 limits but does not define the named
+// health-category breakpoints used by this legacy array. Keep the category
+// list empty rather than presenting app-defined ranges as NESREA categories.
+export const NIGERIA_PM25_STANDARDS: AirQualityStandard[] = [];
 
 export const NIGERIA_PM10_STANDARDS: AirQualityStandard[] = [
   {
@@ -620,15 +623,7 @@ export const NIGERIA_PM10_STANDARDS: AirQualityStandard[] = [
 // STANDARD REFERENCE VALUES
 // ========================================
 
-/**
- * Standard values for reference lines in charts.
- * Verified against primary legal sources:
- * - WHO 2021 Global Air Quality Guidelines (AQG values: PM2.5 5/15, PM10 15/45)
- * - Uganda National Environment (Air Quality Standards) Regulations 2024 (SI 22 of 2024)
- * - Kenya Environmental Management and Co-ordination (Air Quality) Regulations 2024 (LN 180 of 2024)
- * - South Africa National Ambient Air Quality Standards (GN 1210 of 2009 + GN 486 of 2012, current phase)
- * - Nigeria National Environmental (Air Quality Control) Regulations 2021 (SI 88 of 2021)
- */
+/** Annual reference values used by consumers that need a single threshold. */
 export const AQ_STANDARDS: Record<StandardsOrganization, StandardValues> = {
   WHO: {
     pm2_5: 5, // WHO 2021 annual guideline: 5 µg/m³
@@ -640,21 +635,30 @@ export const AQ_STANDARDS: Record<StandardsOrganization, StandardValues> = {
   },
   NEMA_KENYA: {
     pm2_5: 35, // Kenya LN 180/2024 annual limit: 35 µg/m³
-    pm10: 70, // Kenya LN 180/2024 annual limit: 70 µg/m³
+    // The chart default is residential/rural/other; the regulation also has
+    // industrial and controlled-area PM10 limits, exposed in the standards UI.
+    pm10: 50,
+  },
+  RWANDA: {
+    pm2_5: 35, // RS EAS 751:2010 annual limit: 35 µg/m³
+    pm10: 50, // Residential/rural/other-area annual limit: 50 µg/m³
+  },
+  GHANA: {
+    pm2_5: null, // GS 1236:2019 does not specify an annual PM2.5 limit.
+    pm10: 70, // GS 1236:2019 annual limit: 70 µg/m³
   },
   SOUTH_AFRICA: {
     pm2_5: 20, // SA GN 486/2012 annual standard (current phase): 20 µg/m³
     pm10: 40, // SA GN 1210/2009 annual standard: 40 µg/m³
   },
   NIGERIA: {
-    pm2_5: 20, // Nigeria SI 88/2021 annual standard: 20 µg/m³
+    pm2_5: 20, // SI 88/2021 Schedule XIII annual ambient limit: 20 µg/m³
     pm10: 60, // Nigeria SI 88/2021 annual standard: 60 µg/m³
   },
 } as const;
 
-/**
- * Reference line values for chart components
- */
+/** Snapshot values retained for backwards compatibility. Use
+ * getCurrentReferenceLines for date-sensitive chart rendering. */
 export const REFERENCE_LINES = {
   WHO: {
     PM25_ANNUAL: 5,
@@ -671,8 +675,20 @@ export const REFERENCE_LINES = {
   NEMA_KENYA: {
     PM25_ANNUAL: 35,
     PM25_24HR: 75,
+    PM10_ANNUAL: 50,
+    PM10_24HR: 100,
+  },
+  RWANDA: {
+    PM25_ANNUAL: 35,
+    PM25_24HR: 75,
+    PM10_ANNUAL: 50,
+    PM10_24HR: 100,
+  },
+  GHANA: {
+    PM25_ANNUAL: null,
+    PM25_24HR: 35,
     PM10_ANNUAL: 70,
-    PM10_24HR: 150,
+    PM10_24HR: 70,
   },
   SOUTH_AFRICA: {
     PM25_ANNUAL: 20,
@@ -687,6 +703,310 @@ export const REFERENCE_LINES = {
     PM10_24HR: 150,
   },
 } as const;
+
+/**
+ * Source-backed ambient particulate limits shown in the standards dialog.
+ * WHO values are health guidelines; the other entries are national standards.
+ * A null value means the linked primary source does not provide a numeric limit.
+ */
+export const OFFICIAL_AIR_QUALITY_STANDARDS: Record<
+  StandardsOrganization,
+  OfficialAirQualityStandard
+> = {
+  WHO: {
+    kind: 'WHO health-based guideline',
+    instrument: 'WHO Global Air Quality Guidelines (2021)',
+    sources: [
+      {
+        label: 'WHO guideline publication',
+        url: 'https://www.who.int/publications/i/item/9789240034228',
+      },
+      {
+        label: 'WHO guideline table and 99th-percentile note',
+        url: 'https://iris.who.int/bitstream/handle/10665/345334/9789240034433-eng.pdf',
+      },
+    ],
+    note: 'These are health-based guideline values, not national legal limits.',
+    pollutants: {
+      'PM2.5': {
+        annual: 5,
+        daily: 15,
+        dailyExceedanceRule:
+          '99th percentile of daily means (about 3–4 days/year).',
+      },
+      PM10: {
+        annual: 15,
+        daily: 45,
+        dailyExceedanceRule:
+          '99th percentile of daily means (about 3–4 days/year).',
+      },
+    },
+  },
+  NEMA_UGANDA: {
+    kind: 'National ambient air quality standard',
+    instrument:
+      'National Environment (Air Quality Standards) Regulations, 2024 (S.I. No. 22)',
+    sources: [
+      {
+        label: 'NEMA Uganda official regulations (Schedule 2, Table 1)',
+        url: 'https://www.nema.go.ug/en/wp-content/uploads/2025/01/The-National-Environment-Air-Quality-Standards-Regulations-S.I.-No.-22-of-2024-1.pdf',
+      },
+    ],
+    note: 'The schedule gives annual and 24-hour limits; it does not state a separate exceedance allowance beside these entries.',
+    pollutants: {
+      'PM2.5': { annual: 25, daily: 35 },
+      PM10: { annual: 40, daily: 60 },
+    },
+  },
+  NEMA_KENYA: {
+    kind: 'National ambient air quality tolerance limits',
+    instrument:
+      'Environmental Management and Co-ordination (Air Quality) Regulations, 2024 (L.N. 180), as amended in 2025',
+    sources: [
+      {
+        label: 'Kenya Law consolidated text (includes 2025 amendments)',
+        url: 'https://new.kenyalaw.org/akn/ke/act/ln/2024/180/eng%402025-03-24/source.pdf',
+      },
+      {
+        label: 'NEMA Kenya gazetted regulations',
+        url: 'https://nema.go.ke/wp-content/uploads/2025/07/AIR-QUALITY-AND-PLASTICS-2024.pdf',
+      },
+    ],
+    note: 'The regulation’s PM10 entry varies by area. Chart reference lines use the residential, rural and other-area values; all three area categories are listed below. Controlled-area values carry a separate schedule footnote; consult the linked regulation for its application.',
+    pollutants: {
+      'PM2.5': {
+        annual: 35,
+        daily: 75,
+        dailyExceedanceRule:
+          'The PM2.5 row does not mark a separate exceedance rule; the schedule’s footnotes should be checked for the applicable site and reporting context.',
+      },
+      PM10: {
+        annual: 50,
+        daily: 100,
+        dailyExceedanceRule:
+          'For marked 24-hour limits, the schedule states no more than 3 exceedances/year and requires 24-hour values to be met 98% of the year, not on consecutive days.',
+        context:
+          'The regulation labels this pollutant “respirable particulate matter (<10 μm) (RPM)”.',
+        areaLimits: [
+          {
+            area: 'Industrial area',
+            annual: 70,
+            daily: 150,
+            dailyExceedanceRule:
+              'No more than 3 exceedances/year; 24-hour values should be met 98% of the year and not on consecutive days.',
+          },
+          {
+            area: 'Residential, rural and other area',
+            annual: 50,
+            daily: 100,
+            dailyExceedanceRule:
+              'No more than 3 exceedances/year; 24-hour values should be met 98% of the year and not on consecutive days.',
+          },
+          {
+            area: 'Controlled areas',
+            annual: 50,
+            daily: 75,
+          },
+        ],
+      },
+    },
+  },
+  RWANDA: {
+    kind: 'Rwanda Standard (adopted East African Standard)',
+    instrument: 'RS EAS 751:2010, Air quality — Specification',
+    sources: [
+      {
+        label: 'Rwanda Standards Board standard record',
+        url: 'https://www.portal.rsb.gov.rw/webstore_view.php?i=NDk2MThGQmtOd1ozQTNw',
+      },
+      {
+        label: 'REMA report reproducing EAS 751:2010 ambient limits',
+        url: 'https://rema.gov.rw/fileadmin/templates/Documents/rema_doc/Air%20Quality/Inventory%20of%20Sources%20of%20Air%20Pollution%20in%20Rwanda%20Final%20Report..pdf',
+      },
+      {
+        label: 'Official Gazette: compulsory Rwanda standards list',
+        url: 'https://www.rsb.gov.rw/fileadmin/user_upload/Publications/Laws/MINISTERIAL_INSTRUCTIONS_N___21_2013__OF_03_07_2013_DECLARING_COMPULSORY_RWANDAN_STANDARDS.pdf',
+      },
+    ],
+    note: 'PM10 limits vary by area. Chart reference lines use residential, rural and other-area limits; all area values are listed below. The averaging and exceedance notes follow the REMA report’s transcription of EAS 751:2010.',
+    pollutants: {
+      'PM2.5': {
+        annual: 35,
+        daily: 75,
+      },
+      PM10: {
+        annual: 50,
+        daily: 100,
+        dailyExceedanceRule:
+          'The REMA transcription states 24-hour values should be met 98% of the year and not be exceeded on two consecutive days.',
+        context:
+          'The standard requires at least 104 annual measurements, taken twice weekly at 24-hour intervals.',
+        areaLimits: [
+          {
+            area: 'Industrial area',
+            annual: 70,
+            daily: 150,
+            dailyExceedanceRule:
+              '24-hour values should be met 98% of the year and not be exceeded on two consecutive days.',
+          },
+          {
+            area: 'Residential, rural and other area',
+            annual: 50,
+            daily: 100,
+            dailyExceedanceRule:
+              '24-hour values should be met 98% of the year and not be exceeded on two consecutive days.',
+          },
+          {
+            area: 'Controlled areas',
+            annual: 50,
+            daily: 75,
+          },
+        ],
+      },
+    },
+  },
+  GHANA: {
+    kind: 'Ghana Standard for ambient air quality',
+    instrument:
+      'GS 1236:2019, Environment and Health Protection — Requirements for Ambient Air Quality and Point Source/Stack Emissions',
+    sources: [
+      {
+        label: 'Ghana Standards Authority standard record',
+        url: 'https://webstore.gsa.gov.gh/detail.php?ID=1896',
+      },
+      {
+        label: 'Ghana EPA project document reproducing GS 1236:2019 limits',
+        url: 'https://ehpmp.epa.gov.gh/wp-content/uploads/2025/07/Final-ESMP-for-Tinga-13.06.2025.pdf',
+      },
+      {
+        label: 'Ghana Parliament update on air-quality regulation',
+        url: 'https://www.parliament.gh/news?CO=325',
+      },
+    ],
+    note: 'These values are from GS 1236:2019. The standard specifies a 24-hour PM2.5 limit but no annual PM2.5 limit. Parliament reported that a new air-quality regulation passed in July 2026; I could not verify its gazetted text, so this entry reports the published standard values.',
+    pollutants: {
+      'PM2.5': {
+        annual: null,
+        daily: 35,
+      },
+      PM10: {
+        annual: 70,
+        daily: 70,
+      },
+    },
+  },
+  SOUTH_AFRICA: {
+    kind: 'National ambient air quality standard',
+    instrument:
+      'NEM:AQA standards: Government Notice 1210 of 2009 (PM10) and Government Notice 486 of 2012 (PM2.5)',
+    sources: [
+      {
+        label:
+          'South African Government Gazette: PM10 standard (GN 1210 of 2009)',
+        url: 'https://www.gov.za/sites/default/files/gcis_document/201409/328161210.pdf',
+      },
+      {
+        label:
+          'South African Government Gazette: PM2.5 standard (GN 486 of 2012)',
+        url: 'https://www.gov.za/sites/default/files/gcis_document/201409/35463gon486.pdf',
+      },
+    ],
+    note: 'Current PM2.5 phase applies through 31 December 2029; stricter limits take effect on 1 January 2030.',
+    pollutants: {
+      'PM2.5': {
+        annual: 20,
+        daily: 40,
+        annualExceedanceRule: '0 exceedances/year.',
+        dailyExceedanceRule: 'Up to 4 exceedances/year.',
+        nextPhase: {
+          effectiveDate: '2030-01-01',
+          starts: '1 January 2030',
+          annual: 15,
+          daily: 25,
+        },
+      },
+      PM10: {
+        annual: 40,
+        daily: 75,
+        annualExceedanceRule: '0 exceedances/year.',
+        dailyExceedanceRule: 'Up to 4 exceedances/year.',
+      },
+    },
+  },
+  NIGERIA: {
+    kind: 'NESREA national ambient air quality standard',
+    instrument:
+      'National Environmental (Air Quality Control) Regulations (NESREA listing: S.I. No. 88 of 2021, amended)',
+    sources: [
+      {
+        label: 'NESREA regulations listing',
+        url: 'https://nesrea.gov.ng/laws-regulations/',
+      },
+      {
+        label:
+          'Official Gazette No. 161 of 2021, S.I. No. 88 (Schedule XIII; hosted by FAOLEX)',
+        url: 'https://faolex.fao.org/docs/pdf/nig225821.pdf',
+      },
+    ],
+    note: 'NESREA’s catalogue labels the instrument “amended,” but I could not locate an accessible amended Gazette text to verify whether its limits changed. The values shown here are transcribed from Schedule XIII of the 2021 Gazette. The separate PDF currently linked from NESREA appears to contain older, mixed text.',
+    pollutants: {
+      'PM2.5': {
+        annual: 20,
+        daily: 40,
+      },
+      PM10: {
+        annual: 60,
+        daily: 150,
+        dailyExceedanceRule:
+          'Schedule XIII does not specify a separate permissible-exceedance allowance beside this value.',
+      },
+    },
+  },
+} as const;
+
+export const getCurrentAirQualityLimits = (
+  organization: StandardsOrganization,
+  pollutant: StandardPollutant,
+  asOf = new Date()
+): AirQualityLimitSet => {
+  const limits =
+    OFFICIAL_AIR_QUALITY_STANDARDS[organization].pollutants[pollutant];
+  const nextPhase = limits.nextPhase;
+
+  if (!nextPhase) return limits;
+
+  const [year, month, day] = nextPhase.effectiveDate.split('-').map(Number);
+  const effectiveDate = new Date(year, month - 1, day).getTime();
+  const currentDate = new Date(
+    asOf.getFullYear(),
+    asOf.getMonth(),
+    asOf.getDate()
+  ).getTime();
+
+  if (currentDate < effectiveDate) return limits;
+
+  return {
+    ...limits,
+    annual: nextPhase.annual,
+    daily: nextPhase.daily,
+    nextPhase: undefined,
+  };
+};
+
+export const getCurrentReferenceLines = (
+  organization: StandardsOrganization,
+  asOf = new Date()
+) => {
+  const pm25 = getCurrentAirQualityLimits(organization, 'PM2.5', asOf);
+  const pm10 = getCurrentAirQualityLimits(organization, 'PM10', asOf);
+
+  return {
+    PM25_ANNUAL: pm25.annual,
+    PM25_24HR: pm25.daily,
+    PM10_ANNUAL: pm10.annual,
+    PM10_24HR: pm10.daily,
+  };
+};
 
 // Default standards (WHO PM2.5 for backward compatibility)
 export const AIR_QUALITY_STANDARDS = WHO_PM25_STANDARDS;
@@ -786,21 +1106,7 @@ export const getAirQualityThreshold = (
 
   const standardLevel = levelMapping[level];
 
-  // Select the appropriate standards based on organization and pollutant
-  let standards: AirQualityStandard[];
-  if (organization === 'WHO') {
-    standards = pollutant === 'PM10' ? WHO_PM10_STANDARDS : WHO_PM25_STANDARDS;
-  } else if (organization === 'NEMA_UGANDA') {
-    standards =
-      pollutant === 'PM10' ? NEMA_PM10_STANDARDS : NEMA_PM25_STANDARDS;
-  } else {
-    // NEMA_KENYA
-    standards =
-      pollutant === 'PM10'
-        ? NEMA_KENYA_PM10_STANDARDS
-        : NEMA_KENYA_PM25_STANDARDS;
-  }
-
+  const standards = getStandardsByType(organization, pollutant);
   return standards.find(std => std.level === standardLevel);
 };
 
@@ -924,6 +1230,10 @@ export const getStandardsByType = (
       return pollutant === 'PM10'
         ? NEMA_KENYA_PM10_STANDARDS
         : NEMA_KENYA_PM25_STANDARDS;
+    case 'RWANDA':
+    case 'GHANA':
+      // Neither standard defines the app's named health-category bands.
+      return [];
     case 'SOUTH_AFRICA':
       return pollutant === 'PM10'
         ? SOUTH_AFRICA_PM10_STANDARDS
@@ -942,6 +1252,8 @@ export const STANDARDS_ORGANIZATIONS = {
   WHO: 'WHO (World Health Organization)',
   NEMA_UGANDA: 'NEMA (Uganda)',
   NEMA_KENYA: 'NEMA (Kenya)',
+  RWANDA: 'Rwanda (RSB/EAS)',
+  GHANA: 'Ghana (GS 1236:2019)',
   SOUTH_AFRICA: 'South Africa (NEM:AQA)',
   NIGERIA: 'Nigeria (NESREA)',
 } as const;

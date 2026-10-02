@@ -12,6 +12,8 @@ import {
   getPollutantLabel,
   setActiveAqiConfig,
   getActiveAqiConfig,
+  getCurrentAirQualityLimits,
+  getCurrentReferenceLines,
   AQ_STANDARDS,
   REFERENCE_LINES,
   AIR_QUALITY_COLORS,
@@ -353,10 +355,10 @@ describe('airQuality', () => {
       expect(typeof AQ_STANDARDS.SOUTH_AFRICA.pm10).toBe('number');
     });
 
-    it('NIGERIA has pm2_5 and pm10', () => {
+    it('uses the Nigeria PM2.5 limit published in the 2021 Official Gazette', () => {
       expect(AQ_STANDARDS.NIGERIA).toHaveProperty('pm2_5');
       expect(AQ_STANDARDS.NIGERIA).toHaveProperty('pm10');
-      expect(typeof AQ_STANDARDS.NIGERIA.pm2_5).toBe('number');
+      expect(AQ_STANDARDS.NIGERIA.pm2_5).toBe(20);
       expect(typeof AQ_STANDARDS.NIGERIA.pm10).toBe('number');
     });
   });
@@ -412,12 +414,24 @@ describe('airQuality', () => {
         PM10_ANNUAL: 40,
         PM10_24HR: 60,
       });
-      // Kenya LN 180 of 2024
+      // Kenya LN 180 of 2024; PM10 reference line uses the residential area.
       expect(REFERENCE_LINES.NEMA_KENYA).toEqual({
         PM25_ANNUAL: 35,
         PM25_24HR: 75,
+        PM10_ANNUAL: 50,
+        PM10_24HR: 100,
+      });
+      expect(REFERENCE_LINES.RWANDA).toEqual({
+        PM25_ANNUAL: 35,
+        PM25_24HR: 75,
+        PM10_ANNUAL: 50,
+        PM10_24HR: 100,
+      });
+      expect(REFERENCE_LINES.GHANA).toEqual({
+        PM25_ANNUAL: null,
+        PM25_24HR: 35,
         PM10_ANNUAL: 70,
-        PM10_24HR: 150,
+        PM10_24HR: 70,
       });
       // South Africa GN 1210/2009 + GN 486/2012 (current phase)
       expect(REFERENCE_LINES.SOUTH_AFRICA).toEqual({
@@ -426,13 +440,44 @@ describe('airQuality', () => {
         PM10_ANNUAL: 40,
         PM10_24HR: 75,
       });
-      // Nigeria SI 88 of 2021
+      // NESREA's accessible ambient schedule has no numeric PM2.5 limit.
       expect(REFERENCE_LINES.NIGERIA).toEqual({
         PM25_ANNUAL: 20,
         PM25_24HR: 40,
         PM10_ANNUAL: 60,
         PM10_24HR: 150,
       });
+    });
+  });
+});
+
+describe('date-sensitive ambient air limits', () => {
+  it('uses South Africa PM2.5 limits for the effective compliance phase', () => {
+    expect(
+      getCurrentAirQualityLimits(
+        'SOUTH_AFRICA',
+        'PM2.5',
+        new Date('2029-12-31T12:00:00Z')
+      )
+    ).toMatchObject({ annual: 20, daily: 40 });
+
+    expect(
+      getCurrentAirQualityLimits(
+        'SOUTH_AFRICA',
+        'PM2.5',
+        new Date('2030-01-01T12:00:00Z')
+      )
+    ).toMatchObject({ annual: 15, daily: 25, nextPhase: undefined });
+
+    expect(
+      getCurrentReferenceLines('SOUTH_AFRICA', new Date('2030-01-01T12:00:00Z'))
+    ).toMatchObject({ PM25_ANNUAL: 15, PM25_24HR: 25 });
+  });
+
+  it('uses Ghana 24-hour PM2.5 limit without inventing an annual value', () => {
+    expect(getCurrentAirQualityLimits('GHANA', 'PM2.5')).toMatchObject({
+      annual: null,
+      daily: 35,
     });
   });
 });
