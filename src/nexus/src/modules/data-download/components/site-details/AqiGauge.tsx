@@ -3,16 +3,15 @@
 import React, { useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import {
-  getAirQualityColor,
-  getUsAqiIndexConfig,
-  getUsAqiInfo,
-} from '@/shared/utils/airQuality';
-import { formatRoundedNumber } from '@/shared/lib/utils';
+import { getUsAqiIndexConfig } from '@/shared/utils/airQuality';
 
 interface AqiGaugeProps {
   /** AQI index returned by the readings API (0-500 US AQI scale). */
   value?: number | null;
+  /** Category returned by the readings API. */
+  category?: string | null;
+  /** AQI color returned by the readings API. */
+  color?: string | null;
   /** Freshness label (e.g. "Updated 5 minutes ago") */
   freshness?: string;
   className?: string;
@@ -70,6 +69,8 @@ const MAX_AQI = 500;
  */
 export const AqiGauge: React.FC<AqiGaugeProps> = ({
   value,
+  category,
+  color,
   freshness,
   className,
 }) => {
@@ -82,15 +83,8 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
     Number.isFinite(value) &&
     value >= 0;
 
-  const airInfo = useMemo(() => {
-    if (!hasValue) return null;
-    return getUsAqiInfo(value!, aqiConfig);
-  }, [value, aqiConfig, hasValue]);
-
-  const categoryColor = useMemo(() => {
-    if (airInfo) return getAirQualityColor(airInfo.level, aqiConfig ?? null);
-    return '#6B7280';
-  }, [airInfo, aqiConfig]);
+  const displayCategory = category?.trim() || null;
+  const categoryColor = color?.trim() || '#6B7280';
 
   const svgSize = 200;
   const cx = svgSize / 2;
@@ -152,7 +146,7 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
           viewBox={`0 0 ${svgSize} ${svgSize * 0.7}`}
           className="w-full h-full"
           role="img"
-          aria-label={`Air quality index: ${hasValue ? value : 'no data'}${airInfo ? `, ${airInfo.label}` : ''}`}
+          aria-label={`Air quality index: ${hasValue ? value : 'no data'}${displayCategory ? `, ${displayCategory}` : ''}`}
         >
           {/* Background arc (track) — always visible */}
           <path
@@ -203,7 +197,7 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
             className="text-4xl font-bold leading-none tabular-nums"
             style={hasValue ? { color: categoryColor } : undefined}
           >
-            {hasValue ? formatRoundedNumber(value!, 0) : '—'}
+            {hasValue ? value : '—'}
           </span>
           <span className="mt-0.5 text-[10px] text-muted-foreground">
             AQI (US)
@@ -217,7 +211,7 @@ export const AqiGauge: React.FC<AqiGaugeProps> = ({
           className="mt-2 max-w-[180px] text-center text-sm font-semibold leading-snug"
           style={{ color: categoryColor }}
         >
-          {airInfo?.label ?? '—'}
+          {displayCategory ?? '—'}
         </span>
       ) : (
         <span className="mt-2 text-sm text-muted-foreground">No data</span>

@@ -44,8 +44,9 @@ jest.mock('@/shared/components/ui/card', () => ({
 }));
 
 const reading = {
-  aqi_index: 75,
+  aqi_index: 75.5,
   aqi_category: 'Moderate',
+  aqi_color: 'ECAA06',
   time: '2026-10-02T12:00:00.000Z',
   pm2_5: { value: 22.2 },
   pm10: { value: 43.7 },
@@ -56,10 +57,10 @@ describe('SiteCurrentReadingCard', () => {
     render(<SiteCurrentReadingCard reading={reading} />);
 
     expect(
-      screen.getByRole('img', { name: 'Air quality index: 75, Moderate' })
+      screen.getByRole('img', { name: 'Air quality index: 75.5, Moderate' })
     ).toBeInTheDocument();
     expect(screen.getByText('22.2')).toBeInTheDocument();
     expect(screen.getByText('43.7')).toBeInTheDocument();
-    expect(screen.getByText(/Current value 75/)).toBeInTheDocument();
+    expect(screen.getByText(/Current value 75.5/)).toBeInTheDocument();
   });
 });

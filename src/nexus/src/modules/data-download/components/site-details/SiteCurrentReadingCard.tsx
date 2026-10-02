@@ -6,8 +6,8 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import {
   getAirQualityInfo,
+  mapAqiCategoryToLevel,
   getUsAqiIndexConfig,
-  getUsAqiInfo,
 } from '@/shared/utils/airQuality';
 import { AqiGauge } from './AqiGauge';
 import { SitePollutantCards } from './SitePollutantCards';
@@ -55,6 +55,12 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
     reading.aqi_index >= 0
       ? reading.aqi_index
       : null;
+  const aqiCategory = reading?.aqi_category?.trim() || null;
+  const aqiColor = reading?.aqi_color?.trim()
+    ? reading.aqi_color.startsWith('#')
+      ? reading.aqi_color
+      : `#${reading.aqi_color}`
+    : null;
   const usAqiConfig = useMemo(
     () => getUsAqiIndexConfig(aqiConfig),
     [aqiConfig]
@@ -65,14 +71,9 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
     return getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   }, [pm25, aqiConfig]);
 
-  const aqiInfo = useMemo(
-    () => getUsAqiInfo(aqiIndex, aqiConfig),
-    [aqiIndex, aqiConfig]
-  );
-
   const freshness = formatReadingFreshness(reading?.time);
-
-  const description = aqiInfo ? (HEALTH_DESCRIPTIONS[aqiInfo.level] ?? '') : '';
+  const aqiLevel = mapAqiCategoryToLevel(aqiCategory ?? undefined);
+  const description = aqiCategory ? (HEALTH_DESCRIPTIONS[aqiLevel] ?? '') : '';
 
   // Loading skeleton
   if (isLoading) {
@@ -110,7 +111,12 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
           {/* Left column: Gauge + AQI ranges */}
           <div className="flex flex-col items-center gap-4">
-            <AqiGauge value={aqiIndex} freshness={freshness} />
+            <AqiGauge
+              value={aqiIndex}
+              category={aqiCategory}
+              color={aqiColor}
+              freshness={freshness}
+            />
             <AqiLegend aqiConfig={usAqiConfig} compact markerValue={aqiIndex} />
           </div>
 
