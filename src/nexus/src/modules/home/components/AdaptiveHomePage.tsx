@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 import {
   AqArrowRight,
   AqMagicWand01,
@@ -56,7 +57,7 @@ export default function AdaptiveHomePage() {
     const signature = `${experience.mode}:${demoMode ?? 'real'}`;
     if (trackedModeRef.current === signature) return;
     trackedModeRef.current = signature;
-    posthog?.capture('home_v2_viewed', {
+    capturePostHogEvent(posthog, 'home_v2_viewed', {
       experience_mode: experience.mode,
       demo_mode: demoMode ?? 'none',
       saved_location_count: experience.counts.savedLocations,
@@ -71,7 +72,7 @@ export default function AdaptiveHomePage() {
     eventName: 'home_action_selected' | 'home_continue_selected',
     actionType: string
   ) => {
-    posthog?.capture(eventName, {
+    capturePostHogEvent(posthog, eventName, {
       action_type: actionType,
       experience_mode: experience.mode,
       saved_location_count: experience.counts.savedLocations,
@@ -279,7 +280,7 @@ export default function AdaptiveHomePage() {
                 size="sm"
                 path={READINGS_HREF}
                 onClick={() =>
-                  posthog?.capture('home_action_selected', {
+                  capturePostHogEvent(posthog, 'home_action_selected', {
                     action_type: 'view-all-comparisons',
                     experience_mode: experience.mode,
                   })
@@ -313,7 +314,7 @@ export default function AdaptiveHomePage() {
                   key={`${location.name}-${index}`}
                   location={location}
                   onOpen={() =>
-                    posthog?.capture('home_action_selected', {
+                    capturePostHogEvent(posthog, 'home_action_selected', {
                       action_type: 'place-update',
                       experience_mode: experience.mode,
                     })

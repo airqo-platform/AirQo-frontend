@@ -1213,13 +1213,6 @@ export const useDataExportActions = (
 
   // Handle visualize data - open more insights dialog
   const handleVisualizeData = useCallback(() => {
-    posthog?.capture('data_visualize_clicked', {
-      active_tab: activeTab,
-      sites_count: selectedSiteIds.length,
-      devices_count: selectedDeviceIds.length,
-      grids_count: selectedGridIds.length,
-    });
-
     // Track to Google Analytics
     trackEvent('data_visualize_clicked', {
       active_tab: activeTab,
@@ -1264,7 +1257,6 @@ export const useDataExportActions = (
     countriesData,
     citiesData,
     dispatch,
-    posthog,
   ]);
 
   const cancelDownload = useCallback(() => {

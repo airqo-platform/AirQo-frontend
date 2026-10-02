@@ -147,11 +147,6 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
         client_name_length: clientName.trim().length,
       });
 
-      posthog?.capture('client_created', {
-        has_ips: filteredIpAddresses.length > 0,
-        ip_count: filteredIpAddresses.length,
-      });
-
       trackEvent('client_created', {
         has_ips: filteredIpAddresses.length > 0,
         ip_count: filteredIpAddresses.length,

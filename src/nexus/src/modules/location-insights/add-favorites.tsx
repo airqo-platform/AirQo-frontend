@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePostHog } from 'posthog-js/react';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import WideDialog from '@/shared/components/ui/wide-dialog';
 import { Button } from '@/shared/components/ui';
@@ -32,7 +31,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
   isOpen,
   onClose,
 }) => {
-  const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -248,11 +246,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
         selected_sites: sitesToSave,
       });
 
-      posthog?.capture('saved_locations_updated', {
-        count: sitesToSave.length,
-        site_ids: sitesToSave.map(s => s._id),
-      });
-
       trackEvent('saved_locations_updated', {
         count: sitesToSave.length,
         site_ids: sitesToSave.map(s => s._id),
@@ -288,7 +281,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
     updatePreferences,
     markLocationStepCompleted,
     onClose,
-    posthog,
   ]);
 
   return (

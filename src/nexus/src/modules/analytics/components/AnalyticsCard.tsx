@@ -1,7 +1,6 @@
 'use client';
 
 import React, { memo, useRef, useState, useCallback } from 'react';
-import { usePostHog } from 'posthog-js/react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import type { AnalyticsCardProps } from '../types';
@@ -29,7 +28,6 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     headerLabel,
     extraInfo,
   }) => {
-    const posthog = usePostHog();
     // truncation refs
     const nameRef = useRef<HTMLHeadingElement>(null);
     const locationRef = useRef<HTMLParagraphElement>(null);
@@ -87,11 +85,6 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
         className={cn('w-full', interactive && 'cursor-pointer', className)}
         onClick={() => {
           if (!interactive) return;
-          posthog?.capture('analytics_card_clicked', {
-            ...anonymizeSiteData(siteData._id),
-            pollutant: displayPollutant,
-            aqi_status: status,
-          });
           trackEvent('analytics_card_clicked', {
             ...anonymizeSiteData(siteData._id),
             pollutant: displayPollutant,
@@ -105,11 +98,6 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           if (!interactive) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            posthog?.capture('analytics_card_clicked', {
-              ...anonymizeSiteData(siteData._id),
-              pollutant: displayPollutant,
-              aqi_status: status,
-            });
             trackEvent('analytics_card_clicked', {
               ...anonymizeSiteData(siteData._id),
               pollutant: displayPollutant,

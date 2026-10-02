@@ -38,6 +38,14 @@ jest.mock('posthog-js/react', () => ({
   usePostHog: () => ({ capture: mockCapture }),
 }));
 
+jest.mock('@/shared/utils/analytics', () => ({
+  capturePostHogEvent: (
+    _client: unknown,
+    eventName: string,
+    properties?: Record<string, unknown>
+  ) => mockCapture(eventName, properties),
+}));
+
 jest.mock('@/modules/ai/context/ai-assistant-provider', () => ({
   useAiAssistantContext: () => ({
     isEnabled: mockAiEnabled,
