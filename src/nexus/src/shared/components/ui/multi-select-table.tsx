@@ -807,10 +807,11 @@ const MultiSelectTable = <T extends TableItem>({
   const handleClientPageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, page);
+      if (nextPage === currentPage) return;
       setCurrentPage(nextPage);
       onClientPageChange?.(nextPage);
     },
-    [onClientPageChange]
+    [currentPage, onClientPageChange]
   );
 
   const handleSort = useCallback(
