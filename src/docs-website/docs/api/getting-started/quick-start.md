@@ -16,7 +16,7 @@ Before you begin, make sure you have:
 - [ ] An AirQo account at [nexus.airqo.net](https://nexus.airqo.net)
 - [ ] An API client created under **Profile → API**
 - [ ] A `SECRET TOKEN` (access token) generated for that client
-- [ ] Your server's IP address added to the client's allowlist, if you want this extra layer of access control
+- [ ] Your server's public IP address added to the client's IP Addresses, so automatic security checks don't block it (see [Blocked Requests →](../reference/blocked-requests.md))
 - [ ] A Cohort ID or Grid ID to query (see [Finding IDs →](../reference/finding-ids.md))
 
 :::tip More security options

@@ -55,8 +55,8 @@ Other error conditions on this API (no forecast available, an unresolved grid/co
 |--------|---------|---------------|
 | `200 OK` | Request succeeded | — |
 | `400 Bad Request` | Invalid request | Missing required fields, bad date format, invalid parameter values |
-| `401 Unauthorized` | Authentication failed | Missing, expired, or invalid token |
-| `403 Forbidden` | Insufficient permissions | Accessing a feature not included in your tier (e.g. forecasts on Free) |
+| `401 Unauthorized` | Authentication failed | Missing, expired, invalid or suspended token; request from a blocked IP address; API client not yet approved |
+| `403 Forbidden` | Insufficient permissions or access denied | Accessing a feature not included in your tier (e.g. forecasts on Free); request blocked by our security checks (see [Blocked Requests](./blocked-requests.md)) |
 | `404 Not Found` | Resource not found | Invalid Cohort ID, Grid ID, Site ID, or Device ID — or no data for the requested range |
 | `429 Too Many Requests` | Rate limit exceeded | Too many requests in a short period |
 | `500 Internal Server Error` | Server error | AirQo-side issue; retry after a short delay |
@@ -74,7 +74,7 @@ Other error conditions on this API (no forecast available, an unresolved grid/co
 - The device was offline for the entire period
 - The ID you provided doesn't match an active resource
 
-**Solution:** Verify the ID using the [Finding IDs guide](./finding-ids.md), and try a shorter or more recent date range. If a client has IP restrictions configured, confirm your server's address is included. If the problem persists, contact [network@airqo.net](mailto:network@airqo.net).
+**Solution:** Verify the ID using the [Finding IDs guide](./finding-ids.md), and try a shorter or more recent date range. If the problem persists, contact [network@airqo.net](mailto:network@airqo.net).
 
 ---
 
@@ -110,8 +110,44 @@ Other error conditions on this API (no forecast available, an unresolved grid/co
 - Token is missing from the request
 - Token has expired (tokens are valid for 7 months)
 - Token was copied incorrectly
+- The request came from an IP address that is blocked for this token
+- The token was automatically suspended after unusual activity
+- The API client that owns the token is still awaiting approval
 
-**Solution:** Generate a new token from Account Settings and update it in your application.
+**Solution:** If the token is missing, expired or mistyped, generate a new token from Account Settings and update it in your application.
+
+If the token is correct but still rejected, check the response for an `errors.code`:
+
+```json
+{
+  "success": false,
+  "message": "Unauthorized",
+  "errors": {
+    "message": "Requests from IP address 203.0.113.25 are blocked for this token. ...",
+    "code": "IP_BLOCKED",
+    "docs": "https://platform.airqo.net/docs/api/reference/blocked-requests/"
+  }
+}
+```
+
+| `errors.code` | Meaning |
+|---|---|
+| `IP_BLOCKED` | Your server's IP address is blocked and is not on the client's IP Addresses list |
+| `TOKEN_SUSPENDED` | The token was suspended after unusual activity |
+| `CLIENT_INACTIVE` | The API client is awaiting approval or has been deactivated |
+| `TOKEN_EXPIRED` | The token has expired |
+
+See [Troubleshooting blocked requests](./blocked-requests.md) for how to fix each one.
+
+---
+
+### 403 Forbidden — access denied
+
+**Symptom:** A request with a valid token that previously worked now returns `403 Forbidden` or "Access Denied", often after you received a **Daily Security Alert Summary** email.
+
+**Cause:** The request was stopped by our security checks. Usually your server's IP address is not on your API client's IP Addresses list, or it changes between runs.
+
+**Solution:** Follow [Troubleshooting blocked requests](./blocked-requests.md).
 
 ---
 
