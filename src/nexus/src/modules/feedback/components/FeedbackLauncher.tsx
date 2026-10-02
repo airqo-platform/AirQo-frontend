@@ -472,6 +472,7 @@ export const FeedbackLauncher: React.FC = () => {
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [category, setCategory] = useState<FeedbackCategory>('bug');
   const [contactConsent, setContactConsent] = useState(true);
+  const [consentTouched, setConsentTouched] = useState(false);
   const [rating, setRating] = useState<number>(3);
   const [message, setMessage] = useState('');
   const [rawDataUrl, setRawDataUrl] = useState<string | null>(null);
@@ -531,6 +532,7 @@ export const FeedbackLauncher: React.FC = () => {
     const nextDefaults = resetFormState();
     setCategory(nextDefaults.category);
     setContactConsent(getContactConsentDefault(nextDefaults.category));
+    setConsentTouched(false);
     setRating(nextDefaults.rating);
     setMessage(nextDefaults.message);
     setScreenshotFile(null);
@@ -914,7 +916,9 @@ export const FeedbackLauncher: React.FC = () => {
                     event.target.value || 'bug'
                   ) as FeedbackCategory;
                   setCategory(nextCategory);
-                  setContactConsent(getContactConsentDefault(nextCategory));
+                  if (!consentTouched) {
+                    setContactConsent(getContactConsentDefault(nextCategory));
+                  }
                 }}
                 required
                 containerClassName="md:col-span-2"
@@ -1082,7 +1086,10 @@ export const FeedbackLauncher: React.FC = () => {
               <div className="md:col-span-2">
                 <Checkbox
                   checked={contactConsent}
-                  onCheckedChange={setContactConsent}
+                  onCheckedChange={checked => {
+                    setContactConsent(checked);
+                    setConsentTouched(true);
+                  }}
                   disabled={isSubmitting || isUploadingScreenshot}
                   label={
                     <span className="text-sm text-foreground">
