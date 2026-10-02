@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 import { toast } from '@/shared/components/ui/toast';
 import {
   useGroupCharts,
@@ -336,7 +337,8 @@ export const useChartManagement = (
             ? 'Your chart configuration was saved.'
             : 'Your new chart was added to the dashboard.'
         );
-        posthog?.capture(
+        capturePostHogEvent(
+          posthog,
           draft.id ? 'analytics_chart_updated' : 'analytics_chart_created',
           { title: draft.title, site_count: draft.siteIds.length }
         );
@@ -370,7 +372,7 @@ export const useChartManagement = (
       };
       const namesSnapshot = Object.fromEntries(siteNames);
       await persistDraft(updated, namesSnapshot);
-      posthog?.capture('analytics_chart_title_updated', {
+      capturePostHogEvent(posthog, 'analytics_chart_title_updated', {
         chart_id: draftId,
         title,
       });
@@ -484,7 +486,7 @@ export const useChartManagement = (
           'Chart duplicated',
           'A copy was added to your saved charts.'
         );
-        posthog?.capture('analytics_chart_duplicated', {
+        capturePostHogEvent(posthog, 'analytics_chart_duplicated', {
           title: result?.data?.title ?? draft.title,
           site_count: draft.siteIds.length,
         });
@@ -528,7 +530,9 @@ export const useChartManagement = (
           'Chart deleted',
           'The chart was removed from the dashboard.'
         );
-        posthog?.capture('analytics_chart_deleted', { title: draft.title });
+        capturePostHogEvent(posthog, 'analytics_chart_deleted', {
+          title: draft.title,
+        });
       } catch (error) {
         if (isAbortError(error)) return;
         console.error(

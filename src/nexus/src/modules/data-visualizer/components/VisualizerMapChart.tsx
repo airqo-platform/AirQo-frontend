@@ -23,6 +23,7 @@ import type { AqiConfig } from '@/shared/types/aqi';
 interface VisualizerMapChartProps {
   rows: UploadedDataRow[];
   config: VisualizerChartConfig;
+  onFeatureSelect?: () => void;
   className?: string;
 }
 
@@ -306,6 +307,7 @@ const buildContinuousColorExpression = (valueDomain: {
 export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
   rows,
   config,
+  onFeatureSelect,
   className,
 }) => {
   const [selectedFeature, setSelectedFeature] =
@@ -473,6 +475,7 @@ export const VisualizerMapChart: React.FC<VisualizerMapChartProps> = ({
 
           setSelectedFeature(properties);
           setSelectedCoordinates(coordinates as [number, number]);
+          onFeatureSelect?.();
         }}
       >
         {layerMode === 'grid' ? (

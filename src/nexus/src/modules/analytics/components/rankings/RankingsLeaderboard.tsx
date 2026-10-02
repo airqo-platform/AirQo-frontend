@@ -16,6 +16,9 @@ interface RankingsLeaderboardProps {
   error?: string | null;
   onRetry?: () => void;
   totalCount?: number | null;
+  onSearchTermChange?: (search: string) => void;
+  onClientPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   className?: string;
 }
 
@@ -45,6 +48,9 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
   error = null,
   onRetry,
   totalCount = null,
+  onSearchTermChange,
+  onClientPageChange,
+  onPageSizeChange,
   className,
 }) => {
   const generatedAt = rankings[0]?.generated_at;
@@ -177,8 +183,11 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
       loading={isLoading}
       error={error}
       onRefresh={onRetry}
+      onSearchTermChange={onSearchTermChange}
       searchableColumns={['name']}
       showClientPagination
+      onClientPageChange={onClientPageChange}
+      onPageSizeChange={onPageSizeChange}
       className={className}
       customHeader={
         generatedAt ? (

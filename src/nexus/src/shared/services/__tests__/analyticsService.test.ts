@@ -422,6 +422,7 @@ describe('AnalyticsService reading helpers', () => {
 describe('AnalyticsService.getReport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPost.mockReset();
     // Drop the real 6 s spacing so the adaptive loop runs without wall-clock
     // delays; the pacing itself is covered by its own test below.
     setReportPacingForTests({ minSpacingMs: 0, windowMs: 60_000 });
@@ -772,7 +773,9 @@ describe('AnalyticsService.getReport', () => {
         data: { message: 'x'.repeat(5000) },
       },
     });
-    mockPost.mockRejectedValueOnce(verbose).mockRejectedValueOnce(verbose);
+    // Every split child receives the same failure so the final error retains
+    // the server message instead of inheriting a previous test's mock.
+    mockPost.mockRejectedValue(verbose);
 
     const assertion = expect(
       analyticsService.getReport(reportRequest)

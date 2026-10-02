@@ -596,6 +596,7 @@ export const AnalyticsChartCard: React.FC<AnalyticsChartCardProps> = ({
         onEditTitle={isFixed ? undefined : handleContainerTitleEdit}
         selectedStandards={referenceStandard}
         onStandardsChange={handleStandardsChange}
+        activePollutant={pollutantOverride}
         themeColors={themeColors}
         // Quick-view chart-type switcher in the toolbar — persists via
         // `onChartTypeChange` (same path as the dialog save) with optimistic

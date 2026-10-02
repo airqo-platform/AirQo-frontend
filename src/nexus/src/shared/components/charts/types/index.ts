@@ -49,10 +49,21 @@ export interface NormalizedChartData {
 
 // Chart filter types
 export type FrequencyType =
-  'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  | 'raw'
+  | 'hourly'
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'yearly';
 export type PollutantType = 'pm2_5' | 'pm10';
 export type StandardsType =
-  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'RWANDA'
+  | 'GHANA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartFilters {
   sites: string[];
@@ -200,6 +211,8 @@ export interface ChartContainerProps {
   /** Toggle handler for the "Theme colors" entry in the More menu */
   onThemeColorsToggle?: () => void;
   currentFilters?: Partial<ChartFilters>;
+  /** Pollutant rendered by the chart; used by pollutant-specific standards UI. */
+  activePollutant?: PollutantType;
   currentSites?: Array<{
     _id: string;
     name: string;
@@ -339,7 +352,13 @@ export interface AirQualityStandardsConfig {
 }
 
 export type ChartStandardsType =
-  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'RWANDA'
+  | 'GHANA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface ChartConfiguration extends Omit<ChartConfig, 'standards'> {
   standards?: AirQualityStandardsConfig;

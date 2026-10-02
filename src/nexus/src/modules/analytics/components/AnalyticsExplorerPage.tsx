@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
 import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -295,7 +296,7 @@ export const AnalyticsExplorerPage: React.FC<AnalyticsExplorerPageProps> = ({
   }, [charts, coverageQueries, siteNames]);
 
   useEffect(() => {
-    posthog?.capture('analytics_trends_viewed', {
+    capturePostHogEvent(posthog, 'analytics_trends_viewed', {
       layout: trendsLayout,
       chart_count: charts.length,
     });

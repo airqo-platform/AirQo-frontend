@@ -79,8 +79,8 @@ export interface UseRecentReadingsResult {
  * Latest air-quality readings for a set of sites. Fires two requests in
  * parallel with a shared AbortSignal:
  *
- * 1. POST /devices/readings/comparisons — provides SITE METADATA ONLY
- *    (name, location_name, city, country, geo) and the has_reading flag.
+ * 1. POST /devices/readings/comparisons — provides site metadata and a
+ *    per-site fallback reading.
  * 2. POST /devices/readings/recent — provides the actual MEASUREMENTS
  *    (aqi, pm2_5/pm10/no2, time, freshness).
  *

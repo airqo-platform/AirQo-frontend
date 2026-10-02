@@ -143,6 +143,18 @@ const buildComparisonSitesSnapshot = (
     )
   );
 
+const toSelectedInsightSite = (
+  row: ComparisonRow,
+  reading?: RecentReading
+): SelectedSite => ({
+  _id: row.siteId,
+  name: row.siteName,
+  search_name: reading?.siteDetails?.search_name || undefined,
+  country: reading?.siteDetails?.country || undefined,
+  city: reading?.siteDetails?.city || undefined,
+  region: reading?.siteDetails?.region || undefined,
+});
+
 /**
  * The Comparison tab body: a cohort-scoped location multi-select, a single
  * named saved comparison per group (auto-loaded on open, updated in place on
@@ -511,19 +523,24 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
 
   const handleViewInsights = useCallback(
     (row: ComparisonRow) => {
-      const reading = readingsBySiteId.get(row.siteId);
-      const siteDetails = reading?.siteDetails;
-      const site: SelectedSite = {
-        _id: row.siteId,
-        name: row.siteName,
-        search_name: siteDetails?.search_name || undefined,
-        country: siteDetails?.country || undefined,
-        city: siteDetails?.city || undefined,
-        region: siteDetails?.region || undefined,
-      };
+      const site = toSelectedInsightSite(row, readingsBySiteId.get(row.siteId));
       dispatch(openMoreInsights({ sites: [site] }));
     },
     [readingsBySiteId, dispatch]
+  );
+
+  const handleViewSelectedInsights = useCallback(
+    (siteIds: string[]) => {
+      const rowsBySiteId = new Map(rows.map(row => [row.siteId, row]));
+      const sites = siteIds.flatMap(siteId => {
+        const row = rowsBySiteId.get(siteId);
+        return row
+          ? [toSelectedInsightSite(row, readingsBySiteId.get(siteId))]
+          : [];
+      });
+      if (sites.length > 1) dispatch(openMoreInsights({ sites }));
+    },
+    [rows, readingsBySiteId, dispatch]
   );
 
   const handleConfirmSave = useCallback(async () => {
@@ -768,6 +785,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         pm10Config={pm10Config}
         onSiteClick={handleSiteClick}
         onViewInsights={handleViewInsights}
+        onViewSelectedInsights={handleViewSelectedInsights}
         onExport={handleExport}
         siteColorBySiteId={siteColorBySiteId}
       />

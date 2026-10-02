@@ -258,7 +258,6 @@ const MapPage: React.FC<MapPageProps> = ({
 
   // ── Analytics ──────────────────────────────────────────────────────────────
   React.useEffect(() => {
-    posthog?.capture('map_viewed');
     trackEvent('map_viewed');
     trackFeatureUsage(posthog, 'map', 'view');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -404,9 +403,6 @@ const MapPage: React.FC<MapPageProps> = ({
     locationData?: { latitude: number; longitude: number; name: string }
   ) => {
     try {
-      posthog?.capture('map_location_selected', {
-        location_id_hashed: hashId(locationId),
-      });
       trackEvent('map_location_selected', {
         location_id_hashed: hashId(locationId),
       });

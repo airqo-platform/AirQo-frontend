@@ -228,6 +228,8 @@ export const SiteHealthRecommendationsCard: React.FC<
                   <img
                     src={tip.image}
                     alt=""
+                    width={32}
+                    height={32}
                     aria-hidden="true"
                     loading="lazy"
                     className="h-8 w-8 shrink-0 rounded-full object-cover"

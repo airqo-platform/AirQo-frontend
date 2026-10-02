@@ -40,7 +40,8 @@ interface CoreCalendarProps {
   onCancel?: () => void;
   initialRange?: DateRange;
   selectedRange?: DateRange; // For controlled mode
-  onRangeChange?: (range: DateRange) => void; // For controlled mode
+  /** Observe selection changes; pair with `selectedRange` for controlled use. */
+  onRangeChange?: (range: DateRange) => void;
   /** Earliest selectable day (inclusive). Omit for no lower bound. */
   minDate?: Date;
   /** Latest selectable day (inclusive). Omit for no upper bound. */
@@ -141,11 +142,10 @@ export function Calendar({
           : { from: selectedRange.from, to: date };
       })();
 
-      if (controlledRange !== undefined && onRangeChange) {
-        onRangeChange(newRange);
-      } else {
+      if (controlledRange === undefined) {
         setInternalRange(newRange);
       }
+      onRangeChange?.(newRange);
     },
     [mode, selectedRange, controlledRange, onRangeChange]
   );
@@ -342,11 +342,10 @@ export function Calendar({
             onCancel?.();
             // Then clear the range
             const emptyRange = { from: undefined, to: undefined };
-            if (controlledRange !== undefined && onRangeChange) {
-              onRangeChange(emptyRange);
-            } else {
+            if (controlledRange === undefined) {
               setInternalRange(emptyRange);
             }
+            onRangeChange?.(emptyRange);
           }}
           onApply={() => onApply?.(selectedRange)}
         />

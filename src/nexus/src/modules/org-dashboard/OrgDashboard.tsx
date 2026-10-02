@@ -7,6 +7,7 @@ import { AccessDenied } from '@/shared/components/AccessDenied';
 import { DashboardHeader } from './components/DashboardHeader';
 import { OrganizationReportDashboard } from './components/OrganizationReportDashboard';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 
 interface OrgDashboardProps {
   organizationSlug: string;
@@ -40,10 +41,7 @@ export const OrgDashboard: React.FC<OrgDashboardProps> = ({
   React.useEffect(() => {
     if (isInitialLoading || hasTrackedViewRef.current) return;
     hasTrackedViewRef.current = true;
-    posthog?.capture('organization_dashboard_viewed', {
-      organization_group_id: organizationGroup?.id,
-      organization_group_name: organizationGroup?.title,
-    });
+    capturePostHogEvent(posthog, 'organization_dashboard_viewed');
   }, [
     isInitialLoading,
     organizationGroup?.id,

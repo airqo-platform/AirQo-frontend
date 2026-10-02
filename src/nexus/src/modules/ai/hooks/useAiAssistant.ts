@@ -2,11 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
-import type {
-  AiFeatureId,
-  AiMessage,
-  AiStreamEvent,
-} from '../types';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
+import type { AiFeatureId, AiMessage, AiStreamEvent } from '../types';
 
 /* -------------------------------------------------------------------------- */
 /*  Config shape returned by GET /api/ai/assistant                            */
@@ -26,8 +23,7 @@ interface AiAssistantConfig {
 /*  Build-time enabled flag (inlined from NEXT_PUBLIC_AI_ENABLED)             */
 /* -------------------------------------------------------------------------- */
 
-const AI_ENABLED: boolean =
-  process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
+const AI_ENABLED: boolean = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
 
 /* -------------------------------------------------------------------------- */
 /*  Hook                                                                       */
@@ -94,7 +90,7 @@ export function useAiAssistant(
       const trimmed = content.trim();
       if (!trimmed || isStreaming) return;
 
-      posthog?.capture('ask_airqo_prompt_submitted', {
+      capturePostHogEvent(posthog, 'ask_airqo_prompt_submitted', {
         feature: feature ?? 'general',
       });
 
@@ -122,10 +118,12 @@ export function useAiAssistant(
 
       try {
         // Build full message history for context
-        const requestMessages = [...messagesRef.current, userMessage].map(m => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        }));
+        const requestMessages = [...messagesRef.current, userMessage].map(
+          m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })
+        );
 
         const response = await fetch('/api/ai/assistant', {
           method: 'POST',
@@ -147,7 +145,11 @@ export function useAiAssistant(
               setMessages(prev =>
                 prev.map(m =>
                   m.id === assistantMessage.id
-                    ? { ...m, content: body.message ?? 'AI assistant is not available.' }
+                    ? {
+                        ...m,
+                        content:
+                          body.message ?? 'AI assistant is not available.',
+                      }
                     : m
                 )
               );
@@ -272,7 +274,8 @@ export function useAiAssistant(
               m.id === assistantMessage.id
                 ? {
                     ...m,
-                    content: m.content || `Sorry, I couldn't respond. ${message}`,
+                    content:
+                      m.content || `Sorry, I couldn't respond. ${message}`,
                   }
                 : m
             )

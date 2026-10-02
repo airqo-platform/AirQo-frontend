@@ -17,6 +17,14 @@ jest.mock('posthog-js/react', () => ({
   usePostHog: () => ({ capture: mockCapture }),
 }));
 
+jest.mock('@/shared/utils/analytics', () => ({
+  capturePostHogEvent: (
+    _client: unknown,
+    eventName: string,
+    properties?: Record<string, unknown>
+  ) => mockCapture(eventName, properties),
+}));
+
 const renderDrawer = (
   overrides: Partial<React.ComponentProps<typeof AiDrawer>> = {}
 ) =>

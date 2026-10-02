@@ -604,6 +604,26 @@ describe('mergeComparisonReadings', () => {
     expect(row.aqi_index).toBe(72);
   });
 
+  it('uses the newest recent API reading when a site has multiple device records', () => {
+    const olderReading = makeRecent({
+      time: '2026-08-22T07:05:00Z',
+      aqi_index: 72,
+    });
+    const latestReading = makeRecent({
+      time: '2026-08-22T09:05:00Z',
+      aqi_index: 49,
+    });
+
+    const merged = mergeComparisonReadings(
+      [makeComparisonSite()],
+      [olderReading, latestReading]
+    );
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0].aqi_index).toBe(49);
+    expect(merged[0].time).toBe('2026-08-22T09:05:00Z');
+  });
+
   it('returns metadata-only row when no recent reading exists', () => {
     const comparisonSite = makeComparisonSite();
     const merged = mergeComparisonReadings([comparisonSite], []);

@@ -3,6 +3,7 @@ import type {
   RecentReading,
   SiteDetails,
 } from '@/shared/types/api';
+import { selectLatestRecentReadingsBySiteId } from './recentReadings';
 
 /**
  * One row of the "Compare locations" table. Rows exist for EVERY selected
@@ -29,7 +30,12 @@ export interface ComparisonRow {
 }
 
 export type ComparisonSortKey =
-  'name' | 'aqi' | 'pm2_5' | 'pm10' | 'no2' | 'time';
+  | 'name'
+  | 'aqi'
+  | 'pm2_5'
+  | 'pm10'
+  | 'no2'
+  | 'time';
 export type ComparisonSortDir = 'asc' | 'desc';
 
 const MONTHS = [
@@ -179,8 +185,8 @@ export const buildEmptyComparisonRow = (
 /**
  * Maps a ComparisonSiteReading (from POST /devices/readings/comparisons) to
  * the existing RecentReading shape the comparison table already renders.
- * Every field is defensively defaulted so a partial/null API payload never
- * throws at render time.
+ * AQI and pollutant values are copied directly from the API response. Every
+ * field is defensively defaulted so a partial/null payload never throws.
  */
 export const mapComparisonSiteReadingToRecentReading = (
   reading: ComparisonSiteReading
@@ -240,27 +246,21 @@ export const mapComparisonSiteReadingToRecentReading = (
 /**
  * Merges the two live-readings payloads into one RecentReading per selected
  * site:
- * - POST /devices/readings/comparisons provides the authoritative SITE
- *   METADATA (name/location_name/city/country/geo) and the has_reading flag —
- *   it carries no measurements.
- * - POST /devices/readings/recent provides the actual MEASUREMENTS (aqi,
- *   pm2_5/pm10/no2, time, freshness).
+ * - POST /devices/readings/comparisons provides site metadata and a per-site
+ *   fallback reading when the recent-measurements payload has no record.
+ * - POST /devices/readings/recent provides the primary measurements (AQI,
+ *   pollutant values, timestamp, freshness) when available.
  *
- * For every comparison site: metadata comes from the comparison payload,
- * measurement fields from the recent reading when present (otherwise an
- * honest no-reading row is kept — never omitted). Recent readings whose site
- * id the comparison payload omitted are appended defensively.
+ * For every comparison site: metadata comes from the comparison payload and
+ * the newest recent reading supplies measurements when present; otherwise
+ * the comparison payload's API reading is kept. Recent readings whose site
+ * id the comparison payload omitted are appended once per site.
  */
 export const mergeComparisonReadings = (
   comparisonSites: ComparisonSiteReading[],
   recentReadings: RecentReading[]
 ): RecentReading[] => {
-  const recentBySiteId = new Map<string, RecentReading>();
-  recentReadings.forEach(reading => {
-    if (!recentBySiteId.has(reading.site_id)) {
-      recentBySiteId.set(reading.site_id, reading);
-    }
-  });
+  const recentBySiteId = selectLatestRecentReadingsBySiteId(recentReadings);
   const coveredSiteIds = new Set<string>();
   const merged = comparisonSites.map(comparisonSite => {
     coveredSiteIds.add(comparisonSite.site_id);
@@ -280,7 +280,7 @@ export const mergeComparisonReadings = (
       },
     };
   });
-  const extras = recentReadings.filter(
+  const extras = Array.from(recentBySiteId.values()).filter(
     reading => !coveredSiteIds.has(reading.site_id)
   );
   return [...merged, ...extras];

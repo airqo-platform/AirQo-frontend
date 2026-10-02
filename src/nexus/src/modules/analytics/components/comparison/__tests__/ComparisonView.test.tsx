@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
@@ -416,6 +422,11 @@ describe('ComparisonView integration (saved comparisons)', () => {
 
     // ...its readings render in the table...
     expect(await screen.findByText('72')).toBeInTheDocument();
+    for (const label of ['PM2.5 (µg/m³)', 'PM10 (µg/m³)', 'NO2 (µg/m³)']) {
+      const header = (await screen.findByText(label)).closest('th');
+      expect(header).toHaveClass('normal-case');
+      expect(header).not.toHaveClass('uppercase');
+    }
 
     // ...and the header chip shows "Saved · <name>".
     expect(await screen.findByText('Saved · Recent Pick')).toBeInTheDocument();
@@ -1252,6 +1263,112 @@ describe('ComparisonView integration (saved comparisons)', () => {
     await waitFor(() => {
       const selected = store.getState().insights.selectedSites;
       expect(selected.some(site => site._id === 'site-1')).toBe(true);
+    });
+  });
+
+  it('opens More Insights for the checked comparison locations', async () => {
+    const user = userEvent.setup();
+    mockComparisons = [];
+    comparisonsService.list.mockResolvedValue(listResponse([]));
+    const firstReading = makeReading({ site_id: 'site-1' });
+    const secondReading = makeReading({
+      _id: 'reading-2',
+      site_id: 'site-2',
+      siteDetails: {
+        ...firstReading.siteDetails,
+        _id: 'site-2',
+        city: 'Jinja',
+        name: 'Jinja Site',
+        location_name: 'Jinja Site',
+        search_name: 'Jinja Site',
+      },
+    });
+    mockReadings = [firstReading, secondReading];
+
+    const { store } = renderComparisonView();
+
+    // Add both locations to the comparison from the location picker.
+    await user.click(await screen.findByLabelText('Select item site-1'));
+    await user.click(await screen.findByLabelText('Select item site-2'));
+
+    const bulkInsightsButton = () =>
+      screen.queryByRole('button', {
+        name: /view insights for 2 selected locations/i,
+      });
+    expect(bulkInsightsButton()).not.toBeInTheDocument();
+
+    // Select rows in the comparison table. The bulk action appears only once
+    // at least two rows are checked.
+    await user.click(await screen.findByLabelText('Select Kampala Site'));
+    expect(bulkInsightsButton()).not.toBeInTheDocument();
+    await user.click(await screen.findByLabelText('Select Jinja Site'));
+    await user.click(
+      await screen.findByRole('button', {
+        name: /view insights for 2 selected locations/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        store.getState().insights.selectedSites.map(site => site._id)
+      ).toEqual(['site-1', 'site-2']);
+    });
+  });
+
+  it('keeps checked locations across pages for bulk insights', async () => {
+    const user = userEvent.setup();
+    const siteIds = Array.from(
+      { length: 11 },
+      (_, index) => `site-${index + 1}`
+    );
+    const sites = siteIds.map((id, index) => ({
+      id,
+      name: `Location ${index + 1}`,
+      location: `Location ${index + 1}`,
+      city: `City ${index + 1}`,
+      country: 'Uganda',
+    }));
+    mockComparisons = [makeSavedComparison({ site_ids: siteIds, sites })];
+    comparisonsService.list.mockResolvedValue(listResponse(mockComparisons));
+    mockReadings = siteIds.map((siteId, index) => {
+      const reading = makeReading({
+        _id: `reading-${index + 1}`,
+        site_id: siteId,
+        aqi_index: index + 1,
+        siteDetails: {
+          ...makeReading().siteDetails,
+          _id: siteId,
+          city: `City ${index + 1}`,
+          name: `Location ${index + 1}`,
+          location_name: `Location ${index + 1}`,
+          search_name: `Location ${index + 1}`,
+        },
+      });
+      return reading;
+    });
+
+    const { store } = renderComparisonView();
+
+    // AQI-descending order places Location 11 on the first page and Location
+    // 1 on the second; selection must survive the page transition.
+    await user.click(await screen.findByLabelText('Select Location 11'));
+    const tablePagination = screen.getByRole('navigation', {
+      name: 'Pagination Navigation',
+    });
+    await user.click(
+      within(tablePagination).getByRole('button', { name: 'Next page' })
+    );
+    await user.click(await screen.findByLabelText('Select Location 1'));
+    await user.click(
+      await screen.findByRole('button', {
+        name: /view insights for 2 selected locations/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        store.getState().insights.selectedSites.map(site => site._id)
+      ).toEqual(['site-11', 'site-1']);
     });
   });
 

@@ -14,6 +14,7 @@ import { Button } from '@/shared/components/ui/button';
 import { AqChevronRight, AqCompass } from '@airqo/icons-react';
 import { useUser } from '@/shared/hooks';
 import { useRecentReadings } from '@/modules/analytics';
+import { selectLatestRecentReading } from '@/modules/analytics/utils/recentReadings';
 import { useResolveSiteByName } from '../../hooks/useResolveSiteByName';
 import { SiteCurrentReadingCard } from './SiteCurrentReadingCard';
 import { SiteTrendChartCard } from './SiteTrendChartCard';
@@ -72,7 +73,7 @@ export const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({
       groupId: activeGroup?.id,
       siteIds: siteId ? [siteId] : [],
     });
-  const currentReading = currentReadings[0] ?? null;
+  const currentReading = selectLatestRecentReading(currentReadings, siteId);
   // While the session context hydrates (no user/group yet) keep the skeleton
   // instead of flashing the "no reading" empty state.
   const readingPending =

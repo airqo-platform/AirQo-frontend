@@ -149,6 +149,7 @@ const OverviewChartCard: React.FC<{
         loading={isLoading}
         error={error ? getUserFriendlyErrorMessage(error) : null}
         onRefresh={refresh}
+        activePollutant={draft.pollutant}
         exportOptions={{
           enablePDF: true,
           enablePNG: true,

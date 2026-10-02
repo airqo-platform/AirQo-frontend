@@ -4,7 +4,11 @@ import React, { useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import {
+  getAirQualityInfo,
+  mapAqiCategoryToLevel,
+  getUsAqiIndexConfig,
+} from '@/shared/utils/airQuality';
 import { AqiGauge } from './AqiGauge';
 import { SitePollutantCards } from './SitePollutantCards';
 import { AqiLegend } from '@/modules/analytics/components/explorer/AqiLegend';
@@ -45,17 +49,31 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
   const { config: aqiConfig } = useAqiConfig('pm2_5');
 
   const pm25 = getReadingPollutantValue(reading, 'pm2_5');
+  const aqiIndex =
+    typeof reading?.aqi_index === 'number' &&
+    Number.isFinite(reading.aqi_index) &&
+    reading.aqi_index >= 0
+      ? reading.aqi_index
+      : null;
+  const aqiCategory = reading?.aqi_category?.trim() || null;
+  const aqiColor = reading?.aqi_color?.trim()
+    ? reading.aqi_color.startsWith('#')
+      ? reading.aqi_color
+      : `#${reading.aqi_color}`
+    : null;
+  const usAqiConfig = useMemo(
+    () => getUsAqiIndexConfig(aqiConfig),
+    [aqiConfig]
+  );
 
-  const airInfo = useMemo(() => {
+  const pollutantInfo = useMemo(() => {
     if (pm25 === null) return null;
     return getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
   }, [pm25, aqiConfig]);
 
   const freshness = formatReadingFreshness(reading?.time);
-
-  const description = airInfo
-    ? (HEALTH_DESCRIPTIONS[airInfo.level] ?? airInfo.description ?? '')
-    : '';
+  const aqiLevel = mapAqiCategoryToLevel(aqiCategory ?? undefined);
+  const description = aqiCategory ? (HEALTH_DESCRIPTIONS[aqiLevel] ?? '') : '';
 
   // Loading skeleton
   if (isLoading) {
@@ -93,12 +111,13 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
           {/* Left column: Gauge + AQI ranges */}
           <div className="flex flex-col items-center gap-4">
-            <AqiGauge value={pm25} freshness={freshness} />
-            <AqiLegend
-              aqiConfig={aqiConfig ?? null}
-              compact
-              markerValue={pm25}
+            <AqiGauge
+              value={aqiIndex}
+              category={aqiCategory}
+              color={aqiColor}
+              freshness={freshness}
             />
+            <AqiLegend aqiConfig={usAqiConfig} compact markerValue={aqiIndex} />
           </div>
 
           {/* Right column: What this means + Pollutant cards */}
@@ -117,7 +136,7 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
                   show the latest available data for this location.
                 </p>
               )}
-              {airInfo && (
+              {pollutantInfo && (
                 <div className="flex items-center gap-4 text-sm pt-1">
                   <div>
                     <span className="text-muted-foreground">
@@ -130,7 +149,7 @@ export const SiteCurrentReadingCard: React.FC<SiteCurrentReadingCardProps> = ({
                       {pm25 !== null ? `${pm25.toFixed(1)} µg/m³` : '—'}
                     </span>
                     <span className="ml-1 text-muted-foreground">
-                      {airInfo.label}
+                      {pollutantInfo.label}
                     </span>
                   </div>
                 </div>

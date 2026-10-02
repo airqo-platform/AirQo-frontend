@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 import {
   AqTrash01,
   AqXClose,
@@ -105,7 +106,7 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
   useEffect(() => {
     if (isOpen) {
       triggerRef.current = document.activeElement as HTMLElement;
-      posthog?.capture('ask_airqo_opened', { feature });
+      capturePostHogEvent(posthog, 'ask_airqo_opened', { feature });
     }
   }, [feature, isOpen, posthog]);
 
@@ -313,10 +314,14 @@ export const AiDrawer: React.FC<AiDrawerProps> = ({
                           key={action.id}
                           type="button"
                           onClick={() => {
-                            posthog?.capture('ask_airqo_action_selected', {
-                              action_id: action.id,
-                              feature,
-                            });
+                            capturePostHogEvent(
+                              posthog,
+                              'ask_airqo_action_selected',
+                              {
+                                action_id: action.id,
+                                feature,
+                              }
+                            );
                             router.push(action.href);
                             onClose();
                           }}

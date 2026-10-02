@@ -198,8 +198,14 @@ describe('useHomeExperience', () => {
     mockReadings.readings = [
       {
         site_id: 'a',
-        aqi_index: 42,
+        aqi_index: 49,
         aqi_category: 'Good',
+        time: '2026-03-02T00:00:00.000Z',
+      },
+      {
+        site_id: 'a',
+        aqi_index: 72,
+        aqi_category: 'Moderate',
         time: '2026-03-01T00:00:00.000Z',
       },
       {
@@ -231,9 +237,9 @@ describe('useHomeExperience', () => {
       {
         name: 'Makerere University',
         href: '/user/air-quality/analytics/sites/makerere-university?site_id=a',
-        aqiIndex: 42,
+        aqiIndex: 49,
         aqiCategory: 'Good',
-        measuredAt: '2026-03-01T00:00:00.000Z',
+        measuredAt: '2026-03-02T00:00:00.000Z',
       },
       {
         name: 'Central Kampala',

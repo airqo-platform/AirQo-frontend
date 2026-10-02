@@ -1,195 +1,94 @@
-# PostHog Analytics Documentation
+# AirQo Nexus product analytics
 
-This document outlines the PostHog analytics implementation in the AirQo platform. It details the events currently tracked, their properties, and provides recommendations for future tracking to enhance product insights.
+This document describes the PostHog instrumentation in the Nexus app and how to use it to understand individual and organization journeys.
 
-## 1. Overview
+## Setup and identity
 
-PostHog is used to track user interactions, feature usage, and key business metrics. The implementation uses the `posthog-js` library and is integrated into the Next.js application via a custom `PostHogProvider`.
+- `PostHogProvider` initializes `posthog-js` in the browser when `NEXT_PUBLIC_POSTHOG_KEY` is set. `NEXT_PUBLIC_POSTHOG_HOST` selects the ingestion host and defaults to `https://us.i.posthog.com`.
+- Automatic click/form autocapture and automatic pageviews are disabled. Route changes emit one manual `$pageview`; page leave capture remains enabled. Session recording is disabled.
+- After NextAuth resolves an authenticated user, Nexus calls `identify()` with the stable auth user ID. It keeps the anonymous distinct ID during the auth loading state, so pre-login activity can be associated with the user after login. It resets identity on logout or an account change.
+- Person properties are limited to app name, organization, country, job title, verification, and active status. Email, names, and usernames are not added to the PostHog profile.
+- Events on `/org/{slug}/...` are associated with the active group using PostHog's `organization` group type. Group association is cleared when leaving organization routes. Individual routes are distinguished by the `product_flow` event property.
 
-- **Project API Key**: Configured via `NEXT_PUBLIC_POSTHOG_KEY`
-- **Host URL**: Configured via `NEXT_PUBLIC_POSTHOG_HOST`
-- **Automatic Capture**: Pageviews are captured manually to support Next.js App Router client-side navigation. Autocapture is disabled for pageviews but enabled for page leaves.
+PostHog's [Next.js setup guide](https://posthog.com/docs/libraries/next-js) recommends identifying logged-in users with a stable ID, and its [group analytics guide](https://posthog.com/docs/product-analytics/group-analytics) describes associating events with an organization group.
 
-## 2. Currently Tracked Events
+## Shared event utility
 
-### 2.1 Page Views
+Use `capturePostHogEvent(client, eventName, properties?, options?)` from `src/shared/utils/analytics.ts` for PostHog events. It adds `app_name`, `app_version`, `environment`, and `product_flow`, and filters direct identifiers and sensitive fields from event properties. `trackEvent()` sends the same event to PostHog and Google Analytics; the domain helpers in `enhancedAnalytics.ts` use the shared PostHog capture path as well.
 
-- **Event Name**: `$pageview`
-- **Trigger**: Automatically triggered on every route change.
-- **Properties**:
-  - `$current_url`: The full URL of the current page, excluding query parameters for privacy.
+`product_flow` is one of:
 
-### 2.2 Data Downloads
+| Value          | Route family                      |
+| -------------- | --------------------------------- |
+| `individual`   | `/user/...`                       |
+| `organization` | `/org/{slug}/...`                 |
+| `shared`       | Routes outside those two families |
 
-- **Event Name**: `data_download_initiated`
-- **Trigger**: User clicks the "Download" button in the Data Export tool.
-- **Location**: `src/modules/data-download/hooks/useDataExportActions.ts`
-- **Properties**:
-  - `data_type`: Type of data (e.g., 'calibrated', 'raw')
-  - `file_type`: Format of the file (e.g., 'csv', 'json')
-  - `frequency`: Data frequency (e.g., 'daily')
-  - `device_category`: Category of devices (e.g., 'lowcost')
-  - `pollutants`: Array of selected pollutants
-  - `active_tab`: The active tab when download was initiated ('sites', 'devices', 'countries', 'cities')
-  - `sites_count`: Number of selected sites (if applicable)
-  - `devices_count`: Number of selected devices (if applicable)
-  - `grids_count`: Number of selected grids (if applicable)
+Keep event names in `noun_verb` form and properties in `snake_case`. Capture completed actions, not component renders. Do not send emails, names, passwords, tokens, user IDs, raw site/location IDs, raw site/location names, or user-authored titles in event properties. Stable user identity belongs in `identify()`; organization analysis belongs in group analytics. `hashId()` is a deterministic FNV-1a hash for pseudonymous joins, not cryptographic anonymization.
 
-- **Event Name**: `data_visualize_clicked`
-- **Trigger**: User clicks the "Visualize" button in the Data Export tool.
-- **Location**: `src/modules/data-download/hooks/useDataExportActions.ts`
-- **Properties**:
-  - `active_tab`: The active tab
-  - `sites_count`: Number of selected sites
-  - `devices_count`: Number of selected devices
-  - `grids_count`: Number of selected grids
+## Individual and organization journeys
 
-### 2.3 API Client Management
+Nexus supports the individual `/user/...` route family and the organization `/org/{slug}/...` route family. The header organization selector is available to move between them. Both journeys share map, analytics, data export, data visualizer, and AI features; event properties and PostHog's group association show which flow and organization were active.
 
-- **Event Name**: `client_created`
-- **Trigger**: User successfully creates a new API client.
-- **Location**: `src/modules/api-client/components/CreateClientDialog.tsx`
-- **Properties**:
-  - `has_ips`: Boolean indicating if IP restrictions were applied
-  - `ip_count`: Number of IP addresses whitelisted
+### Organization and cohort selection
 
-### 2.4 User Account
+| Event                          | When it fires                                                   | Useful properties                                                                         |
+| ------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `organization_selector_opened` | User opens the organization chooser                             | `available_organization_count`                                                            |
+| `organization_selected`        | User chooses a different organization or individual destination | `available_organization_count`, `selection_type`                                          |
+| `group_switched`               | Active group changes                                            | `from_group_flow`, `to_group_flow`                                                        |
+| `org_cohort_selector_opened`   | User opens the organization cohort dropdown                     | `selector_source`, `cohort_count`, `has_selected_cohort`, `selected_cohort_position`      |
+| `org_cohort_selected`          | User changes the selected cohort                                | `selector_source`, `cohort_count`, `previous_cohort_position`, `selected_cohort_position` |
+| `org_cohorts_retry_clicked`    | User retries a failed cohort load from the header               | `selector_source`, `cohort_count`                                                         |
 
-- **Event Name**: `account_deletion_initiated`
-- **Trigger**: User initiates the account deletion process.
-- **Location**: `src/modules/user-profile/components/AccountDeletionCard.tsx`
-- **Properties**: None
+Automatic persisted/default cohort selection does not count as a user selection. Opens count only when the dropdown changes from closed to open, including keyboard activation. Cohort identifiers and names are omitted so analysis measures selector use without exposing the organization's cohort inventory. Cohort positions are zero-based and reflect the option order at the time of the event.
 
-### 2.5 Map Interactions
+To answer “how many users open the cohort selector, and how many select a cohort?” in PostHog:
 
-- **Event Name**: `map_viewed`
-- **Trigger**: The Map page is loaded.
-- **Location**: `src/modules/airqo-map/MapPage.tsx`
-- **Properties**: None
+1. Create a funnel with `org_cohort_selector_opened` followed by `org_cohort_selected`; filter `product_flow` to `organization` and use unique users for conversion.
+2. Use a trends insight on `org_cohort_selector_opened` to compare total events with unique users. This separates repeat opens from reach.
+3. Break down by `selector_source` or `cohort_count` to compare surfaces and selector complexity.
+4. Use group analytics to compare organization-level engagement. `organization` group association is applied to events in organization routes.
+5. Track `org_cohorts_retry_clicked` alongside selector opens as a signal of cohort loading friction.
 
-- **Event Name**: `map_location_selected`
-- **Trigger**: User selects a specific location on the map.
-- **Location**: `src/modules/airqo-map/MapPage.tsx`
-- **Properties**:
-  - `location_id_hashed`: Anonymized hash of the location ID
+PostHog's [funnels guide](https://posthog.com/docs/product-analytics/funnels) covers conversion analysis, while [retention and stickiness](https://posthog.com/docs/product-analytics/retention) distinguish return behavior from repeat event frequency.
 
-### 2.6 Location Insights
+### Air quality rankings
 
-- **Event Name**: `locations_added_to_insights`
-- **Trigger**: User adds locations to the insights view.
-- **Location**: `src/modules/location-insights/add-location.tsx`
-- **Properties**:
-  - `count`: Number of locations added
-  - `site_ids_hashed`: Array of anonymized hashes of added site IDs
+| Event                                    | When it fires                                                       | Useful properties                   |
+| ---------------------------------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| `air_quality_rankings_viewed`            | Rankings page or tab is viewed                                      | `tab`, `level`, `country`           |
+| `air_quality_rankings_tab_changed`       | User changes between live and historical rankings                   | `from_tab`, `to_tab`                |
+| `air_quality_rankings_filter_changed`    | User changes a ranking level, sort, limit, country, or history year | `view`, `filter`, `value`           |
+| `air_quality_rankings_search_changed`    | User pauses after changing the local table search                   | `view`, `has_query`, `query_length` |
+| `air_quality_rankings_page_changed`      | User changes the results page                                       | `view`, `page`                      |
+| `air_quality_rankings_page_size_changed` | User changes rows per page                                          | `view`, `page_size`                 |
+| `air_quality_rankings_sort_changed`      | User sorts the historical table                                     | `view`, `column`, `direction`       |
+| `air_quality_rankings_refresh_requested` | User refreshes results from the page or table                       | `view`, `source`                    |
 
-### 2.7 Analytics Dashboard
+Search events report only whether a query exists and its length; the location text is never sent.
 
-- **Event Name**: `analytics_card_clicked`
-- **Trigger**: User clicks on an analytics card to view details.
-- **Location**: `src/modules/analytics/components/AnalyticsCard.tsx`
-- **Properties**:
-  - `site_id_hashed`: Anonymized hash of the site ID
-  - `pollutant`: The pollutant being displayed
-  - `aqi_status`: The AQI status (e.g., 'good', 'moderate')
+### Data visualizer
 
-- **Event Name**: `manage_favorites_clicked`
-- **Trigger**: User clicks the "Manage Favorites" button.
-- **Location**: `src/modules/analytics/components/AnalyticsDashboard.tsx`
-- **Properties**: None
+`air_quality_explorer_*` events cover page views, upload start and outcome, retries and cancellations, datasets and sheets added or removed, chart creation/activation/configuration/removal/export, chart legend and zoom actions, map feature selection, date ranges, layouts, data review, workspace preferences, draft restore/clear, and documentation/tutorial use. Properties describe action types, chart settings, counts, and file types. Upload names, dataset labels, chart titles, series names, imported values, and error messages are not included. Chart-setting events are batched briefly so editing several settings together produces one event.
 
-- **Event Name**: `more_insights_clicked`
-- **Trigger**: User clicks "More Insights" on the dashboard or charts.
-- **Location**: `src/modules/analytics/components/AnalyticsDashboard.tsx`
-- **Properties**:
-  - `source`: Where the click originated (e.g., 'analytics_dashboard')
-  - `sites_count`: Number of sites included in the insight
+### Other instrumented behavior
 
-### 2.8 Charts & Visualization
+- Authentication: `auth_login`, `auth_register`, `auth_password_reset_requested`, and `auth_password_reset_completed`.
+- Home: `home_v2_viewed`, `home_action_selected`, and `home_continue_selected`.
+- Map and location insights: `map_viewed`, `map_location_selected`, `location_selected`, `map_interaction`, and `feature_used`.
+- Analytics and charts: `analytics_trends_viewed`, `analytics_card_clicked`, chart create/update/duplicate/delete events, export events, and standards interactions.
+- Data export and visualization: export tab/filter changes, download start/failure/completion, visualizer actions, and `data_visualize_clicked`.
+- AI assistant: `ask_airqo_opened`, `ask_airqo_prompt_submitted`, and `ask_airqo_action_selected`.
+- Cross-cutting: `$pageview`, `page_dwell`, `session_quality`, `search_performed`, `preference_changed`, `error_occurred`, and sanitized API performance events.
 
-- **Event Name**: `chart_export_clicked`
-- **Trigger**: User exports a chart as PDF or PNG.
-- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
-- **Properties**:
-  - `format`: Export format ('pdf' or 'png')
-  - `chart_title`: Title of the chart being exported
+The event list in code is authoritative; feature teams should add new events through the shared utility and update this section when they introduce a behavior used in dashboards or funnels.
 
-- **Event Name**: `air_quality_standards_clicked`
-- **Trigger**: User opens the Air Quality Standards dialog.
-- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
-- **Properties**:
-  - `chart_title`: Title of the chart
+## Privacy and operations
 
-- **Event Name**: `air_quality_standards_applied`
-- **Trigger**: User applies a specific air quality standard.
-- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
-- **Properties**:
-  - `organization`: The standards organization (e.g., 'WHO')
-  - `pollutant`: The pollutant for the standard
+- The PostHog event utility recursively removes direct identifiers and sensitive property keys before capture. Autocapture is disabled so uncontrolled DOM text is not collected.
+- Pageview URLs contain the route path only; query parameters are excluded.
+- Event payloads may include hashed entity IDs where a pseudonymous join is required. Do not describe deterministic hashes as anonymous data.
+- No event is sent if `NEXT_PUBLIC_POSTHOG_KEY` is unset. Verify data delivery in PostHog's live events view after deploying instrumentation, and ensure Content Security Policy allows the configured PostHog ingestion host.
 
-### 2.9 Favorites Management
-
-- **Event Name**: `favorites_updated`
-- **Trigger**: User saves changes to their favorite locations.
-- **Location**: `src/modules/location-insights/add-favorites.tsx`
-- **Properties**:
-  - `count`: Number of favorites saved
-  - `site_ids`: Array of site IDs (consider hashing these in future updates if privacy is a concern)
-
-## 3. Recommendations for Future Tracking
-
-To gain deeper insights into user behavior and product performance, the following events are recommended for future implementation:
-
-### 3.1 User Onboarding & Authentication
-
-- **`signup_completed`**: Track successful user registrations to measure conversion rates.
-- **`login_failed`**: Track login failures to identify potential friction points or issues.
-- **`onboarding_step_completed`**: If there's a multi-step onboarding flow, track each step to identify drop-off points.
-
-### 3.2 Feature Usage & Engagement
-
-- **`search_performed`**: Track search queries in the Map or Data Export tools to understand what users are looking for.
-  - _Properties_: `query`, `context` (e.g., 'map', 'data-export')
-- **`filter_applied`**: Track usage of filters in Analytics or Map views.
-  - _Properties_: `filter_type`, `value`
-- **`favorites_added` / `favorites_removed`**: Track when users favorite a location.
-  - _Properties_: `site_id`, `site_name`
-- **`report_generated`**: If there's a reporting feature, track when reports are created.
-
-### 3.3 Performance & Errors
-
-- **`api_error`**: Track client-side API errors to monitor system health from the user's perspective.
-  - _Properties_: `endpoint`, `status_code`, `error_message`
-- **`feature_load_time`**: Measure how long key features (like the Map or Analytics dashboard) take to load.
-
-### 3.4 User Retention
-
-- **`session_duration`**: While PostHog tracks this automatically, defining custom "active usage" events can help measure true engagement.
-- **`returning_user`**: Identify and track users who return after a specific period.
-
-## 4. Privacy & Data Protection
-
-To protect user privacy and comply with data protection regulations, the following measures are implemented:
-
-### 4.1 Identifier Anonymization
-
-- **Site and Location IDs**: Raw identifiers are hashed using a client-side FNV-1a hash function before being sent to PostHog. This prevents re-identification while maintaining the ability to track unique entities.
-- **Property Denylist**: The PostHog configuration includes a `property_denylist` that automatically redacts any raw location identifiers (`site_id`, `location_id`, `site_name`, `location_name`) that might accidentally be sent.
-- **URL Sanitization**: Pageview events strip query parameters to avoid capturing sensitive tokens or personal information in URLs.
-
-### 4.2 Utility Functions
-
-- **`hashId(str: string): string`**: Generates a deterministic hash of the input string.
-- **`anonymizeSiteData(siteId: string)`**: Returns an object with `site_id_hashed` property, omitting the site name.
-
-### 4.3 Implementation Locations
-
-- **Analytics Utils**: `src/shared/utils/analytics.ts`
-- **PostHog Provider**: `src/shared/providers/posthog-provider.tsx`
-
-## 5. Best Practices Used
-
-- **Descriptive Event Names**: Events use a `noun_verb` format (e.g., `client_created`, `map_viewed`) for clarity.
-- **Rich Properties**: Events include relevant context (e.g., counts, types, IDs) to allow for detailed segmentation and analysis.
-- **Client-Side Only**: PostHog is initialized only on the client side to be compatible with Next.js App Router and avoid hydration mismatches.
-- **Manual Pageview Tracking**: To ensure accuracy with client-side routing, pageviews are tracked manually via a `useEffect` hook in the provider.
-- **Privacy-First Design**: Location identifiers are anonymized using hashing, and sensitive properties are denylisted to prevent accidental data leakage.
+See the official [PostHog identify guidance](https://posthog.com/docs/data/anonymous-vs-identified-events) for anonymous-to-identified event linking and user identity behavior.

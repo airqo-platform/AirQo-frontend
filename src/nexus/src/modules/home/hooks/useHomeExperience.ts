@@ -6,6 +6,7 @@ import { useGroupCharts } from '@/shared/hooks/useGroupCharts';
 import { useAnalyticsPreferences } from '@/modules/analytics/hooks';
 import { useSavedComparisons } from '@/modules/analytics/hooks/useSavedComparisons';
 import { useRecentReadings } from '@/modules/analytics/hooks/useRecentReadings';
+import { selectLatestRecentReadingsBySiteId } from '@/modules/analytics/utils/recentReadings';
 import { loadWorkspaceDraft } from '@/modules/data-visualizer/utils/workspaceStorage';
 import type { VisualizerWorkspaceDraft } from '@/modules/data-visualizer/types';
 import { toSiteSlug } from '@/modules/data-download/utils/siteDetails';
@@ -79,10 +80,10 @@ export const useHomeExperience = (
 
   const realData = useMemo<HomeExperienceData>(() => {
     const chartItems = charts.data ?? [];
-    const readingsBySiteId = new Map(
-      recentReadings.readings
-        .filter(reading => siteIds.includes(reading.site_id))
-        .map(reading => [reading.site_id, reading])
+    const readingsBySiteId = selectLatestRecentReadingsBySiteId(
+      recentReadings.readings.filter(reading =>
+        siteIds.includes(reading.site_id)
+      )
     );
     const updatesLoading =
       enabled && siteIds.length > 0 && recentReadings.isLoading;

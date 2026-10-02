@@ -636,7 +636,7 @@ export const OrganizationReportDashboard: React.FC<
               <p className="mt-2 text-xs text-muted-foreground">
                 {rangeDays > 0 && rangeDays <= MAX_REPORT_PERIOD_DAYS
                   ? `${rangeDays} of ${MAX_REPORT_PERIOD_DAYS} days selected.`
-                  : `Select up to ${MAX_REPORT_PERIOD_DAYS} days of data.`}
+                  : `Choose a period of ${MAX_REPORT_PERIOD_DAYS} days or fewer.`}
               </p>
             </div>
             <div className="flex items-center gap-2 lg:pb-0">

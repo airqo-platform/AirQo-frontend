@@ -154,6 +154,32 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   const [draftSubtitle, setDraftSubtitle] = React.useState(
     chart.subtitle || ''
   );
+  const pendingSettingFieldsRef = React.useRef(new Set<string>());
+  const settingsTrackingTimerRef = React.useRef<number | null>(null);
+  const latestChartTypeRef = React.useRef(chart.type);
+  const onTrackRef = React.useRef(onTrack);
+  latestChartTypeRef.current = chart.type;
+  onTrackRef.current = onTrack;
+
+  const flushSettingChanges = React.useCallback(() => {
+    if (settingsTrackingTimerRef.current !== null) {
+      window.clearTimeout(settingsTrackingTimerRef.current);
+      settingsTrackingTimerRef.current = null;
+    }
+
+    const fields = Array.from(pendingSettingFieldsRef.current);
+    pendingSettingFieldsRef.current.clear();
+    if (fields.length === 0) return;
+
+    onTrackRef.current?.('air_quality_explorer_chart_configuration_changed', {
+      chart_type: latestChartTypeRef.current,
+      fields,
+      field_count: fields.length,
+    });
+  }, []);
+
+  React.useEffect(() => () => flushSettingChanges(), [flushSettingChanges]);
+
   const model = React.useMemo(() => {
     if (chart.type === 'map') {
       return EMPTY_MAP_MODEL;
@@ -161,6 +187,16 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
 
     return buildChartModel(rows, chart);
   }, [chart, rows]);
+  const handleChartInteraction = React.useCallback(
+    (action: string) => {
+      onTrack?.('air_quality_explorer_chart_interaction', {
+        chart_type: chart.type,
+        action,
+        row_count: rows.length,
+      });
+    },
+    [chart.type, onTrack, rows.length]
+  );
   const title = chart.title || `Chart ${chartNumber}`;
   const selectedDatasetIds = new Set(chart.datasetIds);
   const isMap = chart.type === 'map';
@@ -199,6 +235,20 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       ...chart,
       ...partial,
     });
+
+    Object.keys(partial)
+      .filter(field => !['title', 'subtitle', 'datasetIds'].includes(field))
+      .forEach(field => pendingSettingFieldsRef.current.add(field));
+
+    if (pendingSettingFieldsRef.current.size > 0) {
+      if (settingsTrackingTimerRef.current !== null) {
+        window.clearTimeout(settingsTrackingTimerRef.current);
+      }
+      settingsTrackingTimerRef.current = window.setTimeout(
+        flushSettingChanges,
+        600
+      );
+    }
   };
 
   const updateSeriesColor = (key: string, color: string) => {
@@ -1182,9 +1232,19 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
         )}
 
         {chart.type === 'map' ? (
-          <VisualizerMapChart rows={rows} config={chart} />
+          <VisualizerMapChart
+            rows={rows}
+            config={chart}
+            onFeatureSelect={() =>
+              handleChartInteraction('map_feature_selected')
+            }
+          />
         ) : (
-          <VisualizerChart model={model} config={chart} />
+          <VisualizerChart
+            model={model}
+            config={chart}
+            onInteraction={handleChartInteraction}
+          />
         )}
       </div>
 

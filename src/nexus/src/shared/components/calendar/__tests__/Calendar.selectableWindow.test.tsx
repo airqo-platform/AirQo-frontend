@@ -208,7 +208,9 @@ describe('CalendarFooter single-mode chrome', () => {
   // A single date has no period, so the end-of-range box and the time-range
   // pair are controls whose value could never be carried anywhere.
   const footerInputs = () =>
-    Array.from(document.querySelectorAll<HTMLInputElement>('input'));
+    Array.from(
+      document.querySelectorAll<HTMLInputElement>('input[type="text"]')
+    );
 
   it('shows one date box and no time controls in single mode', () => {
     render(
