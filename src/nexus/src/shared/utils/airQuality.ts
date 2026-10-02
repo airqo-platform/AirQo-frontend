@@ -1106,9 +1106,10 @@ export const getUsAqiLevel = (
     return 'no-value';
   }
 
+  const rounded = Math.round(aqiIndex);
   const category = EPA_AQI_CATEGORIES.pm2_5.find(
     ({ aqiMin, aqiMax }) =>
-      aqiIndex >= aqiMin && (aqiMax === null || aqiIndex <= aqiMax)
+      rounded >= aqiMin && (aqiMax === null || rounded <= aqiMax)
   );
 
   return category ? getAirQualityLevelForRangeKey(category.key) : 'no-value';

@@ -225,6 +225,7 @@ describe('airQuality', () => {
     it('classifies the numeric index using US AQI index bands', () => {
       expect(getUsAqiLevel(22)).toBe('good');
       expect(getUsAqiLevel(75)).toBe('moderate');
+      expect(getUsAqiLevel(50.5)).toBe('moderate');
       expect(getUsAqiLevel(125)).toBe('unhealthy-sensitive-groups');
       expect(getUsAqiLevel(500)).toBe('hazardous');
       expect(getUsAqiLevel(null)).toBe('no-value');
@@ -235,6 +236,7 @@ describe('airQuality', () => {
 
       expect(info?.level).toBe('moderate');
       expect(info?.label).toBe('Moderate');
+      expect(getUsAqiInfo(50.5, TEST_AQI_CONFIG)?.level).toBe('moderate');
     });
 
     it('converts concentration ranges to AQI index ranges for the gauge', () => {
