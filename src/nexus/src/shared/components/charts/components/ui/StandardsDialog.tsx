@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/shared/store';
 import Dialog from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import Checkbox from '@/shared/components/ui/checkbox';
@@ -14,6 +12,7 @@ import {
 import type {
   AirQualityStandardsConfig,
   ChartStandardsType,
+  PollutantType,
 } from '../../types';
 
 interface StandardsDialogProps {
@@ -21,7 +20,7 @@ interface StandardsDialogProps {
   onClose: () => void;
   currentStandards?: AirQualityStandardsConfig;
   onApplyStandards: (config: AirQualityStandardsConfig) => void;
-  activePollutant?: 'pm2_5' | 'pm10';
+  activePollutant?: PollutantType;
 }
 
 const formatValue = (value: number | null) =>
@@ -34,12 +33,8 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   onApplyStandards,
   activePollutant = 'pm2_5',
 }) => {
-  const reduxPollutant = useSelector(
-    (state: RootState) => state.analytics?.filters?.pollutant
-  );
-  const effectivePollutant = reduxPollutant || activePollutant;
   const displayPollutant: 'PM2.5' | 'PM10' =
-    effectivePollutant === 'pm2_5' ? 'PM2.5' : 'PM10';
+    activePollutant === 'pm2_5' ? 'PM2.5' : 'PM10';
 
   const [selectedOrg, setSelectedOrg] = useState<ChartStandardsType>(
     currentStandards?.organization || 'WHO'

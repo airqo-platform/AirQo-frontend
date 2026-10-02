@@ -211,6 +211,8 @@ export interface ChartContainerProps {
   /** Toggle handler for the "Theme colors" entry in the More menu */
   onThemeColorsToggle?: () => void;
   currentFilters?: Partial<ChartFilters>;
+  /** Pollutant rendered by the chart; used by pollutant-specific standards UI. */
+  activePollutant?: PollutantType;
   currentSites?: Array<{
     _id: string;
     name: string;
