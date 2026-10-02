@@ -137,6 +137,10 @@ If the token is correct but still rejected, check the response for an `errors.co
 | `CLIENT_INACTIVE` | The API client is awaiting approval or has been deactivated |
 | `TOKEN_EXPIRED` | The token has expired |
 
+:::note 401 or 403
+A blocked request can return either `401 Unauthorized` or `403 Forbidden`, depending on where it was stopped. Don't rely on the status code alone. Check `errors.code`: `IP_BLOCKED` means your request's IP address was blocked.
+:::
+
 See [Troubleshooting blocked requests](./blocked-requests.md) for how to fix each one.
 
 ---
@@ -145,7 +149,7 @@ See [Troubleshooting blocked requests](./blocked-requests.md) for how to fix eac
 
 **Symptom:** A request with a valid token that previously worked now returns `403 Forbidden` or "Access Denied", often after you received a **Daily Security Alert Summary** email.
 
-**Cause:** The request was stopped by our security checks. Usually your server's IP address is not on your API client's IP Addresses list, or it changes between runs.
+**Cause:** The request was stopped by our security checks. Check `errors.code` in the response to find out why. `IP_BLOCKED` means your server's IP address is not on your API client's IP Addresses list, or it changes between runs.
 
 **Solution:** Follow [Troubleshooting blocked requests](./blocked-requests.md).
 
