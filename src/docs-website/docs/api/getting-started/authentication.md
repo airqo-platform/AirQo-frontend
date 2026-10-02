@@ -75,17 +75,20 @@ Rotate your token before it expires. After generating a new token, update it in 
 
 ## IP whitelisting
 
-Each API client can optionally be configured with a list of allowed public IP addresses — an additional layer of access control worth setting up for server-side integrations with a known, stable set of egress IPs.
+AirQo automatically blocks requests from IP addresses that look risky, including many cloud and data-centre ranges, even when the token is valid. Add your servers' public IP addresses to the API client so their requests are never blocked because of their IP. This is strongly recommended for any server-side or scheduled integration.
 
 To configure it:
 
 1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
 2. Click the **Edit** (pencil) icon on the relevant client.
-3. Add each public IP address your servers will use under **IP Addresses**.
+3. Add each public IP address your servers will use under **IP Addresses** (exact addresses only; run `curl https://ifconfig.me` on the server to find it).
+4. Click **Update**. The change takes effect immediately.
 
 :::note Dynamic IPs
 If your servers use dynamic IP addresses (e.g. ephemeral cloud instances), consider routing API requests through a static NAT gateway or egress IP so you can maintain a stable whitelist.
 :::
+
+If your requests are being blocked or you received a security alert email, see [Troubleshooting blocked requests →](../reference/blocked-requests.md).
 
 ---
 

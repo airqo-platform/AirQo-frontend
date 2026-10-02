@@ -24,8 +24,8 @@ For a complete walkthrough of every security control available on the platform, 
 
 ## IP whitelisting
 
-- **Whitelist all egress IPs** your application uses, as an additional layer of access control. If you use load balancers or NAT gateways, whitelist those IPs too.
-- **Use a static egress IP** where possible to avoid maintaining a changing whitelist.
+- **Whitelist all egress IPs** your application uses, so its requests are never blocked by automatic IP checks. If you use load balancers or NAT gateways, whitelist those IPs too. Ranges/CIDR blocks are not supported; add each address.
+- **Use a static egress IP** where possible to avoid maintaining a changing whitelist. Serverless and autoscaling platforms usually need a NAT gateway for this — see [Blocked Requests →](./blocked-requests.md#if-your-ip-address-keeps-changing).
 - If you receive `200 OK` with empty `measurements`, double-check your date range and IDs first — see [Error Codes →](./error-codes.md#empty-measurements-array) for the full troubleshooting list.
 
 ---
