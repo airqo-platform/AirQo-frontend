@@ -43,6 +43,7 @@ interface SelectFieldProps {
   onChange?: (event: {
     target: { value: unknown; name?: string; id?: string };
   }) => void;
+  onOpenChange?: (isOpen: boolean) => void;
   value?: unknown;
   placeholder?: string;
   maxHeight?: number;
@@ -77,6 +78,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   disabled = false,
   children,
   onChange,
+  onOpenChange,
   value,
   placeholder = 'Select an option',
   maxHeight = 240,
@@ -95,6 +97,15 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   const listRef = useRef<HTMLUListElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (open === nextOpen) return;
+      setOpen(nextOpen);
+      onOpenChange?.(nextOpen);
+    },
+    [onOpenChange, open]
+  );
 
   const [referenceElement, setReferenceElement] = useState<HTMLElement | null>(
     null
@@ -197,12 +208,15 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
     [k: string]: unknown;
   };
 
-  const closeDropdown = useCallback((returnFocus = true) => {
-    setOpen(false);
-    setHighlightedIndex(-1);
-    setQuery('');
-    if (returnFocus) buttonRef.current?.focus();
-  }, []);
+  const closeDropdown = useCallback(
+    (returnFocus = true) => {
+      handleOpenChange(false);
+      setHighlightedIndex(-1);
+      setQuery('');
+      if (returnFocus) buttonRef.current?.focus();
+    },
+    [handleOpenChange]
+  );
 
   const handleSelect = useCallback(
     (item: Item) => {
@@ -272,7 +286,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
         case 'ArrowDown':
           event.preventDefault();
           if (!open) {
-            setOpen(true);
+            handleOpenChange(true);
             setHighlightedIndex(0);
           } else {
             moveHighlight(1);
@@ -281,7 +295,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
         case 'ArrowUp':
           event.preventDefault();
           if (!open) {
-            setOpen(true);
+            handleOpenChange(true);
             setHighlightedIndex(visibleItems.length - 1);
           } else {
             moveHighlight(-1);
@@ -291,7 +305,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
         case ' ':
           event.preventDefault();
           if (!open) {
-            setOpen(true);
+            handleOpenChange(true);
             setHighlightedIndex(0);
           } else if (highlightedIndex >= 0) {
             handleSelect(visibleItems[highlightedIndex]);
@@ -309,6 +323,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
     [
       disabled,
       open,
+      handleOpenChange,
       moveHighlight,
       highlightedIndex,
       visibleItems,
@@ -418,7 +433,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           }}
           type="button"
           id={buttonId}
-          onClick={() => !disabled && setOpen(prev => !prev)}
+          onClick={() => !disabled && handleOpenChange(!open)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-haspopup="listbox"

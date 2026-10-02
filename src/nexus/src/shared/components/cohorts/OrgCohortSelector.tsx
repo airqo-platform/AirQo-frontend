@@ -4,6 +4,9 @@ import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import SelectField from '@/shared/components/ui/select';
 import { Button } from '@/shared/components/ui/button';
+import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
+import { ANALYTICS_EVENTS } from '@/shared/utils/analyticsConstants';
 import type { OrgCohortOption } from '@/shared/hooks/useOrgCohorts';
 
 export interface OrgCohortSelectorProps {
@@ -25,6 +28,8 @@ export interface OrgCohortSelectorProps {
   size?: 'default' | 'control';
   /** Optional heading rendered above the cohort list inside the dropdown. */
   listHeader?: React.ReactNode;
+  /** Identifies where this shared selector is rendered in product analytics. */
+  source?: 'organization_header' | 'data_export' | 'other';
 }
 
 /**
@@ -47,11 +52,41 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
   containerClassName,
   size = 'default',
   listHeader,
+  source = 'other',
 }) => {
+  const posthog = usePostHog();
   const cohortIds = cohorts.map(cohort => cohort.id);
   const isDisabled = disabled || isLoading || cohortIds.length === 0;
   const showError = !!error;
   const showRetry = showError && !!onRetry;
+  const trackSelectorOpenChange = (isOpen: boolean) => {
+    if (!isOpen) return;
+
+    capturePostHogEvent(posthog, ANALYTICS_EVENTS.ORG_COHORT_SELECTOR_OPENED, {
+      selector_source: source,
+      cohort_count: cohorts.length,
+      has_selected_cohort: Boolean(value),
+      selected_cohort_position: cohorts.findIndex(
+        cohort => cohort.id === value
+      ),
+    });
+  };
+
+  const handleChange = (nextValue: string) => {
+    if (nextValue === value) return;
+
+    capturePostHogEvent(posthog, ANALYTICS_EVENTS.ORG_COHORT_SELECTED, {
+      selector_source: source,
+      cohort_count: cohorts.length,
+      previous_cohort_position: cohorts.findIndex(
+        cohort => cohort.id === value
+      ),
+      selected_cohort_position: cohorts.findIndex(
+        cohort => cohort.id === nextValue
+      ),
+    });
+    onChange(nextValue);
+  };
 
   return (
     <div className={cn('flex w-full items-start gap-2', containerClassName)}>
@@ -60,9 +95,10 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
         onChange={event => {
           const nextValue = event.target.value;
           if (typeof nextValue === 'string') {
-            onChange(nextValue);
+            handleChange(nextValue);
           }
         }}
+        onOpenChange={trackSelectorOpenChange}
         disabled={isDisabled}
         placeholder={placeholder}
         error={error ?? undefined}

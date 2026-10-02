@@ -6,6 +6,9 @@ import { OrgCohortSelector } from './OrgCohortSelector';
 import { Button } from '@/shared/components/ui/button';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
+import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
+import { ANALYTICS_EVENTS } from '@/shared/utils/analyticsConstants';
 
 export interface OrgCohortSwitcherProps {
   /** Extra classes for the root wrapper. */
@@ -32,6 +35,7 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
   containerClassName,
 }) => {
   const ctx = useOrgCohortContext();
+  const posthog = usePostHog();
 
   // Outside the org provider (user flow) — render nothing.
   if (!ctx) {
@@ -51,6 +55,7 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
         placeholder={ctx.isLoading ? 'Loading…' : 'Cohort'}
         ariaLabel="Organization cohort"
         listHeader="Select cohort"
+        source="organization_header"
         className="min-w-0"
         containerClassName={cn('mb-0 min-w-0', containerClassName)}
       />
@@ -61,7 +66,17 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
           className="h-10 w-10 p-0"
           aria-label="Retry loading cohorts"
           title={ctx.error ?? undefined}
-          onClick={ctx.refetch}
+          onClick={() => {
+            capturePostHogEvent(
+              posthog,
+              ANALYTICS_EVENTS.ORG_COHORTS_RETRY_CLICKED,
+              {
+                selector_source: 'organization_header',
+                cohort_count: ctx.cohorts.length,
+              }
+            );
+            ctx.refetch();
+          }}
         >
           <AqRefreshCcw01 className="text-foreground" />
         </Button>

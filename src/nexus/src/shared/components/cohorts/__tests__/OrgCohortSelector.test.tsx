@@ -1,8 +1,18 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OrgCohortSelector } from '../OrgCohortSelector';
 import type { OrgCohortOption } from '@/shared/hooks/useOrgCohorts';
+
+const mockCapturePostHogEvent = jest.fn();
+
+jest.mock('posthog-js/react', () => ({
+  usePostHog: () => null,
+}));
+
+jest.mock('@/shared/utils/analytics', () => ({
+  capturePostHogEvent: (...args: unknown[]) => mockCapturePostHogEvent(...args),
+}));
 
 // SelectField renders through react-popper, which is unreliable in jsdom
 // (see DataExportPreview.test.tsx). Stub it with a native <select> that
@@ -13,6 +23,7 @@ jest.mock('@/shared/components/ui/select', () => {
     label,
     value,
     onChange,
+    onOpenChange,
     disabled,
     error,
     placeholder,
@@ -24,6 +35,7 @@ jest.mock('@/shared/components/ui/select', () => {
     label?: string;
     value?: unknown;
     onChange?: (event: { target: { value: unknown } }) => void;
+    onOpenChange?: (isOpen: boolean) => void;
     disabled?: boolean;
     error?: string;
     placeholder?: string;
@@ -43,9 +55,15 @@ jest.mock('@/shared/components/ui/select', () => {
           aria-label={rest['aria-label'] ?? label ?? 'Cohort'}
           value={typeof value === 'string' ? value : ''}
           disabled={disabled}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            if (!open) {
+              setOpen(true);
+              onOpenChange?.(true);
+            }
+          }}
           onChange={event => {
             setOpen(false);
+            onOpenChange?.(false);
             onChange?.({ target: { value: event.target.value } });
           }}
         >
@@ -96,6 +114,10 @@ const getSelect = (): HTMLSelectElement =>
   screen.getByRole('combobox') as HTMLSelectElement;
 
 describe('OrgCohortSelector', () => {
+  beforeEach(() => {
+    mockCapturePostHogEvent.mockClear();
+  });
+
   it('renders the cohort names it is given', () => {
     render(
       <OrgCohortSelector
@@ -249,5 +271,44 @@ describe('OrgCohortSelector', () => {
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith('cohort-2');
+  });
+
+  it('tracks dropdown opens and explicit cohort changes once', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <OrgCohortSelector
+        cohorts={cohorts}
+        value="cohort-1"
+        onChange={jest.fn()}
+        source="organization_header"
+      />
+    );
+
+    await user.click(getSelect());
+    expect(mockCapturePostHogEvent).toHaveBeenCalledTimes(1);
+    expect(mockCapturePostHogEvent).toHaveBeenCalledWith(
+      null,
+      'org_cohort_selector_opened',
+      expect.objectContaining({
+        selector_source: 'organization_header',
+        cohort_count: 2,
+        has_selected_cohort: true,
+      })
+    );
+
+    mockCapturePostHogEvent.mockClear();
+    fireEvent.change(getSelect(), { target: { value: 'cohort-2' } });
+
+    expect(mockCapturePostHogEvent).toHaveBeenCalledTimes(1);
+    expect(mockCapturePostHogEvent).toHaveBeenCalledWith(
+      null,
+      'org_cohort_selected',
+      expect.objectContaining({
+        selector_source: 'organization_header',
+        previous_cohort_position: 0,
+        selected_cohort_position: 1,
+      })
+    );
   });
 });
