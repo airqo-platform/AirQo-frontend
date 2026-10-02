@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import Image from 'next/image';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
@@ -226,7 +225,7 @@ export const SiteHealthRecommendationsCard: React.FC<
                 className="flex items-start gap-2.5 rounded-lg bg-background/60 p-2.5"
               >
                 {tip.image ? (
-                  <Image
+                  <img
                     src={tip.image}
                     alt=""
                     width={32}
