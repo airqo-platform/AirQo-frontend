@@ -4,6 +4,18 @@ import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR, { useSWRConfig } from 'swr';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { useAbortableFetcher } from '@/shared/hooks/useAbortableSWR';
+import { isAbortError } from '@/shared/lib/retryPolicy';
 import { PermissionGuard } from '@/shared/components';
 import {
   Button,
@@ -64,6 +76,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
+  { value: 'open', label: 'Open (Pending + Reviewed)' },
   { value: 'all', label: 'All statuses' },
   { value: 'pending', label: 'Pending' },
   { value: 'reviewed', label: 'Reviewed' },
@@ -101,55 +114,111 @@ const formatDateTime = (value: string) =>
 
 const getStatusLabel = (status: string) => STATUS_LABELS[status] || status;
 
+const formatRate = (value?: number | null) =>
+  value == null ? '—' : `${value}%`;
+
+const formatRating = (value?: number | null) =>
+  value == null ? '—' : `${value.toFixed(1)}/5`;
+
+const formatDay = (value: string) => {
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
 const FeedbackListContent: React.FC = () => {
   const router = useRouter();
   const { mutate: globalMutate } = useSWRConfig();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('open');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [appFilter, setAppFilter] = useState('all');
-  const [actionableFilter, setActionableFilter] = useState('all');
+  const [actionableFilter, setActionableFilter] = useState('true');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [bulkStatus, setBulkStatus] = useState('reviewed');
 
-  const fetchAllFeedbacks = async (opts: {
-    status?: string | null;
-    category?: string | null;
-  }) => {
-    const limit = 100;
-    let page = 1;
-    let all: FeedbackSubmission[] = [];
-    while (true) {
-      const res = await feedbackService.getFeedbackSubmissions({
-        page,
-        limit,
-        status: opts.status || undefined,
-        category: opts.category || undefined,
-      });
-      all = all.concat(res.feedbacks || []);
-      const pages = res.meta?.pages ?? 1;
-      if (page >= pages) break;
-      page += 1;
-    }
-    return { feedbacks: all };
-  };
-
-  const { data, error, isLoading } = useSWR(
-    ['feedback/submissions', statusFilter, categoryFilter],
-    async () => {
-      const status = statusFilter === 'all' ? null : statusFilter;
-      const category = categoryFilter === 'all' ? null : categoryFilter;
-      return fetchAllFeedbacks({ status, category });
+  const fetchAllFeedbacks = useCallback(
+    async (
+      opts: { status?: string | null; category?: string | null },
+      signal: AbortSignal
+    ) => {
+      const limit = 100;
+      let page = 1;
+      let all: FeedbackSubmission[] = [];
+      while (true) {
+        const res = await feedbackService.getFeedbackSubmissions(
+          {
+            page,
+            limit,
+            status: opts.status || undefined,
+            category: opts.category || undefined,
+          },
+          signal
+        );
+        all = all.concat(res.feedbacks || []);
+        const pages = res.meta?.pages ?? 1;
+        if (page >= pages) break;
+        page += 1;
+      }
+      return { feedbacks: all };
     },
+    []
+  );
+
+  const listFetcher = useCallback(
+    (signal: AbortSignal) => {
+      const status = statusFilter === 'all' ? null : statusFilter;
+      const listStatus = status === 'open' ? null : status;
+      const category = categoryFilter === 'all' ? null : categoryFilter;
+      return fetchAllFeedbacks({ status: listStatus, category }, signal);
+    },
+    [categoryFilter, fetchAllFeedbacks, statusFilter]
+  );
+  const { fetcher: fetchFeedbackList } = useAbortableFetcher(listFetcher);
+
+  const {
+    data,
+    error: submissionError,
+    isLoading,
+  } = useSWR(
+    ['feedback/submissions', statusFilter, categoryFilter],
+    fetchFeedbackList,
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
+
+  const statsFetcher = useCallback(
+    (signal: AbortSignal) =>
+      feedbackService.getFeedbackStats(
+        { app: appFilter === 'all' ? undefined : appFilter },
+        signal
+      ),
+    [appFilter]
+  );
+  const { fetcher: fetchFeedbackStats } = useAbortableFetcher(statsFetcher);
+
+  const {
+    data: stats,
+    error: rawStatsError,
+    isLoading: statsLoading,
+  } = useSWR(['feedback/stats', appFilter], fetchFeedbackStats, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    errorRetryCount: 0,
+  });
+
+  const error = isAbortError(submissionError) ? undefined : submissionError;
+  const statsError = isAbortError(rawStatsError) ? undefined : rawStatsError;
 
   const feedbacks = useMemo(() => data?.feedbacks || [], [data?.feedbacks]);
 
   const filteredFeedbacks = useMemo(() => {
     return feedbacks.filter(feedback => {
       const matchesStatus =
-        statusFilter === 'all' || feedback.status === statusFilter;
+        statusFilter === 'all' ||
+        (statusFilter === 'open'
+          ? feedback.status === 'pending' || feedback.status === 'reviewed'
+          : feedback.status === statusFilter);
       const matchesCategory =
         categoryFilter === 'all' || feedback.category === categoryFilter;
       const matchesApp = appFilter === 'all' || feedback.app === appFilter;
@@ -178,28 +247,6 @@ const FeedbackListContent: React.FC = () => {
       return next.size === prev.size ? prev : next;
     });
   }, [tableData]);
-
-  const statusCounts = useMemo(() => {
-    return filteredFeedbacks.reduce(
-      (counts, feedback) => {
-        counts.total += 1;
-        if (feedback.status === 'pending') counts.pending += 1;
-        if (feedback.status === 'reviewed') counts.reviewed += 1;
-        if (feedback.status === 'resolved') counts.resolved += 1;
-        if (feedback.status === 'archived') counts.archived += 1;
-        if (feedback.actionable) counts.actionable += 1;
-        return counts;
-      },
-      {
-        total: 0,
-        pending: 0,
-        reviewed: 0,
-        resolved: 0,
-        archived: 0,
-        actionable: 0,
-      }
-    );
-  }, [filteredFeedbacks]);
 
   const handleViewFeedback = useCallback(
     (feedbackId: string) => {
@@ -240,9 +287,8 @@ const FeedbackListContent: React.FC = () => {
       try {
         await globalMutate(
           (key: unknown) =>
-            Array.isArray(key) && key[0] === 'feedback/submissions',
-          undefined,
-          { revalidate: true }
+            Array.isArray(key) &&
+            (key[0] === 'feedback/submissions' || key[0] === 'feedback/stats')
         );
       } catch {
         // swallow
@@ -325,13 +371,20 @@ const FeedbackListContent: React.FC = () => {
         minWidth: '200px',
         maxWidth: '240px',
         cellClassName: 'whitespace-nowrap',
-        render: (value: unknown) => (
-          <span
-            className="block truncate text-sm text-muted-foreground"
-            title={String(value)}
-          >
-            {String(value)}
-          </span>
+        render: (value: unknown, item: FeedbackRow) => (
+          <div className="flex items-center gap-2">
+            <span
+              className="block max-w-[180px] truncate text-sm text-muted-foreground"
+              title={String(value)}
+            >
+              {String(value)}
+            </span>
+            {item.contact_consent === false && (
+              <span className="inline-flex shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                No contact
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -361,46 +414,45 @@ const FeedbackListContent: React.FC = () => {
 
   const summaryCards = [
     {
-      title: 'Total',
-      value: statusCounts.total,
-      description: 'All feedback submissions',
+      title: 'Open actionable',
+      value: stats?.feedback.open_actionable,
+      description: 'Pending or reviewed and needs follow-up',
     },
     {
-      title: 'Actionable',
-      value: statusCounts.actionable,
-      description: 'Require follow-up',
+      title: 'Stale',
+      value: stats?.feedback.stale_actionable,
+      description: `Pending over ${stats?.feedback.stale_threshold_days ?? '—'} days`,
     },
     {
-      title: 'Pending',
-      value: statusCounts.pending,
-      description: 'Need review',
+      title: 'Unassigned open',
+      value: stats?.feedback.unassigned_open,
+      description: 'Open items without an owner',
     },
     {
-      title: 'Reviewed',
-      value: statusCounts.reviewed,
-      description: 'Seen by the team',
+      title: 'Resolution rate',
+      value: formatRate(stats?.feedback.resolution_rate),
+      description: 'Resolved as a share of all feedback',
     },
     {
-      title: 'Resolved',
-      value: statusCounts.resolved,
-      description: 'Closed out',
-    },
-    {
-      title: 'Archived',
-      value: statusCounts.archived,
-      description: 'Hidden from active lists',
+      title: 'Reply rate',
+      value: formatRate(stats?.feedback.reply_rate),
+      description: 'Items with at least one admin reply',
     },
   ];
+
+  if (isForbiddenError(error) || isForbiddenError(statsError)) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message="You do not have the required permissions to view feedback submissions."
+      />
+    );
+  }
 
   return isLoading ? (
     <LoadingState
       className="min-h-[400px]"
       text="Loading feedback submissions..."
-    />
-  ) : isForbiddenError(error) ? (
-    <AccessDenied
-      title="Access Denied"
-      message="You do not have the required permissions to view feedback submissions."
     />
   ) : error ? (
     <Card className="p-6">
@@ -420,7 +472,7 @@ const FeedbackListContent: React.FC = () => {
           <Card key={card.title} className="p-4">
             <p className="text-sm text-muted-foreground">{card.title}</p>
             <p className="mt-2 text-2xl font-semibold text-foreground">
-              {card.value}
+              {statsLoading ? '…' : statsError ? '—' : (card.value ?? '—')}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               {card.description}
@@ -428,6 +480,216 @@ const FeedbackListContent: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {statsError ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          Feedback metrics could not be loaded:{' '}
+          {getUserFriendlyErrorMessage(statsError)}
+        </p>
+      ) : null}
+
+      <section
+        aria-labelledby="page-satisfaction-heading"
+        className="space-y-4"
+      >
+        <div>
+          <h2
+            id="page-satisfaction-heading"
+            className="text-lg font-semibold text-foreground"
+          >
+            Satisfaction
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Page ratings are tracked separately from feedback items.
+          </p>
+        </div>
+
+        {statsLoading ? (
+          <Card className="p-6 text-sm text-muted-foreground">
+            Loading satisfaction metrics…
+          </Card>
+        ) : statsError ? (
+          <Card className="p-6 text-sm text-muted-foreground">
+            Satisfaction metrics are unavailable right now.
+          </Card>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                {
+                  label: 'Submissions',
+                  value: stats?.page_satisfaction?.submissions ?? 0,
+                },
+                {
+                  label: 'Average rating',
+                  value: formatRating(stats?.page_satisfaction?.average_rating),
+                },
+                {
+                  label: 'Satisfied',
+                  value: formatRate(
+                    stats?.page_satisfaction?.satisfaction_rate
+                  ),
+                },
+              ].map(metric => (
+                <Card key={metric.label} className="p-4">
+                  <p className="text-sm text-muted-foreground">
+                    {metric.label}
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    {metric.value}
+                  </p>
+                </Card>
+              ))}
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+              <Card className="p-4 xl:col-span-2">
+                <h3 className="font-medium text-foreground">Daily trend</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Average rating and satisfaction rate by day
+                </p>
+                {stats?.page_satisfaction?.daily?.length ? (
+                  <div
+                    className="mt-4 h-[280px]"
+                    aria-label="Satisfaction daily trend chart"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={stats.page_satisfaction.daily}
+                        margin={{ top: 12, right: 12, bottom: 4, left: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="day"
+                          tickFormatter={formatDay}
+                          minTickGap={24}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis
+                          yAxisId="rating"
+                          domain={[0, 5]}
+                          width={32}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis
+                          yAxisId="satisfaction"
+                          orientation="right"
+                          domain={[0, 100]}
+                          width={38}
+                          tickFormatter={value => `${value}%`}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <Tooltip
+                          labelFormatter={value => formatDay(String(value))}
+                        />
+                        <Legend />
+                        <Line
+                          yAxisId="rating"
+                          type="monotone"
+                          dataKey="average_rating"
+                          name="Average rating"
+                          stroke="#2563eb"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls={false}
+                        />
+                        <Line
+                          yAxisId="satisfaction"
+                          type="monotone"
+                          dataKey="satisfaction_rate"
+                          name="Satisfied"
+                          stroke="#059669"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="mt-8 text-sm text-muted-foreground">
+                    No daily satisfaction ratings are available for this app.
+                  </p>
+                )}
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="font-medium text-foreground">
+                  Lowest-rated pages
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pages with enough ratings to be ranked
+                </p>
+                {stats?.page_satisfaction?.lowest_rated_pages?.length ? (
+                  <ul className="mt-4 divide-y divide-border">
+                    {stats.page_satisfaction.lowest_rated_pages.map(
+                      (page, index) => (
+                        <li
+                          key={`${page.app ?? 'app'}-${page.page ?? index}`}
+                          className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {page.page || 'Unnamed page'}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {page.app || 'Unknown app'} ·{' '}
+                              {page.rated_count ?? page.submissions ?? 0}{' '}
+                              ratings
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-sm font-semibold text-foreground">
+                            {formatRating(page.average_rating)}
+                          </span>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : (
+                  <p className="mt-6 text-sm text-muted-foreground">
+                    No pages meet the minimum rating count yet.
+                  </p>
+                )}
+              </Card>
+
+              <Card className="p-4 xl:col-span-3">
+                <h3 className="font-medium text-foreground">Ratings by app</h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {stats?.page_satisfaction?.by_app?.length ? (
+                    stats.page_satisfaction.by_app.map((app, index) => (
+                      <div
+                        key={`${app.app ?? 'app'}-${index}`}
+                        className="flex items-center justify-between gap-4 rounded-md border p-3"
+                      >
+                        <div>
+                          <p className="font-medium capitalize text-foreground">
+                            {app.app || 'Unknown app'}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {app.rated_count ?? app.submissions ?? 0} ratings
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-foreground">
+                            {formatRating(app.average_rating)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatRate(app.satisfaction_rate)} satisfied
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Ratings by app are not available.
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </>
+        )}
+      </section>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Select
@@ -488,6 +750,24 @@ const FeedbackListContent: React.FC = () => {
           ))}
         </Select>
       </div>
+
+      <Button
+        variant="ghost"
+        disabled={
+          statusFilter === 'all' &&
+          categoryFilter === 'all' &&
+          appFilter === 'all' &&
+          actionableFilter === 'all'
+        }
+        onClick={() => {
+          setStatusFilter('all');
+          setCategoryFilter('all');
+          setAppFilter('all');
+          setActionableFilter('all');
+        }}
+      >
+        Clear filters
+      </Button>
 
       {selectedIds.size > 0 && (
         <Card className="flex flex-wrap items-center gap-4 p-4">

@@ -9,6 +9,8 @@ import type {
   GetFeedbackSubmissionResponse,
   GetFeedbackSubmissionsResponse,
   GetFeedbackStaffResponse,
+  FeedbackStatsData,
+  FeedbackStatsResponse,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
   UpdateFeedbackStatusResponse,
@@ -40,6 +42,10 @@ interface FeedbackQueryParams {
   search?: string;
 }
 
+interface FeedbackStatsQueryParams {
+  app?: string;
+}
+
 const extractResponseData = <T extends { success?: boolean; message?: string }>(
   data: T,
   fallbackMessage: string
@@ -63,7 +69,8 @@ export class FeedbackService {
   }
 
   async getFeedbackSubmissions(
-    params: FeedbackQueryParams = {}
+    params: FeedbackQueryParams = {},
+    signal?: AbortSignal
   ): Promise<GetFeedbackSubmissionsResponse> {
     await this.ensureAuthenticated();
 
@@ -71,6 +78,7 @@ export class FeedbackService {
       GetFeedbackSubmissionsResponse | ApiErrorResponse
     >('/users/feedback/submissions', {
       params,
+      signal,
     });
 
     return extractResponseData(
@@ -105,6 +113,25 @@ export class FeedbackService {
       response.data as GetFeedbackStaffResponse,
       'Failed to load feedback staff'
     );
+  }
+
+  async getFeedbackStats(
+    params: FeedbackStatsQueryParams = {},
+    signal?: AbortSignal
+  ): Promise<FeedbackStatsData> {
+    await this.ensureAuthenticated();
+
+    const response = await this.authenticatedClient.get<FeedbackStatsResponse>(
+      '/users/feedback/stats',
+      { params, signal }
+    );
+    const payload = response.data.feedback_stats ?? response.data.data;
+
+    if (response.data.success === false || !payload?.feedback) {
+      throw new Error('Failed to load feedback stats');
+    }
+
+    return payload;
   }
 
   async submitFeedback(

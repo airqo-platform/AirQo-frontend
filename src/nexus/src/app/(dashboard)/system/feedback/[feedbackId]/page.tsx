@@ -24,6 +24,7 @@ import { Input } from '@/shared/components/ui/input';
 import { RichTextEditor } from '@/shared/components/ui/rich-text-editor';
 import { AqArrowLeft } from '@airqo/icons-react';
 import { feedbackService } from '@/modules/feedback';
+import { shouldEmailSubmitter } from '@/modules/feedback/utils/feedbackPolicy';
 import DOMPurify from 'dompurify';
 import { toast } from '@/shared/components/ui/toast';
 import {
@@ -130,6 +131,7 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
   const { mutate: globalMutate } = useSWRConfig();
   const [isUpdating, setIsUpdating] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [nextStatus, setNextStatus] = useState('');
 
   const [replyMessage, setReplyMessage] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
@@ -264,6 +266,15 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     );
   }, [feedback]);
 
+  const selectedNextStatus = allowedStatusOptions.some(
+    status => status === nextStatus
+  )
+    ? nextStatus
+    : (allowedStatusOptions[0] ?? '');
+  const willEmailSubmitter = feedback
+    ? shouldEmailSubmitter(feedback, selectedNextStatus)
+    : false;
+
   const rating = Math.max(0, Math.min(5, Number(feedback?.rating || 0)));
   const headingSubtitle = `Submitted by ${feedback?.email || '--'} on ${formatDateTime(
     feedback?.createdAt || new Date().toISOString()
@@ -273,7 +284,11 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
     try {
       await Promise.allSettled([
         refreshFeedback(),
-        globalMutate('feedback/submissions'),
+        globalMutate((key: unknown) =>
+          Array.isArray(key)
+            ? key[0] === 'feedback/submissions' || key[0] === 'feedback/stats'
+            : false
+        ),
       ]);
     } catch {
       // swallow
@@ -315,7 +330,29 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
       setReplyMessage('');
       await refreshAll();
     } catch (replyError) {
-      toast.error(getUserFriendlyErrorMessage(replyError));
+      const conflictStatus = (
+        replyError as { response?: { status?: number } } | null | undefined
+      )?.response?.status;
+
+      if (conflictStatus === 409) {
+        // 409 here means the submitter declined contact, not a duplicate
+        // record — the generic 409 mapping would be misleading. Prefer the
+        // API message, fall back to the canonical product copy, and
+        // revalidate so the stale `contact_consent` state catches up and
+        // the reply UI disables itself.
+        const responseData = (
+          replyError as { response?: { data?: { message?: unknown } } } | null
+        )?.response?.data;
+        const apiMessage =
+          typeof responseData?.message === 'string' &&
+          responseData.message.trim().length > 0
+            ? responseData.message
+            : 'The submitter asked not to be contacted about this feedback.';
+        toast.error(apiMessage);
+        await refreshAll();
+      } else {
+        toast.error(getUserFriendlyErrorMessage(replyError));
+      }
     } finally {
       setIsSendingReply(false);
     }
@@ -496,6 +533,10 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
                 valueClassName="break-all font-medium"
               >
                 {feedback.email}
+                <p className="mt-1 text-xs font-normal text-muted-foreground">
+                  Contact:{' '}
+                  {feedback.contact_consent === false ? 'declined' : 'allowed'}
+                </p>
               </DetailPanel>
               <DetailPanel label="Submitted" valueClassName="font-medium">
                 {formatDateTime(feedback.createdAt)}
@@ -566,20 +607,41 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               </span>
             </DetailPanel>
 
-            <div className="grid gap-2">
-              {allowedStatusOptions.map(status => (
-                <Button
-                  key={status}
-                  variant="outlined"
-                  loading={isUpdating && pendingStatus === status}
+            {allowedStatusOptions.length > 0 ? (
+              <div className="space-y-3">
+                <Select
+                  label="Move to"
+                  value={selectedNextStatus}
+                  onChange={event => setNextStatus(String(event.target.value))}
                   disabled={isUpdating}
-                  onClick={() => void handleUpdateStatus(status)}
+                >
+                  {allowedStatusOptions.map(status => (
+                    <option key={status} value={status}>
+                      {STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </Select>
+                <p className="text-xs text-muted-foreground" role="status">
+                  {willEmailSubmitter
+                    ? 'The submitter will be emailed about this change.'
+                    : "The submitter won't be emailed about this change."}{' '}
+                  Watchers will still be notified.
+                </p>
+                <Button
+                  variant="outlined"
+                  loading={isUpdating && pendingStatus === selectedNextStatus}
+                  disabled={isUpdating || !selectedNextStatus}
+                  onClick={() => void handleUpdateStatus(selectedNextStatus)}
                   fullWidth
                 >
-                  Move to {STATUS_LABELS[status]}
+                  Update status
                 </Button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No status changes are available for this item.
+              </p>
+            )}
           </div>
         </Card>
       </div>
@@ -690,11 +752,23 @@ const FeedbackDetailsContent: React.FC<{ feedbackId: string }> = ({
               onChange={setReplyMessage}
               placeholder="Type your reply..."
               label="Reply message"
+              disabled={feedback.contact_consent === false}
             />
+
+            {feedback.contact_consent === false ? (
+              <p
+                className="text-sm text-amber-700 dark:text-amber-300"
+                role="status"
+              >
+                The submitter asked not to be contacted.
+              </p>
+            ) : null}
 
             <Button
               loading={isSendingReply}
-              disabled={isHtmlEmpty(replyMessage)}
+              disabled={
+                feedback.contact_consent === false || isHtmlEmpty(replyMessage)
+              }
               onClick={() => void handleSendReply()}
             >
               Send reply
