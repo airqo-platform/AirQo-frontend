@@ -4,16 +4,15 @@ import React, { useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
 import {
-  getAirQualityInfo,
   getAirQualityColor,
+  getUsAqiIndexConfig,
+  getUsAqiInfo,
 } from '@/shared/utils/airQuality';
 import { formatRoundedNumber } from '@/shared/lib/utils';
 
 interface AqiGaugeProps {
-  /** PM2.5 concentration value (µg/m³) — used to compute the AQI level */
+  /** AQI index returned by the readings API (0-500 US AQI scale). */
   value?: number | null;
-  /** Pollutant key for computing the AQI level */
-  pollutant?: 'pm2_5' | 'pm10';
   /** Freshness label (e.g. "Updated 5 minutes ago") */
   freshness?: string;
   className?: string;
@@ -71,19 +70,22 @@ const MAX_AQI = 500;
  */
 export const AqiGauge: React.FC<AqiGaugeProps> = ({
   value,
-  pollutant = 'pm2_5',
   freshness,
   className,
 }) => {
-  const { config: aqiConfig } = useAqiConfig(pollutant);
+  const { config } = useAqiConfig('pm2_5');
+  const aqiConfig = useMemo(() => getUsAqiIndexConfig(config), [config]);
 
   const hasValue =
-    value !== null && value !== undefined && Number.isFinite(value);
+    value !== null &&
+    value !== undefined &&
+    Number.isFinite(value) &&
+    value >= 0;
 
   const airInfo = useMemo(() => {
     if (!hasValue) return null;
-    return getAirQualityInfo(value!, pollutant, 'WHO', aqiConfig);
-  }, [value, pollutant, aqiConfig, hasValue]);
+    return getUsAqiInfo(value!, aqiConfig);
+  }, [value, aqiConfig, hasValue]);
 
   const categoryColor = useMemo(() => {
     if (airInfo) return getAirQualityColor(airInfo.level, aqiConfig ?? null);

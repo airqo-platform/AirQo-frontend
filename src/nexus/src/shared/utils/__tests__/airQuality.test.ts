@@ -5,6 +5,9 @@ import {
   getAirQualityIconForRangeKey,
   getAirQualityLevelForRangeKey,
   getAirQualityInfo,
+  getUsAqiIndexConfig,
+  getUsAqiInfo,
+  getUsAqiLevel,
   mapAqiCategoryToLevel,
   getPollutantLabel,
   setActiveAqiConfig,
@@ -215,6 +218,38 @@ describe('airQuality', () => {
     it('returns no-value level for null input', () => {
       const info = getAirQualityInfo(null);
       expect(info.level).toBe('no-value');
+    });
+  });
+
+  describe('US AQI index helpers', () => {
+    it('classifies the numeric index using US AQI index bands', () => {
+      expect(getUsAqiLevel(22)).toBe('good');
+      expect(getUsAqiLevel(75)).toBe('moderate');
+      expect(getUsAqiLevel(125)).toBe('unhealthy-sensitive-groups');
+      expect(getUsAqiLevel(500)).toBe('hazardous');
+      expect(getUsAqiLevel(null)).toBe('no-value');
+    });
+
+    it('derives the category from the AQI index and uses configured labels', () => {
+      const info = getUsAqiInfo(75, TEST_AQI_CONFIG);
+
+      expect(info?.level).toBe('moderate');
+      expect(info?.label).toBe('Moderate');
+    });
+
+    it('converts concentration ranges to AQI index ranges for the gauge', () => {
+      const indexConfig = getUsAqiIndexConfig(TEST_AQI_CONFIG);
+
+      expect(
+        indexConfig?.ranges.map(range => [range.min_value, range.max_value])
+      ).toEqual([
+        [0, 50],
+        [51, 100],
+        [101, 150],
+        [151, 200],
+        [201, 300],
+        [301, 500],
+      ]);
     });
   });
 

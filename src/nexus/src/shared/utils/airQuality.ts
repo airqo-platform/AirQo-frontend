@@ -43,7 +43,11 @@ export type AirQualityLevel =
 export type PollutantType = AqiPollutant;
 
 export type StandardsOrganization =
-  'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' | 'SOUTH_AFRICA' | 'NIGERIA';
+  | 'WHO'
+  | 'NEMA_UGANDA'
+  | 'NEMA_KENYA'
+  | 'SOUTH_AFRICA'
+  | 'NIGERIA';
 
 export interface AirQualityStandard {
   level: string;
@@ -1084,4 +1088,91 @@ export const EPA_AQI_CATEGORIES: Record<'pm2_5' | 'pm10', EpaAqiCategory[]> = {
       aqiMax: null,
     },
   ],
+};
+
+/**
+ * Classify an AQI index using the US EPA index bands. These index bands are
+ * distinct from the pollutant concentration ranges used by the shared AQI
+ * configuration.
+ */
+export const getUsAqiLevel = (
+  aqiIndex: number | null | undefined
+): AirQualityLevel => {
+  if (
+    typeof aqiIndex !== 'number' ||
+    !Number.isFinite(aqiIndex) ||
+    aqiIndex < 0
+  ) {
+    return 'no-value';
+  }
+
+  const category = EPA_AQI_CATEGORIES.pm2_5.find(
+    ({ aqiMin, aqiMax }) =>
+      aqiIndex >= aqiMin && (aqiMax === null || aqiIndex <= aqiMax)
+  );
+
+  return category ? getAirQualityLevelForRangeKey(category.key) : 'no-value';
+};
+
+/**
+ * Build an AQI configuration on the US index scale (0–500), preserving the
+ * shared configured labels and colors. The API configuration's range bounds
+ * describe pollutant concentrations and must not be used to position an AQI
+ * index marker.
+ */
+export const getUsAqiIndexConfig = (
+  config: AqiConfig | null | undefined
+): AqiConfig | null => {
+  if (!config) return null;
+
+  return {
+    ...config,
+    ranges: EPA_AQI_CATEGORIES.pm2_5.map((category, index) => {
+      const configuredRange = config.ranges.find(
+        range => range.key === category.key
+      );
+
+      return {
+        key: category.key,
+        label: configuredRange?.label ?? category.label,
+        min_value: category.aqiMin,
+        max_value: category.aqiMax ?? 500,
+        color: configuredRange?.color ?? '',
+        color_name: configuredRange?.color_name,
+        display_order: index + 1,
+      };
+    }),
+  };
+};
+
+/**
+ * Interpret the API's numeric AQI index using the US EPA index bands.
+ */
+export const getUsAqiInfo = (
+  aqiIndex: number | null | undefined,
+  config: AqiConfig | null = null
+): AirQualityInfo | null => {
+  if (
+    typeof aqiIndex !== 'number' ||
+    !Number.isFinite(aqiIndex) ||
+    aqiIndex < 0
+  ) {
+    return null;
+  }
+
+  const level = getUsAqiLevel(aqiIndex);
+  if (level === 'no-value') return null;
+
+  const epaCategory = EPA_AQI_CATEGORIES.pm2_5.find(
+    item => getAirQualityLevelForRangeKey(item.key) === level
+  );
+
+  return {
+    level,
+    label:
+      getAqiRangeForLevel(level, config)?.label ??
+      epaCategory?.label ??
+      'No Data',
+    icon: getAirQualityIcon(level),
+  };
 };
