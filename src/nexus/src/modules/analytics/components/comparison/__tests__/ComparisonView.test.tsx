@@ -422,6 +422,11 @@ describe('ComparisonView integration (saved comparisons)', () => {
 
     // ...its readings render in the table...
     expect(await screen.findByText('72')).toBeInTheDocument();
+    for (const label of ['PM2.5 (µg/m³)', 'PM10 (µg/m³)', 'NO2 (µg/m³)']) {
+      const header = (await screen.findByText(label)).closest('th');
+      expect(header).toHaveClass('normal-case');
+      expect(header).not.toHaveClass('uppercase');
+    }
 
     // ...and the header chip shows "Saved · <name>".
     expect(await screen.findByText('Saved · Recent Pick')).toBeInTheDocument();

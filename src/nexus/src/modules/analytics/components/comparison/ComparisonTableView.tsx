@@ -222,6 +222,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       {
         key: 'pm2_5',
         label: 'PM2.5 (µg/m³)',
+        headerClassName: 'normal-case',
         cellClassName: 'tabular-nums text-foreground',
         render: (value: unknown) => (
           <PollutantCell
@@ -234,6 +235,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       {
         key: 'pm10',
         label: 'PM10 (µg/m³)',
+        headerClassName: 'normal-case',
         cellClassName: 'tabular-nums text-foreground',
         render: (value: unknown) => (
           <PollutantCell
@@ -246,7 +248,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       {
         key: 'no2',
         label: 'NO2 (µg/m³)',
-        headerClassName: 'hidden sm:table-cell',
+        headerClassName: 'hidden sm:table-cell normal-case',
         cellClassName: 'hidden sm:table-cell tabular-nums text-foreground',
         render: (value: unknown) =>
           formatPollutantCell(typeof value === 'number' ? value : null),

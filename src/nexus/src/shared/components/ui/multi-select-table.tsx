@@ -1216,13 +1216,15 @@ const MultiSelectTable = <T extends TableItem>({
                     {displayColumns.map(column => (
                       <th
                         key={column.key}
-                        className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
+                        className={cn(
+                          'py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground',
                           column.key === 'checkbox'
                             ? 'w-12 max-w-[3rem] px-2 sm:px-3'
                             : compactRows
                               ? 'px-2 sm:px-4 md:px-6 max-w-none'
-                              : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                        } ${column.headerClassName || ''}`}
+                              : 'px-2 sm:px-4 md:px-6 max-w-[300px]',
+                          column.headerClassName
+                        )}
                         style={
                           column.key !== 'checkbox'
                             ? {
