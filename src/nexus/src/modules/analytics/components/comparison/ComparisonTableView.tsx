@@ -142,7 +142,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
    * rows exist, so the action is discoverable even in the empty state.
    */
   const renderHeaderBar = () => (
-    <div className="flex w-full items-center justify-between gap-2 border-b border-border/50 px-4 py-2">
+    <div className="flex w-full items-center justify-between gap-2 px-4 py-2">
       {onSiteClick && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <HiInformationCircle
@@ -368,6 +368,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       onRefresh={onRetry}
       customHeader={renderHeaderBar()}
       searchActions={searchActions}
+      searchable={false}
       searchableColumns={['siteName']}
       multiSelect
       selectedItems={selectedSiteIds}
