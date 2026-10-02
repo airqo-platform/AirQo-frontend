@@ -794,7 +794,7 @@ export class AnalyticsService {
       // the range ("too wide", a month it cannot process) where a status code
       // only tells us something failed. Only when it said nothing is this a
       // genuine no-data outcome, and then the copy says so.
-      throw lastWindowError
+      throw lastWindowError && readServerMessage(lastWindowError)
         ? createReportError(lastWindowError)
         : createReportError(null, NO_REPORT_DATA_MESSAGE);
     }
