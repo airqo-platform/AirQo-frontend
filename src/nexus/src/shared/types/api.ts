@@ -431,6 +431,8 @@ export interface FeedbackSubmission {
   metadata?: FeedbackSubmissionMetadata;
   tenant?: string;
   actionable?: boolean;
+  /** Older submissions omit this field and should be treated as consented. */
+  contact_consent?: boolean;
   adminNotes?: string | null;
   replies?: FeedbackReply[];
   assignedTo?: FeedbackAssignedUser | null;
@@ -479,6 +481,65 @@ export interface GetFeedbackSubmissionResponse {
   feedback: FeedbackSubmission;
 }
 
+export interface FeedbackStatsSummary {
+  total?: number;
+  actionable?: number;
+  pending?: number;
+  reviewed?: number;
+  resolved?: number;
+  archived?: number;
+  open?: number;
+  open_actionable?: number;
+  unassigned_open?: number;
+  stale_actionable?: number;
+  stale_threshold_days?: number;
+  new_last_7_days?: number;
+  replied?: number;
+  resolution_rate?: number | null;
+  reply_rate?: number | null;
+}
+
+export interface PageSatisfactionDailyPoint {
+  day: string;
+  submissions?: number;
+  rated_count?: number;
+  average_rating?: number | null;
+  satisfaction_rate?: number | null;
+}
+
+export interface PageSatisfactionRanking {
+  page?: string;
+  app?: string;
+  platform?: string;
+  submissions?: number;
+  rated_count?: number;
+  average_rating?: number | null;
+  satisfaction_rate?: number | null;
+}
+
+export interface PageSatisfactionStats {
+  submissions?: number;
+  rated_count?: number;
+  average_rating?: number | null;
+  satisfaction_rate?: number | null;
+  lowest_rated_pages?: PageSatisfactionRanking[];
+  by_app?: PageSatisfactionRanking[];
+  daily?: PageSatisfactionDailyPoint[];
+}
+
+export interface FeedbackStatsData {
+  feedback: FeedbackStatsSummary;
+  page_satisfaction?: PageSatisfactionStats;
+}
+
+/** The staging API has used both documented envelope shapes. */
+export interface FeedbackStatsResponse {
+  success: boolean;
+  message?: string;
+  feedback_stats?: FeedbackStatsData;
+  data?: FeedbackStatsData;
+}
+
 export interface SubmitFeedbackRequest {
   email: string;
   subject: string;
@@ -487,6 +548,7 @@ export interface SubmitFeedbackRequest {
   category: string;
   app?: string;
   platform: string;
+  contact_consent?: boolean;
   screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
 }

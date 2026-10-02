@@ -68,23 +68,33 @@ If a secret is compromised, an administrator can regenerate it from the admin pa
 
 ### What it is
 
-IP whitelisting lets you restrict which source IP addresses are allowed to call the API using a given client's token.
+AirQo automatically blocks API requests from IP addresses that look risky, including many cloud and data-centre ranges, even when the token is valid. This protects you if your token leaks.
+
+The **IP Addresses** list on an API client tells AirQo which addresses are yours. Requests made from a listed address with that client's tokens are never blocked because of their IP, and they don't trigger security alert emails.
+
+:::note What the list does not do
+The list exempts your servers from automatic blocking. It does **not** reject requests from addresses that aren't listed: those go through the normal automatic checks. To stop a leaked token from being used elsewhere, combine it with a [client secret](#client-secret-x-client-secret-header) and rotate the token.
+:::
 
 ### When to use it
 
-This is a useful extra layer of access control for server-side integrations, alongside your access token. Configure it whenever your servers have a known, stable set of egress IPs.
+Add your server's IP addresses whenever you call the API from a server, scheduled job or cloud platform, and especially if you have received a security alert email or your requests are being blocked.
 
 ### How to configure it
 
 1. Go to **Profile → API** in [nexus.airqo.net](https://nexus.airqo.net).
-2. Click the **Edit** (pencil) icon on the relevant client.
-3. Add each public IP address your server uses under **IP Addresses**.
-4. Click **Update** to save.
+2. Click the **Edit** (pencil) icon on the client that owns the token.
+3. Add each public IP address your server uses under **IP Addresses**. To find it, run `curl https://ifconfig.me` on the server itself.
+4. Click **Update** to save. The change takes effect immediately.
 
-You can add multiple IP addresses to a single client — add all egress IPs your application may use (including load balancers and NAT gateways).
+Rules:
+
+- Enter **exact addresses** (IPv4 or IPv6). Ranges and CIDR blocks are not supported.
+- Addresses apply to **that client's tokens only**. Add them to each client you use from that server.
+- Addresses on a client that is still awaiting approval take effect once it is approved.
 
 :::note Dynamic IPs
-If your servers use dynamic or ephemeral IP addresses (e.g. auto-scaling cloud instances), route all API traffic through a static NAT gateway or egress proxy so you can maintain a stable whitelist.
+If your servers use dynamic or ephemeral IP addresses (serverless functions, containers, auto-scaling instances, hosted CI), allowlisting today's address won't cover tomorrow's. Route all API traffic through a static NAT gateway or egress proxy, and add that one address. See [Troubleshooting blocked requests →](../reference/blocked-requests.md#if-your-ip-address-keeps-changing) for platform-specific options.
 :::
 
 ---
@@ -95,7 +105,7 @@ If your servers use dynamic or ephemeral IP addresses (e.g. auto-scaling cloud i
 
 Origin restriction limits browser-based requests to specific domain origins. When enabled on a client, the API checks the `Origin` header of incoming requests and rejects any that do not match an entry in the client's allowed-origins list.
 
-This is the browser-equivalent of IP whitelisting: it prevents other websites from making API requests using your token.
+Use it for browser-based integrations: it prevents other websites from making API requests using your token.
 
 ### How to configure it
 
@@ -201,7 +211,11 @@ AirQo monitors request patterns on each token. If suspicious activity is detecte
 
 :::warning Investigate before reinstating
 Before reinstating a suspended token, review your logs to understand whether the flagged activity was expected. If the suspension was caused by a genuine security incident (leaked token, compromised service), rotate the token instead of reinstating it.
+
+If the suspension was caused by your own servers calling from changing or unlisted IP addresses, add those addresses to the client (see [IP whitelisting](#ip-whitelisting)) **before** reinstating. Otherwise the token will be suspended again.
 :::
+
+A suspended token is rejected from every IP address, including allowlisted ones. For a step-by-step diagnosis, see [Troubleshooting blocked requests →](../reference/blocked-requests.md).
 
 ---
 
@@ -228,7 +242,7 @@ Use this checklist when setting up or auditing an API client:
 
 - [ ] Access token stored in an environment variable or secrets manager — not in code
 - [ ] **Client Secret enabled** and stored securely for all server-side clients
-- [ ] Server egress IPs whitelisted on the client
+- [ ] Server's public egress IP(s) added to the client's IP Addresses (static IP or NAT gateway if running on serverless/autoscaling infrastructure)
 - [ ] Origin restriction enabled with an explicit allowlist for browser-based clients
 - [ ] Token scoped to the minimum required Grids and Cohorts
 - [ ] Access schedule configured if the integration has defined operating hours
@@ -239,6 +253,7 @@ Use this checklist when setting up or auditing an API client:
 
 ## Next steps
 
+- [Troubleshooting blocked requests →](../reference/blocked-requests.md)
 - [Best Practices →](../reference/best-practices.md)
 - [Make your first API call →](./quick-start.md)
 - [Finding IDs →](../reference/finding-ids.md)

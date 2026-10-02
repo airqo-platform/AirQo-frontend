@@ -7,7 +7,7 @@ import { Rating, Star } from '@smastrom/react-rating';
 import { AqMonitor03, AqTrash01, AqUploadCloud01 } from '@airqo/icons-react';
 import { FiCheck, FiEdit2, FiRotateCcw, FiX, FiZoomIn } from 'react-icons/fi';
 import { useUser } from '@/shared/hooks/useUser';
-import { Button, Select, TextInput } from '@/shared/components/ui';
+import { Button, Checkbox, Select, TextInput } from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -20,14 +20,10 @@ import {
 } from '@/shared/utils/cloudinaryUpload';
 import { feedbackService } from '../services/feedbackService';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from '../utils/feedbackDialog';
-
-type FeedbackCategory =
-  | 'general'
-  | 'bug'
-  | 'feature_request'
-  | 'performance'
-  | 'ux_design'
-  | 'other';
+import {
+  getContactConsentDefault,
+  type FeedbackCategory,
+} from '../utils/feedbackPolicy';
 
 interface Rect {
   x: number;
@@ -475,6 +471,8 @@ export const FeedbackLauncher: React.FC = () => {
   const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [category, setCategory] = useState<FeedbackCategory>('bug');
+  const [contactConsent, setContactConsent] = useState(true);
+  const [consentTouched, setConsentTouched] = useState(false);
   const [rating, setRating] = useState<number>(3);
   const [message, setMessage] = useState('');
   const [rawDataUrl, setRawDataUrl] = useState<string | null>(null);
@@ -533,6 +531,8 @@ export const FeedbackLauncher: React.FC = () => {
 
     const nextDefaults = resetFormState();
     setCategory(nextDefaults.category);
+    setContactConsent(getContactConsentDefault(nextDefaults.category));
+    setConsentTouched(false);
     setRating(nextDefaults.rating);
     setMessage(nextDefaults.message);
     setScreenshotFile(null);
@@ -845,11 +845,16 @@ export const FeedbackLauncher: React.FC = () => {
         category,
         app: FEEDBACK_APP_NAME,
         platform: 'web',
+        contact_consent: contactConsent,
         screenshot_url: screenshotUrl,
         metadata,
       });
 
-      toast.success('Feedback sent successfully');
+      toast.success(
+        contactConsent
+          ? "Thanks — we'll email you if we need more details or when it's resolved."
+          : "Thanks — we've received it. We won't contact you about this."
+      );
       setIsOpen(false);
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
@@ -906,11 +911,15 @@ export const FeedbackLauncher: React.FC = () => {
               <Select
                 label="Category"
                 value={category}
-                onChange={event =>
-                  setCategory(
-                    String(event.target.value || 'bug') as FeedbackCategory
-                  )
-                }
+                onChange={event => {
+                  const nextCategory = String(
+                    event.target.value || 'bug'
+                  ) as FeedbackCategory;
+                  setCategory(nextCategory);
+                  if (!consentTouched) {
+                    setContactConsent(getContactConsentDefault(nextCategory));
+                  }
+                }}
                 required
                 containerClassName="md:col-span-2"
               >
@@ -1072,6 +1081,23 @@ export const FeedbackLauncher: React.FC = () => {
                     itemStyles={RATING_ITEM_STYLES}
                   />
                 </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <Checkbox
+                  checked={contactConsent}
+                  onCheckedChange={checked => {
+                    setContactConsent(checked);
+                    setConsentTouched(true);
+                  }}
+                  disabled={isSubmitting || isUploadingScreenshot}
+                  label={
+                    <span className="text-sm text-foreground">
+                      It&apos;s OK to contact me about this
+                    </span>
+                  }
+                  className="items-start"
+                />
               </div>
             </div>
           </div>
