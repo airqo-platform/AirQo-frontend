@@ -10,6 +10,9 @@ import { usePostHog } from 'posthog-js/react';
 import { capturePostHogEvent } from '@/shared/utils/analytics';
 import { ANALYTICS_EVENTS } from '@/shared/utils/analyticsConstants';
 
+const NEW_BADGE_DISMISSED_KEY =
+  'airqo.nexus.organization-cohort-selector-new-dismissed.v1';
+
 export interface OrgCohortSwitcherProps {
   /** Extra classes for the root wrapper. */
   className?: string;
@@ -36,6 +39,26 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
 }) => {
   const ctx = useOrgCohortContext();
   const posthog = usePostHog();
+  const [showNewBadge, setShowNewBadge] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      setShowNewBadge(
+        window.localStorage.getItem(NEW_BADGE_DISMISSED_KEY) !== 'true'
+      );
+    } catch {
+      setShowNewBadge(true);
+    }
+  }, []);
+
+  const dismissNewBadge = React.useCallback(() => {
+    setShowNewBadge(false);
+    try {
+      window.localStorage.setItem(NEW_BADGE_DISMISSED_KEY, 'true');
+    } catch {
+      // Keep the badge dismissed for this page session when storage is blocked.
+    }
+  }, []);
 
   // Outside the org provider (user flow) — render nothing.
   if (!ctx) {
@@ -46,19 +69,30 @@ export const OrgCohortSwitcher: React.FC<OrgCohortSwitcherProps> = ({
 
   return (
     <div className={cn('flex min-w-0 items-center gap-1.5', className)}>
-      <OrgCohortSelector
-        size="control"
-        cohorts={ctx.cohorts}
-        value={ctx.selectedCohortId}
-        onChange={ctx.selectCohort}
-        isLoading={ctx.isLoading}
-        placeholder={ctx.isLoading ? 'Loading…' : 'Cohort'}
-        ariaLabel="Organization cohort"
-        listHeader="Select cohort"
-        source="organization_header"
-        className="min-w-0"
-        containerClassName={cn('mb-0 min-w-0', containerClassName)}
-      />
+      <div className="relative min-w-0">
+        <OrgCohortSelector
+          size="control"
+          cohorts={ctx.cohorts}
+          value={ctx.selectedCohortId}
+          onChange={ctx.selectCohort}
+          onOpen={dismissNewBadge}
+          isLoading={ctx.isLoading}
+          placeholder={ctx.isLoading ? 'Loading…' : 'Cohort'}
+          ariaLabel="Organization cohort"
+          listHeader="Select cohort"
+          source="organization_header"
+          className="min-w-0"
+          containerClassName={cn('mb-0 min-w-0', containerClassName)}
+        />
+        {showNewBadge && !ctx.isLoading && ctx.cohorts.length > 0 && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-1.5 -top-1.5 z-20 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-bold leading-none tracking-wide text-primary-foreground shadow-sm ring-2 ring-background"
+          >
+            NEW
+          </span>
+        )}
+      </div>
       {showRetry && (
         <Button
           variant="ghost"

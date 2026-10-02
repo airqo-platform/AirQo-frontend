@@ -21,6 +21,8 @@ export interface OrgCohortSelectorProps {
   onRetry?: () => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Called when the cohort menu opens. */
+  onOpen?: () => void;
   ariaLabel?: string;
   className?: string;
   containerClassName?: string;
@@ -45,6 +47,7 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
   isLoading = false,
   error = null,
   onRetry,
+  onOpen,
   placeholder = 'Select a cohort',
   disabled = false,
   ariaLabel,
@@ -62,6 +65,7 @@ export const OrgCohortSelector: React.FC<OrgCohortSelectorProps> = ({
   const trackSelectorOpenChange = (isOpen: boolean) => {
     if (!isOpen) return;
 
+    onOpen?.();
     capturePostHogEvent(posthog, ANALYTICS_EVENTS.ORG_COHORT_SELECTOR_OPENED, {
       selector_source: source,
       cohort_count: cohorts.length,
