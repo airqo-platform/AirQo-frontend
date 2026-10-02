@@ -6,7 +6,6 @@ import { userService } from '../services/userService';
 import { usePostHog } from 'posthog-js/react';
 import { hashId } from '../utils/analytics';
 import { trackAuthEvent } from '../utils/enhancedAnalytics';
-import { trackEvent } from '../utils/analytics';
 import { swrRetryPolicy } from '../lib/retryPolicy';
 import type {
   LoginRequest,
@@ -52,11 +51,6 @@ export const useLogin = () => {
           user_id: data?._id,
           organization: data?.long_organization,
         });
-        trackEvent('auth_login', {
-          has_token: Boolean(data?.token),
-          user_id: data?._id,
-          organization: data?.long_organization,
-        });
       },
     }
   );
@@ -86,10 +80,6 @@ export const useRegister = () => {
         category: arg.category,
         user_email_hash: userEmailHash,
       });
-      trackEvent('auth_register', {
-        category: arg.category,
-        user_email_hash: userEmailHash,
-      });
 
       return response;
     }
@@ -110,9 +100,6 @@ export const useForgotPassword = () => {
         trackAuthEvent(posthog, 'password_reset_requested', {
           message_hash: data?.message ? hashId(data.message) : undefined,
         });
-        trackEvent('auth_password_reset_requested', {
-          message_hash: data?.message ? hashId(data.message) : undefined,
-        });
       },
     }
   );
@@ -130,9 +117,6 @@ export const useResetPassword = () => {
     {
       onSuccess: data => {
         trackAuthEvent(posthog, 'password_reset_completed', {
-          message_hash: data?.message ? hashId(data.message) : undefined,
-        });
-        trackEvent('auth_password_reset_completed', {
           message_hash: data?.message ? hashId(data.message) : undefined,
         });
       },

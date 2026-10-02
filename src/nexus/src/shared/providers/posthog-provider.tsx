@@ -10,13 +10,16 @@ import { usePageTracking } from '@/shared/hooks/usePageTracking';
 import { useUsageTracking } from '@/shared/hooks/useUsageTracking';
 import { selectActiveGroup, selectUser } from '@/shared/store/selectors';
 import { AIRQO_APP_NAME } from '@/shared/utils/analyticsConstants';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
 
 function AnalyticsBridge() {
   const postHogClient = posthog;
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const activeGroup = useSelector(selectActiveGroup);
   const user = useSelector(selectUser);
   const previousIdentityRef = useRef<string | null>(null);
+  const previousPersonPropertiesRef = useRef<string | null>(null);
   const previousGroupRef = useRef<string | null>(null);
 
   usePageTracking();
@@ -27,68 +30,86 @@ function AnalyticsBridge() {
       return;
     }
 
-    const sessionUser = session?.user as {
-      _id?: string;
-      email?: string | null;
-      name?: string | null;
-      firstName?: string;
-      lastName?: string;
-    } | null;
+    const sessionUser = session?.user as { _id?: string } | null;
 
-    const userId = sessionUser?._id?.trim() || '';
-
-    if (status !== 'authenticated' || !userId) {
-      postHogClient.reset();
-      previousIdentityRef.current = null;
-      previousGroupRef.current = null;
+    if (status !== 'authenticated') {
+      // Preserve the anonymous distinct ID while NextAuth is resolving. Reset
+      // only after an authenticated user has actually signed out.
+      if (status === 'unauthenticated' && previousIdentityRef.current) {
+        postHogClient.reset();
+        previousIdentityRef.current = null;
+        previousPersonPropertiesRef.current = null;
+        previousGroupRef.current = null;
+      }
       return;
     }
 
-    const identitySignature = [
-      userId,
-      sessionUser?.email || '',
-      sessionUser?.name || '',
-      sessionUser?.firstName || '',
-      sessionUser?.lastName || '',
-      user?.organization || '',
-      user?.country || '',
-      user?.jobTitle || '',
-      activeGroup?.id || '',
-    ].join('|');
+    const userId = sessionUser?._id?.trim() || '';
+    if (!userId) return;
 
-    if (previousIdentityRef.current !== identitySignature) {
-      postHogClient.identify(userId, {
+    const personProperties = Object.fromEntries(
+      Object.entries({
         app_name: AIRQO_APP_NAME,
-        email: sessionUser?.email || '',
-        name:
-          sessionUser?.name ||
-          [sessionUser?.firstName, sessionUser?.lastName]
-            .filter(Boolean)
-            .join(' ') ||
-          sessionUser?.email ||
-          '',
-        first_name: sessionUser?.firstName || user?.firstName || '',
-        last_name: sessionUser?.lastName || user?.lastName || '',
-        user_name: user?.userName || '',
-        organization: user?.organization || '',
-        country: user?.country || '',
-        job_title: user?.jobTitle || '',
+        organization: user?.organization || undefined,
+        country: user?.country || undefined,
+        job_title: user?.jobTitle || undefined,
         verified: user?.verified,
         is_active: user?.isActive,
-        active_group_id: activeGroup?.id || '',
-        active_group_name: activeGroup?.title || '',
-        active_group_slug: activeGroup?.organizationSlug || '',
-      });
-      previousIdentityRef.current = identitySignature;
+      }).filter(([, value]) => value !== undefined)
+    );
+    const personPropertiesSignature = JSON.stringify(personProperties);
+
+    if (previousIdentityRef.current && previousIdentityRef.current !== userId) {
+      // Do not merge events from two accounts if the account changes without
+      // an intermediate signed-out render.
+      postHogClient.reset();
+      previousGroupRef.current = null;
     }
-  }, [activeGroup, postHogClient, session, status, user]);
+
+    if (previousIdentityRef.current !== userId) {
+      postHogClient.identify(userId, personProperties);
+    } else if (
+      previousPersonPropertiesRef.current !== personPropertiesSignature
+    ) {
+      postHogClient.setPersonProperties(personProperties);
+    }
+
+    previousIdentityRef.current = userId;
+    previousPersonPropertiesRef.current = personPropertiesSignature;
+  }, [postHogClient, session, status, user]);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       return;
     }
 
-    if (status !== 'authenticated' || !activeGroup?.id) {
+    const routeOrganizationSlug = pathname?.match(/^\/org\/([^/]+)/)?.[1];
+    let decodedRouteOrganizationSlug = routeOrganizationSlug;
+    try {
+      decodedRouteOrganizationSlug = routeOrganizationSlug
+        ? decodeURIComponent(routeOrganizationSlug)
+        : undefined;
+    } catch {
+      // Keep the encoded slug if the path contains malformed escaping.
+    }
+    const isMatchingOrganization =
+      !!decodedRouteOrganizationSlug &&
+      activeGroup?.organizationSlug?.trim().toLowerCase() ===
+        decodedRouteOrganizationSlug.trim().toLowerCase();
+
+    if (status !== 'authenticated') {
+      if (previousGroupRef.current !== 'outside-organization-flow') {
+        postHogClient.resetGroups();
+        previousGroupRef.current = 'outside-organization-flow';
+      }
+      return;
+    }
+
+    if (!isMatchingOrganization || !activeGroup?.id) {
+      if (previousGroupRef.current !== 'outside-organization-flow') {
+        postHogClient.resetGroups();
+      }
+      previousGroupRef.current = 'outside-organization-flow';
       return;
     }
 
@@ -110,7 +131,7 @@ function AnalyticsBridge() {
       user_type: activeGroup.userType,
     });
     previousGroupRef.current = groupSignature;
-  }, [activeGroup, postHogClient, status]);
+  }, [activeGroup, pathname, postHogClient, session, status]);
 
   return null;
 }
@@ -125,15 +146,9 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
         api_host:
-          process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.posthog.com',
+          process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
         capture_pageview: false, // Disable automatic pageview capture, as we capture manually
         capture_pageleave: true, // Enable pageleave capture
-        property_denylist: [
-          'site_id',
-          'location_id',
-          'site_name',
-          'location_name',
-        ], // Redact raw location identifiers for privacy
         loaded: posthog => {
           // Set super properties that will be sent with every event
           posthog.register({
@@ -178,9 +193,8 @@ function PostHogPageView() {
       if (previousPathname.current === pathname) return;
 
       const url = window.location.origin + pathname;
-      posthog.capture('$pageview', {
+      capturePostHogEvent(posthog, '$pageview', {
         $current_url: url,
-        app_name: AIRQO_APP_NAME,
       });
 
       previousPathname.current = pathname;
