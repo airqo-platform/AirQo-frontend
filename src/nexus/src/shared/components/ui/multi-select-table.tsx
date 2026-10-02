@@ -120,6 +120,8 @@ interface MultiSelectTableProps<T = TableItem> {
   emptyComponent?: React.ReactNode;
   onRefresh?: () => void;
   headerComponent?: React.ReactNode;
+  /** Show a divider below the custom header (defaults to `true`). */
+  customHeaderDivider?: boolean;
   /** Actions displayed beside the search field. */
   searchActions?: React.ReactNode;
   multiSelect?: boolean;
@@ -542,6 +544,7 @@ const MultiSelectTable = <T extends TableItem>({
   emptyComponent = null,
   onRefresh,
   headerComponent,
+  customHeaderDivider = true,
   searchActions,
   multiSelect = false,
   actions = [],
@@ -1056,7 +1059,12 @@ const MultiSelectTable = <T extends TableItem>({
     >
       {/* Header 2 */}
       {headerComponent && (
-        <div className="flex justify-end p-2 border-b border-border pb-4">
+        <div
+          className={cn(
+            'flex justify-end p-2 pb-4',
+            customHeaderDivider && 'border-b border-border'
+          )}
+        >
           {headerComponent}
         </div>
       )}

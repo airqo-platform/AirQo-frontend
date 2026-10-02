@@ -367,6 +367,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       error={error}
       onRefresh={onRetry}
       customHeader={renderHeaderBar()}
+      customHeaderDivider={false}
       searchActions={searchActions}
       searchable={false}
       searchableColumns={['siteName']}

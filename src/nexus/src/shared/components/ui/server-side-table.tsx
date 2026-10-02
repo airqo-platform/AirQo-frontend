@@ -68,6 +68,8 @@ export interface ServerSideTableProps<T = TableItem> {
 
   // Custom header component
   customHeader?: React.ReactNode;
+  /** Show a divider below the custom header (defaults to `true`). */
+  customHeaderDivider?: boolean;
   /** Actions displayed beside the search field. */
   searchActions?: React.ReactNode;
   /** Human-readable row label used by the selection checkbox. */
@@ -123,6 +125,7 @@ export function ServerSideTable<T extends TableItem>({
   searchable = true,
 
   customHeader,
+  customHeaderDivider = true,
   searchActions,
   selectionLabel,
 
@@ -243,6 +246,7 @@ export function ServerSideTable<T extends TableItem>({
         onClientSortChange={onClientSortChange}
         sortable={true}
         headerComponent={customHeader}
+        customHeaderDivider={customHeaderDivider}
         searchActions={searchActions}
         selectionLabel={selectionLabel}
         onSearchTermChange={onSearchTermChange}
