@@ -23,6 +23,7 @@ import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { cn } from '@/shared/lib/utils';
 
 // ============================================================================
 // TYPES & INTERFACES
