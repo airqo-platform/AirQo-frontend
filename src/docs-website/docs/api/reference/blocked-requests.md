@@ -46,7 +46,7 @@ When a request is rejected, the response body may include an `errors.code` that 
 | `CLIENT_INACTIVE` | The API client that owns this token is not active yet, or has been deactivated. | [Check the client's status](#step-4-check-the-api-client-is-active). |
 | `TOKEN_EXPIRED` | The token has passed its expiry date. | Generate a new token for the client. |
 
-If there is no `errors.code`, work through the steps below in order. They cover every cause above.
+If there is no `errors.code`, work through the steps below in order. They cover blocked IP addresses, suspended tokens and inactive clients. Also check that the token hasn't expired. If it has, generate a new token for the client and replace the old one everywhere it's used.
 
 ---
 
@@ -149,7 +149,7 @@ If none of these are possible for you, contact [support@airqo.net](mailto:suppor
 If the IP addresses in the alert are not yours, assume the token has been exposed:
 
 1. **Generate a new token** for the client and deploy it to your applications.
-2. **Stop using the old token.** Contact [support@airqo.net](mailto:support@airqo.net) if you need it revoked immediately.
+2. **Get the old token revoked immediately.** Generating a new token does **not** revoke the old one, so whoever has it can keep using it. Email [support@airqo.net](mailto:support@airqo.net) right away and ask for it to be revoked. Include your API client name and the last 4 characters of the old token.
 3. **Find out how it leaked.** Check for tokens in browser-side code, mobile apps, public repositories and shared notebooks. See [Security Enhancements](../getting-started/security.md) for ways to protect your token.
 
 :::warning Keep tokens server-side
