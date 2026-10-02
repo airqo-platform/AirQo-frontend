@@ -30,6 +30,11 @@ import { normalizeCohortIds } from '@/shared/utils/cohortUtils';
 
 /**
  * Custom hook for data fetching and processing
+ *
+ * `cohortIdsOverride`: when provided and non-empty, the hook skips the
+ * group-cohorts fetch entirely and scopes sites/devices to exactly those
+ * ids. Used by the org flow, where the cohort is chosen once in the header
+ * (org-wide cohort context) instead of per page.
  */
 export const useDataExportData = (
   activeTab: TabType,
@@ -40,7 +45,8 @@ export const useDataExportData = (
   selectedDeviceIds: string[],
   selectedDevicesData: TableItem[],
   setSelectedDevices: (devices: string[]) => void,
-  enabled = true
+  enabled = true,
+  cohortIdsOverride?: string[]
 ) => {
   // Sites params
   const sitesParams = useMemo(() => {
@@ -110,22 +116,35 @@ export const useDataExportData = (
   ]);
 
   // Resolve cohort ids directly for the export page so sites/devices fetches
-  // do not depend on the shared Redux cohort cache settling first.
+  // do not depend on the shared Redux cohort cache settling first. In org
+  // flow the context supplies the single selected cohort, so the group
+  // cohorts fetch is disabled entirely (no duplicate subscription). The
+  // override is keyed by its joined value so a fresh array prop identity
+  // does not churn the memoized state.
+  const cohortOverrideKey = cohortIdsOverride?.filter(Boolean).join(',') ?? '';
+  const hasCohortOverride = cohortOverrideKey !== '';
   const groupCohortsHook = useGroupCohorts(
     currentGroupId,
     enabled &&
+      !hasCohortOverride &&
       !!currentGroupId &&
       (activeTab === 'sites' || activeTab === 'devices')
   );
 
   const cohortIds = useMemo(
-    () => normalizeCohortIds((groupCohortsHook.data?.data ?? []) as string[]),
-    [groupCohortsHook.data?.data]
+    () =>
+      hasCohortOverride
+        ? normalizeCohortIds(cohortOverrideKey)
+        : normalizeCohortIds((groupCohortsHook.data?.data ?? []) as string[]),
+    [hasCohortOverride, cohortOverrideKey, groupCohortsHook.data?.data]
   );
 
   const sharedCohortsState = useMemo(
-    () => ({ cohortIds, isLoading: groupCohortsHook.isLoading }),
-    [cohortIds, groupCohortsHook.isLoading]
+    () => ({
+      cohortIds,
+      isLoading: hasCohortOverride ? false : groupCohortsHook.isLoading,
+    }),
+    [hasCohortOverride, cohortIds, groupCohortsHook.isLoading]
   );
 
   const sitesHook = useActiveGroupCohortSitesWithState(

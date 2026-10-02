@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
 import { usePathname, useRouter } from 'next/navigation';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { AiDrawerTrigger } from '@/modules/ai/components/AiDrawerTrigger';
 import { AiPageContextProvider } from '@/modules/ai/context/ai-page-context';
@@ -59,6 +60,7 @@ import {
 import { useUser } from '@/shared/hooks/useUser';
 import { useRBAC } from '@/shared/hooks';
 import { useUserActions } from '@/shared/hooks/useUserActions';
+import { useOrgCohortContext } from '@/shared/providers/org-cohort-provider';
 import { AccessDenied } from '@/shared/components/AccessDenied';
 import { rememberSiteSlug } from './hooks/useResolveSiteByName';
 import { toSiteSlug } from './utils/siteDetails';
@@ -111,7 +113,7 @@ const DataExportPage = () => {
   const pathname = usePathname();
   const router = useRouter();
   const posthog = usePostHog();
-  const { activeGroup, groups, isLoading: userLoading } = useUser();
+  const { activeGroup, isLoading: userLoading } = useUser();
   const { switchGroup } = useUserActions();
   const { hasPermission } = useRBAC();
   const canDownload = hasPermission('DATA_EXPORT');
@@ -126,20 +128,14 @@ const DataExportPage = () => {
     const segments = pathname.split('/').filter(Boolean);
     return segments[1]?.toLowerCase() ?? null;
   }, [isOrgFlow, pathname]);
-  const organizationGroup = useMemo(() => {
-    if (!isOrgFlow || !orgSlugFromPath) {
-      return null;
-    }
 
-    return (
-      groups?.find(
-        group =>
-          (group.organizationSlug || '').trim().toLowerCase() ===
-          orgSlugFromPath
-      ) || null
-    );
-  }, [groups, isOrgFlow, orgSlugFromPath]);
+  // The org shell resolves the organization group (and the org-wide cohort
+  // selection) once in the provider above this page; consume it instead of
+  // re-deriving the group from the user's group list here. Null in user flow.
+  const orgCohortsCtx = useOrgCohortContext();
+  const organizationGroup = orgCohortsCtx?.organizationGroup ?? null;
   const organizationGroupId = organizationGroup?.id || '';
+  const orgSelectedCohortId = orgCohortsCtx?.selectedCohortId ?? '';
   const isOrgUnresolved =
     isOrgFlow && !userLoading && !!orgSlugFromPath && !organizationGroup;
   const isOrgContextReady =
@@ -386,7 +382,11 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedDevicesForActions,
     setSelectedDevices,
-    isOrgContextReady
+    // Org flow waits for the header cohort selection: the context owns the
+    // cohort resolution, and sites/devices must only ever fetch the single
+    // selected cohort (never the full org cohort list).
+    isOrgContextReady && (!isOrgFlow || !!orgSelectedCohortId),
+    isOrgFlow && orgSelectedCohortId ? [orgSelectedCohortId] : []
   );
 
   const selectedDeviceNamesForExport = useMemo(() => {
@@ -464,13 +464,9 @@ const DataExportPage = () => {
               site?.network ?? site?.sensor_manufacturer ?? site?.data_provider
             ),
             latitude: (site?.latitude ?? site?.lat ?? null) as
-              | string
-              | number
-              | null,
+              string | number | null,
             longitude: (site?.longitude ?? site?.lng ?? site?.lon ?? null) as
-              | string
-              | number
-              | null,
+              string | number | null,
             site_id: (site?.site_id ?? site?.id ?? id) as string,
           };
           if (site?.search_name) row.search_name = site.search_name as string;
@@ -500,9 +496,7 @@ const DataExportPage = () => {
             ),
             device_id: (device?.device_id ?? device?.id ?? id) as string,
             latitude: (device?.latitude ?? device?.lat ?? null) as
-              | string
-              | number
-              | null,
+              string | number | null,
             longitude: (device?.longitude ??
               device?.lng ??
               device?.lon ??
@@ -532,8 +526,7 @@ const DataExportPage = () => {
             grid.network ?? grid.sensor_manufacturer
           );
           const sites = grid.sites as
-            | Array<{ _id?: string; name?: string }>
-            | undefined;
+            Array<{ _id?: string; name?: string }> | undefined;
           sites?.forEach(site => {
             if (site._id) {
               siteIdToName.set(String(site._id), String(site.name ?? site._id));
@@ -653,15 +646,24 @@ const DataExportPage = () => {
     ? undefined
     : (currentHook.data as CohortDevicesResponse | undefined)?.devices;
   const tableLoading =
-    isGroupSyncing || groupCohortsHook.isLoading || currentHook.isLoading;
+    isGroupSyncing ||
+    // Org flow: the context owns cohort resolution (the local group-cohorts
+    // hook is disabled), so its loading state drives the table spinner.
+    (isOrgFlow ? !!orgCohortsCtx?.isLoading : groupCohortsHook.isLoading) ||
+    currentHook.isLoading;
   const tableRefreshing =
     !tableLoading && (currentHook.isValidating || isRefreshing);
-  // Cohort-driven tabs (sites/devices): a failed group-cohorts fetch leaves
-  // the table with no data and no error of its own — surface the cohort error
-  // so the user sees a real message + Retry instead of "No data available".
+  // Cohort-driven tabs (sites/devices): a failed cohort fetch leaves the
+  // table with no data and no error of its own — surface the cohort error
+  // so the user sees a real message instead of "No data available". Org
+  // flow reads it from the context; user flow from the local hook.
   const cohortErrorMessage =
-    (activeTab === 'sites' || activeTab === 'devices') && groupCohortsHook.error
-      ? (groupCohortsHook.error.message ?? 'Failed to load cohorts')
+    activeTab === 'sites' || activeTab === 'devices'
+      ? isOrgFlow
+        ? (orgCohortsCtx?.error ?? null)
+        : groupCohortsHook.error
+          ? (groupCohortsHook.error.message ?? 'Failed to load cohorts')
+          : null
       : null;
   const compactTableRows =
     activeTab === 'devices' ||
@@ -864,10 +866,13 @@ const DataExportPage = () => {
       const slug = toSiteSlug(navigationData.displayName);
       rememberSiteSlug(slug, navigationData);
       router.push(
-        `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+        withSiteDetailsFrom(
+          `${exportBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`,
+          pathname
+        )
       );
     },
-    [activeTab, exportBaseHref, router]
+    [activeTab, exportBaseHref, router, pathname]
   );
 
   // Keep selected sites cache synchronized as table pages/search results change.
@@ -1051,9 +1056,11 @@ const DataExportPage = () => {
       });
 
       trackDataDownload(posthog, {
-        dataType: dataType as 'calibrated' | 'raw',
+        dataType: dataType as
+          'raw' | 'averaged' | 'calibrated' | 'consolidated',
         fileType: format as 'csv' | 'json',
-        frequency: frequency as 'hourly' | 'daily' | 'monthly',
+        frequency: frequency as
+          'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly',
         pollutants: selectedPollutants,
         locationCount: download.locationCount,
         startDate: dateRange?.from?.toISOString() || '',
@@ -1262,7 +1269,10 @@ const DataExportPage = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out">
+          <main
+            data-tour="export-locations"
+            className="flex-1 flex flex-col overflow-x-hidden overflow-y-auto lg:overflow-hidden transition-all duration-300 ease-in-out"
+          >
             <div className="gap-4 md:px-4 flex-col flex flex-1">
               {/* Help Banner */}
               {showHelpBanner && (

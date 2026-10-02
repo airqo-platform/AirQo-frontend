@@ -22,9 +22,14 @@ export {
   TREND_ICONS,
   AQ_STANDARDS,
   REFERENCE_LINES,
+  OFFICIAL_AIR_QUALITY_STANDARDS,
+  getCurrentAirQualityLimits,
+  getCurrentReferenceLines,
   STANDARDS_ORGANIZATIONS,
   POLLUTANT_LABELS,
   type AirQualityStandard,
+  type AirQualityLimitSet,
+  type OfficialAirQualityStandard,
 } from '@/shared/utils/airQuality';
 
 // Primary color palette — diverse, perceptually distinct hues for chart series.
@@ -202,9 +207,12 @@ export const FREQUENCY_LABELS = {
   daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
+  yearly: 'Yearly',
 } as const;
 
 export const DATA_TYPE_LABELS = {
   calibrated: 'Calibrated',
   raw: 'Raw',
+  averaged: 'Averaged',
+  consolidated: 'Consolidated',
 } as const;

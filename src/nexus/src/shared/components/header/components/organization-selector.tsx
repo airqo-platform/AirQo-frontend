@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
+import { usePostHog } from 'posthog-js/react';
 import { Avatar } from '@/shared/components/ui/avatar';
 import { SearchField } from '@/shared/components/ui/search-field';
 import Dialog from '@/shared/components/ui/dialog';
@@ -11,12 +12,15 @@ import { useUserActions } from '@/shared/hooks/useUserActions';
 import { isDefaultAirQoGroup } from '@/shared/utils/groupUtils';
 import { startPendingGroupSwitch } from '@/shared/store/userSlice';
 import { AqGrid01 } from '@airqo/icons-react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
+import { ANALYTICS_EVENTS } from '@/shared/utils/analyticsConstants';
 
 export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const dispatch = useDispatch();
+  const posthog = usePostHog();
   const { groups, activeGroup } = useUser();
   const { switchGroup } = useUserActions();
   const safeGroups = React.useMemo(
@@ -24,17 +28,31 @@ export function OrganizationSelector() {
     [groups]
   );
 
-  const handleOpen = () => setIsOpen(true);
+  const handleOpen = () => {
+    capturePostHogEvent(
+      posthog,
+      ANALYTICS_EVENTS.ORGANIZATION_SELECTOR_OPENED,
+      {
+        available_organization_count: safeGroups.length,
+      }
+    );
+    setIsOpen(true);
+  };
   const handleClose = () => setIsOpen(false);
 
   const handleGroupSwitch = (groupId: string) => {
     const selectedGroup = safeGroups.find(g => g.id === groupId);
     if (!selectedGroup || selectedGroup.id === activeGroup?.id) return;
     const organizationSlug = selectedGroup.organizationSlug?.trim();
-    const destinationPath =
-      isDefaultAirQoGroup(selectedGroup) || !organizationSlug
-        ? '/user/home'
-        : `/org/${encodeURIComponent(organizationSlug)}/dashboard`;
+    const isIndividualDestination =
+      isDefaultAirQoGroup(selectedGroup) || !organizationSlug;
+    capturePostHogEvent(posthog, ANALYTICS_EVENTS.ORGANIZATION_SELECTED, {
+      available_organization_count: safeGroups.length,
+      selection_type: isIndividualDestination ? 'individual' : 'organization',
+    });
+    const destinationPath = isIndividualDestination
+      ? '/user/home'
+      : `/org/${encodeURIComponent(organizationSlug)}/dashboard`;
 
     // Close dialog first
     handleClose();

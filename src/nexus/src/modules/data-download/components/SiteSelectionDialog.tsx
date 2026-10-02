@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui';
@@ -38,6 +39,8 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
   isDownloading = false,
 }) => {
   const router = useRouter();
+  // Recorded on the location link so the detail page returns to this dialog's page.
+  const pathname = usePathname();
   const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>(
     initialSelectedSiteIds
   );
@@ -104,10 +107,13 @@ export const SiteSelectionDialog: React.FC<SiteSelectionDialogProps> = ({
       const slug = toSiteSlug(navigationData.displayName);
       rememberSiteSlug(slug, navigationData);
       router.push(
-        `${detailsBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`
+        withSiteDetailsFrom(
+          `${detailsBaseHref}/sites/${slug}?site_id=${encodeURIComponent(navigationData.siteId)}`,
+          pathname
+        )
       );
     },
-    [detailsBaseHref, router]
+    [detailsBaseHref, router, pathname]
   );
 
   return (

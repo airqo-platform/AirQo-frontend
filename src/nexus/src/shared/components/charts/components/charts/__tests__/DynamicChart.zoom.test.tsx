@@ -89,6 +89,86 @@ describe('DynamicChart zoom controls', () => {
     Object.keys(mockChartCalls).forEach(key => delete mockChartCalls[key]);
   });
 
+  it('uses the resolved site name for pie slice and legend labels', () => {
+    const siteId = '647896640c47b0001eba8ff2';
+    const data: NormalizedChartData[] = [
+      {
+        time: 'Gulu Central',
+        value: 14.98,
+        site: siteId,
+        site_id: siteId,
+        device_id: '',
+      },
+    ];
+
+    renderChart(data, {
+      config: { type: 'pie' },
+      locationLabels: { [siteId]: 'Gulu Central' },
+    });
+
+    const pieProps = mockChartCalls.Pie.at(-1);
+    const label = pieProps?.label as
+      | ((props: {
+          name?: string;
+          value?: number;
+          payload?: NormalizedChartData;
+        }) => string)
+      | undefined;
+    expect(pieProps?.nameKey).toBe('site');
+    expect(label?.({ name: siteId, value: 14.98, payload: data[0] })).toBe(
+      'Gulu Central: 14.98'
+    );
+
+    const legendFormatter = mockChartCalls.Legend.at(-1)?.formatter as
+      | ((value: string, entry: Record<string, unknown>) => React.ReactNode)
+      | undefined;
+    const formattedLegend = legendFormatter?.(siteId, {
+      dataKey: 'value',
+      value: siteId,
+      payload: data[0],
+    });
+    expect(formattedLegend).toMatchObject({
+      props: { children: 'Gulu Central' },
+    });
+  });
+  it('uses the displayed series label for non-pie legend payloads', () => {
+    const data: NormalizedChartData[] = [
+      {
+        time: '2026-01-01T00:00:00.000Z',
+        value: 10,
+        site: 'Site A',
+        site_id: 'site-a',
+        device_id: '',
+      },
+      {
+        time: '2026-01-01T00:00:00.000Z',
+        value: 20,
+        site: 'Site B',
+        site_id: 'site-b',
+        device_id: '',
+      },
+    ];
+
+    renderChart(data, { config: { type: 'line' } });
+
+    const legendFormatter = mockChartCalls.Legend.at(-1)?.formatter as
+      | ((value: string, entry: Record<string, unknown>) => React.ReactNode)
+      | undefined;
+    const formattedLegend = legendFormatter?.('Site A', {
+      dataKey: 'Site A',
+      value: 'Site A',
+      payload: {
+        time: '2026-01-01T00:00:00.000Z',
+        'Site A': 10,
+        'Site B': 20,
+      },
+    });
+
+    expect(formattedLegend).toMatchObject({
+      props: { children: 'Site A' },
+    });
+  });
+
   it('shows the zoom pill automatically on dense data', () => {
     renderChart(buildSeries(100));
 

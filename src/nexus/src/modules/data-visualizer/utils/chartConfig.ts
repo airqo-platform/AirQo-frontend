@@ -90,6 +90,19 @@ const keepOrFallback = (
   return availableColumns[0];
 };
 
+/**
+ * Keeps an axis label in sync with the column it describes.
+ *
+ * The two states are deliberately distinct:
+ *  - `undefined` → "automatic": the label follows the selected column.
+ *  - `''` (or whitespace) → the user deliberately cleared the label, so NO axis
+ *    label is rendered. This must be honoured, otherwise clearing the field
+ *    would immediately restore the derived text and the label would appear to
+ *    "rewrite itself" — on every edit and again on every dataset change or
+ *    draft restore, since this runs from `normalizeChartConfigForDatasets`.
+ *  - anything else → a custom label, kept unless it merely repeats the old
+ *    auto label (in which case it tracks the new column).
+ */
 const syncAxisLabel = (
   currentLabel: string | undefined,
   previousDefault: string,
@@ -97,10 +110,17 @@ const syncAxisLabel = (
   previousRawValue?: string,
   nextRawValue?: string
 ) => {
-  const trimmedLabel = currentLabel?.trim();
+  if (currentLabel === undefined) {
+    return nextDefault || nextRawValue;
+  }
+
+  const trimmedLabel = currentLabel.trim();
+
+  if (!trimmedLabel) {
+    return '';
+  }
 
   if (
-    !trimmedLabel ||
     trimmedLabel === previousDefault ||
     trimmedLabel === (previousRawValue ?? '')
   ) {

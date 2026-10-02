@@ -11,7 +11,8 @@ import { useDispatch } from 'react-redux';
 import { HiCheck } from 'react-icons/hi';
 import { AqChevronDown, AqPlus, AqTrash01 } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { withSiteDetailsFrom } from '@/shared/lib/siteDetailsNavigation';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { useUser } from '@/shared/hooks/useUser';
@@ -141,6 +142,18 @@ const buildComparisonSitesSnapshot = (
       namesBySite.get(siteId) ?? siteId
     )
   );
+
+const toSelectedInsightSite = (
+  row: ComparisonRow,
+  reading?: RecentReading
+): SelectedSite => ({
+  _id: row.siteId,
+  name: row.siteName,
+  search_name: reading?.siteDetails?.search_name || undefined,
+  country: reading?.siteDetails?.country || undefined,
+  city: reading?.siteDetails?.city || undefined,
+  region: reading?.siteDetails?.region || undefined,
+});
 
 /**
  * The Comparison tab body: a cohort-scoped location multi-select, a single
@@ -356,6 +369,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     null
   );
   const router = useRouter();
+  // Recorded on location links so the detail page's breadcrumb returns here.
+  const pathname = usePathname();
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -508,19 +523,24 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
 
   const handleViewInsights = useCallback(
     (row: ComparisonRow) => {
-      const reading = readingsBySiteId.get(row.siteId);
-      const siteDetails = reading?.siteDetails;
-      const site: SelectedSite = {
-        _id: row.siteId,
-        name: row.siteName,
-        search_name: siteDetails?.search_name || undefined,
-        country: siteDetails?.country || undefined,
-        city: siteDetails?.city || undefined,
-        region: siteDetails?.region || undefined,
-      };
+      const site = toSelectedInsightSite(row, readingsBySiteId.get(row.siteId));
       dispatch(openMoreInsights({ sites: [site] }));
     },
     [readingsBySiteId, dispatch]
+  );
+
+  const handleViewSelectedInsights = useCallback(
+    (siteIds: string[]) => {
+      const rowsBySiteId = new Map(rows.map(row => [row.siteId, row]));
+      const sites = siteIds.flatMap(siteId => {
+        const row = rowsBySiteId.get(siteId);
+        return row
+          ? [toSelectedInsightSite(row, readingsBySiteId.get(siteId))]
+          : [];
+      });
+      if (sites.length > 1) dispatch(openMoreInsights({ sites }));
+    },
+    [rows, readingsBySiteId, dispatch]
   );
 
   const handleConfirmSave = useCallback(async () => {
@@ -594,10 +614,13 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
           ? `/org/${organizationSlug}/data-export/sites`
           : '/user/air-quality/analytics/sites';
       void router.push(
-        `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`
+        withSiteDetailsFrom(
+          `${base}/${slug}?site_id=${encodeURIComponent(row.siteId)}`,
+          pathname
+        )
       );
     },
-    [router, isOrganizationFlow, organizationSlug]
+    [router, isOrganizationFlow, organizationSlug, pathname]
   );
 
   return (
@@ -762,6 +785,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
         pm10Config={pm10Config}
         onSiteClick={handleSiteClick}
         onViewInsights={handleViewInsights}
+        onViewSelectedInsights={handleViewSelectedInsights}
         onExport={handleExport}
         siteColorBySiteId={siteColorBySiteId}
       />

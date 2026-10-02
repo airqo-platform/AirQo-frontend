@@ -18,10 +18,14 @@ import { DatePickerProps, DateRange } from '../types';
 import { DateUtils } from '../utils/date-utils';
 
 export function DatePicker({
+  id,
   value,
   onChange,
   placeholder = 'Select date',
   mode: propMode,
+  minDate,
+  maxDate,
+  disabled,
   className,
   align = 'start',
   maxWidth,
@@ -160,6 +164,9 @@ export function DatePicker({
               ? { from: internalValue, to: internalValue }
               : (internalValue as DateRange | undefined)
           }
+          minDate={minDate}
+          maxDate={maxDate}
+          disabled={disabled}
         />
       ) : (
         <RangeCalendar
@@ -167,6 +174,9 @@ export function DatePicker({
           onApply={handleApply}
           onCancel={handleCancel}
           initialRange={internalValue as DateRange | undefined}
+          minDate={minDate}
+          maxDate={maxDate}
+          disabled={disabled}
         />
       )}
     </>
@@ -230,6 +240,7 @@ export function DatePicker({
     return (
       <>
         <button
+          id={id}
           className={cn(
             'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',
@@ -251,6 +262,7 @@ export function DatePicker({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
+          id={id}
           className={cn(
             'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',

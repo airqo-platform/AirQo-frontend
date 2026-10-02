@@ -51,4 +51,16 @@ describe('aiConfig', () => {
     const mod = await import('../server/config');
     expect(mod.aiConfig.agentUrl).toBe('');
   });
+
+  it('accepts the explicit prototype provider mode', async () => {
+    process.env.AI_PROVIDER_MODE = 'prototype';
+    const mod = await import('../server/config');
+    expect(mod.aiConfig.providerMode).toBe('prototype');
+  });
+
+  it('treats missing or unsupported provider modes as invalid', async () => {
+    delete process.env.AI_PROVIDER_MODE;
+    const mod = await import('../server/config');
+    expect(mod.aiConfig.providerMode).toBe('invalid');
+  });
 });

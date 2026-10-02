@@ -1,39 +1,30 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/shared/store';
+import React, { useEffect, useState } from 'react';
 import Dialog from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import Checkbox from '@/shared/components/ui/checkbox';
 import {
-  WHO_PM25_STANDARDS,
-  WHO_PM10_STANDARDS,
-  NEMA_KENYA_PM25_STANDARDS,
-  NEMA_KENYA_PM10_STANDARDS,
-  SOUTH_AFRICA_PM25_STANDARDS,
-  SOUTH_AFRICA_PM10_STANDARDS,
-  NIGERIA_PM25_STANDARDS,
-  NIGERIA_PM10_STANDARDS,
+  getCurrentAirQualityLimits,
+  OFFICIAL_AIR_QUALITY_STANDARDS,
   STANDARDS_ORGANIZATIONS,
-  REFERENCE_LINES,
 } from '../../constants';
-import { AirQualityStandardsConfig, ChartStandardsType } from '../../types';
-import {
-  NEMA_PM25_STANDARDS,
-  NEMA_PM10_STANDARDS,
-  getAirQualityColor as getConfiguredAirQualityColor,
-  getAirQualityIcon,
-  mapAqiCategoryToLevel,
-} from '@/shared/utils/airQuality';
+import type {
+  AirQualityStandardsConfig,
+  ChartStandardsType,
+  PollutantType,
+} from '../../types';
 
 interface StandardsDialogProps {
   open: boolean;
   onClose: () => void;
   currentStandards?: AirQualityStandardsConfig;
   onApplyStandards: (config: AirQualityStandardsConfig) => void;
-  activePollutant?: 'pm2_5' | 'pm10'; // Pollutant from active filter
+  activePollutant?: PollutantType;
 }
+
+const formatValue = (value: number | null) =>
+  value === null ? 'Not specified' : `${value} µg/m³`;
 
 export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   open,
@@ -42,13 +33,8 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   onApplyStandards,
   activePollutant = 'pm2_5',
 }) => {
-  // Get pollutant from Redux store (primary source of truth)
-  const reduxPollutant = useSelector(
-    (state: RootState) => state.analytics?.filters?.pollutant
-  );
-
-  // Use Redux pollutant if available, otherwise fall back to prop
-  const effectivePollutant = reduxPollutant || activePollutant;
+  const displayPollutant: 'PM2.5' | 'PM10' =
+    activePollutant === 'pm2_5' ? 'PM2.5' : 'PM10';
 
   const [selectedOrg, setSelectedOrg] = useState<ChartStandardsType>(
     currentStandards?.organization || 'WHO'
@@ -57,11 +43,6 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     currentStandards?.showReferenceLine ?? true
   );
 
-  // Convert pollutant format from filter to display format
-  const displayPollutant: 'PM2.5' | 'PM10' =
-    effectivePollutant === 'pm2_5' ? 'PM2.5' : 'PM10';
-
-  // Sync state with props when they change (e.g., when user switches pollutant)
   useEffect(() => {
     if (currentStandards?.organization) {
       setSelectedOrg(currentStandards.organization);
@@ -71,67 +52,19 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     }
   }, [currentStandards]);
 
-  // Get color for air quality level
-  const getAirQualityColor = (level: string) => {
-    return getConfiguredAirQualityColor(mapAqiCategoryToLevel(level));
-  };
-
-  const getStandardsData = useCallback(() => {
-    switch (`${selectedOrg}_${displayPollutant}`) {
-      case 'WHO_PM2.5':
-        return WHO_PM25_STANDARDS;
-      case 'WHO_PM10':
-        return WHO_PM10_STANDARDS;
-      case 'NEMA_UGANDA_PM2.5':
-        return NEMA_PM25_STANDARDS;
-      case 'NEMA_UGANDA_PM10':
-        return NEMA_PM10_STANDARDS;
-      case 'NEMA_KENYA_PM2.5':
-        return NEMA_KENYA_PM25_STANDARDS;
-      case 'NEMA_KENYA_PM10':
-        return NEMA_KENYA_PM10_STANDARDS;
-      case 'SOUTH_AFRICA_PM2.5':
-        return SOUTH_AFRICA_PM25_STANDARDS;
-      case 'SOUTH_AFRICA_PM10':
-        return SOUTH_AFRICA_PM10_STANDARDS;
-      case 'NIGERIA_PM2.5':
-        return NIGERIA_PM25_STANDARDS;
-      case 'NIGERIA_PM10':
-        return NIGERIA_PM10_STANDARDS;
-      default:
-        return WHO_PM25_STANDARDS;
-    }
-  }, [selectedOrg, displayPollutant]);
-
-  // Annual + 24-hour limits for the selected organization/pollutant, read
-  // straight from REFERENCE_LINES so the dialog always agrees with the
-  // reference line drawn on the chart.
-  const getLimits = useCallback(() => {
-    const lines = REFERENCE_LINES[selectedOrg] ?? REFERENCE_LINES.WHO;
-    return {
-      annual:
-        displayPollutant === 'PM2.5' ? lines.PM25_ANNUAL : lines.PM10_ANNUAL,
-      daily:
-        displayPollutant === 'PM2.5' ? lines.PM25_24HR : lines.PM10_24HR,
-    };
-  }, [selectedOrg, displayPollutant]);
-
-  const getReferenceLine = useCallback(() => {
-    return getLimits().annual;
-  }, [getLimits]);
+  const standard = OFFICIAL_AIR_QUALITY_STANDARDS[selectedOrg];
+  const limits = getCurrentAirQualityLimits(selectedOrg, displayPollutant);
+  const hasReferenceLimit =
+    typeof limits.annual === 'number' || typeof limits.daily === 'number';
 
   const handleApply = () => {
     onApplyStandards({
       organization: selectedOrg,
       pollutant: displayPollutant,
-      showReferenceLine,
+      showReferenceLine: showReferenceLine && hasReferenceLimit,
     });
     onClose();
   };
-
-  // Memoize standards data and reference line to ensure they update when pollutant or org changes
-  const standards = useMemo(() => getStandardsData(), [getStandardsData]);
-  const referenceLine = useMemo(() => getReferenceLine(), [getReferenceLine]);
 
   if (!open) return null;
 
@@ -142,26 +75,28 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
       title={`Air Quality Standards - ${displayPollutant}`}
       size="xl"
       contentClassName="overflow-y-auto max-h-[75vh]"
-      primaryAction={{
-        label: 'Apply Standards',
-        onClick: handleApply,
-      }}
-      secondaryAction={{
-        label: 'Cancel',
-        onClick: onClose,
-      }}
+      primaryAction={{ label: 'Apply Standards', onClick: handleApply }}
+      secondaryAction={{ label: 'Cancel', onClick: onClose }}
     >
       <div className="space-y-4">
-        {/* Organization Selection */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-normal">Standards Organization</h3>
-          <div className="grid grid-cols-3 gap-2">
+        <section
+          className="space-y-2"
+          aria-labelledby="standards-organization-heading"
+        >
+          <h3
+            id="standards-organization-heading"
+            className="text-sm font-normal"
+          >
+            Standards organization
+          </h3>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {Object.entries(STANDARDS_ORGANIZATIONS).map(([key, label]) => (
               <Button
                 key={key}
                 variant={selectedOrg === key ? 'filled' : 'outlined'}
                 onClick={() => setSelectedOrg(key as ChartStandardsType)}
-                className="justify-center h-9 text-xs"
+                className="h-9 justify-center text-xs"
+                aria-pressed={selectedOrg === key}
               >
                 {label
                   .replace(' (World Health Organization)', '')
@@ -169,164 +104,154 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               </Button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Reference Line Option */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div className="flex flex-col gap-0.5">
-            <label htmlFor="referenceLine" className="text-sm font-medium">
-              Show Reference Line
-            </label>
-            <span className="text-xs text-muted-foreground">
-              {STANDARDS_ORGANIZATIONS[selectedOrg]} annual at {referenceLine}{' '}
-              µg/m³
-            </span>
-            <span className="text-xs text-blue-600">
-              {getLimits().annual} µg/m³ annual, {getLimits().daily} µg/m³
-              24-hour
-            </span>
+        <section
+          className="rounded-lg bg-muted/50 p-3"
+          aria-label="Chart reference line"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <label htmlFor="referenceLine" className="text-sm font-medium">
+                Show chart reference line
+              </label>
+              <p className="text-xs text-muted-foreground">
+                {typeof limits.annual === 'number'
+                  ? `${STANDARDS_ORGANIZATIONS[selectedOrg]} annual average: ${formatValue(limits.annual)}. The 24-hour value is ${formatValue(limits.daily)}.`
+                  : typeof limits.daily === 'number'
+                    ? `No annual value is specified. The 24-hour limit is ${formatValue(limits.daily)}.`
+                    : 'No numeric reference limit is available from this source.'}
+              </p>
+            </div>
+            <Checkbox
+              id="referenceLine"
+              checked={showReferenceLine && hasReferenceLimit}
+              disabled={!hasReferenceLimit}
+              onCheckedChange={setShowReferenceLine}
+            />
           </div>
-          <Checkbox
-            id="referenceLine"
-            checked={showReferenceLine}
-            onCheckedChange={setShowReferenceLine}
-          />
-        </div>
+        </section>
 
-        <hr className="border-border my-3" />
-
-        {/* Standards Preview */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">
-              {STANDARDS_ORGANIZATIONS[selectedOrg]} - {displayPollutant}
+        <section
+          className="space-y-3"
+          aria-labelledby="published-limits-heading"
+        >
+          <div>
+            <h3 id="published-limits-heading" className="text-sm font-medium">
+              {STANDARDS_ORGANIZATIONS[selectedOrg]} · {displayPollutant}
             </h3>
-            <div className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-              {displayPollutant}
+            <p className="text-xs font-medium text-muted-foreground">
+              {standard.kind}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {standard.instrument}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                Annual average
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {formatValue(limits.annual)}
+              </p>
+              {limits.annualExceedanceRule && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {limits.annualExceedanceRule}
+                </p>
+              )}
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                24-hour average
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {formatValue(limits.daily)}
+              </p>
+              {limits.dailyExceedanceRule && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {limits.dailyExceedanceRule}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Time Period Selection */}
-          <div className="flex items-center gap-2 p-2.5 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="flex items-center gap-1 text-blue-600">
-              <svg
-                className="w-4 h-4 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-xs font-medium">Research Note:</span>
+          {limits.unavailableReason && !hasReferenceLimit && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              {limits.unavailableReason} The app does not draw a reference line
+              for this pollutant and organization.
+            </p>
+          )}
+
+          {limits.context && (
+            <p className="text-xs text-muted-foreground">{limits.context}</p>
+          )}
+
+          {limits.areaLimits && (
+            <div className="overflow-hidden rounded-lg border border-border">
+              <p className="border-b border-border bg-muted/50 px-3 py-2 text-xs font-medium">
+                PM10 limits by area type
+              </p>
+              <div className="divide-y divide-border">
+                {limits.areaLimits.map(areaLimit => (
+                  <div
+                    key={areaLimit.area}
+                    className="grid grid-cols-1 items-start gap-1 px-3 py-2 text-xs sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-3"
+                  >
+                    <span>{areaLimit.area}</span>
+                    <span>Annual: {formatValue(areaLimit.annual)}</span>
+                    <span>
+                      24-hour: {formatValue(areaLimit.daily)}
+                      {areaLimit.dailyExceedanceRule && (
+                        <span className="mt-1 block text-muted-foreground">
+                          {areaLimit.dailyExceedanceRule}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="text-xs text-blue-700">
-              {selectedOrg === 'WHO'
-                ? 'WHO 2021 Air Quality Guidelines'
-                : selectedOrg === 'NEMA_UGANDA'
-                  ? 'NEMA Uganda standards (SI 22 of 2024)'
-                  : selectedOrg === 'NEMA_KENYA'
-                    ? 'NEMA Kenya standards (Legal Notice 180/2024)'
-                    : selectedOrg === 'SOUTH_AFRICA'
-                      ? 'South Africa NEM: Air Quality Act standards (GN 1210/2009, GN 486/2012)'
-                      : 'Nigeria NESREA standards (SI 88 of 2021)'}{' '}
-              for {displayPollutant}
-            </span>
-          </div>
+          )}
 
-          {/* Enhanced Standards Display */}
-          <div className="space-y-3">
-            {standards.map((standard: (typeof standards)[0]) => {
-              const standardLevel = mapAqiCategoryToLevel(standard.level);
-              const IconComponent = getAirQualityIcon(standardLevel);
-              const iconColor = getAirQualityColor(standardLevel);
+          {limits.nextPhase && (
+            <p className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
+              From {limits.nextPhase.starts}: annual{' '}
+              {formatValue(limits.nextPhase.annual)}; 24-hour{' '}
+              {formatValue(limits.nextPhase.daily)}.
+            </p>
+          )}
 
-              {/* Get specific values for annual and 24-hour based on the
-                  selected organization's legal limits (from REFERENCE_LINES
-                  so the dialog always agrees with the chart line). */}
-              const getDetailedValues = () => {
-                const orgPrefix = STANDARDS_ORGANIZATIONS[selectedOrg]
-                  .replace(' (World Health Organization)', '')
-                  .replace(' (NEM:AQA)', ' (SA)');
-                const { annual, daily } = getLimits();
+          {standard.note && (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {standard.note}
+            </p>
+          )}
+        </section>
 
-                if (standard.level === 'Good') {
-                  return {
-                    annual: `0-${annual} µg/m³`,
-                    daily: `0-${daily} µg/m³`,
-                    note: `${orgPrefix}: Annual ${annual} µg/m³, 24-hour ${daily} µg/m³`,
-                  };
-                }
-                if (standard.level === 'Moderate') {
-                  return {
-                    annual: `${annual}-${daily} µg/m³`,
-                    daily: `≤${daily} µg/m³`,
-                    note: `${orgPrefix}: Above annual limit, within 24-hour limit`,
-                  };
-                }
-                return {
-                  annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
-                  daily: 'Exceeds 24-hour limit',
-                  note: `${orgPrefix}: Significantly above the 24-hour limit`,
-                };
-              };
-
-              const detailedValues = getDetailedValues();
-
-              return (
-                <div
-                  key={standard.level}
-                  className="border border-border rounded-lg p-3 hover:shadow-sm transition-all bg-card"
+        <section
+          className="space-y-2 border-t border-border pt-3"
+          aria-labelledby="source-heading"
+        >
+          <h3 id="source-heading" className="text-sm font-medium">
+            Source
+          </h3>
+          <ul className="space-y-1">
+            {standard.sources.map(source => (
+              <li key={source.url}>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 underline underline-offset-2 hover:text-blue-700"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span style={{ color: iconColor }}>
-                        <IconComponent className="h-4 w-4" />
-                      </span>
-                      <span className="font-medium text-sm text-foreground">
-                        {standard.level}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="space-y-0.5">
-                        <div className="text-muted-foreground font-medium">
-                          Annual
-                        </div>
-                        <div className="font-mono text-foreground text-xs">
-                          {detailedValues.annual}
-                        </div>
-                      </div>
-                      <div className="space-y-0.5">
-                        <div className="text-muted-foreground font-medium">
-                          24-Hour
-                        </div>
-                        <div className="font-mono text-foreground text-xs">
-                          {detailedValues.daily}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-1.5 border-t border-border">
-                      <p className="text-xs text-muted-foreground leading-snug">
-                        {standard.description}
-                      </p>
-                      <p className="text-xs text-blue-600 mt-0.5 font-medium">
-                        {detailedValues.note}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  {source.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </Dialog>
   );

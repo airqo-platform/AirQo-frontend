@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
 import { SidebarContent, SidebarSkeleton } from './components';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
-import { toggleSidebar } from '@/shared/store/uiSlice';
+import { toggleSidebar, setMobileSidebarOpen } from '@/shared/store/uiSlice';
 import { useUserActions } from '@/shared/hooks';
 import { useRBAC } from '@/shared/hooks';
 import { SidebarProps } from './types';
@@ -39,7 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleItemClick = React.useCallback(() => {
     // Close sidebar on mobile when navigation item is clicked
     if (isMobile) {
-      dispatch(toggleSidebar());
+      dispatch(setMobileSidebarOpen(false));
     }
   }, [isMobile, dispatch]);
 
@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <Card
         className={cn(
           'flex h-full w-full flex-col',
-          isCollapsed ? 'overflow-visible' : 'overflow-x-hidden overflow-y-auto'
+          isCollapsed ? 'overflow-visible' : 'overflow-hidden'
         )}
       >
         {/* Navigation */}

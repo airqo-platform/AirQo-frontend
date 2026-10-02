@@ -23,6 +23,7 @@ import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
 import { LoadingState } from '@/shared/components/ui/loading-state';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { cn } from '@/shared/lib/utils';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -101,6 +102,12 @@ interface MultiSelectTableProps<T = TableItem> {
   filters?: TableFilter[];
   pageSize?: number;
   showPagination?: boolean;
+  onPageSizeChange?: (pageSize: number) => void;
+  onClientPageChange?: (page: number) => void;
+  onClientSortChange?: (sort: {
+    key: string;
+    direction: 'asc' | 'desc';
+  }) => void;
   sortable?: boolean;
   className?: string;
   pageSizeOptions?: number[];
@@ -114,10 +121,16 @@ interface MultiSelectTableProps<T = TableItem> {
   emptyComponent?: React.ReactNode;
   onRefresh?: () => void;
   headerComponent?: React.ReactNode;
+  /** Show a divider below the custom header (defaults to `true`). */
+  customHeaderDivider?: boolean;
+  /** Actions displayed beside the search field. */
+  searchActions?: React.ReactNode;
   multiSelect?: boolean;
   actions?: TableAction[];
   selectedItems?: (string | number)[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
+  /** Human-readable row label used by the selection checkbox. */
+  selectionLabel?: (item: T) => string;
   enableColumnFilters?: boolean;
   compactRows?: boolean;
   /** When provided, the entire row becomes clickable with cursor-pointer + hover highlight */
@@ -125,6 +138,8 @@ interface MultiSelectTableProps<T = TableItem> {
   // Server-side search props
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
+  /** Observe built-in search changes without controlling client-side filtering. */
+  onSearchTermChange?: (search: string) => void;
 }
 
 type FilterValues = Record<
@@ -515,6 +530,9 @@ const MultiSelectTable = <T extends TableItem>({
   filters = EMPTY_FILTERS as TableFilter[],
   pageSize = 10,
   showPagination = true,
+  onPageSizeChange,
+  onClientPageChange,
+  onClientSortChange,
   sortable = true,
   className = '',
   pageSizeOptions = [5, 6, 10, 20, 50, 100],
@@ -527,16 +545,20 @@ const MultiSelectTable = <T extends TableItem>({
   emptyComponent = null,
   onRefresh,
   headerComponent,
+  customHeaderDivider = true,
+  searchActions,
   multiSelect = false,
   actions = [],
   selectedItems: controlledSelectedItems,
   onSelectedItemsChange,
+  selectionLabel,
   enableColumnFilters = false,
   compactRows = false,
   onRowClick,
   // Server-side search props
   searchTerm: controlledSearchTerm,
   onSearchChange,
+  onSearchTermChange,
 }: MultiSelectTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [internalSearchTerm, setInternalSearchTerm] = useState('');
@@ -773,21 +795,36 @@ const MultiSelectTable = <T extends TableItem>({
   }, [searchTerm, filterValues, columnFilterValues]);
 
   // Handlers
-  const handlePageSizeChange = useCallback((newPageSize: number) => {
-    setCurrentPageSize(newPageSize);
-    setCurrentPage(1);
-  }, []);
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      setCurrentPageSize(newPageSize);
+      setCurrentPage(1);
+      onPageSizeChange?.(newPageSize);
+    },
+    [onPageSizeChange]
+  );
+
+  const handleClientPageChange = useCallback(
+    (page: number) => {
+      const nextPage = Math.max(1, page);
+      if (nextPage === currentPage) return;
+      setCurrentPage(nextPage);
+      onClientPageChange?.(nextPage);
+    },
+    [currentPage, onClientPageChange]
+  );
 
   const handleSort = useCallback(
     (key: string) => {
       if (!sortable) return;
-      setSortConfig(prev => ({
-        key,
-        direction:
-          prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-      }));
+      const direction =
+        sortConfig.key === key && sortConfig.direction === 'asc'
+          ? 'desc'
+          : 'asc';
+      setSortConfig({ key, direction });
+      onClientSortChange?.({ key, direction });
     },
-    [sortable]
+    [onClientSortChange, sortConfig, sortable]
   );
 
   const handleFilterChange = useCallback((key: string, value: unknown) => {
@@ -978,7 +1015,7 @@ const MultiSelectTable = <T extends TableItem>({
             onCheckedChange={(checked: boolean) =>
               handleSelectItem(item.id, checked)
             }
-            aria-label={`Select item ${item.id}`}
+            aria-label={`Select ${selectionLabel?.(item) || `item ${item.id}`}`}
           />
         ),
         sortable: false,
@@ -996,6 +1033,7 @@ const MultiSelectTable = <T extends TableItem>({
     selectedItems,
     handleSelectAll,
     handleSelectItem,
+    selectionLabel,
   ]);
 
   const hasActiveFilters = useMemo(
@@ -1023,7 +1061,12 @@ const MultiSelectTable = <T extends TableItem>({
     >
       {/* Header 2 */}
       {headerComponent && (
-        <div className="flex justify-end p-2 border-b border-border pb-4">
+        <div
+          className={cn(
+            'flex justify-end p-2 pb-4',
+            customHeaderDivider && 'border-b border-border'
+          )}
+        >
           {headerComponent}
         </div>
       )}
@@ -1039,16 +1082,25 @@ const MultiSelectTable = <T extends TableItem>({
             </h2>
             <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
               {searchable && (
-                <SearchField
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchTerm(e.target.value)
-                  }
-                  onClear={() => setSearchTerm('')}
-                  className="w-full sm:w-64"
-                />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <SearchField
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const nextSearch = e.target.value;
+                      setSearchTerm(nextSearch);
+                      onSearchTermChange?.(nextSearch);
+                    }}
+                    onClear={() => {
+                      setSearchTerm('');
+                      onSearchTermChange?.('');
+                    }}
+                    className="w-full sm:w-64"
+                  />
+                  {searchActions}
+                </div>
               )}
+              {!searchable && searchActions}
               {filterable && filters.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {filters.map(filter => (
@@ -1164,13 +1216,15 @@ const MultiSelectTable = <T extends TableItem>({
                     {displayColumns.map(column => (
                       <th
                         key={column.key}
-                        className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
+                        className={cn(
+                          'py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground',
                           column.key === 'checkbox'
                             ? 'w-12 max-w-[3rem] px-2 sm:px-3'
                             : compactRows
                               ? 'px-2 sm:px-4 md:px-6 max-w-none'
-                              : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
-                        } ${column.headerClassName || ''}`}
+                              : 'px-2 sm:px-4 md:px-6 max-w-[300px]',
+                          column.headerClassName
+                        )}
                         style={
                           column.key !== 'checkbox'
                             ? {
@@ -1241,7 +1295,25 @@ const MultiSelectTable = <T extends TableItem>({
                           ? 'transition-colors hover:bg-muted/50 cursor-pointer'
                           : 'transition-colors hover:bg-muted/50'
                       }
-                      onClick={onRowClick ? () => onRowClick(item) : undefined}
+                      onClick={
+                        onRowClick
+                          ? event => {
+                              // A link or button rendered inside a cell owns its
+                              // own click. Without this the row handler also
+                              // fires, so a cell containing a link to the same
+                              // place would navigate twice.
+                              const target = event.target as HTMLElement | null;
+                              if (
+                                target?.closest?.(
+                                  'a, button, input, select, textarea, [role="button"]'
+                                )
+                              ) {
+                                return;
+                              }
+                              onRowClick(item);
+                            }
+                          : undefined
+                      }
                     >
                       {displayColumns.map(column => (
                         <td
@@ -1316,13 +1388,9 @@ const MultiSelectTable = <T extends TableItem>({
                     currentPage={currentPage}
                     pageSize={currentPageSize}
                     totalItems={sortedData.length}
-                    onPrevClick={() =>
-                      setCurrentPage(Math.max(1, currentPage - 1))
-                    }
-                    onNextClick={() =>
-                      setCurrentPage(Math.min(totalPages, currentPage + 1))
-                    }
-                    onPageChange={setCurrentPage}
+                    onPrevClick={() => handleClientPageChange(currentPage - 1)}
+                    onNextClick={() => handleClientPageChange(currentPage + 1)}
+                    onPageChange={handleClientPageChange}
                   />
                 </div>
               )}

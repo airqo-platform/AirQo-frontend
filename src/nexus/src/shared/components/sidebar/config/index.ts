@@ -4,11 +4,13 @@ import {
   AqGlobe05,
   AqDownload01,
   AqUsers01,
+  AqUsers02,
   AqUserPlus01,
   AqShield02,
   AqSettings01,
   AqKey01,
   AqPresentationChart02,
+  AqBarChartSquareUp,
   AqServer03,
   AqUpload01,
   AqFileQuestion02,
@@ -20,6 +22,7 @@ import {
   AqImage01,
   AqShieldZap,
   AqTrophy01,
+  AqReceipt,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -124,6 +127,12 @@ const orgSidebarConfig: NavGroup[] = [
         label: 'Air Quality Map',
         href: '/org/map',
         icon: AqGlobe05,
+      },
+      {
+        id: 'air-quality-analytics',
+        label: 'Air Quality Analysis',
+        href: '/org/air-quality/analytics',
+        icon: AqPresentationChart02,
       },
     ],
   },
@@ -252,6 +261,12 @@ const systemSidebarConfig: NavGroup[] = [
     label: 'Platform',
     items: [
       {
+        id: 'system-billing',
+        label: 'Billing',
+        href: '/system/billing',
+        icon: AqReceipt,
+      },
+      {
         id: 'system-email-configs',
         label: 'Email Configuration',
         href: '/system/email-configs',
@@ -291,13 +306,25 @@ const systemSidebarConfig: NavGroup[] = [
         id: 'system-users',
         label: 'User Management',
         href: '/system/users',
-        icon: AqUsers01,
+        icon: AqUsers02,
       },
       {
         id: 'system-user-statistics',
         label: 'User Statistics',
         href: '/system/user-statistics',
         icon: AqPresentationChart02,
+      },
+      {
+        id: 'system-usage',
+        label: 'Platform Analytics',
+        href: '/system/usage',
+        icon: AqBarChartSquareUp,
+      },
+      {
+        id: 'system-api-keys',
+        label: 'API Key Usage',
+        href: '/system/api-keys',
+        icon: AqKey01,
       },
       {
         id: 'system-feedback',
@@ -363,6 +390,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'API Clients',
             href: '/system/clients',
             description: 'Manage API clients across the platform',
+          },
+          {
+            id: 'system-billing',
+            label: 'Billing',
+            href: '/system/billing',
+            description: 'Manage invoices, customers, and billing settings',
           },
           {
             id: 'system-security',
@@ -437,6 +470,13 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'User Statistics',
             href: '/system/user-statistics',
             description: 'View analytics and charts for platform users',
+          },
+          {
+            id: 'system-api-keys',
+            label: 'API Key Usage',
+            href: '/system/api-keys',
+            description:
+              'Rank API keys by call volume and inspect per-key usage',
           },
           {
             id: 'system-selfies',

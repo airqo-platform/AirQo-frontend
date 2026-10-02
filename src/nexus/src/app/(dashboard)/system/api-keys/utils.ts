@@ -1,0 +1,161 @@
+import { differenceInCalendarDays, format, subDays } from 'date-fns';
+import type { DateRange } from '@/shared/components/calendar/types';
+import type { NormalizedChartData } from '@/shared/components/charts/types';
+import type {
+  ApiKeyUsageOwner,
+  ApiKeyUsageTimeseriesData,
+} from '@/shared/types/apiKeyUsage';
+import {
+  API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS,
+  API_KEY_USAGE_MAX_RANGE_DAYS,
+} from '@/shared/hooks/useApiKeyUsage';
+
+// Re-exported so the views have a single import path for the feature's date
+// helpers. The caps themselves are defined once, next to the hooks that honour
+// them, so the UI can never disagree with the request layer about the limits.
+export { API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS, API_KEY_USAGE_MAX_RANGE_DAYS };
+
+/** `DateRange` end picked for both views (7 days, ending today). */
+export const defaultUsageRange = (): DateRange => ({
+  from: subDays(new Date(), 6),
+  to: new Date(),
+});
+
+/** `from`/`to` travel to the API as UTC calendar days (`YYYY-MM-DD`). */
+export const toApiDay = (date: Date | undefined): string | undefined =>
+  date ? format(date, 'yyyy-MM-dd') : undefined;
+
+export interface ClampedRange {
+  range: DateRange;
+  /** True when the requested range was longer than `maxDays` and got trimmed. */
+  clamped: boolean;
+}
+
+/**
+ * Trims an over-long range back from `to` so it never exceeds the endpoint's
+ * cap (92 days daily / 14 days hourly). Pure — the caller decides whether to
+ * announce the change, so it is safe to call from render and from state
+ * updaters alike.
+ */
+export const clampUsageRange = (
+  range: DateRange,
+  maxDays: number
+): ClampedRange => {
+  const { from, to } = range;
+  if (!from || !to) return { range, clamped: false };
+
+  const days = differenceInCalendarDays(to, from) + 1;
+  if (days <= maxDays) return { range, clamped: false };
+
+  return { range: { from: subDays(to, maxDays - 1), to }, clamped: true };
+};
+
+/** Human-readable cap message shared by both views. */
+export const usageRangeLimitMessage = (
+  interval: 'day' | 'hour',
+  maxDays: number
+): string =>
+  `The ${interval === 'hour' ? 'hourly' : 'daily'} view supports at most ${maxDays} days. The range was shortened to the last ${maxDays} days.`;
+
+/** Max days for a chart interval, matching the API's caps. */
+export const maxDaysForInterval = (interval: 'day' | 'hour'): number =>
+  interval === 'hour'
+    ? API_KEY_USAGE_MAX_HOURLY_RANGE_DAYS
+    : API_KEY_USAGE_MAX_RANGE_DAYS;
+
+/**
+ * Usage charts display UTC buckets in the viewer's local time.
+ *
+ * `day` labels (`YYYY-MM-DD`) are parsed at LOCAL midnight so the printed day
+ * matches the UTC day the API bucketed — parsing them as UTC would shift the
+ * label a day backwards for viewers behind UTC. `hour` labels are UTC ISO
+ * instants, so they are converted to local time.
+ */
+export const formatUsageLabel = (
+  value: string,
+  {
+    interval,
+    pattern,
+  }: {
+    interval: 'day' | 'hour';
+    pattern?: string;
+  }
+): string => {
+  const parsed =
+    interval === 'day' ? new Date(`${value}T00:00:00`) : new Date(value);
+  if (Number.isNaN(parsed.getTime())) return String(value);
+
+  return format(
+    parsed,
+    pattern ?? (interval === 'day' ? 'MMM d' : 'MMM d, HH:mm')
+  );
+};
+
+/** Series key for the aggregated remainder of all keys outside the top N. */
+export const USAGE_OTHER_SERIES = 'otherKeys';
+/** Series key for the all-keys total line. */
+export const USAGE_TOTAL_SERIES = 'totalCalls';
+
+export interface UsageSeriesBundle {
+  /** One point per (label, series) pair, ready for the shared DynamicChart. */
+  data: NormalizedChartData[];
+  /** Display names keyed by series, for the shared legend + tooltip. */
+  labels: Record<string, string>;
+  /** Number of series actually plotted. */
+  seriesCount: number;
+}
+
+/**
+ * Pivots the endpoint's parallel arrays (`labels` + one array per series) into
+ * the long format the shared chart expects.
+ *
+ * The endpoint returns one entry per label for every series, so the row count
+ * is `labels.length × seriesCount`; a missing or short array is coerced to 0
+ * rather than `undefined` so the chart can never receive a gap. `other` is
+ * only plotted when the API actually reports a non-zero remainder.
+ */
+export const buildUsageSeries = (
+  timeseries: ApiKeyUsageTimeseriesData
+): UsageSeriesBundle => {
+  const includeOther =
+    timeseries.other !== null && timeseries.other.some(value => value > 0);
+  const labels: Record<string, string> = {};
+  const data: NormalizedChartData[] = [];
+
+  const at = (values: number[] | null, index: number): number =>
+    values?.[index] ?? 0;
+
+  timeseries.labels.forEach((label: string, index: number) => {
+    const push = (site: string, value: number) =>
+      data.push({ time: label, value, site, device_id: '' });
+
+    timeseries.series.forEach(
+      (series: ApiKeyUsageTimeseriesData['series'][number]) =>
+        push(series.client_id, at(series.data, index))
+    );
+    if (includeOther) push(USAGE_OTHER_SERIES, at(timeseries.other, index));
+    push(USAGE_TOTAL_SERIES, at(timeseries.total, index));
+  });
+
+  timeseries.series.forEach(series => {
+    labels[series.client_id] = series.owner_name
+      ? `${series.label} — ${series.owner_name}`
+      : series.label;
+  });
+  if (includeOther) labels[USAGE_OTHER_SERIES] = 'Other keys';
+  labels[USAGE_TOTAL_SERIES] = 'All keys';
+
+  return { data, labels, seriesCount: Object.keys(labels).length };
+};
+
+/** Best available label for an owner in compact table cells. */
+export const ownerDisplayName = (owner: ApiKeyUsageOwner): string =>
+  owner.name || owner.email || '—';
+
+/**
+ * Everyone belongs to `airqo`, which the API always lists LAST, so index 0 is
+ * the organisation that identifies the owner's team.
+ */
+export const ownerPrimaryOrganisation = (
+  owner: ApiKeyUsageOwner
+): string | undefined => owner.organisations?.[0]?.title;

@@ -1,19 +1,15 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { HiChevronRight } from 'react-icons/hi';
 import { HiInformationCircle } from 'react-icons/hi2';
 import { AqBarChartSquareUp } from '@airqo/icons-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import {
-  DataTable,
-  type DataTableColumn,
-} from '@/shared/components/ui/data-table';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { ErrorState } from '@/shared/components/ui/error-state';
-import { LoadingState } from '@/shared/components/ui/loading-state';
 import {
   getAirQualityLevel,
   getAirQualityColor,
@@ -22,9 +18,12 @@ import type { AqiConfig } from '@/shared/types/aqi';
 import {
   sortComparisonRows,
   type ComparisonRow,
-  type ComparisonSortDir,
-  type ComparisonSortKey,
 } from '../../utils/comparisonRows';
+
+type ComparisonTableRow = ComparisonRow & {
+  id: string;
+  [key: string]: unknown;
+};
 
 interface ComparisonTableViewProps {
   /** One row per selected location — including honest no-data rows. */
@@ -48,21 +47,11 @@ interface ComparisonTableViewProps {
   onExport?: () => void;
   /** Opens the More-Insights dialog for a single row's location. */
   onViewInsights?: (row: ComparisonRow) => void;
+  /** Opens the More-Insights dialog for multiple selected locations. */
+  onViewSelectedInsights?: (siteIds: string[]) => void;
   /** siteId → explicit series color; when set, a color dot precedes the site name. */
   siteColorBySiteId?: Map<string, string>;
 }
-
-const DEFAULT_DIR_BY_KEY: Record<
-  Exclude<ComparisonSortKey, 'time'>,
-  ComparisonSortDir
-> & { time: ComparisonSortDir } = {
-  name: 'asc',
-  aqi: 'desc',
-  pm2_5: 'desc',
-  pm10: 'desc',
-  no2: 'desc',
-  time: 'desc',
-};
 
 const formatPollutantCell = (value: number | null): string =>
   value === null ? '—' : value.toFixed(1);
@@ -111,11 +100,41 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   pm10Config = null,
   onSiteClick,
   onViewInsights,
+  onViewSelectedInsights,
   onExport,
   siteColorBySiteId,
 }) => {
-  const [sortKey, setSortKey] = useState<ComparisonSortKey>('aqi');
-  const [sortDir, setSortDir] = useState<ComparisonSortDir>('desc');
+  const [selectedSiteIds, setSelectedSiteIds] = useState<string[]>([]);
+  const tableRows = useMemo<ComparisonTableRow[]>(
+    () =>
+      sortComparisonRows(rows, 'aqi', 'desc').map(row => ({
+        ...row,
+        id: row.siteId,
+      })),
+    [rows]
+  );
+  const currentSiteIds = useMemo(
+    () => new Set(tableRows.map(row => row.siteId)),
+    [tableRows]
+  );
+
+  useEffect(() => {
+    setSelectedSiteIds(current => {
+      const next = current.filter(siteId => currentSiteIds.has(siteId));
+      return next.length === current.length ? current : next;
+    });
+  }, [currentSiteIds]);
+
+  const handleSelectedItemsChange = useCallback(
+    (selectedItems: (string | number)[]) => {
+      setSelectedSiteIds(
+        selectedItems.filter(
+          (siteId): siteId is string => typeof siteId === 'string'
+        )
+      );
+    },
+    []
+  );
 
   /**
    * Table header area: the "click a site" affordance plus the export control
@@ -123,7 +142,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
    * rows exist, so the action is discoverable even in the empty state.
    */
   const renderHeaderBar = () => (
-    <div className="flex items-center justify-between gap-2 border-b border-border/50 px-4 py-2">
+    <div className="flex w-full items-center justify-between gap-2 px-4 py-2">
       {onSiteClick && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <HiInformationCircle
@@ -148,13 +167,13 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     </div>
   );
 
-  const columns = useMemo<DataTableColumn<ComparisonRow>[]>(
+  const columns = useMemo(
     () => [
       {
-        key: 'name',
+        key: 'siteName',
         label: 'Site',
         cellClassName: 'font-medium text-foreground',
-        render: row => {
+        render: (_value: unknown, row: ComparisonTableRow) => {
           const color = siteColorBySiteId?.get(row.siteId);
           const dot = color ? (
             <span
@@ -187,9 +206,9 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
         },
       },
       {
-        key: 'aqi',
+        key: 'aqiIndex',
         label: 'AQI',
-        render: row =>
+        render: (_value: unknown, row: ComparisonTableRow) =>
           row.hasReading ? (
             <span className="inline-flex min-w-[2.75rem] text-xs font-semibold tabular-nums text-foreground">
               {row.aqiIndex ?? '—'}
@@ -202,12 +221,12 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       },
       {
         key: 'pm2_5',
-        label: 'PM2.5',
-        unit: 'µg/m³',
+        label: 'PM2.5 (µg/m³)',
+        headerClassName: 'normal-case',
         cellClassName: 'tabular-nums text-foreground',
-        render: row => (
+        render: (value: unknown) => (
           <PollutantCell
-            value={row.pm2_5}
+            value={typeof value === 'number' ? value : null}
             pollutant="pm2_5"
             config={pm25Config}
           />
@@ -215,12 +234,12 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       },
       {
         key: 'pm10',
-        label: 'PM10',
-        unit: 'µg/m³',
+        label: 'PM10 (µg/m³)',
+        headerClassName: 'normal-case',
         cellClassName: 'tabular-nums text-foreground',
-        render: row => (
+        render: (value: unknown) => (
           <PollutantCell
-            value={row.pm10}
+            value={typeof value === 'number' ? value : null}
             pollutant="pm10"
             config={pm10Config}
           />
@@ -228,23 +247,22 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       },
       {
         key: 'no2',
-        label: 'NO2',
-        unit: 'µg/m³',
-        headerClassName: 'hidden sm:table-cell',
+        label: 'NO2 (µg/m³)',
+        headerClassName: 'hidden sm:table-cell normal-case',
         cellClassName: 'hidden sm:table-cell tabular-nums text-foreground',
-        render: row => formatPollutantCell(row.no2),
+        render: (value: unknown) =>
+          formatPollutantCell(typeof value === 'number' ? value : null),
       },
       {
-        key: 'time',
+        key: 'lastReadingLabel',
         label: 'Last reading',
         cellClassName: 'text-muted-foreground',
-        render: row => row.lastReadingLabel,
       },
       {
-        key: 'freshness',
+        key: 'freshnessLabel',
         label: 'Freshness',
         sortable: false,
-        render: row => (
+        render: (_value: unknown, row: ComparisonTableRow) => (
           <span
             className={cn(
               'text-xs font-medium',
@@ -258,18 +276,18 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
       ...(onViewInsights
         ? [
             {
-              key: 'insights' as const,
+              key: 'insights',
               label: 'Insights',
-              sortable: false as const,
-              render: (row: ComparisonRow) => (
+              sortable: false,
+              render: (_value: unknown, row: ComparisonTableRow) => (
                 <Button
                   type="button"
                   variant="outlined"
                   size="sm"
                   Icon={AqBarChartSquareUp}
                   aria-label={`View insights for ${row.siteName}`}
-                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    e.stopPropagation();
+                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                    event.stopPropagation();
                     onViewInsights(row);
                   }}
                 >
@@ -283,23 +301,23 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     [pm25Config, pm10Config, onSiteClick, onViewInsights, siteColorBySiteId]
   );
 
-  const sortedRows = useMemo(
-    () => sortComparisonRows(rows, sortKey, sortDir),
-    [rows, sortKey, sortDir]
-  );
-
-  const handleSortClick = (key: string) => {
-    if (key === sortKey) {
-      setSortDir(currentDir => (currentDir === 'asc' ? 'desc' : 'asc'));
-      return;
-    }
-    setSortKey(key as ComparisonSortKey);
-    setSortDir(DEFAULT_DIR_BY_KEY[key as ComparisonSortKey]);
-  };
-
+  const searchActions =
+    selectedSiteIds.length > 1 && onViewSelectedInsights ? (
+      <Button
+        type="button"
+        variant="outlined"
+        size="sm"
+        Icon={AqBarChartSquareUp}
+        aria-label={`View insights for ${selectedSiteIds.length} selected locations`}
+        onClick={() => onViewSelectedInsights(selectedSiteIds)}
+        className="whitespace-nowrap"
+      >
+        View insights ({selectedSiteIds.length})
+      </Button>
+    ) : null;
   // Rows exist for every selected location (including honest no-data rows),
   // so "no data at all" means no row carries a reading.
-  const hasAnyReading = sortedRows.some(row => row.hasReading);
+  const hasAnyReading = tableRows.some(row => row.hasReading);
 
   if (error && !hasAnyReading) {
     return (
@@ -327,7 +345,7 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
     );
   }
 
-  if (sortedRows.length === 0 && !isLoading) {
+  if (tableRows.length === 0 && !isLoading) {
     return (
       <Card className={className}>
         <CardContent className="p-0">
@@ -343,26 +361,31 @@ export const ComparisonTableView: React.FC<ComparisonTableViewProps> = ({
   }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-0">
-        {renderHeaderBar()}
-        <DataTable
-          data={sortedRows}
-          columns={columns}
-          rowKey={row => row.siteId}
-          sortKey={sortKey}
-          sortDir={sortDir}
-          onSortChange={handleSortClick}
-          loading={isLoading}
-          loadingComponent={
-            <LoadingState
-              text="Loading latest readings..."
-              className="min-h-[200px]"
-            />
-          }
-          className="rounded-b-lg"
+    <ServerSideTable<ComparisonTableRow>
+      title="Latest readings"
+      data={tableRows}
+      columns={columns}
+      loading={isLoading}
+      error={error}
+      onRefresh={onRetry}
+      customHeader={renderHeaderBar()}
+      customHeaderDivider={false}
+      searchActions={searchActions}
+      searchable={false}
+      searchableColumns={['siteName']}
+      multiSelect
+      selectedItems={selectedSiteIds}
+      onSelectedItemsChange={handleSelectedItemsChange}
+      selectionLabel={row => row.siteName}
+      showClientPagination
+      compactRows
+      className={className}
+      emptyComponent={
+        <EmptyState
+          title="No matching locations"
+          description="Try changing the search term to find a selected location."
         />
-      </CardContent>
-    </Card>
+      }
+    />
   );
 };

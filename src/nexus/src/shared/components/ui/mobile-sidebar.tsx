@@ -4,13 +4,13 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { useMediaQuery } from 'react-responsive';
 import { useAppSelector, useAppDispatch } from '@/shared/hooks/redux';
-import { toggleSidebar } from '@/shared/store/uiSlice';
+import { setMobileSidebarOpen } from '@/shared/store/uiSlice';
 import { Sidebar } from '@/shared/components/sidebar';
 
 export const MobileSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
+  const mobileSidebarOpen = useAppSelector(state => state.ui.mobileSidebarOpen);
   const asideRef = React.useRef<HTMLElement>(null);
 
   // Avoid SSR/hydration flicker: defer rendering until after client mount
@@ -19,7 +19,7 @@ export const MobileSidebar: React.FC = () => {
     setMounted(true);
   }, []);
 
-  const isVisible = mounted && isMobile && !sidebarCollapsed;
+  const isVisible = mounted && isMobile && mobileSidebarOpen;
 
   // Escape key handler
   React.useEffect(() => {
@@ -27,7 +27,7 @@ export const MobileSidebar: React.FC = () => {
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        dispatch(toggleSidebar());
+        dispatch(setMobileSidebarOpen(false));
       }
     };
 
@@ -92,7 +92,7 @@ export const MobileSidebar: React.FC = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        onClick={() => dispatch(toggleSidebar())}
+        onClick={() => dispatch(setMobileSidebarOpen(false))}
       />
 
       {/* Mobile Sidebar */}
@@ -110,7 +110,7 @@ export const MobileSidebar: React.FC = () => {
         tabIndex={-1}
       >
         <div className="h-full overflow-y-auto border-r">
-          <Sidebar />
+          <Sidebar isCollapsed={false} hideToggle />
         </div>
       </motion.aside>
     </>

@@ -1,9 +1,13 @@
 /**
  * @jest-environment node
  */
+import { getAllowlistedAssistantAction } from '../actions';
 import {
   createDevFallbackProvider,
   createOpenAICompatibleProvider,
+  createPrototypeProvider,
+  resolvePrototypeIntent,
+  sanitizePrototypeContext,
 } from '../server/provider';
 import type { AiMessage } from '../types';
 
@@ -113,6 +117,211 @@ describe('createDevFallbackProvider', () => {
 
     const fullText = chunks.join('');
     expect(fullText).toContain('AI_AGENT_URL');
+  });
+});
+
+describe('createPrototypeProvider', () => {
+  it('returns contextual saved-location guidance and a safe map action', async () => {
+    const messages: AiMessage[] = [
+      { role: 'user', content: 'Summarize my saved locations' },
+    ];
+    const context = {
+      savedLocations: [
+        { name: 'Makerere University', aqiCategory: 'Good', aqiIndex: 42 },
+      ],
+    };
+    const provider = createPrototypeProvider();
+    const chunks = await collect(
+      provider.streamChat({ messages, system: TEST_SYSTEM, context })
+    );
+    const action = provider.getAction?.({ messages, context });
+
+    expect(chunks.join('')).toContain('Makerere University: Good');
+    expect(action).toEqual({
+      id: 'open-map',
+      label: 'Open map',
+      href: '/user/map',
+    });
+  });
+
+  it('maps supported intents to allowlisted internal routes', () => {
+    const cases = [
+      [
+        'How do I compare locations?',
+        '/user/air-quality/analytics?view=comparison',
+      ],
+      ['Help me export data as CSV', '/user/data-export'],
+      ['Visualize my uploaded dataset', '/user/data-visualizer'],
+      ['Compare city rankings', '/user/air-quality/rankings'],
+    ];
+
+    cases.forEach(([content, expectedHref]) => {
+      const provider = createPrototypeProvider();
+      const messages: AiMessage[] = [{ role: 'user', content }];
+      expect(provider.getAction?.({ messages })?.href).toBe(expectedHref);
+    });
+  });
+
+  it('returns an honest fallback for unsupported prompts', () => {
+    const result = resolvePrototypeIntent([
+      { role: 'user', content: 'Write a poem about a bicycle' },
+    ]);
+
+    expect(result.actionId).toBeUndefined();
+    expect(result.response).toContain('currently supports');
+  });
+
+  it('interpolates saved-place context and drops emails, tokens, and ids', () => {
+    const sanitized = sanitizePrototypeContext({
+      experienceMode: 'returning',
+      chartCount: 2,
+      email: 'person@example.com',
+      token: 'secret-token',
+      savedLocations: [
+        {
+          name: 'person@example.com',
+          aqiCategory: 'Good',
+          aqiIndex: 42,
+          siteId: 'site-secret',
+        },
+      ],
+    });
+    const result = resolvePrototypeIntent(
+      [{ role: 'user', content: 'Summarize my saved locations' }],
+      {
+        email: 'person@example.com',
+        token: 'secret-token',
+        savedLocations: sanitized.savedLocations,
+      }
+    );
+
+    expect(sanitized.savedLocations[0]?.name).toBe('Saved location');
+    expect(JSON.stringify(sanitized)).not.toContain('person@example.com');
+    expect(JSON.stringify(sanitized)).not.toContain('secret-token');
+    expect(JSON.stringify(sanitized)).not.toContain('site-secret');
+    expect(result.response).toContain('Saved location: Good');
+    expect(result.response).not.toContain('person@example.com');
+  });
+
+  it('recommends a starting workflow from the user state', () => {
+    const returning = resolvePrototypeIntent(
+      [{ role: 'user', content: 'What should I explore next?' }],
+      { experienceMode: 'returning', chartCount: 2, comparisonCount: 0 }
+    );
+    const fresh = resolvePrototypeIntent(
+      [{ role: 'user', content: 'What should I explore first?' }],
+      { experienceMode: 'new', chartCount: 0, comparisonCount: 0 }
+    );
+
+    expect(returning.actionId).toBe('open-saved-charts');
+    expect(fresh.actionId).toBe('open-map');
+  });
+});
+
+describe('assistant action allowlist', () => {
+  it('accepts canonical internal actions', () => {
+    expect(
+      getAllowlistedAssistantAction({
+        id: 'configure-export',
+        label: 'Configure an export',
+        href: '/user/data-export',
+      })?.href
+    ).toBe('/user/data-export');
+  });
+
+  it('rejects external or rewritten routes', () => {
+    expect(
+      getAllowlistedAssistantAction({
+        id: 'open-map',
+        label: 'Open map',
+        href: 'https://evil.example/user/map',
+      })
+    ).toBeUndefined();
+    expect(
+      getAllowlistedAssistantAction({
+        id: 'open-map',
+        label: 'Open map',
+        href: '/user/profile',
+      })
+    ).toBeUndefined();
+  });
+});
+
+describe('getAiProvider', () => {
+  const originalEnv = process.env;
+
+  afterEach(() => {
+    process.env = originalEnv;
+    jest.resetModules();
+  });
+
+  async function loadProvider() {
+    jest.resetModules();
+    return import('../server/provider');
+  }
+
+  it('selects the scripted provider when mode is prototype', async () => {
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_AI_ENABLED: 'true',
+      AI_PROVIDER_MODE: 'prototype',
+    };
+    const { getAiProvider } = await loadProvider();
+    const provider = getAiProvider();
+    const chunks = await collect(
+      provider.streamChat({
+        messages: [{ role: 'user', content: 'Write a poem about a bicycle' }],
+        system: TEST_SYSTEM,
+      })
+    );
+
+    expect(chunks.join('')).toContain('currently supports');
+  });
+
+  it('selects the OpenAI-compatible provider when mode is external', async () => {
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_AI_ENABLED: 'true',
+      AI_PROVIDER_MODE: 'external',
+      AI_AGENT_URL: 'https://agent.example/v1',
+    };
+    mockFetchSse(['External']);
+    const { getAiProvider } = await loadProvider();
+    const chunks = await collect(
+      getAiProvider().streamChat({
+        messages: TEST_MESSAGES,
+        system: TEST_SYSTEM,
+      })
+    );
+
+    expect(chunks).toEqual(['External']);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://agent.example/v1/chat/completions',
+      expect.any(Object)
+    );
+  });
+
+  it('does not choose a provider for an invalid mode or a missing agent URL', async () => {
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_AI_ENABLED: 'true',
+      AI_PROVIDER_MODE: 'openai',
+    };
+    const invalid = await loadProvider();
+    expect(() => invalid.getAiProvider()).toThrow(
+      'Ask AirQo is not configured'
+    );
+
+    process.env = {
+      ...originalEnv,
+      NEXT_PUBLIC_AI_ENABLED: 'true',
+      AI_PROVIDER_MODE: 'external',
+      AI_AGENT_URL: '',
+    };
+    const missingUrl = await loadProvider();
+    expect(() => missingUrl.getAiProvider()).toThrow(
+      'Ask AirQo is not configured'
+    );
   });
 });
 
@@ -270,6 +479,35 @@ describe('createOpenAICompatibleProvider', () => {
         })
       )
     ).rejects.toThrow('AI agent returned status 401');
+  });
+
+  it('never exposes the upstream error body in the thrown message', async () => {
+    const marker = 'SECRET_UPSTREAM_BODY';
+    const errorResponse = new Response(
+      `${marker}: invalid api key sk-leaked-key`,
+      { status: 502 }
+    );
+    global.fetch = jest.fn().mockResolvedValue(errorResponse);
+
+    const provider = createOpenAICompatibleProvider(makeConfig());
+
+    const failure = await collect(
+      provider.streamChat({
+        messages: TEST_MESSAGES,
+        system: TEST_SYSTEM,
+      })
+    ).then(
+      () => {
+        throw new Error('expected the stream to reject on a non-OK response');
+      },
+      (err: unknown) => err
+    );
+
+    expect(failure).toBeInstanceOf(Error);
+    const message = (failure as Error).message;
+    expect(message).toContain('502');
+    expect(message).not.toContain(marker);
+    expect(message).not.toContain('sk-leaked-key');
   });
 
   it('passes the AbortSignal through to fetch', async () => {

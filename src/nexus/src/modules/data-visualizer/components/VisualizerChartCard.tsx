@@ -154,6 +154,32 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
   const [draftSubtitle, setDraftSubtitle] = React.useState(
     chart.subtitle || ''
   );
+  const pendingSettingFieldsRef = React.useRef(new Set<string>());
+  const settingsTrackingTimerRef = React.useRef<number | null>(null);
+  const latestChartTypeRef = React.useRef(chart.type);
+  const onTrackRef = React.useRef(onTrack);
+  latestChartTypeRef.current = chart.type;
+  onTrackRef.current = onTrack;
+
+  const flushSettingChanges = React.useCallback(() => {
+    if (settingsTrackingTimerRef.current !== null) {
+      window.clearTimeout(settingsTrackingTimerRef.current);
+      settingsTrackingTimerRef.current = null;
+    }
+
+    const fields = Array.from(pendingSettingFieldsRef.current);
+    pendingSettingFieldsRef.current.clear();
+    if (fields.length === 0) return;
+
+    onTrackRef.current?.('air_quality_explorer_chart_configuration_changed', {
+      chart_type: latestChartTypeRef.current,
+      fields,
+      field_count: fields.length,
+    });
+  }, []);
+
+  React.useEffect(() => () => flushSettingChanges(), [flushSettingChanges]);
+
   const model = React.useMemo(() => {
     if (chart.type === 'map') {
       return EMPTY_MAP_MODEL;
@@ -161,6 +187,16 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
 
     return buildChartModel(rows, chart);
   }, [chart, rows]);
+  const handleChartInteraction = React.useCallback(
+    (action: string) => {
+      onTrack?.('air_quality_explorer_chart_interaction', {
+        chart_type: chart.type,
+        action,
+        row_count: rows.length,
+      });
+    },
+    [chart.type, onTrack, rows.length]
+  );
   const title = chart.title || `Chart ${chartNumber}`;
   const selectedDatasetIds = new Set(chart.datasetIds);
   const isMap = chart.type === 'map';
@@ -199,6 +235,20 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       ...chart,
       ...partial,
     });
+
+    Object.keys(partial)
+      .filter(field => !['title', 'subtitle', 'datasetIds'].includes(field))
+      .forEach(field => pendingSettingFieldsRef.current.add(field));
+
+    if (pendingSettingFieldsRef.current.size > 0) {
+      if (settingsTrackingTimerRef.current !== null) {
+        window.clearTimeout(settingsTrackingTimerRef.current);
+      }
+      settingsTrackingTimerRef.current = window.setTimeout(
+        flushSettingChanges,
+        600
+      );
+    }
   };
 
   const updateSeriesColor = (key: string, color: string) => {
@@ -406,9 +456,10 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
       dataset_count: nextIds.size,
     });
   };
-  const xAxisLabel = chart.xAxisLabel || formatColumnLabel(chart.xColumn);
+  // Nullish, not `||`: an explicitly cleared label ('') must stay cleared.
+  const xAxisLabel = chart.xAxisLabel ?? formatColumnLabel(chart.xColumn);
   const yAxisLabel =
-    chart.yAxisLabel || formatMeasurementLabel(chart.metricColumn);
+    chart.yAxisLabel ?? formatMeasurementLabel(chart.metricColumn);
   const compareLabel = chart.compareColumn
     ? formatColumnLabel(chart.compareColumn)
     : 'No series grouping';
@@ -858,20 +909,31 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       </option>
                     ))}
                   </Select>
-                  <Input
-                    label="Y-axis label"
-                    value={
-                      chart.yAxisLabel ??
-                      formatMeasurementLabel(chart.metricColumn)
-                    }
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      updateChart({
-                        yAxisLabel: event.target.value || undefined,
-                      })
-                    }
-                    containerClassName="mb-0"
-                    maxLength={CHART_AXIS_LABEL_MAX}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      label="Y-axis label"
+                      // `undefined` = follow the column automatically;
+                      // `''` = the user cleared it, so the axis stays unlabelled.
+                      value={chart.yAxisLabel ?? ''}
+                      placeholder={formatMeasurementLabel(chart.metricColumn)}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        updateChart({
+                          yAxisLabel: event.target.value,
+                        })
+                      }
+                      containerClassName="mb-0"
+                      maxLength={CHART_AXIS_LABEL_MAX}
+                    />
+                    {chart.yAxisLabel !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => updateChart({ yAxisLabel: undefined })}
+                        className="self-start text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Use automatic label
+                      </button>
+                    )}
+                  </div>
                   <Select
                     label="X axis time or category"
                     value={chart.xColumn || ''}
@@ -906,17 +968,29 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
                       </option>
                     ))}
                   </Select>
-                  <Input
-                    label="X-axis label"
-                    value={chart.xAxisLabel ?? formatColumnLabel(chart.xColumn)}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      updateChart({
-                        xAxisLabel: event.target.value || undefined,
-                      })
-                    }
-                    containerClassName="mb-0"
-                    maxLength={CHART_AXIS_LABEL_MAX}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <Input
+                      label="X-axis label"
+                      value={chart.xAxisLabel ?? ''}
+                      placeholder={formatColumnLabel(chart.xColumn)}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        updateChart({
+                          xAxisLabel: event.target.value,
+                        })
+                      }
+                      containerClassName="mb-0"
+                      maxLength={CHART_AXIS_LABEL_MAX}
+                    />
+                    {chart.xAxisLabel !== undefined && (
+                      <button
+                        type="button"
+                        onClick={() => updateChart({ xAxisLabel: undefined })}
+                        className="self-start text-[11px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Use automatic label
+                      </button>
+                    )}
+                  </div>
                   <Select
                     label="Series / compare by"
                     value={chart.compareColumn || ''}
@@ -1158,9 +1232,19 @@ export const VisualizerChartCard: React.FC<VisualizerChartCardProps> = ({
         )}
 
         {chart.type === 'map' ? (
-          <VisualizerMapChart rows={rows} config={chart} />
+          <VisualizerMapChart
+            rows={rows}
+            config={chart}
+            onFeatureSelect={() =>
+              handleChartInteraction('map_feature_selected')
+            }
+          />
         ) : (
-          <VisualizerChart model={model} config={chart} />
+          <VisualizerChart
+            model={model}
+            config={chart}
+            onInteraction={handleChartInteraction}
+          />
         )}
       </div>
 

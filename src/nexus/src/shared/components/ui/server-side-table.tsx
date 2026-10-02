@@ -43,15 +43,37 @@ export interface ServerSideTableProps<T = TableItem> {
   totalItems?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  /** Observe the built-in client-side paginator without controlling it. */
+  onClientPageChange?: (page: number) => void;
+  /** Observe client-side column sorting without controlling it. */
+  onClientSortChange?: (sort: {
+    key: string;
+    direction: 'asc' | 'desc';
+  }) => void;
 
   // Server-side search props (optional for client-side)
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
+  /** Observe built-in search changes without controlling client-side filtering. */
+  onSearchTermChange?: (search: string) => void;
   /** Restrict the built-in client-side search to these columns (null = all) */
   searchableColumns?: string[] | null;
+  /**
+   * Show the built-in search box (default `true`). Set `false` when the
+   * parent owns no search but still passes `searchTerm`/`onSearchChange`:
+   * MultiSelectTable only skips client-side slicing while search is
+   * controlled, so those props keep the server's page intact.
+   */
+  searchable?: boolean;
 
   // Custom header component
   customHeader?: React.ReactNode;
+  /** Show a divider below the custom header (defaults to `true`). */
+  customHeaderDivider?: boolean;
+  /** Actions displayed beside the search field. */
+  searchActions?: React.ReactNode;
+  /** Human-readable row label used by the selection checkbox. */
+  selectionLabel?: (item: T) => string;
 
   // Keep row content on one line for compact export-style tables
   compactRows?: boolean;
@@ -91,13 +113,21 @@ export function ServerSideTable<T extends TableItem>({
   totalItems,
   onPageChange,
   onPageSizeChange,
+  onClientPageChange,
+  onClientSortChange,
 
   searchTerm,
   onSearchChange,
+  onSearchTermChange,
 
   searchableColumns,
 
+  searchable = true,
+
   customHeader,
+  customHeaderDivider = true,
+  searchActions,
+  selectionLabel,
 
   compactRows = false,
 
@@ -208,11 +238,18 @@ export function ServerSideTable<T extends TableItem>({
         multiSelect={multiSelect}
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
-        searchable={true} // Enable search in table header
+        searchable={searchable} // Search box visibility is caller-controlled
         searchableColumns={searchableColumns}
         showPagination={showClientPagination} // Enable built-in pagination for client-side operations
+        onPageSizeChange={onPageSizeChange}
+        onClientPageChange={onClientPageChange}
+        onClientSortChange={onClientSortChange}
         sortable={true}
         headerComponent={customHeader}
+        customHeaderDivider={customHeaderDivider}
+        searchActions={searchActions}
+        selectionLabel={selectionLabel}
+        onSearchTermChange={onSearchTermChange}
         compactRows={compactRows}
         onRowClick={onRowClick}
         {...(searchTerm !== undefined && onSearchChange !== undefined

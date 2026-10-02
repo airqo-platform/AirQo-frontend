@@ -1,58 +1,39 @@
 export {};
 
 jest.mock('../apiClient', () => {
-  const mockGet = jest.fn();
   const mockPost = jest.fn();
-  const mockSetAuthToken = jest.fn();
-  const mockRemoveAuthToken = jest.fn();
   return {
-    createAuthenticatedClient: () => ({
-      get: mockGet,
-      post: mockPost,
-      setAuthToken: mockSetAuthToken,
-      removeAuthToken: mockRemoveAuthToken,
-    }),
-    createServerClient: () => ({
-      get: mockGet,
-      post: mockPost,
-      setAuthToken: mockSetAuthToken,
-      removeAuthToken: mockRemoveAuthToken,
-    }),
-    __mockGet: mockGet,
+    createServerClient: () => ({ post: mockPost }),
     __mockPost: mockPost,
   };
 });
 
-jest.mock('../sessionAuthToken', () => ({
-  syncClientSessionToken: jest.fn(),
-}));
-
 const { __mockPost: mockPost } = jest.requireMock('../apiClient') as {
-  __mockGet: jest.Mock;
   __mockPost: jest.Mock;
 };
 
 const {
   analyticsService,
-  chartContractToRetryForErrorBody,
-  resetChartDateContract,
+  buildChartPayload,
+  buildReportPayload,
+  normalizeChartApiFrequency,
+  REPORT_MAX_POSTS,
+  REPORT_MAX_SPLIT_DEPTH,
+  setReportPacingForTests,
 } = jest.requireActual('../analyticsService') as {
   analyticsService: {
     getChartData: (
-      request: {
-        sites?: string[];
-        startDateTime: string;
-        endDateTime: string;
-        frequency?: string;
-        pollutant?: string;
-        chartType?: string;
-        organisation_name?: string;
-      },
+      request: Record<string, unknown>,
       signal?: AbortSignal
-    ) => Promise<{
-      status: string;
-      data: unknown[];
-    }>;
+    ) => Promise<Record<string, unknown>>;
+    getReport: (
+      request: Record<string, unknown>,
+      signal?: AbortSignal
+    ) => Promise<unknown>;
+    downloadData: (
+      request: Record<string, unknown>,
+      signal?: AbortSignal
+    ) => Promise<unknown>;
     getRecentReadings: (
       siteIds: string[],
       signal?: AbortSignal
@@ -61,831 +42,342 @@ const {
       siteIds: string[],
       signal?: AbortSignal
     ) => Promise<unknown[]>;
-    downloadData: (
-      request: Record<string, unknown>,
-      signal?: AbortSignal
-    ) => Promise<unknown>;
   };
-  chartContractToRetryForErrorBody: (body: unknown) => string | null;
-  resetChartDateContract: () => void;
+  buildChartPayload: (
+    request: Record<string, unknown>
+  ) => Record<string, unknown>;
+  buildReportPayload: (
+    request: Record<string, unknown>
+  ) => Record<string, unknown>;
+  REPORT_MAX_POSTS: number;
+  REPORT_MAX_SPLIT_DEPTH: number;
+  normalizeChartApiFrequency: (value: string) => string;
+  setReportPacingForTests: (overrides: {
+    minSpacingMs?: number;
+    windowMs?: number;
+    maxRequests?: number;
+  }) => void;
 };
 
-const LEGACY_REJECTION_BODY = {
-  errors: {
-    startDate: ['Missing data for required field.'],
-    endDate: ['Missing data for required field.'],
-    endDateTime: ['Unknown field.'],
-    startDateTime: ['Unknown field.'],
-  },
+// Windowing helpers are used to derive the exact wire payloads the service
+// posts, so the budget regression test's mock always matches the real queue
+// shape instead of re-pinning boundary dates here.
+const { buildReportWindows, splitReportWindow } = jest.requireActual(
+  '../utils/reportWindows'
+) as {
+  buildReportWindows: (request: Record<string, unknown>) => {
+    start_time: string;
+    end_time: string;
+  }[];
+  splitReportWindow: (
+    window: Record<string, unknown>
+  ) =>
+    | [
+        { start_time: string; end_time: string },
+        { start_time: string; end_time: string },
+      ]
+    | null;
 };
+
+const chartRequest = {
+  sites: ['site-1'],
+  startDateTime: '2026-08-01T00:00:00.000Z',
+  endDateTime: '2026-08-08T23:59:59.999Z',
+  chartType: 'line',
+  frequency: 'daily',
+  pollutants: ['pm2_5'],
+  organisationName: 'AirQo',
+};
+
+const downloadRequest = {
+  datatype: 'calibrated',
+  downloadType: 'csv',
+  endDateTime: '2026-08-08T23:59:59.999Z',
+  frequency: 'daily',
+  minimum: false,
+  outputFormat: 'airqo-standard',
+  pollutants: ['pm2_5'],
+  startDateTime: '2026-08-01T00:00:00.000Z',
+  sites: ['site-1'],
+};
+
+const reportRequest = {
+  cohort_id: ' cohort-1 ',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-01-20T23:59:59Z',
+};
+
+/** 60 days in the past, so the future-start guard never rejects it. */
+const longReportRequest = {
+  cohort_id: 'cohort-1',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-03-01T00:00:00Z',
+};
+
+/** Minimal successful-but-empty report body for pacing/429 tests. */
+const buildEmptyReport = (period = longReportRequest) => ({
+  status: 'success',
+  cohort_id: 'cohort-1',
+  devices: { device_ids: [], number_of_devices: 0 },
+  period: {
+    startTime: period.start_time,
+    endTime: period.end_time,
+  },
+  daily_mean_pm: [],
+  datetime_mean_pm: [],
+  diurnal: [],
+  annual_pm: [],
+  monthly_pm: [],
+  pm_by_month_year: [],
+  pm_by_month_name: [],
+  site_monthly_mean_pm: [],
+  site_annual_mean_pm: [],
+  site_mean_pm: [],
+  mean_pm_by_city: [],
+  mean_pm_by_country: [],
+  mean_pm_by_region: [],
+  mean_pm_by_day_of_week: [],
+  mean_pm_by_day_hour: [],
+});
 
 describe('AnalyticsService.getChartData', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
+  beforeEach(() => jest.clearAllMocks());
 
-  const chartPayload = {
-    status: 'success',
-    data: [{ date: '2025-01-01', pm2_5: 10 }],
-  };
+  it('uses the canonical v2 chart route and exact current request fields', async () => {
+    const chartResponse = {
+      status: 'success',
+      message: 'Chart data retrieved successfully.',
+      chart_type: 'line',
+      data: [],
+      metadata: { total_count: 0, has_more: false, next: null },
+    };
+    mockPost.mockResolvedValueOnce({ data: chartResponse });
 
-  it('normalizes ISO datetime to YYYY-MM-DD in the request body', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21T00:00:00.000Z',
-      endDateTime: '2025-08-21T23:59:59.000Z',
-    });
+    await expect(analyticsService.getChartData(chartRequest)).resolves.toEqual(
+      chartResponse
+    );
 
     expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.objectContaining({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      }),
-      expect.anything()
+      '/analytics/dashboard/chart/data',
+      {
+        sites: ['site-1'],
+        startDateTime: '2026-08-01T00:00:00.000Z',
+        endDateTime: '2026-08-08T23:59:59.999Z',
+        chartType: 'line',
+        frequency: 'daily',
+        pollutants: ['pm2_5'],
+        metaDataFields: ['site_id'],
+        organisationName: 'AirQo',
+      },
+      { signal: undefined }
     );
+
+    const sentBody = mockPost.mock.calls[0][1];
+    expect(sentBody).not.toHaveProperty('pollutant');
+    expect(sentBody).not.toHaveProperty('organisation_name');
+    expect(sentBody).not.toHaveProperty('startDate');
+    expect(sentBody).not.toHaveProperty('endDate');
   });
 
-  it('passes through YYYY-MM-DD dates unchanged', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21',
-      endDateTime: '2025-08-21',
-    });
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.objectContaining({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      }),
-      expect.anything()
-    );
-  });
-
-  it('maps the rejected raw frequency to daily (live backend 400s on raw)', async () => {
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-21',
-      endDateTime: '2025-08-21',
-      frequency: 'raw',
-    });
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.objectContaining({ frequency: 'daily' }),
-      expect.anything()
-    );
-  });
-
-  it('passes accepted frequencies through unchanged', async () => {
-    mockPost.mockResolvedValue({ data: chartPayload });
-
-    for (const frequency of ['hourly', 'daily', 'weekly', 'monthly']) {
-      await analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-        frequency,
-      });
-    }
-
-    const bodies = mockPost.mock.calls.map(call => call[1]);
-    expect(bodies.map(body => body.frequency)).toEqual([
-      'hourly',
-      'daily',
-      'weekly',
-      'monthly',
-    ]);
-  });
-
-  it('forwards abort signal', async () => {
-    const controller = new AbortController();
-    const abortError = new Error('The operation was aborted.');
-    abortError.name = 'AbortError';
-    mockPost.mockRejectedValueOnce(abortError);
-
-    await expect(
-      analyticsService.getChartData(
-        { startDateTime: '2025-08-21', endDateTime: '2025-08-21' },
-        controller.signal
-      )
-    ).rejects.toThrow();
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/dashboard/chart/d3/data',
-      expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-});
-
-describe('chartContractToRetryForErrorBody', () => {
-  it('detects the legacy schema rejection and returns the alternate contract', () => {
-    expect(chartContractToRetryForErrorBody(LEGACY_REJECTION_BODY)).toBe(
-      'startDate'
-    );
-  });
-
-  it('detects the current-schema pydantic rejection of a startDate request (mirror signature)', () => {
-    const pydanticBody = {
-      message: 'Validation error',
-      status: 'error',
-      errors: [
-        {
-          type: 'missing',
-          loc: ['body', 'startDateTime'],
-          msg: 'Field required',
+  it('accumulates chart pages using the response cursor', async () => {
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          chart_type: 'line',
+          data: [{ site_id: 'site-1', value: 1 }],
+          metadata: { total_count: 1, has_more: true, next: 'chart-cursor-2' },
         },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          chart_type: 'line',
+          data: [{ site_id: 'site-1', value: 2 }],
+          metadata: { total_count: 1, has_more: false, next: null },
+        },
+      });
+
+    await expect(analyticsService.getChartData(chartRequest)).resolves.toEqual({
+      status: 'success',
+      message: 'first',
+      chart_type: 'line',
+      data: [
+        { site_id: 'site-1', value: 1 },
+        { site_id: 'site-1', value: 2 },
       ],
-    };
-    expect(chartContractToRetryForErrorBody(pydanticBody)).toBe(
-      'startDateTime'
-    );
-  });
+      metadata: { total_count: 2, has_more: false, next: null },
+    });
 
-  it('returns null for unrelated 400 bodies (no retry)', () => {
-    expect(
-      chartContractToRetryForErrorBody({
-        message:
-          'No data source configured for datatype=calibrated, device_category=lowcost, frequency=raw',
-      })
-    ).toBeNull();
-    expect(chartContractToRetryForErrorBody(null)).toBeNull();
-    expect(chartContractToRetryForErrorBody(undefined)).toBeNull();
-    expect(chartContractToRetryForErrorBody({})).toBeNull();
-  });
-});
-
-describe('AnalyticsService.getChartData contract negotiation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
-
-  const chartPayload = { status: 'success', data: [] };
-
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  it('retries ONCE with startDate/endDate on the legacy rejection, then caches the winning contract', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    const request = {
-      sites: ['site-1'],
-      startDateTime: '2025-08-15T00:00:00.000Z',
-      endDateTime: '2025-08-21T00:00:00.000Z',
-      frequency: 'daily',
-    };
-
-    await expect(analyticsService.getChartData(request)).resolves.toEqual(
-      chartPayload
-    );
-
-    // First attempt: primary keys; second attempt: legacy keys.
     expect(mockPost).toHaveBeenCalledTimes(2);
-    expect(mockPost.mock.calls[0][1]).toEqual(
-      expect.objectContaining({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    );
     expect(mockPost.mock.calls[1][1]).toEqual(
-      expect.objectContaining({
-        startDate: '2025-08-15',
-        endDate: '2025-08-21',
-      })
-    );
-    // The legacy body must never leak into the retry payload.
-    expect(mockPost.mock.calls[1][1]).not.toHaveProperty('startDateTime');
-    expect(mockPost.mock.calls[1][1]).not.toHaveProperty('endDateTime');
-
-    // Cached: the NEXT request goes straight to the legacy key set.
-    mockPost.mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData(request);
-    expect(mockPost).toHaveBeenCalledTimes(3);
-    expect(mockPost.mock.calls[2][1]).toEqual(
-      expect.objectContaining({ startDate: '2025-08-15' })
-    );
-    expect(mockPost).toHaveBeenCalledTimes(3); // no extra probe call
-  });
-
-  it('does not retry on unrelated 400 bodies', async () => {
-    mockPost.mockRejectedValueOnce(
-      axiosLikeError(400, {
-        message: 'No data source configured for datatype=calibrated',
-      })
-    );
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow();
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it('never retries an aborted first attempt', async () => {
-    const abortError = new Error('canceled');
-    abortError.name = 'AbortError';
-    mockPost.mockRejectedValueOnce(abortError);
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow();
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it('surfaces the ORIGINAL error when the alternate contract also fails', async () => {
-    const originalError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    mockPost
-      .mockRejectedValueOnce(originalError)
-      .mockRejectedValueOnce(axiosLikeError(422, { message: 'bad values' }));
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toBe(originalError);
-
-    expect(mockPost).toHaveBeenCalledTimes(2);
-  });
-
-  it('passes the abort signal through to both attempts', async () => {
-    const controller = new AbortController();
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData(
-      { startDateTime: '2025-08-21', endDateTime: '2025-08-21' },
-      controller.signal
-    );
-
-    expect(mockPost.mock.calls[0][2]).toEqual(
-      expect.objectContaining({ signal: controller.signal })
-    );
-    expect(mockPost.mock.calls[1][2]).toEqual(
-      expect.objectContaining({ signal: controller.signal })
+      expect.objectContaining({ cursor: 'chart-cursor-2' })
     );
   });
 
-  it('persists the winning contract to localStorage so a hard reload skips the 400 probe', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    });
-
-    // The legacy contract is now persisted. A simulated reload — fresh
-    // module instance, same localStorage — must use it on the FIRST
-    // request, with no 400 probe.
+  it('deduplicates pollutants and always requests site_id metadata', () => {
     expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // isolateModules runs the callback in a clean module registry: the
-    // analyticsService module re-initializes and re-reads localStorage on
-    // import. We return the in-flight promise so Jest awaits it before
-    // the test ends.
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        // The shared mock instance carries call history from outside the
-        // sandbox; clear it so the assertions below are scoped to the
-        // reloaded-module path.
-        mockPost.mockClear();
-        mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              // One call only — no probe, no 400.
-              expect(mockPost).toHaveBeenCalledTimes(1);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({
-                  startDate: '2025-08-15',
-                  endDate: '2025-08-21',
-                })
-              );
-              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
-                'startDateTime'
-              );
-              expect(mockPost.mock.calls[0][1]).not.toHaveProperty(
-                'endDateTime'
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
-  });
-
-  it('uses the persisted primary contract on reload — no probe, no 400', async () => {
-    // Simulate a user whose very first request succeeded with the current
-    // (DateTime) schema; that contract was persisted in a previous session.
-    window.localStorage.setItem(
-      'nexus:analytics:chart-date-contract',
-      'startDateTime'
+      buildChartPayload({
+        ...chartRequest,
+        pollutants: ['pm10', 'pm10'],
+        metaDataFields: ['latitude', 'site_id'],
+      })
+    ).toEqual(
+      expect.objectContaining({
+        pollutants: ['pm10'],
+        metaDataFields: ['site_id', 'latitude'],
+      })
     );
-
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        mockPost.mockClear();
-        mockPost.mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              expect(mockPost).toHaveBeenCalledTimes(1);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({
-                  startDateTime: '2025-08-15',
-                  endDateTime: '2025-08-21',
-                })
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
   });
 
-  it('treats a corrupt localStorage value as a fresh session (re-probes)', async () => {
-    // Defensive: if a previous build or migration wrote something we don't
-    // recognize, fall back to the in-memory probe path instead of crashing
-    // or sending the wrong contract silently.
-    window.localStorage.setItem(
-      'nexus:analytics:chart-date-contract',
-      'not-a-real-contract'
+  it('preserves documented raw and yearly chart frequencies', () => {
+    expect(normalizeChartApiFrequency('raw')).toBe('raw');
+    expect(normalizeChartApiFrequency('yearly')).toBe('yearly');
+  });
+
+  it('passes only documented chart types to the API', () => {
+    expect(buildChartPayload({ ...chartRequest, chartType: 'pie' })).toEqual(
+      expect.objectContaining({ chartType: 'pie' })
     );
-
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        mockPost.mockClear();
-        mockPost
-          .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-          .mockResolvedValueOnce({ data: chartPayload });
-
-        const { analyticsService: reloadedService } =
-          // jest.isolateModules() requires a runtime require() — the only
-          // way to re-evaluate the module body inside the sandbox.
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('../analyticsService') as {
-            analyticsService: {
-              getChartData: (req: {
-                startDateTime: string;
-                endDateTime: string;
-              }) => Promise<unknown>;
-            };
-          };
-
-        reloadedService
-          .getChartData({
-            startDateTime: '2025-08-15',
-            endDateTime: '2025-08-21',
-          })
-          .then(() => {
-            try {
-              // Probe + corrected retry, same as a brand-new session.
-              expect(mockPost).toHaveBeenCalledTimes(2);
-              expect(mockPost.mock.calls[0][1]).toEqual(
-                expect.objectContaining({ startDateTime: '2025-08-15' })
-              );
-              expect(mockPost.mock.calls[1][1]).toEqual(
-                expect.objectContaining({ startDate: '2025-08-15' })
-              );
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          })
-          .catch(reject);
-      });
-    });
+    expect(
+      buildChartPayload({ ...chartRequest, chartType: 'scatter' })
+    ).toEqual(expect.objectContaining({ chartType: 'line' }));
   });
 
-  it('refuses to fire when startDateTime is empty and never hits the network', async () => {
+  it('forwards the abort signal and never retries a rejected request', async () => {
+    const controller = new AbortController();
+    const failure = new Error('request failed');
+    mockPost.mockRejectedValueOnce(failure);
+
+    await expect(
+      analyticsService.getChartData(chartRequest, controller.signal)
+    ).rejects.toBe(failure);
+    expect(mockPost).toHaveBeenCalledTimes(1);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/dashboard/chart/data',
+      expect.anything(),
+      { signal: controller.signal }
+    );
+  });
+
+  it('rejects missing dates before making a request', async () => {
     await expect(
       analyticsService.getChartData({
+        ...chartRequest,
         startDateTime: '',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toThrow(/missing a start date/i);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('refuses to fire when endDateTime is empty and never hits the network', async () => {
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-15',
         endDateTime: '',
-      })
-    ).rejects.toThrow(/missing an end date/i);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('refuses to fire when both dates are missing (undefined) and never hits the network', async () => {
-    await expect(
-      analyticsService.getChartData({
-        // Cast required because the type declares the keys as required, but
-        // a corrupted caller can still bypass the type system at runtime.
-        startDateTime: undefined as unknown as string,
-        endDateTime: undefined as unknown as string,
       })
     ).rejects.toThrow(/missing start and end dates/i);
     expect(mockPost).not.toHaveBeenCalled();
   });
 });
 
-describe('AnalyticsService.getChartData single-flight negotiation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
-  });
+describe('AnalyticsService.downloadData pagination', () => {
+  beforeEach(() => jest.clearAllMocks());
 
-  const chartPayload = { status: 'success', data: [] };
-
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  // What a startDate-contract request gets from a CURRENT-schema backend.
-  const CURRENT_SCHEMA_REJECTION_BODY = {
-    errors: [
-      {
-        type: 'missing',
-        loc: ['body', 'startDateTime'],
-        msg: 'Field required',
+  it('requests JSON internally and normalizes a single completed page', async () => {
+    mockPost.mockResolvedValueOnce({
+      data: {
+        status: 'success',
+        message: 'ok',
+        data: [{ site_name: 'Site 1' }],
+        metadata: { total_count: 1, has_more: false, next: null },
       },
-      {
-        type: 'missing',
-        loc: ['body', 'endDateTime'],
-        msg: 'Field required',
-      },
-    ],
-  };
-
-  /** Drains pending microtasks so in-flight promise chains settle. */
-  const flushAsync = () => new Promise<void>(resolve => setTimeout(resolve, 0));
-
-  it('shares ONE probe pair across concurrent requests on a fresh session — no caller surfaces the 400', async () => {
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValue({ data: chartPayload });
-
-    const request = {
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    };
-
-    const results = await Promise.all([
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-    ]);
-
-    expect(results).toEqual([chartPayload, chartPayload, chartPayload]);
-
-    // Exactly ONE probe pair: call 0 probed the primary keys and absorbed
-    // the legacy 400; call 1 was that same caller's corrected retry. The
-    // two other callers joined the shared negotiation and each sent exactly
-    // once with the settled contract — they never saw a 400.
-    expect(mockPost).toHaveBeenCalledTimes(4);
-    const bodies = mockPost.mock.calls.map(call => call[1]);
-    expect(bodies[0]).toEqual(
-      expect.objectContaining({ startDateTime: '2025-08-15' })
-    );
-    for (let index = 1; index < bodies.length; index++) {
-      expect(bodies[index]).toEqual(
-        expect.objectContaining({ startDate: '2025-08-15' })
-      );
-      expect(bodies[index]).not.toHaveProperty('startDateTime');
-    }
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-  });
-
-  it('re-probes ONCE when the persisted startDate contract is rejected by a current-schema backend', async () => {
-    // Settle the session on the legacy contract first, as a previous visit
-    // would have persisted.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
     });
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // The backend flapped to the CURRENT schema: the cached startDate keys
-    // now earn the pydantic mirror rejection; the startDateTime retry wins.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
 
     await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    ).resolves.toEqual(chartPayload);
-
-    // Attempt 3 used the stale startDate keys and was rejected; attempt 4
-    // retried with startDateTime and succeeded — bounded at two attempts.
-    expect(mockPost).toHaveBeenCalledTimes(4);
-    expect(mockPost.mock.calls[2][1]).toEqual(
-      expect.objectContaining({ startDate: '2025-08-15' })
-    );
-    expect(mockPost.mock.calls[3][1]).toEqual(
-      expect.objectContaining({
-        startDateTime: '2025-08-15',
-        endDateTime: '2025-08-21',
-      })
-    );
-    expect(mockPost.mock.calls[3][1]).not.toHaveProperty('startDate');
-    // The recovered contract replaces the stale persisted one.
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDateTime');
-  });
-
-  it('runs ONE shared re-probe when concurrent requests hit a stale contract', async () => {
-    // Settle on the legacy contract first.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
+      analyticsService.downloadData(downloadRequest)
+    ).resolves.toEqual({
+      status: 'success',
+      message: 'ok',
+      data: [{ site_name: 'Site 1' }],
+      metadata: { total_count: 1, has_more: false, next: null },
     });
-
-    // All three cached-contract attempts are rejected by the current schema.
-    // The shared re-probe hangs on a deferred until we release it, so we can
-    // observe that NO other caller fires its own probe while it is in flight.
-    let releaseReProbe!: (value: { data: typeof chartPayload }) => void;
-    const reProbeResponse = new Promise<{ data: typeof chartPayload }>(
-      resolve => {
-        releaseReProbe = resolve;
-      }
+    expect(mockPost).toHaveBeenCalledWith(
+      '/analytics/data-download',
+      expect.objectContaining({ downloadType: 'json' }),
+      { signal: undefined }
     );
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockReturnValueOnce(reProbeResponse)
-      .mockResolvedValue({ data: chartPayload });
-
-    const request = {
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    };
-    const allSettled = Promise.all([
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-      analyticsService.getChartData(request),
-    ]);
-
-    await flushAsync();
-
-    // Calls 0-1 settled the session; calls 2-4 are the three stale attempts;
-    // call 5 is the SINGLE shared re-probe. The other two failures joined it
-    // instead of probing — nothing else fired while it hangs.
-    expect(mockPost).toHaveBeenCalledTimes(6);
-
-    releaseReProbe({ data: chartPayload });
-    await expect(allSettled).resolves.toEqual([
-      chartPayload,
-      chartPayload,
-      chartPayload,
-    ]);
-
-    // After release only the two joiners sent their own settled requests.
-    expect(mockPost).toHaveBeenCalledTimes(8);
-    // Calls 0-1 are the setup pair (probe + corrected retry); scope the
-    // key-family tally to the stale-contract phase: 3 stale startDate
-    // attempts + 1 shared re-probe + 2 joiner sends, all startDateTime.
-    const phaseBodies = mockPost.mock.calls.slice(2).map(call => call[1]);
-    expect(phaseBodies.filter(body => 'startDate' in body)).toHaveLength(3);
-    expect(phaseBodies.filter(body => 'startDateTime' in body)).toHaveLength(3);
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDateTime');
-  });
-});
-
-describe('AnalyticsService recovery cancellation propagation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    resetChartDateContract();
   });
 
-  const axiosLikeError = (status: number, data: unknown) => {
-    const error = new Error(`Request failed with status code ${status}`);
-    (error as { response?: unknown }).response = { status, data };
-    return error;
-  };
-
-  const chartPayload = { status: 'success', data: [] };
-
-  const makeAbortError = () => {
-    const err = new Error('The operation was aborted.');
-    err.name = 'AbortError';
-    return err;
-  };
-
-  it('(c) fresh-probe alternate retry: AbortError from alternate propagates, not the primary contract-rejection error', async () => {
-    // Fresh session: primary keys fail with contract rejection, alternate
-    // retry is aborted. The AbortError must surface, NOT the original error.
-    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    const abortError = makeAbortError();
-    mockPost
-      .mockRejectedValueOnce(primaryError)
-      .mockRejectedValueOnce(abortError);
-
+  it('follows metadata.next even when an intermediate page is empty', async () => {
     const controller = new AbortController();
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'cursor-2' },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          data: [{ site_name: 'Site 1' }, { site_name: 'Site 2' }],
+          metadata: { total_count: 2, has_more: false, next: null },
+        },
+      });
 
     await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-21',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toThrow(abortError);
+      analyticsService.downloadData(downloadRequest, controller.signal)
+    ).resolves.toEqual({
+      status: 'success',
+      message: 'first',
+      data: [{ site_name: 'Site 1' }, { site_name: 'Site 2' }],
+      metadata: { total_count: 2, has_more: false, next: null },
+    });
 
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[0][1]).not.toHaveProperty('cursor');
+    expect(mockPost.mock.calls[1][1]).toEqual(
+      expect.objectContaining({ cursor: 'cursor-2', downloadType: 'json' })
+    );
+    expect(mockPost.mock.calls[1][2]).toEqual({ signal: controller.signal });
+  });
+
+  it('fails safely when the backend repeats a pagination cursor', async () => {
+    mockPost
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'first',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'same-cursor' },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          status: 'success',
+          message: 'second',
+          data: [],
+          metadata: { total_count: 0, has_more: true, next: 'same-cursor' },
+        },
+      });
+
+    await expect(
+      analyticsService.downloadData(downloadRequest)
+    ).rejects.toThrow(/repeated pagination cursor/i);
     expect(mockPost).toHaveBeenCalledTimes(2);
   });
 
-  it('(c) positive control: non-cancellation failure in alternate retry still surfaces the primary error', async () => {
-    // When the alternate retry fails with a non-cancellation error (e.g. 422),
-    // the PRIMARY contract-rejection error must still surface — designed joiner
-    // semantics: callers see the first failure, not a secondary symptom.
-    const primaryError = axiosLikeError(400, LEGACY_REJECTION_BODY);
-    const secondaryError = axiosLikeError(422, {
-      message: 'Unprocessable Entity',
-    });
-    mockPost
-      .mockRejectedValueOnce(primaryError)
-      .mockRejectedValueOnce(secondaryError);
-
-    await expect(
-      analyticsService.getChartData({
-        startDateTime: '2025-08-21',
-        endDateTime: '2025-08-21',
-      })
-    ).rejects.toBe(primaryError);
-
-    expect(mockPost).toHaveBeenCalledTimes(2);
-  });
-
-  it('cancellation during fresh-session probe propagates AbortError (no retry)', async () => {
-    // Abort before the probe fires — AbortError surfaces immediately,
-    // never triggering the contract-rejection retry path.
-    const abortError = makeAbortError();
-    mockPost.mockRejectedValueOnce(abortError);
-
-    const controller = new AbortController();
-
-    await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-21',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toThrow(abortError);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-  });
-
-  it("owner shared re-probe: AbortError from the owner's alternate attempt propagates, not the original stale-contract error", async () => {
-    // What a startDate-contract request gets from a CURRENT-schema backend.
-    const CURRENT_SCHEMA_REJECTION_BODY = {
-      errors: [
-        {
-          type: 'missing',
-          loc: ['body', 'startDateTime'],
-          msg: 'Field required',
-        },
-        {
-          type: 'missing',
-          loc: ['body', 'endDateTime'],
-          msg: 'Field required',
-        },
-      ],
-    };
-
-    // Step 1: Settle the session on the legacy (startDate) contract.
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, LEGACY_REJECTION_BODY))
-      .mockResolvedValueOnce({ data: chartPayload });
-    await analyticsService.getChartData({
-      startDateTime: '2025-08-15',
-      endDateTime: '2025-08-21',
-    });
-    expect(
-      window.localStorage.getItem('nexus:analytics:chart-date-contract')
-    ).toBe('startDate');
-
-    // Step 2: The cached-contract attempt is rejected by the current schema,
-    // making this request the OWNER of the shared re-probe. The re-probe
-    // (alternate attempt) is then aborted — AbortError must propagate.
-    const abortError = makeAbortError();
-    mockPost
-      .mockRejectedValueOnce(axiosLikeError(400, CURRENT_SCHEMA_REJECTION_BODY))
-      .mockRejectedValueOnce(abortError);
-
-    const controller = new AbortController();
-
-    await expect(
-      analyticsService.getChartData(
-        {
-          startDateTime: '2025-08-15',
-          endDateTime: '2025-08-21',
-        },
-        controller.signal
-      )
-    ).rejects.toBe(abortError);
-
-    // Step 1 calls: 2 (fresh probe → LEGACY 400 → re-probe → success)
-    // Step 2 calls: 2 (cached-contract startDateTime → CURRENT 400 → owner re-probe → AbortError)
-    expect(mockPost).toHaveBeenCalledTimes(4);
+  it('preserves an unexpected legacy CSV response', async () => {
+    mockPost.mockResolvedValueOnce({ data: 'site_name,pm2_5\r\nSite 1,12' });
+    await expect(analyticsService.downloadData(downloadRequest)).resolves.toBe(
+      'site_name,pm2_5\r\nSite 1,12'
+    );
   });
 });
 
-describe('AnalyticsService.getRecentReadings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+describe('AnalyticsService reading helpers', () => {
+  beforeEach(() => jest.clearAllMocks());
 
-  it('POSTs the trimmed site_ids to /devices/readings/recent and returns measurements', async () => {
-    const measurements = [{ site_id: 'site-1', aqi_index: 72 }];
+  it('trims site ids for recent readings and returns measurements', async () => {
+    const measurements = [{ site_id: 'site-1' }];
     mockPost.mockResolvedValueOnce({
       data: { success: true, message: 'ok', measurements },
     });
@@ -893,219 +385,1301 @@ describe('AnalyticsService.getRecentReadings', () => {
     await expect(
       analyticsService.getRecentReadings([' site-1 ', '', 'site-2'])
     ).resolves.toEqual(measurements);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
       '/devices/readings/recent',
       { site_ids: ['site-1', 'site-2'] },
-      expect.anything()
+      { signal: undefined }
     );
   });
 
-  it('short-circuits to [] without a network call when no valid ids remain', async () => {
+  it('does not request recent readings for an empty id list', async () => {
     await expect(
-      analyticsService.getRecentReadings(['', '   '])
+      analyticsService.getRecentReadings(['', ' '])
     ).resolves.toEqual([]);
     expect(mockPost).not.toHaveBeenCalled();
   });
 
-  it('throws a fixed safe message on success:false (does not leak backend wording)', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: 'site_ids must be valid',
-        measurements: [],
-      },
-    });
-
-    await expect(
-      analyticsService.getRecentReadings(['bad-id'])
-    ).rejects.toThrow('Failed to fetch the latest readings.');
-  });
-
-  it('returns [] for a successful empty payload', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', measurements: [] },
-    });
-
-    await expect(
-      analyticsService.getRecentReadings(['site-x'])
-    ).resolves.toEqual([]);
-  });
-
-  it('forwards the abort signal', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', measurements: [] },
-    });
-
-    await analyticsService.getRecentReadings(['site-1'], controller.signal);
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/recent',
-      expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
-  });
-
-  it('wraps a raw axios timeout/network error in a stable message (no axios text leaks)', async () => {
-    const rawAxiosError = new Error('timeout of 30000ms exceeded');
-    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
-    mockPost.mockRejectedValueOnce(rawAxiosError);
-
-    let thrown: Error | undefined;
-    try {
-      await analyticsService.getRecentReadings(['site-1']);
-    } catch (err) {
-      thrown = err as Error;
-    }
-
-    // The thrown message is the stable, non-sensitive one...
-    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
-    // ...and the raw axios wording must NOT surface as the thrown message.
-    expect(thrown?.message).not.toContain('timeout of 30000ms exceeded');
-  });
-
-  it('preserves the original axios error as a non-enumerable cause', async () => {
-    const rawAxiosError = new Error('timeout of 30000ms exceeded');
-    (rawAxiosError as { code?: string }).code = 'ECONNABORTED';
-    mockPost.mockRejectedValueOnce(rawAxiosError);
-
-    let thrown: (Error & { cause?: unknown }) | undefined;
-    try {
-      await analyticsService.getRecentReadings(['site-1']);
-    } catch (err) {
-      thrown = err as Error & { cause?: unknown };
-    }
-
-    expect(thrown).toBeDefined();
-    expect(thrown?.message).toBe('Failed to fetch the latest readings.');
-    expect(thrown?.cause).toBe(rawAxiosError);
-    // cause must be non-enumerable so it never leaks into UI text/JSON.
-    expect(Object.getOwnPropertyDescriptor(thrown, 'cause')?.enumerable).toBe(
-      false
-    );
-  });
-
-  it('does NOT wrap a cancellation — AbortError propagates as-is', async () => {
-    const abortError = new Error('The operation was aborted.');
+  it('preserves cancellation errors from recent readings', async () => {
+    const abortError = new Error('aborted');
     abortError.name = 'AbortError';
     mockPost.mockRejectedValueOnce(abortError);
-
-    await expect(
-      analyticsService.getRecentReadings(['site-1'])
-    ).rejects.toThrow(abortError);
+    await expect(analyticsService.getRecentReadings(['site-1'])).rejects.toBe(
+      abortError
+    );
   });
-});
-
-describe('AnalyticsService.getComparisonReadings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('POSTs the trimmed site_ids to /devices/readings/comparisons and returns readings', async () => {
-    const readings = [
-      { site_id: 'site-1', has_reading: true, aqi: { index: 72 } },
-    ];
+  it('returns comparison readings', async () => {
+    const readings = [{ site_id: 'site-1', has_reading: true }];
     mockPost.mockResolvedValueOnce({
       data: { success: true, message: 'ok', readings },
     });
 
     await expect(
-      analyticsService.getComparisonReadings([' site-1 ', '', 'site-2'])
+      analyticsService.getComparisonReadings([' site-1 '])
     ).resolves.toEqual(readings);
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/comparisons',
-      { site_ids: ['site-1', 'site-2'] },
-      expect.anything()
-    );
-  });
-
-  it('short-circuits to [] without a network call when no valid ids remain', async () => {
-    await expect(
-      analyticsService.getComparisonReadings(['', '   '])
-    ).resolves.toEqual([]);
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it('throws a fixed safe message on success:false (does not leak backend wording)', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: {
-        success: false,
-        message: 'site_ids must be valid',
-        readings: [],
-      },
-    });
-
-    await expect(
-      analyticsService.getComparisonReadings(['bad-id'])
-    ).rejects.toThrow('Failed to fetch the latest readings.');
-  });
-
-  it('returns [] for a successful empty payload', async () => {
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', readings: [] },
-    });
-
-    await expect(
-      analyticsService.getComparisonReadings(['site-x'])
-    ).resolves.toEqual([]);
-  });
-
-  it('forwards the abort signal', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({
-      data: { success: true, message: 'ok', readings: [] },
-    });
-
-    await analyticsService.getComparisonReadings(['site-1'], controller.signal);
-
-    expect(mockPost).toHaveBeenCalledWith(
-      '/devices/readings/comparisons',
-      expect.anything(),
-      expect.objectContaining({ signal: controller.signal })
-    );
   });
 });
 
-describe('AnalyticsService.downloadData signal forwarding', () => {
+describe('AnalyticsService.getReport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPost.mockReset();
+    // Drop the real 6 s spacing so the adaptive loop runs without wall-clock
+    // delays; the pacing itself is covered by its own test below.
+    setReportPacingForTests({ minSpacingMs: 0, windowMs: 60_000 });
   });
 
-  it('passes an AbortSignal through to serverClient.post as the third-arg option', async () => {
-    const controller = new AbortController();
-    mockPost.mockResolvedValueOnce({ data: { success: true } });
+  afterEach(() => {
+    setReportPacingForTests({
+      minSpacingMs: 6_000,
+      windowMs: 60_000,
+      maxRequests: 10,
+    });
+  });
 
-    await analyticsService.downloadData(
-      { downloadType: 'csv', datatype: 'calibrated' },
-      controller.signal
+  it('sends the documented cohort report payload through the token client', async () => {
+    const report = {
+      status: 'success',
+      cohort_id: 'cohort-1',
+      devices: { device_ids: ['device-1'], number_of_devices: 1 },
+      period: {
+        startTime: '2024-01-01T00:00:00+00:00',
+        endTime: '2024-01-20T23:59:59+00:00',
+      },
+      daily_mean_pm: [],
+      datetime_mean_pm: [],
+      diurnal: [],
+      annual_pm: [],
+      monthly_pm: [],
+      pm_by_month_year: [],
+      pm_by_month_name: [],
+      site_monthly_mean_pm: [],
+      site_annual_mean_pm: [],
+      site_mean_pm: [],
+      mean_pm_by_city: [],
+      mean_pm_by_country: [],
+      mean_pm_by_region: [],
+      mean_pm_by_day_of_week: [],
+      mean_pm_by_day_hour: [],
+    };
+    mockPost.mockResolvedValueOnce({ data: { airquality: report } });
+
+    await expect(analyticsService.getReport(reportRequest)).resolves.toEqual(
+      report
     );
-
-    expect(mockPost).toHaveBeenCalledTimes(1);
     expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/data-download',
-      { downloadType: 'csv', datatype: 'calibrated' },
-      expect.objectContaining({ signal: controller.signal })
+      '/analytics/report',
+      {
+        cohort_id: 'cohort-1',
+        start_time: '2024-01-01T00:00:00Z',
+        end_time: '2024-01-20T23:59:59Z',
+      },
+      { signal: undefined, suppressErrorLogging: true }
     );
   });
 
-  it('still works when no signal is provided (third arg is { signal: undefined })', async () => {
-    mockPost.mockResolvedValueOnce({ data: 'csv-content' });
+  it('issues one POST per 27-day window for a 60-day range and merges the results', async () => {
+    // Pin the clock so the future-start guard cannot flake regardless of the
+    // machine's date; buildReportPayload only reads it via Date.now().
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      mockPost.mockImplementation(
+        async (_path: string, body: { start_time: string }) => ({
+          data: {
+            airquality: {
+              status: 'success',
+              cohort_id: 'cohort-1',
+              devices: { device_ids: [], number_of_devices: 0 },
+              period: { startTime: body.start_time, endTime: '' },
+              daily_mean_pm: [
+                {
+                  date: body.start_time.slice(0, 10),
+                  pm2_5_calibrated_value: 10,
+                },
+              ],
+              datetime_mean_pm: [],
+              diurnal: [],
+              annual_pm: [],
+              monthly_pm: [],
+              pm_by_month_year: [],
+              pm_by_month_name: [],
+              site_monthly_mean_pm: [],
+              site_annual_mean_pm: [],
+              site_mean_pm: [],
+              mean_pm_by_city: [],
+              mean_pm_by_country: [],
+              mean_pm_by_region: [],
+              mean_pm_by_day_of_week: [],
+              mean_pm_by_day_hour: [],
+            },
+          },
+        })
+      );
 
-    const result = await analyticsService.downloadData({
-      downloadType: 'csv',
-      datatype: 'raw',
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-01-01',
+        end_time: '2026-03-01',
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(3);
+      expect(mockPost.mock.calls[0][1]).toEqual({
+        cohort_id: 'cohort-1',
+        start_time: '2026-01-01T00:00:00.000Z',
+        end_time: '2026-01-27T23:59:59.999Z',
+      });
+      expect(mockPost.mock.calls[1][1]).toEqual({
+        cohort_id: 'cohort-1',
+        start_time: '2026-01-28T00:00:00.000Z',
+        end_time: '2026-02-23T23:59:59.999Z',
+      });
+      expect(mockPost.mock.calls[2][1]).toEqual({
+        cohort_id: 'cohort-1',
+        start_time: '2026-02-24T00:00:00.000Z',
+        end_time: '2026-03-01T23:59:59.999Z',
+      });
+      expect(mockPost.mock.calls[0][2]).toEqual({
+        signal: undefined,
+        suppressErrorLogging: true,
+      });
+
+      // The windows are merged into one report covering the overall period.
+      const merged = report as {
+        period: { startTime: string; endTime: string };
+        daily_mean_pm: { date: string }[];
+      };
+      expect(merged.period).toEqual({
+        startTime: '2026-01-01T00:00:00.000Z',
+        endTime: '2026-03-01T23:59:59.999Z',
+      });
+      expect(merged.daily_mean_pm.map(row => row.date)).toEqual([
+        '2026-01-01',
+        '2026-01-28',
+        '2026-02-24',
+      ]);
+      expect(report).not.toHaveProperty('message');
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('rejects report periods wider than 92 days before making a request', async () => {
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      await expect(
+        analyticsService.getReport({
+          ...reportRequest,
+          start_time: '2026-06-01T00:00:00Z',
+          end_time: '2026-09-02T23:59:59Z',
+        })
+      ).rejects.toThrow(/cannot exceed 92 days/i);
+      expect(mockPost).not.toHaveBeenCalled();
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('caps report POSTs at a flat ceiling instead of scaling with the range', () => {
+    // The request-storm guard. The cap used to be `2 * D + 8`, derived from
+    // the range so that a worst-case split down to 1-day leaves always fitted
+    // — which meant one rejected date selection could fan out into ~60 paced
+    // POSTs. A short range and the longest supported range now get the same
+    // budget, because splitting is a bounded fallback, not a search.
+    expect(REPORT_MAX_POSTS).toBe(12);
+    // One halving per window is enough to tell "too wide" apart from
+    // "no data in this month"; deeper recursion only multiplies requests.
+    expect(REPORT_MAX_SPLIT_DEPTH).toBe(1);
+  });
+
+  it('keeps a 92-UTC-date range intact and rejects 93 UTC dates', () => {
+    // Pin the clock so the future-start guard cannot flake regardless of the
+    // machine's date; buildReportPayload only reads it via Date.now().
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      expect(
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01T00:00:00.000Z',
+          end_time: '2026-08-31T23:59:59.999Z',
+        })
+      ).toEqual({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01T00:00:00.000Z',
+        end_time: '2026-08-31T23:59:59.999Z',
+      });
+
+      // Jun 1 → Sep 1 is 93 UTC calendar dates, past the overall cap.
+      expect(() =>
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01T00:00:00.000Z',
+          end_time: '2026-09-01T23:59:59.999Z',
+        })
+      ).toThrow(/cannot exceed 92 days/i);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('rejects invalid report scopes before making a request', async () => {
+    await expect(
+      analyticsService.getReport({ ...reportRequest, cohort_id: ' ' })
+    ).rejects.toThrow(/cohort is required/i);
+    await expect(
+      analyticsService.getReport({
+        ...reportRequest,
+        start_time: '2024-03-31T23:59:59Z',
+        end_time: '2024-01-01T00:00:00Z',
+      })
+    ).rejects.toThrow(/end date must be after/i);
+    await expect(
+      analyticsService.getReport({
+        ...reportRequest,
+        start_time: '2099-01-01T00:00:00Z',
+        end_time: '2099-02-01T00:00:00Z',
+      })
+    ).rejects.toThrow(/future/i);
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it('preserves cancellation and sanitizes non-splittable failures', async () => {
+    const controller = new AbortController();
+    const cancellation = new Error('aborted');
+    cancellation.name = 'AbortError';
+    mockPost.mockRejectedValueOnce(cancellation);
+
+    await expect(
+      analyticsService.getReport(reportRequest, controller.signal)
+    ).rejects.toBe(cancellation);
+
+    const failure = Object.assign(new Error('private backend detail'), {
+      response: { status: 404 },
+    });
+    mockPost.mockRejectedValueOnce(failure);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /cohort is no longer available/i
+    );
+
+    const serverError = Object.assign(new Error('internal error'), {
+      response: { status: 500 },
+    });
+    mockPost.mockRejectedValueOnce(serverError);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /temporarily unavailable/i
+    );
+    expect(mockPost).toHaveBeenCalledTimes(3);
+  });
+
+  it("surfaces the report service's own reason instead of a generic failure", async () => {
+    // A 400 becomes a split rather than a throw, so the reason used to be
+    // discarded before anything could show it, and the give-up path built a
+    // fresh status-less error. The user saw "temporarily unavailable" for a
+    // range the service had plainly explained.
+    jest.useFakeTimers();
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      // Exactly the body the analytics route returns for a refused range.
+      const rangeTooWide = Object.assign(new Error('Request failed with 400'), {
+        response: {
+          status: 400,
+          data: {
+            message:
+              'The requested date range is too wide. Shorten the date range.',
+            status: 'error',
+            data: null,
+            metadata: null,
+          },
+        },
+      });
+      mockPost.mockRejectedValue(rangeTooWide);
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(promise).rejects.toThrow(
+        'The requested date range is too wide. Shorten the date range.'
+      );
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('explains a missing-data outcome when the service gives no reason', async () => {
+    // No usable window and nothing said: the copy has to name what is missing
+    // and what to do, not describe a transient fault the user cannot act on.
+    jest.useFakeTimers();
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      // A 400 with no message in the body: the cap is known, the reason is not.
+      const silentRejection = Object.assign(new Error('Request failed'), {
+        response: { status: 400, data: { status: 'error', data: null } },
+      });
+      mockPost.mockRejectedValue(silentRejection);
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(promise).rejects.toThrow(
+        /no air quality readings were returned/i
+      );
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps its own copy for an auth failure rather than echoing the server', async () => {
+    // The service's text is written for its own clients; auth wording is the
+    // one place where echoing server text back is not worth the risk.
+    const unauthorized = Object.assign(new Error('Request failed with 401'), {
+      response: {
+        status: 401,
+        data: { message: 'token=abc123 expired for user 42' },
+      },
+    });
+    mockPost.mockRejectedValue(unauthorized);
+
+    await expect(analyticsService.getReport(reportRequest)).rejects.toThrow(
+      /do not have permission/i
+    );
+  });
+
+  it('truncates an unreasonably long server message', async () => {
+    const verbose = Object.assign(new Error('Request failed with 400'), {
+      response: {
+        status: 400,
+        data: { message: 'x'.repeat(5000) },
+      },
+    });
+    // Every split child receives the same failure so the final error retains
+    // the server message instead of inheriting a previous test's mock.
+    mockPost.mockRejectedValue(verbose);
+
+    const assertion = expect(
+      analyticsService.getReport(reportRequest)
+    ).rejects.toThrow(/^x{299}…$/);
+    await assertion;
+  });
+
+  it('splits a Jun→Jul-spanning window on 400 and merges the two halves', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      // First call: the 27-day window Jun 5 → Jul 1 spans the bad boundary → 400.
+      // Its two split halves (Jun 5–30, Jul 1) both succeed.
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      mockPost
+        .mockRejectedValueOnce(rangeError)
+        .mockResolvedValueOnce({
+          data: {
+            airquality: okReport(
+              '2026-06-05T00:00:00.000Z',
+              '2026-06-30T23:59:59.999Z'
+            ),
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            airquality: okReport(
+              '2026-07-01T00:00:00.000Z',
+              '2026-07-01T23:59:59.999Z'
+            ),
+          },
+        });
+
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-05',
+        end_time: '2026-07-01',
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(3);
+      expect(report).not.toHaveProperty('unavailablePeriods');
+      expect(report).not.toHaveProperty('message');
+      const merged = report as { daily_mean_pm: { date: string }[] };
+      expect(merged.daily_mean_pm.map(r => r.date)).toEqual([
+        '2026-06-05',
+        '2026-07-01',
+      ]);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('marks an all-bad month unavailable while merging the rest', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+
+      // Range: 2026-07-15 → 2026-08-15 (32 days → two 27-day windows:
+      //   Jul 15–31 (17 days, single month Jul) and Aug 1–15 (15 days, Aug).
+      // Jul window succeeds; every August sub-window (down to 1 day) fails →
+      // recorded as unavailable while the Jul data is merged.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          const month = body.start_time.slice(0, 7);
+          if (month === '2026-08') {
+            throw rangeError;
+          }
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
+
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-07-15',
+        end_time: '2026-08-15',
+      });
+
+      expect(report).toHaveProperty('unavailablePeriods');
+      const merged = report as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+      };
+      // Every 1-day window in August that was attempted is recorded.
+      expect(merged.unavailablePeriods.length).toBeGreaterThan(0);
+      expect(
+        merged.unavailablePeriods.every(
+          p => p.startTime.slice(0, 7) === '2026-08'
+        )
+      ).toBe(true);
+      // Jul data is still present.
+      expect(
+        (report as { daily_mean_pm: { date: string }[] }).daily_mean_pm.map(
+          r => r.date
+        )
+      ).toEqual(['2026-07-15']);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('records every failed or skipped window exactly once across a 92-day range with a bad month', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      const successRanges: { start: string; end: string }[] = [];
+
+      // Jun 1 → Aug 31 2026 (92 dates, four 27-day windows). Anything that
+      // touches August is rejected; June and July come back with data.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          const touchesAugust =
+            body.start_time.slice(0, 7) === '2026-08' ||
+            body.end_time.slice(0, 7) === '2026-08';
+          if (touchesAugust) throw rangeError;
+          successRanges.push({
+            start: body.start_time.slice(0, 10),
+            end: body.end_time.slice(0, 10),
+          });
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
+
+      // The POST ceiling is flat, so this range can never fan out into a
+      // request per split node.
+      expect(REPORT_MAX_POSTS).toBe(12);
+
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+
+      const merged = report as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+        daily_mean_pm: { date: string }[];
+      };
+      expect(merged.unavailablePeriods.length).toBeGreaterThan(0);
+      // Every rejected (split down to the depth budget) and skipped
+      // (known-bad month) window is recorded — no queued window may be
+      // dropped silently.
+      expect(
+        merged.unavailablePeriods.every(
+          p => p.startTime.slice(0, 7) === '2026-08'
+        )
+      ).toBe(true);
+
+      // A window that ran out of split budget is NOT evidence that its month
+      // is unusable, so the month must not be blacklisted: the later
+      // Aug 21–31 window still has to be attempted and recorded.
+      const unavailableDays = new Set<string>();
+      for (const period of merged.unavailablePeriods) {
+        const start = Date.parse(`${period.startTime.slice(0, 10)}T00:00:00Z`);
+        const end = Date.parse(`${period.endTime.slice(0, 10)}T00:00:00Z`);
+        for (let ms = start; ms <= end; ms += 24 * 60 * 60 * 1000) {
+          unavailableDays.add(new Date(ms).toISOString().slice(0, 10));
+        }
+      }
+      expect(unavailableDays.has('2026-08-01')).toBe(true);
+      expect(unavailableDays.has('2026-08-20')).toBe(true);
+      expect(unavailableDays.has('2026-08-31')).toBe(true);
+
+      // Coverage proof: the successful windows plus the unavailable periods
+      // must tile the requested range with every calendar day exactly once
+      // (no missing day, no day recorded twice).
+      const coverage = new Map<string, number>();
+      const cover = (start: string, end: string) => {
+        const dayMs = 24 * 60 * 60 * 1000;
+        for (
+          let ms = Date.parse(`${start}T00:00:00.000Z`);
+          ms <= Date.parse(`${end}T00:00:00.000Z`);
+          ms += dayMs
+        ) {
+          const day = new Date(ms).toISOString().slice(0, 10);
+          coverage.set(day, (coverage.get(day) ?? 0) + 1);
+        }
+      };
+      successRanges.forEach(range => cover(range.start, range.end));
+      merged.unavailablePeriods.forEach(period =>
+        cover(period.startTime.slice(0, 10), period.endTime.slice(0, 10))
+      );
+
+      expect(coverage.size).toBe(92);
+      coverage.forEach((count, day) => {
+        expect({ day, count }).toEqual({ day, count: 1 });
+      });
+
+      // June and July survive the merge.
+      expect(merged.daily_mean_pm.map(r => r.date)).toEqual([
+        '2026-06-01',
+        '2026-06-28',
+        '2026-07-25',
+      ]);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('gives up on a fully rejected range instead of splitting down to single days', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    // The clock is frozen, so the sliding window can never roll over; raise
+    // the request ceiling so the pacing gate doesn't stall this test.
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      // Reject every window wider than a single day. This is the pathological
+      // case: the loop used to keep halving until every window was a 1-day
+      // leaf, which turned one selection into ~180 paced POSTs.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (body.start_time.slice(0, 10) !== body.end_time.slice(0, 10)) {
+            throw rangeError;
+          }
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
+
+      // Nothing above a single day is usable, so the report fails — but it must
+      // fail after a handful of requests rather than after exhausting the tree.
+      await expect(
+        analyticsService.getReport({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01',
+          end_time: '2026-08-31',
+        })
+      ).rejects.toThrow();
+
+      // 4 initial windows, each tried once plus one halving of its two halves.
+      // The old recursion kept halving to 1-day leaves and issued ~183 POSTs
+      // for the same range, paced 6 s apart.
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+      expect(mockPost.mock.calls.length).toBe(12);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('keeps serving the windows that succeed when a sibling window is written off', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      // Jun 20 → Jul 20 (31 dates, two windows: Jun 20–Jul 16 and Jul 17–20).
+      // June is rejected at every size; July is fine.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (body.start_time.slice(0, 7) === '2026-06') throw rangeError;
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
+
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-20',
+        end_time: '2026-07-20',
+      });
+
+      const merged = report as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+        daily_mean_pm: { date: string }[];
+      };
+      // The June window is written off after one halving and surfaced, not
+      // silently retried away.
+      expect(merged.unavailablePeriods).toHaveLength(1);
+      expect(merged.unavailablePeriods[0].startTime.slice(0, 10)).toBe(
+        '2026-06-20'
+      );
+      expect(merged.unavailablePeriods[0].endTime.slice(0, 10)).toBe(
+        '2026-06-30'
+      );
+      // July still renders.
+      expect(merged.daily_mean_pm.map(row => row.date)).toEqual([
+        '2026-07-01',
+        '2026-07-17',
+      ]);
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('retries once on 429 then succeeds', async () => {
+    jest.useFakeTimers();
+    try {
+      const successReport = {
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: ['device-1'], number_of_devices: 1 },
+        period: {
+          startTime: '2024-01-01T00:00:00Z',
+          endTime: '2024-01-20T23:59:59Z',
+        },
+        daily_mean_pm: [],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      };
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValueOnce({ data: { airquality: successReport } });
+
+      const promise = analyticsService.getReport(reportRequest);
+      await jest.runAllTimersAsync();
+      await expect(promise).resolves.toMatchObject({ status: 'success' });
+      expect(mockPost).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('honours Retry-After when the service sends it', async () => {
+    jest.useFakeTimers();
+    try {
+      const successReport = {
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: ['device-1'], number_of_devices: 1 },
+        period: {
+          startTime: '2024-01-01T00:00:00Z',
+          endTime: '2024-01-20T23:59:59Z',
+        },
+        daily_mean_pm: [],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      };
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429, headers: { 'retry-after': '2' } },
+      });
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValueOnce({ data: { airquality: successReport } });
+
+      const promise = analyticsService.getReport(reportRequest);
+      await jest.advanceTimersByTimeAsync(1_999);
+      expect(mockPost).toHaveBeenCalledTimes(1);
+      await jest.runAllTimersAsync();
+      await expect(promise).resolves.toMatchObject({ status: 'success' });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('splits a window when the 429 retry comes back as a 400', async () => {
+    jest.useFakeTimers();
+    try {
+      const nowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse('2026-10-01T00:00:00.000Z'));
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      const tooWideError = Object.assign(new Error('too wide'), {
+        response: { status: 400 },
+      });
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockRejectedValueOnce(tooWideError)
+        .mockResolvedValue({
+          data: {
+            airquality: {
+              status: 'success',
+              cohort_id: 'cohort-1',
+              devices: { device_ids: [], number_of_devices: 0 },
+              period: {
+                startTime: '2026-09-01T00:00:00Z',
+                endTime: '2026-09-27T23:59:59Z',
+              },
+              daily_mean_pm: [],
+              datetime_mean_pm: [],
+              diurnal: [],
+              annual_pm: [],
+              monthly_pm: [],
+              pm_by_month_year: [],
+              pm_by_month_name: [],
+              site_monthly_mean_pm: [],
+              site_annual_mean_pm: [],
+              site_mean_pm: [],
+              mean_pm_by_city: [],
+              mean_pm_by_country: [],
+              mean_pm_by_region: [],
+              mean_pm_by_day_of_week: [],
+              mean_pm_by_day_hour: [],
+            },
+          },
+        });
+
+      const promise = analyticsService.getReport(reportRequest);
+      await jest.runAllTimersAsync();
+      await expect(promise).resolves.toMatchObject({ status: 'success' });
+      // Original POST, its 429 retry, then the two split windows.
+      expect(mockPost.mock.calls.length).toBeGreaterThanOrEqual(4);
+      nowSpy.mockRestore();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('records a window as unavailable instead of failing the whole report when 429 retries run out', async () => {
+    jest.useFakeTimers();
+    try {
+      const emptyReport = buildEmptyReport();
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+
+      // First window exhausts its retries; later windows still succeed, so the
+      // successful data must survive alongside the unavailable period.
+      mockPost
+        .mockRejectedValueOnce(rateLimitError)
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValue({ data: { airquality: emptyReport } });
+
+      const promise = analyticsService.getReport(longReportRequest);
+      await jest.runAllTimersAsync();
+      const merged = (await promise) as { unavailablePeriods?: unknown[] };
+
+      expect(merged.unavailablePeriods).toHaveLength(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('throws when every window is rate limited', async () => {
+    jest.useFakeTimers();
+    try {
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      mockPost.mockRejectedValue(rateLimitError);
+
+      const promise = analyticsService.getReport(reportRequest);
+      const assertion = expect(promise).rejects.toThrow();
+      await jest.runAllTimersAsync();
+      await assertion;
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('spaces consecutive report POSTs by the configured minimum interval', async () => {
+    // Real timers and a monotonic clock: the spacing under test is a
+    // wall-clock delay. `longReportRequest` is in 2024, so the future-start
+    // guard passes without touching `Date.now` (other tests here pin it).
+    jest.useRealTimers();
+    setReportPacingForTests({ minSpacingMs: 30, windowMs: 60_000 });
+    const mockPostTimes: number[] = [];
+    mockPost.mockImplementation(() => {
+      mockPostTimes.push(performance.now());
+      return Promise.resolve({ data: { airquality: buildEmptyReport() } });
     });
 
-    expect(mockPost).toHaveBeenCalledTimes(1);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/analytics/data-download',
-      { downloadType: 'csv', datatype: 'raw' },
-      expect.objectContaining({ signal: undefined })
-    );
-    expect(result).toBe('csv-content');
+    try {
+      // A 60-day range becomes three windows, so at least two gaps must be
+      // observed between the POSTs.
+      await analyticsService.getReport(longReportRequest);
+      expect(mockPostTimes.length).toBeGreaterThanOrEqual(3);
+      for (let index = 1; index < mockPostTimes.length; index += 1) {
+        expect(
+          mockPostTimes[index] - mockPostTimes[index - 1]
+        ).toBeGreaterThanOrEqual(25);
+      }
+    } finally {
+      setReportPacingForTests({ minSpacingMs: 0 });
+    }
+  });
+
+  it('throws an abort error when the request is aborted during the 429 retry delay', async () => {
+    jest.useFakeTimers();
+    try {
+      const controller = new AbortController();
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+      mockPost.mockRejectedValueOnce(rateLimitError);
+
+      const promise = analyticsService.getReport(
+        reportRequest,
+        controller.signal
+      );
+      // Flush the rejected POST so the 429 handler reaches the retry delay.
+      for (let tick = 0; tick < 10; tick += 1) await Promise.resolve();
+      // The bounded retry delay is now pending — abort mid-wait.
+      expect(jest.getTimerCount()).toBeGreaterThan(0);
+      controller.abort();
+
+      // The abort error surfaces (not the wrapped 429) and no retry is sent.
+      await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+      expect(mockPost).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('splits an initial 422 from the 31-day guard into two valid windows', async () => {
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+
+      // A 27-day window is used, but simulate the 422 guard rejecting it.
+      const guardError = Object.assign(
+        new Error('Date range must not exceed 31 days'),
+        {
+          response: { status: 422 },
+        }
+      );
+      // The initial window is rejected; the two split halves (Sep 1 → Sep 14,
+      // Sep 15 → Sep 27) succeed. Match the exact wire payloads the service
+      // posts after splitting.
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (
+            body.start_time === '2026-09-01T00:00:00.000Z' &&
+            body.end_time === '2026-09-27T23:59:59.999Z'
+          ) {
+            throw guardError;
+          }
+          return {
+            data: { airquality: okReport(body.start_time, body.end_time) },
+          };
+        }
+      );
+
+      const report = await analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-09-01',
+        end_time: '2026-09-27',
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(3);
+      expect(report).not.toHaveProperty('unavailablePeriods');
+      expect(report).not.toHaveProperty('message');
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('does not let a 429 retry push the report past the POST ceiling', async () => {
+    jest.useFakeTimers();
+    // Pin clock to avoid future-start guard flake.
+    const nowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-09-30T12:00:00Z'));
+    // The clock is frozen, so the sliding window can never roll over; raise
+    // the request ceiling so the pacing gate doesn't stall this test.
+    setReportPacingForTests({ minSpacingMs: 0, maxRequests: 100_000 });
+    try {
+      const okReport = (start: string, end: string) => ({
+        status: 'success',
+        cohort_id: 'cohort-1',
+        devices: { device_ids: [], number_of_devices: 0 },
+        period: { startTime: start, endTime: end },
+        daily_mean_pm: [
+          { date: start.slice(0, 10), pm2_5_calibrated_value: 10 },
+        ],
+        datetime_mean_pm: [],
+        diurnal: [],
+        annual_pm: [],
+        monthly_pm: [],
+        pm_by_month_year: [],
+        pm_by_month_name: [],
+        site_monthly_mean_pm: [],
+        site_annual_mean_pm: [],
+        site_mean_pm: [],
+        mean_pm_by_city: [],
+        mean_pm_by_country: [],
+        mean_pm_by_region: [],
+        mean_pm_by_day_of_week: [],
+        mean_pm_by_day_hour: [],
+      });
+      const rangeError = Object.assign(new Error('range too wide'), {
+        response: { status: 400 },
+      });
+      const rateLimitError = Object.assign(new Error('rate limited'), {
+        response: { status: 429 },
+      });
+
+      // The four initial windows are rejected once so their split halves queue
+      // enough windows to walk the shared attempt counter up to the cap;
+      // every window that is neither initial nor a designated success is rate
+      // limited on every attempt.
+      const windowKey = (window: { start_time: string; end_time: string }) =>
+        `${window.start_time}|${window.end_time}`;
+      const initialWindows = buildReportWindows(
+        buildReportPayload({
+          cohort_id: 'cohort-1',
+          start_time: '2026-06-01',
+          end_time: '2026-08-31',
+        })
+      );
+      const halves = initialWindows.flatMap(
+        window => splitReportWindow(window) ?? []
+      );
+      const initialKeys = new Set(initialWindows.map(windowKey));
+      // First half of window 2 (Jun 28 → Jun 30) and first half of window 3
+      // (Jul 25 → Jul 31): after them the counter sits on 11, so the next
+      // window's first POST is the 12th and its 429 retry would be the 13th.
+      const successKeys = new Set([windowKey(halves[2]), windowKey(halves[4])]);
+      const successRanges: { start: string; end: string }[] = [];
+
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          const key = windowKey(body);
+          if (initialKeys.has(key)) throw rangeError;
+          if (successKeys.has(key)) {
+            successRanges.push({
+              start: body.start_time.slice(0, 10),
+              end: body.end_time.slice(0, 10),
+            });
+            return {
+              data: { airquality: okReport(body.start_time, body.end_time) },
+            };
+          }
+          throw rateLimitError;
+        }
+      );
+
+      const promise = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      await jest.runAllTimersAsync();
+      const merged = (await promise) as {
+        unavailablePeriods: { startTime: string; endTime: string }[];
+      };
+
+      // The hard ceiling: a window entered one short of the cap may still
+      // send its first POST, but its 429 retry must not follow it.
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+
+      // The window written off mid-queue (Aug 1 → Aug 20) and the window that
+      // was still queued behind it (Aug 21 → Aug 31, drained by the cap) both
+      // surface as unavailable, and together with the successes they tile all
+      // 92 days exactly once — nothing dropped, nothing counted twice.
+      expect(merged.unavailablePeriods).toHaveLength(5);
+      const coverage = new Map<string, number>();
+      const cover = (start: string, end: string) => {
+        const dayMs = 24 * 60 * 60 * 1000;
+        for (
+          let ms = Date.parse(`${start}T00:00:00.000Z`);
+          ms <= Date.parse(`${end}T00:00:00.000Z`);
+          ms += dayMs
+        ) {
+          const day = new Date(ms).toISOString().slice(0, 10);
+          coverage.set(day, (coverage.get(day) ?? 0) + 1);
+        }
+      };
+      successRanges.forEach(range => cover(range.start, range.end));
+      merged.unavailablePeriods.forEach(period =>
+        cover(period.startTime.slice(0, 10), period.endTime.slice(0, 10))
+      );
+      expect(coverage.size).toBe(92);
+      coverage.forEach((count, day) => {
+        expect({ day, count }).toEqual({ day, count: 1 });
+      });
+
+      // Same walk with nothing succeeding: exhausting the budget with an
+      // empty success list must still throw the report error rather than
+      // return an empty report — and it must not overspend the ceiling doing
+      // so either.
+      mockPost.mockClear();
+      mockPost.mockImplementation(
+        async (
+          _path: string,
+          body: { start_time: string; end_time: string }
+        ) => {
+          if (initialKeys.has(windowKey(body))) throw rangeError;
+          throw rateLimitError;
+        }
+      );
+
+      const failing = analyticsService.getReport({
+        cohort_id: 'cohort-1',
+        start_time: '2026-06-01',
+        end_time: '2026-08-31',
+      });
+      const assertion = expect(failing).rejects.toThrow();
+      await jest.runAllTimersAsync();
+      await assertion;
+      expect(mockPost.mock.calls.length).toBeLessThanOrEqual(REPORT_MAX_POSTS);
+    } finally {
+      nowSpy.mockRestore();
+      jest.useRealTimers();
+    }
   });
 });

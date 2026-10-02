@@ -5,12 +5,16 @@ import { TooltipData } from '../../types';
 import { cn } from '@/shared/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
-import { getChartLocationDisplayName } from '../../utils';
+import { getChartLocationLabel } from '../../utils';
 import type { AqiConfig } from '@/shared/types/aqi';
 
 interface CustomTooltipProps extends TooltipData {
   className?: string;
   showAirQualityLevel?: boolean;
+  /** Suffix appended to numeric tooltip values (e.g. ' µg/m³'). */
+  tooltipValueSuffix?: string;
+  /** Decimal precision for numeric tooltip values. */
+  tooltipValuePrecision?: number;
   frequency?: string;
   pollutant?: 'pm2_5' | 'pm10';
   aqiConfig?: AqiConfig | null;
@@ -33,6 +37,8 @@ interface CustomTooltipProps extends TooltipData {
    * timestamps, e.g. year buckets in the rankings history chart).
    */
   tooltipDateFormatter?: (label: string | number) => string;
+  /** Use the resolved category/site name instead of formatting the x value as a date. */
+  isCategorical?: boolean;
 }
 
 const formatTooltipDate = (
@@ -64,6 +70,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   label,
   className,
   showAirQualityLevel = true,
+  tooltipValueSuffix = ' µg/m³',
+  tooltipValuePrecision = 1,
   frequency,
   pollutant = 'pm2_5',
   aqiConfig = null,
@@ -71,6 +79,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   seriesLabels,
   locationLabels,
   tooltipDateFormatter,
+  isCategorical = false,
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -87,9 +96,29 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const primaryData = visiblePayload[0];
   const value = primaryData.value as number;
   const airQualityLevel = getAirQualityInfo(value, pollutant, 'WHO', aqiConfig);
-  const locationName =
-    locationLabels?.[String(primaryData.payload.site_id)] ??
-    getChartLocationDisplayName(primaryData.payload);
+  const locationName = getChartLocationLabel(
+    primaryData.payload,
+    locationLabels
+  );
+  const getEntryDisplayName = (entry: (typeof visiblePayload)[number]) => {
+    const configuredLabel = seriesLabels?.[String(entry.dataKey)];
+    if (configuredLabel) {
+      return getChartLocationLabel({ site: configuredLabel }, locationLabels);
+    }
+    return getChartLocationLabel(
+      isCategorical
+        ? (entry.payload ?? {
+            site: String(entry.name || entry.dataKey || ''),
+          })
+        : { site: String(entry.name || entry.dataKey || '') },
+      locationLabels
+    );
+  };
+  const tooltipHeading = isCategorical
+    ? locationName
+    : tooltipDateFormatter
+      ? tooltipDateFormatter(label ?? '')
+      : formatTooltipDate(label ?? '', frequency);
 
   return (
     <div
@@ -99,11 +128,9 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       )}
       style={{ wordBreak: 'break-word', zIndex: 9999 }}
     >
-      {/* Header with timestamp */}
+      {/* Header with category or timestamp */}
       <div className="text-sm font-medium text-muted-foreground mb-2">
-        {tooltipDateFormatter
-          ? tooltipDateFormatter(label || '')
-          : formatTooltipDate(label || '', frequency)}
+        {tooltipHeading}
       </div>
 
       {/* Data entries */}
@@ -117,14 +144,13 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-sm font-medium text-foreground truncate max-w-[220px] block">
-                {seriesLabels?.[String(entry.dataKey)] ??
-                  String(entry.name || entry.dataKey || '').trim()}
+                {getEntryDisplayName(entry)}
               </span>
             </div>
             <div className="text-right ml-2 flex-shrink-0">
               <span className="text-sm text-foreground">
                 {typeof entry.value === 'number'
-                  ? `${entry.value.toFixed(1)} µg/m³`
+                  ? `${entry.value.toFixed(tooltipValuePrecision)}${tooltipValueSuffix}`
                   : entry.value}
               </span>
             </div>

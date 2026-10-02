@@ -146,6 +146,39 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Configure organization-wide settings and preferences.',
     },
   },
+  '/system/billing': {
+    title: 'Billing',
+    description: 'Manage invoices, customers, payments, and billing settings.',
+    openGraph: {
+      title: 'Billing | AirQo Nexus',
+      description:
+        'Manage invoices, customers, payments, and billing settings.',
+    },
+  },
+  '/system/billing/settings': {
+    title: 'Billing Settings',
+    description: 'Configure seller details, defaults, and numbering.',
+    openGraph: {
+      title: 'Billing Settings | AirQo Nexus',
+      description: 'Configure seller details, defaults, and numbering.',
+    },
+  },
+  '/system/billing/customers/[customerId]': {
+    title: 'Customer Details',
+    description: 'View customer details, balances, and invoices.',
+    openGraph: {
+      title: 'Customer Details | AirQo Nexus',
+      description: 'View customer details, balances, and invoices.',
+    },
+  },
+  '/system/billing/invoices/[invoiceId]': {
+    title: 'Invoice Details',
+    description: 'View invoice details, line items, and activity.',
+    openGraph: {
+      title: 'Invoice Details | AirQo Nexus',
+      description: 'View invoice details, line items, and activity.',
+    },
+  },
   '/system/clients': {
     title: 'API Clients',
     description: 'Manage API clients for platform integrations.',
@@ -178,6 +211,22 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     openGraph: {
       title: 'User Statistics | AirQo Nexus',
       description: 'Inspect platform user statistics and account activity.',
+    },
+  },
+  '/system/api-keys': {
+    title: 'API Key Usage',
+    description: 'Rank API keys by call volume and inspect per-key usage.',
+    openGraph: {
+      title: 'API Key Usage | AirQo Nexus',
+      description: 'Rank API keys by call volume and inspect per-key usage.',
+    },
+  },
+  '/system/api-keys/[clientId]': {
+    title: 'API Key Details',
+    description: "Inspect one API key's usage, owner, routes and source IPs.",
+    openGraph: {
+      title: 'API Key Details | AirQo Nexus',
+      description: "Inspect one API key's usage, owner, routes and source IPs.",
     },
   },
   '/system/learn': {
@@ -253,8 +302,24 @@ export function generatePageMetadata(pathname: string): Metadata {
   if (pathname.startsWith('/system/feedback/')) {
     pageKey = '/system/feedback/[id]';
   }
+  if (pathname.startsWith('/system/api-keys/')) {
+    pageKey = '/system/api-keys/[clientId]';
+  }
   if (pathname.startsWith('/system/team-members/')) {
     pageKey = '/system/team-members/[memberId]';
+  }
+
+  if (pathname.startsWith('/system/billing/customers/')) {
+    pageKey = '/system/billing/customers/[customerId]';
+  }
+  // `invoices/new` and `invoices/<id>/edit` are their own screens; only real
+  // invoice detail routes get the Invoice Details metadata.
+  if (
+    pathname.startsWith('/system/billing/invoices/') &&
+    !pathname.startsWith('/system/billing/invoices/new') &&
+    !pathname.endsWith('/edit')
+  ) {
+    pageKey = '/system/billing/invoices/[invoiceId]';
   }
 
   if (pathname.startsWith('/system/learn/')) {

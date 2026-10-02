@@ -5,6 +5,7 @@ import { authOptions } from '@/shared/lib/auth';
 import { isAiEnabled } from '@/modules/ai/server/config';
 import { buildSystemPrompt } from '@/modules/ai/server/prompts';
 import { FEATURE_LABELS } from '@/modules/ai/constants';
+import { getAllowlistedAssistantAction } from '@/modules/ai/actions';
 import { getAiProvider } from '@/modules/ai/server/provider';
 import { FEATURE_SUGGESTED_PROMPTS } from '@/modules/ai/server/prompts';
 import { checkRateLimit } from '@/shared/lib/rateLimit';
@@ -69,6 +70,13 @@ const bodySchema = z.object({
     .optional(),
   context: z.unknown().optional(),
 });
+
+/**
+ * User-safe copy for stream failures. Raw `err.message` may embed upstream
+ * AI-agent response bodies — those must never reach the browser.
+ */
+const STREAM_ERROR_MESSAGE =
+  'The AI assistant encountered a problem. Please try again.';
 
 export async function POST(request: NextRequest) {
   /* ---------- Session guard ---------- */
@@ -137,9 +145,7 @@ export async function POST(request: NextRequest) {
       {
         disabled: true,
         message:
-          err instanceof Error
-            ? err.message
-            : 'AI assistant is not available',
+          err instanceof Error ? err.message : 'AI assistant is not available',
       },
       { status: 200 }
     );
@@ -167,9 +173,19 @@ export async function POST(request: NextRequest) {
           messages: parsed.messages,
           system: systemPrompt,
           signal: abortController.signal,
+          feature,
+          context: parsed.context,
         })) {
           send({ type: 'delta', content: chunk });
         }
+        const action = getAllowlistedAssistantAction(
+          provider.getAction?.({
+            messages: parsed.messages,
+            feature,
+            context: parsed.context,
+          })
+        );
+        if (action) send({ type: 'action', action });
         send({ type: 'done' });
       } catch (err) {
         if (
@@ -178,13 +194,18 @@ export async function POST(request: NextRequest) {
         ) {
           // Client disconnected — just close silently
         } else {
-          send({
-            type: 'error',
-            message:
-              err instanceof Error
-                ? err.message
-                : 'An unexpected error occurred',
-          });
+          // Sanitized server-side log: status only, never the message/payload.
+          const status =
+            err instanceof Error &&
+            typeof (err as { status?: unknown }).status === 'number'
+              ? (err as unknown as { status: number }).status
+              : undefined;
+          if (status !== undefined) {
+            console.error('AI assistant stream failed', { status });
+          } else {
+            console.error('AI assistant stream failed');
+          }
+          send({ type: 'error', message: STREAM_ERROR_MESSAGE });
         }
       } finally {
         controller.close();

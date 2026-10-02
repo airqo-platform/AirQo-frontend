@@ -44,12 +44,17 @@ import {
   formatMeasurementLabel,
 } from '../utils/measurementLabels';
 import { cn } from '@/shared/lib/utils';
-import { REFERENCE_LINES } from '@/shared/utils/airQuality';
+import { getCurrentReferenceLines } from '@/shared/utils/airQuality';
 import { ChartZoomControls } from '@/shared/components/charts/components/ui/ChartZoomControls';
 import { ChartZoomScrubber } from '@/shared/components/charts/components/ui/ChartZoomScrubber';
 import { PanScaleReporter } from '@/shared/components/charts/components/ui/PanScaleReporter';
 import { useChartZoom } from '@/shared/components/charts/hooks/useChartZoom';
 import { useChartPan } from '@/shared/components/charts/hooks/useChartPan';
+import {
+  PieValueLabels,
+  useElementSize,
+  useLegendHeight,
+} from '../utils/PieValueLabels';
 import { decimateRows } from '@/shared/components/charts/utils';
 import {
   ZOOM_CONFIG,
@@ -59,6 +64,7 @@ import {
 interface VisualizerChartProps {
   model: ChartSeriesModel;
   config: VisualizerChartConfig;
+  onInteraction?: (action: string) => void;
   className?: string;
 }
 
@@ -96,7 +102,8 @@ const PURPLE_RGB: RgbColor = [124, 58, 237];
 const TEAL_RGB: RgbColor = [15, 118, 110];
 const CHART_AXIS_COLOR = '#64748b';
 const CHART_GRID_COLOR = '#e2e8f0';
-
+/** Pie radius, shared by the chart and the HTML value-label overlay. */
+const PIE_OUTER_RADIUS = 120;
 const clampColorChannel = (value: number) =>
   Math.max(0, Math.min(255, Math.round(value)));
 
@@ -393,25 +400,31 @@ const getReferenceLines = (
     return customLines;
   }
 
-  const standard = REFERENCE_LINES[config.standards];
+  const standard = getCurrentReferenceLines(config.standards);
   const annual =
     pollutant === 'pm10' ? standard.PM10_ANNUAL : standard.PM25_ANNUAL;
   const daily = pollutant === 'pm10' ? standard.PM10_24HR : standard.PM25_24HR;
   const standardsLabel = config.standards.replace('NEMA_', 'NEMA ');
 
-  return [
-    {
+  const standardLines: ReferenceLineDescriptor[] = [];
+
+  if (typeof annual === 'number' && Number.isFinite(annual)) {
+    standardLines.push({
       value: annual,
       label: `${standardsLabel} annual`,
       color: '#DC2626',
-    },
-    {
+    });
+  }
+
+  if (typeof daily === 'number' && Number.isFinite(daily)) {
+    standardLines.push({
       value: daily,
       label: `${standardsLabel} 24h`,
       color: '#F97316',
-    },
-    ...customLines,
-  ];
+    });
+  }
+
+  return [...standardLines, ...customLines];
 };
 
 const getNumericSeriesValues = (model: ChartSeriesModel) =>
@@ -500,6 +513,7 @@ const ReferenceLineLabel = ({
 export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   model,
   config,
+  onInteraction,
   className,
 }) => {
   const primaryPalette = usePrimaryChartPalette();
@@ -595,6 +609,14 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
     isZoomed,
     pan,
   });
+
+  // Measured wrapper size, used to place the pie's HTML value labels.
+  const wrapperSize = useElementSize(wrapperRef);
+  const legendHeight = useLegendHeight(
+    wrapperRef,
+    config.type === 'pie' && config.showLegend !== false
+  );
+
   const visibleData = React.useMemo(() => {
     if (!zoomRange || zoomRange.endIndex >= model.data.length) {
       return model.data;
@@ -713,6 +735,20 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
         ? primaryPalette[index % primaryPalette.length]
         : getAirQualityColor(level);
     })();
+
+  // Slices for the pie's HTML value-label overlay (see PieValueLabels).
+  // Deliberately NOT memoised: this sits after the "No chart data" early
+  // return, where a hook would violate the rules of hooks, and the map is a
+  // cheap pass over the (already grouped) pie slices.
+  const pieValueKey = config.type === 'pie' ? model.seriesKeys[0] : undefined;
+  const pieSlices = pieValueKey
+    ? model.data.map((entry, index) => {
+        const name = String(entry[model.xKey] ?? `Segment ${index + 1}`);
+        const value = Number(entry[pieValueKey]);
+
+        return { name, value, color: getChartPieColor(name, index) };
+      })
+    : [];
   const grid = config.showGrid ? (
     <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
   ) : null;
@@ -732,6 +768,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       return;
     }
 
+    const wasHidden = hiddenSeries.has(seriesKey);
     setHiddenSeries(current => {
       const next = new Set(current);
       if (next.has(seriesKey)) {
@@ -741,6 +778,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       }
       return next;
     });
+    onInteraction?.(wasHidden ? 'legend_series_shown' : 'legend_series_hidden');
   };
   const formatLegendLabel = (
     value: string | number | undefined,
@@ -778,17 +816,17 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   const yAxisDomain = getYAxisDomain(model, referenceLines);
   const showXAxisLabel = config.showXAxisLabel !== false;
   const showYAxisLabel = config.showYAxisLabel !== false;
-  const xAxisLabel =
-    (config.xAxisLabel || formatColumnLabel(config.xColumn))
-      .trim()
-      .slice(0, 80) || 'Record order';
-  const yAxisLabel =
-    (
-      config.yAxisLabel ||
-      formatMeasurementLabel(model.yLabel || config.metricColumn)
-    )
-      .trim()
-      .slice(0, 80) || 'Value';
+  // `undefined` = automatic (derive from the selected column); `''` = the user
+  // explicitly cleared the label, so the axis is drawn without one.
+  const xAxisLabel = (config.xAxisLabel ?? formatColumnLabel(config.xColumn))
+    .trim()
+    .slice(0, 80);
+  const yAxisLabel = (
+    config.yAxisLabel ??
+    formatMeasurementLabel(model.yLabel || config.metricColumn)
+  )
+    .trim()
+    .slice(0, 80);
   const cartesianMargin = {
     top: 34,
     right: 28,
@@ -1120,8 +1158,11 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
             name={model.seriesLabels[valueKey] ?? valueKey}
             cx="50%"
             cy="50%"
-            outerRadius={120}
-            label={({ name, value }) => `${name}: ${formatNumber(value)}`}
+            outerRadius={PIE_OUTER_RADIUS}
+            isAnimationActive={false}
+            // Value labels are drawn as an HTML overlay (see PieValueLabels) so
+            // they survive chart export; recharts' SVG text does not.
+            label={false}
           >
             {model.data.map((entry, index) => {
               const label = String(entry[model.xKey] ?? `Segment ${index + 1}`);
@@ -1453,20 +1494,43 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           canZoomIn={canZoomIn}
           canZoomOut={canZoomOut}
           isZoomed={isZoomed}
-          onZoomIn={zoomIn}
-          onZoomOut={zoomOut}
-          onReset={resetZoom}
+          onZoomIn={() => {
+            zoomIn();
+            onInteraction?.('zoom_in');
+          }}
+          onZoomOut={() => {
+            zoomOut();
+            onInteraction?.('zoom_out');
+          }}
+          onReset={() => {
+            resetZoom();
+            onInteraction?.('zoom_reset');
+          }}
         />
       )}
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         {renderChart()}
       </ResponsiveContainer>
+      {config.type === 'pie' && (
+        <PieValueLabels
+          slices={pieSlices}
+          geometry={{
+            width: wrapperSize.width,
+            height: wrapperSize.height,
+            radius: PIE_OUTER_RADIUS,
+            legendHeight,
+          }}
+        />
+      )}
       {isZoomed && (
         <ChartZoomScrubber
           totalPoints={model.data.length}
           zoomRange={zoomRange}
           onPan={pan}
-          onPanToCenter={panToCenter}
+          onPanToCenter={centerIndex => {
+            panToCenter(centerIndex);
+            onInteraction?.('pan_to_center');
+          }}
         />
       )}
     </div>

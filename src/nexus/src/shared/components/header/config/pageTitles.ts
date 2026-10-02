@@ -12,6 +12,7 @@ export const PAGE_TITLES: Record<string, string> = {
   // Organization routes (dynamic with slug)
   '/org/dashboard': 'Dashboard',
   '/org/map': 'Air Quality Map',
+  '/org/air-quality/analytics': 'Air Quality Analysis',
   '/org/data-export': 'Visualization & Data Export',
   '/org/data-visualizer': 'Upload & Visualize Air Quality Data',
   '/org/members': 'Members',
@@ -22,12 +23,15 @@ export const PAGE_TITLES: Record<string, string> = {
   '/request-organization': 'Organization',
 
   // System routes (platform-wide admin features)
+  '/system/billing': 'Billing',
+  '/system/billing/settings': 'Billing Settings',
   '/system/clients': 'API Clients',
   '/system/email-configs': 'Email Configuration',
   '/system/aqi-ranges': 'AQI Ranges',
   '/system/security': 'Security',
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
+  '/system/api-keys': 'API Key Usage',
   '/system/feedback': 'Feedback',
   '/system/team-members': 'Members',
   '/system/surveys': 'Survey Management',
@@ -105,8 +109,35 @@ export const getPageTitle = (pathname: string): string => {
       return 'User Details';
     }
 
+    if (pathname.startsWith('/system/api-keys/')) {
+      return 'API Key Details';
+    }
+
     if (pathname.startsWith('/system/team-members/')) {
       return 'Team Member Details';
+    }
+
+    if (pathname.startsWith('/system/billing/invoices/new')) {
+      return 'New Invoice';
+    }
+
+    if (
+      pathname.startsWith('/system/billing/invoices/') &&
+      pathname.endsWith('/edit')
+    ) {
+      return 'Edit Invoice';
+    }
+
+    if (pathname.startsWith('/system/billing/invoices/')) {
+      return 'Invoice Details';
+    }
+
+    if (pathname.startsWith('/system/billing/customers/')) {
+      return 'Customer Details';
+    }
+
+    if (pathname.startsWith('/system/billing')) {
+      return 'Billing';
     }
 
     const parts = pathname.split('/');

@@ -1,0 +1,689 @@
+'use client';
+
+import * as React from 'react';
+import { useMemo, useState } from 'react';
+import { endOfDay, format, startOfDay, startOfMonth } from 'date-fns';
+import { AqRefreshCcw01 } from '@airqo/icons-react';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card';
+import { SegmentedTabs } from '@/shared/components/ui/segmented-tabs';
+import { DatePicker, type DateRange } from '@/shared/components/calendar';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { ErrorState } from '@/shared/components/ui/error-state';
+import { InfoBanner, WarningBanner } from '@/shared/components/ui/banner';
+import { ChartContainer, DynamicChart } from '@/shared/components/charts';
+import { AqiLegend } from '@/modules/analytics';
+import { getDefaultSiteColor } from '@/modules/analytics/utils/siteColors';
+import {
+  getAirQualityLevel,
+  getAirQualityColor,
+} from '@/shared/utils/airQuality';
+import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
+import { useOrgCohortContextRequired } from '@/shared/providers/org-cohort-provider';
+import { mergeUnavailablePeriods } from '@/shared/services/utils/reportWindows';
+import type {
+  NormalizedChartData,
+  PollutantType,
+} from '@/shared/components/charts/types';
+import { useOrganizationReport } from '../hooks/useOrganizationReport';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import {
+  formatReportValue,
+  getPickedReportDate,
+  getReportDailySeries,
+  getReportDiurnalSeries,
+  getReportPeriodDayCount,
+  getReportPeriodError,
+  getReportPeriodInputBounds,
+  getReportPollutantLabel,
+  getReportRequestRange,
+  getReportSiteRows,
+  getReportSummary,
+  hasReportData,
+  MAX_REPORT_PERIOD_DAYS,
+  REPORT_PERIOD_INCOMPLETE_MESSAGE,
+  REPORT_POLLUTANT_OPTIONS,
+  sanitizeReportMessage,
+  type ReportSiteRow,
+} from '../utils/reportUtils';
+
+interface OrganizationReportDashboardProps {
+  organizationTitle: string;
+  className?: string;
+}
+
+interface ReportMetricCardProps {
+  label: string;
+  value: string;
+  description: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  className?: string;
+}
+
+interface ReportChartProps {
+  title: string;
+  subtitle: string;
+  data: NormalizedChartData[];
+  pollutant: PollutantType;
+  aqiConfig: ReturnType<typeof useAqiConfig>['config'];
+  isLoading: boolean;
+  onRefresh: () => void;
+  type?: 'line' | 'area' | 'bar';
+  categorical?: boolean;
+  className?: string;
+}
+
+/**
+ * Default selection: the current month to date — the 1st through today.
+ *
+ * A calendar month is never longer than `MAX_REPORT_PERIOD_DAYS`, so this
+ * default can never breach the cap, and it always ends on a day that has
+ * actually happened, so the future-date guard never rejects it. Anything the
+ * report service cannot process inside the month is surfaced as an excluded
+ * period rather than silently averaged in.
+ */
+const getDefaultReportRange = (): DateRange => {
+  const now = new Date();
+  return {
+    from: startOfMonth(now),
+    to: endOfDay(now),
+  };
+};
+
+const formatReportDate = (value: string): string => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : format(date, 'MMM d, yyyy');
+};
+
+const ReportMetricCard: React.FC<ReportMetricCardProps> = ({
+  label,
+  value,
+  description,
+  icon: Icon,
+  className,
+}) => (
+  <Card className={cn('min-w-0', className)}>
+    <CardContent className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-primary" />}
+      </div>
+      <p className="mt-3 text-2xl font-semibold tabular-nums text-foreground">
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+    </CardContent>
+  </Card>
+);
+
+const ReportChart: React.FC<ReportChartProps> = ({
+  title,
+  subtitle,
+  data,
+  pollutant,
+  aqiConfig,
+  isLoading,
+  onRefresh,
+  type = 'line',
+  categorical = false,
+  className,
+}) => (
+  <ChartContainer
+    title={title}
+    subtitle={subtitle}
+    loading={isLoading}
+    onRefresh={onRefresh}
+    exportOptions={{
+      enablePDF: true,
+      enablePNG: true,
+      filename: `organization-report-${pollutant}`,
+    }}
+    className={className}
+    minContentHeight="320px"
+  >
+    {data.length > 0 ? (
+      <DynamicChart
+        data={data}
+        config={{
+          type,
+          height: 320,
+          color: getDefaultSiteColor(0),
+          showGrid: true,
+          showLegend: false,
+          showTooltip: true,
+          ...(categorical
+            ? {
+                xAxisTickFormatter: value => String(value),
+                tooltipDateFormatter: label => String(label),
+              }
+            : {}),
+        }}
+        frequency="daily"
+        pollutant={pollutant}
+        aqiConfig={aqiConfig}
+        autoSelectType={false}
+        referenceLinePeriod="24hr"
+      />
+    ) : (
+      <div className="flex h-[320px] items-center justify-center px-6 text-center text-sm text-muted-foreground">
+        No {getReportPollutantLabel(pollutant)} readings are available for this
+        view.
+      </div>
+    )}
+  </ChartContainer>
+);
+
+const SiteBreakdown: React.FC<{
+  rows: ReportSiteRow[];
+  pollutant: PollutantType;
+  aqiConfig: ReturnType<typeof useAqiConfig>['config'];
+  className?: string;
+}> = ({ rows, pollutant, aqiConfig, className }) => (
+  <Card className={cn('min-w-0', className)}>
+    <CardHeader className="pb-3">
+      <CardTitle className="text-lg">Site comparison</CardTitle>
+      <CardDescription>
+        Mean {getReportPollutantLabel(pollutant)} concentration by site across
+        the selected period.
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="p-0">
+      {rows.length === 0 ? (
+        <p className="px-6 pb-6 text-sm text-muted-foreground">
+          No site-level readings are available for this period.
+        </p>
+      ) : (
+        <div className="max-h-[420px] overflow-y-auto overflow-x-auto">
+          <table className="w-full text-sm">
+            <caption className="sr-only">
+              Site comparison for {getReportPollutantLabel(pollutant)}
+            </caption>
+            <thead className="sticky top-0 z-10 border-y bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Site
+                </th>
+                <th scope="col" className="px-6 py-3 text-right font-medium">
+                  {getReportPollutantLabel(pollutant)}{' '}
+                  <span className="normal-case">(µg/m³)</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {rows.map((row, index) => {
+                const level = getAirQualityLevel(
+                  row.value,
+                  pollutant,
+                  aqiConfig
+                );
+                const color = getAirQualityColor(level, aqiConfig);
+                return (
+                  <tr key={`${row.name}-${index}`}>
+                    <th scope="row" className="px-6 py-3 text-left font-normal">
+                      <span className="block max-w-[240px] truncate font-medium text-foreground">
+                        {row.name}
+                      </span>
+                      {row.latitude !== null && row.longitude !== null && (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {row.latitude.toFixed(3)}, {row.longitude.toFixed(3)}
+                        </span>
+                      )}
+                    </th>
+                    <td className="px-6 py-3 text-right font-semibold tabular-nums text-foreground">
+                      {row.value === null ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 tabular-nums text-foreground">
+                          <span
+                            className="inline-block h-1.5 w-6 rounded-full"
+                            style={{ backgroundColor: color || '#6B7280' }}
+                            aria-hidden="true"
+                          />
+                          {formatReportValue(row.value)}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+export const OrganizationReportDashboard: React.FC<
+  OrganizationReportDashboardProps
+> = ({ organizationTitle, className }) => {
+  const [pollutant, setPollutant] = useState<PollutantType>('pm2_5');
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultReportRange);
+
+  // The cohort selection lives in the org-wide context (set once in the
+  // header). The bar surfaces its own error + retry, so this component only
+  // consumes the resolved selection. Always rendered within the provider.
+  const {
+    organizationGroupId,
+    cohortIds,
+    selectedCohortId,
+    selectedCohort,
+    isLoading: cohortsLoading,
+    error: cohortsError,
+  } = useOrgCohortContextRequired();
+
+  const effectiveCohortId = cohortIds.includes(selectedCohortId)
+    ? selectedCohortId
+    : '';
+  const cohortName = effectiveCohortId
+    ? selectedCohort?.name ||
+      `Cohort ${cohortIds.indexOf(effectiveCohortId) + 1}`
+    : 'No cohort selected';
+
+  const backendRange = useMemo(() => {
+    if (!dateRange.from || !dateRange.to) return null;
+    try {
+      return getReportRequestRange(dateRange);
+    } catch {
+      return null;
+    }
+  }, [dateRange]);
+  // One "now" per render, shared by the guard and the calendar bounds so the
+  // two can never be computed against different days. Deliberately not memoised
+  // on `dateRange`: a view left open across midnight would otherwise keep
+  // offering yesterday as "today".
+  const now = new Date();
+  const rangeDays = getReportPeriodDayCount(dateRange);
+  // `backendRange` is null only when the payload builder refuses the selection,
+  // which is always a case `getReportPeriodError` already reports on. The
+  // fallback is what stops a selection the guard does not know about yet from
+  // being requested with empty start/end timestamps.
+  const rangeError =
+    getReportPeriodError(dateRange, now) ??
+    (backendRange ? null : REPORT_PERIOD_INCOMPLETE_MESSAGE);
+  const periodBounds = getReportPeriodInputBounds(dateRange, now);
+  const reportEnabled = !!effectiveCohortId && !rangeError;
+  const {
+    report,
+    isLoading: reportLoading,
+    isFetching: reportFetching,
+    error: reportError,
+    refetch: refetchReport,
+  } = useOrganizationReport({
+    groupId: organizationGroupId,
+    cohortId: effectiveCohortId,
+    startTime: backendRange?.startDateTime ?? '',
+    endTime: backendRange?.endDateTime ?? '',
+    enabled: reportEnabled,
+  });
+  const { config: aqiConfig } = useAqiConfig(pollutant);
+
+  const summary = useMemo(
+    () => (report ? getReportSummary(report) : null),
+    [report]
+  );
+  const dailySeries = useMemo(
+    () => (report ? getReportDailySeries(report, pollutant) : []),
+    [report, pollutant]
+  );
+  const diurnalSeries = useMemo(
+    () => (report ? getReportDiurnalSeries(report, pollutant) : []),
+    [report, pollutant]
+  );
+  const siteRows = useMemo(
+    () => (report ? getReportSiteRows(report, pollutant) : []),
+    [report, pollutant]
+  );
+  const selectedAverage =
+    pollutant === 'pm2_5' ? summary?.averagePm25 : summary?.averagePm10;
+  const reportHasData = hasReportData(report);
+  const periodLabel = report?.period
+    ? `${formatReportDate(report.period.startTime)} – ${formatReportDate(
+        report.period.endTime
+      )}`
+    : null;
+  // Coalesce adjacent/overlapping rejected windows first: a bad month is
+  // recorded as one window per split leaf and would otherwise render as one
+  // banner entry per day.
+  const unavailablePeriods = useMemo(
+    () => mergeUnavailablePeriods(report?.unavailablePeriods ?? []),
+    [report]
+  );
+  const unavailableBanner =
+    unavailablePeriods.length > 0 ? (
+      <WarningBanner
+        dense
+        message={`Some periods could not be processed by the report service and are excluded from the totals: ${unavailablePeriods
+          .map(
+            period =>
+              `${formatReportDate(period.startTime)} – ${formatReportDate(period.endTime)}`
+          )
+          .join(', ')}.`}
+      />
+    ) : null;
+  // The cohort selection is resolved once ids are known AND a valid cohort is
+  // selected (the selector auto-selects the stored/first cohort).
+  const selectionPending =
+    cohortsLoading || (cohortIds.length > 0 && !effectiveCohortId);
+
+  // Two explicit pickers rather than one range calendar: the cap is *relative*
+  // to the chosen start, and a range calendar's min/max are absolute, so it
+  // cannot grey out "start + 30 days and beyond" before the start is known. Two
+  // independent calendars can, via the bounds below.
+  //
+  // Each side also drags the other with it, so the user never has to undo an
+  // inverted selection before the 31-day rule can be checked.
+  const handleStartDateChange = (value: unknown) => {
+    const picked = getPickedReportDate(value);
+    if (!picked) return;
+    const from = startOfDay(picked);
+    setDateRange(current => ({
+      from,
+      to: current.to && current.to >= from ? current.to : endOfDay(picked),
+    }));
+  };
+
+  const handleEndDateChange = (value: unknown) => {
+    const picked = getPickedReportDate(value);
+    if (!picked) return;
+    const to = endOfDay(picked);
+    setDateRange(current => ({
+      from:
+        current.from && current.from <= to ? current.from : startOfDay(picked),
+      to,
+    }));
+  };
+
+  const handleRefresh = () => {
+    void refetchReport();
+  };
+
+  const renderReport = () => {
+    if (cohortsError && cohortIds.length === 0) {
+      // The selector surfaces the cohort load error with its own retry
+      // action; with ids available the report can still render using the
+      // positional fallback name, so only bail when there is no id to key on.
+      return null;
+    }
+    if (selectionPending || reportLoading) {
+      return (
+        <div
+          className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading organization report"
+        >
+          <LoadingSpinner />
+          <div className="space-y-1">
+            <p className="text-sm text-foreground">
+              Loading the organization report…
+            </p>
+            {/* The report service paces its requests and retries any window it
+                refuses, so a period it cannot process can take several seconds
+                to come back with an answer. Without this the wait reads as a
+                hang and the eventual message arrives as a surprise. */}
+            <p className="max-w-md text-xs text-muted-foreground">
+              The report service checks each period in the range separately, so
+              this can take a few seconds.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    if (cohortIds.length === 0) {
+      return (
+        <EmptyState
+          title="No cohorts assigned"
+          description="Assign devices to a cohort before generating an organization air quality report."
+        />
+      );
+    }
+    if (rangeError) {
+      return (
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+        >
+          {rangeError}
+        </div>
+      );
+    }
+    if (reportError) {
+      return (
+        <ErrorState
+          title="Unable to load the report"
+          description={reportError}
+          retryAction={{ label: 'Retry', onClick: handleRefresh }}
+        />
+      );
+    }
+    if (!reportHasData) {
+      // Still surface rejected windows above the empty state so the user can
+      // tell "no measurements" apart from "the service refused these dates".
+      return (
+        <div className="space-y-5">
+          {unavailableBanner}
+          <EmptyState
+            title="No readings in this period"
+            description={
+              // Service copy is sanitized so an internal identifier (e.g. a
+              // cohort id) can never be shown to a user.
+              sanitizeReportMessage(report?.message ?? '') ||
+              'Try a different date range or cohort. The selected period has no measurements.'
+            }
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-5">
+        {reportFetching && (
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-xs text-muted-foreground"
+          >
+            Updating report...
+          </p>
+        )}
+        {unavailableBanner}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <ReportMetricCard
+            label="Average PM2.5"
+            value={`${formatReportValue(summary?.averagePm25)} µg/m³`}
+            description={
+              summary?.peakPm25 === null || summary?.peakPm25 === undefined
+                ? 'No calibrated daily values'
+                : `Peak daily mean ${formatReportValue(summary.peakPm25)} µg/m³`
+            }
+          />
+          <ReportMetricCard
+            label="Average PM10"
+            value={`${formatReportValue(summary?.averagePm10)} µg/m³`}
+            description="Mean of daily calibrated values"
+          />
+          <ReportMetricCard
+            label="Active days"
+            value={String(summary?.activeDays ?? 0)}
+            description="Days with returned measurements"
+          />
+          <ReportMetricCard
+            label="Devices represented"
+            value={String(summary?.deviceCount ?? 0)}
+            description={`${summary?.siteCount ?? 0} site${
+              summary?.siteCount === 1 ? '' : 's'
+            } with readings`}
+          />
+        </div>
+
+        <ReportChart
+          title={`${getReportPollutantLabel(pollutant)} daily trend`}
+          subtitle={`Mean calibrated concentration across the selected cohort · ${periodLabel ?? ''}`}
+          data={dailySeries}
+          pollutant={pollutant}
+          aqiConfig={aqiConfig}
+          isLoading={reportLoading}
+          onRefresh={handleRefresh}
+          type="area"
+        />
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <ReportChart
+            title="Typical day profile"
+            subtitle={`Mean ${getReportPollutantLabel(
+              pollutant
+            )} by UTC hour across the selected period`}
+            data={diurnalSeries}
+            pollutant={pollutant}
+            aqiConfig={aqiConfig}
+            isLoading={reportLoading}
+            onRefresh={handleRefresh}
+            type="bar"
+            categorical
+          />
+          <SiteBreakdown
+            rows={siteRows}
+            pollutant={pollutant}
+            aqiConfig={aqiConfig}
+          />
+        </div>
+
+        {aqiConfig && (
+          <AqiLegend
+            aqiConfig={aqiConfig}
+            markerValue={selectedAverage}
+            ariaLabel={`${getReportPollutantLabel(pollutant)} concentration scale`}
+          />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={cn('space-y-5', className)}>
+      <Card>
+        <CardContent className="space-y-4 p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 flex-1">
+              <p
+                id="report-period-label"
+                className="mb-2 text-sm text-foreground"
+              >
+                Reporting period
+              </p>
+              {/* A bounded inline group rather than a two-column grid: the grid
+                  stretched the two pickers out to the far edges of the card,
+                  which read as two unrelated controls instead of one period. */}
+              <div
+                role="group"
+                aria-labelledby="report-period-label"
+                className="flex flex-wrap items-end gap-x-2 gap-y-3"
+              >
+                <div className="min-w-0">
+                  <label
+                    htmlFor="report-period-start"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  >
+                    From
+                  </label>
+                  <DatePicker
+                    id="report-period-start"
+                    mode="single"
+                    value={dateRange.from}
+                    onChange={handleStartDateChange}
+                    maxDate={periodBounds.maxStart}
+                    placeholder="Start date"
+                    className="w-44"
+                    contentClassName="z-[10010]"
+                  />
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="mb-3 select-none text-muted-foreground"
+                >
+                  –
+                </span>
+                <div className="min-w-0">
+                  <label
+                    htmlFor="report-period-end"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  >
+                    To
+                  </label>
+                  <DatePicker
+                    id="report-period-end"
+                    mode="single"
+                    value={dateRange.to}
+                    onChange={handleEndDateChange}
+                    minDate={periodBounds.minEnd}
+                    maxDate={periodBounds.maxEnd}
+                    placeholder="End date"
+                    className="w-44"
+                    contentClassName="z-[10010]"
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {rangeDays > 0 && rangeDays <= MAX_REPORT_PERIOD_DAYS
+                  ? `${rangeDays} of ${MAX_REPORT_PERIOD_DAYS} days selected.`
+                  : `Choose a period of ${MAX_REPORT_PERIOD_DAYS} days or fewer.`}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 lg:pb-0">
+              <SegmentedTabs
+                ariaLabel="Report pollutant"
+                options={REPORT_POLLUTANT_OPTIONS}
+                value={pollutant}
+                onChange={setPollutant}
+              />
+              <Button
+                variant="outlined"
+                size="md"
+                Icon={AqRefreshCcw01}
+                onClick={handleRefresh}
+                disabled={!reportEnabled}
+                loading={reportFetching}
+                aria-label="Refresh organization report"
+              >
+                Refresh
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {organizationTitle}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>{cohortName}</span>
+            {periodLabel && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{periodLabel}</span>
+              </>
+            )}
+            <span aria-hidden="true">·</span>
+            <span>UTC hourly aggregates</span>
+          </div>
+          <InfoBanner
+            dense
+            className="mt-3"
+            message={`A report covers a single period of up to ${MAX_REPORT_PERIOD_DAYS} days — pick a start and end date inside that window.`}
+          />
+        </CardContent>
+      </Card>
+      {renderReport()}
+    </div>
+  );
+};
+
+export default OrganizationReportDashboard;

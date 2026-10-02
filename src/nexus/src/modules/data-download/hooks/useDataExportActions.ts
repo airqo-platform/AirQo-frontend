@@ -630,6 +630,14 @@ const normalizeCountryCityDownloadResponse = (
     message:
       typeof response === 'string' ? 'Data export prepared' : response.message,
     data: enhancedRecords as unknown as DataDownloadResponse['data'],
+    metadata:
+      typeof response === 'string'
+        ? {
+            total_count: enhancedRecords.length,
+            has_more: false,
+            next: null,
+          }
+        : response.metadata,
   };
 };
 
@@ -907,10 +915,12 @@ export const useDataExportActions = (
         return null;
       }
 
-      const effectiveDataType: 'calibrated' | 'raw' =
+      const effectiveDataType: DataDownloadRequest['datatype'] =
         activeTab === 'devices' && deviceCategory === 'bam'
           ? 'raw'
-          : (dataType as 'calibrated' | 'raw');
+          : frequency === 'raw'
+            ? 'raw'
+            : (dataType as DataDownloadRequest['datatype']);
 
       const durationDays = getCalendarDayDifference(
         dateRange.from,
@@ -1203,13 +1213,6 @@ export const useDataExportActions = (
 
   // Handle visualize data - open more insights dialog
   const handleVisualizeData = useCallback(() => {
-    posthog?.capture('data_visualize_clicked', {
-      active_tab: activeTab,
-      sites_count: selectedSiteIds.length,
-      devices_count: selectedDeviceIds.length,
-      grids_count: selectedGridIds.length,
-    });
-
     // Track to Google Analytics
     trackEvent('data_visualize_clicked', {
       active_tab: activeTab,
@@ -1254,7 +1257,6 @@ export const useDataExportActions = (
     countriesData,
     citiesData,
     dispatch,
-    posthog,
   ]);
 
   const cancelDownload = useCallback(() => {

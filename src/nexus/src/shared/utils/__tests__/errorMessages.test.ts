@@ -2,6 +2,7 @@ import {
   getUserFriendlyErrorMessage,
   createErrorMessageGetter,
   isForbiddenError,
+  isNotFoundError,
   DEFAULT_ERROR_MAPPINGS,
 } from '../errorMessages';
 
@@ -324,6 +325,46 @@ describe('errorMessages', () => {
     it('returns false for non-numeric status property', () => {
       const error = { status: '403' };
       expect(isForbiddenError(error)).toBe(false);
+    });
+  });
+
+  describe('isNotFoundError', () => {
+    // Drives the API key detail view's "No usage recorded for this key" state,
+    // so a 404 must be distinguished from every other failure mode.
+    it('returns true for Axios error with 404', () => {
+      expect(
+        isNotFoundError({ isAxiosError: true, response: { status: 404 } })
+      ).toBe(true);
+    });
+
+    it('returns true for Error with status 404', () => {
+      expect(
+        isNotFoundError(Object.assign(new Error('Not found'), { status: 404 }))
+      ).toBe(true);
+    });
+
+    it('returns true for object with status 404', () => {
+      expect(isNotFoundError({ status: 404 })).toBe(true);
+    });
+
+    it('returns false for null', () => {
+      expect(isNotFoundError(null)).toBe(false);
+    });
+
+    it('returns false for a 403 — that is an access problem, not a missing key', () => {
+      expect(
+        isNotFoundError({ isAxiosError: true, response: { status: 403 } })
+      ).toBe(false);
+    });
+
+    it('returns false for a 500', () => {
+      expect(
+        isNotFoundError({ isAxiosError: true, response: { status: 500 } })
+      ).toBe(false);
+    });
+
+    it('returns false for a plain Error with no status', () => {
+      expect(isNotFoundError(new Error('boom'))).toBe(false);
     });
   });
 

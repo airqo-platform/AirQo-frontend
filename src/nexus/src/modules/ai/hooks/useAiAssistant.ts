@@ -1,11 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  AiFeatureId,
-  AiMessage,
-  AiStreamEvent,
-} from '../types';
+import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent } from '@/shared/utils/analytics';
+import type { AiFeatureId, AiMessage, AiStreamEvent } from '../types';
 
 /* -------------------------------------------------------------------------- */
 /*  Config shape returned by GET /api/ai/assistant                            */
@@ -25,8 +23,7 @@ interface AiAssistantConfig {
 /*  Build-time enabled flag (inlined from NEXT_PUBLIC_AI_ENABLED)             */
 /* -------------------------------------------------------------------------- */
 
-const AI_ENABLED: boolean =
-  process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
+const AI_ENABLED: boolean = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
 
 /* -------------------------------------------------------------------------- */
 /*  Hook                                                                       */
@@ -57,6 +54,7 @@ export function useAiAssistant(
   options?: UseAiAssistantOptions
 ): UseAiAssistantReturn {
   const { feature, context } = options ?? {};
+  const posthog = usePostHog();
 
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -92,6 +90,10 @@ export function useAiAssistant(
       const trimmed = content.trim();
       if (!trimmed || isStreaming) return;
 
+      capturePostHogEvent(posthog, 'ask_airqo_prompt_submitted', {
+        feature: feature ?? 'general',
+      });
+
       setError(null);
 
       const userMessage: AiMessage = {
@@ -116,10 +118,12 @@ export function useAiAssistant(
 
       try {
         // Build full message history for context
-        const requestMessages = [...messagesRef.current, userMessage].map(m => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        }));
+        const requestMessages = [...messagesRef.current, userMessage].map(
+          m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })
+        );
 
         const response = await fetch('/api/ai/assistant', {
           method: 'POST',
@@ -141,7 +145,11 @@ export function useAiAssistant(
               setMessages(prev =>
                 prev.map(m =>
                   m.id === assistantMessage.id
-                    ? { ...m, content: body.message ?? 'AI assistant is not available.' }
+                    ? {
+                        ...m,
+                        content:
+                          body.message ?? 'AI assistant is not available.',
+                      }
                     : m
                 )
               );
@@ -229,6 +237,17 @@ export function useAiAssistant(
                       : m
                   )
                 );
+              } else if (event.type === 'action') {
+                setMessages(prev =>
+                  prev.map(message =>
+                    message.id === assistantMessage.id
+                      ? {
+                          ...message,
+                          actions: [event.action],
+                        }
+                      : message
+                  )
+                );
               } else if (event.type === 'done') {
                 // Stream complete
               }
@@ -255,7 +274,8 @@ export function useAiAssistant(
               m.id === assistantMessage.id
                 ? {
                     ...m,
-                    content: m.content || `Sorry, I couldn't respond. ${message}`,
+                    content:
+                      m.content || `Sorry, I couldn't respond. ${message}`,
                   }
                 : m
             )
@@ -266,7 +286,7 @@ export function useAiAssistant(
         abortRef.current = null;
       }
     },
-    [isStreaming, feature, context]
+    [isStreaming, feature, context, posthog]
   );
 
   /* -------- Stop streaming -------- */

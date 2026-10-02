@@ -7,8 +7,8 @@
 
 import { PostHog } from 'posthog-js';
 import ReactGA from 'react-ga4';
-import { hashId } from './analytics';
-import { AIRQO_APP_NAME } from './analyticsConstants';
+import { capturePostHogEvent, hashId } from './analytics';
+import { AIRQO_APP_NAME, ANALYTICS_EVENTS } from './analyticsConstants';
 
 const getAnalyticsContext = () => ({
   app_name: AIRQO_APP_NAME,
@@ -155,9 +155,9 @@ export interface LocationSelection {
 }
 
 export interface DataDownloadEvent {
-  dataType: 'calibrated' | 'raw';
+  dataType: 'raw' | 'averaged' | 'calibrated' | 'consolidated';
   fileType: 'csv' | 'json';
-  frequency: 'hourly' | 'daily' | 'monthly';
+  frequency: 'raw' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   pollutants: string[];
   locationCount?: number;
   deviceCount?: number;
@@ -225,7 +225,7 @@ export const trackLocationSelection = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient?.capture('location_selected', eventData);
+  capturePostHogEvent(analyticsClient, 'location_selected', eventData);
 
   // Also track to Google Analytics
   ReactGA.event({
@@ -266,7 +266,7 @@ export const trackDataDownload = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient?.capture('data_downloaded', eventData);
+  capturePostHogEvent(analyticsClient, 'data_downloaded', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -299,7 +299,7 @@ export const trackMapInteraction = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('map_interaction', eventData);
+  capturePostHogEvent(analyticsClient, 'map_interaction', eventData);
 };
 
 /**
@@ -321,7 +321,7 @@ export const trackChartInteraction = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient?.capture('chart_interaction', eventData);
+  capturePostHogEvent(analyticsClient, 'chart_interaction', eventData);
 
   // Track to Google Analytics
   ReactGA.event({
@@ -349,7 +349,7 @@ export const trackPreferenceChange = (
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient.capture('preference_changed', eventData);
+  capturePostHogEvent(analyticsClient, 'preference_changed', eventData);
 };
 
 /**
@@ -371,7 +371,7 @@ export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
     timestamp: new Date().toISOString(),
   };
 
-  analyticsClient?.capture('search_performed', eventData);
+  capturePostHogEvent(analyticsClient, 'search_performed', eventData);
 
   // Track to Google Analytics - only send metadata, not the actual term
   ReactGA.event({
@@ -393,7 +393,7 @@ export const trackPageDwell = (
   const analyticsClient = resolvePostHogClient(posthog);
   if (!analyticsClient) return;
 
-  analyticsClient.capture('page_dwell', {
+  capturePostHogEvent(analyticsClient, 'page_dwell', {
     ...getAnalyticsContext(),
     page_path: pagePath,
     dwell_time_seconds: dwellTimeSeconds,
@@ -413,7 +413,7 @@ export const trackFeatureUsage = (
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
 
-  analyticsClient?.capture('feature_used', {
+  capturePostHogEvent(analyticsClient, 'feature_used', {
     ...getAnalyticsContext(),
     feature_name: featureName,
     action,
@@ -446,7 +446,7 @@ export const trackError = (
   const sanitizedMessage = sanitizeErrorMessage(errorMessage);
   const sanitizedContext = sanitizeErrorContext(errorContext || {});
 
-  analyticsClient.capture('error_occurred', {
+  capturePostHogEvent(analyticsClient, 'error_occurred', {
     ...getAnalyticsContext(),
     error_type: errorType,
     error_message: sanitizedMessage,
@@ -471,7 +471,7 @@ export const trackApiPerformance = (
 
   const sanitizedEndpoint = sanitizeEndpoint(endpoint);
 
-  analyticsClient.capture('api_call', {
+  capturePostHogEvent(analyticsClient, 'api_call', {
     ...getAnalyticsContext(),
     endpoint: sanitizedEndpoint,
     method,
@@ -493,7 +493,7 @@ export const trackFavoriteAction = (
 ) => {
   const analyticsClient = resolvePostHogClient(posthog);
 
-  analyticsClient?.capture('favorite_action', {
+  capturePostHogEvent(analyticsClient, 'favorite_action', {
     ...getAnalyticsContext(),
     action,
     location_id_hashed: hashId(locationId),
@@ -525,7 +525,8 @@ export const trackSessionQuality = (
   const analyticsClient = resolvePostHogClient(posthog);
   if (!analyticsClient) return;
 
-  analyticsClient.capture(
+  capturePostHogEvent(
+    analyticsClient,
     'session_quality',
     {
       ...getAnalyticsContext(),
@@ -557,11 +558,15 @@ export const trackAuthEvent = (
     ALLOWED_AUTH_METADATA_KEYS
   );
 
-  analyticsClient.capture('auth_event', {
+  capturePostHogEvent(analyticsClient, `auth_${action}`, {
     ...getAnalyticsContext(),
-    action,
-    metadata: sanitizedMetadata,
+    ...sanitizedMetadata,
     timestamp: new Date().toISOString(),
+  });
+
+  ReactGA.event({
+    category: 'Authentication',
+    action,
   });
 };
 
@@ -579,9 +584,12 @@ export const trackGroupChange = (
   const analyticsClient = resolvePostHogClient(posthog);
   if (!analyticsClient) return;
 
-  analyticsClient.capture('group_switched', {
+  capturePostHogEvent(analyticsClient, ANALYTICS_EVENTS.GROUP_SWITCHED, {
     ...getAnalyticsContext(),
-    ...metadata,
+    from_group_flow: metadata.fromOrganizationSlug
+      ? 'organization'
+      : 'individual',
+    to_group_flow: metadata.toOrganizationSlug ? 'organization' : 'individual',
     timestamp: new Date().toISOString(),
   });
 };
@@ -599,7 +607,7 @@ export const trackApiClientAction = (
     ALLOWED_APICLIENT_METADATA_KEYS
   );
 
-  analyticsClient.capture('api_client_action', {
+  capturePostHogEvent(analyticsClient, 'api_client_action', {
     ...getAnalyticsContext(),
     action,
     metadata: sanitizedMetadata,

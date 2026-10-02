@@ -18,6 +18,13 @@ interface RankingsHistoryTableProps {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  onSearchTermChange?: (search: string) => void;
+  onClientPageChange?: (page: number) => void;
+  onClientSortChange?: (sort: {
+    key: string;
+    direction: 'asc' | 'desc';
+  }) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   className?: string;
 }
 
@@ -55,6 +62,10 @@ export const RankingsHistoryTable: React.FC<RankingsHistoryTableProps> = ({
   isLoading = false,
   error = null,
   onRetry,
+  onSearchTermChange,
+  onClientPageChange,
+  onClientSortChange,
+  onPageSizeChange,
   className,
 }) => {
   const years = useMemo(() => {
@@ -172,8 +183,12 @@ export const RankingsHistoryTable: React.FC<RankingsHistoryTableProps> = ({
       loading={isLoading}
       error={error}
       onRefresh={onRetry}
+      onSearchTermChange={onSearchTermChange}
       searchableColumns={['name']}
       showClientPagination
+      onClientPageChange={onClientPageChange}
+      onClientSortChange={onClientSortChange}
+      onPageSizeChange={onPageSizeChange}
       className={className}
       customHeader={
         <span className="w-full text-left text-xs text-muted-foreground">

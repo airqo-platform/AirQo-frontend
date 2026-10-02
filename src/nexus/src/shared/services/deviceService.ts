@@ -15,6 +15,8 @@ import type {
   CohortDevicesRequest,
   CohortDevicesParams,
   CohortDevicesResponse,
+  CohortSummary,
+  CohortsSummaryResponse,
   GroupCohortsResponse,
   GridsSummaryResponse,
   GridsSummaryParams,
@@ -27,6 +29,8 @@ import type {
   MeasurementsQueryParams,
   SiteAveragesResponse,
 } from '../types/api';
+import { normalizeCohortIds } from '../utils/cohortUtils';
+import { isAbortError } from '../lib/retryPolicy';
 
 type LegacyCohortPagination = {
   total?: number;
@@ -100,24 +104,8 @@ const extractGroupCohortIds = (payload: unknown): string[] => {
   return [];
 };
 
-const isAbortLikeError = (error: unknown): boolean => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-  if (!candidate) return false;
-
-  return (
-    candidate.name === 'AbortError' ||
-    candidate.name === 'CanceledError' ||
-    candidate.code === 'ERR_CANCELED' ||
-    candidate.message === 'canceled'
-  );
-};
-
 const shouldFallbackToLegacyCohortEndpoint = (error: unknown): boolean => {
-  if (isAbortLikeError(error)) {
+  if (isAbortError(error)) {
     return false;
   }
 
@@ -235,6 +223,84 @@ const normalizeDevicesResponse = (
 };
 
 const DEVICE_COHORTS_PATH = '/devices/cohorts';
+
+// /devices/cohorts/summary is paginated (default limit 30, server cap 80),
+// so a call must ask for as many rows as it requests ids; larger id sets are
+// split into sequential ≤80-id calls and merged by `_id`.
+const SUMMARY_MAX_LIMIT = 80;
+
+const normalizeCohortSummaryEntry = (entry: unknown): CohortSummary | null => {
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+
+  const candidate = entry as {
+    _id?: unknown;
+    name?: unknown;
+    network?: unknown;
+    visibility?: unknown;
+    cohort_tags?: unknown;
+    groups?: unknown;
+    createdAt?: unknown;
+  };
+
+  if (typeof candidate._id !== 'string' || !candidate._id.trim()) {
+    return null;
+  }
+
+  return {
+    _id: candidate._id,
+    name: typeof candidate.name === 'string' ? candidate.name.trim() : '',
+    ...(typeof candidate.network === 'string'
+      ? { network: candidate.network }
+      : {}),
+    ...(typeof candidate.visibility === 'boolean'
+      ? { visibility: candidate.visibility }
+      : {}),
+    ...(Array.isArray(candidate.cohort_tags)
+      ? {
+          cohort_tags: candidate.cohort_tags.filter(
+            (tag): tag is string => typeof tag === 'string'
+          ),
+        }
+      : {}),
+    ...(Array.isArray(candidate.groups)
+      ? {
+          groups: candidate.groups.filter(
+            (group): group is string => typeof group === 'string'
+          ),
+        }
+      : {}),
+    ...(typeof candidate.createdAt === 'string'
+      ? { createdAt: candidate.createdAt }
+      : {}),
+  };
+};
+
+// The summary endpoint's envelope has drifted across releases: the cohort
+// list may sit at `cohorts`, at `data` (array) or at `data.cohorts`.
+// Normalize all three shapes.
+const extractCohortSummaries = (payload: unknown): CohortSummary[] => {
+  if (!payload || typeof payload !== 'object') {
+    return [];
+  }
+
+  const envelope = payload as { cohorts?: unknown; data?: unknown };
+
+  const fromArray = (value: unknown): CohortSummary[] | null =>
+    Array.isArray(value)
+      ? value
+          .map(normalizeCohortSummaryEntry)
+          .filter((entry): entry is CohortSummary => entry !== null)
+      : null;
+
+  return (
+    fromArray(envelope.cohorts) ??
+    fromArray(envelope.data) ??
+    fromArray((envelope.data as { cohorts?: unknown } | undefined)?.cohorts) ??
+    []
+  );
+};
 
 export class DeviceService {
   private authenticatedClient: ApiClient;
@@ -436,12 +502,8 @@ export class DeviceService {
       throw new Error(responsePayload.message || 'Failed to get group cohorts');
     }
 
-    const normalizedCohortIds = Array.from(
-      new Set(
-        extractGroupCohortIds(responsePayload)
-          .map(cohortId => cohortId?.trim())
-          .filter((cohortId): cohortId is string => Boolean(cohortId))
-      )
+    const normalizedCohortIds = normalizeCohortIds(
+      extractGroupCohortIds(responsePayload)
     );
 
     const envelope = responsePayload as ApiEnvelope;
@@ -456,15 +518,86 @@ export class DeviceService {
     };
   }
 
+  // Resolve cohort summaries (name, visibility, ...) for a whole id set —
+  // replaces per-cohort detail lookups. The endpoint paginates (cap 80), so
+  // the request asks for `limit = <chunk id count>` and id sets above the
+  // cap are fetched in parallel chunks and merged by `_id`. Chunks settle
+  // independently (`Promise.allSettled`): a transient failure on one chunk
+  // returns the summaries the other chunks already produced; only when every
+  // chunk rejects does the call reject.
+  async getCohortsSummary(
+    cohortIds: string[],
+    signal?: AbortSignal
+  ): Promise<CohortSummary[]> {
+    const normalizedIds = normalizeCohortIds(cohortIds ?? []);
+    if (normalizedIds.length === 0) {
+      return [];
+    }
+
+    await this.ensureAuthenticated();
+
+    const chunks: string[][] = [];
+    for (
+      let index = 0;
+      index < normalizedIds.length;
+      index += SUMMARY_MAX_LIMIT
+    ) {
+      chunks.push(normalizedIds.slice(index, index + SUMMARY_MAX_LIMIT));
+    }
+
+    const merged = new Map<string, CohortSummary>();
+    const rejections: unknown[] = [];
+    let fulfilledChunks = 0;
+
+    const results = await Promise.allSettled(
+      chunks.map(async chunkIds => {
+        const response = await this.authenticatedClient.get<
+          CohortsSummaryResponse | ApiErrorResponse
+        >(`${DEVICE_COHORTS_PATH}/summary`, {
+          params: {
+            cohort_id: chunkIds.join(','),
+            include_devices: false,
+            limit: chunkIds.length,
+          },
+          signal,
+          suppressErrorLogging: true,
+        });
+        const responsePayload = response.data;
+
+        if ('success' in responsePayload && !responsePayload.success) {
+          throw new Error(
+            responsePayload.message || 'Failed to get cohort summaries'
+          );
+        }
+
+        return extractCohortSummaries(responsePayload);
+      })
+    );
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        rejections.push(result.reason);
+        continue;
+      }
+      fulfilledChunks += 1;
+      for (const summary of result.value) {
+        merged.set(summary._id, summary);
+      }
+    }
+
+    if (fulfilledChunks === 0) {
+      throw rejections[0];
+    }
+
+    return Array.from(merged.values());
+  }
+
   // Get cohort details - authenticated endpoint
   async getCohort(
     cohortId: string,
     signal?: AbortSignal
   ): Promise<CohortResponse> {
-    const resolvedCohortId = (cohortId || '')
-      .split(',')
-      .map(value => value.trim())
-      .find(Boolean);
+    const resolvedCohortId = normalizeCohortIds(cohortId)[0];
 
     if (!resolvedCohortId) {
       throw new Error('Cohort id is required');

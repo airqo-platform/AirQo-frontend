@@ -12,7 +12,7 @@ This document describes the comprehensive analytics implementation for the AirQo
 - **Configuration**: See `src/shared/providers/posthog-provider.tsx`
 - **Environment Variables**:
   - `NEXT_PUBLIC_POSTHOG_KEY`: Your PostHog project API key
-  - `NEXT_PUBLIC_POSTHOG_HOST`: PostHog instance URL (default: https://us.posthog.com)
+- `NEXT_PUBLIC_POSTHOG_HOST`: PostHog ingestion host (default: https://us.i.posthog.com)
 
 ### 2. Google Analytics 4 (GA4)
 
@@ -308,7 +308,7 @@ const MyPage = () => {
 
 ### Configuration
 
-- PostHog property denylist configured to redact sensitive fields
+- Shared PostHog capture utility filters direct identifiers and sensitive event properties
 - Session recording is disabled by default
 - Autocapture is disabled for precise control
 

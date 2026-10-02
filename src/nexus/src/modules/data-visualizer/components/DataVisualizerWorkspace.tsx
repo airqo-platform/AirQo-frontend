@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { usePostHog } from 'posthog-js/react';
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import {
   AqFileCheck03,
   AqPlus,
   AqPlayCircle,
   AqRefreshCcw01,
+  AqRefreshCw05,
   AqTable,
   AqTrash01,
   AqUploadCloud01,
@@ -78,8 +78,11 @@ import {
   deleteWorkspaceDraft,
   loadWorkspaceDraft,
   saveWorkspaceDraft,
+  requestPersistentWorkspaceStorage,
+  describeStorageError,
 } from '../utils/workspaceStorage';
 import { DataVisualizerTutorialDialog } from './DataVisualizerTutorialDialog';
+import Dialog from '@/shared/components/ui/dialog';
 import {
   FileUploadProgress,
   type FileUploadProgressItem,
@@ -138,6 +141,19 @@ const createSourceFileId = () => {
   }
 
   return `source-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const getUploadFileType = (file: File): 'csv' | 'xlsx' | 'other' => {
+  const fileName = file.name.toLowerCase();
+  if (fileName.endsWith('.csv') || file.type === 'text/csv') return 'csv';
+  if (
+    fileName.endsWith('.xlsx') ||
+    file.type ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ) {
+    return 'xlsx';
+  }
+  return 'other';
 };
 
 const filterChartRowsByDate = (
@@ -551,18 +567,82 @@ const summarizeDatasetQuality = (insights: DatasetWorkspaceInsight[]) => {
   };
 };
 
+/**
+ * Waits for the next paint so heavy storage work never blocks the frame, with a
+ * timer fallback — `requestAnimationFrame` does not fire in a hidden tab.
+ */
+const yieldToPaint = (): Promise<void> =>
+  new Promise<void>(resolve => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(finish);
+    }
+
+    setTimeout(finish, 50);
+  });
+
+/**
+ * Awaits `work`, but never longer than `ms`.
+ *
+ * IndexedDB work is asynchronous and can stall (a connection blocked by another
+ * tab, a transaction that never completes). A user action must not hang on it,
+ * so a timeout surfaces as a failure the caller can report instead of an
+ * indefinite wait with a spinner on screen.
+ */
+const settleWithin = async <T,>(
+  work: Promise<T> | null | undefined,
+  ms: number
+): Promise<T | undefined> => {
+  if (!work) {
+    return undefined;
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      work,
+      // Rejects on timeout so the caller reports a failed delete instead of
+      // quietly assuming the storage is clean.
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new DOMException(
+                `Timed out after ${Math.round(ms / 1000)}s`,
+                'TimeoutError'
+              )
+            ),
+          ms
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+};
+
 export const DataVisualizerWorkspace: React.FC<
   DataVisualizerWorkspaceProps
 > = ({
   title = 'Upload & Visualize Air Quality Data',
   subtitle = 'Upload air quality files, compare sources, and create export-ready charts.',
 }) => {
-  const posthog = usePostHog();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const sourceFilesRef = React.useRef(new Map<string, File>());
   const hasTrackedViewRef = React.useRef(false);
   const parseAbortRef = React.useRef<AbortController | null>(null);
   const retryFilesRef = React.useRef<Map<string, File>>(new Map());
+  const datasetLabelOriginalsRef = React.useRef(new Map<string, string>());
   const [datasets, setDatasets] = React.useState<UploadedDataset[]>([]);
   const [charts, setCharts] = React.useState<VisualizerChartConfig[]>([]);
   const [activeChartId, setActiveChartId] = React.useState<
@@ -580,9 +660,37 @@ export const DataVisualizerWorkspace: React.FC<
     null
   );
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
+  // True from the moment a change is queued for autosave until the write
+  // resolves, so the toolbar can show an honest "Saving… / All changes saved"
+  // status instead of relying on a manual Save button.
+  const [isSavingDraft, setIsSavingDraft] = React.useState(false);
+  // Read by the autosave effect and the exit flush, which run outside render.
+  // Clearing sets this so a large write can never start while the workspace is
+  // being torn down — that is what made "Clear" appear to freeze the tab.
+  const isClearingRef = React.useRef(false);
+  // The in-flight autosave, so a clear can wait for it. Without this, a save
+  // already writing rows would finish AFTER the delete and put the draft back.
+  const pendingSaveRef = React.useRef<Promise<unknown> | null>(null);
+  // Bumped whenever the autosave observes a change. The page-exit flush writes
+  // WITHOUT setting pendingSaveRef, so the identity check alone cannot tell
+  // "nothing new happened" from "new work was written by the flush" — this
+  // counter can.
+  const workspaceGenerationRef = React.useRef(0);
+  // Files whose rows could not be restored with the draft. Kept visible (not
+  // just toasted) because "my charts are empty" is not something a user should
+  // have to diagnose themselves.
+  const [draftDatasetsMissingRows, setDraftDatasetsMissingRows] =
+    React.useState<string[]>([]);
+  // Autosave failures are toasted once per session: a browser that refuses
+  // storage must never lose work silently, but must not spam either.
+  const hasWarnedAboutDraftSave = React.useRef(false);
   const [appliedDateRange, setAppliedDateRange] =
     React.useState<DateRange | null>(null);
   const [isTutorialDialogOpen, setIsTutorialDialogOpen] = React.useState(false);
+  // Clear is destructive and unrecoverable, so it is gated behind an explicit
+  // confirmation rather than firing on a single click.
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = React.useState(false);
+  const [isClearingWorkspace, setIsClearingWorkspace] = React.useState(false);
   const [showDataInspector, setShowDataInspector] = React.useState(false);
   const [showFieldGuide, setShowFieldGuide] = React.useState(false);
   const [displayMode, setDisplayMode] =
@@ -652,10 +760,9 @@ export const DataVisualizerWorkspace: React.FC<
         ...properties,
       };
 
-      posthog?.capture(eventName, payload);
       trackEvent(eventName, payload);
     },
-    [posthog]
+    []
   );
 
   const buildDraftFileState = React.useCallback(() => {
@@ -675,7 +782,8 @@ export const DataVisualizerWorkspace: React.FC<
           size: file.size,
           type: file.type,
           lastModified: file.lastModified,
-          file,
+          // Metadata only: storing the blob duplicated the whole upload on
+          // every autosave and is the main cause of save failures.
         });
       }
 
@@ -795,15 +903,28 @@ export const DataVisualizerWorkspace: React.FC<
     };
   }, []);
 
+  // Ask the browser to keep this draft instead of evicting it under pressure.
+  // Best-effort: silently ignored when unsupported or denied.
   React.useEffect(() => {
-    if (datasets.length === 0) {
+    void requestPersistentWorkspaceStorage().catch(() => false);
+  }, []);
+
+  // ── Autosave ───────────────────────────────────────────────────────────────
+  // The draft IS the save. Every dataset/chart change is written to IndexedDB
+  // after a short debounce, so there is nothing for the user to remember to
+  // press and nothing that can be lost by navigating away mid-edit.
+  React.useEffect(() => {
+    if (datasets.length === 0 || isClearingRef.current) {
       return;
     }
+
+    workspaceGenerationRef.current += 1;
+    setIsSavingDraft(true);
 
     const timeout = window.setTimeout(() => {
       const { sourceFiles, datasetFileMap } = buildDraftFileState();
 
-      saveWorkspaceDraft({
+      const savePromise = saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
         datasets,
         sourceFiles,
@@ -812,12 +933,46 @@ export const DataVisualizerWorkspace: React.FC<
         activeChartId,
       })
         .then(savedDraft => {
+          // A save that lands during/after a clear must not re-arm the draft:
+          // the restore effect sees "empty workspace + draft" and would bring
+          // back exactly what the user just deleted.
+          if (isClearingRef.current) {
+            return;
+          }
+
           setDraft(savedDraft);
           setLastSavedAt(savedDraft.savedAt);
         })
         .catch(error => {
           console.warn('Could not autosave visualizer draft:', error);
+
+          if (!hasWarnedAboutDraftSave.current) {
+            hasWarnedAboutDraftSave.current = true;
+
+            // Name the actual cause — quota, an unserialisable value, private
+            // browsing or a blocked connection each need a different action,
+            // and a generic "saving failed" helps nobody diagnose it.
+            const reason = describeStorageError(error);
+            const isDataOnlyFailure =
+              error instanceof DOMException &&
+              error.name === 'QuotaExceededError';
+
+            toast.warning(
+              isDataOnlyFailure
+                ? 'Chart setup saved, data not'
+                : 'Draft not saving',
+              isDataOnlyFailure
+                ? `${reason} Your charts are saved, but this file's rows are not — re-add a smaller file to plot again.`
+                : `${reason} Keep this tab open and free up site data if you can.`
+            );
+          }
+        })
+        .finally(() => {
+          setIsSavingDraft(false);
         });
+
+      // Expose the in-flight write so a clear can wait for it to settle.
+      pendingSaveRef.current = savePromise.catch(() => undefined);
     }, 1200);
 
     return () => window.clearTimeout(timeout);
@@ -900,6 +1055,9 @@ export const DataVisualizerWorkspace: React.FC<
         file_types: Array.from(
           new Set(newDatasets.map(dataset => dataset.fileType))
         ).join(','),
+        warning_dataset_count: newDatasets.filter(
+          dataset => dataset.warnings.length > 0
+        ).length,
         workbook_count: newDatasets.filter(
           dataset => dataset.sheetOptions.length > 1
         ).length,
@@ -916,12 +1074,27 @@ export const DataVisualizerWorkspace: React.FC<
       fileInputRef.current.value = '';
     }
     toast.warning('Upload cancelled', 'File reading was stopped.');
-  }, []);
+    trackVisualizerEvent('air_quality_explorer_upload_cancelled', {
+      source: 'cancel_button',
+      file_count: uploadProgressItems.length,
+    });
+  }, [trackVisualizerEvent, uploadProgressItems.length]);
 
   const handleFiles = React.useCallback(
-    async (fileList: FileList | File[]) => {
+    async (
+      fileList: FileList | File[],
+      source: 'file_picker' | 'drop' | 'retry' = 'file_picker'
+    ) => {
       const files = Array.from(fileList);
       if (files.length === 0) return;
+
+      const fileTypes = Array.from(new Set(files.map(getUploadFileType)));
+      trackVisualizerEvent('air_quality_explorer_upload_started', {
+        source,
+        file_count: files.length,
+        file_types: fileTypes,
+        total_size_bytes: files.reduce((total, file) => total + file.size, 0),
+      });
 
       parseAbortRef.current?.abort();
       const abortController = new AbortController();
@@ -984,6 +1157,24 @@ export const DataVisualizerWorkspace: React.FC<
 
         applyNewDatasets(parsedDatasets);
 
+        trackVisualizerEvent('air_quality_explorer_upload_processed', {
+          source,
+          status:
+            errors.length === 0
+              ? 'success'
+              : parsedDatasets.length > 0
+                ? 'partial_success'
+                : 'failure',
+          file_count: files.length,
+          dataset_count: parsedDatasets.length,
+          error_count: errors.length,
+          row_count: parsedDatasets.reduce(
+            (total, dataset) => total + dataset.rowCount,
+            0
+          ),
+          file_types: fileTypes,
+        });
+
         if (errors.length > 0) {
           // Mark failed files
           setUploadProgressItems(prev =>
@@ -1016,6 +1207,12 @@ export const DataVisualizerWorkspace: React.FC<
               : 'The selected files could not be read.';
           setError(message);
           toast.error('Upload failed', message);
+          trackVisualizerEvent('air_quality_explorer_upload_failed', {
+            source,
+            file_count: files.length,
+            file_types: fileTypes,
+            failure_type: 'parse_error',
+          });
           // Mark all as error
           setUploadProgressItems(prev =>
             prev.map(item => ({
@@ -1035,13 +1232,17 @@ export const DataVisualizerWorkspace: React.FC<
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [applyNewDatasets]
+    [applyNewDatasets, trackVisualizerEvent]
   );
 
   const handleRetryFile = React.useCallback(
     async (fileId: string) => {
       const file = retryFilesRef.current.get(fileId);
       if (!file) return;
+
+      trackVisualizerEvent('air_quality_explorer_upload_retry_requested', {
+        file_type: getUploadFileType(file),
+      });
 
       // Update status to retrying
       setUploadProgressItems(prev =>
@@ -1058,25 +1259,44 @@ export const DataVisualizerWorkspace: React.FC<
       );
 
       // Re-trigger the upload for this single file
-      await handleFiles([file]);
+      await handleFiles([file], 'retry');
     },
-    [handleFiles]
+    [handleFiles, trackVisualizerEvent]
   );
 
-  const handleCancelFileUpload = React.useCallback((fileId: string) => {
-    parseAbortRef.current?.abort();
-    setUploadProgressItems(prev =>
-      prev.map(item =>
-        item.id === fileId ? { ...item, status: 'cancelled' as const } : item
-      )
-    );
-    setIsParsing(false);
-  }, []);
+  const handleCancelFileUpload = React.useCallback(
+    (fileId: string) => {
+      parseAbortRef.current?.abort();
+      trackVisualizerEvent('air_quality_explorer_upload_cancelled', {
+        source: 'file_row',
+        file_count: 1,
+      });
+      setUploadProgressItems(prev =>
+        prev.map(item =>
+          item.id === fileId ? { ...item, status: 'cancelled' as const } : item
+        )
+      );
+      setIsParsing(false);
+    },
+    [trackVisualizerEvent]
+  );
 
   const resetWorkspace = React.useCallback(async () => {
     const previousDatasetCount = datasets.length;
     const previousChartCount = charts.length;
+    // Captured before clearing: the delayed sweep only runs while the workspace
+    // is still exactly the one that was cleared.
+    const clearGeneration = workspaceGenerationRef.current;
 
+    setIsClearingWorkspace(true);
+    isClearingRef.current = true;
+
+    // Order matters: the draft reference is dropped FIRST, in the same batch as
+    // the empty workspace. Clearing datasets/charts while `draft` was still set
+    // would let the auto-restore effect see "empty workspace + saved draft" and
+    // immediately restore what the user just deleted.
+    setDraft(null);
+    setLastSavedAt(null);
     setDatasets([]);
     setCharts([]);
     setActiveChartId(undefined);
@@ -1086,17 +1306,73 @@ export const DataVisualizerWorkspace: React.FC<
     setShowDataInspector(false);
     setShowFieldGuide(false);
     setDisplayMode('focused');
+    setDraftDatasetsMissingRows([]);
+    // Allow a future save failure to warn again after a deliberate clear.
+    hasWarnedAboutDraftSave.current = false;
     sourceFilesRef.current.clear();
-    await deleteWorkspaceDraft().catch(() => undefined);
-    setDraft(null);
-    setLastSavedAt(null);
+
+    try {
+      // Let the browser paint the emptied workspace BEFORE the storage work, so
+      // clearing large datasets never looks frozen.
+      await yieldToPaint();
+
+      // An autosave may already be writing rows. It must settle before the
+      // delete, otherwise it lands afterwards and resurrects the draft — but
+      // only wait briefly, so a stuck write can never hold the dialog open.
+      const inFlight = pendingSaveRef.current;
+      let saveSettled = false;
+
+      if (inFlight) {
+        try {
+          await settleWithin(inFlight, 2000);
+          saveSettled = true;
+        } catch {
+          saveSettled = false;
+        }
+      }
+
+      await settleWithin(deleteWorkspaceDraft(), 5000);
+
+      // If the write outlasted the wait, sweep once more when it finishes so
+      // the cleared draft cannot come back. Non-blocking: the dialog is free.
+      // Skipped unless this is still the newest save AND the workspace has not
+      // been edited since the clear began — otherwise the user has already
+      // uploaded new work (which the page-exit flush can persist without
+      // touching pendingSaveRef) and deleting again would destroy it.
+      if (!saveSettled && inFlight) {
+        void inFlight
+          .then(() =>
+            pendingSaveRef.current === inFlight &&
+            workspaceGenerationRef.current === clearGeneration
+              ? deleteWorkspaceDraft()
+              : undefined
+          )
+          .catch(() => undefined);
+      }
+    } catch (error) {
+      // The in-memory workspace is already empty; report that the stored copy
+      // survived rather than claiming everything was removed.
+      console.warn('Could not delete visualizer draft:', error);
+      toast.warning(
+        'Cleared, but the saved copy may remain',
+        `${describeStorageError(error)} Reloading will show you what's still stored.`
+      );
+    } finally {
+      // Always release the dialog. Without this, any rejected or stalled await
+      // above left it spinning until the page was reloaded.
+      setIsSavingDraft(false);
+      setIsClearingWorkspace(false);
+      setIsClearConfirmOpen(false);
+      isClearingRef.current = false;
+    }
+
     trackVisualizerEvent('air_quality_explorer_workspace_cleared', {
       dataset_count: previousDatasetCount,
       chart_count: previousChartCount,
     });
   }, [charts.length, datasets.length, trackVisualizerEvent]);
 
-  const restoreDraft = () => {
+  const restoreDraft = React.useCallback(() => {
     if (!draft) {
       return;
     }
@@ -1116,16 +1392,58 @@ export const DataVisualizerWorkspace: React.FC<
     );
     setDisplayMode('focused');
     setLastSavedAt(draft.savedAt);
-    toast.success('Draft restored', 'Your previous work is ready to continue.');
+
+    // Charts cannot plot without rows. If a dataset came back empty, say so
+    // plainly and point at the fix, rather than leaving "No chart data" panels
+    // that look like a lost draft.
+    const datasetsWithoutRows = draft.datasets
+      .filter(dataset => dataset.rows.length === 0)
+      .map(dataset => dataset.fileName || dataset.label);
+    setDraftDatasetsMissingRows(datasetsWithoutRows);
+
+    if (datasetsWithoutRows.length > 0) {
+      toast.warning(
+        'Draft restored without its data',
+        'Your chart setup came back, but the uploaded rows did not. Re-add the file(s) to plot again.'
+      );
+    } else {
+      toast.success(
+        'Draft restored',
+        'Your previous work is ready to continue.'
+      );
+    }
+
     trackVisualizerEvent('air_quality_explorer_draft_restored', {
       dataset_count: draft.datasets.length,
       chart_count: draft.charts.length,
       source_file_count: draft.sourceFiles?.length ?? 0,
+      datasets_missing_rows: datasetsWithoutRows.length,
     });
-  };
+  }, [
+    draft,
+    normalizeChartsForDatasets,
+    restoreDraftFileSources,
+    trackVisualizerEvent,
+  ]);
+
+  // Coming back to an empty workspace with a stored draft should just continue
+  // the work — asking the user to re-confirm a restore they never opted out of
+  // is the main reason drafts felt "stuck". Runs once, and only when there is
+  // nothing to overwrite.
+  React.useEffect(() => {
+    if (!draft || charts.length > 0 || datasets.length > 0) {
+      return;
+    }
+
+    restoreDraft();
+  }, [draft, charts.length, datasets.length, restoreDraft]);
 
   const addChart = (type: VisualizerChartType) => {
     if (datasets.length === 0 || workspaceProfile.numericColumns.length === 0) {
+      trackVisualizerEvent('air_quality_explorer_chart_add_blocked', {
+        chart_type: type,
+        reason: 'no_numeric_measurement',
+      });
       toast.warning(
         'No metrics available',
         'Upload data with at least one numeric measurement column first.'
@@ -1134,6 +1452,10 @@ export const DataVisualizerWorkspace: React.FC<
     }
 
     if (type === 'map' && !hasCoordinateColumns(workspaceCoordinateColumns)) {
+      trackVisualizerEvent('air_quality_explorer_chart_add_blocked', {
+        chart_type: type,
+        reason: 'coordinates_required',
+      });
       toast.warning(
         'Coordinates needed',
         'Add latitude and longitude fields to create a map view.'
@@ -1198,9 +1520,39 @@ export const DataVisualizerWorkspace: React.FC<
     [activeChartId, charts, trackVisualizerEvent]
   );
 
-  const activateChart = React.useCallback((chartId: string) => {
-    setActiveChartId(chartId);
-  }, []);
+  const activateChart = React.useCallback(
+    (chartId: string) => {
+      if (chartId === activeChartId) return;
+
+      const chart = charts.find(item => item.id === chartId);
+      setActiveChartId(chartId);
+      trackVisualizerEvent('air_quality_explorer_chart_activated', {
+        chart_type: chart?.type,
+        chart_count: charts.length,
+      });
+    },
+    [activeChartId, charts, trackVisualizerEvent]
+  );
+
+  const changeDisplayMode = (nextMode: VisualizerDisplayMode) => {
+    if (nextMode === displayMode) return;
+
+    setDisplayMode(nextMode);
+    trackVisualizerEvent('air_quality_explorer_layout_changed', {
+      display_mode: nextMode,
+      chart_count: charts.length,
+      visible_chart_count: visibleChartItems.length,
+    });
+  };
+
+  const toggleDataInspector = () => {
+    const nextOpen = !showDataInspector;
+    setShowDataInspector(nextOpen);
+    trackVisualizerEvent('air_quality_explorer_data_review_toggled', {
+      open: nextOpen,
+      dataset_count: datasets.length,
+    });
+  };
 
   const updateDataset = (
     datasetId: string,
@@ -1293,6 +1645,10 @@ export const DataVisualizerWorkspace: React.FC<
         error instanceof Error
           ? error.message
           : 'The sheet could not be loaded.';
+      trackVisualizerEvent('air_quality_explorer_sheet_change_failed', {
+        action: 'replace',
+        failure_type: 'sheet_parse_error',
+      });
       toast.error('Sheet failed', message);
     } finally {
       setIsParsing(false);
@@ -1327,6 +1683,10 @@ export const DataVisualizerWorkspace: React.FC<
         error instanceof Error
           ? error.message
           : 'The sheet could not be loaded.';
+      trackVisualizerEvent('air_quality_explorer_sheet_change_failed', {
+        action: 'add_dataset',
+        failure_type: 'sheet_parse_error',
+      });
       toast.error('Sheet failed', message);
     } finally {
       setIsParsing(false);
@@ -1336,47 +1696,64 @@ export const DataVisualizerWorkspace: React.FC<
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragActive(false);
-    void handleFiles(event.dataTransfer.files);
+    void handleFiles(event.dataTransfer.files, 'drop');
   };
 
-  const saveNow = async () => {
-    if (datasets.length === 0) {
-      return;
-    }
+  // The manual Save button is gone (autosave covers it), which leaves one real
+  // gap: edits made inside the autosave debounce window are lost if the tab is
+  // closed or backgrounded first. This flushes the CURRENT workspace state on
+  // the way out, reading from a ref so it never writes a stale snapshot.
+  const latestWorkspaceRef = React.useRef<{
+    charts: VisualizerChartConfig[];
+    datasets: UploadedDataset[];
+    activeChartId: string | undefined;
+  }>({ charts: [], datasets: [], activeChartId: undefined });
 
-    const { sourceFiles, datasetFileMap } = buildDraftFileState();
+  latestWorkspaceRef.current = {
+    charts,
+    datasets,
+    activeChartId,
+  };
 
-    try {
-      const savedDraft = await saveWorkspaceDraft({
+  React.useEffect(() => {
+    const flush = () => {
+      const current = latestWorkspaceRef.current;
+      // Never write a workspace that is being cleared: the rows are already
+      // gone from state and re-persisting them would resurrect the draft.
+      if (current.datasets.length === 0 || isClearingRef.current) {
+        return;
+      }
+
+      const { sourceFiles, datasetFileMap } = buildDraftFileState();
+
+      // Best-effort: page teardown gives no reliable await window, so failures
+      // are logged and left to the next autosave tick.
+      void saveWorkspaceDraft({
         name: 'AirQo air quality explorer draft',
-        datasets,
+        datasets: current.datasets,
         sourceFiles,
         datasetFileMap,
-        charts,
-        activeChartId,
+        charts: current.charts,
+        activeChartId: current.activeChartId,
+      }).catch(error => {
+        console.warn('Could not flush visualizer draft on exit:', error);
       });
-      setDraft(savedDraft);
-      setLastSavedAt(savedDraft.savedAt);
-      toast.success('Draft saved', 'You can return later to continue.');
-      trackVisualizerEvent('air_quality_explorer_draft_saved', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        source_file_count: sourceFiles.length,
-        manual: true,
-      });
-    } catch (error) {
-      console.warn('Could not save visualizer draft:', error);
-      toast.warning(
-        'Draft not saved',
-        'Your browser could not keep this draft right now. You can continue working in this tab.'
-      );
-      trackVisualizerEvent('air_quality_explorer_draft_save_failed', {
-        dataset_count: datasets.length,
-        chart_count: charts.length,
-        manual: true,
-      });
-    }
-  };
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flush();
+      }
+    };
+
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [buildDraftFileState]);
 
   const showUploadPanel = datasets.length === 0 || uploadOpen;
 
@@ -1452,7 +1829,7 @@ export const DataVisualizerWorkspace: React.FC<
   ]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-tour="visualizer-workspace">
       <input
         ref={fileInputRef}
         type="file"
@@ -1461,7 +1838,7 @@ export const DataVisualizerWorkspace: React.FC<
         className="sr-only"
         onChange={event => {
           if (event.target.files) {
-            void handleFiles(event.target.files);
+            void handleFiles(event.target.files, 'file_picker');
           }
         }}
       />
@@ -1476,15 +1853,16 @@ export const DataVisualizerWorkspace: React.FC<
             size="sm"
             variant="outlined"
             Icon={AqBookOpen01}
-            onClick={() =>
+            onClick={() => {
+              trackVisualizerEvent('air_quality_explorer_docs_opened');
               window.open(
                 getEnvironmentAwareUrl(
                   'https://platform.airqo.net/docs/nexus/visualizing-data/dataset-visualizer/'
                 ),
                 '_blank',
                 'noopener,noreferrer'
-              )
-            }
+              );
+            }}
             showTextOnMobile
           >
             Read Docs
@@ -1493,7 +1871,10 @@ export const DataVisualizerWorkspace: React.FC<
             size="sm"
             variant="outlined"
             Icon={AqPlayCircle}
-            onClick={() => setIsTutorialDialogOpen(true)}
+            onClick={() => {
+              setIsTutorialDialogOpen(true);
+              trackVisualizerEvent('air_quality_explorer_tutorial_opened');
+            }}
             showTextOnMobile
           >
             Watch tutorial
@@ -1517,6 +1898,18 @@ export const DataVisualizerWorkspace: React.FC<
               Restore
             </Button>
           }
+          dense
+        />
+      )}
+
+      {draftDatasetsMissingRows.length > 0 && (
+        <WarningBanner
+          title="Charts can't be drawn yet"
+          message={`Your chart setup was restored, but the rows for ${
+            draftDatasetsMissingRows.length === 1
+              ? `"${draftDatasetsMissingRows[0]}"`
+              : `${draftDatasetsMissingRows.length} file(s)`
+          } were not stored with the draft. Re-add the file to plot again.`}
           dense
         />
       )}
@@ -1608,25 +2001,42 @@ export const DataVisualizerWorkspace: React.FC<
                       ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                   }
-                  onClick={() => setShowDataInspector(open => !open)}
+                  onClick={toggleDataInspector}
                 >
                   {showDataInspector ? 'Hide data review' : 'Review data'}
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void saveNow()}
+                {/*
+                  No Save button: the draft autosaves after every change, so
+                  this is a status, not an action. Saying "saved" only when it
+                  is true is what makes the private-draft warning below
+                  trustworthy.
+                */}
+                <span
+                  className="flex shrink-0 items-center gap-1.5 px-2 text-xs text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
                 >
-                  Save draft
-                </Button>
+                  {isSavingDraft ? (
+                    <>
+                      <AqRefreshCw05
+                        className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none"
+                        aria-hidden="true"
+                      />{' '}
+                      Saving…
+                    </>
+                  ) : lastSavedAt ? (
+                    <>All changes saved · {formatDraftSavedAt(lastSavedAt)}</>
+                  ) : (
+                    'Autosaves as you work'
+                  )}
+                </span>
 
                 <Button
                   size="sm"
                   variant="ghost"
                   className="border border-transparent hover:border-border/70 hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => void resetWorkspace()}
+                  onClick={() => setIsClearConfirmOpen(true)}
                 >
                   Clear
                 </Button>
@@ -1635,7 +2045,14 @@ export const DataVisualizerWorkspace: React.FC<
                   size="sm"
                   variant="ghost"
                   className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => setToolbarStickyEnabled(value => !value)}
+                  onClick={() => {
+                    const nextEnabled = !toolbarStickyEnabled;
+                    setToolbarStickyEnabled(nextEnabled);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_workspace_preference_changed',
+                      { preference: 'sticky_toolbar', enabled: nextEnabled }
+                    );
+                  }}
                 >
                   {toolbarStickyEnabled ? 'Unpin header' : 'Pin header'}
                 </Button>
@@ -1646,7 +2063,17 @@ export const DataVisualizerWorkspace: React.FC<
                   className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
                   Icon={toolbarCollapsed ? HiChevronDown : HiChevronUp}
                   iconPosition="end"
-                  onClick={() => setToolbarCollapsed(value => !value)}
+                  onClick={() => {
+                    const nextCollapsed = !toolbarCollapsed;
+                    setToolbarCollapsed(nextCollapsed);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_workspace_preference_changed',
+                      {
+                        preference: 'collapsed_toolbar',
+                        enabled: nextCollapsed,
+                      }
+                    );
+                  }}
                 >
                   {toolbarCollapsed ? 'Expand header' : 'Collapse header'}
                 </Button>
@@ -1687,7 +2114,7 @@ export const DataVisualizerWorkspace: React.FC<
                           ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
-                      onClick={() => setDisplayMode('focused')}
+                      onClick={() => changeDisplayMode('focused')}
                     >
                       Selected view
                     </Button>
@@ -1701,7 +2128,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={nonMapChartItems.length === 0}
-                      onClick={() => setDisplayMode('charts')}
+                      onClick={() => changeDisplayMode('charts')}
                     >
                       Charts only
                     </Button>
@@ -1715,7 +2142,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={mapChartItems.length === 0}
-                      onClick={() => setDisplayMode('maps')}
+                      onClick={() => changeDisplayMode('maps')}
                     >
                       Maps only
                     </Button>
@@ -1729,7 +2156,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={chartItems.length < 2}
-                      onClick={() => setDisplayMode('all')}
+                      onClick={() => changeDisplayMode('all')}
                     >
                       Compare all
                     </Button>
@@ -1755,6 +2182,27 @@ export const DataVisualizerWorkspace: React.FC<
                         !(value instanceof Date)
                       ) {
                         setAppliedDateRange(value as DateRange);
+                        const selectedRange = value as DateRange;
+                        const rangeDays =
+                          selectedRange.from && selectedRange.to
+                            ? Math.max(
+                                1,
+                                Math.ceil(
+                                  (selectedRange.to.getTime() -
+                                    selectedRange.from.getTime()) /
+                                    86400000
+                                ) + 1
+                              )
+                            : undefined;
+                        trackVisualizerEvent(
+                          'air_quality_explorer_date_range_changed',
+                          {
+                            source: 'picker',
+                            has_start: Boolean(selectedRange.from),
+                            has_end: Boolean(selectedRange.to),
+                            range_days: rangeDays,
+                          }
+                        );
                       }
                     }}
                     showPresets={false}
@@ -1766,12 +2214,28 @@ export const DataVisualizerWorkspace: React.FC<
                   <Button
                     size="sm"
                     variant="outlined"
-                    onClick={() =>
+                    onClick={() => {
                       setAppliedDateRange({
                         from: datasetDateRange!.min,
                         to: datasetDateRange!.max,
-                      })
-                    }
+                      });
+                      trackVisualizerEvent(
+                        'air_quality_explorer_date_range_changed',
+                        {
+                          source: 'reset',
+                          has_start: true,
+                          has_end: true,
+                          range_days: Math.max(
+                            1,
+                            Math.ceil(
+                              (datasetDateRange!.max.getTime() -
+                                datasetDateRange!.min.getTime()) /
+                                86400000
+                            ) + 1
+                          ),
+                        }
+                      );
+                    }}
                   >
                     Reset range
                   </Button>
@@ -1794,7 +2258,7 @@ export const DataVisualizerWorkspace: React.FC<
                         ? 'outlined'
                         : 'ghost'
                     }
-                    onClick={() => setActiveChartId(chart.id)}
+                    onClick={() => activateChart(chart.id)}
                     className={cn(
                       'min-w-[220px] h-auto flex-col items-start justify-start rounded-xl border px-4 py-3 text-left shadow-none',
                       activeChartItem?.chart.id === chart.id
@@ -1820,7 +2284,7 @@ export const DataVisualizerWorkspace: React.FC<
       )}
 
       {showUploadPanel && (
-        <Card>
+        <Card data-tour="visualizer-upload">
           <CardHeader className="p-4 pb-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="flex items-center gap-2 text-base text-foreground">
@@ -1949,14 +2413,30 @@ export const DataVisualizerWorkspace: React.FC<
                 <Button
                   size="sm"
                   variant={showFieldGuide ? 'outlined' : 'ghost'}
-                  onClick={() => setShowFieldGuide(open => !open)}
+                  onClick={() => {
+                    const nextOpen = !showFieldGuide;
+                    setShowFieldGuide(nextOpen);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_field_guide_toggled',
+                      {
+                        open: nextOpen,
+                        field_count: workspaceProfile.columns.length,
+                      }
+                    );
+                  }}
                 >
                   {showFieldGuide ? 'Hide fields' : 'Show fields'}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setShowDataInspector(false)}
+                  onClick={() => {
+                    setShowDataInspector(false);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_data_review_toggled',
+                      { open: false, dataset_count: datasets.length }
+                    );
+                  }}
                 >
                   Close
                 </Button>
@@ -1980,6 +2460,12 @@ export const DataVisualizerWorkspace: React.FC<
                         <Input
                           label="Label"
                           value={dataset.label}
+                          onFocus={event =>
+                            datasetLabelOriginalsRef.current.set(
+                              dataset.id,
+                              event.currentTarget.value
+                            )
+                          }
                           onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                           ) =>
@@ -1987,6 +2473,20 @@ export const DataVisualizerWorkspace: React.FC<
                               label: event.target.value,
                             })
                           }
+                          onBlur={event => {
+                            const previousLabel =
+                              datasetLabelOriginalsRef.current.get(dataset.id);
+                            datasetLabelOriginalsRef.current.delete(dataset.id);
+                            if (
+                              previousLabel !== undefined &&
+                              previousLabel !== event.currentTarget.value
+                            ) {
+                              trackVisualizerEvent(
+                                'air_quality_explorer_dataset_label_updated',
+                                { dataset_count: datasets.length }
+                              );
+                            }
+                          }}
                           containerClassName="mb-2"
                           className="h-9"
                         />
@@ -2181,9 +2681,59 @@ export const DataVisualizerWorkspace: React.FC<
 
       <DataVisualizerTutorialDialog
         isOpen={isTutorialDialogOpen}
-        onClose={() => setIsTutorialDialogOpen(false)}
+        onClose={() => {
+          setIsTutorialDialogOpen(false);
+          trackVisualizerEvent('air_quality_explorer_tutorial_closed');
+        }}
         videoUrl={DATA_VISUALIZER_TUTORIAL_VIDEO_URL}
       />
+
+      {/*
+        Clearing empties the workspace AND deletes the stored draft, so it is
+        confirmed first. The copy names exactly what is lost — including the
+        autosaved draft, which is the only copy outside this tab.
+      */}
+      <Dialog
+        isOpen={isClearConfirmOpen}
+        onClose={() => {
+          if (!isClearingWorkspace) setIsClearConfirmOpen(false);
+        }}
+        title="Clear this workspace?"
+        subtitle="This removes your uploaded data and every chart from this browser."
+        size="md"
+        showCloseButton
+        showFooter
+        primaryAction={{
+          label: 'Clear everything',
+          variant: 'danger',
+          loading: isClearingWorkspace,
+          onClick: () => void resetWorkspace(),
+        }}
+        secondaryAction={{
+          label: 'Keep my work',
+          variant: 'outlined',
+          disabled: isClearingWorkspace,
+          onClick: () => setIsClearConfirmOpen(false),
+        }}
+      >
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>
+            You are about to delete{' '}
+            <span className="font-semibold text-foreground">
+              {datasets.length} dataset{datasets.length === 1 ? '' : 's'}
+            </span>{' '}
+            and{' '}
+            <span className="font-semibold text-foreground">
+              {charts.length} chart{charts.length === 1 ? '' : 's'}
+            </span>
+            , including the autosaved draft you can restore later.
+          </p>
+          <p>
+            Your original files stay on your computer, but this analysis cannot
+            be recovered once cleared.
+          </p>
+        </div>
+      </Dialog>
     </div>
   );
 };

@@ -4,11 +4,16 @@ import React, { useMemo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { useAqiConfig } from '@/shared/providers/aqi-config-provider';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
-import type { RecentReading } from '@/shared/types/api';
+import {
+  getAirQualityInfo,
+  mapAqiCategoryToLevel,
+} from '@/shared/utils/airQuality';
+import type { AirQualityLevel } from '@/shared/utils/airQuality';
+import type { HealthTip, RecentReading } from '@/shared/types/api';
 
 interface SiteHealthRecommendationsCardProps {
   reading?: RecentReading | null;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -89,16 +94,45 @@ const HEALTH_ADVICE: Record<string, HealthAdvice> = {
   },
 };
 
-const fallbackKeyForLevel = (level: string): string => {
-  const normalized = level.toLowerCase();
-  if (normalized.includes('hazardous')) return 'hazardous';
-  if (normalized.includes('very unhealthy')) return 'very_unhealthy';
-  if (normalized.includes('unhealthy') && normalized.includes('sensitive'))
-    return 'unhealthy-sensitive-groups';
-  if (normalized.includes('unhealthy')) return 'unhealthy';
-  if (normalized.includes('moderate')) return 'moderate';
-  return 'good';
+type AdviceKey = Exclude<AirQualityLevel, 'no-value'>;
+
+const ADVICE_KEYS: readonly AdviceKey[] = [
+  'good',
+  'moderate',
+  'unhealthy-sensitive-groups',
+  'unhealthy',
+  'very-unhealthy',
+  'hazardous',
+];
+
+/**
+ * Severity for the advice card. The pollutant reading is preferred because it
+ * is measured, but the API's AQI category is a valid fallback — a reading can
+ * carry a category without a PM2.5 value, and that must not blank the card.
+ * `mapAqiCategoryToLevel` is reused so the category spelling matches the rest
+ * of the app (it returns the same keys as HEALTH_ADVICE).
+ */
+const resolveAdviceKey = (
+  pm25: number | null,
+  aqiCategory: string | undefined,
+  aqiConfig: ReturnType<typeof useAqiConfig>['config']
+): AdviceKey | null => {
+  if (pm25 !== null) {
+    const airInfo = getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
+    const fromPollutant = ADVICE_KEYS.find(key =>
+      airInfo?.label.toLowerCase().includes(key.replace('-', ' '))
+    );
+    if (fromPollutant) return fromPollutant;
+  }
+
+  const fromCategory = mapAqiCategoryToLevel(aqiCategory);
+  return fromCategory === 'no-value' ? null : fromCategory;
 };
+
+const validTips = (reading: RecentReading | null | undefined): HealthTip[] =>
+  (reading?.health_tips ?? []).filter(
+    tip => Boolean(tip?.title) || Boolean(tip?.description)
+  );
 
 /**
  * Dynamic health recommendation card — content changes based on the
@@ -107,21 +141,31 @@ const fallbackKeyForLevel = (level: string): string => {
  */
 export const SiteHealthRecommendationsCard: React.FC<
   SiteHealthRecommendationsCardProps
-> = ({ reading, className }) => {
+> = ({ reading, isLoading = false, className }) => {
   const { config: aqiConfig } = useAqiConfig('pm2_5');
 
   const pm25 =
     typeof reading?.pm2_5?.value === 'number' ? reading.pm2_5.value : null;
 
-  const airInfo = useMemo(() => {
-    if (pm25 === null) return null;
-    return getAirQualityInfo(pm25, 'pm2_5', 'WHO', aqiConfig);
-  }, [pm25, aqiConfig]);
+  const adviceKey = useMemo(
+    () => resolveAdviceKey(pm25, reading?.aqi_category, aqiConfig),
+    [pm25, reading?.aqi_category, aqiConfig]
+  );
+  const advice = adviceKey ? HEALTH_ADVICE[adviceKey] : null;
 
-  const fallbackLevel = airInfo ? fallbackKeyForLevel(airInfo.label) : null;
-  const advice = fallbackLevel ? HEALTH_ADVICE[fallbackLevel] : null;
+  const apiTips = useMemo(() => validTips(reading), [reading]);
 
-  const apiTips = reading?.health_tips ?? [];
+  if (isLoading) {
+    return (
+      <Card className={cn('w-full overflow-hidden', className)}>
+        <CardContent className="space-y-3 p-5">
+          <div className="h-6 w-2/3 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+          <div className="h-4 w-full animate-pulse rounded bg-muted motion-reduce:animate-none" />
+          <div className="h-4 w-1/2 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   // No data available — show empty state
   if (!advice) {
@@ -160,31 +204,63 @@ export const SiteHealthRecommendationsCard: React.FC<
             {advice.emoji}
           </span>
           <div className="space-y-1 min-w-0">
+            {/* The header is the stable severity summary; the API's tips are
+                listed below so no tip is rendered twice. */}
             <h3 className="text-base font-semibold text-foreground">
-              {apiTips.length > 0
-                ? (apiTips[0].title ?? advice.headline)
-                : advice.headline}
+              {advice.headline}
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {apiTips.length > 0
-                ? (apiTips[0].description ?? advice.body)
-                : advice.body}
-            </p>
+            <p className="text-sm text-muted-foreground">{advice.body}</p>
           </div>
         </div>
 
-        {/* Tips */}
-        <ul className="mt-3 space-y-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-          {advice.tips.map((tip, index) => (
-            <li
-              key={index}
-              className="flex items-start gap-2 text-xs text-muted-foreground"
-            >
-              <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/40" />
-              {tip}
-            </li>
-          ))}
-        </ul>
+        {/* Guidance. The API's audience-specific health_tips are the source of
+            truth when present (e.g. "For pregnant women", "For Children");
+            the static per-severity list is only a fallback for readings that
+            carry no tips. */}
+        {apiTips.length > 0 ? (
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {apiTips.map((tip, index) => (
+              <li
+                key={`${tip.title ?? 'tip'}-${index}`}
+                className="flex items-start gap-2.5 rounded-lg bg-background/60 p-2.5"
+              >
+                {tip.image ? (
+                  <img
+                    src={tip.image}
+                    alt=""
+                    width={32}
+                    height={32}
+                    aria-hidden="true"
+                    loading="lazy"
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
+                  />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-foreground">
+                    {tip.title}
+                  </p>
+                  {tip.description ? (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {tip.description}
+                    </p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="mt-3 space-y-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+            {advice.tips.map((tip, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 text-xs text-muted-foreground"
+              >
+                <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/40" />
+                {tip}
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

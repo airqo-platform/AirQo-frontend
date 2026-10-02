@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePostHog } from 'posthog-js/react';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
 import WideDialog from '@/shared/components/ui/wide-dialog';
 import { Button } from '@/shared/components/ui';
@@ -21,21 +20,7 @@ import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
 import { trackEvent } from '@/shared/utils/analytics';
 import { getSiteDisplayName } from '@/shared/utils/siteUtils';
-
-const isCancellationError = (error: unknown) => {
-  const candidate = error as {
-    name?: string;
-    code?: string;
-    message?: string;
-  } | null;
-
-  return (
-    candidate?.name === 'AbortError' ||
-    candidate?.name === 'CanceledError' ||
-    candidate?.code === 'ERR_CANCELED' ||
-    candidate?.message === 'canceled'
-  );
-};
+import { isAbortError } from '@/shared/lib/retryPolicy';
 
 interface AddSavedLocationsProps {
   isOpen: boolean;
@@ -46,7 +31,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
   isOpen,
   onClose,
 }) => {
-  const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -110,8 +94,7 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
         refreshPreferences?.(),
       ]);
       const failures = results.filter(
-        result =>
-          result.status === 'rejected' && !isCancellationError(result.reason)
+        result => result.status === 'rejected' && !isAbortError(result.reason)
       );
 
       if (failures.length > 0) {
@@ -263,11 +246,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
         selected_sites: sitesToSave,
       });
 
-      posthog?.capture('saved_locations_updated', {
-        count: sitesToSave.length,
-        site_ids: sitesToSave.map(s => s._id),
-      });
-
       trackEvent('saved_locations_updated', {
         count: sitesToSave.length,
         site_ids: sitesToSave.map(s => s._id),
@@ -303,7 +281,6 @@ const AddSavedLocations: React.FC<AddSavedLocationsProps> = ({
     updatePreferences,
     markLocationStepCompleted,
     onClose,
-    posthog,
   ]);
 
   return (

@@ -71,6 +71,13 @@ export {
   useActiveGroupCohortDevicesWithState,
 } from './useDevice';
 
+// Organization cohorts hooks
+export {
+  useOrgCohorts,
+  useOrgCohortSelection,
+  type OrgCohortOption,
+} from './useOrgCohorts';
+
 // Sites data hooks
 export { useSitesData } from './useSitesData';
 
@@ -111,6 +118,13 @@ export {
   useUpdateTokenBypass,
 } from './useAdmin';
 
+// API key usage hooks (System → admin usage analytics)
+export {
+  useApiKeyUsageLeaderboard,
+  useApiKeyUsageTimeseries,
+  useApiKeyUsageDetail,
+} from './useApiKeyUsage';
+
 // Groups hooks
 export {
   useGroupJoinRequests,
@@ -123,6 +137,9 @@ export {
 
 // Organization group resolution
 export { useOrgGroup } from './useOrgGroup';
+
+// Home handoff query param
+export { useHomeStart } from './useHomeStart';
 
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
