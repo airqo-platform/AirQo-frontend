@@ -64,6 +64,7 @@ import {
 interface VisualizerChartProps {
   model: ChartSeriesModel;
   config: VisualizerChartConfig;
+  onInteraction?: (action: string) => void;
   className?: string;
 }
 
@@ -506,6 +507,7 @@ const ReferenceLineLabel = ({
 export const VisualizerChart: React.FC<VisualizerChartProps> = ({
   model,
   config,
+  onInteraction,
   className,
 }) => {
   const primaryPalette = usePrimaryChartPalette();
@@ -760,6 +762,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       return;
     }
 
+    const wasHidden = hiddenSeries.has(seriesKey);
     setHiddenSeries(current => {
       const next = new Set(current);
       if (next.has(seriesKey)) {
@@ -769,6 +772,7 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
       }
       return next;
     });
+    onInteraction?.(wasHidden ? 'legend_series_shown' : 'legend_series_hidden');
   };
   const formatLegendLabel = (
     value: string | number | undefined,
@@ -1484,9 +1488,18 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           canZoomIn={canZoomIn}
           canZoomOut={canZoomOut}
           isZoomed={isZoomed}
-          onZoomIn={zoomIn}
-          onZoomOut={zoomOut}
-          onReset={resetZoom}
+          onZoomIn={() => {
+            zoomIn();
+            onInteraction?.('zoom_in');
+          }}
+          onZoomOut={() => {
+            zoomOut();
+            onInteraction?.('zoom_out');
+          }}
+          onReset={() => {
+            resetZoom();
+            onInteraction?.('zoom_reset');
+          }}
         />
       )}
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -1508,7 +1521,10 @@ export const VisualizerChart: React.FC<VisualizerChartProps> = ({
           totalPoints={model.data.length}
           zoomRange={zoomRange}
           onPan={pan}
-          onPanToCenter={panToCenter}
+          onPanToCenter={centerIndex => {
+            panToCenter(centerIndex);
+            onInteraction?.('pan_to_center');
+          }}
         />
       )}
     </div>

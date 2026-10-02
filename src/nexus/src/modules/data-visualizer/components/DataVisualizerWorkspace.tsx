@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { usePostHog } from 'posthog-js/react';
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import {
   AqFileCheck03,
@@ -142,6 +141,19 @@ const createSourceFileId = () => {
   }
 
   return `source-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const getUploadFileType = (file: File): 'csv' | 'xlsx' | 'other' => {
+  const fileName = file.name.toLowerCase();
+  if (fileName.endsWith('.csv') || file.type === 'text/csv') return 'csv';
+  if (
+    fileName.endsWith('.xlsx') ||
+    file.type ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ) {
+    return 'xlsx';
+  }
+  return 'other';
 };
 
 const filterChartRowsByDate = (
@@ -625,12 +637,12 @@ export const DataVisualizerWorkspace: React.FC<
   title = 'Upload & Visualize Air Quality Data',
   subtitle = 'Upload air quality files, compare sources, and create export-ready charts.',
 }) => {
-  const posthog = usePostHog();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const sourceFilesRef = React.useRef(new Map<string, File>());
   const hasTrackedViewRef = React.useRef(false);
   const parseAbortRef = React.useRef<AbortController | null>(null);
   const retryFilesRef = React.useRef<Map<string, File>>(new Map());
+  const datasetLabelOriginalsRef = React.useRef(new Map<string, string>());
   const [datasets, setDatasets] = React.useState<UploadedDataset[]>([]);
   const [charts, setCharts] = React.useState<VisualizerChartConfig[]>([]);
   const [activeChartId, setActiveChartId] = React.useState<
@@ -748,10 +760,9 @@ export const DataVisualizerWorkspace: React.FC<
         ...properties,
       };
 
-      posthog?.capture(eventName, payload);
       trackEvent(eventName, payload);
     },
-    [posthog]
+    []
   );
 
   const buildDraftFileState = React.useCallback(() => {
@@ -1044,6 +1055,9 @@ export const DataVisualizerWorkspace: React.FC<
         file_types: Array.from(
           new Set(newDatasets.map(dataset => dataset.fileType))
         ).join(','),
+        warning_dataset_count: newDatasets.filter(
+          dataset => dataset.warnings.length > 0
+        ).length,
         workbook_count: newDatasets.filter(
           dataset => dataset.sheetOptions.length > 1
         ).length,
@@ -1060,12 +1074,27 @@ export const DataVisualizerWorkspace: React.FC<
       fileInputRef.current.value = '';
     }
     toast.warning('Upload cancelled', 'File reading was stopped.');
-  }, []);
+    trackVisualizerEvent('air_quality_explorer_upload_cancelled', {
+      source: 'cancel_button',
+      file_count: uploadProgressItems.length,
+    });
+  }, [trackVisualizerEvent, uploadProgressItems.length]);
 
   const handleFiles = React.useCallback(
-    async (fileList: FileList | File[]) => {
+    async (
+      fileList: FileList | File[],
+      source: 'file_picker' | 'drop' | 'retry' = 'file_picker'
+    ) => {
       const files = Array.from(fileList);
       if (files.length === 0) return;
+
+      const fileTypes = Array.from(new Set(files.map(getUploadFileType)));
+      trackVisualizerEvent('air_quality_explorer_upload_started', {
+        source,
+        file_count: files.length,
+        file_types: fileTypes,
+        total_size_bytes: files.reduce((total, file) => total + file.size, 0),
+      });
 
       parseAbortRef.current?.abort();
       const abortController = new AbortController();
@@ -1128,6 +1157,24 @@ export const DataVisualizerWorkspace: React.FC<
 
         applyNewDatasets(parsedDatasets);
 
+        trackVisualizerEvent('air_quality_explorer_upload_processed', {
+          source,
+          status:
+            errors.length === 0
+              ? 'success'
+              : parsedDatasets.length > 0
+                ? 'partial_success'
+                : 'failure',
+          file_count: files.length,
+          dataset_count: parsedDatasets.length,
+          error_count: errors.length,
+          row_count: parsedDatasets.reduce(
+            (total, dataset) => total + dataset.rowCount,
+            0
+          ),
+          file_types: fileTypes,
+        });
+
         if (errors.length > 0) {
           // Mark failed files
           setUploadProgressItems(prev =>
@@ -1160,6 +1207,12 @@ export const DataVisualizerWorkspace: React.FC<
               : 'The selected files could not be read.';
           setError(message);
           toast.error('Upload failed', message);
+          trackVisualizerEvent('air_quality_explorer_upload_failed', {
+            source,
+            file_count: files.length,
+            file_types: fileTypes,
+            failure_type: 'parse_error',
+          });
           // Mark all as error
           setUploadProgressItems(prev =>
             prev.map(item => ({
@@ -1179,13 +1232,17 @@ export const DataVisualizerWorkspace: React.FC<
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [applyNewDatasets]
+    [applyNewDatasets, trackVisualizerEvent]
   );
 
   const handleRetryFile = React.useCallback(
     async (fileId: string) => {
       const file = retryFilesRef.current.get(fileId);
       if (!file) return;
+
+      trackVisualizerEvent('air_quality_explorer_upload_retry_requested', {
+        file_type: getUploadFileType(file),
+      });
 
       // Update status to retrying
       setUploadProgressItems(prev =>
@@ -1202,20 +1259,27 @@ export const DataVisualizerWorkspace: React.FC<
       );
 
       // Re-trigger the upload for this single file
-      await handleFiles([file]);
+      await handleFiles([file], 'retry');
     },
-    [handleFiles]
+    [handleFiles, trackVisualizerEvent]
   );
 
-  const handleCancelFileUpload = React.useCallback((fileId: string) => {
-    parseAbortRef.current?.abort();
-    setUploadProgressItems(prev =>
-      prev.map(item =>
-        item.id === fileId ? { ...item, status: 'cancelled' as const } : item
-      )
-    );
-    setIsParsing(false);
-  }, []);
+  const handleCancelFileUpload = React.useCallback(
+    (fileId: string) => {
+      parseAbortRef.current?.abort();
+      trackVisualizerEvent('air_quality_explorer_upload_cancelled', {
+        source: 'file_row',
+        file_count: 1,
+      });
+      setUploadProgressItems(prev =>
+        prev.map(item =>
+          item.id === fileId ? { ...item, status: 'cancelled' as const } : item
+        )
+      );
+      setIsParsing(false);
+    },
+    [trackVisualizerEvent]
+  );
 
   const resetWorkspace = React.useCallback(async () => {
     const previousDatasetCount = datasets.length;
@@ -1376,6 +1440,10 @@ export const DataVisualizerWorkspace: React.FC<
 
   const addChart = (type: VisualizerChartType) => {
     if (datasets.length === 0 || workspaceProfile.numericColumns.length === 0) {
+      trackVisualizerEvent('air_quality_explorer_chart_add_blocked', {
+        chart_type: type,
+        reason: 'no_numeric_measurement',
+      });
       toast.warning(
         'No metrics available',
         'Upload data with at least one numeric measurement column first.'
@@ -1384,6 +1452,10 @@ export const DataVisualizerWorkspace: React.FC<
     }
 
     if (type === 'map' && !hasCoordinateColumns(workspaceCoordinateColumns)) {
+      trackVisualizerEvent('air_quality_explorer_chart_add_blocked', {
+        chart_type: type,
+        reason: 'coordinates_required',
+      });
       toast.warning(
         'Coordinates needed',
         'Add latitude and longitude fields to create a map view.'
@@ -1448,9 +1520,39 @@ export const DataVisualizerWorkspace: React.FC<
     [activeChartId, charts, trackVisualizerEvent]
   );
 
-  const activateChart = React.useCallback((chartId: string) => {
-    setActiveChartId(chartId);
-  }, []);
+  const activateChart = React.useCallback(
+    (chartId: string) => {
+      if (chartId === activeChartId) return;
+
+      const chart = charts.find(item => item.id === chartId);
+      setActiveChartId(chartId);
+      trackVisualizerEvent('air_quality_explorer_chart_activated', {
+        chart_type: chart?.type,
+        chart_count: charts.length,
+      });
+    },
+    [activeChartId, charts, trackVisualizerEvent]
+  );
+
+  const changeDisplayMode = (nextMode: VisualizerDisplayMode) => {
+    if (nextMode === displayMode) return;
+
+    setDisplayMode(nextMode);
+    trackVisualizerEvent('air_quality_explorer_layout_changed', {
+      display_mode: nextMode,
+      chart_count: charts.length,
+      visible_chart_count: visibleChartItems.length,
+    });
+  };
+
+  const toggleDataInspector = () => {
+    const nextOpen = !showDataInspector;
+    setShowDataInspector(nextOpen);
+    trackVisualizerEvent('air_quality_explorer_data_review_toggled', {
+      open: nextOpen,
+      dataset_count: datasets.length,
+    });
+  };
 
   const updateDataset = (
     datasetId: string,
@@ -1543,6 +1645,10 @@ export const DataVisualizerWorkspace: React.FC<
         error instanceof Error
           ? error.message
           : 'The sheet could not be loaded.';
+      trackVisualizerEvent('air_quality_explorer_sheet_change_failed', {
+        action: 'replace',
+        failure_type: 'sheet_parse_error',
+      });
       toast.error('Sheet failed', message);
     } finally {
       setIsParsing(false);
@@ -1577,6 +1683,10 @@ export const DataVisualizerWorkspace: React.FC<
         error instanceof Error
           ? error.message
           : 'The sheet could not be loaded.';
+      trackVisualizerEvent('air_quality_explorer_sheet_change_failed', {
+        action: 'add_dataset',
+        failure_type: 'sheet_parse_error',
+      });
       toast.error('Sheet failed', message);
     } finally {
       setIsParsing(false);
@@ -1586,7 +1696,7 @@ export const DataVisualizerWorkspace: React.FC<
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragActive(false);
-    void handleFiles(event.dataTransfer.files);
+    void handleFiles(event.dataTransfer.files, 'drop');
   };
 
   // The manual Save button is gone (autosave covers it), which leaves one real
@@ -1728,7 +1838,7 @@ export const DataVisualizerWorkspace: React.FC<
         className="sr-only"
         onChange={event => {
           if (event.target.files) {
-            void handleFiles(event.target.files);
+            void handleFiles(event.target.files, 'file_picker');
           }
         }}
       />
@@ -1743,15 +1853,16 @@ export const DataVisualizerWorkspace: React.FC<
             size="sm"
             variant="outlined"
             Icon={AqBookOpen01}
-            onClick={() =>
+            onClick={() => {
+              trackVisualizerEvent('air_quality_explorer_docs_opened');
               window.open(
                 getEnvironmentAwareUrl(
                   'https://platform.airqo.net/docs/nexus/visualizing-data/dataset-visualizer/'
                 ),
                 '_blank',
                 'noopener,noreferrer'
-              )
-            }
+              );
+            }}
             showTextOnMobile
           >
             Read Docs
@@ -1760,7 +1871,10 @@ export const DataVisualizerWorkspace: React.FC<
             size="sm"
             variant="outlined"
             Icon={AqPlayCircle}
-            onClick={() => setIsTutorialDialogOpen(true)}
+            onClick={() => {
+              setIsTutorialDialogOpen(true);
+              trackVisualizerEvent('air_quality_explorer_tutorial_opened');
+            }}
             showTextOnMobile
           >
             Watch tutorial
@@ -1887,7 +2001,7 @@ export const DataVisualizerWorkspace: React.FC<
                       ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                       : 'border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                   }
-                  onClick={() => setShowDataInspector(open => !open)}
+                  onClick={toggleDataInspector}
                 >
                   {showDataInspector ? 'Hide data review' : 'Review data'}
                 </Button>
@@ -1931,7 +2045,14 @@ export const DataVisualizerWorkspace: React.FC<
                   size="sm"
                   variant="ghost"
                   className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
-                  onClick={() => setToolbarStickyEnabled(value => !value)}
+                  onClick={() => {
+                    const nextEnabled = !toolbarStickyEnabled;
+                    setToolbarStickyEnabled(nextEnabled);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_workspace_preference_changed',
+                      { preference: 'sticky_toolbar', enabled: nextEnabled }
+                    );
+                  }}
                 >
                   {toolbarStickyEnabled ? 'Unpin header' : 'Pin header'}
                 </Button>
@@ -1942,7 +2063,17 @@ export const DataVisualizerWorkspace: React.FC<
                   className="border border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground"
                   Icon={toolbarCollapsed ? HiChevronDown : HiChevronUp}
                   iconPosition="end"
-                  onClick={() => setToolbarCollapsed(value => !value)}
+                  onClick={() => {
+                    const nextCollapsed = !toolbarCollapsed;
+                    setToolbarCollapsed(nextCollapsed);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_workspace_preference_changed',
+                      {
+                        preference: 'collapsed_toolbar',
+                        enabled: nextCollapsed,
+                      }
+                    );
+                  }}
                 >
                   {toolbarCollapsed ? 'Expand header' : 'Collapse header'}
                 </Button>
@@ -1983,7 +2114,7 @@ export const DataVisualizerWorkspace: React.FC<
                           ? 'border-primary bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary'
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
-                      onClick={() => setDisplayMode('focused')}
+                      onClick={() => changeDisplayMode('focused')}
                     >
                       Selected view
                     </Button>
@@ -1997,7 +2128,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={nonMapChartItems.length === 0}
-                      onClick={() => setDisplayMode('charts')}
+                      onClick={() => changeDisplayMode('charts')}
                     >
                       Charts only
                     </Button>
@@ -2011,7 +2142,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={mapChartItems.length === 0}
-                      onClick={() => setDisplayMode('maps')}
+                      onClick={() => changeDisplayMode('maps')}
                     >
                       Maps only
                     </Button>
@@ -2025,7 +2156,7 @@ export const DataVisualizerWorkspace: React.FC<
                           : 'border-border/70 bg-background text-foreground hover:bg-muted/40 hover:text-foreground'
                       )}
                       disabled={chartItems.length < 2}
-                      onClick={() => setDisplayMode('all')}
+                      onClick={() => changeDisplayMode('all')}
                     >
                       Compare all
                     </Button>
@@ -2051,6 +2182,27 @@ export const DataVisualizerWorkspace: React.FC<
                         !(value instanceof Date)
                       ) {
                         setAppliedDateRange(value as DateRange);
+                        const selectedRange = value as DateRange;
+                        const rangeDays =
+                          selectedRange.from && selectedRange.to
+                            ? Math.max(
+                                1,
+                                Math.ceil(
+                                  (selectedRange.to.getTime() -
+                                    selectedRange.from.getTime()) /
+                                    86400000
+                                ) + 1
+                              )
+                            : undefined;
+                        trackVisualizerEvent(
+                          'air_quality_explorer_date_range_changed',
+                          {
+                            source: 'picker',
+                            has_start: Boolean(selectedRange.from),
+                            has_end: Boolean(selectedRange.to),
+                            range_days: rangeDays,
+                          }
+                        );
                       }
                     }}
                     showPresets={false}
@@ -2062,12 +2214,28 @@ export const DataVisualizerWorkspace: React.FC<
                   <Button
                     size="sm"
                     variant="outlined"
-                    onClick={() =>
+                    onClick={() => {
                       setAppliedDateRange({
                         from: datasetDateRange!.min,
                         to: datasetDateRange!.max,
-                      })
-                    }
+                      });
+                      trackVisualizerEvent(
+                        'air_quality_explorer_date_range_changed',
+                        {
+                          source: 'reset',
+                          has_start: true,
+                          has_end: true,
+                          range_days: Math.max(
+                            1,
+                            Math.ceil(
+                              (datasetDateRange!.max.getTime() -
+                                datasetDateRange!.min.getTime()) /
+                                86400000
+                            ) + 1
+                          ),
+                        }
+                      );
+                    }}
                   >
                     Reset range
                   </Button>
@@ -2090,7 +2258,7 @@ export const DataVisualizerWorkspace: React.FC<
                         ? 'outlined'
                         : 'ghost'
                     }
-                    onClick={() => setActiveChartId(chart.id)}
+                    onClick={() => activateChart(chart.id)}
                     className={cn(
                       'min-w-[220px] h-auto flex-col items-start justify-start rounded-xl border px-4 py-3 text-left shadow-none',
                       activeChartItem?.chart.id === chart.id
@@ -2245,14 +2413,30 @@ export const DataVisualizerWorkspace: React.FC<
                 <Button
                   size="sm"
                   variant={showFieldGuide ? 'outlined' : 'ghost'}
-                  onClick={() => setShowFieldGuide(open => !open)}
+                  onClick={() => {
+                    const nextOpen = !showFieldGuide;
+                    setShowFieldGuide(nextOpen);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_field_guide_toggled',
+                      {
+                        open: nextOpen,
+                        field_count: workspaceProfile.columns.length,
+                      }
+                    );
+                  }}
                 >
                   {showFieldGuide ? 'Hide fields' : 'Show fields'}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setShowDataInspector(false)}
+                  onClick={() => {
+                    setShowDataInspector(false);
+                    trackVisualizerEvent(
+                      'air_quality_explorer_data_review_toggled',
+                      { open: false, dataset_count: datasets.length }
+                    );
+                  }}
                 >
                   Close
                 </Button>
@@ -2276,6 +2460,12 @@ export const DataVisualizerWorkspace: React.FC<
                         <Input
                           label="Label"
                           value={dataset.label}
+                          onFocus={event =>
+                            datasetLabelOriginalsRef.current.set(
+                              dataset.id,
+                              event.currentTarget.value
+                            )
+                          }
                           onChange={(
                             event: React.ChangeEvent<HTMLInputElement>
                           ) =>
@@ -2283,6 +2473,20 @@ export const DataVisualizerWorkspace: React.FC<
                               label: event.target.value,
                             })
                           }
+                          onBlur={event => {
+                            const previousLabel =
+                              datasetLabelOriginalsRef.current.get(dataset.id);
+                            datasetLabelOriginalsRef.current.delete(dataset.id);
+                            if (
+                              previousLabel !== undefined &&
+                              previousLabel !== event.currentTarget.value
+                            ) {
+                              trackVisualizerEvent(
+                                'air_quality_explorer_dataset_label_updated',
+                                { dataset_count: datasets.length }
+                              );
+                            }
+                          }}
                           containerClassName="mb-2"
                           className="h-9"
                         />
@@ -2477,7 +2681,10 @@ export const DataVisualizerWorkspace: React.FC<
 
       <DataVisualizerTutorialDialog
         isOpen={isTutorialDialogOpen}
-        onClose={() => setIsTutorialDialogOpen(false)}
+        onClose={() => {
+          setIsTutorialDialogOpen(false);
+          trackVisualizerEvent('air_quality_explorer_tutorial_closed');
+        }}
         videoUrl={DATA_VISUALIZER_TUTORIAL_VIDEO_URL}
       />
 

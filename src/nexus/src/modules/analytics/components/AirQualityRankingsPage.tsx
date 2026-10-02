@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePostHog } from 'posthog-js/react';
+import { capturePostHogEvent, trackEvent } from '@/shared/utils/analytics';
 import { cn } from '@/shared/lib/utils';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { Button } from '@/shared/components/ui/button';
@@ -58,6 +59,18 @@ const SORT_OPTIONS: { value: RankingsSort; label: string }[] = [
 const LIMIT_OPTIONS = [10, 20, 50, 100];
 const DEFAULT_LIMIT = 20;
 
+const trackRankingsFilterChange = (
+  view: RankingsTab,
+  filter: string,
+  value: string | number
+) => {
+  trackEvent('air_quality_rankings_filter_changed', {
+    view,
+    filter,
+    value,
+  });
+};
+
 interface AirQualityRankingsPageProps {
   className?: string;
 }
@@ -85,6 +98,83 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
   const [sort, setSort] = useState<RankingsSort>('worst');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [country, setCountry] = useState<string>('');
+  const searchTrackingTimerRef = React.useRef<number | null>(null);
+
+  const scheduleSearchTracking = useCallback(
+    (view: RankingsTab, term: string) => {
+      if (searchTrackingTimerRef.current !== null) {
+        window.clearTimeout(searchTrackingTimerRef.current);
+      }
+
+      searchTrackingTimerRef.current = window.setTimeout(() => {
+        const normalizedTerm = term.trim();
+        trackEvent('air_quality_rankings_search_changed', {
+          view,
+          has_query: normalizedTerm.length > 0,
+          query_length: normalizedTerm.length,
+        });
+      }, 500);
+    },
+    []
+  );
+
+  useEffect(
+    () => () => {
+      if (searchTrackingTimerRef.current !== null) {
+        window.clearTimeout(searchTrackingTimerRef.current);
+      }
+    },
+    []
+  );
+
+  const handleLiveSearchChange = useCallback(
+    (term: string) => scheduleSearchTracking('live', term),
+    [scheduleSearchTracking]
+  );
+
+  const handleHistorySearchChange = useCallback(
+    (term: string) => scheduleSearchTracking('history', term),
+    [scheduleSearchTracking]
+  );
+
+  const handleLivePageChange = useCallback((page: number) => {
+    trackEvent('air_quality_rankings_page_changed', {
+      view: 'live',
+      page,
+    });
+  }, []);
+
+  const handleHistoryPageChange = useCallback((page: number) => {
+    trackEvent('air_quality_rankings_page_changed', {
+      view: 'history',
+      page,
+    });
+  }, []);
+
+  const handleHistorySortChange = useCallback(
+    (sortState: { key: string; direction: 'asc' | 'desc' }) => {
+      trackEvent('air_quality_rankings_sort_changed', {
+        view: 'history',
+        column: sortState.key,
+        direction: sortState.direction,
+      });
+    },
+    []
+  );
+
+  const handleLivePageSizeChange = useCallback((pageSize: number) => {
+    trackEvent('air_quality_rankings_page_size_changed', {
+      view: 'live',
+      page_size: pageSize,
+    });
+  }, []);
+
+  const handleHistoryPageSizeChange = useCallback((pageSize: number) => {
+    trackEvent('air_quality_rankings_page_size_changed', {
+      view: 'history',
+      page_size: pageSize,
+    });
+  }, []);
 
   // The rankings tour describes the live controls. A saved history tab would
   // leave those targets unmounted, so enter the live tab before the guide opens.
@@ -155,7 +245,7 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
     : null;
 
   useEffect(() => {
-    posthog?.capture('air_quality_rankings_viewed', {
+    capturePostHogEvent(posthog, 'air_quality_rankings_viewed', {
       tab,
       level: tab === 'live' ? level : historyLevel,
       country: showCountryFilter && country ? country : 'all',
@@ -163,13 +253,21 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
-  const handleRefresh = useCallback(async () => {
-    if (tab === 'live') {
-      await refetchRankings();
-    } else {
-      await refetchHistory();
-    }
-  }, [tab, refetchHistory, refetchRankings]);
+  const handleRefresh = useCallback(
+    async (source: 'page_heading' | 'table' = 'page_heading') => {
+      trackEvent('air_quality_rankings_refresh_requested', {
+        view: tab,
+        source,
+      });
+
+      if (tab === 'live') {
+        await refetchRankings();
+      } else {
+        await refetchHistory();
+      }
+    },
+    [tab, refetchHistory, refetchRankings]
+  );
 
   const isRefreshingAny = tab === 'live' ? isRefreshing : historyRefreshing;
 
@@ -203,7 +301,15 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
             ariaLabel="Rankings views"
             options={TAB_OPTIONS}
             value={tab}
-            onChange={setTab}
+            onChange={nextTab => {
+              if (nextTab !== tab) {
+                trackEvent('air_quality_rankings_tab_changed', {
+                  from_tab: tab,
+                  to_tab: nextTab,
+                });
+                setTab(nextTab);
+              }
+            }}
           />
         </CardContent>
       </Card>
@@ -221,21 +327,31 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
                   ariaLabel="Ranking level"
                   options={LEVEL_OPTIONS}
                   value={level}
-                  onChange={setLevel}
+                  onChange={nextLevel => {
+                    trackRankingsFilterChange('live', 'level', nextLevel);
+                    setLevel(nextLevel);
+                  }}
                   size="sm"
                 />
                 <SegmentedTabs
                   ariaLabel="Ranking sort order"
                   options={SORT_OPTIONS}
                   value={sort}
-                  onChange={setSort}
+                  onChange={nextSort => {
+                    trackRankingsFilterChange('live', 'sort', nextSort);
+                    setSort(nextSort);
+                  }}
                   size="sm"
                 />
               </div>
               <select
                 aria-label="Number of entries"
                 value={limit}
-                onChange={event => setLimit(Number(event.target.value) || 20)}
+                onChange={event => {
+                  const nextLimit = Number(event.target.value) || DEFAULT_LIMIT;
+                  trackRankingsFilterChange('live', 'limit', nextLimit);
+                  setLimit(nextLimit);
+                }}
                 className="h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-2 py-0.5 text-xs"
               >
                 {LIMIT_OPTIONS.map(option => (
@@ -248,7 +364,11 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
                 <select
                   aria-label="Country filter"
                   value={country}
-                  onChange={event => setCountry(event.target.value)}
+                  onChange={event => {
+                    const nextCountry = event.target.value;
+                    trackRankingsFilterChange('live', 'country', nextCountry);
+                    setCountry(nextCountry);
+                  }}
                   disabled={countriesLoading}
                   className="h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1d1f20] px-2 py-0.5 text-xs"
                 >
@@ -276,8 +396,11 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
               aqiConfig={aqiConfig ?? null}
               isLoading={rankingsLoading}
               error={rankingsError}
-              onRetry={() => void refetchRankings()}
+              onRetry={() => void handleRefresh('table')}
               totalCount={rankingsMeta?.total ?? null}
+              onSearchTermChange={handleLiveSearchChange}
+              onClientPageChange={handleLivePageChange}
+              onPageSizeChange={handleLivePageSizeChange}
             />
           </div>
         </>
@@ -289,11 +412,23 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
                 level={historyLevel}
                 startYear={startYear}
                 endYear={endYear}
-                onLevelChange={setHistoryLevel}
-                onStartYearChange={setStartYear}
-                onEndYearChange={setEndYear}
+                onLevelChange={nextLevel => {
+                  trackRankingsFilterChange('history', 'level', nextLevel);
+                  setHistoryLevel(nextLevel);
+                }}
+                onStartYearChange={nextYear => {
+                  trackRankingsFilterChange('history', 'start_year', nextYear);
+                  setStartYear(nextYear);
+                }}
+                onEndYearChange={nextYear => {
+                  trackRankingsFilterChange('history', 'end_year', nextYear);
+                  setEndYear(nextYear);
+                }}
                 country={country}
-                onCountryChange={setCountry}
+                onCountryChange={nextCountry => {
+                  trackRankingsFilterChange('history', 'country', nextCountry);
+                  setCountry(nextCountry);
+                }}
                 countryOptions={countries}
                 countryName={selectedCountryName}
                 historyFrom={selectedHistoryFrom}
@@ -315,7 +450,11 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
             aqiConfig={aqiConfig ?? null}
             isLoading={historyLoading}
             error={historyError}
-            onRetry={() => void refetchHistory()}
+            onRetry={() => void handleRefresh('table')}
+            onSearchTermChange={handleHistorySearchChange}
+            onClientPageChange={handleHistoryPageChange}
+            onClientSortChange={handleHistorySortChange}
+            onPageSizeChange={handleHistoryPageSizeChange}
           />
         </>
       )}
