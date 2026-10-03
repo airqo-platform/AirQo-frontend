@@ -1,13 +1,25 @@
 ---
 sidebar_position: 1
 sidebar_label: Overview
+description: A shared, Africa-wide registry of air quality monitors from every manufacturer and operator — read it to map coverage and gaps, or contribute monitors to it.
 ---
 
 # Network Coverage API
 
-This is a shared record of the **air quality monitoring landscape across Africa** — not a list of AirQo devices. Reference-grade instruments, low-cost sensors, and equipment from any manufacturer or operator (national ministries, embassies, universities, city authorities, other sensor networks) all live in the same backend, tagged with who runs them and who made them. [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage) is simply the first interactive map built on top of it.
+**Where is air quality being monitored across Africa, by whom, and where are the gaps?** The Network Coverage API answers that question with a single shared registry of air quality monitors across the continent. It covers reference-grade instruments and low-cost sensors from any manufacturer and any operator, whether national ministries, embassies, universities, city authorities or other sensor networks, not only AirQo's own devices. Each monitor is tagged with who runs it and who made it.
 
-The point of documenting it here is to let it be reused: any organisation with a stake in the continent's air quality picture — a UN agency, the Clean Air Fund, the Clean Air Network, EPIC, a national environment agency, a research institution — can pull this same data into their own site, and can contribute monitors their partners run that AirQo doesn't know about. One shared backend, fed and read by many client-facing apps, gives everyone a more complete picture than any single site maintaining its own list.
+The registry works **both ways**. You can read from it to power your own map, report or dashboard, and you can add monitors to it that AirQo doesn't yet know about. Every site built on the registry draws from and adds to the same dataset, so the picture of monitoring across Africa gets more complete each time someone uses it. [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage) is the first interactive map built on the registry; it is not the only one meant to exist.
+
+## Built for
+
+| You are... | You use it to... |
+|------------|------------------|
+| **A funder or coalition** (e.g. Clean Air Fund, Clean Air Network, EPIC) | See where monitoring already exists, spot countries and cities with little or no coverage, and target investment |
+| **A multilateral or government body** (e.g. a UN agency, a national environment agency) | Embed a continent-wide or national view of monitoring infrastructure in your own platform or reporting |
+| **A monitor operator** (e.g. a university, embassy, city authority or independent network) | Get your monitors counted on the shared map by [submitting them to the registry](./community-registry.md) |
+| **A researcher or analyst** | Pull an inventory of monitors by country, type, operator and manufacturer for landscape studies, as JSON or [CSV](./csv-export.md) |
+
+If you're building something for one of these audiences, such as a website, app or report, the same endpoints apply.
 
 :::tip New to the AirQo API?
 This page assumes you already know how authentication and requests work. If you haven't yet, start with [AirQo API →](../intro.md) for the fundamentals, then come back here.
