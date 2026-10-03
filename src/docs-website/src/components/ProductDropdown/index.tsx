@@ -47,7 +47,6 @@ const PRODUCTS: Product[] = [
         title: 'Beacon',
         path: '/docs/beacon',
         icon: AqMonitor,
-        disabled: true,
     },
     {
         title: 'AI Platform',
