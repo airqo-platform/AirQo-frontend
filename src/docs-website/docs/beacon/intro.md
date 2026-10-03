@@ -24,8 +24,6 @@ Beacon reads the same device registry as Vertex, using the same AirQo account. A
 - **Analysis & Maintenance** — [performance over time](./analysis/performance-analysis.md), [field trip planning](./analysis/maintenance.md), and [PDF reports](./analysis/reports.md).
 - **Reference** — what the [metrics](./reference/health-metrics.md) and [device states](./reference/device-states.md) actually mean.
 
-An **Administration** section also exists for AirQo staff who operate the wider sensor network. It isn't needed to run your own fleet.
-
 <br />
 
 <Link className="button button--primary button--lg" style={{color: '#ffffff'}} to="/beacon/beneficiary-journey">Start the beneficiary journey</Link>

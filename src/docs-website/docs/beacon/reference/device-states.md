@@ -38,7 +38,7 @@ The dot beside a monitor's name in the device list is a quick read on whether da
 
 ## Firmware State
 
-The device list shows each monitor's firmware status, comparing current firmware against target firmware and any download state. Hover the badge for detail. Firmware itself is managed by AirQo — see [Firmware Management](../administration/firmware.md).
+The device list shows each monitor's firmware status, comparing current firmware against target firmware and any download state. Hover the badge for detail. Firmware itself is managed by AirQo.
 
 ## Category
 

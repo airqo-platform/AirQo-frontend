@@ -8,7 +8,7 @@ sidebar_position: 3
 
 ## Prerequisites
 
-An active workspace, plus either membership of a non-AirQo organization or one of the `DATA_EXPORT`, `ANALYTICS_EXPORT`, or `DATA_VIEW` permissions.
+An active organization workspace.
 
 ## Building a Report
 

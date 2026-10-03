@@ -42,10 +42,7 @@ Members of a beneficiary organization normally see:
 | **Maintenance** | A map of your fleet for planning field visits |
 | **Reports** | PDF device health reports |
 
-Two things you may notice are absent, and both are expected:
-
-* **My Devices** appears only in the AirQo personal context. In an organization workspace, monitors belong to the organization, so they're under **Devices** instead.
-* The **Administrative Panel** — IoT Diagnostics, Collocation, Firmware Management, Device Categories, and Stock & Inventory — is an AirQo-internal toolset and isn't offered to beneficiary organizations.
+You may notice **My Devices** is absent, and that's expected: it appears only in your personal workspace. In an organization workspace, monitors belong to the organization, so they're under **Devices** instead.
 
 ## Troubleshooting
 

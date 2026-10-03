@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ## Prerequisites
 
-An active workspace, plus either membership of a non-AirQo organization or the `ANALYTICS_VIEW` / `DATA_VIEW` permission. If the section isn't in your sidebar, see [Access Beacon](../getting-started/access-beacon.md#troubleshooting).
+An active organization workspace. If the section isn't in your sidebar, see [Access Beacon](../getting-started/access-beacon.md#troubleshooting).
 
 ## Running an Analysis
 

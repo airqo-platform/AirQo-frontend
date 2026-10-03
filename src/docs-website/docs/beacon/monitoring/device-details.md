@@ -8,7 +8,7 @@ When the dashboard tells you a monitor is struggling, this is where you find out
 
 ## Finding a Monitor
 
-Open **Devices** for the list of your fleet. In the AirQo personal context this is split into **My Devices** and **Devices**; in an organization workspace there's a single **Devices** list, because monitors belong to the organization rather than to individuals.
+Open **Devices** for the list of your fleet. In your personal workspace the list is called **My Devices**; in an organization workspace it's **Devices**, because monitors belong to the organization rather than to individuals.
 
 Search by **device name, ID, location, city, or country**.
 
@@ -68,10 +68,6 @@ A terminal workbench for supported hardware, for operations that need direct acc
 ### Files
 
 Files associated with the monitor.
-
-:::note
-A **Diagnostics** tab also exists. It belongs to AirQo's internal hardware triage toolset and isn't shown to beneficiary organizations — see [Fleet Triage](../administration/fleet-triage.md) if you're AirQo staff.
-:::
 
 ## Editing a Monitor
 
