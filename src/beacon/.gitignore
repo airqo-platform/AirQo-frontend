@@ -13,7 +13,7 @@
 /build
 /dist
 ISSUES.md
-
+/brag-output
 # debug
 npm-debug.log*
 yarn-debug.log*

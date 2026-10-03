@@ -2,17 +2,20 @@
 
 import React, { useState } from "react"
 import { ChevronDown, ChevronUp, Radio, CheckCircle2, AlertTriangle, AlertCircle, CircleOff, Info } from "lucide-react"
+import { FULL_RADIUS_KM, MAX_RADIUS_KM, HeatmapMode, heatmapGradientCss } from "./device-heatmap-layer"
 
 interface MapLegendProps {
   className?: string
   defaultCollapsed?: boolean
   showLoRaWAN?: boolean
+  heatmapMode?: HeatmapMode
 }
 
 export const MapLegend: React.FC<MapLegendProps> = ({
   className = "",
   defaultCollapsed = false,
   showLoRaWAN = false,
+  heatmapMode = "off",
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
 
@@ -106,6 +109,47 @@ export const MapLegend: React.FC<MapLegendProps> = ({
           <div className="pt-1.5 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 leading-normal">
             <span>Dot color: Uptime | Outer ring: Error margin</span>
           </div>
+
+          {heatmapMode !== "off" && (
+            <div className="pt-1.5 border-t border-gray-100 dark:border-gray-800 space-y-1">
+              <div className="text-[11px] font-semibold text-gray-800 dark:text-gray-200">
+                {heatmapMode === "uptime" ? "Uptime heatmap" : heatmapMode === "sensor" ? "Sensor error margin heatmap" : "Coverage heatmap"}
+              </div>
+              <div className="h-2 rounded-full" style={{ background: heatmapGradientCss(heatmapMode) }} />
+              {heatmapMode === "coverage" ? (
+                <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400">
+                  <span>Edge of reach</span>
+                  <span>Fully covered</span>
+                </div>
+              ) : (
+                // Labels sit at the colour stops (0, 50, 85, 100), which are not evenly spaced.
+                <div className="relative h-3.5 text-[10px] text-gray-500 dark:text-gray-400">
+                  {(heatmapMode === "uptime"
+                    ? [[0, "0%"], [50, "50%"], [85, "85%"], [100, "100%"]]
+                    : [[0, "±40+"], [50, "±20"], [85, "±10"], [100, "±0"]]
+                  ).map(([at, label]) => (
+                    <span
+                      key={label}
+                      className="absolute top-0 whitespace-nowrap"
+                      style={{
+                        left: `${at}%`,
+                        transform: at === 0 ? "none" : at === 100 ? "translateX(-100%)" : "translateX(-50%)",
+                      }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="text-[10px] text-gray-400 leading-snug">
+                {heatmapMode === "uptime"
+                  ? `Whether a place still gets data: an offline device next to an online one stays green; red means no working device reaches it. Nearby devices back each other up. Fades out beyond ${MAX_RADIUS_KM} km.`
+                  : heatmapMode === "sensor"
+                  ? `Quality of the data that arrives, from the error margins of online devices (offline devices deliver nothing, so they don't count). A bad sensor counts up to 3× because it lowers the area's data. Devices without an error margin are left out.`
+                  : `Full within ${FULL_RADIUS_KM} km of any installed device (online or not), fading to none at ${MAX_RADIUS_KM} km. Overlapping devices add up.`}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
