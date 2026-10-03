@@ -6,7 +6,7 @@ description: Programmatic access to AirQo air quality measurements, forecasts, a
 
 # AirQo API
 
-The AirQo API gives you programmatic access to air quality measurements from AirQo's sensor network, and to a shared, Africa-wide registry of air quality monitors from every manufacturer and operator. Whether you are building a public dashboard, powering a city's environmental platform, integrating air quality data into a research workflow, or mapping where monitoring happens across the continent, the API is designed to fit your use case.
+The AirQo API gives you programmatic access to air quality measurements from AirQo's sensor network, and to a shared, Africa-wide registry of air quality monitors — including community-submitted monitors from any manufacturer or operator. Whether you are building a public dashboard, powering a city's environmental platform, integrating air quality data into a research workflow, or mapping where monitoring happens across the continent, the API is designed to fit your use case.
 
 ---
 
@@ -21,7 +21,7 @@ The AirQo API gives you programmatic access to air quality measurements from Air
 | **Funder, coalition, or environment agency** mapping who monitors air quality where across Africa — and where the gaps are | [Network Coverage API →](./network-coverage/intro.md) |
 
 :::info Not after readings?
-If you need to know *where* air quality is monitored across Africa — every manufacturer, every operator, including networks AirQo doesn't run — use the [Network Coverage API →](./network-coverage/intro.md). It's a shared registry of monitors that you can embed in your own site and contribute monitors to. It returns monitor locations and profiles, not measurements.
+If you need to know *where* air quality is monitored across Africa — including monitors from any manufacturer or operator, and networks AirQo doesn't run — use the [Network Coverage API →](./network-coverage/intro.md). It's a shared registry of monitors that you can embed in your own site and contribute monitors to. It returns monitor locations and profiles, not measurements.
 :::
 
 ---
