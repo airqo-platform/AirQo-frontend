@@ -69,6 +69,9 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}
         multiSelect
+        selectionLabel={item =>
+          String(item.name || item.site_name || item.device_name || 'location')
+        }
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
         compactRows={compactRows}

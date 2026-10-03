@@ -104,6 +104,21 @@ const getNumberValue = (...values: unknown[]): number | null => {
   return null;
 };
 
+// Rejects a caller-supplied fallback name that is empty, equals the fallback
+// ID, or looks like a 24-hex-char MongoDB ObjectId — a raw ID must never
+// propagate into site_name / device_name.
+const sanitizeFallbackName = (
+  candidate?: string,
+  fallbackId?: string
+): string | undefined => {
+  if (typeof candidate !== 'string') return undefined;
+  const trimmed = candidate.trim();
+  if (!trimmed || trimmed === '--') return undefined;
+  if (fallbackId && trimmed === fallbackId) return undefined;
+  if (/^[0-9a-f]{24}$/i.test(trimmed)) return undefined;
+  return trimmed;
+};
+
 const getSelectedGridSiteIds = (
   gridId: string,
   selectedGridSites: Record<string, string[]>,
@@ -119,12 +134,18 @@ const getSelectedGridSiteIds = (
 const buildSiteMetadataRow = (
   source: Record<string, unknown> | undefined,
   fallbackId: string,
-  extras: Record<string, unknown> = {}
+  extras: Record<string, unknown> = {},
+  fallbackName?: string
 ): MetadataRow => {
   const nestedSite = getNestedRecord(getRecordValue(source, 'site'));
   const nestedSiteDetails = getNestedRecord(
     getRecordValue(source, 'siteDetails')
   );
+
+  // Name fields must never fall back to a raw ID — use the caller-supplied
+  // display label, then a neutral placeholder.
+  const nameFallback =
+    sanitizeFallbackName(fallbackName, fallbackId) || 'Unknown location';
 
   return {
     site_id:
@@ -141,7 +162,7 @@ const buildSiteMetadataRow = (
         getRecordValue(source, 'location_name'),
         nestedSite?.name,
         nestedSiteDetails?.name
-      ) || fallbackId,
+      ) || nameFallback,
     search_name:
       getStringValue(
         getRecordValue(source, 'search_name'),
@@ -150,7 +171,7 @@ const buildSiteMetadataRow = (
         getRecordValue(source, 'name'),
         nestedSite?.search_name,
         nestedSiteDetails?.search_name
-      ) || fallbackId,
+      ) || nameFallback,
     formatted_name:
       getStringValue(
         getRecordValue(source, 'formatted_name'),
@@ -159,7 +180,7 @@ const buildSiteMetadataRow = (
         getRecordValue(source, 'name'),
         nestedSite?.formatted_name,
         nestedSiteDetails?.formatted_name
-      ) || fallbackId,
+      ) || nameFallback,
     location_name:
       getStringValue(
         getRecordValue(source, 'location_name'),
@@ -168,7 +189,7 @@ const buildSiteMetadataRow = (
         getRecordValue(source, 'name'),
         nestedSite?.location_name,
         nestedSiteDetails?.location_name
-      ) || fallbackId,
+      ) || nameFallback,
     city: getStringValue(
       getRecordValue(source, 'city'),
       nestedSite?.city,
@@ -231,12 +252,17 @@ const buildSiteMetadataRow = (
 
 const buildDeviceMetadataRow = (
   source: Record<string, unknown> | undefined,
-  fallbackId: string
+  fallbackId: string,
+  fallbackName?: string
 ): MetadataRow => {
   const nestedSite = getNestedRecord(getRecordValue(source, 'site'));
   const nestedSiteDetails = getNestedRecord(
     getRecordValue(source, 'siteDetails')
   );
+
+  // Name fields must never fall back to a raw ID.
+  const nameFallback =
+    sanitizeFallbackName(fallbackName, fallbackId) || 'Unknown device';
 
   return {
     device_id:
@@ -249,7 +275,7 @@ const buildDeviceMetadataRow = (
       getStringValue(
         getRecordValue(source, 'name'),
         getRecordValue(source, 'device_name')
-      ) || fallbackId,
+      ) || nameFallback,
     network: getStringValue(getRecordValue(source, 'network')),
     category: getStringValue(getRecordValue(source, 'category')),
     status: getStringValue(getRecordValue(source, 'status')),
@@ -346,12 +372,13 @@ const buildDeviceMetadataRow = (
   };
 };
 
-const buildGridMetadataRows = (
+export const buildGridMetadataRows = (
   gridId: string,
   grid: Record<string, unknown> | undefined,
   selectedGridSites: Record<string, string[]>,
   selectedGridSiteIds: Record<string, string[]>,
-  gridType: 'country' | 'city'
+  gridType: 'country' | 'city',
+  siteIdFilter?: Set<string>
 ) => {
   const selectedSiteIds = getSelectedGridSiteIds(
     gridId,
@@ -359,17 +386,36 @@ const buildGridMetadataRows = (
     selectedGridSiteIds
   );
 
-  if (selectedSiteIds.length === 0) {
+  // When a filter is provided, only build rows for the filtered IDs (trim +
+  // lowercase normalized) so partial-data merges target exactly the missing
+  // locations without re-emitting rows the API already returned.
+  const normalizedFilter =
+    siteIdFilter &&
+    new Set(Array.from(siteIdFilter).map(id => normalizeLookupKey(String(id))));
+
+  const filteredSiteIds = normalizedFilter
+    ? selectedSiteIds.filter(siteId =>
+        normalizedFilter.has(normalizeLookupKey(siteId))
+      )
+    : selectedSiteIds;
+
+  if (filteredSiteIds.length === 0) {
     return [];
   }
 
+  // Grid display name must come ONLY from human-facing fields, be sanitized
+  // against raw IDs / 24-hex ObjectIds, and fall back to a neutral
+  // placeholder — never `gridId` or `grid._id`.
   const gridName =
-    getStringValue(
-      getRecordValue(grid, 'name'),
-      getRecordValue(grid, 'long_name'),
-      getRecordValue(grid, '_id'),
-      getRecordValue(grid, 'id')
-    ) || gridId;
+    sanitizeFallbackName(
+      getStringValue(
+        getRecordValue(grid, 'name'),
+        getRecordValue(grid, 'long_name'),
+        getRecordValue(grid, 'formatted_name'),
+        getRecordValue(grid, 'search_name')
+      ) ?? undefined,
+      gridId
+    ) || 'Unknown location';
   const locationKey = gridType === 'country' ? 'country_name' : 'city_name';
 
   const sites = Array.isArray(getRecordValue(grid, 'sites'))
@@ -377,7 +423,7 @@ const buildGridMetadataRows = (
     : [];
 
   if (sites.length === 0) {
-    return selectedSiteIds.map(siteId =>
+    return filteredSiteIds.map(siteId =>
       buildSiteMetadataRow(undefined, siteId, {
         grid_id: gridId,
         grid_name: gridName,
@@ -403,7 +449,7 @@ const buildGridMetadataRows = (
       )
   );
 
-  return selectedSiteIds.map(siteId => {
+  return filteredSiteIds.map(siteId => {
     const site = siteMap.get(siteId);
     if (site) {
       return buildSiteMetadataRow(site, siteId, {
@@ -433,19 +479,24 @@ const buildMetadataFallbackRecords = (
   sitesData: TableItem[],
   devicesData: TableItem[],
   countriesData: TableItem[],
-  citiesData: TableItem[]
+  citiesData: TableItem[],
+  selectedSiteNames?: string[],
+  selectedDeviceNames?: string[]
 ): MetadataRow[] => {
   if (activeTab === 'sites') {
     return selectedSiteIds.map(siteId => {
       const site = sitesData.find(item => String(item.id) === siteId);
-      return buildSiteMetadataRow(site, siteId);
+      const fallbackName = selectedSiteNames?.[selectedSiteIds.indexOf(siteId)];
+      return buildSiteMetadataRow(site, siteId, {}, fallbackName);
     });
   }
 
   if (activeTab === 'devices') {
     return selectedDeviceIds.map(deviceId => {
       const device = devicesData.find(item => String(item.id) === deviceId);
-      return buildDeviceMetadataRow(device, deviceId);
+      const fallbackName =
+        selectedDeviceNames?.[selectedDeviceIds.indexOf(deviceId)];
+      return buildDeviceMetadataRow(device, deviceId, fallbackName);
     });
   }
 
@@ -462,6 +513,123 @@ const buildMetadataFallbackRecords = (
       gridType
     );
   });
+};
+
+/**
+ * Builds metadata-only rows for the missing locations and merges them into
+ * the download response so every selected location appears in the export.
+ * Locations that already have readings keep their rows; missing ones get a
+ * metadata-only row whose name falls back to the selected UI label, then a
+ * neutral placeholder — never a raw ID.
+ */
+const mergeMissingLocationRecords = (
+  response: DataDownloadResponse | string,
+  activeTab: TabType,
+  missingIds: string[],
+  missingNames: string[],
+  selectedGridIds: string[],
+  selectedGridSites: Record<string, string[]>,
+  selectedGridSiteIds: Record<string, string[]>,
+  sitesData: TableItem[],
+  devicesData: TableItem[],
+  countriesData: TableItem[],
+  citiesData: TableItem[]
+): DataDownloadResponse => {
+  // Parse existing records first so we can detect locations already present in
+  // the response. A metadata row must NOT be appended for a location that
+  // already has rows (e.g. rows lacking a numeric pollutant value) — that would
+  // duplicate the location in the export.
+  const existingRecords = parseDownloadResponseRecords(response);
+
+  // Collect the location identifiers and names already present in the response.
+  // Matching is case- and whitespace-insensitive. A metadata row is skipped
+  // when its ID matches an existing record's ID. Names are consulted ONLY as a
+  // legacy fallback for responses that carry no ID values at all, so a distinct
+  // location that merely shares a display name with an existing one is never
+  // dropped from the export.
+  const existingIds = new Set<string>();
+  const existingNames = new Set<string>();
+  const idKeys = ['site_id', 'device_id', '_id', 'id'];
+  const nameKeys = [
+    'site_name',
+    'device_name',
+    'location_name',
+    'search_name',
+    'formatted_name',
+    'country_name',
+    'city_name',
+  ];
+  existingRecords.forEach(record => {
+    idKeys.forEach(key => {
+      const value = getStringValue(getRecordValue(record, key));
+      if (value) existingIds.add(normalizeLookupKey(value));
+    });
+    nameKeys.forEach(key => {
+      const value = getStringValue(getRecordValue(record, key));
+      if (value) existingNames.add(normalizeLookupKey(value));
+    });
+  });
+
+  const locationAlreadyPresent = (id: string, name?: string): boolean => {
+    if (existingIds.has(normalizeLookupKey(id))) return true;
+    // Legacy fallback only: when the response exposes no ID values at all, fall
+    // back to a normalized name match so genuinely duplicate rows are still
+    // skipped. Once any ID exists, name matching must not suppress a row —
+    // display names are not unique across locations.
+    if (
+      existingIds.size === 0 &&
+      name &&
+      existingNames.has(normalizeLookupKey(name))
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  let metadataRows: MetadataRow[] = [];
+
+  if (activeTab === 'sites') {
+    metadataRows = missingIds.flatMap((siteId, index) => {
+      if (locationAlreadyPresent(siteId, missingNames[index])) return [];
+      const site = sitesData.find(item => String(item.id) === siteId);
+      return [buildSiteMetadataRow(site, siteId, {}, missingNames[index])];
+    });
+  } else if (activeTab === 'devices') {
+    metadataRows = missingIds.flatMap((deviceId, index) => {
+      if (locationAlreadyPresent(deviceId, missingNames[index])) return [];
+      const device = devicesData.find(item => String(item.id) === deviceId);
+      return [buildDeviceMetadataRow(device, deviceId, missingNames[index])];
+    });
+  } else {
+    const gridType = activeTab === 'countries' ? 'country' : 'city';
+    const gridData = activeTab === 'countries' ? countriesData : citiesData;
+    const missingIdSet = new Set(missingIds.map(id => normalizeLookupKey(id)));
+    metadataRows = selectedGridIds.flatMap(gridId => {
+      const grid = gridData.find(item => String(item.id) === gridId);
+      return buildGridMetadataRows(
+        gridId,
+        grid as Record<string, unknown> | undefined,
+        selectedGridSites,
+        selectedGridSiteIds,
+        gridType,
+        missingIdSet
+      );
+    });
+  }
+
+  const mergedRecords: DownloadRecord[] = [...existingRecords, ...metadataRows];
+
+  return {
+    status: typeof response === 'string' ? 'success' : response.status,
+    message:
+      typeof response === 'string' ? 'Data export prepared' : response.message,
+    data: mergedRecords as unknown as DataDownloadResponse['data'],
+    metadata: {
+      total_count: mergedRecords.length,
+      has_more: false,
+      next: null,
+    },
+  };
 };
 
 type DownloadRecord = Record<string, unknown>;
@@ -484,7 +652,7 @@ const getNormalizedString = (...values: unknown[]) =>
 const normalizeLookupKey = (value: string): string =>
   value.trim().toLowerCase();
 
-const buildGridLocationLookup = (
+export const buildGridLocationLookup = (
   gridData: TableItem[],
   selectedGridIds: string[],
   selectedGridSites: Record<string, string[]>,
@@ -495,13 +663,17 @@ const buildGridLocationLookup = (
 
   selectedGridIds.forEach(gridId => {
     const grid = gridData.find(item => String(item.id) === gridId);
+    // Human-facing fields only, sanitized — never `grid._id` / `gridId`.
     const gridName =
-      getNormalizedString(
-        getRecordValue(grid, 'name'),
-        getRecordValue(grid, 'long_name'),
-        getRecordValue(grid, '_id'),
-        getRecordValue(grid, 'id')
-      ) || gridId;
+      sanitizeFallbackName(
+        getNormalizedString(
+          getRecordValue(grid, 'name'),
+          getRecordValue(grid, 'long_name'),
+          getRecordValue(grid, 'formatted_name'),
+          getRecordValue(grid, 'search_name')
+        ),
+        gridId
+      ) || 'Unknown location';
 
     const selectedSiteIds = getSelectedGridSiteIds(
       gridId,
@@ -533,13 +705,18 @@ const buildGridLocationLookup = (
 
     selectedSiteIds.forEach(siteId => {
       const site = siteMap.get(siteId);
-      const siteName =
+      // Sanitized human name; falls back to a neutral placeholder so a raw
+      // site ID / ObjectId never lands in `site_name`.
+      const sanitizedSiteName = sanitizeFallbackName(
         getNormalizedString(
           getRecordValue(site, 'name'),
           getRecordValue(site, 'search_name'),
           getRecordValue(site, 'formatted_name'),
           getRecordValue(site, 'location_name')
-        ) || siteId;
+        ),
+        siteId
+      );
+      const siteName = sanitizedSiteName || 'Unknown location';
 
       const entry = {
         siteId,
@@ -548,7 +725,11 @@ const buildGridLocationLookup = (
       };
 
       bySiteId.set(normalizeLookupKey(siteId), entry);
-      bySiteName.set(normalizeLookupKey(siteName), entry);
+      // Register by name ONLY when a real name exists — the shared placeholder
+      // must never collide across distinct sites.
+      if (sanitizedSiteName) {
+        bySiteName.set(normalizeLookupKey(sanitizedSiteName), entry);
+      }
     });
   });
 
@@ -599,8 +780,6 @@ const normalizeCountryCityDownloadResponse = (
         : undefined);
 
     const resolvedSiteId = recordSiteId || matchedLookup?.siteId || '';
-    const resolvedSiteName =
-      recordSiteName || matchedLookup?.siteName || resolvedSiteId;
     const resolvedLocationName = getNormalizedString(
       record[gridLocationKey],
       record.country_name,
@@ -612,14 +791,19 @@ const normalizeCountryCityDownloadResponse = (
     const resolvedDeviceName = getNormalizedString(
       record.device_name,
       record.deviceName,
-      record.device,
-      record.device_id
+      record.device
     );
 
     return {
       ...record,
       site_id: resolvedSiteId,
-      site_name: resolvedSiteName,
+      // site_name falls back to the matched lookup name (re-sanitized in case
+      // a stale/legacy entry carried an ID), then a neutral placeholder —
+      // never the raw resolved ID.
+      site_name:
+        recordSiteName ||
+        sanitizeFallbackName(matchedLookup?.siteName, resolvedSiteId) ||
+        'Unknown location',
       [gridLocationKey]: resolvedLocationName || '',
       ...(resolvedDeviceName ? { device_name: resolvedDeviceName } : {}),
     };
@@ -664,25 +848,38 @@ const getApiErrorMessage = (error: unknown): string | undefined => {
 };
 
 const isNoDataDownloadError = (error: unknown): boolean => {
-  const message = getApiErrorMessage(error);
+  // The API signals "no data" in the response body message, but plain Error
+  // instances (or non-Axios failures) carry it on `message` instead.
+  const message = getApiErrorMessage(error) ?? (error as Error)?.message;
   return Boolean(message && /\bno data\b/i.test(message));
 };
 
-const shouldUseMetadataFallback = (error: unknown): boolean => {
+/**
+ * Decides whether a failed download may degrade to a metadata-only export.
+ *
+ * Server errors surface to the user: a 5xx is never retried and never
+ * fallback-ed into a metadata CSV — that would mask the outage behind a
+ * "No measurement data found" toast. Only an explicit "no data" response or
+ * a 404 (nothing to export for that period/location) falls back.
+ */
+export const shouldUseMetadataFallback = (error: unknown): boolean => {
+  const axiosError = error as AxiosError<ApiErrorResponse>;
+  const status = axiosError?.response?.status;
+
+  // 5xx — server failure, not an empty result set.
+  if (status !== undefined && status >= 500 && status < 600) {
+    return false;
+  }
+
   if (isNoDataDownloadError(error)) {
     return true;
   }
-
-  const axiosError = error as AxiosError<ApiErrorResponse>;
-  const status = axiosError?.response?.status;
 
   if (status === 401 || status === 403 || axiosError?.code === 'ERR_CANCELED') {
     return false;
   }
 
-  return (
-    status === 404 || (status !== undefined && status >= 500 && status < 600)
-  );
+  return status === 404;
 };
 
 const hasDownloadRecords = (
@@ -733,11 +930,12 @@ const getGridSiteNames = (
 
   // Use resolveGridSitesForDownload for the authoritative deduped/trimmed id
   // list so labels stay exactly 1:1 with the ids used for the request.
+  // A missing name falls back to a neutral label — never the raw ID.
   return resolveGridSitesForDownload(
     selectedGridIds,
     selectedGridSites,
     selectedGridSiteIds
-  ).map(siteId => siteIdToName.get(siteId) ?? siteId);
+  ).map(siteId => siteIdToName.get(siteId) ?? 'Unknown location');
 };
 
 const getCalendarDayDifference = (from: Date, to: Date) => {
@@ -783,9 +981,25 @@ const buildDownloadSummaryItems = (
   },
 ];
 
-const buildFilenameBase = (fileTitle: string, request: DataDownloadRequest) => {
+const buildFilenameBase = (
+  fileTitle: string,
+  request: DataDownloadRequest,
+  activeTab: TabType
+) => {
   const defaultFilename = `air-quality-data-${request.startDateTime.split('T')[0]}-to-${request.endDateTime.split('T')[0]}`;
-  return (fileTitle || defaultFilename).replace(/\.(csv|json|pdf|xlsx)$/i, '');
+  const base = (fileTitle || defaultFilename).replace(
+    /\.(csv|json|pdf|xlsx)$/i,
+    ''
+  );
+  // Append the active tab so sites/devices/countries/cities exports never
+  // collide on the same `…-metadata.csv` filename. A user-supplied title that
+  // already contains the tab (as a standalone segment) is left unchanged so the
+  // tab is never appended twice.
+  const hasTabSegment = base
+    .split(/[^a-z0-9]+/i)
+    .some(segment => segment.toLowerCase() === activeTab.toLowerCase());
+
+  return hasTabSegment ? base : `${base}-${activeTab}`;
 };
 
 const getDownloadColumnKeysForRequest = (
@@ -804,7 +1018,12 @@ const getDownloadColumnKeysForRequest = (
     return normalizedSelectedColumnKeys;
   }
 
-  const requiredLocationKeys = ['site_id', 'site_name', 'device_name'];
+  // Grid exports key the location off the country/city name, not site_id or
+  // device_name — those identifiers must not be added to the request.
+  const requiredLocationKeys =
+    activeTab === 'countries'
+      ? ['site_name', 'country_name']
+      : ['site_name', 'city_name'];
 
   return Array.from(
     new Set([...normalizedSelectedColumnKeys, ...requiredLocationKeys])
@@ -1038,7 +1257,7 @@ export const useDataExportActions = (
           request,
           response: normalizedFallbackResponse,
           selectedColumnKeys: undefined,
-          filenameBase: `${buildFilenameBase(fileTitle, request)}-metadata`,
+          filenameBase: `${buildFilenameBase(fileTitle, request, activeTab)}-metadata`,
           fallbackApplied: true,
           activeTab,
           locationCount: effectiveLocationCountFallback,
@@ -1097,7 +1316,7 @@ export const useDataExportActions = (
               : getGridSiteNames(
                   activeTab,
                   selectedGridIds,
-                  selectedGridSiteIds,
+                  effectiveSelectedGridSiteIds,
                   selectedGridSites,
                   activeTab === 'countries' ? countriesData : citiesData
                 );
@@ -1117,6 +1336,26 @@ export const useDataExportActions = (
               ? selectedDeviceIds.length
               : sitesForDownload.length;
 
+        // When some locations have no readings, merge metadata-only rows for
+        // exactly those missing IDs so the export includes every selected
+        // location. The merged response preserves status/message and updates
+        // the pagination metadata to reflect the full row count.
+        const responseWithMissingRecords = partialDataWarning
+          ? mergeMissingLocationRecords(
+              normalizedResponse,
+              activeTab,
+              partialDataWarning.missingIds,
+              partialDataWarning.missingNames,
+              selectedGridIds,
+              selectedGridSites,
+              effectiveSelectedGridSiteIds,
+              sitesData,
+              devicesData,
+              countriesData,
+              citiesData
+            )
+          : normalizedResponse;
+
         if (partialDataWarning) {
           const missingCount = partialDataWarning.missingNames.length;
           const totalCount = partialDataWarning.totalSelected;
@@ -1134,9 +1373,9 @@ export const useDataExportActions = (
 
         return {
           request,
-          response: normalizedResponse,
+          response: responseWithMissingRecords,
           selectedColumnKeys: downloadColumnKeys,
-          filenameBase: buildFilenameBase(fileTitle, request),
+          filenameBase: buildFilenameBase(fileTitle, request, activeTab),
           fallbackApplied: false,
           activeTab,
           locationCount: effectiveLocationCount,

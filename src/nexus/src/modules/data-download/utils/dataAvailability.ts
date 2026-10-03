@@ -6,6 +6,8 @@ export interface PartialDataWarning {
   totalSelected: number;
   withData: number;
   missingNames: string[];
+  /** Selected IDs aligned 1:1 with `missingNames` (original, not normalized). */
+  missingIds: string[];
 }
 
 type DownloadRecord = Record<string, unknown>;
@@ -36,10 +38,13 @@ const normalizeKey = (value: string): string =>
     .replace(/[\s.\-/]+/g, '_');
 
 const normalizeRecordKeys = (record: DownloadRecord): Record<string, unknown> =>
-  Object.entries(record).reduce((values, [key, value]) => {
-    values[normalizeKey(key)] = value;
-    return values;
-  }, {} as Record<string, unknown>);
+  Object.entries(record).reduce(
+    (values, [key, value]) => {
+      values[normalizeKey(key)] = value;
+      return values;
+    },
+    {} as Record<string, unknown>
+  );
 
 const pickNormalizedValue = (
   normalizedRecord: Record<string, unknown>,
@@ -67,10 +72,8 @@ const pickNormalizedValues = (
 const getRecordValue = (record: DownloadRecord, aliases: string[]): string =>
   pickNormalizedValue(normalizeRecordKeys(record), aliases);
 
-const getRecordValues = (
-  record: DownloadRecord,
-  aliases: string[]
-): string[] => pickNormalizedValues(normalizeRecordKeys(record), aliases);
+const getRecordValues = (record: DownloadRecord, aliases: string[]): string[] =>
+  pickNormalizedValues(normalizeRecordKeys(record), aliases);
 
 const getIdentifierAliases = (activeTab: TabType) => {
   if (activeTab === 'devices') {
@@ -173,11 +176,14 @@ export const getDataAvailability = (
   selectedLabels: string[],
   selectedPollutants?: string[]
 ): PartialDataWarning | undefined => {
-  // Pair IDs with labels before deduplication to preserve alignment
+  // Pair IDs with labels before deduplication to preserve alignment.
+  // `originalId` preserves the caller's raw ID string (not normalized) so
+  // downstream merge can rebuild metadata rows using the original identifier.
   const seenIds = new Set<string>();
   const selectedPairs = selectedIds
     .map((id, index) => ({
       id: normalizeValue(id),
+      originalId: String(id),
       label: selectedLabels[index]?.trim() || '',
     }))
     .filter(pair => {
@@ -197,6 +203,7 @@ export const getDataAvailability = (
       totalSelected: normalizedSelectedIds.length,
       withData: 0,
       missingNames: labels,
+      missingIds: selectedPairs.map(pair => pair.originalId),
     };
   }
 
@@ -223,14 +230,20 @@ export const getDataAvailability = (
     );
 
   if (canMatchById) {
-    const missingNames = labels.filter(
-      (_, index) => !responseIds.has(normalizedSelectedIds[index])
-    );
+    const missingNames: string[] = [];
+    const missingIds: string[] = [];
+    labels.forEach((label, index) => {
+      if (!responseIds.has(normalizedSelectedIds[index])) {
+        missingNames.push(label);
+        missingIds.push(selectedPairs[index].originalId);
+      }
+    });
 
     return {
       totalSelected: normalizedSelectedIds.length,
       withData: normalizedSelectedIds.length - missingNames.length,
       missingNames,
+      missingIds,
     };
   }
 
@@ -250,6 +263,7 @@ export const getDataAvailability = (
       totalSelected: 1,
       withData: 1,
       missingNames: [],
+      missingIds: [],
     };
   }
 
@@ -273,23 +287,27 @@ export const getDataAvailability = (
   );
 
   const matchedNameCounts = new Map<string, number>();
-  const missingNames = labels.filter(label => {
+  const missingNames: string[] = [];
+  const missingIds: string[] = [];
+  labels.forEach((label, index) => {
     const normalizedLabel = normalizeMatchLabel(label);
     const matchedCount = matchedNameCounts.get(normalizedLabel) || 0;
     const availableCount = responseNameCounts.get(normalizedLabel) || 0;
 
     if (matchedCount < availableCount) {
       matchedNameCounts.set(normalizedLabel, matchedCount + 1);
-      return false;
+      return;
     }
 
-    return true;
+    missingNames.push(label);
+    missingIds.push(selectedPairs[index].originalId);
   });
 
   return {
     totalSelected: normalizedSelectedIds.length,
     withData: normalizedSelectedIds.length - missingNames.length,
     missingNames,
+    missingIds,
   };
 };
 

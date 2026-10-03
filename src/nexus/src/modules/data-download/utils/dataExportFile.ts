@@ -4,10 +4,7 @@ import { areArraysEqual } from '@/shared/utils/arrays';
 import { TabType } from '../types/dataExportTypes';
 
 export type DownloadColumnGroupId =
-  | 'location'
-  | 'core'
-  | 'metadata'
-  | 'pollutants';
+  'location' | 'core' | 'metadata' | 'pollutants';
 
 export interface DownloadColumnOption {
   key: string;
@@ -45,6 +42,42 @@ export interface DownloadPdfOptions {
 }
 
 type DownloadRecord = Record<string, unknown>;
+
+/**
+ * Internal identifiers that must never appear in downloaded files — neither as
+ * columns nor as worksheet/sheet names nor as name fallbacks. Stripped from
+ * every parsed record in the file-build path (availability matching runs on
+ * the pre-strip records, so this set must NOT be applied there).
+ */
+const INTERNAL_ID_KEYS = new Set([
+  'site_id',
+  'siteId',
+  'device_id',
+  'deviceId',
+  '_id',
+  'id',
+  'grid_id',
+  'cohort_id',
+  '__v',
+]);
+
+const stripInternalIds = (record: DownloadRecord): DownloadRecord => {
+  const stripped: DownloadRecord = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (!INTERNAL_ID_KEYS.has(key)) {
+      stripped[key] = value;
+    }
+  }
+  return stripped;
+};
+
+const getFirstNormalizedString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    const result = getNormalizedString(value);
+    if (result) return result;
+  }
+  return undefined;
+};
 
 const formatBaseColumnLabel = (key: string) =>
   key
@@ -128,6 +161,53 @@ const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
     normalizedRecord[key] = sanitizeNumericString(normalizedRecord[key]);
   }
 
+  // Flatten nested site / siteDetails objects into a top-level site_name so
+  // exports never render `[object Object]`. The first non-empty candidate wins.
+  const nestedSite = isPlainObject(normalizedRecord['site'])
+    ? (normalizedRecord['site'] as DownloadRecord)
+    : undefined;
+  const nestedSiteDetails = isPlainObject(normalizedRecord['siteDetails'])
+    ? (normalizedRecord['siteDetails'] as DownloadRecord)
+    : undefined;
+  const nestedDevice = isPlainObject(normalizedRecord['device'])
+    ? (normalizedRecord['device'] as DownloadRecord)
+    : undefined;
+
+  const flattenedSiteName = getFirstNormalizedString(
+    normalizedRecord['site_name'],
+    normalizedRecord['siteName'],
+    normalizedRecord['name'],
+    normalizedRecord['search_name'],
+    normalizedRecord['formatted_name'],
+    normalizedRecord['location_name'],
+    nestedSite?.name,
+    nestedSite?.search_name,
+    nestedSite?.formatted_name,
+    nestedSite?.location_name,
+    nestedSiteDetails?.name,
+    nestedSiteDetails?.search_name,
+    nestedSiteDetails?.formatted_name,
+    nestedSiteDetails?.location_name
+  );
+  if (flattenedSiteName) {
+    normalizedRecord['site_name'] = flattenedSiteName;
+  }
+
+  const flattenedDeviceName = getFirstNormalizedString(
+    normalizedRecord['device_name'],
+    normalizedRecord['deviceName'],
+    nestedDevice?.name,
+    nestedDevice?.device_name
+  );
+  if (flattenedDeviceName) {
+    normalizedRecord['device_name'] = flattenedDeviceName;
+  }
+
+  // Drop the nested objects so they never reach a cell as `[object Object]`.
+  delete normalizedRecord['site'];
+  delete normalizedRecord['siteDetails'];
+  delete normalizedRecord['device'];
+
   const existingDatetime = getNormalizedString(normalizedRecord['datetime']);
   if (existingDatetime) {
     normalizedRecord['datetime'] = existingDatetime;
@@ -144,6 +224,11 @@ const normalizeDownloadRecord = (record: DownloadRecord): DownloadRecord => {
     getNormalizedString(normalizedRecord['week_end']) ||
     getNormalizedString(normalizedRecord['week']) ||
     getNormalizedString(normalizedRecord['month']) ||
+    // Yearly/quarterly rows carry no datetime/date/time field — the API
+    // returns only `year` (e.g. `{ frequency: 'yearly', year: 2026 }`), so
+    // these keep the exported `datetime` cell from coming out empty.
+    getNormalizedString(normalizedRecord['year']) ||
+    getNormalizedString(normalizedRecord['quarter']) ||
     getNormalizedString(normalizedRecord['period_start']) ||
     getNormalizedString(normalizedRecord['period_end']) ||
     getNormalizedString(normalizedRecord['period']) ||
@@ -291,9 +376,13 @@ const escapeCsvValue = (value: unknown) => {
   const stringValue = String(value);
   const trimmedValue = stringValue.trimStart();
   const firstVisibleCharacter = trimmedValue[0];
+  // Neutralize formula-triggering leading characters. Genuine negative
+  // numbers are handled by the numeric-string fast path above and never
+  // reach this branch.
   const needsNeutralize =
     firstVisibleCharacter === '=' ||
     firstVisibleCharacter === '+' ||
+    firstVisibleCharacter === '-' ||
     firstVisibleCharacter === '@' ||
     stringValue.charAt(0) === '\t' ||
     stringValue.charAt(0) === '\r';
@@ -371,8 +460,18 @@ const resolveSelectedHeaders = (
     return availableHeaders;
   }
 
-  const selectedHeaders = normalizedSelectedColumnKeys.flatMap(key => {
+  // Return exactly the configured columns, in order, deduped. A key that is
+  // not present in the data is kept as-is so it still appears as an empty
+  // column rather than being silently dropped or widening the export.
+  //
+  // An `emitted` Set guards against duplicates that arise when a selected
+  // bare key expands into sensor aliases AND one of those aliases was also
+  // selected directly (e.g. selecting both 'pm2_5' and 's1_pm2_5').
+  const emitted = new Set<string>();
+  return normalizedSelectedColumnKeys.flatMap(key => {
     if (availableHeaders.includes(key)) {
+      if (emitted.has(key)) return [];
+      emitted.add(key);
       return [key];
     }
 
@@ -381,28 +480,29 @@ const resolveSelectedHeaders = (
     );
 
     if (sensorAliasHeaders.length > 0) {
-      return sensorAliasHeaders;
+      const newAliases = sensorAliasHeaders.filter(
+        alias => !emitted.has(alias)
+      );
+      newAliases.forEach(alias => emitted.add(alias));
+      return newAliases;
     }
 
-    return [];
+    if (emitted.has(key)) return [];
+    emitted.add(key);
+    return [key];
   });
-
-  if (selectedHeaders.length === 0) {
-    if (availableHeaders.length > 0) {
-      return availableHeaders;
-    }
-
-    throw new Error(
-      'None of the selected export columns match the available data columns.'
-    );
-  }
-
-  return selectedHeaders;
 };
 
 const extractDownloadRecords = (response: DataDownloadResponse | string) => {
+  // Strip internal identifiers from every record BEFORE headers are computed
+  // so site_id / device_id / grid_id / cohort_id / _id never leak into
+  // downloaded files. The responseObject (used for JSON exports) is rebuilt
+  // from the same stripped records.
+  const stripRecords = (records: DownloadRecord[]): DownloadRecord[] =>
+    records.map(stripInternalIds);
+
   if (typeof response === 'string') {
-    const records = parseDownloadResponseRecords(response);
+    const records = stripRecords(parseDownloadResponseRecords(response));
     const trimmedResponse = response.trim();
     const isJsonResponse =
       trimmedResponse.startsWith('{') || trimmedResponse.startsWith('[');
@@ -430,7 +530,7 @@ const extractDownloadRecords = (response: DataDownloadResponse | string) => {
     };
   }
 
-  const records = parseDownloadResponseRecords(response);
+  const records = stripRecords(parseDownloadResponseRecords(response));
 
   return {
     records,
@@ -452,7 +552,9 @@ export const getDownloadColumnGroups = (
       ? { key: 'site_name', label: 'Site name' }
       : activeTab === 'devices'
         ? { key: 'device_name', label: 'Device name' }
-        : { key: 'site_name', label: 'Site name' };
+        : activeTab === 'countries'
+          ? { key: 'country_name', label: 'Country' }
+          : { key: 'city_name', label: 'City' };
 
   const uniquePollutants = Array.from(
     new Set(selectedPollutants.filter(Boolean))
@@ -879,6 +981,8 @@ const buildWorksheetXml = (headers: string[], records: DownloadRecord[]) => {
 };
 
 const getWorksheetGroupName = (record: DownloadRecord, activeTab: TabType) => {
+  // Internal identifiers are never used as worksheet/sheet names — only
+  // human-readable names, falling back to a neutral label.
   const keyCandidates: Record<TabType, string[]> = {
     sites: [
       'site_name',
@@ -886,15 +990,13 @@ const getWorksheetGroupName = (record: DownloadRecord, activeTab: TabType) => {
       'search_name',
       'formatted_name',
       'name',
-      'site_id',
     ],
-    devices: ['device_name', 'device_id', 'site_name', 'site_id'],
+    devices: ['device_name', 'site_name'],
     countries: [
       'site_name',
       'location_name',
       'search_name',
       'formatted_name',
-      'site_id',
       'country_name',
       'country',
     ],
@@ -903,7 +1005,6 @@ const getWorksheetGroupName = (record: DownloadRecord, activeTab: TabType) => {
       'location_name',
       'search_name',
       'formatted_name',
-      'site_id',
       'city_name',
       'city',
     ],
@@ -1128,8 +1229,6 @@ export const buildDownloadXlsxBlob = (
 };
 
 const MAX_PDF_CELL_TEXT_LENGTH = 180;
-const MAX_PDF_COLUMNS_PER_SECTION = 7;
-const MAX_PDF_REPEAT_COLUMNS = 2;
 
 const truncatePdfText = (value: string) => {
   if (value.length <= MAX_PDF_CELL_TEXT_LENGTH) {
@@ -1155,25 +1254,17 @@ const formatPdfValue = (value: unknown): string => {
   return truncatePdfText(String(value));
 };
 
-const getPdfRepeatHeaders = (headers: string[]) => {
-  const preferredHeaders = [
-    'site_name',
-    'device_name',
-    'country_name',
-    'city_name',
-    'datetime',
-    'site_id',
-    'device_id',
-  ];
-  const repeatHeaders = preferredHeaders.filter(header =>
-    headers.includes(header)
-  );
-
-  if (repeatHeaders.length > 0) {
-    return repeatHeaders.slice(0, MAX_PDF_REPEAT_COLUMNS);
-  }
-
-  return headers.slice(0, Math.min(1, headers.length));
+/**
+ * Scale PDF font size and cell padding by column count so wide exports stay
+ * legible on a single horizontal page. Pure helper — exported for testing.
+ */
+export const getPdfTableLayout = (
+  columnCount: number
+): { fontSize: number; cellPadding: number } => {
+  if (columnCount <= 8) return { fontSize: 8, cellPadding: 4 };
+  if (columnCount <= 11) return { fontSize: 7, cellPadding: 3 };
+  if (columnCount <= 14) return { fontSize: 6, cellPadding: 2.5 };
+  return { fontSize: 5.5, cellPadding: 2 };
 };
 
 export const buildDownloadPdfBlob = async (
@@ -1217,8 +1308,7 @@ export const buildDownloadPdfBlob = async (
   const summaryRows = Math.ceil(summaryItems.length / 2);
   const headerLineY = summaryItems.length > 0 ? 62 + summaryRows * 12 + 8 : 60;
   const tableStartY = summaryItems.length > 0 ? headerLineY + 12 : 78;
-  const repeatHeaders = getPdfRepeatHeaders(selectedHeaders);
-  const isWideTable = selectedHeaders.length > MAX_PDF_COLUMNS_PER_SECTION;
+  const { fontSize, cellPadding } = getPdfTableLayout(selectedHeaders.length);
 
   autoTable(doc, {
     head: [selectedHeaders.map(formatColumnLabel)],
@@ -1228,18 +1318,16 @@ export const buildDownloadPdfBlob = async (
     startY: tableStartY,
     margin: { top: tableStartY, left: margin, right: margin, bottom: 44 },
     theme: 'grid',
-    tableWidth: 'auto',
-    horizontalPageBreak: isWideTable,
-    horizontalPageBreakRepeat: repeatHeaders,
+    tableWidth: 'wrap',
+    showHead: 'everyPage',
     styles: {
       font: 'helvetica',
-      fontSize: isWideTable ? 7.5 : 8,
-      cellPadding: 4,
+      fontSize,
+      cellPadding,
       textColor: [30, 41, 59],
       lineColor: [226, 232, 240],
       overflow: 'linebreak',
       valign: 'top',
-      minCellWidth: isWideTable ? 58 : 34,
       minCellHeight: 18,
     },
     headStyles: {
