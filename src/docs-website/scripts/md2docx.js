@@ -48,10 +48,13 @@ const SRC = (() => {
 })();
 
 const OUT = (() => {
-  if (process.argv[3]) return path.resolve(process.cwd(), process.argv[3]);
-  const dir = path.join(ROOT, "build-docx");
-  fs.mkdirSync(dir, { recursive: true });
-  return path.join(dir, path.basename(SRC).replace(/\.mdx?$/, "") + ".docx");
+  const out = process.argv[3]
+    ? path.resolve(process.cwd(), process.argv[3])
+    : path.join(ROOT, "build-docx", path.basename(SRC).replace(/\.mdx?$/, "") + ".docx");
+  const same = out === SRC || (fs.existsSync(out) && fs.realpathSync.native(out) === fs.realpathSync.native(SRC));
+  if (same) usage(`output "${out}" is the input page; refusing to overwrite it`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  return out;
 })();
 
 // US Letter with 1" margins
@@ -80,9 +83,16 @@ const CALLOUT = {
 function resolveHref(href) {
   if (/^(https?:|mailto:)/.test(href)) return href;
   if (href.startsWith("/")) return SITE + href;           // /vertex/... -> site absolute
-  // ./getting-started/access-beacon.md -> sibling page under /beacon/
-  const clean = href.replace(/^\.\//, "").replace(/\.mdx?$/, "");
-  return `${SITE}/${REL[0]}/${clean}`;
+  // Relative targets resolve from the source page's folder, as Docusaurus does:
+  // ../analysis/maintenance.md from beacon/monitoring/ -> /beacon/analysis/maintenance.
+  // A bare #fragment points at the current page.
+  const hashAt = href.indexOf("#");
+  const target = hashAt === -1 ? href : href.slice(0, hashAt);
+  const hash = hashAt === -1 ? "" : href.slice(hashAt);
+  const page = target
+    ? path.posix.join(path.posix.dirname(REL.join("/")), target.replace(/\.mdx?$/, ""))
+    : REL.join("/");
+  return `${SITE}/${page}${hash}`;
 }
 
 /** Splits inline Markdown into docx runs. Handles **bold**, `code`, and [text](url). */
@@ -193,9 +203,12 @@ function tableBlock(rows) {
   const weights = rows[0].map((_, i) =>
     Math.max(...rows.map(r => (r[i] || "").replace(/\*\*|`/g, "").length)) || 1);
   const total = weights.reduce((a, b) => a + b, 0);
-  let widths = weights.map(w => Math.max(1100, Math.round((w / total) * CONTENT_WIDTH)));
-  const drift = CONTENT_WIDTH - widths.reduce((a, b) => a + b, 0);
-  widths[widths.length - 1] += drift; // force exact sum
+  // Every column gets a floor, then the rest is shared by weight. Flooring each share
+  // leaves a non-negative remainder for the last column, so widths stay positive and sum exactly.
+  const minCol = Math.min(1100, Math.floor(CONTENT_WIDTH / cols));
+  const spare = CONTENT_WIDTH - minCol * cols;
+  const widths = weights.map(w => minCol + Math.floor((w / total) * spare));
+  widths[widths.length - 1] += CONTENT_WIDTH - widths.reduce((a, b) => a + b, 0);
 
   const border = { style: BorderStyle.SINGLE, size: 4, color: COLORS.tableBorder };
   return new Table({
