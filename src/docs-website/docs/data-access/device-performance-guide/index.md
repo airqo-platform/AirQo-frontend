@@ -44,5 +44,6 @@ All collected data is wirelessly transmitted to our secure cloud platform, makin
 - [Data Availability Targets](./data-availability-targets.md) — the share of expected data points you can expect to receive.
 - [Maintenance & Support](./maintenance-and-support.md) — maintenance responsibilities and cost options.
 - [Factors Affecting Performance](./factors-affecting-performance.md) — environmental conditions that influence uptime and data availability.
+- [What's Included & Onboarding](./package-inclusions-and-onboarding.md) — platform access, SIM card connectivity, onboarding and remote support included with your monitors.
 
 *This document is prepared by AirQo, Makerere University. For the latest information: https://airqo.africa | Contact: [support@airqo.net](mailto:support@airqo.net)*
