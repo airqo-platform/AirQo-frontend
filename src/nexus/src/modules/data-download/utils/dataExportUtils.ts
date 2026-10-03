@@ -70,6 +70,24 @@ const getFirstNonEmptyString = (...values: unknown[]): string | undefined => {
   return undefined;
 };
 
+/**
+ * Accessible checkbox label for a table row. Skips the `--` placeholder
+ * (which is truthy and would otherwise win the `||` chain), blank values and
+ * 24-hex Mongo IDs so the label stays human-readable and never leaks a raw
+ * identifier. Pure helper — exported for testing.
+ */
+export const getTableItemSelectionLabel = (item: {
+  [key: string]: unknown;
+  name?: unknown;
+  site_name?: unknown;
+  device_name?: unknown;
+}): string => {
+  const candidates = [item.name, item.site_name, item.device_name]
+    .map(value => String(value ?? '').trim())
+    .filter(value => value && value !== '--' && !/^[0-9a-f]{24}$/i.test(value));
+  return candidates[0] || 'location';
+};
+
 export const getSiteDisplayName = (site?: SiteNameSource): string => {
   const canonicalName = getCanonicalSiteDisplayName({
     search_name: site?.search_name as string | undefined,
