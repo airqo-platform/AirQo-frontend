@@ -1,4 +1,58 @@
-import { getSiteNavigationData, processSitesData } from '../dataExportUtils';
+import {
+  getSiteNavigationData,
+  getTableItemSelectionLabel,
+  processSitesData,
+} from '../dataExportUtils';
+
+describe('getTableItemSelectionLabel', () => {
+  it('prefers a usable name over the other candidates', () => {
+    expect(
+      getTableItemSelectionLabel({
+        name: 'Kawempe Division',
+        site_name: 'Something else',
+      })
+    ).toBe('Kawempe Division');
+  });
+
+  it('skips the "--" placeholder in favor of site_name', () => {
+    expect(
+      getTableItemSelectionLabel({ name: '--', site_name: 'Siavonga' })
+    ).toBe('Siavonga');
+  });
+
+  it('skips blank and whitespace-only values', () => {
+    expect(
+      getTableItemSelectionLabel({
+        name: '   ',
+        site_name: '',
+        device_name: '  Device 1  ',
+      })
+    ).toBe('Device 1');
+  });
+
+  it('skips raw 24-hex identifiers', () => {
+    expect(
+      getTableItemSelectionLabel({
+        name: '64f1a2b3c4d5e6f7a8b9c0d1',
+        site_name: 'Nakawa',
+      })
+    ).toBe('Nakawa');
+  });
+
+  it('falls back to "location" when every candidate is invalid', () => {
+    expect(getTableItemSelectionLabel({ name: '--', site_name: null })).toBe(
+      'location'
+    );
+    expect(
+      getTableItemSelectionLabel({
+        name: '',
+        site_name: '   ',
+        device_name: '5f8d2a1b9c0e3d4f6a7b8c9d',
+      })
+    ).toBe('location');
+    expect(getTableItemSelectionLabel({})).toBe('location');
+  });
+});
 
 describe('processSitesData', () => {
   it('uses the canonical site document ID before legacy site_id values', () => {

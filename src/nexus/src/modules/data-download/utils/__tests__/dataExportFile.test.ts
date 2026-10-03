@@ -2,6 +2,7 @@ import {
   parseDownloadResponseRecords,
   parseDownloadCsvRows,
   buildDownloadFileContent,
+  getPdfColumnWidth,
   getPdfTableLayout,
 } from '../dataExportFile';
 import type { DataDownloadResponse } from '@/shared/types/api';
@@ -368,5 +369,22 @@ describe('getPdfTableLayout', () => {
   it('uses 5.5pt/2 padding for more than 14 columns', () => {
     expect(getPdfTableLayout(15)).toEqual({ fontSize: 5.5, cellPadding: 2 });
     expect(getPdfTableLayout(20)).toEqual({ fontSize: 5.5, cellPadding: 2 });
+  });
+});
+
+describe('getPdfColumnWidth', () => {
+  it('splits the content width evenly across the columns', () => {
+    expect(getPdfColumnWidth(770, 10)).toBe(77);
+    expect(getPdfColumnWidth(770, 1)).toBe(770);
+  });
+
+  it('returns the full content width when there are no columns', () => {
+    expect(getPdfColumnWidth(770, 0)).toBe(770);
+  });
+
+  it('column count times width equals the content width', () => {
+    [1, 2, 4, 5, 10, 20].forEach(columnCount => {
+      expect(getPdfColumnWidth(770, columnCount) * columnCount).toBe(770);
+    });
   });
 });

@@ -1267,6 +1267,16 @@ export const getPdfTableLayout = (
   return { fontSize: 5.5, cellPadding: 2 };
 };
 
+/**
+ * Equal width for every PDF table column so the table occupies exactly the
+ * content width regardless of column count — no wrapping can push it past the
+ * page. Pure helper — exported for testing.
+ */
+export const getPdfColumnWidth = (
+  contentWidth: number,
+  columnCount: number
+): number => (columnCount > 0 ? contentWidth / columnCount : contentWidth);
+
 export const buildDownloadPdfBlob = async (
   response: DataDownloadResponse | string,
   selectedColumnKeys?: string[],
@@ -1318,8 +1328,14 @@ export const buildDownloadPdfBlob = async (
     startY: tableStartY,
     margin: { top: tableStartY, left: margin, right: margin, bottom: 44 },
     theme: 'grid',
-    tableWidth: 'wrap',
+    tableWidth: contentWidth,
     showHead: 'everyPage',
+    columnStyles: Object.fromEntries(
+      selectedHeaders.map((_, index) => [
+        index,
+        { cellWidth: getPdfColumnWidth(contentWidth, selectedHeaders.length) },
+      ])
+    ),
     styles: {
       font: 'helvetica',
       fontSize,
