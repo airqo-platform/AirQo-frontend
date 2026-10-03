@@ -9,7 +9,7 @@ Beacon uses the same AirQo account and the same workspaces as [Vertex](/vertex/i
 ## Prerequisites
 
 * An AirQo account. If you don't have one, create it at [analytics.airqo.net](https://analytics.airqo.net/user/creation/individual/register).
-* At least one monitor registered in Vertex. See [The Beneficiary Journey](../beneficiary-journey.md) if you haven't done this yet.
+* To see a fleet once you're in, at least one monitor registered in Vertex. You can sign in without one, but Beacon will have nothing to show. See [The Beneficiary Journey](../beneficiary-journey.md) if you haven't registered any yet.
 
 ## Steps to Sign In
 

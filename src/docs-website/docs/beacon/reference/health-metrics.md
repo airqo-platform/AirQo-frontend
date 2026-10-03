@@ -21,7 +21,7 @@ Two consequences worth knowing:
 
 The share of monitors transmitting, derived from the proportion **not** transmitting. Only the fully offline **Not transmitting** state counts against it — see [Device States](./device-states.md).
 
-An online rate is an average, and averages hide distribution. Ten monitors at 90% and nine at 99% with one dead both average out respectably. The **Uptime Range (Min–Max)** column on the dashboard is what separates them, and it's usually the more actionable number.
+Online rate is a snapshot of how many monitors are transmitting, not a measure of how reliably each one reports. For reliability, look at uptime — and remember that an average uptime hides distribution. Ten monitors at 90%, and nine at 99% with one dead, both average about 90%. The **Uptime Range (Min–Max)** column on the dashboard is what separates them, and it's usually the more actionable number.
 
 ### Alert Levels
 

@@ -34,7 +34,7 @@ Four controls narrow the list.
 A practical order:
 
 1. Set **Critical** and **Today** to see what needs action now.
-2. Widen to **Last 7 days** and keep **Critical** — anything still open after a week is either genuinely stuck or needs escalating.
+2. Widen to **All time** and keep **Critical** — anything still open after a week is either genuinely stuck or needs escalating.
 3. Switch to **Warning** over **Last 30 days** to catch monitors degrading slowly. These are the cheapest problems to fix, because you can plan for them rather than react.
 4. Use **Resolved** when you need to show what was fixed and when.
 
@@ -58,7 +58,7 @@ Alerts tell you what's wrong; the [maintenance map](../analysis/maintenance.md) 
 
 **Problem**: The list is empty.
 
-**Solution**: Widen the time window — the default may be narrower than the period you're interested in. An empty list at **All time** with no filters usually means the workspace filter is scoping you to a fleet that has none.
+**Solution**: Widen the time window — the default may be narrower than the period you're interested in. If **All time** with no other filters is still empty, check the workspace switcher; you may be in a workspace that doesn't hold your monitors. If the workspace is right, your fleet simply hasn't raised any alerts in the 90 days that alert records are kept.
 
 ## What's Next
 

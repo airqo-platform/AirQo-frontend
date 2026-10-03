@@ -21,7 +21,7 @@ Your monitors do **not** have to be AirQo hardware. Vertex represents every hard
 | 7 | Beacon | Sign in and confirm your fleet is reporting |
 | 8 | Beacon | Monitor health, maintain, and report |
 
-Stages 1–6 happen in [Vertex](https://vertex.airqo.net). Stages 7–8 happen in [Beacon](https://beacon.airqo.net). One account covers both.
+Stage 1 happens on [AirQo Analytics](https://analytics.airqo.net). Stages 2–6 happen in [Vertex](https://vertex.airqo.net), and stages 7–8 in [Beacon](https://beacon.airqo.net). One account covers all three.
 
 ---
 
