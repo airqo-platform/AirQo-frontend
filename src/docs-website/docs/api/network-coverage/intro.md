@@ -1,20 +1,32 @@
 ---
 sidebar_position: 1
 sidebar_label: Overview
+description: A shared, Africa-wide registry of air quality monitors, including community-submitted monitors from any manufacturer or operator — read it to map coverage and gaps, or contribute monitors to it.
 ---
 
 # Network Coverage API
 
-This is a shared record of the **air quality monitoring landscape across Africa** — not a list of AirQo devices. Reference-grade instruments, low-cost sensors, and equipment from any manufacturer or operator (national ministries, embassies, universities, city authorities, other sensor networks) all live in the same backend, tagged with who runs them and who made them. [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage) is simply the first interactive map built on top of it.
+**Where is air quality being monitored across Africa, by whom, and where are the gaps?** The Network Coverage API answers that question with a single shared registry of air quality monitors across the continent. It can include reference-grade instruments and low-cost sensors from any manufacturer or operator, many of them submitted by the community, whether national ministries, embassies, universities, city authorities or other sensor networks, not only AirQo's own devices. Each monitor is tagged with who runs it and who made it.
 
-The point of documenting it here is to let it be reused: any organisation with a stake in the continent's air quality picture — a UN agency, the Clean Air Fund, the Clean Air Network, EPIC, a national environment agency, a research institution — can pull this same data into their own site, and can contribute monitors their partners run that AirQo doesn't know about. One shared backend, fed and read by many client-facing apps, gives everyone a more complete picture than any single site maintaining its own list.
+The registry works **both ways**. You can read from it to power your own map, report or dashboard, and you can add monitors to it that AirQo doesn't yet know about. Every site built on the registry draws from and adds to the same dataset, so the picture of monitoring across Africa gets more complete each time someone uses it. [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage) is the first interactive map built on the registry; it is not the only one meant to exist.
+
+## Built for
+
+| You are... | You use it to... |
+|------------|------------------|
+| **A funder or coalition** (e.g. Clean Air Fund, Clean Air Network, EPIC) | See where monitoring already exists, spot countries and cities with little or no coverage, and target investment |
+| **A multilateral or government body** (e.g. a UN agency, a national environment agency) | Embed a continent-wide or national view of monitoring infrastructure in your own platform or reporting |
+| **A monitor operator** (e.g. a university, embassy, city authority or independent network) | Get your monitors counted on the shared map by [submitting them to the registry](./community-registry.md) |
+| **A researcher or analyst** | Pull an inventory of monitors by country, type, operator and manufacturer for landscape studies, as JSON or [CSV](./csv-export.md) |
+
+If you're building something for one of these audiences, such as a website, app or report, the same endpoints apply.
 
 :::tip New to the AirQo API?
 This page assumes you already know how authentication and requests work. If you haven't yet, start with [AirQo API →](../intro.md) for the fundamentals, then come back here.
 :::
 
 :::info This is location and monitor metadata, not air-quality readings
-Every endpoint here answers "what monitors exist, where, and run by whom" — not "what is the air quality right now." If you already have a monitor's identifiers and want its actual readings, that's the [Analytics API](../analytics-api/raw-data.md) or [Forecast API](../forecasts/overview.md) instead. In that sense this API is a sibling of the [Metadata API →](../reference/metadata.md): Metadata covers AirQo's own registered grids, cohorts, sites, and devices; Network Coverage covers the same *kind* of information — monitor identity and location — extended to every manufacturer and operator across Africa, not just AirQo's fleet.
+Every endpoint here answers "what monitors exist, where, and run by whom" — not "what is the air quality right now." If you already have a monitor's identifiers and want its actual readings, that's the [Analytics API](../analytics-api/raw-data.md) or [Forecast API](../forecasts/overview.md) instead. In that sense this API is a sibling of the [Metadata API →](../reference/metadata.md): Metadata covers AirQo's own registered grids, cohorts, sites, and devices; Network Coverage covers the same *kind* of information — monitor identity and location — extended to monitors from any manufacturer or operator across Africa, not just AirQo's fleet.
 :::
 
 ---
@@ -30,7 +42,7 @@ Every endpoint here answers "what monitors exist, where, and run by whom" — no
 3. **Monitor detail** — clicking a monitor shows its full profile: operator, equipment, manufacturer, pollutants measured, sampling resolution, transmission method, deployment date, calibration history, 30-day uptime, co-location status, and whether its data is publicly viewable (with a link to view live data, where available).
 4. **Impact statistics** — aggregate numbers behind the map: total monitors, breakdown by type and status, countries and cities covered, estimated population reached, and a breakdown **by sensor manufacturer** — this is a cross-manufacturer dataset by design, not an AirQo fleet count.
 5. **Export** — the current filtered view can be downloaded as a PDF (map snapshot + data table) or CSV.
-6. **Community submissions** — anyone, on any site built on this API, can add a monitor to the shared registry directly (name, location, operator, equipment, pollutants), protected by hCaptcha. This is how the dataset stays complete — it doesn't rely on AirQo alone to know about every monitor on the continent. Contributing your own AirQo-owned device is a separate, more involved flow — see [Deploy to a Site](../../vertex/device-deployment/deploy-to-site.md) for that.
+6. **Community submissions** — anyone, on any site built on this API, can add a monitor to the shared registry directly (name, location, operator, equipment, pollutants), protected by hCaptcha. This is how the dataset grows — it doesn't rely on AirQo alone to know about monitors on the continent. Contributing your own AirQo-owned device is a separate, more involved flow — see [Deploy to a Site](../../vertex/device-deployment/deploy-to-site.md) for that.
 
 Everything below maps one of those features to the endpoint behind it.
 
