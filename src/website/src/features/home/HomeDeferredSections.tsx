@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 const StatisticsSection = dynamic(() => import('./HomeStatsSection'), {
   ssr: false,
   loading: () => (
-    <div className="min-h-[58rem] w-full rounded-[2rem] bg-[#ECF2FF] animate-pulse" />
+    <div className="min-h-[38rem] w-full rounded-[2rem] bg-[#ECF2FF] animate-pulse" />
   ),
 });
 
