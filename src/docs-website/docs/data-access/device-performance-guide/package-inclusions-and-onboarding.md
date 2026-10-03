@@ -67,3 +67,13 @@ To request support or a follow-up call, email [support@airqo.net](mailto:support
 :::note Warranty and contract terms
 The equipment warranty, including its duration and coverage, is set out in your purchase agreement or quotation. For a copy of the warranty terms that apply to your order, contact [support@airqo.net](mailto:support@airqo.net).
 :::
+
+---
+
+## Next Steps
+
+Once your monitors arrive:
+
+1. [Claim your devices](../device-claiming-guide/index.md) onto your organisation's account.
+2. [Deploy each device to a site](../../vertex/device-deployment/deploy-to-site.md) using AirQo Vertex.
+3. Review the [uptime](./device-uptime-targets.md) and [data availability](./data-availability-targets.md) targets so you know what performance to expect.
