@@ -5,7 +5,15 @@ import dynamic from "next/dynamic"
 import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
-import { calculateNearestNeighborRoute, Coordinates } from "@/utils/routing-utils"
+import {
+  calculateNearestNeighborRoute,
+  calculateRoadRoute,
+  getCurrentPosition,
+  formatDistanceKm,
+  formatDurationMin,
+  Coordinates,
+  RoadRoute,
+} from "@/utils/routing-utils"
 import { useToast } from "@/hooks/use-toast"
 import { useGroup } from "@/lib/group-context"
 import { LoRaWANGatewayDialog } from "@/components/maintenance/lorawan-gateway-dialog"
@@ -21,7 +29,7 @@ import {
   calculateSignalAttenuation,
   KAMPALA_SAMPLE_GATEWAYS,
 } from "@/utils/lorawan-utils"
-import { CheckCircle2, ArrowRight, X, PanelLeftOpen, PanelLeftClose, Map as MapIcon, List, ChevronUp, ChevronDown } from "lucide-react"
+import { CheckCircle2, ArrowRight, X, PanelLeftOpen, PanelLeftClose, Map as MapIcon, List, ChevronUp, ChevronDown, Navigation } from "lucide-react"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
@@ -34,6 +42,23 @@ const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenanc
 })
 
 const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office (Kampala)" }
+
+/** Arrow between itinerary stops, labelled with the leg's road distance when known. */
+function RouteLegArrow({ leg }: { leg?: { distanceKm: number; durationMin: number } }) {
+  return (
+    <div
+      className="flex flex-col items-center flex-shrink-0 min-w-[28px]"
+      title={leg ? `${formatDistanceKm(leg.distanceKm)} · ${formatDurationMin(leg.durationMin)}` : undefined}
+    >
+      <ArrowRight className="w-3 h-3 text-gray-300" />
+      {leg && (
+        <span className="text-[8px] font-semibold text-gray-400 leading-none mt-0.5 whitespace-nowrap">
+          {formatDistanceKm(leg.distanceKm)}
+        </span>
+      )}
+    </div>
+  )
+}
 
 export default function MaintenancePage() {
   const { toast } = useToast()
@@ -68,7 +93,20 @@ export default function MaintenancePage() {
   // --- ROUTING STATE ---
   const [routePath, setRoutePath] = useState<MaintenanceMapItem[]>([])
   const [isRouting, setIsRouting] = useState(false)
-  const [homeLocation] = useState<Coordinates & { name?: string }>(DEFAULT_HOME_LOCATION)
+  const [routeStartMode, setRouteStartMode] = useState<"office" | "current">("office")
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null)
+  const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null)
+  const [routeSummary, setRouteSummary] = useState<Pick<RoadRoute, "distanceKm" | "durationMin" | "legs"> | null>(null)
+  const routeAbortRef = useRef<AbortController | null>(null)
+
+  // The route starts (and ends) at the head office unless the user opted to start from their own position.
+  const homeLocation = useMemo<Coordinates & { name?: string }>(
+    () =>
+      routeStartMode === "current" && currentLocation
+        ? { ...currentLocation, name: "My Location" }
+        : DEFAULT_HOME_LOCATION,
+    [routeStartMode, currentLocation]
+  )
 
   // --- POLYGON SELECTION STATE ---
   const [polygonSelectedDevices, setPolygonSelectedDevices] = useState<MaintenanceMapItem[]>([])
@@ -304,8 +342,9 @@ export default function MaintenancePage() {
     return computeGatewayCoverageStats(gateways, filteredMapData)
   }, [gateways, filteredMapData])
 
-  // Route calculation
-  const calculateRoute = (devices?: MaintenanceMapItem[]) => {
+  // Route calculation: orders stops and draws the path along real roads (OSRM),
+  // falling back to straight-line nearest neighbour when the road service is unavailable.
+  const calculateRoute = async (devices?: MaintenanceMapItem[]) => {
     const source = devices || (selectedDeviceIds.length > 0
       ? filteredMapData.filter((d) => selectedDeviceIds.includes(d.device_id))
       : filteredMapData)
@@ -319,13 +358,11 @@ export default function MaintenancePage() {
       return
     }
 
-    setIsRouting(true)
     const validDevices = source.filter(
-      (item) => item.latitude != null && item.longitude != null
+      (item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))
     )
 
     if (validDevices.length === 0) {
-      setIsRouting(false)
       toast({
         title: "Routing Error",
         description: "No devices with valid coordinates found in this view.",
@@ -334,25 +371,71 @@ export default function MaintenancePage() {
       return
     }
 
+    routeAbortRef.current?.abort()
+    const controller = new AbortController()
+    routeAbortRef.current = controller
+    setIsRouting(true)
+
+    // Resolve the start point
+    let start: Coordinates & { name?: string } = DEFAULT_HOME_LOCATION
+    if (routeStartMode === "current") {
+      try {
+        const pos = await getCurrentPosition()
+        setCurrentLocation(pos)
+        start = { ...pos, name: "My Location" }
+      } catch (err) {
+        toast({
+          title: "Location unavailable",
+          description: `${err instanceof Error ? err.message : "Could not get your location"}. Starting from ${DEFAULT_HOME_LOCATION.name} instead.`,
+          variant: "destructive",
+        })
+        setRouteStartMode("office")
+      }
+    }
+
     const routePoints = validDevices.map((d) => ({
       ...d,
       id: d.device_id,
-      latitude: d.latitude!,
-      longitude: d.longitude!,
+      latitude: Number(d.latitude),
+      longitude: Number(d.longitude),
     }))
 
-    const optimized = calculateNearestNeighborRoute(homeLocation, routePoints)
-    setRoutePath(optimized as unknown as MaintenanceMapItem[])
-
-    toast({
-      title: "Route Optimized",
-      description: `Optimized itinerary generated for ${optimized.length} stops.`,
-    })
+    try {
+      const road = await calculateRoadRoute(start, routePoints, controller.signal)
+      if (controller.signal.aborted) return
+      setRoutePath(road.order as unknown as MaintenanceMapItem[])
+      setRouteGeometry(road.geometry)
+      setRouteSummary({ distanceKm: road.distanceKm, durationMin: road.durationMin, legs: road.legs })
+      toast({
+        title: "Route Optimized",
+        description: `${road.order.length} stops · ${formatDistanceKm(road.distanceKm)} · about ${formatDurationMin(road.durationMin)} driving.`,
+      })
+    } catch (err) {
+      if (controller.signal.aborted) return
+      console.warn("Road routing unavailable, using straight-line route:", err)
+      const optimized = calculateNearestNeighborRoute(start, routePoints)
+      setRoutePath(optimized as unknown as MaintenanceMapItem[])
+      setRouteGeometry(null)
+      setRouteSummary(null)
+      toast({
+        title: "Route Optimized (straight lines)",
+        description: `Road routing service unreachable. Generated a ${optimized.length}-stop itinerary using direct distances.`,
+      })
+    } finally {
+      if (!controller.signal.aborted) setIsRouting(false)
+    }
   }
 
   const clearRoute = () => {
+    routeAbortRef.current?.abort()
     setIsRouting(false)
     setRoutePath([])
+    setRouteGeometry(null)
+    setRouteSummary(null)
+  }
+
+  const toggleRouteStartMode = () => {
+    setRouteStartMode((prev) => (prev === "office" ? "current" : "office"))
   }
 
   const handleToggleRouteDevice = (device: MaintenanceMapItem) => {
@@ -546,7 +629,10 @@ export default function MaintenancePage() {
             onDeviceSelect={setSelectedDevice}
             selectedDeviceIds={selectedDeviceIds}
             routePath={routePath}
+            routeGeometry={routeGeometry}
             homeLocation={homeLocation}
+            routeStartMode={routeStartMode}
+            onToggleRouteStartMode={toggleRouteStartMode}
             onPolygonSelect={setPolygonSelectedDevices}
             gateways={gateways}
             showGateways={showGateways}
@@ -644,6 +730,15 @@ export default function MaintenancePage() {
                   <span className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
                     Route Itinerary ({routePath.length} stops)
                   </span>
+                  {routeSummary ? (
+                    <span className="hidden sm:inline text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+                      {formatDistanceKm(routeSummary.distanceKm)} · ~{formatDurationMin(routeSummary.durationMin)} by road
+                    </span>
+                  ) : (
+                    <span className="hidden sm:inline text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                      straight-line estimate
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={clearRoute}
@@ -655,14 +750,14 @@ export default function MaintenancePage() {
               </div>
 
               <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0">
+                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0" title={homeLocation.name}>
                   <span className="text-[9px] font-bold text-gray-400 mb-0.5">START</span>
                   <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
-                    H
+                    {routeStartMode === "current" ? <Navigation className="w-3 h-3" /> : "H"}
                   </div>
                 </div>
 
-                <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                <RouteLegArrow leg={routeSummary?.legs[0]} />
 
                 {routePath.map((stop, idx) => (
                   <React.Fragment key={stop.device_id}>
@@ -683,16 +778,16 @@ export default function MaintenancePage() {
                       </div>
                     </div>
                     {idx < routePath.length - 1 && (
-                      <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
+                      <RouteLegArrow leg={routeSummary?.legs[idx + 1]} />
                     )}
                   </React.Fragment>
                 ))}
 
-                <ArrowRight className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0">
+                <RouteLegArrow leg={routeSummary?.legs[routePath.length]} />
+                <div className="flex flex-col items-center min-w-[55px] flex-shrink-0" title={homeLocation.name}>
                   <span className="text-[9px] font-bold text-gray-400 mb-0.5">END</span>
                   <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
-                    H
+                    {routeStartMode === "current" ? <Navigation className="w-3 h-3" /> : "H"}
                   </div>
                 </div>
               </div>
@@ -722,7 +817,10 @@ export default function MaintenancePage() {
             onDeviceSelect={setSelectedDevice}
             selectedDeviceIds={selectedDeviceIds}
             routePath={routePath}
+            routeGeometry={routeGeometry}
             homeLocation={homeLocation}
+            routeStartMode={routeStartMode}
+            onToggleRouteStartMode={toggleRouteStartMode}
             onPolygonSelect={setPolygonSelectedDevices}
             gateways={gateways}
             showGateways={showGateways}

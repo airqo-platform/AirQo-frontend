@@ -29,7 +29,6 @@ const ProductList: ProductItem[] = [
         description: 'Monitor real-time technical health metrics like battery and signal strength for the sensor network',
         link: '/beacon/intro',
         Icon: AqMonitor,
-        disabled: true,
     },
     {
         title: 'AI Platform',

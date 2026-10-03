@@ -18,6 +18,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  Navigation,
+  Loader2,
 } from "lucide-react"
 import {
   Popover,
@@ -26,6 +28,7 @@ import {
 } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { FULL_RADIUS_KM, MAX_RADIUS_KM, type HeatmapMode } from "./device-heatmap-layer"
 
 export interface MapTopControlsProps {
   onOpenGatewaysDialog?: () => void
@@ -36,6 +39,8 @@ export interface MapTopControlsProps {
   onToggleGateways?: (show: boolean) => void
   highlightUncoveredDevices?: boolean
   onToggleHighlightUncovered?: (show: boolean) => void
+  heatmapMode?: HeatmapMode
+  onHeatmapModeChange?: (mode: HeatmapMode) => void
   isSidebarCollapsed?: boolean
   onToggleSidebarCollapse?: () => void
   onExportMap?: () => void
@@ -43,6 +48,8 @@ export interface MapTopControlsProps {
   onToggleRoute?: () => void
   isRouting?: boolean
   hasRoute?: boolean
+  routeStartMode?: "office" | "current"
+  onToggleRouteStartMode?: () => void
   onToggleStyleDialog?: () => void
   onRefreshData?: () => void
   isRefreshing?: boolean
@@ -77,16 +84,21 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
   onToggleRoute,
   isRouting = false,
   hasRoute = false,
+  routeStartMode = "office",
+  onToggleRouteStartMode,
   showDeviceNames = false,
   onToggleDeviceNames,
   showGateways = false,
   onToggleGateways,
   highlightUncoveredDevices = false,
   onToggleHighlightUncovered,
+  heatmapMode = "off",
+  onHeatmapModeChange,
   isSidebarCollapsed = false,
   onToggleSidebarCollapse,
   className = "",
 }) => {
+  const layersActive = showDeviceNames || showGateways || heatmapMode !== "off"
   return (
     <div className={`flex items-center gap-1.5 flex-shrink-0 ${className}`}>
       {/* LoRaWAN Gateways Pill (only when LoRaWAN visibility is on) */}
@@ -104,6 +116,32 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
         </button>
       )}
 
+      {/* Route Start Point Toggle (Head Office vs My Location) */}
+      {onToggleRoute && onToggleRouteStartMode && (
+        <button
+          onClick={onToggleRouteStartMode}
+          disabled={isRouting}
+          className={`flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all border disabled:opacity-60 ${
+            routeStartMode === "current"
+              ? "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800"
+              : "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md text-gray-700 dark:text-gray-200 border-gray-200/80 dark:border-gray-700 hover:bg-gray-50"
+          }`}
+          title={
+            routeStartMode === "current"
+              ? "Route starts from your current location. Click to start from the head office."
+              : "Route starts from the head office. Click to start from your current location."
+          }
+          aria-pressed={routeStartMode === "current"}
+        >
+          {routeStartMode === "current" ? (
+            <Navigation className="w-3.5 h-3.5 mr-1 text-blue-600" />
+          ) : (
+            <Home className="w-3.5 h-3.5 mr-1" />
+          )}
+          <span>{routeStartMode === "current" ? "From Me" : "From Office"}</span>
+        </button>
+      )}
+
       {/* Route Action Button */}
       {onToggleRoute && (
         <button
@@ -113,10 +151,20 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
               ? "bg-red-600 hover:bg-red-700 text-white"
               : "bg-blue-600 hover:bg-blue-700 text-white"
           }`}
-          title={isRouting || hasRoute ? "Clear active route" : "Generate optimal maintenance route"}
+          title={
+            isRouting
+              ? "Cancel route calculation"
+              : hasRoute
+                ? "Clear active route"
+                : "Generate optimal maintenance route along roads"
+          }
         >
-          <Route className="w-3.5 h-3.5 mr-1" />
-          <span>{isRouting || hasRoute ? "Clear Route" : "Optimize"}</span>
+          {isRouting ? (
+            <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+          ) : (
+            <Route className="w-3.5 h-3.5 mr-1" />
+          )}
+          <span>{isRouting ? "Routing…" : hasRoute ? "Clear Route" : "Optimize"}</span>
         </button>
       )}
 
@@ -181,18 +229,18 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
         )}
 
         {/* Visibility Controls Popover */}
-        {(onToggleDeviceNames || onToggleGateways) && (
+        {(onToggleDeviceNames || onToggleGateways || onHeatmapModeChange) && (
           <Popover>
             <PopoverTrigger asChild>
               <button
                 className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-                  showDeviceNames || showGateways
+                  layersActive
                     ? "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100"
                     : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
                 }`}
-                title="Layer & Elements Visibility (Device Names, LoRaWAN)"
+                title="Layer & Elements Visibility (Device Names, LoRaWAN, Heatmap)"
               >
-                {showDeviceNames || showGateways ? (
+                {layersActive ? (
                   <Eye className="w-3.5 h-3.5" />
                 ) : (
                   <EyeOff className="w-3.5 h-3.5" />
@@ -211,12 +259,41 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
                       Map Visibility
                     </h4>
                   </div>
-                  {(showDeviceNames || showGateways) && (
+                  {layersActive && (
                     <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-semibold px-2 py-0.5 rounded-full">
                       Active
                     </span>
                   )}
                 </div>
+
+                {/* Heatmap Layer */}
+                {onHeatmapModeChange && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="space-y-0.5">
+                      <Label className="text-xs font-semibold text-gray-800 dark:text-gray-200">Heatmap</Label>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+                        Uptime, sensor error margin or coverage. Each device covers {FULL_RADIUS_KM} km fully, fading out to {MAX_RADIUS_KM} km
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1 p-0.5 rounded-lg bg-gray-100 dark:bg-gray-800">
+                      {(["off", "uptime", "sensor", "coverage"] as HeatmapMode[]).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => onHeatmapModeChange(mode)}
+                          aria-pressed={heatmapMode === mode}
+                          className={`py-1 rounded-md text-[11px] font-semibold capitalize transition-colors ${
+                            heatmapMode === mode
+                              ? "bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-300 shadow-xs"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Device Names Toggle */}
                 {onToggleDeviceNames && (

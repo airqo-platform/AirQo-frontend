@@ -18,6 +18,7 @@ import {
 import { MAP_TILE_STYLES, MapTileStyle, MapStyleDialog } from "./map/map-style-dialog"
 import { MapControls, MapTopControls, MapBottomControls } from "./map/map-controls"
 import { MapLegend } from "./map/map-legend"
+import { DeviceHeatmapLayer, HeatmapMode, maxRadiusPixels, sensorScore } from "./map/device-heatmap-layer"
 
 // Fix for Leaflet default icon paths in Next.js
 const DefaultIcon = L.icon({
@@ -67,7 +68,11 @@ interface MaintenanceMapProps {
   onDeviceSelect?: (device: MaintenanceMapItem | null) => void
   selectedDeviceIds?: string[]
   routePath?: MaintenanceMapItem[]
+  /** Road-following polyline ([lat, lng] pairs). When absent, straight dashed legs are drawn. */
+  routeGeometry?: [number, number][] | null
   homeLocation?: Coordinates & { name?: string }
+  routeStartMode?: "office" | "current"
+  onToggleRouteStartMode?: () => void
   onPolygonSelect?: (devices: MaintenanceMapItem[]) => void
   gateways?: LoRaWANGateway[]
   showGateways?: boolean
@@ -101,7 +106,10 @@ export default function MaintenanceMap({
   onDeviceSelect,
   selectedDeviceIds = [],
   routePath,
+  routeGeometry,
   homeLocation,
+  routeStartMode = "office",
+  onToggleRouteStartMode,
   onPolygonSelect,
   gateways = [],
   showGateways = false,
@@ -131,6 +139,7 @@ export default function MaintenanceMap({
   const markersRef = useRef<L.Marker[]>([])
   const gatewayLayersRef = useRef<L.Layer[]>([])
   const routeLayerRef = useRef<L.Polyline | null>(null)
+  const routeCasingRef = useRef<L.Polyline | null>(null)
   const homeMarkerRef = useRef<L.Marker | null>(null)
   const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup())
   const drawControlRef = useRef<any>(null)
@@ -139,6 +148,9 @@ export default function MaintenanceMap({
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false)
   const [hasPolygon, setHasPolygon] = useState(false)
   const [zoom, setZoom] = useState(7)
+  const [heatmapMode, setHeatmapMode] = useState<HeatmapMode>("off")
+  const [heatmapTooSmall, setHeatmapTooSmall] = useState(false)
+  const heatmapLayerRef = useRef<DeviceHeatmapLayer | null>(null)
   const onPolygonSelectRef = useRef(onPolygonSelect)
 
   // Invalidate map size when sidebar expands or collapses
@@ -447,7 +459,14 @@ export default function MaintenanceMap({
     gatewayLayersRef.current.forEach((l) => l.remove())
     gatewayLayersRef.current = []
 
-    if (routeLayerRef.current) routeLayerRef.current.remove()
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove()
+      routeLayerRef.current = null
+    }
+    if (routeCasingRef.current) {
+      routeCasingRef.current.remove()
+      routeCasingRef.current = null
+    }
     if (homeMarkerRef.current) {
       homeMarkerRef.current.remove()
       homeMarkerRef.current = null
@@ -583,10 +602,11 @@ export default function MaintenanceMap({
       const hasHome = Number.isFinite(hLat) && Number.isFinite(hLng)
 
       if (hasHome) {
+        const isCurrent = routeStartMode === "current"
         const homeIcon = L.divIcon({
           className: "bg-transparent",
-          html: `<div class="w-8 h-8 bg-slate-900 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white font-bold text-xs">
-                  H
+          html: `<div class="w-8 h-8 ${isCurrent ? "bg-blue-600" : "bg-slate-900"} rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white font-bold text-xs">
+                  ${isCurrent ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>' : "H"}
                  </div>`,
           iconSize: [32, 32],
           iconAnchor: [16, 16],
@@ -612,7 +632,26 @@ export default function MaintenanceMap({
 
       if (hasHome) latlngs.push([hLat, hLng])
 
-      if (latlngs.length >= 2) {
+      const hasRoadGeometry = Array.isArray(routeGeometry) && routeGeometry.length >= 2
+      if (hasRoadGeometry) {
+        // Road-following path from the routing service: solid line with a white casing for legibility
+        routeCasingRef.current = L.polyline(routeGeometry!, {
+          color: "#ffffff",
+          weight: 8,
+          opacity: 0.9,
+          lineCap: "round",
+          lineJoin: "round",
+          interactive: false,
+        }).addTo(map.current!)
+        routeLayerRef.current = L.polyline(routeGeometry!, {
+          color: "#2563eb",
+          weight: 4.5,
+          opacity: 0.95,
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(map.current!)
+      } else if (latlngs.length >= 2) {
+        // Fallback: straight-line legs between stops
         routeLayerRef.current = L.polyline(latlngs, {
           color: "#2563eb",
           weight: 4.5,
@@ -627,6 +666,8 @@ export default function MaintenanceMap({
     selectedDevice,
     zoom,
     routePath,
+    routeGeometry,
+    routeStartMode,
     homeLocation,
     gateways,
     showGateways,
@@ -637,6 +678,49 @@ export default function MaintenanceMap({
     createGatewayTowerIcon,
     onDeviceSelect,
   ])
+
+  // Uptime / sensor / coverage heatmap, drawn under the markers
+  useEffect(() => {
+    const currentMap = map.current
+    if (!currentMap) return
+
+    if (heatmapMode === "off") {
+      heatmapLayerRef.current?.remove()
+      heatmapLayerRef.current = null
+      return
+    }
+
+    const points = data
+      .map((device) => ({
+        lat: Number(device.latitude),
+        lng: Number(device.longitude),
+        uptimePct: Math.max(0, Math.min(100, normalizeUptimePct(device.uptime))),
+        sensorPct: sensorScore(device.error_margin),
+      }))
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+
+    if (heatmapLayerRef.current) {
+      heatmapLayerRef.current.setData(points, heatmapMode)
+    } else {
+      heatmapLayerRef.current = new DeviceHeatmapLayer(points, heatmapMode).addTo(currentMap)
+    }
+  }, [data, heatmapMode])
+
+  // Zoomed out, a device's reach is smaller than the markers drawn on top of it; tell the user to zoom in.
+  useEffect(() => {
+    if (!map.current || heatmapMode === "off") {
+      setHeatmapTooSmall(false)
+      return
+    }
+    setHeatmapTooSmall(maxRadiusPixels(map.current) < 10)
+  }, [zoom, heatmapMode])
+
+  useEffect(() => {
+    return () => {
+      heatmapLayerRef.current?.remove()
+      heatmapLayerRef.current = null
+    }
+  }, [])
 
   // Polygon Selection Listener
   useEffect(() => {
@@ -763,6 +847,8 @@ export default function MaintenanceMap({
             onToggleGateways={onToggleGateways}
             highlightUncoveredDevices={highlightUncoveredDevices}
             onToggleHighlightUncovered={onToggleHighlightUncovered}
+            heatmapMode={heatmapMode}
+            onHeatmapModeChange={setHeatmapMode}
             isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebarCollapse={onToggleSidebarCollapse}
             onExportMap={onExportMap}
@@ -770,12 +856,20 @@ export default function MaintenanceMap({
             onToggleRoute={onToggleRoute}
             isRouting={isRouting}
             hasRoute={Boolean(routePath && routePath.length > 0)}
+            routeStartMode={routeStartMode}
+            onToggleRouteStartMode={onToggleRouteStartMode}
           />
         </div>
       </div>
 
       {/* Bottom-Left Floating Legend */}
-      <MapLegend showLoRaWAN={showGateways} />
+      <MapLegend showLoRaWAN={showGateways} heatmapMode={heatmapMode} />
+
+      {heatmapTooSmall && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 px-3 py-1.5 rounded-full shadow-md text-[11px] font-medium text-gray-700 dark:text-gray-200">
+          Heatmap is drawn to scale (up to 5 km per device). Zoom in to see it.
+        </div>
+      )}
 
       {/* Bottom-Right Floating Controls: Geolocation, Zoom In & Zoom Out, Polygon */}
       <MapBottomControls

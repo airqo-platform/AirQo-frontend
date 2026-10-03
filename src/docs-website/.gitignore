@@ -4,6 +4,9 @@
 # Production
 /build
 
+# Exported Word documents (npm run docx)
+/build-docx
+
 # Generated files
 .docusaurus
 .cache-loader
