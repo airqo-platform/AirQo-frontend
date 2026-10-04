@@ -76,10 +76,15 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
   const [phase, setPhase] = useState<ToastPhase>("idle");
   const [description, setDescription] = useState("");
   const [otherText, setOtherText] = useState("");
-  const [isAutoHidePaused, setIsAutoHidePaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocusInside, setHasFocusInside] = useState(false);
   const dismissNotifiedRef = useRef(false);
   const dismissReasonRef = useRef<SatisfactionToastDismissReason>("auto");
   const autoHideRemainingRef = useRef(autoDismissMs);
+
+  // Hover and focus are tracked apart: losing one must not resume the countdown
+  // while the other still has hold of the toast.
+  const isAutoHidePaused = isHovered || hasFocusInside;
 
   useEffect(() => {
     dismissNotifiedRef.current = false;
@@ -87,7 +92,8 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
     autoHideRemainingRef.current = autoDismissMs;
     setDescription("");
     setOtherText("");
-    setIsAutoHidePaused(false);
+    setIsHovered(false);
+    setHasFocusInside(false);
     setPhase("idle");
 
     if (!enabled) return;
@@ -210,10 +216,16 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
         className={className}
         role="dialog"
         aria-label={title}
-        onMouseEnter={() => setIsAutoHidePaused(true)}
-        onMouseLeave={() => setIsAutoHidePaused(false)}
-        onFocus={() => setIsAutoHidePaused(true)}
-        onBlur={() => setIsAutoHidePaused(false)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setHasFocusInside(true)}
+        onBlur={(event) => {
+          // React's onBlur is focusout, so it also fires when focus just moves
+          // between two controls inside the toast.
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setHasFocusInside(false);
+          }
+        }}
       >
         <Card className="rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
           <CardContent className="p-5 flex flex-col gap-4">
