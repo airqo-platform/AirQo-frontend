@@ -12,12 +12,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 import { feedbackService } from '@/services/feedback.service';
 import { FEEDBACK_DIALOG_OPEN_EVENT } from './feedback-dialog';
 
 type MainCategory = 'issue' | 'idea';
+
+/** Thank-you copy, matched to the contact-consent choice. */
+const THANK_YOU_WITH_CONSENT =
+  "Thanks — we'll email you if we need more details or when it's resolved.";
+const THANK_YOU_WITHOUT_CONSENT =
+  "Thanks — we've received it. We won't contact you about this.";
 
 const ISSUE_ACTIONS = [
   'Claiming devices',
@@ -83,6 +91,8 @@ export const FeedbackLauncher: React.FC = () => {
   const [issueAction, setIssueAction] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState<number>(3);
+  // People reporting a problem usually want to hear back, so this starts on.
+  const [contactConsent, setContactConsent] = useState(true);
 
   const defaultMetadata = useMemo(
     () => buildFeedbackMetadata(pathname || ''),
@@ -113,6 +123,7 @@ export const FeedbackLauncher: React.FC = () => {
       setIssueAction('');
       setMessage('');
       setRating(3);
+      setContactConsent(true);
     }
   }, [isOpen]);
 
@@ -151,10 +162,13 @@ export const FeedbackLauncher: React.FC = () => {
         category: mainCategory === 'issue' ? 'bug' : 'feature_request',
         platform: 'web',
         app: 'beacon', // Changed from vertex to beacon
+        contact_consent: contactConsent,
         metadata: defaultMetadata,
       });
 
-      toast.success('Feedback sent successfully');
+      toast.success(
+        contactConsent ? THANK_YOU_WITH_CONSENT : THANK_YOU_WITHOUT_CONSENT
+      );
       setIsOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An error occurred while submitting feedback');
@@ -236,6 +250,22 @@ export const FeedbackLauncher: React.FC = () => {
             itemStyles={RATING_ITEM_STYLES}
           />
         </div>
+      </div>
+
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="contact-consent"
+          checked={contactConsent}
+          onCheckedChange={checked => setContactConsent(checked === true)}
+          disabled={isSubmitting}
+          className="mt-0.5"
+        />
+        <Label
+          htmlFor="contact-consent"
+          className="text-sm font-normal leading-snug text-gray-700 dark:text-gray-200"
+        >
+          It&apos;s OK to contact me about this
+        </Label>
       </div>
     </div>
   );
