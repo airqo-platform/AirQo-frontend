@@ -12,7 +12,7 @@ Your monitors do **not** have to be AirQo hardware. Vertex represents every hard
 
 | Stage | Where | What you do |
 |---|---|---|
-| 1 | AirQo Analytics | Create your AirQo account |
+| 1 | AirQo Nexus | Create your AirQo account |
 | 2 | Vertex | Open the workspace your monitors will belong to |
 | 3 | Vertex | Add your monitors — claim AirQo devices, or register monitors from any manufacturer |
 | 4 | Vertex | Group your monitors into cohorts |
@@ -21,7 +21,7 @@ Your monitors do **not** have to be AirQo hardware. Vertex represents every hard
 | 7 | Beacon | Sign in and confirm your fleet is reporting |
 | 8 | Beacon | Monitor health, maintain, and report |
 
-Stage 1 happens on [AirQo Analytics](https://analytics.airqo.net). Stages 2–6 happen in [Vertex](https://vertex.airqo.net), and stages 7–8 in [Beacon](https://beacon.airqo.net). One account covers all three.
+Stage 1 happens on [AirQo Nexus](https://nexus.airqo.net). Stages 2–6 happen in [Vertex](https://vertex.airqo.net), and stages 7–8 in [Beacon](https://beacon.airqo.net). One account covers all three.
 
 ---
 
@@ -46,9 +46,9 @@ You'll also need to know the **installation location** of each monitor (a site n
 
 ## Stage 1: Create Your AirQo Account
 
-One AirQo account works across Vertex, Beacon, and AirQo Analytics. You only create it once.
+One AirQo account works across Vertex, Beacon, and AirQo Nexus. You only create it once.
 
-1. Go to [analytics.airqo.net/user/creation/individual/register](https://analytics.airqo.net/user/creation/individual/register) and register.
+1. Go to [nexus.airqo.net/user/creation/individual/register](https://nexus.airqo.net/user/creation/individual/register) and register.
 2. Verify your email address.
 3. Sign in to [vertex.airqo.net](https://vertex.airqo.net) with those credentials.
 
@@ -205,7 +205,7 @@ Full detail: [Monitor Your Fleet](./getting-started/monitor-your-fleet.md).
 
 **Q: Do I need a separate account for Beacon?**
 
-A: No. One AirQo account covers Vertex, Beacon, and AirQo Analytics. Beacon has no sign-up page of its own.
+A: No. One AirQo account covers Vertex, Beacon, and AirQo Nexus. Beacon has no sign-up page of its own.
 
 **Q: Can I monitor non-AirQo hardware in Beacon?**
 

@@ -67,7 +67,7 @@ describe('getGridSiteNames', () => {
     expect(labels).toHaveLength(3);
   });
 
-  it('falls back to the id when the name is missing', () => {
+  it('falls back to a neutral label when the name is missing', () => {
     const data = makeGridData([makeSite('site-1', 'Known')]);
     const labels = getGridSiteNames(
       'countries',
@@ -76,7 +76,7 @@ describe('getGridSiteNames', () => {
       { 'grid-1': ['site-1', 'site-unknown'] },
       data
     );
-    expect(labels).toEqual(['Known', 'site-unknown']);
+    expect(labels).toEqual(['Known', 'Unknown location']);
     expect(labels).toHaveLength(2);
   });
 
