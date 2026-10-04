@@ -8,7 +8,7 @@ Beacon uses the same AirQo account and the same workspaces as [Vertex](/vertex/i
 
 ## Prerequisites
 
-* An AirQo account. If you don't have one, create it at [analytics.airqo.net](https://analytics.airqo.net/user/creation/individual/register).
+* An AirQo account. If you don't have one, create it at [nexus.airqo.net](https://nexus.airqo.net/user/creation/individual/register).
 * To see a fleet once you're in, at least one monitor registered in Vertex. You can sign in without one, but Beacon will have nothing to show. See [The Beneficiary Journey](../beneficiary-journey.md) if you haven't registered any yet.
 
 ## Steps to Sign In
@@ -21,7 +21,7 @@ Beacon uses the same AirQo account and the same workspaces as [Vertex](/vertex/i
 Beacon has no sign-up page. Opening `/register` redirects you to sign-in, because account creation happens once on AirQo Analytics and is shared across all AirQo products.
 :::
 
-Forgotten your password? Reset it at [analytics.airqo.net/user/forgotPwd](https://analytics.airqo.net/user/forgotPwd). The change applies to Vertex and Beacon too.
+Forgotten your password? Reset it at [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd). The change applies to Vertex and Beacon too.
 
 ## Choose Your Workspace
 
@@ -65,7 +65,7 @@ You may notice **My Devices** is absent, and that's expected: it appears only in
 
 **Problem**: The same credentials are rejected.
 
-**Solution**: Check for a typo in the email address, then reset your password at [analytics.airqo.net/user/forgotPwd](https://analytics.airqo.net/user/forgotPwd). Because both products authenticate against the same account, a working Vertex sign-in and a failing Beacon sign-in nearly always means a mistyped credential rather than a missing account.
+**Solution**: Check for a typo in the email address, then reset your password at [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd). Because both products authenticate against the same account, a working Vertex sign-in and a failing Beacon sign-in nearly always means a mistyped credential rather than a missing account.
 
 ## What's Next
 

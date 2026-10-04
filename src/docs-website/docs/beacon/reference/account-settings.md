@@ -20,7 +20,7 @@ sidebar_position: 3
 Enter your **current password**, then your **new password**, then confirm it.
 
 :::important
-Your AirQo account is shared across Beacon, [Vertex](/vertex/intro), and AirQo Analytics. Changing your password here changes it everywhere. If you'd rather reset than change — because you can't recall the current one — use [analytics.airqo.net/user/forgotPwd](https://analytics.airqo.net/user/forgotPwd).
+Your AirQo account is shared across Beacon, [Vertex](/vertex/intro), and AirQo Analytics. Changing your password here changes it everywhere. If you'd rather reset than change — because you can't recall the current one — use [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd).
 :::
 
 ## What This Page Doesn't Cover
@@ -36,7 +36,7 @@ Two things people reasonably look for here and won't find:
 
 **Problem**: The update fails.
 
-**Solution**: Confirm the current password is right — a failed sign-in elsewhere is the usual sign it isn't — and that the new password and confirmation match exactly. If you're unsure of the current one, reset instead at [analytics.airqo.net/user/forgotPwd](https://analytics.airqo.net/user/forgotPwd).
+**Solution**: Confirm the current password is right — a failed sign-in elsewhere is the usual sign it isn't — and that the new password and confirmation match exactly. If you're unsure of the current one, reset instead at [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd).
 
 ### I changed my password and got signed out of Vertex
 

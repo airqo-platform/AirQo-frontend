@@ -21,7 +21,7 @@ Your monitors do **not** have to be AirQo hardware. Vertex represents every hard
 | 7 | Beacon | Sign in and confirm your fleet is reporting |
 | 8 | Beacon | Monitor health, maintain, and report |
 
-Stage 1 happens on [AirQo Analytics](https://analytics.airqo.net). Stages 2–6 happen in [Vertex](https://vertex.airqo.net), and stages 7–8 in [Beacon](https://beacon.airqo.net). One account covers all three.
+Stage 1 happens on [AirQo Analytics](https://nexus.airqo.net). Stages 2–6 happen in [Vertex](https://vertex.airqo.net), and stages 7–8 in [Beacon](https://beacon.airqo.net). One account covers all three.
 
 ---
 
@@ -48,7 +48,7 @@ You'll also need to know the **installation location** of each monitor (a site n
 
 One AirQo account works across Vertex, Beacon, and AirQo Analytics. You only create it once.
 
-1. Go to [analytics.airqo.net/user/creation/individual/register](https://analytics.airqo.net/user/creation/individual/register) and register.
+1. Go to [nexus.airqo.net/user/creation/individual/register](https://nexus.airqo.net/user/creation/individual/register) and register.
 2. Verify your email address.
 3. Sign in to [vertex.airqo.net](https://vertex.airqo.net) with those credentials.
 
