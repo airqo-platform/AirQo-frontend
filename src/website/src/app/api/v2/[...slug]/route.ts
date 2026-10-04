@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  buildCoverageCacheKey,
+  getCoverageCache,
+  setCoverageCache,
+} from './coverageCache';
+
 const API_BASE_URL =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '';
 const API_TOKEN = process.env.API_TOKEN;
@@ -38,68 +44,15 @@ function removeTokenFromUrl(url: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Bounded in-memory TTL cache for network-coverage GET responses.
-// Module-level so it survives across requests in a single Node process.
+// Network-coverage GET cache helpers live in ./coverageCache (unit-testable).
 // ---------------------------------------------------------------------------
-interface CoverageCacheEntry {
-  body: unknown;
-  status: number;
-  storedAt: number;
-}
-
 const COVERAGE_PATH_PREFIX = 'devices/network-coverage';
-const COVERAGE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-const COVERAGE_CACHE_MAX = 20;
-
-const coverageCache = new Map<string, CoverageCacheEntry>();
-
-// Stable cache key = finalPath + sorted query params, excluding `token`.
-export function buildCoverageCacheKey(
-  finalPath: string,
-  searchParams: URLSearchParams,
-): string {
-  const keys: string[] = [];
-  searchParams.forEach((value, key) => {
-    if (key !== 'token') keys.push(`${key}=${value}`);
-  });
-  keys.sort();
-  return keys.length ? `${finalPath}?${keys.join('&')}` : finalPath;
-}
 
 function isCoveragePath(cleanPath: string): boolean {
   return (
     cleanPath === COVERAGE_PATH_PREFIX ||
     cleanPath.startsWith(`${COVERAGE_PATH_PREFIX}/`)
   );
-}
-
-export function getCoverageCache(key: string): CoverageCacheEntry | undefined {
-  const entry = coverageCache.get(key);
-  if (!entry) return undefined;
-  if (Date.now() - entry.storedAt > COVERAGE_CACHE_TTL_MS) {
-    coverageCache.delete(key);
-    return undefined;
-  }
-  // Refresh insertion order for simple LRU eviction.
-  coverageCache.delete(key);
-  coverageCache.set(key, entry);
-  return entry;
-}
-
-export function setCoverageCache(
-  key: string,
-  body: unknown,
-  status: number,
-): void {
-  // Never cache non-2xx responses.
-  if (status < 200 || status >= 300) return;
-  coverageCache.set(key, { body, status, storedAt: Date.now() });
-  // Evict oldest entries beyond the cap.
-  while (coverageCache.size > COVERAGE_CACHE_MAX) {
-    const oldest = coverageCache.keys().next().value;
-    if (oldest === undefined) break;
-    coverageCache.delete(oldest);
-  }
 }
 
 const COVERAGE_RESPONSE_HEADERS: Record<string, string> = {

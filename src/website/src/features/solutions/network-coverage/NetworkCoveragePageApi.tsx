@@ -32,6 +32,7 @@ import {
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageCountryResponse,
+  type NetworkCoverageCountryStats,
   type NetworkCoverageImpact,
   type NetworkCoverageMonitor,
   type ViewMode,
@@ -79,6 +80,34 @@ import { type ExportData, generatePdf, generateCsv } from './utils/exportUtils';
 
 const DEFAULT_TENANT = 'airqo';
 
+// Builds country stats by counting type/status over the given (already
+// filtered) monitors. Used so sidebar rows show stats consistent with the
+// client-side filtered monitor set rather than the unfiltered API totals.
+const buildStatsFromMonitors = (
+  monitors: NetworkCoverageMonitor[],
+): NetworkCoverageCountryStats => {
+  let Reference = 0;
+  let LCS = 0;
+  let Inactive = 0;
+  let active = 0;
+  let inactive = 0;
+  monitors.forEach((m) => {
+    if (m.type === 'Reference') Reference += 1;
+    else if (m.type === 'LCS') LCS += 1;
+    else if (m.type === 'Inactive') Inactive += 1;
+    if (m.status === 'active') active += 1;
+    else if (m.status === 'inactive') inactive += 1;
+  });
+  return {
+    total: monitors.length,
+    Reference,
+    LCS,
+    Inactive,
+    active,
+    inactive,
+  };
+};
+
 // Constant params for summary, impact, and country-monitors queries. All
 // monitor/status/network filtering is now done client-side on the already-
 // fetched full dataset, so these params never change and toggling filters
@@ -99,8 +128,8 @@ const NetworkCoveragePage = () => {
   const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(
     () => searchParams.get('monitor'),
   );
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    () => (searchParams.get('view') as ViewMode) || 'monitors',
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    searchParams.get('view') === 'coverage' ? 'coverage' : 'monitors',
   );
 
   // Impact data is only consumed by the export action. Keep it off the
@@ -227,11 +256,15 @@ const NetworkCoveragePage = () => {
   const countries = useMemo<NetworkCoverageCountry[]>(() => {
     const raw: NetworkCoverageCountry[] =
       summaryQuery.data?.countries ?? ([] as NetworkCoverageCountry[]);
-    return raw.map((country: NetworkCoverageCountry) => ({
-      ...country,
-      monitors: filterMonitors(country.monitors),
-    }));
-  }, [summaryQuery.data, filterMonitors]);
+    return raw.map((country: NetworkCoverageCountry) => {
+      const monitors = filterMonitors(country.monitors);
+      return {
+        ...country,
+        stats: hasDataFilter ? buildStatsFromMonitors(monitors) : country.stats,
+        monitors,
+      };
+    });
+  }, [summaryQuery.data, filterMonitors, hasDataFilter]);
 
   const allCountries = useMemo<NetworkCoverageCountry[]>(() => {
     const normalizeForMatch = (value?: string) => {
@@ -296,11 +329,13 @@ const NetworkCoveragePage = () => {
         id: data.countryId,
         country: data.country,
         iso2: data.iso2,
-        stats: summaryCountry?.stats,
+        stats: hasDataFilter
+          ? buildStatsFromMonitors(monitors)
+          : summaryCountry?.stats,
         monitors,
       };
     },
-    [filterMonitors, summaryQuery.data?.countries],
+    [filterMonitors, summaryQuery.data?.countries, hasDataFilter],
   );
 
   // With `keepPreviousData`, `countryMonitorsQuery.data` is the PREVIOUS
@@ -592,10 +627,11 @@ const NetworkCoveragePage = () => {
       const effectiveImpact =
         impactOverride !== undefined ? impactOverride : impactData;
       // Impact data is global - don't attribute it to a filtered view where it
-      // would be misleading. Any data filter (country or any client-side data
-      // filter) nulls it out. This applies to both the scoped and forced
-      // all-countries export paths.
-      const dataFilterActive = selectedCountryId || hasDataFilter;
+      // would be misleading. Country-scoped reports and any data-filtered
+      // export exclude global impact; forced all-countries exports keep it
+      // unless a data filter is active.
+      const dataFilterActive =
+        (!forceAllCountries && !!selectedCountryId) || hasDataFilter;
       const scopedImpactData = dataFilterActive ? null : effectiveImpact;
 
       return {

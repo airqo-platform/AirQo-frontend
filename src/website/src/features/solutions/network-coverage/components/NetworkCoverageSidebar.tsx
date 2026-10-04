@@ -824,18 +824,31 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
             )}
           </>
         ) : (
-          <button
-            type="button"
-            onClick={onResetToOverview}
-            className="inline-flex max-w-full items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950"
-          >
-            <FiChevronLeft className="h-4 w-4 flex-shrink-0" />
-            <span className="text-slate-600">All countries</span>
-            <span className="text-slate-300">·</span>
-            <span className="truncate font-semibold text-slate-900">
-              {selectedCountry.country}
-            </span>
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={onResetToOverview}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950"
+            >
+              <FiChevronLeft className="h-4 w-4 flex-shrink-0" />
+              <span className="text-slate-600">All countries</span>
+              <span className="text-slate-300">·</span>
+              <span className="truncate font-semibold text-slate-900">
+                {selectedCountry.country}
+              </span>
+            </button>
+            {onClose && (
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => onClose()}
+                aria-label="Close countries panel"
+                className="lg:hidden grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg border border-slate-300 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                <FiX className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         )}
       </div>
 

@@ -86,7 +86,7 @@ interface SitemapRequestFailure {
 }
 
 type SitemapFetchOutcome =
-  | { ok: true; response: Response; attempts: number }
+  | { ok: true; response: Response; body: unknown; attempts: number }
   | { ok: false; failure: SitemapRequestFailure };
 
 interface OptionalRequestLogDetails {
@@ -115,9 +115,12 @@ const isRetryableFetchError = (
 
 /**
  * Fetch a URL with a fresh `AbortController` and per-attempt timeout.
- * Retries once on timeout/network errors, always clearing each attempt's
- * timer. Never throws: final failures are returned as an outcome object so
- * optional sitemap endpoints can degrade to partial results.
+ * The body is read inside the timed window so a stalled response body is
+ * covered by the deadline and can trip the timeout. Retries once on timeout
+ * or network errors; a JSON parse failure is not retryable and ends as the
+ * final failure. Always clears each attempt's timer. Never throws: final
+ * failures are returned as an outcome object so optional sitemap endpoints
+ * can degrade to partial results.
  */
 const fetchWithTimeoutRetry = async (
   url: string,
@@ -139,7 +142,10 @@ const fetchWithTimeoutRetry = async (
 
     try {
       const response = await fetch(url, { ...init, signal: controller.signal });
-      return { ok: true, response, attempts };
+      // Read the body before the timer is cleared so a stalled body still
+      // trips the timeout. Parse failures flow through the catch below.
+      const body = response.ok ? await response.json() : null;
+      return { ok: true, response, body, attempts };
     } catch (error) {
       lastError = error;
       lastDidTimeout = didTimeout;
@@ -381,38 +387,38 @@ const fetchPaginatedItems = async <T>({
       break;
     }
 
-    try {
-      const data: PaginatedApiResponse<T> = await response.json();
-      const sanitizedData: PaginatedApiResponse<T> = {
-        ...data,
-        next:
-          typeof data.next === 'string' ? removeTokenFromUrl(data.next) : null,
-        previous:
-          typeof data.previous === 'string'
-            ? removeTokenFromUrl(data.previous)
-            : null,
-      };
-      const pageResults = (data.results || []).filter(isValidItem);
+    const data = outcome.body as PaginatedApiResponse<T> | null;
 
-      allItems.push(...pageResults);
-
-      if (!sanitizedData.next) {
-        nextUrl = null;
-      } else {
-        nextUrl = resolveNextUrl(sanitizedData.next, apiBaseUrl);
-      }
-    } catch (error) {
-      const typedError = error as Error;
+    if (data === null) {
       logOptionalRequestFailure('Sitemap pagination request failed:', {
         endpoint,
         url: requestUrl,
         page: pageCount + 1,
         attempt: outcome.attempts,
-        timeout: isAbortLikeError(error),
-        message: typedError.message,
-        name: typedError.name,
+        timeout: false,
+        message: 'Empty or invalid response body',
+        name: 'Error',
       });
       break;
+    }
+
+    const sanitizedData: PaginatedApiResponse<T> = {
+      ...data,
+      next:
+        typeof data.next === 'string' ? removeTokenFromUrl(data.next) : null,
+      previous:
+        typeof data.previous === 'string'
+          ? removeTokenFromUrl(data.previous)
+          : null,
+    };
+    const pageResults = (data.results || []).filter(isValidItem);
+
+    allItems.push(...pageResults);
+
+    if (!sanitizedData.next) {
+      nextUrl = null;
+    } else {
+      nextUrl = resolveNextUrl(sanitizedData.next, apiBaseUrl);
     }
   }
 
@@ -540,34 +546,34 @@ const fetchBillboardGridRoutes = async (
       break;
     }
 
-    try {
-      const data = (await response.json()) as GridSummaryApiResponse;
-      const pageGrids = (data.grids || []).filter(
-        (item): item is Required<Pick<GridSummaryRouteItem, 'name'>> =>
-          typeof item?.name === 'string' && item.name.trim().length > 0,
-      );
+    const data = outcome.body as GridSummaryApiResponse | null;
 
-      allGrids.push(...pageGrids);
-      totalPages = data.meta?.totalPages ?? null;
-
-      if (!totalPages || currentPage >= totalPages) {
-        break;
-      }
-
-      currentPage += 1;
-    } catch (error) {
-      const typedError = error as Error;
+    if (data === null) {
       logOptionalRequestFailure('Billboard grid sitemap request failed:', {
         endpoint: GRID_SUMMARY_ENDPOINT,
         url: requestUrl,
         page: currentPage,
         attempt: outcome.attempts,
-        timeout: isAbortLikeError(error),
-        message: typedError.message,
-        name: typedError.name,
+        timeout: false,
+        message: 'Empty or invalid response body',
+        name: 'Error',
       });
       break;
     }
+
+    const pageGrids = (data.grids || []).filter(
+      (item): item is Required<Pick<GridSummaryRouteItem, 'name'>> =>
+        typeof item?.name === 'string' && item.name.trim().length > 0,
+    );
+
+    allGrids.push(...pageGrids);
+    totalPages = data.meta?.totalPages ?? null;
+
+    if (!totalPages || currentPage >= totalPages) {
+      break;
+    }
+
+    currentPage += 1;
   }
 
   return allGrids.flatMap((grid) => {

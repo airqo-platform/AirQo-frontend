@@ -189,7 +189,7 @@ const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
         return (
           <div
             key={index}
-            className="h-[160px] p-5 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+            className="min-h-[160px] p-5 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
           >
             <div className="text-left flex flex-col items-start">
               <p className="text-2xl sm:text-3xl font-bold">
