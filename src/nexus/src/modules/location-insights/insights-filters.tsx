@@ -23,7 +23,9 @@ import {
   FREQUENCY_LABELS,
   POLLUTANT_LABELS,
   CHART_TYPE_LABELS,
+  DATA_TYPE_LABELS,
 } from '@/shared/components/charts/constants';
+import type { DataType } from '@/modules/data-download/types/dataExportTypes';
 
 const CHART_TYPE_OPTIONS = Object.entries(CHART_TYPE_LABELS)
   .filter(
@@ -51,11 +53,13 @@ const POLLUTANT_OPTIONS = Object.entries(POLLUTANT_LABELS).map(
   })
 );
 
-// Data type options for download
-const DATA_TYPE_OPTIONS = [
-  { label: 'Calibrated Data', value: 'calibrated' as const },
-  { label: 'Raw Data', value: 'raw' as const },
-];
+// Data type options for download - shared with the Data Export sidebar
+const DATA_TYPE_OPTIONS = Object.entries(DATA_TYPE_LABELS).map(
+  ([value, label]) => ({
+    label,
+    value: value as DataType,
+  })
+);
 
 interface InsightsFiltersProps {
   frequency: FrequencyType;
@@ -66,9 +70,9 @@ interface InsightsFiltersProps {
   setChartType: (chartType: ChartType) => void;
   dateRange: { from: Date; to: Date } | undefined;
   setDateRange: (dateRange: { from: Date; to: Date } | undefined) => void;
-  dataType: 'calibrated' | 'raw';
-  setDataType: (dataType: 'calibrated' | 'raw') => void;
-  onDownload: (dataType?: 'calibrated' | 'raw') => void;
+  dataType: DataType;
+  setDataType: (dataType: DataType) => void;
+  onDownload: (dataType?: DataType) => void;
   isDownloading?: boolean;
 }
 

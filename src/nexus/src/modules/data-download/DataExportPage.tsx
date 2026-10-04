@@ -391,32 +391,35 @@ const DataExportPage = () => {
 
   const selectedDeviceNamesForExport = useMemo(() => {
     const source = [...selectedDevicesForActions, ...processedDevicesData];
-    const names = selectedDeviceIds.map(id => {
+    // Map per device in selectedDeviceIds order so the returned array stays
+    // aligned with the IDs. A missing/blank name falls back to a neutral
+    // label — never the raw ID and never an empty array for the whole
+    // selection.
+    return selectedDeviceIds.map(id => {
       const device = source.find(item => String(item.id) === id);
       const name = device?.name ?? device?.device_name;
       return typeof name === 'string' && name.trim() && name !== '--'
         ? name.trim()
-        : null;
+        : 'Unknown device';
     });
-
-    return names.every(Boolean) ? (names as string[]) : [];
   }, [processedDevicesData, selectedDeviceIds, selectedDevicesForActions]);
 
-  // Compute site names from cache to avoid stale state issues
+  // Compute site names from cache to avoid stale state issues. A missing
+  // name falls back to a neutral label — never the raw ID.
   const selectedSiteNames = useMemo(
     () =>
       selectedSiteIds.map(id => {
         const cached = selectedSitesCache[id];
         if (cached) {
           const displayName = getSiteDisplayName(cached);
-          return displayName === '--' ? id : displayName;
+          return displayName === '--' ? 'Unknown location' : displayName;
         }
         // Fallback: find in current page data
         const site = processedSitesData.find(item => String(item.id) === id);
-        if (!site) return id;
+        if (!site) return 'Unknown location';
 
         const displayName = getSiteDisplayName(site);
-        return displayName === '--' ? id : displayName;
+        return displayName === '--' ? 'Unknown location' : displayName;
       }),
     [selectedSiteIds, selectedSitesCache, processedSitesData]
   );

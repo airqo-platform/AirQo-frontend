@@ -2,6 +2,7 @@ import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
+import { getTableItemSelectionLabel } from '../utils/dataExportUtils';
 
 interface DataExportTableProps {
   activeTab: TabType;
@@ -69,6 +70,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}
         multiSelect
+        selectionLabel={getTableItemSelectionLabel}
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
         compactRows={compactRows}

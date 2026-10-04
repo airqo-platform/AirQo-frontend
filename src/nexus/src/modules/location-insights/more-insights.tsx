@@ -17,6 +17,7 @@ import { POLLUTANT_LABELS } from '@/shared/components/charts/constants';
 import type { ChartData } from '@/modules/analytics/types';
 import { normalizeAirQualityData } from '@/shared/components/charts/utils';
 import type { ChartDataPoint } from '@/shared/types/api';
+import type { DataType } from '@/modules/data-download/types/dataExportTypes';
 import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 
 // Pollutant options
@@ -85,7 +86,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(
     getDefaultDateRange()
   );
-  const [dataType, setDataType] = useState<'calibrated' | 'raw'>('calibrated');
+  const [dataType, setDataType] = useState<DataType>('calibrated');
   const { config: selectedAqiConfig, isLoading: aqiConfigLoading } =
     useAqiConfig(pollutant);
 
@@ -106,9 +107,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   }, [visibleSites]);
   const selectedSiteNamesById = useMemo(
     () =>
-      new Map(
-        selectedSites.map(site => [site._id, getSiteDisplayName(site)])
-      ),
+      new Map(selectedSites.map(site => [site._id, getSiteDisplayName(site)])),
     [selectedSites]
   );
   // The chart API accepts line/bar data requests. Area is a presentation
@@ -372,7 +371,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
 
   // Handle download
   const handleDownload = useCallback(
-    async (selectedDataType?: 'calibrated' | 'raw') => {
+    async (selectedDataType?: DataType) => {
       const dataTypeToUse = selectedDataType || dataType;
       if (selectedSites.length === 0) {
         toast.error(
@@ -513,7 +512,10 @@ export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
       visibleSiteIds.filter(siteId => {
         if (chartSiteIds.has(siteId)) return false;
         const selectedName = selectedSiteNamesById.get(siteId);
-        return !selectedName || !chartSiteNames.has(normalizeLocationName(selectedName));
+        return (
+          !selectedName ||
+          !chartSiteNames.has(normalizeLocationName(selectedName))
+        );
       }).length,
     [chartSiteIds, chartSiteNames, selectedSiteNamesById, visibleSiteIds]
   );

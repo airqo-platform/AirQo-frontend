@@ -24,6 +24,7 @@ describe('getPartialDataWarning', () => {
         totalSelected: 2,
         withData: 1,
         missingNames: ['Missing site'],
+        missingIds: ['site-2'],
       });
     });
   });
@@ -43,6 +44,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['AQ-2'],
+      missingIds: ['device-2'],
     });
   });
 
@@ -79,6 +81,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Kabwe'],
+      missingIds: ['site-2'],
     });
   });
 
@@ -130,6 +133,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 1,
       withData: 0,
       missingNames: ['Kawempe Division'],
+      missingIds: ['site-1'],
     });
   });
 
@@ -153,6 +157,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Kawempe Division'],
+      missingIds: ['site-2'],
     });
   });
 
@@ -174,6 +179,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Missing site'],
+      missingIds: ['site-2'],
     });
   });
 
@@ -195,6 +201,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Missing site'],
+      missingIds: ['missing-site-id'],
     });
   });
 
@@ -222,6 +229,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 3,
       withData: 1,
       missingNames: ['Kawempe Division', 'Kanyama residential area'],
+      missingIds: ['site-2', 'site-3'],
     });
   });
 
@@ -276,6 +284,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Metadata only'],
+      missingIds: ['site-2'],
     });
   });
 
@@ -298,6 +307,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 2,
       withData: 1,
       missingNames: ['Another selected site'],
+      missingIds: ['site-2'],
     });
   });
 
@@ -325,6 +335,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 3,
       withData: 1,
       missingNames: ['Fmbs University Of Yaounde 1 Melen Campus', 'Lusaka'],
+      missingIds: ['site-1', 'site-2'],
     });
   });
 
@@ -379,6 +390,7 @@ describe('getPartialDataWarning', () => {
       totalSelected: 1,
       withData: 0,
       missingNames: ['Selected site'],
+      missingIds: ['selected-site'],
     });
   });
 });
