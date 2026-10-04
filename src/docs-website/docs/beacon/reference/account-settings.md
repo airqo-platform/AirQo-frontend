@@ -20,7 +20,7 @@ sidebar_position: 3
 Enter your **current password**, then your **new password**, then confirm it.
 
 :::important
-Your AirQo account is shared across Beacon, [Vertex](/vertex/intro), and AirQo Analytics. Changing your password here changes it everywhere. If you'd rather reset than change — because you can't recall the current one — use [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd).
+Your AirQo account is shared across Beacon, [Vertex](/vertex/intro), and AirQo Nexus. Changing your password here changes it everywhere. If you'd rather reset than change — because you can't recall the current one — use [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd).
 :::
 
 ## What This Page Doesn't Cover

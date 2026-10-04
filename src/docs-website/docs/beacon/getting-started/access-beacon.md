@@ -18,7 +18,7 @@ Beacon uses the same AirQo account and the same workspaces as [Vertex](/vertex/i
 3. Beacon opens on the fleet dashboard.
 
 :::note
-Beacon has no sign-up page. Opening `/register` redirects you to sign-in, because account creation happens once on AirQo Analytics and is shared across all AirQo products.
+Beacon has no sign-up page. Opening `/register` redirects you to sign-in, because account creation happens once on AirQo Nexus and is shared across all AirQo products.
 :::
 
 Forgotten your password? Reset it at [nexus.airqo.net/user/forgotPwd](https://nexus.airqo.net/user/forgotPwd). The change applies to Vertex and Beacon too.
