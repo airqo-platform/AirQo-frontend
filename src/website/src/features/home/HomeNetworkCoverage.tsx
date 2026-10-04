@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
 import type { ImpactCountryEntry } from '@/features/solutions/network-coverage/networkCoverageTypes';
@@ -25,7 +25,6 @@ const HomeNetworkCoverage = () => {
   });
   const impact = data?.impact;
   const scrollRef = useRef<HTMLUListElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
 
   const countries = useMemo<ImpactCountryEntry[]>(() => {
     return (impact?.byCountry ?? [])
@@ -35,41 +34,6 @@ const HomeNetworkCoverage = () => {
           b.total - a.total || a.country.localeCompare(b.country),
       );
   }, [impact]);
-
-  // Auto-rotate the country carousel on an interval.
-  useEffect(() => {
-    if (countries.length <= 1 || isPaused) return;
-
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    if (reduceMotion) return;
-
-    const interval = window.setInterval(() => {
-      const el = scrollRef.current;
-      if (!el) return;
-
-      const { scrollLeft, clientWidth, scrollWidth } = el;
-      if (scrollLeft + clientWidth >= scrollWidth - 8) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        el.scrollTo({
-          left: scrollLeft + CARD_SCROLL_STEP,
-          behavior: 'smooth',
-        });
-      }
-    }, 4000);
-
-    return () => window.clearInterval(interval);
-  }, [countries.length, isPaused]);
-
-  const totalMonitors =
-    impact?.totalMonitors ?? countries.reduce((sum, c) => sum + c.total, 0);
-  const totalCountries =
-    impact?.totalCountries && impact.totalCountries > 0
-      ? impact.totalCountries
-      : countries.length;
-  const totalCities = impact?.totalCities ?? 0;
 
   const scrollByCard = (direction: 1 | -1) => {
     scrollRef.current?.scrollBy({
@@ -122,87 +86,64 @@ const HomeNetworkCoverage = () => {
       aria-labelledby="network-coverage-heading"
       className="px-4 py-12 md:py-16"
     >
-      <div className="mx-auto max-w-7xl rounded-2xl bg-gradient-to-br from-[#0B1B3A] via-[#10265A] to-[#0B1B3A] px-6 py-12 text-white md:px-12 md:py-16">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-4">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1B3A] via-[#10265A] to-[#0B1B3A] text-white">
+        <div className="grid gap-8 p-6 md:p-10 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-12 lg:p-12">
+          <div>
             <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-blue-100">
               Network coverage
             </span>
             <h2
               id="network-coverage-heading"
-              className="text-3xl font-bold lg:text-4xl"
+              className="mt-4 text-3xl font-bold lg:text-4xl"
             >
               AirQo&apos;s monitoring network across Africa
             </h2>
-            <p className="text-blue-100">
-              Explore where our monitors are deployed across Africa.
+            <p className="mt-4 text-blue-100">
+              Explore the countries where AirQo&apos;s air quality monitors are
+              deployed.
             </p>
+            <Link
+              href="/solutions/network-coverage"
+              className="mt-8 inline-flex w-fit items-center gap-2 rounded-lg bg-white px-5 py-2.5 font-semibold text-[#0B1B3A] transition-colors hover:bg-blue-50"
+            >
+              View full network coverage
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
-          <Link
-            href="/solutions/network-coverage"
-            className="inline-flex w-fit rounded-lg border border-white/25 px-5 py-2.5 font-medium hover:bg-white/10"
-          >
-            View full network coverage
-          </Link>
-        </div>
 
-        {countries.length === 0 ? (
-          <p className="mt-8 text-blue-100">
-            Live network coverage data is not available right now.
-          </p>
-        ) : (
-          <>
-            <div className="mt-8 grid grid-cols-3 gap-4 md:gap-8">
-              <div>
-                <p className="text-3xl font-bold md:text-4xl">
-                  {formatNumber(totalMonitors)}
-                </p>
-                <p className="text-sm text-blue-100">Total monitors</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold md:text-4xl">
-                  {formatNumber(totalCountries)}
-                </p>
-                <p className="text-sm text-blue-100">Countries</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold md:text-4xl">
-                  {formatNumber(totalCities)}
-                </p>
-                <p className="text-sm text-blue-100">Cities</p>
-              </div>
+          <div className="min-w-0">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm font-medium uppercase tracking-wide text-blue-200">
+                Explore by country
+              </p>
+              {countries.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Previous countries"
+                    onClick={() => scrollByCard(-1)}
+                    className="rounded-full border border-white/25 p-2 hover:bg-white/10"
+                  >
+                    <HiArrowSmallLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next countries"
+                    onClick={() => scrollByCard(1)}
+                    className="rounded-full border border-white/25 p-2 hover:bg-white/10"
+                  >
+                    <HiArrowSmallRight className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {countries.length > 1 && (
-              <div className="mt-8 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  aria-label="Previous countries"
-                  onClick={() => scrollByCard(-1)}
-                  className="rounded-full border border-white/25 p-2 hover:bg-white/10"
-                >
-                  <HiArrowSmallLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next countries"
-                  onClick={() => scrollByCard(1)}
-                  className="rounded-full border border-white/25 p-2 hover:bg-white/10"
-                >
-                  <HiArrowSmallRight className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {countries.length > 0 && (
-              <div
-                className="relative mt-6"
-                onMouseEnter={() => setIsPaused(true)}
-                onMouseLeave={() => setIsPaused(false)}
-                onFocusCapture={() => setIsPaused(true)}
-                onBlurCapture={() => setIsPaused(false)}
-                onTouchStart={() => setIsPaused(true)}
-              >
+            {countries.length === 0 ? (
+              <p className="mt-6 text-blue-100">
+                Live network coverage data is not available right now.
+              </p>
+            ) : (
+              <div className="relative mt-6">
                 <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#0B1B3A] to-transparent" />
                 <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#0B1B3A] to-transparent" />
 
@@ -215,7 +156,7 @@ const HomeNetworkCoverage = () => {
                   {countries.map((country) => (
                     <li
                       key={country.iso2 || country.country}
-                      className="w-[200px] shrink-0 snap-start rounded-xl bg-white p-5 text-[#0B1B3A] sm:w-[220px]"
+                      className="w-[180px] shrink-0 snap-start rounded-xl bg-white p-4 text-[#0B1B3A] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[200px]"
                     >
                       {isValidIso2(country.iso2) ? (
                         <Image
@@ -232,20 +173,20 @@ const HomeNetworkCoverage = () => {
                           {country.iso2 || '—'}
                         </span>
                       )}
-                      <p className="mt-2 truncate text-base font-semibold">
+                      <p className="mt-3 truncate font-semibold">
                         {country.country}
                       </p>
-                      <p className="text-2xl font-bold text-[#145DFF]">
+                      <p className="mt-1 text-2xl font-bold text-[#145DFF]">
                         {formatNumber(country.total)}
                       </p>
-                      <p className="text-sm text-gray-600">sensors</p>
+                      <p className="text-xs text-gray-500">sensors</p>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </section>
   );

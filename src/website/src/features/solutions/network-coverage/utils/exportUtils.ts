@@ -4,6 +4,13 @@ import type {
   NetworkCoverageImpact,
 } from '@/features/solutions/network-coverage/networkCoverageTypes';
 
+import { AFRICAN_COUNTRY_LIST } from '../networkCoverageTypes';
+
+export interface SnapshotOptions {
+  scope: 'country' | 'africa';
+  countryId?: string | null;
+}
+
 export interface ExportData {
   countries: NetworkCoverageCountry[];
   impactData: NetworkCoverageImpact | null;
@@ -12,7 +19,7 @@ export interface ExportData {
   selectedNetworks: string[];
   selectedCountryId: string | null;
   selectedCountry: NetworkCoverageCountry | null;
-  snapshotGetter: (() => Promise<string | null>) | null;
+  snapshotGetter: ((options: SnapshotOptions) => Promise<string | null>) | null;
 }
 
 export const formatPdfDateTime = (value?: string) => {
@@ -74,6 +81,16 @@ export const escapeCsvField = (
 export const formatPopulation = (value?: number | null): string =>
   value == null ? '--' : value.toLocaleString();
 
+// Strips literal "undefined"/"null" placeholders (and a leading such token
+// followed by a comma) that can leak into exported text fields such as Site.
+const sanitizeExportText = (value?: string | null): string => {
+  if (value == null) return '';
+  const text = String(value).trim();
+  if (!text) return '';
+  if (/^(undefined|null)$/i.test(text)) return '';
+  return text.replace(/^(undefined|null)\s*,\s*/i, '');
+};
+
 export const formatExportCoordinates = (monitor: {
   latitude: number | null;
   longitude: number | null;
@@ -128,6 +145,23 @@ export const captureWithTimeout = async <T>(
 
 const displayText = (value?: string | null) =>
   value && value.trim() ? value : '--';
+
+const normalizeCountryNameForLookup = (name?: string) =>
+  (name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^the\s+/, '')
+    .replace(/\s+/g, ' ');
+
+const resolveIso2 = (iso2: string | undefined, countryName: string): string => {
+  if (iso2 && iso2.trim()) return iso2;
+  const found = AFRICAN_COUNTRY_LIST.find(
+    (item) =>
+      normalizeCountryNameForLookup(item.country) ===
+      normalizeCountryNameForLookup(countryName),
+  );
+  return found ? found.iso2 : '--';
+};
 
 export async function generatePdf(data: ExportData): Promise<void> {
   const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
@@ -198,9 +232,9 @@ export async function generatePdf(data: ExportData): Promise<void> {
 
   doc.setProperties({
     title: countryName
-      ? `Air Quality Monitoring Landscape — ${countryName} Report`
+      ? `Air Quality Monitoring Landscape - ${countryName} Report`
       : 'Air Quality Monitoring Landscape in Africa Report',
-    subject: `Air quality monitoring landscape export — ${scopeText}`,
+    subject: `Air quality monitoring landscape export - ${scopeText}`,
     author: 'Africa Air Quality Monitoring Network',
   });
 
@@ -238,7 +272,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
 
   drawHeader(
     countryName
-      ? `Air Quality Monitoring Landscape — ${countryName}`
+      ? `Air Quality Monitoring Landscape - ${countryName}`
       : 'Air Quality Monitoring Landscape in Africa',
     filterSummary || undefined,
   );
@@ -400,7 +434,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
     const cityPopRows = impactData.byCity.map((city: ImpactCityEntry) => [
       city.city,
       city.country,
-      city.iso2 || '--',
+      resolveIso2(city.iso2, city.country),
       String(city.total),
       String(city.active),
       formatPopulation(city.population),
@@ -529,8 +563,12 @@ export async function generatePdf(data: ExportData): Promise<void> {
   try {
     if (snapshotGetter) {
       const dataUrl = await captureWithTimeout(
-        () => snapshotGetter() ?? Promise.resolve(null),
-        6000,
+        () =>
+          snapshotGetter({
+            scope: countryName ? 'country' : 'africa',
+            countryId: selectedCountryId,
+          }) ?? Promise.resolve(null),
+        10000,
         null,
       );
       if (dataUrl && dataUrl.length > 100) {
@@ -538,8 +576,8 @@ export async function generatePdf(data: ExportData): Promise<void> {
 
         drawHeader(
           countryName
-            ? `Map Snapshot — ${countryName}`
-            : 'Map Snapshot — Air Quality Monitoring Landscape in Africa',
+            ? `Map Snapshot - ${countryName}`
+            : 'Map Snapshot - Air Quality Monitoring Landscape in Africa',
           `Scope: ${scopeText}`,
         );
 
@@ -571,7 +609,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
       }
     }
   } catch {
-    // Snapshot failed — omit page 2, report is still complete
+    // Snapshot failed - omit page 2, report is still complete
   }
 
   doc.save(buildPdfFileName(scopeLabel));
@@ -775,7 +813,7 @@ export async function generateCsv(data: ExportData): Promise<void> {
         [
           escapeCsvField(city.city),
           escapeCsvField(city.country),
-          escapeCsvField(city.iso2),
+          escapeCsvField(resolveIso2(city.iso2, city.country)),
           city.total,
           city.active,
           escapeCsvField(formatPopulation(city.population)),
@@ -878,7 +916,7 @@ export async function generateCsv(data: ExportData): Promise<void> {
         escapeCsvField(m.resolution),
         escapeCsvField(m.transmission),
         escapeCsvField(m.landUse),
-        escapeCsvField(m.site),
+        escapeCsvField(sanitizeExportText(m.site)),
         escapeCsvField(m.deployed),
         escapeCsvField(m.lastActive),
         escapeCsvField(m.calibrationLastDate),
@@ -891,7 +929,7 @@ export async function generateCsv(data: ExportData): Promise<void> {
     );
   });
 
-  const csvContent = lines.join('\n');
+  const csvContent = lines.join('\r\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

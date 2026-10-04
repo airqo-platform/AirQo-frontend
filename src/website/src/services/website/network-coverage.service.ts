@@ -45,7 +45,7 @@ class NetworkCoverageService extends BaseApiService {
     const response = await this.get<NetworkCoverageSummaryResponse>(
       NETWORK_COVERAGE_ENDPOINTS.SUMMARY,
       queryParams,
-      { ...options, throwOnError: false },
+      { timeout: 25000, ...options, throwOnError: false },
     );
 
     if (response.success && response.data) {
@@ -78,7 +78,7 @@ class NetworkCoverageService extends BaseApiService {
         countryId,
       )}/monitors`,
       queryParams,
-      { ...options, throwOnError: false },
+      { timeout: 25000, ...options, throwOnError: false },
     );
 
     if (response.success && response.data) {
@@ -109,7 +109,7 @@ class NetworkCoverageService extends BaseApiService {
         monitorId,
       )}`,
       queryParams,
-      { ...options, throwOnError: false },
+      { timeout: 25000, ...options, throwOnError: false },
     );
 
     if (response.success && response.data) {
@@ -203,7 +203,7 @@ class NetworkCoverageService extends BaseApiService {
     const response = await this.get<NetworkCoverageImpactResponse>(
       NETWORK_COVERAGE_ENDPOINTS.IMPACT,
       queryParams,
-      { ...options, throwOnError: false },
+      { timeout: 25000, ...options, throwOnError: false },
     );
 
     if (response.success && response.data) {

@@ -59,6 +59,7 @@ export interface NetworkCoverageSummaryMeta {
   totalCountries: number;
   monitoredCountries: number;
   totalMonitors?: number;
+  totalCities?: number;
   totalPopulationReached?: number | null;
   citiesWithPopulationData?: number;
   availableNetworks?: string[];
@@ -179,6 +180,16 @@ const normalizeNumber = (
 const normalizeIso2 = (value: unknown, fallback = ''): string =>
   normalizeString(value, fallback).toUpperCase().slice(0, 2);
 
+// Canonical form used when matching country names against AFRICAN_COUNTRY_LIST:
+// trim, lowercase, strip a leading "the " (e.g. "The Gambia" → "Gambia") and
+// collapse repeated whitespace.
+const normalizeCountryNameForLookup = (name: unknown): string =>
+  normalizeString(name)
+    .toLowerCase()
+    .replace(/^the\s+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 export const normalizeCountryId = (value: string): string =>
   value
     .normalize('NFD')
@@ -232,9 +243,10 @@ export const normalizeNetworkCoverageMonitor = (
   const iso2 = normalizeIso2(source.iso2, '');
 
   const lookupIso2ForCountry = (name?: string) => {
-    if (!name) return '';
+    const normalized = normalizeCountryNameForLookup(name);
+    if (!normalized) return '';
     const found = AFRICAN_COUNTRY_LIST.find(
-      (item) => item.country.toLowerCase() === name.toLowerCase(),
+      (item) => normalizeCountryNameForLookup(item.country) === normalized,
     );
     return found ? found.iso2 : '';
   };
@@ -247,7 +259,7 @@ export const normalizeNetworkCoverageMonitor = (
     countryId: normalizeString(
       source.countryId || source.country_id || normalizeCountryId(country),
     ),
-    iso2: iso2 || lookupIso2ForCountry(country) || normalizeIso2(country, ''),
+    iso2: lookupIso2ForCountry(country) || iso2 || normalizeIso2(country, ''),
     latitude: normalizeNumber(source.latitude ?? source.approximate_latitude),
     longitude: normalizeNumber(
       source.longitude ?? source.approximate_longitude,
@@ -296,15 +308,16 @@ export const normalizeNetworkCoverageCountry = (
   const rawMonitors = Array.isArray(source.monitors) ? source.monitors : [];
 
   const lookupIso2ForCountry = (name?: string) => {
-    if (!name) return '';
+    const normalized = normalizeCountryNameForLookup(name);
+    if (!normalized) return '';
     const found = AFRICAN_COUNTRY_LIST.find(
-      (item) => item.country.toLowerCase() === name.toLowerCase(),
+      (item) => normalizeCountryNameForLookup(item.country) === normalized,
     );
     return found ? found.iso2 : '';
   };
 
   const iso2 =
-    normalizeIso2(source.iso2, '') || lookupIso2ForCountry(countryName);
+    lookupIso2ForCountry(countryName) || normalizeIso2(source.iso2, '');
 
   const rawStats = source.stats;
   const stats: NetworkCoverageCountryStats | undefined =
@@ -369,6 +382,7 @@ export const normalizeNetworkCoverageSummary = (
             country.monitors && country.monitors.length > 0,
         ).length,
       totalMonitors: normalizeNumber(meta.totalMonitors) ?? undefined,
+      totalCities: normalizeNumber(meta.totalCities) ?? undefined,
       totalPopulationReached: normalizeNumber(meta.totalPopulationReached),
       citiesWithPopulationData:
         normalizeNumber(meta.citiesWithPopulationData) ?? undefined,

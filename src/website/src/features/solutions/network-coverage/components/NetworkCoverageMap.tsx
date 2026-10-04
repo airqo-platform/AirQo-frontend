@@ -7,6 +7,7 @@ import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
 
 import {
   africanIso2Codes,
+  normalizeCountryId,
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
@@ -16,6 +17,22 @@ import {
 const LazyToaster = React.lazy(() =>
   import('react-hot-toast').then((m) => ({ default: m.Toaster })),
 );
+
+// Default whole-Africa camera. Hoisted so the constructor, the initial-view
+// jumpTo, the coverage-view reset, the snapshot positioning and the reset
+// control all share one source of truth.
+const AFRICA_CENTER: [number, number] = [
+  15.751726790157534, 1.5627232057281049,
+];
+const AFRICA_ZOOM = 2.914761576947509;
+
+// Options accepted by the snapshot getter so the PDF generator can request a
+// deterministic camera (fitted to a country, or the whole-Africa default)
+// instead of whatever the user is currently looking at.
+export interface SnapshotOptions {
+  scope: 'country' | 'africa';
+  countryId?: string | null;
+}
 
 interface NetworkCoverageMapProps {
   countries: NetworkCoverageCountry[];
@@ -31,18 +48,20 @@ interface NetworkCoverageMapProps {
   ) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
-  onRegisterSnapshot?: (fn: (() => Promise<string | null>) | null) => void;
+  onRegisterSnapshot?: (
+    fn: ((options: SnapshotOptions) => Promise<string | null>) | null,
+  ) => void;
 }
 
 type MarkerResource = {
   marker: any;
   element: HTMLButtonElement;
   handleClick: () => void;
-  handleMouseEnter: () => void;
-  handleMouseLeave: () => void;
+  handleShowTooltip: () => void;
+  handleHideTooltip: () => void;
 };
 
-// AFRICA bounding box was removed — map is not locked to Africa by default.
+// AFRICA bounding box was removed - map is not locked to Africa by default.
 
 const bucketColor = (count: number): string => {
   if (count === 0) return '#ECEFF4';
@@ -213,6 +232,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const coverageClickHandlerRef = useRef<((event: any) => void) | null>(null);
+  // Guards the selected-country fitBounds effect against fighting the export
+  // camera positioning, which briefly moves the map for a deterministic shot.
+  const isSnapshotPositioningRef = useRef(false);
+  // Latest selection + country lookup kept in refs so the registered snapshot
+  // getter (captured once on map load) never goes stale when props change.
+  // `countryById` is declared further down (useMemo), so start empty and sync in
+  // the effects below.
+  const selectedCountryIdRef = useRef<string | null>(selectedCountryId);
+  const countryByIdRef = useRef<Record<string, NetworkCoverageCountry>>({});
   const coverageMouseMoveHandlerRef = useRef<((event: any) => void) | null>(
     null,
   );
@@ -236,6 +264,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   // Keep refs up-to-date without triggering re-renders.
   onMonitorSelectRef.current = onMonitorSelect;
   onCountrySelectByIsoRef.current = onCountrySelectByIso;
+  selectedCountryIdRef.current = selectedCountryId;
 
   const countryById = useMemo(() => {
     const result: Record<string, NetworkCoverageCountry> = {};
@@ -244,6 +273,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     });
     return result;
   }, [countries]);
+  // Keep the snapshot getter's country lookup in sync.
+  countryByIdRef.current = countryById;
 
   const countryByIso2 = useMemo(() => {
     const result: Record<string, NetworkCoverageCountry> = {};
@@ -298,14 +329,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const clearMarkers = () => {
     markersRef.current.forEach((resource) => {
       resource.element.removeEventListener('click', resource.handleClick);
-      resource.element.removeEventListener(
-        'mouseenter',
-        resource.handleMouseEnter,
-      );
-      resource.element.removeEventListener(
-        'mouseleave',
-        resource.handleMouseLeave,
-      );
+      resource.element.removeEventListener('focus', resource.handleShowTooltip);
+      resource.element.removeEventListener('blur', resource.handleHideTooltip);
       resource.marker.remove();
     });
     markersRef.current = [];
@@ -468,10 +493,120 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     };
   }, [mapStyle]);
 
+  // Moves the map to a deterministic camera for a snapshot. For `country`,
+  // fits the camera to that country's finite monitor coordinates; for
+  // `africa`, jumps to the default whole-Africa view. Returns a restore
+  // function that jumps back to the camera saved before positioning.
+  const positionMapForSnapshot = async (
+    map: any,
+    scope: SnapshotOptions['scope'],
+    countryId?: string | null,
+  ): Promise<() => void> => {
+    const mapboxgl = (window as any).mapboxgl;
+    const savedCenter: [number, number] = [
+      map.getCenter()?.lng ?? AFRICA_CENTER[0],
+      map.getCenter()?.lat ?? AFRICA_CENTER[1],
+    ];
+    const savedZoom = map.getZoom() ?? AFRICA_ZOOM;
+
+    const restore = () => {
+      try {
+        map.jumpTo({ center: savedCenter, zoom: savedZoom });
+      } catch {
+        // ignore restore failures
+      }
+    };
+
+    const goTo = () => {
+      if (scope === 'country' && countryId && mapboxgl) {
+        const country = countryByIdRef.current[countryId];
+        const points = (country?.monitors ?? [])
+          .filter(
+            (m: NetworkCoverageMonitor) =>
+              typeof m.longitude === 'number' &&
+              typeof m.latitude === 'number' &&
+              Number.isFinite(m.longitude) &&
+              Number.isFinite(m.latitude),
+          )
+          .map((m: NetworkCoverageMonitor) => [
+            m.longitude as number,
+            m.latitude as number,
+          ]);
+        if (points.length > 0) {
+          try {
+            const bounds = new mapboxgl.LngLatBounds(
+              points[0] as [number, number],
+              points[0] as [number, number],
+            );
+            points.forEach((p: number[]) =>
+              bounds.extend(p as [number, number]),
+            );
+            map.fitBounds(bounds, {
+              padding: { top: 120, right: 70, bottom: 90, left: 70 },
+              maxZoom: 7,
+              duration: 0,
+            });
+          } catch {
+            map.jumpTo({ center: AFRICA_CENTER, zoom: AFRICA_ZOOM });
+          }
+        } else {
+          map.jumpTo({ center: AFRICA_CENTER, zoom: AFRICA_ZOOM });
+        }
+      } else {
+        map.jumpTo({ center: AFRICA_CENTER, zoom: AFRICA_ZOOM });
+      }
+    };
+
+    goTo();
+
+    // Wait for the positioning to settle (idle), bounded by a timeout, then let
+    // two animation frames flush before capturing. Resolves with the restore
+    // function the caller should run after capturing.
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const timeoutId = window.setTimeout(finish, 3000);
+      try {
+        map.once('idle', () => {
+          window.clearTimeout(timeoutId);
+          finish();
+        });
+      } catch {
+        window.clearTimeout(timeoutId);
+        finish();
+      }
+    });
+    await new Promise<void>((resolve) =>
+      window.requestAnimationFrame(() =>
+        window.requestAnimationFrame(() => resolve()),
+      ),
+    );
+    return restore;
+  };
+
   // Expose a snapshot getter to the parent PDF generator.
-  const captureSnapshot = async (): Promise<string | null> => {
+  const captureSnapshot = async (
+    options?: SnapshotOptions,
+  ): Promise<string | null> => {
+    let restoreCamera: (() => void) | null = null;
     try {
       if (!mapContainerRef.current) return null;
+
+      // When a scope is requested, position the map deterministically first so
+      // the exported snapshot is reproducible (country-fitted or whole-Africa),
+      // then restore the user's current view afterwards.
+      if (options && mapRef.current) {
+        isSnapshotPositioningRef.current = true;
+        restoreCamera = await positionMapForSnapshot(
+          mapRef.current,
+          options.scope,
+          options.countryId,
+        );
+      }
 
       await new Promise((resolve) => window.requestAnimationFrame(resolve));
 
@@ -500,15 +635,33 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         );
       } catch {}
       return null;
+    } finally {
+      if (restoreCamera) {
+        try {
+          restoreCamera();
+        } catch {
+          // ignore restore failures
+        }
+      }
+      isSnapshotPositioningRef.current = false;
     }
   };
 
+  // Stable ref so the registered snapshot getter (captured once on map load)
+  // always forwards to the latest `captureSnapshot` without the registration
+  // effect needing it in its dependency array.
+  const captureSnapshotRef = useRef(captureSnapshot);
+  useEffect(() => {
+    captureSnapshotRef.current = captureSnapshot;
+  });
+
   // Expose a snapshot getter to the parent PDF generator.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!onRegisterSnapshot) return;
 
-    onRegisterSnapshot(captureSnapshot);
+    const getter = (options?: SnapshotOptions) =>
+      captureSnapshotRef.current(options);
+    onRegisterSnapshot(getter);
     return () => onRegisterSnapshot(null);
   }, [onRegisterSnapshot, mapLoaded]);
 
@@ -777,6 +930,15 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       const element = document.createElement('button');
       element.type = 'button';
       element.className = 'cursor-pointer';
+      element.setAttribute('role', 'button');
+      element.tabIndex = 0;
+      // Build an accessible name from the primary monitor in the group.
+      const primaryMonitor = group.monitors[0];
+      const markerCountry = countryByIso2[primaryMonitor?.iso2]?.country;
+      const accessibleName = markerCountry
+        ? `${primaryMonitor.name}, ${markerCountry}`
+        : (primaryMonitor?.name ?? 'Monitor');
+      element.setAttribute('aria-label', accessibleName);
       const groupHasReference = group.type === 'Reference';
       const groupHasOnline = group.monitors.some(
         (monitor) => monitor.status === 'active',
@@ -813,26 +975,31 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       };
 
       element.addEventListener('click', handleClick);
-      const handleMouseEnter = () => {
+      const showTooltip = () => {
         element.style.zIndex = '40';
-
-        if (!monitorPopupRef.current) {
-          return;
-        }
-
-        // Always show the monitor tooltip for the first monitor in the group.
+        if (!monitorPopupRef.current) return;
         const node = group.monitors[0];
         monitorPopupRef.current
           .setLngLat([group.longitude, group.latitude])
           .setHTML(buildMonitorTooltipMarkup(node))
           .addTo(map);
       };
-      const handleMouseLeave = () => {
+      const hideTooltip = () => {
         element.style.zIndex = groupHasSelected ? '8' : '4';
         monitorPopupRef.current?.remove();
       };
-      element.addEventListener('mouseenter', handleMouseEnter);
-      element.addEventListener('mouseleave', handleMouseLeave);
+      element.addEventListener('mouseenter', showTooltip);
+      element.addEventListener('mouseleave', hideTooltip);
+      element.addEventListener('focus', showTooltip);
+      element.addEventListener('blur', hideTooltip);
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          showTooltip();
+          handleClick();
+        }
+      };
+      element.addEventListener('keydown', handleKeyDown);
       element.style.pointerEvents = 'auto';
       element.style.zIndex = groupHasSelected ? '8' : '4';
 
@@ -844,8 +1011,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         marker,
         element,
         handleClick,
-        handleMouseEnter,
-        handleMouseLeave,
+        handleShowTooltip: showTooltip,
+        handleHideTooltip: hideTooltip,
       });
     });
 
@@ -881,6 +1048,12 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     // Avoid overriding the explicit initial view set by the user on first
     // load. Only auto-fit when a country is selected after initial view.
     if (!hasAppliedInitialViewRef.current) {
+      return;
+    }
+
+    // While the export flow is positioning the map for a deterministic
+    // snapshot, skip the user-facing auto-fit so the two don't fight.
+    if (isSnapshotPositioningRef.current) {
       return;
     }
 
@@ -988,7 +1161,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     <div className="relative h-full w-full">
       <div ref={mapContainerRef} className="h-full w-full" />
 
-      <div className="absolute bottom-14 right-4 z-20 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.22)]">
+      <div className="absolute bottom-14 right-4 z-20 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-md">
         <button
           type="button"
           onClick={() => mapRef.current?.zoomIn({ duration: 300 })}
@@ -1013,7 +1186,10 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
               if (!dataUrl) return;
               const a = document.createElement('a');
               a.href = dataUrl;
-              a.download = `africa-map-snapshot-${new Date().toISOString().split('T')[0]}.png`;
+              const slug = selectedCountry
+                ? normalizeCountryId(selectedCountry.country) || 'country'
+                : 'africa';
+              a.download = `network-coverage-${slug}-map-${new Date().toISOString().split('T')[0]}.png`;
               document.body.appendChild(a);
               a.click();
               a.remove();
@@ -1039,8 +1215,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
             try {
               // Fly back to the user-requested locked Africa center/zoom.
               mapRef.current?.flyTo({
-                center: [15.751726790157534, 1.5627232057281049],
-                zoom: 2.914761576947509,
+                center: AFRICA_CENTER,
+                zoom: AFRICA_ZOOM,
                 duration: 650,
               });
             } catch {
@@ -1060,7 +1236,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         </button>
       </div>
 
-      {/* Snapshot preview modal removed — camera now downloads immediately */}
+      {/* Snapshot preview modal removed - camera now downloads immediately */}
       <React.Suspense fallback={null}>
         <LazyToaster
           position="bottom-right"

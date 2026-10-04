@@ -4,7 +4,9 @@ import {
   FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
+  FiLoader,
   FiMapPin,
+  FiPlus,
   FiSearch,
   FiX,
 } from 'react-icons/fi';
@@ -128,6 +130,7 @@ interface NetworkCoverageSidebarProps {
   onSelectCountry: (countryId: string) => void;
   onSelectMonitor: (monitorId: string, countryId: string) => void;
   onClosePrompt: () => void;
+  monitoredCountriesTotal?: number;
   onResetToOverview: () => void;
   onRetry?: () => void;
   onOpenAddMonitor?: (
@@ -136,6 +139,13 @@ interface NetworkCoverageSidebarProps {
     iso2?: string,
   ) => void;
   monitorLoading?: boolean;
+  isCountryLoading?: boolean;
+  countryError?: string | null;
+  onRetryCountry?: () => void;
+  isSummaryLoading?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+  toggleButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
@@ -159,18 +169,39 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onResetToOverview,
   onRetry,
   onOpenAddMonitor,
+  monitoredCountriesTotal,
   isLoading = false,
   error = null,
   monitorLoading = false,
+  isCountryLoading = false,
+  countryError = null,
+  onRetryCountry,
   // `isSearching` indicates the user is typing and debounce hasn't settled
   isSearching = false,
+  isSummaryLoading = false,
+  isOpen = false,
+  onClose,
+  toggleButtonRef,
 }) => {
   const q = (searchQuery || '').trim().toLowerCase();
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const networkDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const panelRef = React.useRef<HTMLElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [promptTop, setPromptTop] = React.useState<number | null>(null);
   const [networkDropdownOpen, setNetworkDropdownOpen] = React.useState(false);
+  const [isMobileViewport, setIsMobileViewport] = React.useState(false);
+  const [unmonitoredCollapsed, setUnmonitoredCollapsed] = React.useState(true);
+
+  // On mobile the sidebar stays open after a country tap, so a deep scroll
+  // position would leave the country header + "Add device" button off-screen.
+  // Reset the list to the top whenever the selected country identity changes.
+  const selectedCountryId = selectedCountry?.id;
+  React.useEffect(() => {
+    if (!selectedCountryId) return;
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [selectedCountryId]);
 
   const filteredCountries = React.useMemo(() => {
     return countries.filter((country) => {
@@ -189,6 +220,34 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const monitoredCountriesCount = filteredCountries.filter(
     (country) => country.monitors.length > 0,
   ).length;
+
+  // Split the country list into monitored / not-yet-monitored. Only used when
+  // there is no active search query (search keeps the flat filtered list).
+  const { monitoredCountries, unmonitoredCountries } = React.useMemo(() => {
+    const monitored: NetworkCoverageCountry[] = [];
+    const unmonitored: NetworkCoverageCountry[] = [];
+    filteredCountries.forEach((country) => {
+      if (country.monitors.length > 0) monitored.push(country);
+      else unmonitored.push(country);
+    });
+    return { monitoredCountries: monitored, unmonitoredCountries: unmonitored };
+  }, [filteredCountries]);
+
+  // Letters that have at least one VISIBLE country, for the A-Z quick-jump
+  // row. Only meaningful with no active search query. When the unmonitored
+  // section is collapsed those rows are not rendered, so their letters must
+  // not be indexed either (otherwise jumps target hidden rows).
+  const azLetters = React.useMemo(() => {
+    const visible = unmonitoredCollapsed
+      ? monitoredCountries
+      : filteredCountries;
+    const present = new Set<string>();
+    visible.forEach((country) => {
+      const letter = (country.country || '').trim().charAt(0).toUpperCase();
+      if (letter >= 'A' && letter <= 'Z') present.add(letter);
+    });
+    return Array.from(present).sort();
+  }, [filteredCountries, monitoredCountries, unmonitoredCollapsed]);
 
   const filteredCountryMonitors = React.useMemo(() => {
     if (!selectedCountry) return [];
@@ -211,8 +270,31 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         setNetworkDropdownOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && networkDropdownOpen) {
+        setNetworkDropdownOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [networkDropdownOpen]);
+
+  // Detect mobile viewport (≤1023px) for focus management & a11y hiding.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 1023px)');
+    const handle = () => setIsMobileViewport(mql.matches);
+    handle();
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handle);
+      return () => mql.removeEventListener('change', handle);
+    }
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
   }, []);
 
   const isOverviewLoading = isLoading && !selectedCountry;
@@ -237,19 +319,315 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
     }
   }, [selectedMonitor?.viewDataUrl]);
 
+  // Close on Escape when the sidebar is open on mobile.
+  React.useEffect(() => {
+    if (!isMobileViewport || !isOpen || !onClose) return;
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handle);
+    return () => document.removeEventListener('keydown', handle);
+  }, [isMobileViewport, isOpen, onClose]);
+
+  // Move focus into the panel when it opens on mobile; return focus to the
+  // document body is handled by the parent toggle. We focus the search input
+  // (overview) or the close button (country/monitor view) on open.
+  const closeButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  React.useEffect(() => {
+    if (!isMobileViewport || !isOpen) return;
+    const target = searchInputRef.current || closeButtonRef.current;
+    if (target) {
+      window.setTimeout(() => target.focus(), 350);
+    }
+  }, [isMobileViewport, isOpen, selectedCountry]);
+
+  // Return focus to the toggle button when the sidebar closes on mobile.
+  const wasOpenRef = React.useRef(isOpen);
+  React.useEffect(() => {
+    if (!isMobileViewport) {
+      wasOpenRef.current = isOpen;
+      return;
+    }
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+    if (wasOpen && !isOpen && toggleButtonRef?.current) {
+      window.setTimeout(() => toggleButtonRef.current?.focus(), 100);
+    }
+  }, [isMobileViewport, isOpen, toggleButtonRef]);
+
+  // Scroll the country list so the first VISIBLE country starting with the
+  // given letter sits at the top of the list container. Used by the A-Z
+  // quick-jump row. Hidden rows (collapsed unmonitored section) are never
+  // targeted because azLetters only indexes visible countries.
+  const jumpToLetter = React.useCallback(
+    (letter: string) => {
+      const visible = unmonitoredCollapsed
+        ? monitoredCountries
+        : filteredCountries;
+      const target = visible.find((country) =>
+        (country.country || '').trim().toUpperCase().startsWith(letter),
+      );
+      if (!target) return;
+      const container = scrollRef.current;
+      if (!container) return;
+      const id = `country-row-${target.iso2 || target.country}`;
+      const el = container.querySelector<HTMLElement>(
+        `[data-country-id="${CSS.escape(id)}"]`,
+      );
+      if (!el) return;
+      const top = el.offsetTop - container.offsetTop;
+      if (Number.isFinite(top)) {
+        container.scrollTo({ top, behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+    },
+    [filteredCountries, monitoredCountries, unmonitoredCollapsed],
+  );
+
+  // Arrow-key navigation for a list of [data-nav-row] buttons. Handles both
+  // the country list and the monitor list containers.
+  const handleListKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const key = event.key;
+      if (
+        key !== 'ArrowDown' &&
+        key !== 'ArrowUp' &&
+        key !== 'Home' &&
+        key !== 'End'
+      ) {
+        return;
+      }
+      const container = event.currentTarget;
+      const rows = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          'button[data-nav-row]:not([disabled])',
+        ),
+      );
+      if (rows.length === 0) return;
+      const active = document.activeElement;
+      const currentIndex = rows.findIndex((row) => row === active);
+      let nextIndex = currentIndex;
+      if (key === 'ArrowDown') {
+        nextIndex =
+          currentIndex < 0 ? 0 : Math.min(rows.length - 1, currentIndex + 1);
+      } else if (key === 'ArrowUp') {
+        nextIndex =
+          currentIndex < 0 ? rows.length - 1 : Math.max(0, currentIndex - 1);
+      } else if (key === 'Home') {
+        nextIndex = 0;
+      } else if (key === 'End') {
+        nextIndex = rows.length - 1;
+      }
+      if (nextIndex !== currentIndex) {
+        event.preventDefault();
+        rows[nextIndex].focus();
+      }
+    },
+    [],
+  );
+
+  // Stable id used as the A-Z quick-jump scroll target for a country row.
+  const countryRowId = (country: NetworkCoverageCountry) =>
+    `country-row-${country.iso2 || country.country}`;
+
+  // Shared "Add device" action: open the in-app add-monitor flow when the page
+  // provides it, otherwise fall back to the Vertex dashboard in a new tab.
+  const openAddDevice = (
+    countryId: string,
+    countryName?: string,
+    iso2?: string,
+  ) => {
+    if (onOpenAddMonitor) {
+      onOpenAddMonitor(countryId, countryName, iso2);
+      return;
+    }
+    window.open(
+      getEnvironmentAwareUrl('https://vertex.airqo.net'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+  };
+
+  // Renders a single country row (button + optional add-monitor prompt). Shared
+  // by the flat (search) list and the monitored/unmonitored sections.
+  const renderCountryRow = (country: NetworkCoverageCountry) => {
+    const stats = country.stats;
+    const lcsCount = stats?.LCS ?? 0;
+    const refCount = stats?.Reference ?? 0;
+    const inactiveCount = stats?.Inactive ?? 0;
+    const totalMonitors = stats?.total ?? country.monitors.length;
+    const activeMonitors = stats?.active;
+    const isNoData = totalMonitors === 0;
+    const isPromptOpen = showAddMonitorPromptFor === country.id;
+
+    return (
+      <div key={country.id} data-country-id={countryRowId(country)}>
+        <button
+          type="button"
+          data-nav-row
+          onClick={(event) => {
+            if (isNoData) {
+              try {
+                const buttonEl = event.currentTarget as HTMLElement;
+                const containerEl = scrollRef.current;
+                if (containerEl && buttonEl) {
+                  const containerRect = containerEl.getBoundingClientRect();
+                  const buttonRect = buttonEl.getBoundingClientRect();
+                  const top =
+                    buttonRect.top -
+                    containerRect.top +
+                    containerEl.scrollTop -
+                    8;
+                  setPromptTop(Math.max(8, Math.round(top)));
+                }
+              } catch {
+                setPromptTop(null);
+              }
+            }
+            onSelectCountry(country.id);
+          }}
+          className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
+            isNoData
+              ? 'cursor-pointer border-slate-100 bg-slate-50 text-slate-500'
+              : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm active:bg-blue-50/40'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h3
+                className={`truncate text-[15px] font-semibold leading-6 ${
+                  isNoData ? 'text-slate-500' : 'text-slate-950'
+                }`}
+              >
+                {country.country}
+              </h3>
+              {isNoData ? (
+                <p className="mt-0.5 text-xs text-slate-500">
+                  No monitors registered
+                </p>
+              ) : (
+                <p className="mt-0.5 text-xs text-slate-600">
+                  <span className="font-semibold text-slate-900">
+                    {totalMonitors}
+                  </span>{' '}
+                  monitor{totalMonitors !== 1 ? 's' : ''}
+                  {activeMonitors != null && (
+                    <>
+                      {' · '}
+                      <span
+                        className={
+                          activeMonitors > 0
+                            ? 'font-semibold text-emerald-700'
+                            : 'text-slate-500'
+                        }
+                      >
+                        {activeMonitors} active
+                      </span>
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+            {!isNoData && (
+              <FiChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-400" />
+            )}
+          </div>
+
+          {!isNoData && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {lcsCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                  {typeLabels['LCS']} · {lcsCount}
+                </span>
+              )}
+              {refCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  {typeLabels['Reference']} · {refCount}
+                </span>
+              )}
+              {inactiveCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                  Inactive · {inactiveCount}
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+
+        {isPromptOpen && (
+          <div
+            className="absolute left-4 right-4 z-50 pointer-events-auto rounded-xl border border-slate-300 bg-white p-4 shadow-xl"
+            style={{ top: promptTop ?? 76 }}
+          >
+            <button
+              type="button"
+              onClick={onClosePrompt}
+              className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              aria-label="Close prompt"
+            >
+              <FiX className="h-4 w-4" />
+            </button>
+
+            <h4 className="mb-2 text-lg font-semibold text-slate-950">
+              No devices registered in {country.country}
+            </h4>
+            <p className="mb-3 text-sm text-slate-600">
+              You can add a device to start collecting data for this country.
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                openAddDevice(country.id, country.country, country.iso2)
+              }
+              aria-label={`Add a device in ${country.country}`}
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+            >
+              <FiPlus className="h-4 w-4" aria-hidden="true" />
+              Add device
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-300 lg:shadow-none">
+    <aside
+      ref={panelRef}
+      className={`relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-slate-300 lg:shadow-none ${
+        isMobileViewport && !isOpen
+          ? 'invisible pointer-events-none'
+          : 'visible pointer-events-auto'
+      }`}
+      aria-hidden={isMobileViewport && !isOpen ? 'true' : 'false'}
+    >
       {/* ── Header ── */}
       <div className="flex-shrink-0 border-b border-slate-200 bg-white px-4 py-3.5">
+        {/* Screen-reader heading for the country/monitor navigation region */}
+        <h2 className="sr-only">Countries and monitors</h2>
         {!selectedCountry ? (
           <>
             {/* Search input */}
             <div className="relative">
               <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <label className="sr-only" htmlFor="nc-sidebar-search">
+                Search countries, cities, networks or stations
+              </label>
               <input
+                id="nc-sidebar-search"
+                ref={searchInputRef}
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
                 placeholder="Search country, city, network or station..."
+                aria-label="Search countries, cities, networks or stations"
                 className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-500 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
               {query && (
@@ -266,46 +644,52 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
             {/* Filter chips */}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {(['Reference', 'LCS', 'Inactive'] as MonitorType[]).map(
-                (type) => {
-                  const active = selectedTypes.includes(type);
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => onToggleType(type)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
-                        active
-                          ? type === 'Reference'
-                            ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                            : type === 'LCS'
-                              ? 'border-blue-300 bg-blue-50 text-blue-700'
-                              : 'border-slate-300 bg-slate-100 text-slate-600'
-                          : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${typeDotClass[type]}`}
-                      />
-                      {typeLabels[type]}
-                    </button>
-                  );
-                },
-              )}
-              <button
-                type="button"
-                onClick={onToggleActiveOnly}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
-                  activeOnly
-                    ? 'border-blue-300 bg-blue-50 text-blue-700'
-                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors ${activeOnly ? 'bg-blue-500' : 'bg-slate-300'}`}
-                />
-                Active only
-              </button>
+              <div role="group" aria-label="Monitor type filters">
+                {(['Reference', 'LCS', 'Inactive'] as MonitorType[]).map(
+                  (type) => {
+                    const active = selectedTypes.includes(type);
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => onToggleType(type)}
+                        aria-pressed={active}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                          active
+                            ? type === 'Reference'
+                              ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                              : type === 'LCS'
+                                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                                : 'border-slate-300 bg-slate-100 text-slate-600'
+                            : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${typeDotClass[type]}`}
+                          aria-hidden="true"
+                        />
+                        {typeLabels[type]}
+                      </button>
+                    );
+                  },
+                )}
+                <button
+                  type="button"
+                  onClick={onToggleActiveOnly}
+                  aria-pressed={activeOnly}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                    activeOnly
+                      ? 'border-blue-300 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors ${activeOnly ? 'bg-blue-500' : 'bg-slate-300'}`}
+                    aria-hidden="true"
+                  />
+                  Active only
+                </button>
+              </div>
             </div>
 
             {/* Source / Network filter */}
@@ -314,6 +698,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 <button
                   type="button"
                   onClick={() => setNetworkDropdownOpen((p) => !p)}
+                  aria-expanded={networkDropdownOpen}
+                  aria-haspopup="true"
                   className={`inline-flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                     selectedNetworks.length > 0
                       ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
@@ -379,18 +765,63 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               {isOverviewLoading ? (
                 <div className="h-4 w-44 animate-pulse rounded bg-slate-200" />
               ) : (
-                <p className="text-sm font-medium text-slate-700">
-                  <span className="font-semibold text-slate-950">
-                    {monitoredCountriesCount}
-                  </span>{' '}
-                  of{' '}
-                  <span className="font-semibold text-slate-950">
-                    {countries.length}
-                  </span>{' '}
-                  countries monitored
-                </p>
+                (() => {
+                  const hasClientOnlyFilter =
+                    !!q ||
+                    activeOnly ||
+                    selectedTypes.includes('Inactive') ||
+                    selectedTypes.length === 1 ||
+                    selectedNetworks.length > 0;
+                  const count = hasClientOnlyFilter
+                    ? monitoredCountriesCount
+                    : (monitoredCountriesTotal ?? monitoredCountriesCount);
+                  return (
+                    <p className="text-sm font-medium text-slate-700">
+                      <span className="font-semibold text-slate-950">
+                        {count}
+                      </span>{' '}
+                      <span className="text-slate-500">
+                        {hasClientOnlyFilter ? 'matching' : 'monitored'}{' '}
+                        countries
+                      </span>
+                    </p>
+                  );
+                })()
               )}
             </div>
+
+            {/* A-Z quick-jump index (only with no search query and > 10 countries) */}
+            {!q &&
+              !isOverviewLoading &&
+              filteredCountries.length > 10 &&
+              azLetters.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {azLetters.map((letter) => (
+                    <button
+                      key={letter}
+                      type="button"
+                      onClick={() => jumpToLetter(letter)}
+                      aria-label={`Jump to countries starting with ${letter}`}
+                      className="rounded-md px-1.5 py-0.5 text-xs font-medium text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      {letter}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {/* Mobile close button for the sidebar panel */}
+            {onClose && (
+              <button
+                ref={closeButtonRef}
+                type="button"
+                onClick={() => onClose()}
+                aria-label="Close countries panel"
+                className="lg:hidden grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg border border-slate-300 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                <FiX className="h-5 w-5" />
+              </button>
+            )}
           </>
         ) : (
           <button
@@ -412,6 +843,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
       <div
         ref={scrollRef}
         className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3"
+        aria-busy={isSummaryLoading}
+        onKeyDown={handleListKeyDown}
       >
         {/* Error state */}
         {error && countries.length === 0 && !selectedCountry ? (
@@ -465,165 +898,54 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {!selectedCountry &&
           !isOverviewLoading &&
           filteredCountries.length > 0 && (
-            <div className="space-y-1.5">
-              {filteredCountries.map((country) => {
-                const counts = country.monitors.reduce(
-                  (accumulator, monitor) => {
-                    accumulator[monitor.type] += 1;
-                    return accumulator;
-                  },
-                  { LCS: 0, Reference: 0, Inactive: 0 },
-                );
-
-                const totalMonitors = country.monitors.length;
-                const activeMonitors = country.monitors.filter(
-                  (m) => m.status === 'active',
-                ).length;
-                const isNoData = totalMonitors === 0;
-                const isPromptOpen = showAddMonitorPromptFor === country.id;
-
-                return (
-                  <div key={country.id}>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        if (isNoData) {
-                          try {
-                            const buttonEl = event.currentTarget as HTMLElement;
-                            const containerEl = scrollRef.current;
-                            if (containerEl && buttonEl) {
-                              const containerRect =
-                                containerEl.getBoundingClientRect();
-                              const buttonRect =
-                                buttonEl.getBoundingClientRect();
-                              const top =
-                                buttonRect.top -
-                                containerRect.top +
-                                containerEl.scrollTop -
-                                8;
-                              setPromptTop(Math.max(8, Math.round(top)));
-                            }
-                          } catch {
-                            setPromptTop(null);
-                          }
+            <div className="space-y-3">
+              {q ? (
+                // Active search: keep the flat filtered list (no sections, no A-Z).
+                <div className="space-y-1.5">
+                  {filteredCountries.map((country) =>
+                    renderCountryRow(country),
+                  )}
+                </div>
+              ) : (
+                <>
+                  {monitoredCountries.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        Monitored ({monitoredCountries.length})
+                      </p>
+                      {monitoredCountries.map((country) =>
+                        renderCountryRow(country),
+                      )}
+                    </div>
+                  )}
+                  {unmonitoredCountries.length > 0 && (
+                    <div className="space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setUnmonitoredCollapsed((collapsed) => !collapsed)
                         }
-                        onSelectCountry(country.id);
-                      }}
-                      className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
-                        isNoData
-                          ? 'cursor-pointer border-slate-100 bg-slate-50 text-slate-400'
-                          : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 hover:shadow-sm active:bg-blue-50/40'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3
-                            className={`truncate text-[15px] font-semibold leading-6 ${
-                              isNoData ? 'text-slate-500' : 'text-slate-950'
-                            }`}
-                          >
-                            {country.country}
-                          </h3>
-                          {isNoData ? (
-                            <p className="mt-0.5 text-xs text-slate-500">
-                              No monitors registered
-                            </p>
-                          ) : (
-                            <p className="mt-0.5 text-xs text-slate-600">
-                              <span className="font-semibold text-slate-900">
-                                {totalMonitors}
-                              </span>{' '}
-                              monitor{totalMonitors !== 1 ? 's' : ''}
-                              {' · '}
-                              <span
-                                className={
-                                  activeMonitors > 0
-                                    ? 'font-semibold text-emerald-700'
-                                    : 'text-slate-500'
-                                }
-                              >
-                                {activeMonitors} active
-                              </span>
-                            </p>
-                          )}
-                        </div>
-                        {!isNoData && (
-                          <FiChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-400" />
-                        )}
-                      </div>
-
-                      {!isNoData && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {counts.LCS > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                              <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                              {typeLabels['LCS']} · {counts.LCS}
-                            </span>
-                          )}
-                          {counts.Reference > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                              {typeLabels['Reference']} · {counts.Reference}
-                            </span>
-                          )}
-                          {counts.Inactive > 0 && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                              Inactive · {counts.Inactive}
-                            </span>
+                        aria-expanded={!unmonitoredCollapsed}
+                        aria-controls="nc-unmonitored-list"
+                        className="flex w-full items-center gap-1.5 px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:text-slate-700"
+                      >
+                        <FiChevronDown
+                          className={`h-3 w-3 flex-shrink-0 transition-transform duration-200 ${unmonitoredCollapsed ? '-rotate-90' : ''}`}
+                          aria-hidden="true"
+                        />
+                        Not yet monitored ({unmonitoredCountries.length})
+                      </button>
+                      {!unmonitoredCollapsed && (
+                        <div id="nc-unmonitored-list" className="space-y-1.5">
+                          {unmonitoredCountries.map((country) =>
+                            renderCountryRow(country),
                           )}
                         </div>
                       )}
-                    </button>
-
-                    {isPromptOpen && (
-                      <div
-                        className="absolute left-4 right-4 z-50 pointer-events-auto rounded-2xl border border-slate-300 bg-white p-4 shadow-xl"
-                        style={{ top: promptTop ?? 76 }}
-                      >
-                        <button
-                          type="button"
-                          onClick={onClosePrompt}
-                          className="absolute right-3 top-3 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-                          aria-label="Close prompt"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </button>
-
-                        <h4 className="mb-2 text-lg font-semibold text-slate-950">
-                          No monitors registered in {country.country}
-                        </h4>
-                        <p className="mb-3 text-sm text-slate-600">
-                          No monitors are registered. Add a monitor to start
-                          collecting data for this country.
-                        </p>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onOpenAddMonitor
-                              ? onOpenAddMonitor(
-                                  country.id,
-                                  country.country,
-                                  country.iso2,
-                                )
-                              : window.open(
-                                  getEnvironmentAwareUrl(
-                                    'https://vertex.airqo.net',
-                                  ),
-                                  '_blank',
-                                  'noopener,noreferrer',
-                                )
-                          }
-                          className="w-full rounded-lg bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-                        >
-                          Add monitor
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
@@ -646,101 +968,222 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {/* ── Country monitor list ── */}
         {selectedCountry && !selectedMonitor && (
           <div className="space-y-2">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h3 className="text-2xl font-bold tracking-tight text-slate-950">
-                    {selectedCountry.country}
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-600">
-                    <span className="font-semibold text-slate-900">
-                      {filteredCountryMonitors.length}
-                    </span>{' '}
-                    monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
-                    available
-                  </p>
+            {/* Country-scoped loading state: name is already visible from the
+                base object while the detailed monitors request resolves. */}
+            {isCountryLoading && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="flex items-center gap-2 text-slate-700">
+                  <FiLoader className="h-4 w-4 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium">
+                    Loading monitor data for {selectedCountry.country}…
+                  </span>
                 </div>
+                <div className="mt-4 space-y-3">
+                  {[...Array(4)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="animate-pulse rounded bg-slate-200"
+                      style={{
+                        height: '14px',
+                        width: `${60 + (index % 3) * 12}%`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-                <div className="flex-shrink-0">
+            {/* Country-scoped error state with retry. */}
+            {!isCountryLoading && countryError && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm font-medium text-amber-900">
+                  Couldn&apos;t load monitor details for{' '}
+                  {selectedCountry.country}.
+                </p>
+                {onRetryCountry && (
                   <button
                     type="button"
-                    onClick={() =>
-                      onOpenAddMonitor
-                        ? onOpenAddMonitor(
+                    onClick={onRetryCountry}
+                    className="mt-3 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-50"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!isCountryLoading && !countryError && (
+              <>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h3 className="text-2xl font-bold tracking-tight text-slate-950">
+                        {selectedCountry.country}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        <span className="font-semibold text-slate-900">
+                          {filteredCountryMonitors.length}
+                        </span>{' '}
+                        monitor{filteredCountryMonitors.length !== 1 ? 's' : ''}{' '}
+                        available
+                      </p>
+                      {(() => {
+                        const stats = selectedCountry.stats;
+                        const total =
+                          stats?.total ?? selectedCountry.monitors.length;
+                        if (total === 0) return null;
+                        const refCount = stats?.Reference ?? 0;
+                        const lcsCount = stats?.LCS ?? 0;
+                        const refPct = (refCount / total) * 100;
+                        const lcsPct = (lcsCount / total) * 100;
+                        return (
+                          <div className="mt-3">
+                            <div
+                              className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
+                              role="img"
+                              aria-label={`${refCount} reference and ${lcsCount} low-cost monitors out of ${total}`}
+                            >
+                              <div className="flex h-full">
+                                <div
+                                  className="bg-emerald-500"
+                                  style={{ width: `${refPct}%` }}
+                                />
+                                <div
+                                  className="bg-blue-500"
+                                  style={{ width: `${lcsPct}%` }}
+                                />
+                              </div>
+                            </div>
+                            <div className="mt-1.5 flex gap-3 text-xs">
+                              <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                Reference · {refCount}
+                              </span>
+                              <span className="inline-flex items-center gap-1 font-medium text-blue-700">
+                                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                                LCS · {lcsCount}
+                              </span>
+                            </div>
+                            <span className="sr-only">
+                              Of {total} monitors, {refCount} are reference
+                              monitors and {lcsCount} are low-cost sensors.
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openAddDevice(
                             selectedCountry.id,
                             selectedCountry.country,
                             selectedCountry.iso2,
                           )
-                        : window.open(
-                            getEnvironmentAwareUrl('https://vertex.airqo.net'),
-                            '_blank',
-                            'noopener,noreferrer',
-                          )
-                    }
-                    className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-                  >
-                    Add monitor
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {filteredCountryMonitors.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-600">
-                No monitors match the current filters.
-              </div>
-            ) : (
-              filteredCountryMonitors.map((monitor) => (
-                <button
-                  key={monitor.id}
-                  type="button"
-                  onClick={() =>
-                    onSelectMonitor(monitor.id, selectedCountry.id)
-                  }
-                  className="group w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/20 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="truncate text-[15px] font-semibold text-slate-950">
-                        {monitor.name}
-                      </h4>
-                      <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-600">
-                        <FiMapPin className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
-                        {monitor.city}
-                      </p>
-                    </div>
-                    <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          monitor.type === 'Reference'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : monitor.type === 'LCS'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-slate-100 text-slate-600'
-                        }`}
+                        }
+                        aria-label={`Add a device in ${selectedCountry.country}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                       >
-                        {typeLabels[monitor.type]}
-                      </span>
-                      <span
-                        className={`flex items-center gap-1 text-xs font-medium ${
-                          monitor.status === 'active'
-                            ? 'text-emerald-700'
-                            : 'text-slate-500'
-                        }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            monitor.status === 'active'
-                              ? 'bg-emerald-500'
-                              : 'bg-slate-300'
-                          }`}
-                        />
-                        {monitor.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
+                        <FiPlus className="h-4 w-4" aria-hidden="true" />
+                        Add device
+                      </button>
                     </div>
                   </div>
-                </button>
-              ))
+                </div>
+
+                {/* Helper nudge so device owners can register a device they own */}
+                {selectedCountry.monitors.length > 0 && (
+                  <p className="px-1 text-xs text-slate-500">
+                    Can&apos;t find your device? Add it to{' '}
+                    {selectedCountry.country}.{' '}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openAddDevice(
+                          selectedCountry.id,
+                          selectedCountry.country,
+                          selectedCountry.iso2,
+                        )
+                      }
+                      aria-label={`Add a device in ${selectedCountry.country}`}
+                      className="font-medium text-blue-700 transition-colors hover:text-blue-800 hover:underline"
+                    >
+                      Add device
+                    </button>
+                  </p>
+                )}
+
+                {filteredCountryMonitors.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-600">
+                    No monitors match the current filters.
+                  </div>
+                ) : (
+                  filteredCountryMonitors.map((monitor) => {
+                    const typeBadge =
+                      monitor.type === 'Reference'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : monitor.type === 'LCS'
+                          ? 'border-blue-200 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-slate-50 text-slate-600';
+                    const statusBadge =
+                      monitor.status === 'active'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-600';
+                    const statusLabel =
+                      monitor.status === 'active' ? 'Active' : 'Inactive';
+                    return (
+                      <button
+                        key={monitor.id}
+                        type="button"
+                        data-nav-row
+                        onClick={() =>
+                          onSelectMonitor(monitor.id, selectedCountry.id)
+                        }
+                        aria-label={`${monitor.name}, ${typeLabels[monitor.type]}, ${statusLabel}`}
+                        className="group w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/20 hover:shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="truncate text-[15px] font-semibold text-slate-950">
+                              {monitor.name}
+                            </h4>
+                            <p className="mt-0.5 flex items-center gap-1 text-sm text-slate-600">
+                              <FiMapPin className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
+                              {monitor.city}
+                            </p>
+                          </div>
+                          <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-xs font-medium ${typeBadge}`}
+                            >
+                              {monitor.type}
+                            </span>
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${statusBadge}`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  monitor.status === 'active'
+                                    ? 'bg-emerald-500'
+                                    : 'bg-slate-400'
+                                }`}
+                                aria-hidden="true"
+                              />
+                              {statusLabel}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </>
             )}
           </div>
         )}
@@ -913,7 +1356,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                   className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
                     validatedViewDataUrl
                       ? 'bg-blue-700 text-white hover:bg-blue-800'
-                      : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                      : 'cursor-not-allowed bg-slate-100 text-slate-500'
                   }`}
                 >
                   Visit website

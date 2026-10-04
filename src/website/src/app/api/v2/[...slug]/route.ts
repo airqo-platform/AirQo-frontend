@@ -37,6 +37,75 @@ function removeTokenFromUrl(url: string): string {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Bounded in-memory TTL cache for network-coverage GET responses.
+// Module-level so it survives across requests in a single Node process.
+// ---------------------------------------------------------------------------
+interface CoverageCacheEntry {
+  body: unknown;
+  status: number;
+  storedAt: number;
+}
+
+const COVERAGE_PATH_PREFIX = 'devices/network-coverage';
+const COVERAGE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const COVERAGE_CACHE_MAX = 20;
+
+const coverageCache = new Map<string, CoverageCacheEntry>();
+
+// Stable cache key = finalPath + sorted query params, excluding `token`.
+export function buildCoverageCacheKey(
+  finalPath: string,
+  searchParams: URLSearchParams,
+): string {
+  const keys: string[] = [];
+  searchParams.forEach((value, key) => {
+    if (key !== 'token') keys.push(`${key}=${value}`);
+  });
+  keys.sort();
+  return keys.length ? `${finalPath}?${keys.join('&')}` : finalPath;
+}
+
+function isCoveragePath(cleanPath: string): boolean {
+  return (
+    cleanPath === COVERAGE_PATH_PREFIX ||
+    cleanPath.startsWith(`${COVERAGE_PATH_PREFIX}/`)
+  );
+}
+
+export function getCoverageCache(key: string): CoverageCacheEntry | undefined {
+  const entry = coverageCache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() - entry.storedAt > COVERAGE_CACHE_TTL_MS) {
+    coverageCache.delete(key);
+    return undefined;
+  }
+  // Refresh insertion order for simple LRU eviction.
+  coverageCache.delete(key);
+  coverageCache.set(key, entry);
+  return entry;
+}
+
+export function setCoverageCache(
+  key: string,
+  body: unknown,
+  status: number,
+): void {
+  // Never cache non-2xx responses.
+  if (status < 200 || status >= 300) return;
+  coverageCache.set(key, { body, status, storedAt: Date.now() });
+  // Evict oldest entries beyond the cap.
+  while (coverageCache.size > COVERAGE_CACHE_MAX) {
+    const oldest = coverageCache.keys().next().value;
+    if (oldest === undefined) break;
+    coverageCache.delete(oldest);
+  }
+}
+
+const COVERAGE_RESPONSE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
+};
+
 // Add dynamic force for better production debugging
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -141,6 +210,23 @@ async function handleRequest(
     // Add the API token as a query parameter for authentication
     final.searchParams.set('token', API_TOKEN);
 
+    // Serve network-coverage GET responses from the bounded in-memory cache
+    // when possible to shield the backend and cut round-trips.
+    if (method === 'GET' && isCoveragePath(cleanPath)) {
+      const cacheKey = buildCoverageCacheKey(finalPath, final.searchParams);
+      const cached = getCoverageCache(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached.body, {
+          status: cached.status,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Cache': 'HIT',
+            ...COVERAGE_RESPONSE_HEADERS,
+          },
+        });
+      }
+    }
+
     const finalUrl = final.toString();
 
     // Get request body if it exists
@@ -168,11 +254,20 @@ async function handleRequest(
     // Sanitize response data to remove token from pagination URLs
     const sanitizedData = sanitizeResponseData(responseData);
 
+    // Cache network-coverage GET responses for subsequent requests.
+    if (method === 'GET' && isCoveragePath(cleanPath)) {
+      const cacheKey = buildCoverageCacheKey(finalPath, final.searchParams);
+      setCoverageCache(cacheKey, sanitizedData, response.status);
+    }
+
     // Return the response with the same status and data
     return NextResponse.json(sanitizedData, {
       status: response.status,
       headers: {
         'Content-Type': 'application/json',
+        ...(isCoveragePath(cleanPath) && method === 'GET'
+          ? { 'X-Cache': 'MISS', ...COVERAGE_RESPONSE_HEADERS }
+          : {}),
       },
     });
   } catch (_error) {

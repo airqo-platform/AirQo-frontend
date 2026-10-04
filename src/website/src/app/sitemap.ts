@@ -36,7 +36,8 @@ const CAREERS_ENDPOINT = '/careers/';
 const PARTNERS_ENDPOINT = '/partners/';
 const GRID_SUMMARY_ENDPOINT = '/devices/grids/summary';
 const MAX_PAGINATED_API_PAGES = 20;
-const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 8000;
+const DEFAULT_FORUM_FETCH_TIMEOUT_MS = 15000;
+const MAX_FETCH_ATTEMPTS = 2;
 
 interface ForumEventTitle {
   unique_title: string;
@@ -75,6 +76,107 @@ interface GridSummaryApiResponse {
 type SitemapChangeFrequency = NonNullable<
   MetadataRoute.Sitemap[number]['changeFrequency']
 >;
+
+interface SitemapRequestFailure {
+  url: string;
+  message: string;
+  name: string;
+  timeout: boolean;
+  attempts: number;
+}
+
+type SitemapFetchOutcome =
+  | { ok: true; response: Response; attempts: number }
+  | { ok: false; failure: SitemapRequestFailure };
+
+interface OptionalRequestLogDetails {
+  endpoint: string;
+  url: string;
+  page: number;
+  attempt: number;
+  timeout: boolean;
+  message: string;
+  name: string;
+}
+
+const isAbortLikeError = (error: unknown): boolean => {
+  const name = (error as Error | undefined)?.name;
+  return name === 'AbortError' || name === 'TimeoutError';
+};
+
+const isRetryableFetchError = (
+  error: unknown,
+  didTimeout: boolean,
+): boolean => {
+  if (didTimeout || isAbortLikeError(error)) return true;
+  // Undici reports network-level failures (DNS, resets, ...) as TypeError.
+  return error instanceof TypeError;
+};
+
+/**
+ * Fetch a URL with a fresh `AbortController` and per-attempt timeout.
+ * Retries once on timeout/network errors, always clearing each attempt's
+ * timer. Never throws: final failures are returned as an outcome object so
+ * optional sitemap endpoints can degrade to partial results.
+ */
+const fetchWithTimeoutRetry = async (
+  url: string,
+  init: Parameters<typeof fetch>[1],
+  timeoutMs: number,
+): Promise<SitemapFetchOutcome> => {
+  let lastError: unknown = null;
+  let lastDidTimeout = false;
+  let attempts = 0;
+
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+    attempts = attempt;
+    const controller = new AbortController();
+    let didTimeout = false;
+    const timeout = setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal });
+      return { ok: true, response, attempts };
+    } catch (error) {
+      lastError = error;
+      lastDidTimeout = didTimeout;
+      if (!isRetryableFetchError(error, didTimeout)) break;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  const typedError = lastError as Error | undefined;
+  return {
+    ok: false,
+    failure: {
+      url,
+      message: typedError?.message ?? String(lastError),
+      name: typedError?.name ?? 'Error',
+      timeout: lastDidTimeout || isAbortLikeError(lastError),
+      attempts,
+    },
+  };
+};
+
+/**
+ * Optional sitemap endpoints must never fail the build. Timeouts/aborts are
+ * expected degradation, so they are logged as warnings; anything else keeps
+ * the error-level log.
+ */
+const logOptionalRequestFailure = (
+  label: string,
+  details: OptionalRequestLogDetails,
+): void => {
+  if (details.timeout) {
+    console.warn(label, details);
+  } else {
+    console.error(label, details);
+  }
+};
 
 const normalizeForumApiBaseUrl = (rawApiUrl: string): string => {
   const trimmed = rawApiUrl.replace(/\/$/, '');
@@ -240,34 +342,46 @@ const fetchPaginatedItems = async <T>({
     nextUrl && pageCount < MAX_PAGINATED_API_PAGES;
     pageCount += 1
   ) {
-    const controller = new AbortController();
-    let didTimeout = false;
-    const timeout = setTimeout(() => {
-      didTimeout = true;
-      controller.abort();
-    }, fetchTimeoutMs);
-
-    try {
-      const response = await fetch(nextUrl, {
+    const requestUrl = nextUrl;
+    const outcome = await fetchWithTimeoutRetry(
+      requestUrl,
+      {
         next: { revalidate: 86400 },
         headers: authHeaders,
-        signal: controller.signal,
-      });
+      },
+      fetchTimeoutMs,
+    );
 
-      if (!response.ok) {
-        // Some deployments may not expose all optional sitemap endpoints.
-        // Treat a first-page 404 as "no entries" instead of a hard failure.
-        if (response.status === 404 && pageCount === 0) {
-          break;
-        }
-        console.error('Sitemap fetch failed:', {
-          url: nextUrl,
-          status: response.status,
-          statusText: response.statusText,
-        });
+    if (!outcome.ok) {
+      logOptionalRequestFailure('Sitemap pagination request failed:', {
+        endpoint,
+        url: outcome.failure.url,
+        page: pageCount + 1,
+        attempt: outcome.failure.attempts,
+        timeout: outcome.failure.timeout,
+        message: outcome.failure.message,
+        name: outcome.failure.name,
+      });
+      break;
+    }
+
+    const response = outcome.response;
+
+    if (!response.ok) {
+      // Some deployments may not expose all optional sitemap endpoints.
+      // Treat a first-page 404 as "no entries" instead of a hard failure.
+      if (response.status === 404 && pageCount === 0) {
         break;
       }
+      console.error('Sitemap fetch failed:', {
+        url: requestUrl,
+        status: response.status,
+        statusText: response.statusText,
+      });
+      break;
+    }
 
+    try {
       const data: PaginatedApiResponse<T> = await response.json();
       const sanitizedData: PaginatedApiResponse<T> = {
         ...data,
@@ -289,15 +403,16 @@ const fetchPaginatedItems = async <T>({
       }
     } catch (error) {
       const typedError = error as Error;
-      console.error('Sitemap pagination request failed:', {
-        url: nextUrl,
-        timeout: didTimeout,
+      logOptionalRequestFailure('Sitemap pagination request failed:', {
+        endpoint,
+        url: requestUrl,
+        page: pageCount + 1,
+        attempt: outcome.attempts,
+        timeout: isAbortLikeError(error),
         message: typedError.message,
         name: typedError.name,
       });
       break;
-    } finally {
-      clearTimeout(timeout);
     }
   }
 
@@ -382,34 +497,50 @@ const fetchBillboardGridRoutes = async (
   let totalPages: number | null = null;
 
   while (!totalPages || currentPage <= totalPages) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), fetchTimeoutMs);
+    const nextUrl = new URL(`${apiBaseUrl}${GRID_SUMMARY_ENDPOINT}`);
+    nextUrl.searchParams.set('admin_level', 'country');
+    nextUrl.searchParams.set('page_size', '100');
+    nextUrl.searchParams.set('page', String(currentPage));
+    const requestUrl = nextUrl.toString();
 
-    try {
-      const nextUrl = new URL(`${apiBaseUrl}${GRID_SUMMARY_ENDPOINT}`);
-      nextUrl.searchParams.set('admin_level', 'country');
-      nextUrl.searchParams.set('page_size', '100');
-      nextUrl.searchParams.set('page', String(currentPage));
-
-      const response = await fetch(nextUrl.toString(), {
+    const outcome = await fetchWithTimeoutRetry(
+      requestUrl,
+      {
         next: { revalidate: 86400 },
         headers: authHeaders,
-        signal: controller.signal,
+      },
+      fetchTimeoutMs,
+    );
+
+    if (!outcome.ok) {
+      logOptionalRequestFailure('Billboard grid sitemap request failed:', {
+        endpoint: GRID_SUMMARY_ENDPOINT,
+        url: outcome.failure.url,
+        page: currentPage,
+        attempt: outcome.failure.attempts,
+        timeout: outcome.failure.timeout,
+        message: outcome.failure.message,
+        name: outcome.failure.name,
       });
+      break;
+    }
 
-      if (!response.ok) {
-        if (response.status === 404 && currentPage === 1) {
-          break;
-        }
+    const response = outcome.response;
 
-        console.error('Billboard grid sitemap fetch failed:', {
-          url: nextUrl.toString(),
-          status: response.status,
-          statusText: response.statusText,
-        });
+    if (!response.ok) {
+      if (response.status === 404 && currentPage === 1) {
         break;
       }
 
+      console.error('Billboard grid sitemap fetch failed:', {
+        url: requestUrl,
+        status: response.status,
+        statusText: response.statusText,
+      });
+      break;
+    }
+
+    try {
       const data = (await response.json()) as GridSummaryApiResponse;
       const pageGrids = (data.grids || []).filter(
         (item): item is Required<Pick<GridSummaryRouteItem, 'name'>> =>
@@ -426,14 +557,16 @@ const fetchBillboardGridRoutes = async (
       currentPage += 1;
     } catch (error) {
       const typedError = error as Error;
-      console.error('Billboard grid sitemap request failed:', {
+      logOptionalRequestFailure('Billboard grid sitemap request failed:', {
+        endpoint: GRID_SUMMARY_ENDPOINT,
+        url: requestUrl,
         page: currentPage,
+        attempt: outcome.attempts,
+        timeout: isAbortLikeError(error),
         message: typedError.message,
         name: typedError.name,
       });
       break;
-    } finally {
-      clearTimeout(timeout);
     }
   }
 
