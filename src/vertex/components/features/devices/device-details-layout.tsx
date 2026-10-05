@@ -39,16 +39,20 @@ const ActionButtonsSkeleton = () => (
  * is set when the feed provider 404s for this device's channel — usually a
  * channel deleted upstream — which is exactly the situation the decommission
  * action exists for, so point engineers at it before they reach for delete.
+ * A deployed device has to be recalled first, so the notice says so instead
+ * of offering the action.
  */
 const ChannelNotFoundNotice = ({
     checkedAt,
     canDecommission,
     isDecommissioned,
+    isDecommissionable,
     onDecommission,
 }: {
     checkedAt?: string | null;
     canDecommission: boolean;
     isDecommissioned: boolean;
+    isDecommissionable: boolean;
     onDecommission: () => void;
 }) => {
     const parsed = checkedAt ? parseISO(checkedAt) : null;
@@ -69,11 +73,13 @@ const ChannelNotFoundNotice = ({
                         upstream.{" "}
                         {isDecommissioned
                             ? "This device has been decommissioned."
-                            : "If the channel is gone for good, decommission the device to retire it safely without losing its history."}
+                            : isDecommissionable
+                              ? "If the channel is gone for good, decommission the device to retire it safely without losing its history."
+                              : "If the channel is gone for good, recall the device first, then decommission it to retire it safely without losing its history."}
                     </p>
                 </div>
             </div>
-            {!isDecommissioned && canDecommission && (
+            {isDecommissionable && canDecommission && (
                 <ReusableButton
                     variant="outlined"
                     padding="px-3 py-1.5"
@@ -110,6 +116,9 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
 
     const deploymentStatus = device?.status || "unknown";
     const isDecommissioned = deploymentStatus === "decommissioned";
+    // Only devices that are out of the field can be retired: a deployed device
+    // must be recalled first so it is never decommissioned straight off a site.
+    const isDecommissionable = deploymentStatus === "recalled" || deploymentStatus === "not deployed";
 
     const canRecallDevice = usePermission(PERMISSIONS.DEVICE.RECALL);
     const canDeployDevice = usePermission(PERMISSIONS.DEVICE.DEPLOY);
@@ -188,7 +197,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                             Add Maintenance Log
                         </ReusableButton>
 
-                        {!isDecommissioned &&
+                        {isDecommissionable &&
                             <ReusableButton
                                 variant="outlined"
                                 padding="px-3 py-1.5"
@@ -209,6 +218,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     checkedAt={device.channelStatusCheckedAt}
                     canDecommission={canDecommissionDevice}
                     isDecommissioned={isDecommissioned}
+                    isDecommissionable={isDecommissionable}
                     onDecommission={() => setShowDecommissionDialog(true)}
                 />
             )}
