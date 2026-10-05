@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: airqoacr.azurecr.io/airqo-nexus
-  tag: prod-46edbac7-1790962563
+  tag: prod-7e966e7c-1791103507
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''

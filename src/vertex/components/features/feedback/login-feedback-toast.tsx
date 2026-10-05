@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { feedbackService } from "@/core/apis/feedback";
 import {
   getLoginFeedbackRecord,
   setLoginFeedbackRecord,
 } from "@/core/utils/userPreferences";
-import { ReusableSatisfactionFeedbackToast } from "./reusable-satisfaction-feedback-toast";
+import {
+  ReusableSatisfactionFeedbackToast,
+  SatisfactionToastDismissReason,
+} from "./reusable-satisfaction-feedback-toast";
 
 const LOGIN_NEGATIVE_REASONS = [
   "It took too long to load",
@@ -59,16 +62,30 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({
     setLoginFeedbackRecord(userId);
   };
 
+  const handleDismiss = useCallback(
+    (reason: SatisfactionToastDismissReason) => {
+      // Closing the popup is a deliberate "not now", so respect it for the same
+      // cooldown a rating earns. The auto-hide is not a decision: we may ask
+      // again on the next login.
+      if (reason === "close") {
+        setLoginFeedbackRecord(userId);
+      }
+      setShouldAskForFeedback(false);
+    },
+    [userId]
+  );
+
   return (
     <ReusableSatisfactionFeedbackToast
       enabled={shouldAskForFeedback}
       resetKey={userId}
+      promptSlotId="login-experience"
       title="How was your login experience?"
       subtitle="Rate us to help improve Vertex"
       negativeReasons={LOGIN_NEGATIVE_REASONS}
       onPositiveSubmit={() => submitLoginFeedback(5)}
       onNegativeSubmit={(description) => submitLoginFeedback(1, description)}
-      onDismiss={() => setShouldAskForFeedback(false)}
+      onDismiss={handleDismiss}
     />
   );
 };

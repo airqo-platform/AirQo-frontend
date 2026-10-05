@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { AqXClose } from "@airqo/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import {
+  claimFeedbackPromptSlot,
+  releaseFeedbackPromptSlot,
+} from "./feedback-prompt-slot";
 
 type ToastPhase =
   | "idle"
@@ -14,6 +19,12 @@ type ToastPhase =
   | "submitting"
   | "thankyou"
   | "dismissed";
+
+/**
+ * Why the toast went away. Only "close" is the user saying "don't ask me" —
+ * the auto-hide is not a decision, so callers may ask again next time.
+ */
+export type SatisfactionToastDismissReason = "auto" | "close" | "submitted";
 
 interface ReusableSatisfactionFeedbackToastProps {
   title: string;
@@ -31,7 +42,12 @@ interface ReusableSatisfactionFeedbackToastProps {
   thankYouMessage?: string;
   showDelayMs?: number;
   autoDismissMs?: number;
-  onDismiss?: () => void;
+  onDismiss?: (reason: SatisfactionToastDismissReason) => void;
+  /**
+   * Claims the single on-screen prompt slot while this toast is showing, so
+   * other satisfaction prompts stay out of the way.
+   */
+  promptSlotId?: string;
   className?: string;
 }
 
@@ -54,48 +70,103 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
   showDelayMs = 3000,
   autoDismissMs = 30000,
   onDismiss,
+  promptSlotId,
   className = "fixed bottom-6 right-6 z-[9999] w-80",
 }) => {
   const [phase, setPhase] = useState<ToastPhase>("idle");
   const [description, setDescription] = useState("");
   const [otherText, setOtherText] = useState("");
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocusInside, setHasFocusInside] = useState(false);
   const dismissNotifiedRef = useRef(false);
+  const dismissReasonRef = useRef<SatisfactionToastDismissReason>("auto");
+  const autoHideRemainingRef = useRef(autoDismissMs);
+
+  // Hover and focus are tracked apart: losing one must not resume the countdown
+  // while the other still has hold of the toast.
+  const isAutoHidePaused = isHovered || hasFocusInside;
 
   useEffect(() => {
     dismissNotifiedRef.current = false;
+    dismissReasonRef.current = "auto";
+    autoHideRemainingRef.current = autoDismissMs;
     setDescription("");
     setOtherText("");
-
-    if (!enabled) {
-      setPhase("idle");
-      return;
-    }
-
+    setIsHovered(false);
+    setHasFocusInside(false);
     setPhase("idle");
+
+    if (!enabled) return;
 
     const showTimer = setTimeout(() => {
       setPhase((current) => (current === "idle" ? "visible" : current));
     }, showDelayMs);
 
-    const autoTimer = setTimeout(() => {
-      setPhase((current) => (current === "visible" ? "dismissed" : current));
-    }, showDelayMs + autoDismissMs);
-
     return () => {
       clearTimeout(showTimer);
-      clearTimeout(autoTimer);
     };
   }, [autoDismissMs, enabled, resetKey, showDelayMs]);
+
+  // The auto-hide only counts down while the toast is sitting there untouched:
+  // it pauses on hover and on focus so nobody loses a half-typed reason, and it
+  // does not run at all once the reason list is open.
+  useEffect(() => {
+    if (phase !== "visible" || isAutoHidePaused) return;
+
+    const startedAt = Date.now();
+    const autoHideTimer = setTimeout(() => {
+      dismissReasonRef.current = "auto";
+      setPhase("dismissed");
+    }, autoHideRemainingRef.current);
+
+    return () => {
+      clearTimeout(autoHideTimer);
+      autoHideRemainingRef.current = Math.max(
+        0,
+        autoHideRemainingRef.current - (Date.now() - startedAt)
+      );
+    };
+  }, [isAutoHidePaused, phase]);
+
+  const handleClose = useCallback(() => {
+    dismissReasonRef.current = "close";
+    setPhase("dismissed");
+  }, []);
+
+  // Escape closes the popup, same as the ✕.
+  useEffect(() => {
+    if (phase !== "visible" && phase !== "negative-expanded") return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") handleClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleClose, phase]);
 
   useEffect(() => {
     if (phase !== "dismissed" || dismissNotifiedRef.current) return;
     dismissNotifiedRef.current = true;
-    onDismiss?.();
+    onDismiss?.(dismissReasonRef.current);
   }, [onDismiss, phase]);
+
+  const isShowing = phase !== "idle" && phase !== "dismissed";
+
+  useEffect(() => {
+    if (!promptSlotId || !isShowing) return;
+    claimFeedbackPromptSlot(promptSlotId);
+    return () => {
+      releaseFeedbackPromptSlot(promptSlotId);
+    };
+  }, [isShowing, promptSlotId]);
 
   const showThankYouAndDismiss = () => {
     setPhase("thankyou");
     setTimeout(() => {
+      dismissReasonRef.current = "submitted";
       setPhase("dismissed");
     }, 2000);
   };
@@ -132,7 +203,7 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
     !description ||
     (isOtherReason && !otherText.trim());
 
-  if (phase === "idle" || phase === "dismissed") return null;
+  if (!isShowing) return null;
 
   return (
     <AnimatePresence>
@@ -143,6 +214,18 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         className={className}
+        role="dialog"
+        aria-label={title}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setHasFocusInside(true)}
+        onBlur={(event) => {
+          // React's onBlur is focusout, so it also fires when focus just moves
+          // between two controls inside the toast.
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setHasFocusInside(false);
+          }
+        }}
       >
         <Card className="rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
           <CardContent className="p-5 flex flex-col gap-4">
@@ -160,15 +243,26 @@ export const ReusableSatisfactionFeedbackToast: React.FC<
               </div>
             ) : (
               <>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight mb-1">
-                    {title}
-                  </h4>
-                  {subtitle && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {subtitle}
-                    </p>
-                  )}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight mb-1">
+                      {title}
+                    </h4>
+                    {subtitle && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
+                  <ReusableButton
+                    variant="text"
+                    padding="p-0"
+                    className="h-7 w-7 shrink-0 -mt-1 -mr-1 text-gray-500 dark:text-gray-400"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                    Icon={AqXClose}
+                    aria-label="Close"
+                  />
                 </div>
 
                 <div className="flex items-center gap-3">

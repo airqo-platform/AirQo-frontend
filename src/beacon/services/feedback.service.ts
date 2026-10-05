@@ -16,6 +16,8 @@ export interface SubmitFeedbackRequest {
   category: string;
   platform: string;
   app?: string;
+  /** When false the backend sends the submitter no emails about this report. */
+  contact_consent?: boolean;
   metadata?: FeedbackSubmissionMetadata;
 }
 

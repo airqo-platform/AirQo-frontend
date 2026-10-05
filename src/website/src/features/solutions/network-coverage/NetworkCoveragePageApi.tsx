@@ -18,11 +18,12 @@ import {
   useNetworkCoverageMonitor,
   useNetworkCoverageSummary,
 } from '@/hooks/useApiHooks';
+import { keepPreviousData } from '@tanstack/react-query';
 import NetworkCoverageAddMonitorDialog from './components/NetworkCoverageAddMonitorDialog';
 import { useQueryClient } from '@tanstack/react-query';
-import { networkCoverageService } from '@/services/website';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-// Add-to-network dialog is not used — sidebar prompts link directly to Vertex
+// Add-to-network dialog is not used - sidebar prompts link directly to Vertex
 import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
@@ -30,25 +31,110 @@ import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
 import {
   type MonitorType,
   type NetworkCoverageCountry,
+  type NetworkCoverageCountryResponse,
+  type NetworkCoverageCountryStats,
+  type NetworkCoverageImpact,
   type NetworkCoverageMonitor,
   type ViewMode,
   AFRICAN_COUNTRY_LIST,
   normalizeCountryId,
 } from './networkCoverageTypes';
+
+// Pure helpers (module scope) used to decide whether a /country-monitors
+// response actually belongs to the currently-selected country. Keeping them
+// outside the component guarantees a stable identity so the `selectedCountry
+// memo never recomputes unless its real inputs change.
+const normalizeCountryNameMatch = (value?: string): string => {
+  if (!value) return '';
+  return value
+    .replace(/\([^)]*\)/g, '')
+    .replace(/^the\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+};
+
+const countryResponseMatchesSelection = (
+  data: NetworkCoverageCountryResponse,
+  countryId: string | null,
+  base: NetworkCoverageCountry | null,
+): boolean => {
+  if (!countryId || !data) return false;
+  if ((data.countryId ?? '').toLowerCase() === countryId.toLowerCase()) {
+    return true;
+  }
+  if (base) {
+    const dataIso = (data.iso2 ?? '').toUpperCase();
+    const baseIso = (base.iso2 ?? '').toUpperCase();
+    if (dataIso && baseIso && dataIso === baseIso) {
+      return true;
+    }
+    const baseName = normalizeCountryNameMatch(base.country);
+    if (baseName && normalizeCountryNameMatch(data.country) === baseName) {
+      return true;
+    }
+  }
+  return false;
+};
 import { type ExportData, generatePdf, generateCsv } from './utils/exportUtils';
 
 const DEFAULT_TENANT = 'airqo';
 
+// Builds country stats by counting type/status over the given (already
+// filtered) monitors. Used so sidebar rows show stats consistent with the
+// client-side filtered monitor set rather than the unfiltered API totals.
+const buildStatsFromMonitors = (
+  monitors: NetworkCoverageMonitor[],
+): NetworkCoverageCountryStats => {
+  let Reference = 0;
+  let LCS = 0;
+  let Inactive = 0;
+  let active = 0;
+  let inactive = 0;
+  monitors.forEach((m) => {
+    if (m.type === 'Reference') Reference += 1;
+    else if (m.type === 'LCS') LCS += 1;
+    else if (m.type === 'Inactive') Inactive += 1;
+    if (m.status === 'active') active += 1;
+    else if (m.status === 'inactive') inactive += 1;
+  });
+  return {
+    total: monitors.length,
+    Reference,
+    LCS,
+    Inactive,
+    active,
+    inactive,
+  };
+};
+
+// Constant params for summary, impact, and country-monitors queries. All
+// monitor/status/network filtering is now done client-side on the already-
+// fetched full dataset, so these params never change and toggling filters
+// triggers ZERO new API requests (the query keys stay identical).
+const COVERAGE_QUERY_PARAMS = { tenant: DEFAULT_TENANT } as const;
+
 const NetworkCoveragePage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Initialize selection state from URL deep links (?country &monitor &view).
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
-    null,
+    () => searchParams.get('country'),
   );
   const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(
-    null,
+    () => searchParams.get('monitor'),
   );
-  const [viewMode, setViewMode] = useState<ViewMode>('monitors');
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    searchParams.get('view') === 'coverage' ? 'coverage' : 'monitors',
+  );
+
+  // Impact data is only consumed by the export action. Keep it off the
+  // critical load path so the initial page render never requests /impact.
+  const [hasRequestedExport, setHasRequestedExport] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<MonitorType[]>([
     'Reference',
     'LCS',
@@ -63,12 +149,20 @@ const NetworkCoveragePage = () => {
     'mapbox://styles/mapbox/streets-v12',
   );
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isLoadingImpact, setIsLoadingImpact] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
-  const snapshotGetterRef = useRef<(() => Promise<string | null>) | null>(null);
+  const snapshotGetterRef = useRef<
+    | ((options: {
+        scope: 'country' | 'africa';
+        countryId?: string | null;
+      }) => Promise<string | null>)
+    | null
+  >(null);
   const isMountedRef = useRef(true);
   const exportInProgressRef = useRef(false);
   const queryClient = useQueryClient();
+  const sidebarToggleRef = useRef<HTMLButtonElement | null>(null);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addDialogCountry, setAddDialogCountry] = useState<{
@@ -100,7 +194,7 @@ const NetworkCoveragePage = () => {
   }, [viewMode]);
 
   // The backend only accepts "Reference" and "LCS" as type values.
-  // "Inactive" is a status filter, not a type — extract it and apply client-side.
+  // "Inactive" is a status filter, not a type - extract it and apply client-side.
   const backendTypes = useMemo(
     () => selectedTypes.filter((t) => t !== 'Inactive'),
     [selectedTypes],
@@ -111,33 +205,50 @@ const NetworkCoveragePage = () => {
     [selectedTypes],
   );
 
-  const summaryParams = useMemo(
-    () => ({
-      tenant: DEFAULT_TENANT,
-      // Search should only filter the sidebar client-side.
-      // Do not include `search` here so the map receives the full dataset.
-      activeOnly: activeOnly && !hasInactive ? true : undefined,
-      types:
-        backendTypes.length === 0 || backendTypes.length === 2
-          ? undefined
-          : backendTypes.join(','),
-      network:
-        selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
-    }),
-    [activeOnly, hasInactive, backendTypes, selectedNetworks],
+  // Whether a client-side DATA filter narrows the visible monitors (status,
+  // single type, or network selection). Search is NOT part of this: it is a
+  // sidebar-only text filter that never affects exports. When true, global
+  // /impact data would be misleading, so exports skip the fetch entirely.
+  const hasDataFilter = useMemo(
+    () =>
+      hasInactive ||
+      activeOnly ||
+      backendTypes.length === 1 ||
+      selectedNetworks.length >= 1,
+    [hasInactive, activeOnly, backendTypes, selectedNetworks],
   );
 
-  const summaryQuery = useNetworkCoverageSummary(summaryParams);
+  // Client-side monitor filter applied to every country's monitors array.
+  // Replaces the old server-side params (activeOnly / types / network) so the
+  // API always returns the full dataset and filtering never refetches.
+  const filterMonitors = useCallback(
+    (monitors: NetworkCoverageMonitor[]): NetworkCoverageMonitor[] => {
+      let result = monitors;
+      if (hasInactive) {
+        result = result.filter((m) => m.status === 'inactive');
+      } else if (activeOnly) {
+        result = result.filter((m) => m.status === 'active');
+      }
+      if (backendTypes.length === 1) {
+        result = result.filter((m) => m.type === backendTypes[0]);
+      }
+      if (selectedNetworks.length >= 1) {
+        const allowed = new Set(selectedNetworks.map((n) => n.toLowerCase()));
+        result = result.filter(
+          (m) => m.network && allowed.has(m.network.toLowerCase()),
+        );
+      }
+      return result;
+    },
+    [hasInactive, activeOnly, backendTypes, selectedNetworks],
+  );
 
-  const impactQuery = useNetworkCoverageImpact({
-    tenant: DEFAULT_TENANT,
-    activeOnly: activeOnly && !hasInactive ? true : undefined,
-    types:
-      backendTypes.length === 0 || backendTypes.length === 2
-        ? undefined
-        : backendTypes.join(','),
-    network:
-      selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
+  const summaryQuery = useNetworkCoverageSummary(COVERAGE_QUERY_PARAMS, {
+    retry: 1,
+  });
+
+  const impactQuery = useNetworkCoverageImpact(COVERAGE_QUERY_PARAMS, {
+    enabled: hasRequestedExport,
   });
 
   const impactData = impactQuery.data?.impact ?? null;
@@ -145,27 +256,15 @@ const NetworkCoveragePage = () => {
   const countries = useMemo<NetworkCoverageCountry[]>(() => {
     const raw: NetworkCoverageCountry[] =
       summaryQuery.data?.countries ?? ([] as NetworkCoverageCountry[]);
-    let result = raw;
-    if (hasInactive) {
-      result = result.map((country: NetworkCoverageCountry) => ({
+    return raw.map((country: NetworkCoverageCountry) => {
+      const monitors = filterMonitors(country.monitors);
+      return {
         ...country,
-        monitors: country.monitors.filter(
-          (m: NetworkCoverageMonitor) => m.status === 'inactive',
-        ),
-      }));
-    }
-    if (selectedNetworks.length > 0) {
-      const allowed = new Set(selectedNetworks.map((n) => n.toLowerCase()));
-      result = result.map((country: NetworkCoverageCountry) => ({
-        ...country,
-        monitors: country.monitors.filter(
-          (m: NetworkCoverageMonitor) =>
-            m.network && allowed.has(m.network.toLowerCase()),
-        ),
-      }));
-    }
-    return result;
-  }, [summaryQuery.data, hasInactive, selectedNetworks]);
+        stats: hasDataFilter ? buildStatsFromMonitors(monitors) : country.stats,
+        monitors,
+      };
+    });
+  }, [summaryQuery.data, filterMonitors, hasDataFilter]);
 
   const allCountries = useMemo<NetworkCoverageCountry[]>(() => {
     const normalizeForMatch = (value?: string) => {
@@ -200,63 +299,95 @@ const NetworkCoveragePage = () => {
       } as NetworkCoverageCountry;
     });
   }, [countries]);
+
+  // Immediate, always-available baseline for the selected country so the
+  // sidebar header can show the country name the instant it is picked,
+  // even before the detailed monitors request resolves.
+  const selectedCountryBase = useMemo<NetworkCoverageCountry | null>(() => {
+    if (!selectedCountryId) return null;
+    return allCountries.find((c) => c.id === selectedCountryId) ?? null;
+  }, [allCountries, selectedCountryId]);
+
   const countryMonitorsQuery = useNetworkCoverageCountryMonitors(
     selectedCountryId,
-    {
-      tenant: DEFAULT_TENANT,
-      activeOnly: activeOnly && !hasInactive ? true : undefined,
-      types:
-        backendTypes.length === 0 || backendTypes.length === 2
-          ? undefined
-          : backendTypes.join(','),
-      network:
-        selectedNetworks.length > 0 ? selectedNetworks.join(',') : undefined,
-    },
+    COVERAGE_QUERY_PARAMS,
+    { placeholderData: keepPreviousData, retry: 1 },
   );
 
+  // Turns a /country-monitors response into the render/Export country object.
+  // Extracted so both the `selectedCountry` memo and the export flow apply the
+  // same inactive + multi-network filters and stats merge.
+  const resolveCountryFromMonitorsResponse = useCallback(
+    (data: NetworkCoverageCountryResponse): NetworkCoverageCountry => {
+      const monitors = filterMonitors(data.monitors);
+      // Pull stats from the summary's country list so the sidebar can
+      // render counts directly from the API instead of reducing monitors.
+      const summaryCountry = summaryQuery.data?.countries?.find(
+        (c: NetworkCoverageCountry) => c.id === data.countryId,
+      );
+      return {
+        id: data.countryId,
+        country: data.country,
+        iso2: data.iso2,
+        stats: hasDataFilter
+          ? buildStatsFromMonitors(monitors)
+          : summaryCountry?.stats,
+        monitors,
+      };
+    },
+    [filterMonitors, summaryQuery.data?.countries, hasDataFilter],
+  );
+
+  // With `keepPreviousData`, `countryMonitorsQuery.data` is the PREVIOUS
+  // country's response while a new selection is in flight. Only trust it once
+  // it actually matches the current selection; otherwise return null so the
+  // sidebar shows a loading state instead of stale details.
   const selectedCountry = useMemo<NetworkCoverageCountry | null>(() => {
     if (!selectedCountryId) {
       return null;
     }
 
-    if (countryMonitorsQuery.data) {
-      let monitors: NetworkCoverageMonitor[] =
-        countryMonitorsQuery.data.monitors;
-      if (hasInactive) {
-        monitors = monitors.filter(
-          (m: NetworkCoverageMonitor) => m.status === 'inactive',
-        );
-      }
-      if (selectedNetworks.length > 0) {
-        const allowed = new Set(selectedNetworks.map((n) => n.toLowerCase()));
-        monitors = monitors.filter(
-          (m: NetworkCoverageMonitor) =>
-            m.network && allowed.has(m.network.toLowerCase()),
-        );
-      }
-      return {
-        id: countryMonitorsQuery.data.countryId,
-        country: countryMonitorsQuery.data.country,
-        iso2: countryMonitorsQuery.data.iso2,
-        monitors,
-      };
+    if (
+      countryMonitorsQuery.data &&
+      countryResponseMatchesSelection(
+        countryMonitorsQuery.data,
+        selectedCountryId,
+        selectedCountryBase,
+      )
+    ) {
+      return resolveCountryFromMonitorsResponse(countryMonitorsQuery.data);
     }
 
     return null;
   }, [
     countryMonitorsQuery.data,
     selectedCountryId,
-    hasInactive,
-    selectedNetworks,
+    selectedCountryBase,
+    resolveCountryFromMonitorsResponse,
   ]);
 
-  const monitorDetailQuery = useNetworkCoverageMonitor(selectedMonitorId, {
-    tenant: DEFAULT_TENANT,
-  });
+  // Country-scoped loading/error: true only when a country is selected but its
+  // detailed monitors have not yet resolved to a matching response.
+  const isCountryLoading =
+    !!selectedCountryId &&
+    !selectedCountry &&
+    (countryMonitorsQuery.isLoading || countryMonitorsQuery.isFetching);
+  const countryError =
+    !!selectedCountryId &&
+    !selectedCountry &&
+    countryMonitorsQuery.error !== null
+      ? (countryMonitorsQuery.error?.message ??
+        'Failed to load country monitors')
+      : null;
+  const monitorDetailQuery = useNetworkCoverageMonitor(
+    selectedMonitorId,
+    { tenant: DEFAULT_TENANT },
+    { retry: 1 },
+  );
 
   const selectedMonitor = monitorDetailQuery.data?.monitor ?? null;
 
-  // exportQueryParams removed — CSV export was removed and PDF uses current state directly
+  // exportQueryParams removed - CSV export was removed and PDF uses current state directly
 
   useEffect(() => {
     if (!selectedCountryId) {
@@ -264,6 +395,26 @@ const NetworkCoveragePage = () => {
       setShowAddMonitorPromptFor(null);
     }
   }, [selectedCountryId]);
+
+  // Mirror selection state into the URL for shareable deep links.
+  // Uses replace semantics (no new history entries) and scroll:false.
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (selectedCountryId) params.set('country', selectedCountryId);
+    else params.delete('country');
+    if (selectedMonitorId) params.set('monitor', selectedMonitorId);
+    else params.delete('monitor');
+    if (viewMode && viewMode !== 'monitors') params.set('view', viewMode);
+    else params.delete('view');
+
+    const qs = params.toString();
+    const target = qs ? `?${qs}` : '';
+    const current = searchParams.toString();
+    if ((current ? `?${current}` : '') === target) return;
+
+    router.replace(`${window.location.pathname}${target}`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCountryId, selectedMonitorId, viewMode]);
 
   const isSearching = query !== debouncedQuery && query.trim() !== '';
 
@@ -289,14 +440,9 @@ const NetworkCoveragePage = () => {
     setSelectedMonitorId(null);
     setShowAddMonitorPromptFor(null);
     setViewMode('monitors');
-    // Close the sidebar on mobile so the map is revealed; keep it open on larger screens.
-    try {
-      const isMobile =
-        typeof window !== 'undefined' && window.innerWidth < 1024;
-      setIsSidebarOpen(!isMobile);
-    } catch {
-      setIsSidebarOpen(true);
-    }
+    // Keep the sidebar open on every viewport so the selected-country view
+    // (which contains the "Add device" action) stays visible on mobile.
+    setIsSidebarOpen(true);
   };
 
   const handleOpenAddMonitor = (
@@ -382,9 +528,12 @@ const NetworkCoveragePage = () => {
       // type (e.g. "Inactive"), assume they intend to isolate that type
       // and show only it. This makes it easy to view "Inactive only".
       if (previous.length > 1) {
+        // Inactive and Active only are mutually exclusive.
+        if (type === 'Inactive') setActiveOnly(false);
         return [type];
       }
 
+      if (type === 'Inactive') setActiveOnly(false);
       return [...previous, type];
     });
   };
@@ -426,29 +575,9 @@ const NetworkCoveragePage = () => {
       // ignore refetch errors; we'll still attempt to select if possible
     }
 
-    let monitorPresent = false;
-    if (createdId && addDialogCountry?.id) {
-      try {
-        const refreshed =
-          await networkCoverageService.getNetworkCoverageCountryMonitors(
-            addDialogCountry.id,
-            {
-              tenant: DEFAULT_TENANT,
-            },
-          );
-        if (refreshed && Array.isArray(refreshed.monitors)) {
-          monitorPresent = refreshed.monitors.some(
-            (m: any) => m.id === createdId || m._id === createdId,
-          );
-        }
-      } catch {
-        // ignore
-      }
-    }
-
     if (addDialogCountry?.id) {
       setSelectedCountryId(addDialogCountry.id);
-      if (createdId && monitorPresent) setSelectedMonitorId(createdId);
+      if (createdId) setSelectedMonitorId(createdId);
       setIsSidebarOpen(true);
     }
 
@@ -456,41 +585,111 @@ const NetworkCoveragePage = () => {
   };
 
   const handleRegisterSnapshot = useCallback(
-    (fn: (() => Promise<string | null>) | null) => {
+    (
+      fn:
+        | ((options: {
+            scope: 'country' | 'africa';
+            countryId?: string | null;
+          }) => Promise<string | null>)
+        | null,
+    ) => {
       snapshotGetterRef.current = fn;
     },
     [],
   );
 
-  const buildExportData = useCallback((): ExportData => {
-    const scopedCountries =
-      selectedCountryId && selectedCountry ? [selectedCountry] : countries;
-    const effectiveActiveOnly = activeOnly && !hasInactive;
-    // Impact data is global — don't attribute it to a single country or
-    // inactive-filtered view where it would be misleading.
-    const scopedImpactData =
-      selectedCountryId || hasInactive ? null : impactData;
+  const buildExportData = useCallback(
+    ({
+      impactOverride,
+      countryOverride,
+      forceAllCountries = false,
+    }: {
+      impactOverride?: NetworkCoverageImpact | null;
+      countryOverride?: NetworkCoverageCountry | null;
+      forceAllCountries?: boolean;
+    } = {}): ExportData => {
+      // When the caller already resolved the export country (e.g. after awaiting
+      // `resolveCountryForExport`), prefer it so a country-scoped export never
+      // silently falls back to all countries while data is still loading.
+      // `forceAllCountries` (full report) ignores any country scope entirely.
+      const exportCountry = forceAllCountries
+        ? null
+        : countryOverride !== undefined
+          ? countryOverride
+          : selectedCountry;
+      const scopedCountries =
+        !forceAllCountries && selectedCountryId && exportCountry
+          ? [exportCountry]
+          : countries;
+      const effectiveActiveOnly = activeOnly && !hasInactive;
+      // A fresh refetch result (impactOverride) wins over the render-scoped
+      // `impactData`, which is stale before the component re-renders.
+      const effectiveImpact =
+        impactOverride !== undefined ? impactOverride : impactData;
+      // Impact data is global - don't attribute it to a filtered view where it
+      // would be misleading. Country-scoped reports and any data-filtered
+      // export exclude global impact; forced all-countries exports keep it
+      // unless a data filter is active.
+      const dataFilterActive =
+        (!forceAllCountries && !!selectedCountryId) || hasDataFilter;
+      const scopedImpactData = dataFilterActive ? null : effectiveImpact;
 
-    return {
-      countries: scopedCountries,
-      impactData: scopedImpactData,
+      return {
+        countries: scopedCountries,
+        impactData: scopedImpactData,
+        selectedTypes,
+        activeOnly: effectiveActiveOnly,
+        selectedNetworks,
+        selectedCountryId: forceAllCountries ? null : selectedCountryId,
+        selectedCountry: exportCountry,
+        snapshotGetter: snapshotGetterRef.current,
+      };
+    },
+    [
+      countries,
+      impactData,
       selectedTypes,
-      activeOnly: effectiveActiveOnly,
+      activeOnly,
+      hasInactive,
+      hasDataFilter,
       selectedNetworks,
       selectedCountryId,
       selectedCountry,
-      snapshotGetter: snapshotGetterRef.current,
-    };
-  }, [
-    countries,
-    impactData,
-    selectedTypes,
-    activeOnly,
-    hasInactive,
-    selectedNetworks,
-    selectedCountryId,
-    selectedCountry,
-  ]);
+    ],
+  );
+
+  // Resolves the country object that a country-scoped export should use.
+  // Returns null when nothing is selected, the already-resolved country when
+  // available, otherwise refetches the selection and resolves it, falling back
+  // to the immediate `selectedCountryBase` so the export is never "all
+  // countries" when a country is selected.
+  const resolveCountryForExport =
+    useCallback(async (): Promise<NetworkCoverageCountry | null> => {
+      if (!selectedCountryId) return null;
+      if (selectedCountry) return selectedCountry;
+      try {
+        const result = await countryMonitorsQuery.refetch();
+        if (
+          result.data &&
+          countryResponseMatchesSelection(
+            result.data,
+            selectedCountryId,
+            selectedCountryBase,
+          )
+        ) {
+          return resolveCountryFromMonitorsResponse(result.data);
+        }
+      } catch {
+        // Fall through to the base fallback below.
+      }
+      return selectedCountryBase;
+    }, [
+      selectedCountryId,
+      selectedCountry,
+      selectedCountryBase,
+      countryMonitorsQuery,
+      resolveCountryFromMonitorsResponse,
+    ]);
 
   const downloadPdf = useCallback(async () => {
     if (exportInProgressRef.current) return;
@@ -500,7 +699,28 @@ const NetworkCoveragePage = () => {
       setDownloadError(null);
     }
     try {
-      await generatePdf(buildExportData());
+      // Resolve the export country first so a country-scoped export is never
+      // silently "all countries" while the selection is still loading.
+      const exportCountry = await resolveCountryForExport();
+
+      let impactOverride: NetworkCoverageImpact | null | undefined;
+      if (selectedCountryId || hasDataFilter) {
+        // Country-scoped or data-filtered: impact is global and would be
+        // misleading. The export nulls it out, so don't fetch /impact at all.
+        impactOverride = null;
+      } else {
+        // "All countries" scope: impact data is only needed for the export;
+        // fetch it lazily now. The refetch result wins over the render-scoped
+        // `impactData` (stale before re-render).
+        if (isMountedRef.current) setIsLoadingImpact(true);
+        setHasRequestedExport(true);
+        const result = await impactQuery.refetch();
+        impactOverride = result.data?.impact ?? null;
+      }
+
+      await generatePdf(
+        buildExportData({ impactOverride, countryOverride: exportCountry }),
+      );
     } catch (error) {
       if (isMountedRef.current) {
         setDownloadError(
@@ -509,9 +729,18 @@ const NetworkCoveragePage = () => {
       }
     } finally {
       exportInProgressRef.current = false;
-      if (isMountedRef.current) setIsDownloading(false);
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+        setIsLoadingImpact(false);
+      }
     }
-  }, [buildExportData]);
+  }, [
+    buildExportData,
+    hasDataFilter,
+    impactQuery,
+    resolveCountryForExport,
+    selectedCountryId,
+  ]);
 
   const downloadCsv = useCallback(async () => {
     if (exportInProgressRef.current) return;
@@ -521,7 +750,28 @@ const NetworkCoveragePage = () => {
       setDownloadError(null);
     }
     try {
-      await generateCsv(buildExportData());
+      // Resolve the export country first so a country-scoped export is never
+      // silently "all countries" while the selection is still loading.
+      const exportCountry = await resolveCountryForExport();
+
+      let impactOverride: NetworkCoverageImpact | null | undefined;
+      if (selectedCountryId || hasDataFilter) {
+        // Country-scoped or data-filtered: impact is global and would be
+        // misleading. The export nulls it out, so don't fetch /impact at all.
+        impactOverride = null;
+      } else {
+        // "All countries" scope: impact data is only needed for the export;
+        // fetch it lazily now. The refetch result wins over the render-scoped
+        // `impactData` (stale before re-render).
+        if (isMountedRef.current) setIsLoadingImpact(true);
+        setHasRequestedExport(true);
+        const result = await impactQuery.refetch();
+        impactOverride = result.data?.impact ?? null;
+      }
+
+      await generateCsv(
+        buildExportData({ impactOverride, countryOverride: exportCountry }),
+      );
     } catch (error) {
       if (isMountedRef.current) {
         setDownloadError(
@@ -530,26 +780,168 @@ const NetworkCoveragePage = () => {
       }
     } finally {
       exportInProgressRef.current = false;
-      if (isMountedRef.current) setIsDownloading(false);
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+        setIsLoadingImpact(false);
+      }
     }
-  }, [buildExportData]);
+  }, [
+    buildExportData,
+    hasDataFilter,
+    impactQuery,
+    resolveCountryForExport,
+    selectedCountryId,
+  ]);
 
   const handleDownload = useCallback(() => {
     downloadPdf();
   }, [downloadPdf]);
+
+  // Full-report ("All countries") exports, offered alongside the
+  // country-scoped menu items. They deliberately skip
+  // `resolveCountryForExport()`: the scope is forced to every country, so a
+  // pending/loaded country selection must not shrink the report.
+  const downloadPdfAllCountries = useCallback(async () => {
+    if (exportInProgressRef.current) return;
+    exportInProgressRef.current = true;
+    if (isMountedRef.current) {
+      setIsDownloading(true);
+      setDownloadError(null);
+    }
+    try {
+      let impactOverride: NetworkCoverageImpact | null;
+      if (hasDataFilter) {
+        // A client-side data filter is active: impact is global and the
+        // export nulls it out anyway, so don't touch the impact query.
+        impactOverride = null;
+      } else {
+        // All-countries scope always needs impact data; fetch it lazily now.
+        // The refetch result wins over the render-scoped `impactData` (stale
+        // before re-render).
+        if (isMountedRef.current) setIsLoadingImpact(true);
+        setHasRequestedExport(true);
+        const result = await impactQuery.refetch();
+        impactOverride = result.data?.impact ?? null;
+      }
+
+      await generatePdf(
+        buildExportData({
+          impactOverride,
+          countryOverride: null,
+          forceAllCountries: true,
+        }),
+      );
+    } catch (error) {
+      if (isMountedRef.current) {
+        setDownloadError(
+          error instanceof Error ? error.message : 'PDF download failed',
+        );
+      }
+    } finally {
+      exportInProgressRef.current = false;
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+        setIsLoadingImpact(false);
+      }
+    }
+  }, [buildExportData, hasDataFilter, impactQuery]);
+
+  const downloadCsvAllCountries = useCallback(async () => {
+    if (exportInProgressRef.current) return;
+    exportInProgressRef.current = true;
+    if (isMountedRef.current) {
+      setIsDownloading(true);
+      setDownloadError(null);
+    }
+    try {
+      let impactOverride: NetworkCoverageImpact | null;
+      if (hasDataFilter) {
+        // A client-side data filter is active: impact is global and the
+        // export nulls it out anyway, so don't touch the impact query.
+        impactOverride = null;
+      } else {
+        // All-countries scope always needs impact data; fetch it lazily now.
+        // The refetch result wins over the render-scoped `impactData` (stale
+        // before re-render).
+        if (isMountedRef.current) setIsLoadingImpact(true);
+        setHasRequestedExport(true);
+        const result = await impactQuery.refetch();
+        impactOverride = result.data?.impact ?? null;
+      }
+
+      await generateCsv(
+        buildExportData({
+          impactOverride,
+          countryOverride: null,
+          forceAllCountries: true,
+        }),
+      );
+    } catch (error) {
+      if (isMountedRef.current) {
+        setDownloadError(
+          error instanceof Error ? error.message : 'CSV download failed',
+        );
+      }
+    } finally {
+      exportInProgressRef.current = false;
+      if (isMountedRef.current) {
+        setIsDownloading(false);
+        setIsLoadingImpact(false);
+      }
+    }
+  }, [buildExportData, hasDataFilter, impactQuery]);
+
+  // Determine whether a client-side-only filter is active (search query or
+  // any data filter). When any of these is active the header stats are hidden
+  // because the API meta is not filter-aware.
+  const hasClientOnlyFilter = useMemo(
+    () => (debouncedQuery && debouncedQuery.trim() !== '') || hasDataFilter,
+    [debouncedQuery, hasDataFilter],
+  );
+
+  // Header stats are derived entirely from the API meta. They are hidden
+  // (undefined) when a client-only filter is active.
+  const headerStats = useMemo(() => {
+    if (hasClientOnlyFilter) return undefined;
+    const meta = summaryQuery.data?.meta;
+    if (!meta) return undefined;
+    return {
+      monitors: meta.totalMonitors ?? 0,
+      countries: meta.monitoredCountries,
+      cities: meta.totalCities ?? 0,
+    };
+  }, [hasClientOnlyFilter, summaryQuery.data?.meta]);
 
   const isInitialLoading = summaryQuery.isLoading && countries.length === 0;
   const isFetchingData =
     summaryQuery.isFetching || countryMonitorsQuery.isFetching;
   const summaryError = summaryQuery.error?.message ?? null;
 
+  // Human-readable export scope for the header download menu ("All countries"
+  // or the selected country's name).
+  const exportScopeLabel = selectedCountryId
+    ? (selectedCountry?.country ??
+      selectedCountryBase?.country ??
+      'Selected country')
+    : 'All countries';
+
   return (
-    <div className="h-screen w-full overflow-hidden bg-slate-100">
+    <div className="h-screen w-full overflow-hidden bg-slate-100 supports-[height:100dvh]:h-[100dvh]">
       <div className="flex h-full flex-col gap-2 p-2">
         <NetworkCoverageHeader
           onDownload={handleDownload}
           onDownloadCsv={downloadCsv}
+          onDownloadAll={downloadPdfAllCountries}
+          onDownloadAllCsv={downloadCsvAllCountries}
+          isCountryScoped={!!selectedCountryId}
           isDownloading={isDownloading}
+          stats={headerStats}
+          scopeLabel={exportScopeLabel}
+          dimmed={
+            summaryQuery.isFetching &&
+            summaryQuery.isSuccess &&
+            !!summaryQuery.data
+          }
         />
 
         <NetworkCoverageAddMonitorDialog
@@ -562,7 +954,9 @@ const NetworkCoveragePage = () => {
         />
 
         <main className="relative flex min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-300 bg-slate-100">
-          <div
+          <button
+            type="button"
+            aria-label="Close countries panel"
             className={`absolute inset-0 z-30 bg-black/35 transition-opacity lg:hidden ${
               isSidebarOpen
                 ? 'pointer-events-auto opacity-100'
@@ -585,14 +979,27 @@ const NetworkCoveragePage = () => {
               activeOnly={activeOnly}
               selectedNetworks={selectedNetworks}
               availableNetworks={availableNetworks}
-              selectedCountry={selectedCountry}
+              selectedCountry={selectedCountry ?? selectedCountryBase}
+              monitoredCountriesTotal={
+                summaryQuery.data?.meta?.monitoredCountries
+              }
               selectedMonitor={selectedMonitor}
               showAddMonitorPromptFor={showAddMonitorPromptFor}
               isLoading={isInitialLoading}
               error={summaryError}
               onQueryChange={setQuery}
               onToggleType={toggleType}
-              onToggleActiveOnly={() => setActiveOnly((previous) => !previous)}
+              onToggleActiveOnly={() => {
+                setActiveOnly((previous) => {
+                  if (!previous) {
+                    // Turning on Active only → clear the Inactive chip
+                    setSelectedTypes((types) =>
+                      types.filter((t) => t !== 'Inactive'),
+                    );
+                  }
+                  return !previous;
+                });
+              }}
               onToggleNetwork={toggleNetwork}
               onSelectCountry={selectCountry}
               onSelectMonitor={selectMonitor}
@@ -601,6 +1008,18 @@ const NetworkCoveragePage = () => {
               onClosePrompt={() => setShowAddMonitorPromptFor(null)}
               onResetToOverview={resetToOverview}
               onRetry={() => summaryQuery.refetch()}
+              onRetryCountry={() => countryMonitorsQuery.refetch()}
+              isCountryLoading={isCountryLoading}
+              countryError={countryError}
+              // Monitor-detail loading: only while a single monitor's details
+              // are being fetched (independent of country loading).
+              monitorLoading={
+                !!selectedMonitorId && monitorDetailQuery.isLoading
+              }
+              isSummaryLoading={summaryQuery.isLoading}
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              toggleButtonRef={sidebarToggleRef}
             />
           </div>
 
@@ -628,18 +1047,31 @@ const NetworkCoveragePage = () => {
                 onRegisterSnapshot={handleRegisterSnapshot}
               />
             </MapLoader>
-            {/* Show spinner overlay while data is fetching (initial load or filter change) */}
-            {isFetchingData && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/70">
-                <div className="text-blue-600">
+            {/* Blocking overlay only while the summary has never resolved yet */}
+            {isInitialLoading && (
+              <div
+                className="absolute inset-0 z-30 flex items-center justify-center bg-slate-100/70"
+                role="status"
+              >
+                <div className="flex items-center gap-2 text-blue-600">
                   <FiLoader className="animate-spin" />
+                  <span className="sr-only">Loading network coverage data</span>
                 </div>
+              </div>
+            )}
+            {/* Non-blocking "updating" pill for background refetches */}
+            {isFetchingData && !isInitialLoading && (
+              <div className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm backdrop-blur-sm">
+                <span className="flex items-center gap-1.5">
+                  <FiLoader className="animate-spin text-blue-600" />
+                  Updating…
+                </span>
               </div>
             )}
             {/* initial loading handled by MapLoader spinner; remove redundant message */}
             {summaryError && !countries.length ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100/80 px-6">
-                <div className="max-w-sm rounded-2xl border border-red-200 bg-white p-5 text-center shadow-lg">
+                <div className="max-w-sm rounded-xl border border-red-200 bg-white p-5 text-center shadow-lg">
                   <p className="text-base font-semibold text-slate-950">
                     Network coverage failed to load
                   </p>
@@ -655,47 +1087,53 @@ const NetworkCoveragePage = () => {
               </div>
             ) : null}
             {downloadError ? (
-              <div className="absolute right-4 top-4 z-20 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 shadow-sm">
+              <div
+                role="alert"
+                className="absolute right-4 top-4 z-20 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 shadow-sm"
+              >
                 {downloadError}
               </div>
             ) : null}
             {isDownloading ? (
-              <div className="absolute right-4 top-4 z-20 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm">
-                Preparing download...
+              <div
+                role="status"
+                aria-live="polite"
+                className="absolute right-4 top-4 z-20 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-sm"
+              >
+                {isLoadingImpact
+                  ? 'Loading impact data…'
+                  : 'Preparing download…'}
               </div>
             ) : null}
-            <div className="absolute right-3 top-3 z-20 inline-flex rounded-full border border-slate-300 bg-white p-1 text-xs font-semibold shadow-sm sm:right-4 sm:top-4">
-              <button
-                type="button"
-                onClick={() => setViewMode('monitors')}
-                className={`rounded-full px-3 py-1.5 sm:px-4 ${
-                  viewMode === 'monitors'
-                    ? 'bg-blue-700 text-white'
-                    : 'text-slate-600'
-                }`}
-              >
-                Monitors
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('coverage')}
-                className={`rounded-full px-3 py-1.5 sm:px-4 ${
-                  viewMode === 'coverage'
-                    ? 'bg-blue-700 text-white'
-                    : 'text-slate-600'
-                }`}
-              >
-                Coverage
-              </button>
-            </div>
-            <div className="absolute bottom-4 left-4 z-20">
-              <NetworkCoverageLegend viewMode={viewMode} />
-            </div>
-            <div className="absolute left-4 top-3 z-20 sm:top-4">
+            <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 sm:right-4 sm:top-4">
+              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold shadow-md">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('monitors')}
+                  className={`rounded-md px-3 py-1.5 sm:px-4 ${
+                    viewMode === 'monitors'
+                      ? 'bg-blue-700 text-white'
+                      : 'text-slate-600'
+                  }`}
+                >
+                  Monitors
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('coverage')}
+                  className={`rounded-md px-3 py-1.5 sm:px-4 ${
+                    viewMode === 'coverage'
+                      ? 'bg-blue-700 text-white'
+                      : 'text-slate-600'
+                  }`}
+                >
+                  Coverage
+                </button>
+              </div>
               <select
                 value={mapStyle}
                 onChange={(event) => setMapStyle(event.target.value)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-md"
                 aria-label="Map style"
               >
                 <option value="mapbox://styles/mapbox/light-v11">Light</option>
@@ -708,12 +1146,17 @@ const NetworkCoveragePage = () => {
                 </option>
               </select>
             </div>
-            {/* Mobile map sidebar toggle — absolute and positioned slightly below the style selector */}
+            <div className="absolute bottom-4 left-4 z-20">
+              <NetworkCoverageLegend viewMode={viewMode} />
+            </div>
+            {/* Mobile map sidebar toggle - absolute on the left edge below the stats strip */}
             <button
+              ref={sidebarToggleRef}
               type="button"
               onClick={() => setIsSidebarOpen((previous) => !previous)}
               aria-label="Toggle country sidebar"
-              className="lg:hidden absolute left-4 top-12 z-20 grid h-8 w-8 place-items-center rounded-md border border-slate-300 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+              aria-expanded={isSidebarOpen}
+              className="lg:hidden absolute left-4 top-12 z-20 grid h-10 w-10 place-items-center rounded-lg border border-slate-300 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
             >
               <FiMenu className="h-5 w-5" />
             </button>

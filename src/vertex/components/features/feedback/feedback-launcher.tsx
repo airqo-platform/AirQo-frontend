@@ -12,6 +12,8 @@ import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
 import ReusableButton from '@/components/shared/button/ReusableButton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useBanner } from '@/context/banner-context';
 
 import { feedbackService } from '@/core/apis/feedback';
@@ -57,6 +59,12 @@ const RATING_ITEM_STYLES = {
 
 const HIGHLIGHT_COLOR = 'rgba(239, 68, 68, 0.25)';   // semi-transparent red fill
 const HIGHLIGHT_STROKE = 'rgba(239, 68, 68, 0.9)';   // solid red border
+
+/** Thank-you copy, matched to the contact-consent choice. */
+const THANK_YOU_WITH_CONSENT =
+  "Thanks — we'll email you if we need more details or when it's resolved.";
+const THANK_YOU_WITHOUT_CONSENT =
+  "Thanks — we've received it. We won't contact you about this.";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -370,6 +378,8 @@ export const FeedbackLauncher: React.FC = () => {
   const [issueAction, setIssueAction] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState<number>(3);
+  // People reporting a problem usually want to hear back, so this starts on.
+  const [contactConsent, setContactConsent] = useState(true);
 
   // Base (raw) screenshot — used as the source for the annotator.
   const [rawDataUrl, setRawDataUrl] = useState<string | null>(null);
@@ -409,6 +419,7 @@ export const FeedbackLauncher: React.FC = () => {
       setIssueAction('');
       setMessage('');
       setRating(3);
+      setContactConsent(true);
       setRawDataUrl(null);
       setRawDimensions(null);
       setScreenshotDataUrl(null);
@@ -673,6 +684,7 @@ export const FeedbackLauncher: React.FC = () => {
         category: mainCategory === 'issue' ? 'bug' : 'feature_request',
         platform: 'web',
         app: 'vertex',
+        contact_consent: contactConsent,
         screenshot_url,
         metadata: sourceDialog
           ? { ...defaultMetadata, sourceDialog }
@@ -682,7 +694,11 @@ export const FeedbackLauncher: React.FC = () => {
       setIsOpen(false);
 
       setTimeout(() => {
-        showBanner({ severity: 'success', message: 'Thank you! Your feedback has been received.', scoped: false });
+        showBanner({
+          severity: 'success',
+          message: contactConsent ? THANK_YOU_WITH_CONSENT : THANK_YOU_WITHOUT_CONSENT,
+          scoped: false,
+        });
       }, 300);
 
     } catch (error) {
@@ -834,6 +850,23 @@ export const FeedbackLauncher: React.FC = () => {
         <div className="w-full max-w-[200px]">
           <Rating value={rating} onChange={setRating} isRequired itemStyles={RATING_ITEM_STYLES} />
         </div>
+      </div>
+
+      {/* Contact consent */}
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="contactConsent"
+          checked={contactConsent}
+          onCheckedChange={(checked) => setContactConsent(checked === true)}
+          disabled={isSubmitting || isUploadingScreenshot}
+          className="mt-0.5"
+        />
+        <Label
+          htmlFor="contactConsent"
+          className="font-normal leading-snug text-gray-700 dark:text-gray-200"
+        >
+          It&apos;s OK to contact me about this
+        </Label>
       </div>
     </div>
   );
