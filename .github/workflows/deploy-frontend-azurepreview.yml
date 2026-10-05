@@ -146,7 +146,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Website image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -154,6 +154,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Website scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -247,7 +248,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Beacon image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -255,6 +256,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Beacon scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -349,7 +351,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Calibrate image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -357,6 +359,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Calibrate scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -468,7 +471,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Nexus image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -476,6 +479,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Nexus scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -615,7 +619,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Vertex image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -623,6 +627,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Vertex scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -751,7 +756,7 @@ jobs:
 
 # ================= START OF TRIVY SCAN =================
       - name: Scan Docs image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
         with:
           image-ref: ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }}
           format: sarif
@@ -759,6 +764,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: 0
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Docs scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
