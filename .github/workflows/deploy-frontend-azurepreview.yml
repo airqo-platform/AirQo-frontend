@@ -12,6 +12,11 @@ env:
   REGISTRY_URL: airqoacr.azurecr.io
   KEYVAULT: airqo-kv-staging
 
+permissions:
+  security-events: write
+  pull-requests: write
+  contents: read  
+
 jobs:
   #########################################
   # FORMAT BRANCH NAME
@@ -139,6 +144,30 @@ jobs:
             --tag ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
           docker push ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
 
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Website image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/website-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Website scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+       # Skip this step entirely if the pull request originates from a fork 
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: website-preview # Unique identifier for Website alerts
+# ================== END OF TRIVY SCAN ==================
+
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
@@ -220,6 +249,30 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }} src/beacon
           docker push ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }}
+
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Beacon image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/beacon-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Beacon scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+     # Skip this step entirely if the pull request originates from a fork 
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: beacon-preview # Unique identifier for Beacon alerts
+# ================== END OF TRIVY SCAN ==================
 
       - name: Deploy Container App
         run: |
@@ -303,6 +356,29 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }} src/calibrate
           docker push ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }}
+
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Calibrate image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/calibrate-app-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Calibrate scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: calibrate-preview # Unique identifier for Calibrate alerts
+# ================== END OF TRIVY SCAN ==================
 
       - name: Deploy Container App
         run: |
@@ -403,6 +479,29 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }} src/nexus
           docker push ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }}
+
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Nexus image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/nexus-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Nexus scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: nexus-preview # Unique identifier for Nexus alerts
+# ================== END OF TRIVY SCAN ==================
 
       - name: Deploy Container App
         run: |
@@ -532,6 +631,29 @@ jobs:
           docker build -t ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }} src/vertex
           docker push ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }}
 
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Vertex image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/vertex-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Vertex scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: vertex-preview # Unique identifier for Vertex alerts
+# ================== END OF TRIVY SCAN ==================
+
       - name: Deploy Container App
         run: |
           BRANCH="${{ needs.branch-name.outputs.sanitized }}"
@@ -648,6 +770,29 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }} src/docs-website
           docker push ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }}
+
+# ================= START OF TRIVY SCAN =================
+      - name: Scan Docs image for vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c72f10d061793740e550e5ebc52c286d99f
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/docs-pr-preview:${{ github.event.pull_request.head.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Docs scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: trivy-results.sarif
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: docs-preview # Unique identifier for Docs alerts
+# ================== END OF TRIVY SCAN ==================
 
       - name: Deploy Container App
         run: |
