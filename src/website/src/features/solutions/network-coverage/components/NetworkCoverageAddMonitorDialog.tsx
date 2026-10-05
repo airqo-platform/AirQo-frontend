@@ -140,7 +140,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   useEffect(() => {
     if (!mapVisible) return undefined;
     if (typeof window === 'undefined' || !(window as any).mapboxgl) {
-      // Mapbox not available — keep picker closed and show nothing
+      // Mapbox not available - keep picker closed and show nothing
       return undefined;
     }
 
@@ -518,7 +518,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       >
         <div className="flex items-center justify-between border-b px-4 py-3">
           <h3 id="add-monitor-dialog-title" className="text-sm font-semibold">
-            Add monitor to network
+            Add a device to the network
           </h3>
           <button
             type="button"
@@ -528,7 +528,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             }}
             disabled={isSaving}
             aria-disabled={isSaving}
-            className="rounded-md p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Close dialog"
           >
             <FiX className="h-5 w-5" />
@@ -552,7 +552,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -563,7 +563,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -574,7 +574,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -587,7 +587,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   placeholder="e.g. 0.3123"
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                 />
               </label>
 
@@ -599,7 +599,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   placeholder="e.g. 32.5811"
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                 />
               </label>
             </div>
@@ -619,14 +619,14 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               </div>
 
               {mapVisible && (
-                <div className="mt-3 rounded-md border border-slate-200 relative">
+                <div className="mt-3 rounded-lg border border-slate-200 relative">
                   <div
                     ref={mapElRef}
-                    className="h-64 w-full rounded-md"
+                    className="h-64 w-full rounded-lg"
                     aria-hidden={!mapVisible}
                   />
 
-                  <div className="absolute bottom-3 right-3 z-30 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-sm">
+                  <div className="absolute bottom-3 right-3 z-30 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <button
                       type="button"
                       onClick={() => {
@@ -672,7 +672,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as any)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               >
                 <option value="LCS">Low-Cost Sensor (LCS)</option>
                 <option value="Reference">Reference</option>
@@ -687,7 +687,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -701,7 +701,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={network}
                 onChange={(e) => setNetwork(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -712,7 +712,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={operator}
                 onChange={(e) => setOperator(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -723,7 +723,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={equipment}
                 onChange={(e) => setEquipment(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -734,7 +734,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
               <input
                 value={manufacturer}
                 onChange={(e) => setManufacturer(e.target.value)}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -746,7 +746,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                 value={pollutants}
                 onChange={(e) => setPollutants(e.target.value)}
                 placeholder="PM2.5, PM10"
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -758,7 +758,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                 value={viewDataUrl}
                 onChange={(e) => setViewDataUrl(e.target.value)}
                 placeholder="https://"
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
               />
             </label>
 
@@ -783,7 +783,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   <select
                     value={publicData}
                     onChange={(e) => setPublicData(e.target.value as any)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   >
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
@@ -798,7 +798,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={coLocation}
                     onChange={(e) => setCoLocation(e.target.value)}
                     placeholder="Yes / Not available / Location details"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
               </div>
@@ -815,7 +815,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   <input
                     value={site}
                     onChange={(e) => setSite(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -826,7 +826,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                   <input
                     value={organisation}
                     onChange={(e) => setOrganisation(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -838,7 +838,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={deployed}
                     onChange={(e) => setDeployed(e.target.value)}
                     placeholder="e.g. Dec 2020"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -850,7 +850,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={uptime30d}
                     onChange={(e) => setUptime30d(e.target.value)}
                     placeholder="e.g. 96%"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -862,7 +862,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={calibrationLastDate}
                     onChange={(e) => setCalibrationLastDate(e.target.value)}
                     placeholder="e.g. Sep 2025"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -874,7 +874,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={calibrationMethod}
                     onChange={(e) => setCalibrationMethod(e.target.value)}
                     placeholder="e.g. Field co-location"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -886,7 +886,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={coLocationNote}
                     onChange={(e) => setCoLocationNote(e.target.value)}
                     placeholder="Extra context about co-location"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -898,7 +898,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={resolution}
                     onChange={(e) => setResolution(e.target.value)}
                     placeholder="e.g. Hourly"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -910,7 +910,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={transmission}
                     onChange={(e) => setTransmission(e.target.value)}
                     placeholder="e.g. GSM, Fiber"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
 
@@ -922,7 +922,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
                     value={iso2State}
                     onChange={(e) => setIso2State(e.target.value)}
                     placeholder="e.g. UG"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </label>
               </div>
@@ -959,7 +959,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-md border px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
           >
             Cancel
           </button>
@@ -968,7 +968,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
             onClick={handleSubmit}
             disabled={isSaving}
             aria-disabled={isSaving}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving…' : 'Save monitor'}
           </button>

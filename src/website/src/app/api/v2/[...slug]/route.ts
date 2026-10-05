@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  buildCoverageCacheKey,
+  getCoverageCache,
+  setCoverageCache,
+} from './coverageCache';
+
 const API_BASE_URL =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '';
 const API_TOKEN = process.env.API_TOKEN;
@@ -36,6 +42,22 @@ function removeTokenFromUrl(url: string): string {
     return url;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Network-coverage GET cache helpers live in ./coverageCache (unit-testable).
+// ---------------------------------------------------------------------------
+const COVERAGE_PATH_PREFIX = 'devices/network-coverage';
+
+function isCoveragePath(cleanPath: string): boolean {
+  return (
+    cleanPath === COVERAGE_PATH_PREFIX ||
+    cleanPath.startsWith(`${COVERAGE_PATH_PREFIX}/`)
+  );
+}
+
+const COVERAGE_RESPONSE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
+};
 
 // Add dynamic force for better production debugging
 export const dynamic = 'force-dynamic';
@@ -141,6 +163,23 @@ async function handleRequest(
     // Add the API token as a query parameter for authentication
     final.searchParams.set('token', API_TOKEN);
 
+    // Serve network-coverage GET responses from the bounded in-memory cache
+    // when possible to shield the backend and cut round-trips.
+    if (method === 'GET' && isCoveragePath(cleanPath)) {
+      const cacheKey = buildCoverageCacheKey(finalPath, final.searchParams);
+      const cached = getCoverageCache(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached.body, {
+          status: cached.status,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Cache': 'HIT',
+            ...COVERAGE_RESPONSE_HEADERS,
+          },
+        });
+      }
+    }
+
     const finalUrl = final.toString();
 
     // Get request body if it exists
@@ -168,11 +207,20 @@ async function handleRequest(
     // Sanitize response data to remove token from pagination URLs
     const sanitizedData = sanitizeResponseData(responseData);
 
+    // Cache network-coverage GET responses for subsequent requests.
+    if (method === 'GET' && isCoveragePath(cleanPath)) {
+      const cacheKey = buildCoverageCacheKey(finalPath, final.searchParams);
+      setCoverageCache(cacheKey, sanitizedData, response.status);
+    }
+
     // Return the response with the same status and data
     return NextResponse.json(sanitizedData, {
       status: response.status,
       headers: {
         'Content-Type': 'application/json',
+        ...(isCoveragePath(cleanPath) && method === 'GET'
+          ? { 'X-Cache': 'MISS', ...COVERAGE_RESPONSE_HEADERS }
+          : {}),
       },
     });
   } catch (_error) {

@@ -78,11 +78,12 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
 
       <button
         aria-expanded={!collapsed}
+        aria-label="Map legend"
         onClick={toggle}
         className="mt-2 inline-flex items-center gap-3 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 shadow-lg"
       >
         {/* small dots - vary by viewMode */}
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1" aria-hidden="true">
           {viewMode === 'monitors' ? (
             <>
               <span className="h-2 w-2 rounded-full bg-blue-600" />
@@ -109,6 +110,7 @@ const NetworkCoverageLegend: React.FC<NetworkCoverageLegendProps> = ({
           viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
           <path
             d="M5 8l5 5 5-5"

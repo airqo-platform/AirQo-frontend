@@ -38,8 +38,8 @@ const HomeStatsSection: React.FC = () => {
   );
 
   return (
-    <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
-      <div className={`${mainConfig.containerClass} space-y-16`}>
+    <section className="py-10 px-4 w-full space-y-10 bg-[#ECF2FF]">
+      <div className={`${mainConfig.containerClass} space-y-10`}>
         <PartnerLogosSection
           partners={featuredPartners}
           isLoading={partnersLoading}
@@ -64,7 +64,7 @@ const PartnerLogosSection: React.FC<{
   partners: Partner[];
   isLoading: boolean;
 }> = ({ partners, isLoading }) => (
-  <section className="max-w-6xl mx-auto py-12 px-4">
+  <section className="max-w-6xl mx-auto py-6 px-4">
     <div className="text-center space-y-6">
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
@@ -74,15 +74,15 @@ const PartnerLogosSection: React.FC<{
           ? Array.from({ length: 6 }, (_, index) => (
               <div
                 key={`partner-skeleton-${index}`}
-                className="flex h-[100px] w-full max-w-[220px] items-center justify-center border border-gray-300 p-4 sm:w-[220px]"
+                className="flex h-[104px] w-full max-w-[220px] items-center justify-center border border-gray-300 p-3 sm:w-[220px]"
               >
-                <div className="h-12 w-full max-w-[150px] animate-pulse rounded-lg bg-white/70" />
+                <div className="h-14 w-full max-w-[160px] animate-pulse rounded-lg bg-white/70" />
               </div>
             ))
           : partners.map((partner, index) => (
               <div
                 key={partner.id || index}
-                className="flex h-[100px] w-full max-w-[220px] items-center justify-center overflow-hidden border border-gray-300 p-4 sm:w-[220px]"
+                className="flex h-[104px] w-full max-w-[220px] items-center justify-center overflow-hidden border border-gray-300 p-3 sm:w-[220px]"
               >
                 <div className="relative h-full w-full">
                   <Image
@@ -97,7 +97,7 @@ const PartnerLogosSection: React.FC<{
                       `Partner ${index + 1}`
                     }
                     fill
-                    className="cursor-pointer object-contain p-3 transition-transform duration-500 ease-in-out hover:scale-110"
+                    className="cursor-pointer object-contain transition-transform duration-500 ease-in-out hover:scale-105"
                     sizes="(max-width: 640px) 220px, 220px"
                   />
                 </div>
@@ -154,7 +154,7 @@ const AccordionAndImageSection: React.FC<{
       <Accordion items={accordionItems[activeTab]} />
     </div>
     <div className="lg:w-1/2 w-full rounded-lg">
-      <div className="relative w-full h-[400px] overflow-hidden">
+      <div className="relative w-full h-[320px] overflow-hidden">
         <Image
           src={`${
             activeTab === 'cities' ? images.airQuality : images.forCommunities
@@ -189,10 +189,10 @@ const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
         return (
           <div
             key={index}
-            className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+            className="min-h-[160px] p-5 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
           >
             <div className="text-left flex flex-col items-start">
-              <p className="text-3xl font-bold">
+              <p className="text-2xl sm:text-3xl font-bold">
                 {formatStatValue(stat.key, value)}
               </p>
               <p className="text-gray-600">{stat.label}</p>
