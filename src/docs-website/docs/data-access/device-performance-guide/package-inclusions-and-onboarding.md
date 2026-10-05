@@ -5,7 +5,7 @@ sidebar_label: 6. What's Included & Onboarding
 
 # 6. What's Included in Your Monitor Package
 
-This section explains what you receive when you purchase AirQo air quality monitors: platform access, connectivity, onboarding and ongoing remote support. It also sets out which costs are covered by AirQo and which you are responsible for.
+This section explains what you receive when you purchase AirQo air quality monitors: platform access, connectivity, a 12-month warranty, onboarding and ongoing remote support. It also sets out which costs are covered by AirQo and which you are responsible for.
 
 ---
 
@@ -52,25 +52,32 @@ To request support or a follow-up call, email [support@airqo.net](mailto:support
 
 ---
 
+## Warranty
+
+Every monitor comes with a **12-month warranty** covering sensor failures and equipment faults, including the power and solar system, where the issue is confirmed to be a device-related defect. We lead with remote support to resolve issues, and replace faulty sensors or components covered under warranty at no additional cost.
+
+See [Warranty & Fault Support](./warranty-and-fault-support.md) for full details, including what is not covered and the support available after the warranty period.
+
+---
+
 ## Summary: What Is and Isn't Included
 
 | Included in the package | Not included (purchaser's responsibility or available at extra cost) |
 |-------------------------|-----------------------------------------------------------------------|
 | Air quality monitors | SIM data bundles after the first 12 months (about US$1 per device per month) |
 | Pre-installed IoT SIM cards | Reliability and uptime of your AirQloud (see [Maintenance Responsibility](./maintenance-and-support.md#maintenance-responsibility)) |
-| SIM data bundles for the first 12 months | On-site maintenance visits by AirQo engineers (quoted separately; see [Maintenance Cost Options](./maintenance-and-support.md#maintenance-cost-options)) |
-| Access to sensor management, calibration and data platforms | Replacement consumables (batteries, sensors, solar panels) supplied at cost |
+| SIM data bundles for the first 12 months | Repairs or replacements for damage not caused by a product defect, or for faults after the warranty period |
+| 12-month warranty: free replacement of sensors and components with a confirmed device-related defect | On-site maintenance visits by AirQo engineers (quoted separately; see [Maintenance Cost Options](./maintenance-and-support.md#maintenance-cost-options)) |
+| Access to sensor management, calibration and data platforms | Routine maintenance consumables (batteries, sensors, solar panels) supplied at cost |
 | API access | Maintenance training programme for your staff (quoted separately) |
 | Virtual onboarding call | |
-| Remote technical support for installation, sensor management and data access | |
-
-:::note Warranty and contract terms
-The equipment warranty, including its duration and coverage, is set out in your purchase agreement or quotation. For a copy of the warranty terms that apply to your order, contact [support@airqo.net](mailto:support@airqo.net).
-:::
+| Remote technical support for installation, sensor management, data access and fault diagnosis, during and after the warranty period | |
 
 ---
 
 ## Next Steps
+
+Before shipping, we contact you to confirm the delivery address and a contact person. Monitors can be shipped directly to a partner organisation or deployment site rather than your main office, so let us know where they should go.
 
 Once your monitors arrive:
 

@@ -45,5 +45,6 @@ All collected data is wirelessly transmitted to our secure cloud platform, makin
 - [Maintenance & Support](./maintenance-and-support.md) — maintenance responsibilities and cost options.
 - [Factors Affecting Performance](./factors-affecting-performance.md) — environmental conditions that influence uptime and data availability.
 - [What's Included & Onboarding](./package-inclusions-and-onboarding.md) — platform access, SIM card connectivity, onboarding and remote support included with your monitors.
+- [Warranty & Fault Support](./warranty-and-fault-support.md) — the 12-month warranty, what it covers, and how we resolve device faults.
 
 *This document is prepared by AirQo, Makerere University. For the latest information: https://airqo.africa | Contact: [support@airqo.net](mailto:support@airqo.net)*
