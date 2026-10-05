@@ -66,7 +66,7 @@ See [Warranty & Fault Support](./warranty-and-fault-support.md) for full details
 |-------------------------|-----------------------------------------------------------------------|
 | Air quality monitors | SIM data bundles after the first 12 months (about US$1 per device per month) |
 | Pre-installed IoT SIM cards | Reliability and uptime of your AirQloud (see [Maintenance Responsibility](./maintenance-and-support.md#maintenance-responsibility)) |
-| SIM data bundles for the first 12 months | Repairs or replacements for damage not caused by a product defect, or for faults after the warranty period |
+| SIM data bundles for the first 12 months | Repairs or replacements for damage or loss not caused by a product defect, or for faults after the warranty period |
 | 12-month warranty: free replacement of sensors and components with a confirmed device-related defect | On-site maintenance visits by AirQo engineers (quoted separately; see [Maintenance Cost Options](./maintenance-and-support.md#maintenance-cost-options)) |
 | Access to sensor management, calibration and data platforms | Routine maintenance consumables (batteries, sensors, solar panels) supplied at cost |
 | API access | Maintenance training programme for your staff (quoted separately) |

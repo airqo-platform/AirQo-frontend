@@ -45,7 +45,7 @@ We lead with support. Many issues can be resolved remotely without replacing any
 
 The warranty does not cover:
 
-- **Damage unrelated to a product defect**, for example vandalism, theft, accidental damage, or damage from improper installation or handling.
+- **Damage or loss unrelated to a product defect**, for example vandalism, theft, accidental damage, or damage from improper installation or handling.
 - **Issues caused by external conditions** rather than a defect in the device, such as poor IoT network coverage or extended periods without sunlight. See [Factors Affecting Performance](./factors-affecting-performance.md).
 - **Routine maintenance and consumables**, such as cleaning, scheduled battery or sensor replacement, and maintenance visits. See [Maintenance & Support](./maintenance-and-support.md).
 - **Faults that occur after the 12-month warranty period.**
