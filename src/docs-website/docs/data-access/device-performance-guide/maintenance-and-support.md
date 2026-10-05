@@ -11,6 +11,8 @@ To ensure your air quality monitors deliver consistent and accurate data, regula
 
 While AirQo's responsibility covers the physical device and its software, the purchasing organization is responsible for ensuring the reliability and uptime of their AirQloud. Regular maintenance of the AirQloud is fundamental for the continuous transmission of data from the monitors to the platform.
 
+Device-related defects within the first 12 months are covered by the [warranty](./warranty-and-fault-support.md). Routine maintenance and consumables are not.
+
 ## Scheduled Device Maintenance
 
 We recommend and conduct routine maintenance on each device at least every six (6) months, depending on location and season. These visits are essential for optimal performance and include:
