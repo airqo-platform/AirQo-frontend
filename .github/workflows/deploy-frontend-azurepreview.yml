@@ -162,8 +162,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          # Explicitly pin the scan results to the true PR branch context
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: website-preview # Unique identifier for Website alerts
 # ================== END OF TRIVY SCAN ==================
@@ -268,8 +268,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          # Explicitly pin the scan results to the true PR branch context
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: beacon-preview # Unique identifier for Beacon alerts
 # ================== END OF TRIVY SCAN ==================
@@ -374,8 +374,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          # Explicitly pin the scan results to the true PR branch context 
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: calibrate-preview # Unique identifier for Calibrate alerts
 # ================== END OF TRIVY SCAN ==================
@@ -497,7 +497,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: nexus-preview # Unique identifier for Nexus alerts
 # ================== END OF TRIVY SCAN ==================
@@ -647,8 +648,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          # Explicitly pin the scan results to the true PR branch context
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: vertex-preview # Unique identifier for Vertex alerts
 # ================== END OF TRIVY SCAN ==================
@@ -787,8 +788,8 @@ jobs:
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: trivy-results.sarif
-          # Explicitly pin the scan results to the true PR branch context
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Formats the reference explicitly as a fully qualified pull request path
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
           category: docs-preview # Unique identifier for Docs alerts
 # ================== END OF TRIVY SCAN ==================
