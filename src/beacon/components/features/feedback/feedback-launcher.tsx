@@ -73,6 +73,13 @@ const RATING_ITEM_STYLES = {
 /** Lets the dialog's close animation finish so it stays out of the capture. */
 const DIALOG_EXIT_MS = 300;
 
+/**
+ * Screenshots upload through Cloudinary, which Beacon isn't configured for
+ * yet. Turn this on once CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and
+ * CLOUDINARY_API_SECRET are set in the deployment.
+ */
+const SCREENSHOTS_ENABLED = false;
+
 const getBrowserLabel = (): string => {
   const userAgent = navigator.userAgent;
   const browserPatterns: Array<{ label: string; pattern: RegExp }> = [
@@ -515,7 +522,7 @@ export const FeedbackLauncher: React.FC = () => {
         )}
       </div>
 
-      {renderScreenshotSection()}
+      {SCREENSHOTS_ENABLED && renderScreenshotSection()}
 
       <div>
         <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
