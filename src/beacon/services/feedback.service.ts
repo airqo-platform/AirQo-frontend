@@ -18,6 +18,7 @@ export interface SubmitFeedbackRequest {
   app?: string;
   /** When false the backend sends the submitter no emails about this report. */
   contact_consent?: boolean;
+  screenshot_url?: string;
   metadata?: FeedbackSubmissionMetadata;
 }
 
@@ -25,6 +26,23 @@ export interface SubmitFeedbackResponse {
   success: boolean;
   message: string;
   feedback?: any;
+}
+
+export interface SubmitSatisfactionFeedbackRequest {
+  email: string;
+  subject: string;
+  rating: number;
+  description?: string;
+  category?: string;
+  page?: string;
+  platform?: string;
+  app?: string;
+  metadata?: FeedbackSubmissionMetadata;
+}
+
+export interface UploadScreenshotResponse {
+  secure_url: string;
+  public_id: string;
 }
 
 const extractResponseData = <T extends { success?: boolean; message?: string }>(
@@ -36,6 +54,8 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
   }
   return data;
 };
+
+export const getAppVersion = (): string => process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0';
 
 export class FeedbackService {
   private readonly baseUrl: string;
@@ -108,6 +128,102 @@ export class FeedbackService {
       data as SubmitFeedbackResponse,
       'Failed to submit feedback'
     );
+  }
+
+  /**
+   * Uploads a feedback screenshot through Beacon's own API route, which holds
+   * the Cloudinary credentials and only writes to the feedback folder.
+   */
+  async uploadScreenshot(file: File): Promise<UploadScreenshotResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/feedback/screenshot', {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+      signal: AbortSignal.timeout(20000),
+    });
+
+    let result: { success?: boolean; error?: string } & Partial<UploadScreenshotResponse> = {};
+    try {
+      result = await response.json();
+    } catch {
+      // Non-JSON body; fall through to the generic error below.
+    }
+
+    if (!response.ok || !result.secure_url) {
+      throw new Error(result.error || 'Screenshot upload failed');
+    }
+
+    return { secure_url: result.secure_url, public_id: result.public_id || '' };
+  }
+
+  async submitSatisfactionFeedback(
+    params: SubmitSatisfactionFeedbackRequest
+  ): Promise<SubmitFeedbackResponse> {
+    const {
+      email,
+      subject,
+      rating,
+      description,
+      category = 'page_satisfaction',
+      page,
+      platform = 'web',
+      app = 'beacon',
+      metadata,
+    } = params;
+
+    // Nothing written means the message is a bare "Positive"/"Negative": that
+    // is what keeps counted clicks out of the support inbox.
+    const ratingLabel = rating >= 4 ? 'Positive' : 'Negative';
+    const message = description ? `${ratingLabel}: ${description}` : ratingLabel;
+
+    return this.submitFeedback({
+      email,
+      subject,
+      message,
+      rating,
+      category,
+      platform,
+      app,
+      metadata: {
+        page,
+        browser:
+          typeof window !== 'undefined'
+            ? navigator.userAgent.slice(0, 80)
+            : 'Unknown',
+        appVersion: getAppVersion(),
+        ...metadata,
+      },
+    });
+  }
+
+  /**
+   * Submits a quick post-login experience rating as page satisfaction feedback
+   * with subject 'Login Experience'.
+   */
+  async submitLoginFeedback(params: {
+    email: string;
+    rating: number;
+    description?: string;
+    loginDurationMs: number;
+    landingPage: string;
+    submittedAt: number;
+  }): Promise<SubmitFeedbackResponse> {
+    const { email, rating, description, loginDurationMs, landingPage, submittedAt } = params;
+
+    return this.submitSatisfactionFeedback({
+      email,
+      subject: 'Login Experience',
+      rating,
+      description,
+      page: landingPage,
+      metadata: {
+        loginDurationMs: String(loginDurationMs),
+        submittedAt: String(submittedAt),
+      },
+    });
   }
 }
 

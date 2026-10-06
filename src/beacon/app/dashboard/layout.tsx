@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
 import { NetworkStatusBanner } from "@/components/network-status-banner"
 import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
+import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner"
+import LoginFeedbackToast from "@/components/features/feedback/login-feedback-toast"
 
 type User = {
   id?: number
@@ -129,7 +131,7 @@ export default function DashboardLayout({
           />
 
           {/* Scrollable Main Content Area */}
-          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
             <main
               id="main-content"
               className={cn(
@@ -150,6 +152,7 @@ export default function DashboardLayout({
                 </div>
               )}
             </main>
+            <PageSatisfactionBanner />
           </div>
         </div>
 
@@ -160,6 +163,7 @@ export default function DashboardLayout({
           activeModule={activeModule}
         />
       </div>
+      <LoginFeedbackToast />
     </GroupProvider>
   )
 }

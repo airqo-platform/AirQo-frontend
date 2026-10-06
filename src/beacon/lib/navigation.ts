@@ -178,3 +178,74 @@ export function getRecentPage(pathname: string): RecentPage | null {
   )
   return match ? { label: match.label, href: match.href } : null
 }
+
+/** Title shown for pages that have no name of their own. */
+export const DEFAULT_PAGE_TITLE = "Beacon"
+
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Network Overview",
+  "/dashboard/devices": "Devices",
+  "/dashboard/devices/my-devices": "My Devices",
+  "/dashboard/analytics": "Performance Analysis",
+  "/dashboard/maintenance": "Maintenance",
+  "/dashboard/reports": "Reports",
+  "/dashboard/diagnostics": "Diagnostics",
+  "/dashboard/diagnostics/simulator": "Bench Simulator",
+  "/dashboard/settings/device-profiles": "Device Profiles",
+  "/dashboard/settings/diagnostic-templates": "Diagnostic Templates",
+  "/dashboard/collocation/inlab": "In-Lab Collocation",
+  "/dashboard/collocation/site": "Field Collocation",
+  "/dashboard/firmware": "Firmware Management",
+  "/dashboard/category": "Device Categories",
+  "/dashboard/stock": "Stock & Inventory",
+  "/dashboard/visualise": "Data Analysis",
+  "/dashboard/visualize": "Data Analysis",
+  "/dashboard/settings": "Settings",
+  "/dashboard/users": "User Management",
+  "/dashboard/alerts": "Alerts",
+}
+
+export function getPageTitle(pathname: string | null, searchParams?: URLSearchParams | null): string {
+  if (!pathname) return DEFAULT_PAGE_TITLE
+
+  // Query parameter overrides (e.g. analytics tab)
+  if (pathname === "/dashboard/analytics" && searchParams) {
+    const analysis = searchParams.get("analysis")
+    if (analysis === "cohorts") return "Cohort Analysis"
+    if (analysis === "grids") return "Grid Analysis"
+  }
+
+  // Exact match
+  if (PAGE_TITLES[pathname]) {
+    return PAGE_TITLES[pathname]
+  }
+
+  // Dynamic device details route /dashboard/devices/[id]
+  if (pathname.startsWith("/dashboard/devices/")) {
+    if (pathname.endsWith("/diagnostics")) {
+      return "Device Diagnostics"
+    }
+    return "Device Details"
+  }
+
+  // Collocation subroutes
+  if (pathname.startsWith("/dashboard/collocation/inlab/")) {
+    return "In-Lab Collocation"
+  }
+  if (pathname.startsWith("/dashboard/collocation/site/")) {
+    return "Field Collocation"
+  }
+
+  // Category subroutes
+  if (pathname.startsWith("/dashboard/category/")) {
+    return "Device Category Details"
+  }
+
+  // Analytics subroutes
+  if (pathname.startsWith("/dashboard/analytics/")) {
+    return "Performance Analysis"
+  }
+
+  // Fallback
+  return DEFAULT_PAGE_TITLE
+}
