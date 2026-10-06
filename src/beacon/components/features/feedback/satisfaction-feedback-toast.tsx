@@ -28,6 +28,8 @@ type ToastPhase =
  */
 export type SatisfactionToastDismissReason = "auto" | "close" | "submitted";
 
+const SUBMIT_ERROR_MESSAGE = "We couldn't send your feedback. Please try again.";
+
 interface SatisfactionFeedbackToastProps {
   title: string;
   subtitle?: string;
@@ -77,6 +79,7 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
   const [phase, setPhase] = useState<ToastPhase>("idle");
   const [description, setDescription] = useState("");
   const [otherText, setOtherText] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [hasFocusInside, setHasFocusInside] = useState(false);
   const dismissNotifiedRef = useRef(false);
@@ -94,6 +97,7 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
     autoHideRemainingRef.current = autoDismissMs;
     setDescription("");
     setOtherText("");
+    setSubmitError(null);
     setIsHovered(false);
     setHasFocusInside(false);
     setPhase("idle");
@@ -183,17 +187,24 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
     }, 2000);
   };
 
+  // A failed send goes back to where the person was, with a note, so they
+  // can try again instead of being thanked for feedback we never received.
   const handlePositive = async () => {
+    setSubmitError(null);
     setPhase("submitting");
     try {
       await onPositiveSubmit();
     } catch (error) {
       console.error("Failed to submit positive satisfaction feedback", error);
+      setSubmitError(SUBMIT_ERROR_MESSAGE);
+      setPhase("visible");
+      return;
     }
     showThankYouAndDismiss();
   };
 
   const handleNegativeSubmit = async () => {
+    setSubmitError(null);
     setPhase("submitting");
     try {
       const finalDescription =
@@ -204,6 +215,9 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
       await onNegativeSubmit(finalDescription);
     } catch (error) {
       console.error("Failed to submit negative satisfaction feedback", error);
+      setSubmitError(SUBMIT_ERROR_MESSAGE);
+      setPhase("negative-expanded");
+      return;
     }
     showThankYouAndDismiss();
   };
@@ -284,6 +298,12 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
                   {negativeLabel}
                 </Button>
               </div>
+
+              {submitError && (
+                <p role="alert" className="text-xs text-destructive">
+                  {submitError}
+                </p>
+              )}
 
               {(phase === "negative-expanded" || (isSubmitting && description)) && (
                 <div className="pt-3 border-t border-border mt-1 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1 duration-200">

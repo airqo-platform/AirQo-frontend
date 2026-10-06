@@ -52,7 +52,8 @@ const LoginFeedbackToast: React.FC = () => {
   }, [personId, status]);
 
   const submitLoginFeedback = async (rating: number, description?: string) => {
-    if (!email) return;
+    // Throwing lets the toast say so instead of thanking them for nothing.
+    if (!email) throw new Error("No email address on this session");
     await feedbackService.submitLoginFeedback({
       email,
       rating,
