@@ -8,7 +8,19 @@ import TabItem from '@theme/TabItem';
 
 # Website Map Integration — Live Map with Forecasts
 
-This guide is for **city governments and institutions** that want to publish a live air quality map on their own website, as Kampala Capital City Authority (KCCA) does. It walks through running AirQo's open-source Leaflet map sample locally, deploying it on an existing website, and verifying it in production.
+This guide is for **city governments and institutions** that want to publish a live air quality map on their own website, as Kampala Capital City Authority (KCCA) does. Start with the hosted embed below, or follow the HTML and PHP instructions to run AirQo's open-source Leaflet map sample locally, deploy it on an existing website, and verify it in production.
+
+## Add an air quality map to your website
+
+For a quick integration, open [Add an air quality map to your website](https://ai.airqo.net/#embed-map), enter your city's Grid ID, and copy the generated iframe code into your website's HTML or a CMS custom HTML block. This works on both HTML and PHP websites. No API key or backend setup is needed on your website.
+
+1. Find [your city's Grid ID](./intro.md#finding-your-grid-id).
+2. Enter it in the [AirQo map embed tool](https://ai.airqo.net/#embed-map) and select **Copy embed code**.
+3. Paste the code into your page, adjust the height and title as needed, and check that the map loads on your published website.
+
+The hosted map includes live site readings, seven-day forecasts, and a heatmap overlay. For control over the map code and hosting, use the HTML or PHP sample described below.
+
+## HTML and PHP integration
 
 The sample displays, for every public site in your city's Grid:
 
