@@ -83,7 +83,8 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
     );
   }
 
-  const grid = buildCalendarGrid(data.days, data.from, data.to);
+  const year = data.from.slice(0, 4);
+  const grid = buildCalendarGrid(data.days, `${year}-01-01`, `${year}-12-31`);
   const hasActivity = data.total > 0;
   const fromLabel = formatWithPattern(
     data.from,
@@ -148,7 +149,7 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
           <div
             className="inline-flex flex-col gap-1"
             role="figure"
-            aria-label={`Daily activity heatmap from ${fromLabel} to ${toLabel}`}
+            aria-label={`Daily activity heatmap for ${year}`}
           >
             {/* Month labels row, aligned above the week columns. */}
             <div className="flex" style={{ marginLeft: 36 }}>
