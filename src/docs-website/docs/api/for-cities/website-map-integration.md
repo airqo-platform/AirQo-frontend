@@ -8,30 +8,68 @@ import TabItem from '@theme/TabItem';
 
 # Website Map Integration — Live Map with Forecasts
 
-This guide is for **city governments and institutions** that want to publish a live air quality map on their own website, as Kampala Capital City Authority (KCCA) does. Start with the hosted embed below, or follow the HTML and PHP instructions to run AirQo's open-source Leaflet map sample locally, deploy it on an existing website, and verify it in production.
+This guide is for **city governments and institutions** that want to publish a live air quality map on their own website, as Kampala Capital City Authority (KCCA) does. It walks through running AirQo's open-source Leaflet map sample locally, deploying it on an existing website, and verifying it in production.
 
-## Add an air quality map to your website
+For a quick setup, use the hosted iframe embed below. Developers who want to customise and host the map themselves can follow the HTML or PHP instructions.
 
-For a quick integration, open [Add an air quality map to your website](https://ai.airqo.net/#embed-map), enter your city's Grid ID, and copy the generated iframe code into your website's HTML or a CMS custom HTML block. This works on both HTML and PHP websites. No API key or backend setup is needed on your website.
+## What visitors can explore
 
-1. Find [your city's Grid ID](./intro.md#finding-your-grid-id).
-2. Enter it in the [AirQo map embed tool](https://ai.airqo.net/#embed-map) and select **Copy embed code**.
-3. Paste the code into your page, adjust the height and title as needed, and check that the map loads on your published website.
+The map shows public monitoring sites connected to your **AirQo Grid ID**.
 
-The hosted map includes live site readings, seven-day forecasts, and a heatmap overlay. For control over the map code and hosting, use the HTML or PHP sample described below.
+| Feature | What visitors can do |
+|---------|----------------------|
+| **Live site readings** | See current measurements on colour-coded map markers. |
+| **7-day forecasts** | Click a site to explore daily forecasts, where available. |
+| **Site search** | Find a monitoring site and open its details. |
+| **Heatmap overlay** | Switch on the AQI heatmap to explore air quality across the area. |
 
-## HTML and PHP integration
+## Choose your integration
 
-The sample displays, for every public site in your city's Grid:
+| Option | Best for | What you need |
+|--------|----------|---------------|
+| [**Quick embed**](#quick-embed) | Adding a map to an existing page or CMS | Your Grid ID and a place to paste HTML |
+| [**Developer: HTML or PHP**](#developer-integration) | Customising the map code and hosting it yourself | Your Grid ID, an API token, and a Node.js backend |
 
-- **Current measurements** as colour-coded map markers
-- A **seven-day daily forecast** panel when a site is clicked (where forecasts are available)
-- **Site search**
-- An optional **AQI heatmap** overlay
+## Quick embed — Copy. Paste. You're live. {#quick-embed}
 
-It has two parts: a map page and a small Node.js service. The Node service supplies the Grid ID to the page and forwards API requests to AirQo, adding your access token on the server. **The token never reaches the visitor's browser.**
+Add your Grid ID and paste the code into your website's HTML or custom HTML block. **No API key or backend setup is needed on your website.** The same iframe works on HTML and PHP websites.
 
-The map page comes in two variants. Both use the same Node service and the same proxy routes:
+**Live site readings · 7-day forecasts · Heatmap overlay**
+
+### 1. Find your AirQo Grid ID
+
+Your Grid ID connects the map to the monitoring sites in your city or region. Follow [Find your Grid ID](./intro.md#finding-your-grid-id).
+
+### 2. Copy the embed code
+
+Open [Add an air quality map to your website](https://ai.airqo.net/#embed-map), enter your Grid ID, and select **Copy embed code**. Or copy the example below and replace `YOUR_GRID_ID` with your actual Grid ID:
+
+```html title="Paste into your website's HTML or custom HTML block"
+<iframe
+  src="https://ai.airqo.net/website-map-integration?grid_id=YOUR_GRID_ID"
+  title="Air Quality Map"
+  style="width:100%;height:800px;border:0;display:block;"
+  loading="lazy"
+></iframe>
+```
+
+### 3. Publish and check your map
+
+Save or publish the page, then open it in your browser. Check that your city's sites appear and that clicking a marker opens the site details. Adjust `height:800px` and the `title` to fit your page.
+
+:::tip Using a CMS?
+Paste the iframe into a **custom HTML block** or your CMS's code editor so it renders as a map. Once the map loads, your quick integration is complete.
+:::
+
+---
+
+## Developer integration — HTML or PHP {#developer-integration}
+
+Use AirQo's open-source Leaflet sample when you want to customise the map code or run it on your own infrastructure. The remaining sections cover source files, local setup, deployment, and verification for developers.
+
+The sample has two parts: a map page and a small Node.js service. The Node service supplies the Grid ID to the page and forwards API requests to AirQo, adding your access token on the server. **The token never reaches the visitor's browser.**
+
+Choose the map page that fits your website. Both variants use the same Node service and proxy routes:
 
 | Variant | Use it when | Page served by |
 |---------|-------------|----------------|
