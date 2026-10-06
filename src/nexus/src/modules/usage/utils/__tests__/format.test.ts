@@ -126,6 +126,8 @@ describe('formatMonthLabel', () => {
     expect(formatMonthLabel('')).toBe(DASH);
     expect(formatMonthLabel('2026')).toBe(DASH);
     expect(formatMonthLabel('not-a-month')).toBe(DASH);
+    expect(formatMonthLabel('2026-13')).toBe(DASH);
+    expect(formatMonthLabel('2026-00')).toBe(DASH);
   });
 });
 

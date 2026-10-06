@@ -29,11 +29,12 @@ export const UTC_TIMESTAMP_OPTIONS: Intl.DateTimeFormatOptions = {
 
 /**
  * Formats a "YYYY-MM" month token as a full month label (e.g. "October 2026").
- * Returns DASH when the value is empty or not a `YYYY-MM` token, so a
- * malformed month never renders as a misleading date.
+ * Returns DASH when the value is not a valid `YYYY-MM` token with a month of
+ * `01`-`12` (or is empty), so a malformed month never renders as a misleading
+ * date or the literal "Invalid Date".
  */
 export const formatMonthLabel = (month: string | null | undefined): string => {
-  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
     return DASH;
   }
   return formatWithPattern(`${month}-01`, DATE_FORMATS.MONTH_YEAR);
