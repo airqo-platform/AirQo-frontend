@@ -149,22 +149,23 @@ export const buildCalendarGrid = (
 /**
  * Maps a calendar intensity level (0-4) to a Tailwind color-mix class that is
  * readable in BOTH light and dark themes, following the `retentionColorClass`
- * pattern from `format.ts`. Level 0 is the empty/muted cell; levels 1-4 ramp
- * the `--primary` hue from 15% to 75% opacity. Meaning is never color-only —
- * the numeric label is always rendered in the cell.
+ * pattern from `format.ts`. Level 0 is the empty/muted cell with a visible
+ * ring outline; levels 1-4 ramp the `--primary` hue from 25% to 90% opacity.
+ * Meaning is never color-only — the numeric label is always rendered in the
+ * cell.
  */
 export const calendarLevelClass = (level: 0 | 1 | 2 | 3 | 4): string => {
   switch (level) {
     case 0:
-      return 'bg-muted/30 text-muted-foreground';
+      return 'bg-muted ring-1 ring-inset ring-border/60 text-muted-foreground';
     case 1:
-      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_15%,transparent)] text-foreground';
+      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_25%,transparent)] text-foreground';
     case 2:
-      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_30%,transparent)] text-foreground';
+      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_45%,transparent)] text-foreground';
     case 3:
-      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_50%,transparent)] text-foreground';
+      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_70%,transparent)] text-foreground';
     case 4:
-      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_75%,transparent)] text-white dark:text-foreground';
+      return 'bg-[color-mix(in_srgb,rgb(var(--primary))_90%,transparent)] text-white dark:text-foreground';
     default:
       return 'bg-muted/30 text-muted-foreground';
   }

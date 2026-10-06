@@ -8,10 +8,13 @@ import {
   DASH,
   formatNumber,
   formatDurationSec,
+  formatMonthLabel,
+  UTC_TIMESTAMP_OPTIONS,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
 import UsageChangeBadge from '@/modules/usage/components/shared/UsageChangeBadge';
 import UsageMetricCard from '@/modules/usage/components/shared/UsageMetricCard';
+import { formatDateTime } from '@/shared/utils';
 import type { UsageSummaryResponse } from '@/shared/types/usage';
 
 export interface UserUsageSummaryProps {
@@ -62,8 +65,8 @@ const UserUsageSummary: React.FC<UserUsageSummaryProps> = ({
           Monthly Summary
         </h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Activity for {data.month} · {data.active_days} of {data.days_in_month}{' '}
-          days active
+          Activity for {formatMonthLabel(data.month)} · {data.active_days} of{' '}
+          {data.days_in_month} days active
           {data.tz ? ` · times in ${data.tz}` : ''}
         </p>
       </div>
@@ -108,14 +111,34 @@ const UserUsageSummary: React.FC<UserUsageSummaryProps> = ({
         </Card>
         <Card className="p-4 space-y-1">
           <p className="text-sm text-muted-foreground">First seen</p>
-          <p className="text-sm font-medium tabular-nums">
-            {data.first_seen ?? DASH}
+          <p
+            className="text-sm font-medium tabular-nums"
+            title={data.first_seen ?? undefined}
+          >
+            {data.first_seen ? (
+              <>
+                {formatDateTime(data.first_seen, UTC_TIMESTAMP_OPTIONS)}
+                <span className="ml-1 text-muted-foreground">UTC</span>
+              </>
+            ) : (
+              DASH
+            )}
           </p>
         </Card>
         <Card className="p-4 space-y-1">
           <p className="text-sm text-muted-foreground">Last seen</p>
-          <p className="text-sm font-medium tabular-nums">
-            {data.last_seen ?? DASH}
+          <p
+            className="text-sm font-medium tabular-nums"
+            title={data.last_seen ?? undefined}
+          >
+            {data.last_seen ? (
+              <>
+                {formatDateTime(data.last_seen, UTC_TIMESTAMP_OPTIONS)}
+                <span className="ml-1 text-muted-foreground">UTC</span>
+              </>
+            ) : (
+              DASH
+            )}
           </p>
         </Card>
       </div>

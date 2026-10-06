@@ -10,6 +10,7 @@ import {
   formatNumber,
   formatPercent,
   formatDurationSec,
+  formatMonthLabel,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
 import type { UsageBreakdownResponse, UsageKind } from '@/shared/types/usage';
@@ -81,7 +82,7 @@ const UserUsageBreakdown: React.FC<UserUsageBreakdownProps> = ({
             {kind === 'page' ? 'Top Pages' : 'Top API Endpoints'}
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            {data.month} · {formatNumber(data.total)} total ·{' '}
+            {formatMonthLabel(data.month)} · {formatNumber(data.total)} total ·{' '}
             {data.basis ?? DASH}
           </p>
         </div>
@@ -101,9 +102,9 @@ const UserUsageBreakdown: React.FC<UserUsageBreakdownProps> = ({
           compact
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="max-h-96 overflow-y-auto overflow-x-auto overscroll-contain">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_rgb(var(--border))]">
               <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
                 <th scope="col" className="py-2 pr-4 font-semibold">
                   {kind === 'page' ? 'Page' : 'Endpoint'}

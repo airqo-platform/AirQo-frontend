@@ -1,4 +1,5 @@
 import type { UsageKind } from '@/shared/types/usage';
+import { DATE_FORMATS, formatWithPattern } from '@/shared/utils/dateUtils';
 
 /**
  * Pure formatting helpers for the platform Usage dashboard (M2).
@@ -9,6 +10,34 @@ import type { UsageKind } from '@/shared/types/usage';
 
 /** Default dash used in place of unavailable data. */
 export const DASH = '—';
+
+/**
+ * Intl options for a UTC wall-clock timestamp without seconds, e.g.
+ * "Sep 23, 2026, 9:33 AM". `second: undefined` cancels the `second: '2-digit'`
+ * default in `formatDateTime`. The caller renders an explicit "UTC" suffix
+ * next to the value so the zone is never implicit.
+ */
+export const UTC_TIMESTAMP_OPTIONS: Intl.DateTimeFormatOptions = {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  second: undefined,
+};
+
+/**
+ * Formats a "YYYY-MM" month token as a full month label (e.g. "October 2026").
+ * Returns DASH when the value is empty or not a `YYYY-MM` token, so a
+ * malformed month never renders as a misleading date.
+ */
+export const formatMonthLabel = (month: string | null | undefined): string => {
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    return DASH;
+  }
+  return formatWithPattern(`${month}-01`, DATE_FORMATS.MONTH_YEAR);
+};
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 

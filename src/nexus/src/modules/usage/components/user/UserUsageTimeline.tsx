@@ -8,6 +8,7 @@ import { DynamicChart } from '@/shared/components/charts';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { DatePicker } from '@/shared/components/calendar';
 import type { DatePickerProps } from '@/shared/components/calendar';
+import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import {
   formatNumber,
   resolveDateSelection,
@@ -78,7 +79,7 @@ const TopList: React.FC<{
     {entries.length === 0 ? (
       <p className="text-sm text-muted-foreground">None recorded.</p>
     ) : (
-      <ul className="space-y-1">
+      <ul className="space-y-1 max-h-64 overflow-y-auto overscroll-contain pr-2">
         {entries.map(entry => (
           <li
             key={entry.key}
@@ -173,7 +174,8 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
             Daily Timeline
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Hourly activity for {data.date}
+            Hourly activity for{' '}
+            {formatWithPattern(data.date, DATE_FORMATS.READABLE_DATE_LONG)}
             {data.tz ? ` · ${data.tz}` : ''}
           </p>
         </div>

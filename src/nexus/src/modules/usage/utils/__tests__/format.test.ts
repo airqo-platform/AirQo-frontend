@@ -6,6 +6,7 @@ import {
   formatSignedInt,
   formatDurationSec,
   formatCsvFilename,
+  formatMonthLabel,
   retentionColorClass,
   currentUtcMonth,
   currentUtcDate,
@@ -110,6 +111,21 @@ describe('formatCsvFilename', () => {
     expect(formatCsvFilename(null)).toBe(expected);
     expect(formatCsvFilename('')).toBe(expected);
     expect(formatCsvFilename('nope')).toBe(expected);
+  });
+});
+
+describe('formatMonthLabel', () => {
+  it('formats a YYYY-MM token as a full month label', () => {
+    expect(formatMonthLabel('2026-10')).toBe('October 2026');
+    expect(formatMonthLabel('2026-01')).toBe('January 2026');
+  });
+
+  it('returns DASH for empty or malformed months', () => {
+    expect(formatMonthLabel(null)).toBe(DASH);
+    expect(formatMonthLabel(undefined)).toBe(DASH);
+    expect(formatMonthLabel('')).toBe(DASH);
+    expect(formatMonthLabel('2026')).toBe(DASH);
+    expect(formatMonthLabel('not-a-month')).toBe(DASH);
   });
 });
 
