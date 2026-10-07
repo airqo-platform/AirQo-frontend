@@ -784,7 +784,7 @@ export default function DiagnosticTemplatesPage() {
 
       {/* Modal: Create / Edit Diagnostic Template (Progressive Multi-Step Stepper) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 overflow-hidden" showFeedbackButton={false}>
           {/* Top Modal Header */}
           <div className="p-6 pb-4 border-b border-gray-100 bg-white">
             <div className="flex items-center justify-between mb-3">
