@@ -1,4 +1,4 @@
-# AirQo Nexus.
+# AirQo Nexus
 
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?token=LsBcFL42rz&flag=nexus)](https://codecov.io/gh/airqo-platform/AirQo-frontend/flags/nexus)
 ![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)
