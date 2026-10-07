@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 
 interface DataUploaderProps {
   onDatasetLoaded: (dataset: ParsedDataset) => void
@@ -123,11 +123,12 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
         profiled.isSampled = streamResult.isSampled
 
         onDatasetLoaded(profiled)
-        toast.success(
-          streamResult.isSampled
+        toast({
+          title: "Dataset loaded",
+          description: streamResult.isSampled
             ? `Streamed & loaded sample of ${profiled.rawRowCount.toLocaleString()} rows (from ~${streamResult.totalFileRows.toLocaleString()} rows in file)`
-            : `Loaded dataset with ${profiled.rawRowCount.toLocaleString()} rows`
-        )
+            : `Loaded dataset with ${profiled.rawRowCount.toLocaleString()} rows`,
+        })
       } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
         // 2. Excel Files (non-streaming in-memory parsing)
         if (file.size > MAX_NON_STREAM_FILE_SIZE_BYTES) {
@@ -142,7 +143,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
         const profiled = profileDataset(data, file.name, "file")
         profiled.fileSizeBytes = file.size
         onDatasetLoaded(profiled)
-        toast.success(`Loaded Excel dataset with ${profiled.rawRowCount.toLocaleString()} rows`)
+        toast({ title: "Dataset loaded", description: `Loaded Excel dataset with ${profiled.rawRowCount.toLocaleString()} rows` })
       } else if (fileName.endsWith(".json")) {
         // 3. JSON Files (non-streaming in-memory parsing)
         if (file.size > MAX_NON_STREAM_FILE_SIZE_BYTES) {
@@ -158,7 +159,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
         const profiled = profileDataset(data, file.name, "file")
         profiled.fileSizeBytes = file.size
         onDatasetLoaded(profiled)
-        toast.success(`Loaded JSON dataset with ${profiled.rawRowCount.toLocaleString()} rows`)
+        toast({ title: "Dataset loaded", description: `Loaded JSON dataset with ${profiled.rawRowCount.toLocaleString()} rows` })
       } else {
         throw new Error(
           "Unsupported file format. Please upload CSV, Excel (.xlsx/.xls), JSON, or TSV."
@@ -168,7 +169,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
       console.error(err)
       const msg = err?.message || "Failed to process file. Please check format."
       setError(msg)
-      toast.error(msg)
+      toast({ title: "Failed to load file", description: msg, variant: "destructive" })
     } finally {
       setIsProcessing(false)
       setStreamProgress(null)
@@ -181,7 +182,7 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
   // Handle pasted text submit
   const handlePasteSubmit = async () => {
     if (!pastedText.trim()) {
-      toast.error("Please paste CSV or JSON data first.")
+      toast({ title: "No data", description: "Please paste CSV or JSON data first.", variant: "destructive" })
       return
     }
 
@@ -207,11 +208,11 @@ export function DataUploader({ onDatasetLoaded, currentDatasetName }: DataUpload
       onDatasetLoaded(profiled)
       setIsPasteDialogOpen(false)
       setPastedText("")
-      toast.success(`Pasted dataset loaded (${profiled.rawRowCount.toLocaleString()} rows)`)
+      toast({ title: "Dataset loaded", description: `Pasted dataset loaded (${profiled.rawRowCount.toLocaleString()} rows)` })
     } catch (err: any) {
       const msg = err?.message || "Invalid pasted data format."
       setError(msg)
-      toast.error(msg)
+      toast({ title: "Failed to load pasted data", description: msg, variant: "destructive" })
     } finally {
       setIsProcessing(false)
     }
