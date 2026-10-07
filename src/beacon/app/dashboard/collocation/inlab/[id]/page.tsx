@@ -42,7 +42,7 @@ import html2canvas from "html2canvas"
 import { useApiData } from "@/hooks/useApiData"
 import { getBatchDetail } from "@/services/inlab.service"
 import type { InlabBatchWithPerformance, InlabBatchDeviceWithPerformance, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 
 // --- Helpers ---
 
@@ -977,7 +977,11 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       setIsGenerating(false)
     } catch (error: any) {
       console.error("Failed to generate PDF:", error)
-      toast.error("Failed to generate PDF: " + error.message)
+      toast({
+        title: "Failed to generate PDF",
+        description: error.message,
+        variant: "destructive",
+      })
       setIsGenerating(false)
     }
   }
