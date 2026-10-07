@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import authService from "@/services/api-service"
+import { markLoginStarted } from "@/lib/feedback-preferences"
 import { signIn, useSession } from "next-auth/react"
 import SocialAuthSection from "@/components/auth/social-auth-section"
 import SelectedEmailCard from "@/components/auth/selected-email-card"
@@ -104,6 +105,8 @@ export default function LoginPage() {
     
     try {
       authService.clearAllAuthData()
+      // Lets the dashboard follow this sign-in with the login experience prompt
+      markLoginStarted()
       
       const response = await signIn('credentials', {
         redirect: false,

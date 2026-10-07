@@ -3,6 +3,7 @@
 import { SessionProvider, signIn, useSession } from 'next-auth/react';
 import { useEffect, useState, ReactNode } from 'react';
 import { consumeOAuthTokenHandoffFromUrl } from '@/lib/oauth-session';
+import { markLoginStarted } from '@/lib/feedback-preferences';
 import authService from '@/services/api-service';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
 
@@ -54,6 +55,8 @@ function AuthEffect({ children }: { children: ReactNode }) {
       setHandoffProcessed(true);
       
       const callbackUrl = handoff.callbackUrl || '/dashboard/devices';
+      // Lets the dashboard follow this sign-in with the login experience prompt
+      markLoginStarted();
       
       signIn('credentials', {
         oauthToken: handoff.token,
