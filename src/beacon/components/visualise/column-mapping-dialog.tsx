@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import type { ColumnMapping } from "@/lib/visualise/column-mapper"
 import type { ParsedDataset } from "@/lib/visualise/data-parser"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 
 interface ColumnMappingDialogProps {
   open: boolean
@@ -79,7 +79,7 @@ export function ColumnMappingDialog({
   const handleSave = () => {
     onSaveMapping(current)
     onOpenChange(false)
-    toast.success("Column semantic mappings updated successfully.")
+    toast({ title: "Success", description: "Column semantic mappings updated successfully." })
   }
 
   return (

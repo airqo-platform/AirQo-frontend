@@ -38,7 +38,7 @@ import { formatCategoryLabel } from "@/lib/utils"
 import { useApiData } from "@/hooks/useApiData"
 import { getInlabDevices, getBatches, createBatch } from "@/services/inlab.service"
 import type { InlabDevice, InlabBatch, InlabBatchDevice, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 import AirQloudsTable from "@/app/dashboard/analytics/airqlouds-table"
 
 // --- Helpers ---
@@ -477,7 +477,7 @@ export default function InlabCollocationPage() {
         end_date: endDate ? new Date(endDate).toISOString() : undefined,
         device_ids: selectedDevices,
       })
-      toast.success("Batch created successfully")
+      toast({ title: "Success", description: "Batch created successfully" })
       setIsCreateDialogOpen(false)
       setBatchName("")
       setStartDate("")
@@ -486,7 +486,11 @@ export default function InlabCollocationPage() {
       await refetchBatches()
       setActiveTab("dispatched")
     } catch (error: any) {
-      toast.error(error.message || "Failed to create batch")
+      toast({
+        title: "Failed to create batch",
+        description: error.message,
+        variant: "destructive",
+      })
     } finally {
       setIsCreating(false)
     }

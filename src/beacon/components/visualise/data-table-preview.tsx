@@ -35,7 +35,7 @@ import {
   ArrowUpDown,
 } from "lucide-react"
 import * as XLSX from "xlsx"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 import type { ParsedDataset, ColumnProfile } from "@/lib/visualise/data-parser"
 
 interface DataTablePreviewProps {
@@ -136,9 +136,9 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
       link.download = `${dataset.name}_export_${Date.now()}.csv`
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
-      toast.success("Dataset exported to CSV.")
+      toast({ title: "Export Successful", description: "Dataset exported to CSV." })
     } catch (err) {
-      toast.error("Failed to export CSV.")
+      toast({ title: "Export Failed", description: "Failed to export CSV.", variant: "destructive" })
     }
   }
 
@@ -149,9 +149,9 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Data")
       XLSX.writeFile(workbook, `${dataset.name}_export_${Date.now()}.xlsx`)
-      toast.success("Dataset exported to Excel.")
+      toast({ title: "Export Successful", description: "Dataset exported to Excel." })
     } catch (err) {
-      toast.error("Failed to export Excel.")
+      toast({ title: "Export Failed", description: "Failed to export Excel.", variant: "destructive" })
     }
   }
 

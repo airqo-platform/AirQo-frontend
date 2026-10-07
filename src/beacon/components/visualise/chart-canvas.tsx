@@ -37,7 +37,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import html2canvas from "html2canvas"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 import type { ParsedDataset } from "@/lib/visualise/data-parser"
 import {
   aggregateDataset,
@@ -169,9 +169,9 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.png`
       link.href = dataUrl
       link.click()
-      toast.success("Chart exported as high-resolution PNG image.")
+      toast({ title: "Export Successful", description: "Chart exported as high-resolution PNG image." })
     } catch (err) {
-      toast.error("Failed to export chart image.")
+      toast({ title: "Export Failed", description: "Failed to export chart image.", variant: "destructive" })
     } finally {
       setIsExporting(false)
     }
@@ -183,7 +183,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
     try {
       const svgElement = chartCardRef.current.querySelector("svg")
       if (!svgElement) {
-        toast.error("No SVG chart found to export.")
+        toast({ title: "Export Failed", description: "No SVG chart found to export.", variant: "destructive" })
         return
       }
 
@@ -195,9 +195,9 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       link.href = url
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
-      toast.success("Chart exported as SVG vector.")
+      toast({ title: "Export Successful", description: "Chart exported as SVG vector." })
     } catch (err) {
-      toast.error("Failed to export SVG.")
+      toast({ title: "Export Failed", description: "Failed to export SVG.", variant: "destructive" })
     }
   }
 
