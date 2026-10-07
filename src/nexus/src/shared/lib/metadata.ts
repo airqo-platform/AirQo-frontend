@@ -213,6 +213,16 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Inspect platform user statistics and account activity.',
     },
   },
+  '/system/platform-overview': {
+    title: 'Platform Overview',
+    description:
+      'Headline platform totals: deployed monitors, operational status, and geographic coverage.',
+    openGraph: {
+      title: 'Platform Overview | AirQo Nexus',
+      description:
+        'Headline platform totals: deployed monitors, operational status, and geographic coverage.',
+    },
+  },
   '/system/api-keys': {
     title: 'API Key Usage',
     description: 'Rank API keys by call volume and inspect per-key usage.',

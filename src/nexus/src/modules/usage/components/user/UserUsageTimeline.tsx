@@ -8,6 +8,7 @@ import { DynamicChart } from '@/shared/components/charts';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { DatePicker } from '@/shared/components/calendar';
 import type { DatePickerProps } from '@/shared/components/calendar';
+import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import {
   formatNumber,
   resolveDateSelection,
@@ -166,14 +167,15 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
   const hasActivity = data.page_views > 0 || data.api_calls > 0;
 
   return (
-    <Card className="p-4 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className="flex flex-col gap-4 p-4 xl:max-h-[36rem]">
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-foreground">
             Daily Timeline
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Hourly activity for {data.date}
+            Hourly activity for{' '}
+            {formatWithPattern(data.date, DATE_FORMATS.READABLE_DATE_LONG)}
             {data.tz ? ` · ${data.tz}` : ''}
           </p>
         </div>
@@ -200,7 +202,7 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
           compact
         />
       ) : (
-        <>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1">
           <DynamicChart
             data={chartData}
             config={{
@@ -234,7 +236,7 @@ const UserUsageTimeline: React.FC<UserUsageTimelineProps> = ({
               entries={data.top_endpoints}
             />
           </div>
-        </>
+        </div>
       )}
     </Card>
   );

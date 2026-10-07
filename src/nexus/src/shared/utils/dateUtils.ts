@@ -206,6 +206,7 @@ export const DATE_FORMATS = {
 
   // Readable formats
   READABLE_DATE: 'MMM dd, yyyy',
+  READABLE_DATE_LONG: 'MMM d, yyyy', // e.g. "Oct 6, 2026" — matches the shared DatePicker trigger
   READABLE_DATETIME: 'MMM dd, yyyy hh:mm a',
   FULL_READABLE: 'EEEE, MMMM dd, yyyy',
 

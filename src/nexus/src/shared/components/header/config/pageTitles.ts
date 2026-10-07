@@ -31,6 +31,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/system/security': 'Security',
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
+  '/system/platform-overview': 'Platform Overview',
   '/system/api-keys': 'API Key Usage',
   '/system/feedback': 'Feedback',
   '/system/team-members': 'Members',

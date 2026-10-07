@@ -28,6 +28,9 @@ import type {
   MeasurementsResponse,
   MeasurementsQueryParams,
   SiteAveragesResponse,
+  DeviceSummaryCount,
+  DeviceSummaryCountParams,
+  DeviceSummaryCountRawResponse,
 } from '../types/api';
 import { normalizeCohortIds } from '../utils/cohortUtils';
 import { isAbortError } from '../lib/retryPolicy';
@@ -726,6 +729,61 @@ export class DeviceService {
     }
 
     return data as CountriesResponse;
+  }
+
+  // Get device summary count by category - authenticated endpoint.
+  //
+  // The /devices/summary/count endpoint is read inconsistently across apps:
+  // some consumers expect counts under `data`, others under `summary`, others
+  // at the top level. This method normalizes all three shapes into a single
+  // `DeviceSummaryCount` and coerces every field to a finite number (default 0).
+  async getDeviceSummaryCountAuthenticated(
+    params: DeviceSummaryCountParams,
+    signal?: AbortSignal
+  ): Promise<DeviceSummaryCount> {
+    await this.ensureAuthenticated();
+
+    // Drop undefined/empty query params so the request stays clean.
+    const queryParams: Record<string, any> = { category: params.category };
+    if (params.status) {
+      queryParams.status = params.status;
+    }
+    if (params.network) {
+      queryParams.network = params.network;
+    }
+    if (params.group_id) {
+      queryParams.group_id = params.group_id;
+    }
+    if (params.cohort_id) {
+      queryParams.cohort_id = params.cohort_id;
+    }
+
+    const response = await this.authenticatedClient.get<
+      DeviceSummaryCountRawResponse | ApiErrorResponse
+    >('/devices/summary/count', {
+      params: queryParams,
+      signal,
+      suppressErrorLogging: true,
+    });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get device summary count');
+    }
+
+    const raw = data as DeviceSummaryCountRawResponse;
+    const bucket = raw.data ?? raw.summary ?? raw;
+
+    const toNumber = (value: unknown): number =>
+      typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
+    return {
+      total_monitors: toNumber(bucket.total_monitors),
+      operational: toNumber(bucket.operational),
+      transmitting: toNumber(bucket.transmitting),
+      not_transmitting: toNumber(bucket.not_transmitting),
+      data_available: toNumber(bucket.data_available),
+    };
   }
 
   // Get map readings - API token endpoint (direct backend call)

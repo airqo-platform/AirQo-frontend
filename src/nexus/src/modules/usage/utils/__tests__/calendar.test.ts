@@ -81,8 +81,9 @@ describe('calendarLevelClass', () => {
     const classes = ([0, 1, 2, 3, 4] as const).map(calendarLevelClass);
     // All five levels resolve to different classes.
     expect(new Set(classes).size).toBe(5);
-    // Level 0 is the muted/empty cell.
-    expect(classes[0]).toContain('bg-muted/30');
+    // Level 0 is the muted/empty cell with a visible ring outline.
+    expect(classes[0]).toContain('bg-muted');
+    expect(classes[0]).toContain('ring-1');
     // Higher levels use the color-mix primary pattern.
     expect(classes[4]).toContain('color-mix');
     expect(classes[4]).toContain('dark:text-foreground');
