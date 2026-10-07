@@ -1,4 +1,4 @@
-# Vertex (Web App)
+# Vertex (Web App).
 
 [![vertex-ci](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/vertex-ci.yml/badge.svg?branch=staging)](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/vertex-ci.yml)
 [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg?flag=vertex)](https://codecov.io/gh/airqo-platform/AirQo-frontend/flags/vertex)
