@@ -23,6 +23,7 @@ import {
   AqShieldZap,
   AqTrophy01,
   AqReceipt,
+  AqMonitor05,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -315,6 +316,12 @@ const systemSidebarConfig: NavGroup[] = [
         icon: AqPresentationChart02,
       },
       {
+        id: 'system-platform-overview',
+        label: 'Platform Overview',
+        href: '/system/platform-overview',
+        icon: AqMonitor05,
+      },
+      {
         id: 'system-usage',
         label: 'Platform Analytics',
         href: '/system/usage',
@@ -470,6 +477,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'User Statistics',
             href: '/system/user-statistics',
             description: 'View analytics and charts for platform users',
+          },
+          {
+            id: 'system-platform-overview',
+            label: 'Platform Overview',
+            href: '/system/platform-overview',
+            description: 'Headline platform totals for monitors and coverage',
           },
           {
             id: 'system-api-keys',

@@ -6,6 +6,7 @@ import { LoadingState } from '@/shared/components/ui';
 import { EmptyState } from '@/shared/components/ui';
 import { SegmentedTabs } from '@/shared/components/ui';
 import { cn } from '@/shared/lib/utils';
+import { DATE_FORMATS, formatWithPattern } from '@/shared/utils';
 import {
   buildCalendarGrid,
   calendarLevelClass,
@@ -82,8 +83,14 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
     );
   }
 
-  const grid = buildCalendarGrid(data.days, data.from, data.to);
+  const year = data.from.slice(0, 4);
+  const grid = buildCalendarGrid(data.days, `${year}-01-01`, `${year}-12-31`);
   const hasActivity = data.total > 0;
+  const fromLabel = formatWithPattern(
+    data.from,
+    DATE_FORMATS.READABLE_DATE_LONG
+  );
+  const toLabel = formatWithPattern(data.to, DATE_FORMATS.READABLE_DATE_LONG);
 
   return (
     <Card className="p-4 space-y-4">
@@ -93,7 +100,7 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
             Activity Calendar
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Daily activity over the last year · {data.from} to {data.to}
+            Daily activity over the last year · {fromLabel} to {toLabel}
             {data.tz ? ` · ${data.tz}` : ''}
           </p>
         </div>
@@ -142,19 +149,18 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
           <div
             className="inline-flex flex-col gap-1"
             role="figure"
-            aria-label={`Daily activity heatmap from ${data.from} to ${data.to}`}
+            aria-label={`Daily activity heatmap for ${year}`}
           >
             {/* Month labels row, aligned above the week columns. */}
             <div className="flex" style={{ marginLeft: 36 }}>
-              {grid.weeks.map((columnCells, weekIndex) => {
+              {Array.from({ length: grid.weeks.length }, (_, weekIndex) => {
                 const labels = grid.monthLabels
                   .filter(label => label.weekIndex === weekIndex)
                   .map(label => label.label);
                 return (
                   <div
                     key={weekIndex}
-                    className="text-[10px] text-muted-foreground"
-                    style={{ width: 17 * columnCells.length - 1 }}
+                    className="w-[18px] sm:w-5 shrink-0 text-[10px] text-muted-foreground"
                   >
                     {labels.join(' / ')}
                   </div>
@@ -193,7 +199,7 @@ const UserUsageCalendar: React.FC<UserUsageCalendarProps> = ({
                       );
                     }
                     const isSelected = cell.date === selectedDate;
-                    const label = `${cell.date}: ${cell.count} actions, intensity level ${cell.level}`;
+                    const label = `${formatWithPattern(cell.date, DATE_FORMATS.READABLE_DATE_LONG)}: ${cell.count} actions, intensity level ${cell.level}`;
                     if (cell.count === 0) {
                       return (
                         <div

@@ -125,6 +125,9 @@ export {
   useApiKeyUsageDetail,
 } from './useApiKeyUsage';
 
+// Platform Overview hooks (System → Insights → Platform Overview)
+export { usePlatformOverview } from './usePlatformOverview';
+
 // Groups hooks
 export {
   useGroupJoinRequests,

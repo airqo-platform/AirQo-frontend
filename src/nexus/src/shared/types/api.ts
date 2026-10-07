@@ -1155,6 +1155,46 @@ export interface GridsSummaryParams {
   search?: string;
 }
 
+// Device category / summary-count types (Platform Overview)
+
+/** Category filter for `/devices/summary/count`. */
+export type DeviceSummaryCategory = 'lowcost' | 'bam' | 'gas';
+
+/** Normalized numeric counts returned by `getDeviceSummaryCountAuthenticated`. */
+export interface DeviceSummaryCount {
+  total_monitors: number;
+  operational: number;
+  transmitting: number;
+  not_transmitting: number;
+  data_available: number;
+}
+
+/** Query params accepted by the summary-count endpoint. */
+export interface DeviceSummaryCountParams {
+  category: DeviceSummaryCategory;
+  status?: string;
+  network?: string;
+  group_id?: string;
+  cohort_id?: string;
+}
+
+/**
+ * Raw shapes the `/devices/summary/count` endpoint has been observed to return.
+ * The counts live under `data`, under `summary`, or at the top level depending on
+ * the consumer — the service layer normalizes all three into `DeviceSummaryCount`.
+ */
+export interface DeviceSummaryCountRawResponse {
+  success?: boolean;
+  message?: string;
+  data?: Partial<DeviceSummaryCount>;
+  summary?: Partial<DeviceSummaryCount>;
+  total_monitors?: number;
+  operational?: number;
+  transmitting?: number;
+  not_transmitting?: number;
+  data_available?: number;
+}
+
 // Countries list types
 export interface CountryData {
   country: string;

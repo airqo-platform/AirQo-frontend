@@ -10,6 +10,7 @@ import {
   formatNumber,
   formatPercent,
   formatDurationSec,
+  formatMonthLabel,
 } from '@/modules/usage/utils/format';
 import UsageSectionError from '@/modules/usage/components/platform/UsageSectionError';
 import type { UsageBreakdownResponse, UsageKind } from '@/shared/types/usage';
@@ -74,14 +75,14 @@ const UserUsageBreakdown: React.FC<UserUsageBreakdownProps> = ({
   const items = data.items ?? [];
 
   return (
-    <Card className="p-4 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className="flex flex-col gap-4 p-4 xl:max-h-[36rem]">
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-foreground">
             {kind === 'page' ? 'Top Pages' : 'Top API Endpoints'}
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            {data.month} · {formatNumber(data.total)} total ·{' '}
+            {formatMonthLabel(data.month)} · {formatNumber(data.total)} total ·{' '}
             {data.basis ?? DASH}
           </p>
         </div>
@@ -101,9 +102,9 @@ const UserUsageBreakdown: React.FC<UserUsageBreakdownProps> = ({
           compact
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto overscroll-contain">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_rgb(var(--border))]">
               <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground border-b border-border">
                 <th scope="col" className="py-2 pr-4 font-semibold">
                   {kind === 'page' ? 'Page' : 'Endpoint'}
