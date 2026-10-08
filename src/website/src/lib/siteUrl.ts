@@ -7,7 +7,8 @@
  *  3. NEXT_PUBLIC_SITE_URL env (build-time/static canonical)
  *  4. NEXT_PUBLIC_VERCEL_URL / VERCEL_URL / RAILWAY_PUBLIC_DOMAIN /
  *     RENDER_EXTERNAL_URL
- *  5. localhost fallback (development only)
+ *  5. production fallback to https://airqo.net
+ *  6. localhost fallback (development only)
  *
  * NEXT_PUBLIC_SITE_URL may be a comma- or whitespace-separated list; the first
  * valid entry is the canonical base used for metadata, canonical links,
@@ -15,6 +16,7 @@
  */
 
 const LOCAL_DEV_SITE_URL = 'http://localhost:3000';
+const PRODUCTION_SITE_URL = 'https://airqo.net';
 
 // Valid hostname pattern: alphanumeric, dots, hyphens, or IPv6 in brackets
 const HOSTNAME_PATTERN = /^[a-z0-9.-]+$|^\[[0-9a-f:]+\]$/i;
@@ -163,7 +165,8 @@ export const detectSiteUrlFromHeaders = (
  * 3. NEXT_PUBLIC_SITE_URL (first configured entry)
  * 4. Vercel preview URL
  * 5. Platform-specific env vars (Railway, Render, etc.)
- * 6. localhost fallback (development only)
+ * 6. Production fallback to https://airqo.net
+ * 7. localhost fallback (development only)
  *
  * @param hostHeader - Optional Host header value for server-side detection.
  *                     Pass this from headers().get('x-forwarded-host') ??
@@ -208,15 +211,19 @@ export const getPrimarySiteUrl = (
     }
   }
 
-  // Production safety warn (once) when falling back to localhost.
-  if (process.env.NODE_ENV === 'production' && !productionWarningEmitted) {
-    productionWarningEmitted = true;
-    if (typeof console !== 'undefined') {
-      console.warn(
-        '[siteUrl] NEXT_PUBLIC_SITE_URL is not configured in production. ' +
-          'Falling back to localhost. Canonical/og:url metadata will be wrong.',
-      );
+  // Production safety warn (once) when falling back to the production site.
+  if (process.env.NODE_ENV === 'production') {
+    if (!productionWarningEmitted) {
+      productionWarningEmitted = true;
+      if (typeof console !== 'undefined') {
+        console.warn(
+          '[siteUrl] NEXT_PUBLIC_SITE_URL is not configured in production. ' +
+            `Falling back to ${PRODUCTION_SITE_URL}.`,
+        );
+      }
     }
+
+    return PRODUCTION_SITE_URL;
   }
 
   // Development fallback

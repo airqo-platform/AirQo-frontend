@@ -252,6 +252,21 @@ describe('siteUrl', () => {
       global.window = savedWindow;
     });
 
+    it('returns the production site fallback when nothing is configured', () => {
+      const savedWindow = global.window;
+      // @ts-expect-error - testing server-side behavior without window
+      delete global.window;
+      const mutableEnv = process.env as { NODE_ENV?: string };
+      mutableEnv.NODE_ENV = 'production';
+      jest.spyOn(console, 'warn').mockImplementation();
+
+      expect(getPrimarySiteUrl()).toBe('https://airqo.net');
+      expect(getPrimarySiteUrl()).toBe('https://airqo.net');
+
+      jest.restoreAllMocks();
+      global.window = savedWindow;
+    });
+
     it('prefers Host header over window.location.origin', () => {
       expect(getPrimarySiteUrl('airqo.africa')).toBe('https://airqo.africa');
     });
