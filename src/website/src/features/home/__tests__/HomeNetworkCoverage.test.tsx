@@ -62,14 +62,16 @@ describe('HomeNetworkCoverage', () => {
   it('renders the section heading and the CTA link to /solutions/network-coverage', () => {
     render(<HomeNetworkCoverage />);
 
+    expect(mockedUseNetworkCoverageImpact).toHaveBeenCalledWith({
+      tenant: 'airqo',
+    });
+
     const heading = document.getElementById('network-coverage-heading');
     expect(heading).not.toBeNull();
-    expect(heading).toHaveTextContent(
-      "AirQo's monitoring network across Africa",
-    );
+    expect(heading).toHaveTextContent('Air quality monitoring across Africa');
     expect(
       screen.getByRole('heading', {
-        name: /AirQo's monitoring network across Africa/i,
+        name: /Air quality monitoring across Africa/i,
       }),
     ).toBeInTheDocument();
 

@@ -19,9 +19,10 @@ const formatNumber = (value: number | undefined | null): string =>
 const CARD_SCROLL_STEP = 240;
 
 const HomeNetworkCoverage = () => {
+  // Match the full dashboard's tenant scope without limiting results to
+  // AirQo's network, so the homepage reflects the broader monitoring view.
   const { data, isLoading, error, refetch } = useNetworkCoverageImpact({
     tenant: 'airqo',
-    network: 'airqo',
   });
   const impact = data?.impact;
   const scrollRef = useRef<HTMLUListElement>(null);
@@ -56,7 +57,7 @@ const HomeNetworkCoverage = () => {
             Network coverage
           </span>
           <h2 className="mt-4 text-3xl font-bold lg:text-4xl">
-            AirQo&apos;s monitoring network across Africa
+            Air quality monitoring across Africa
           </h2>
           <p className="mt-4 text-blue-100">
             We couldn&apos;t load live network coverage right now.
@@ -96,11 +97,10 @@ const HomeNetworkCoverage = () => {
               id="network-coverage-heading"
               className="mt-4 text-3xl font-bold lg:text-4xl"
             >
-              AirQo&apos;s monitoring network across Africa
+              Air quality monitoring across Africa
             </h2>
             <p className="mt-4 text-blue-100">
-              Explore the countries where AirQo&apos;s air quality monitors are
-              deployed.
+              Explore air quality monitors and networks across the continent.
             </p>
             <Link
               href="/solutions/network-coverage"
