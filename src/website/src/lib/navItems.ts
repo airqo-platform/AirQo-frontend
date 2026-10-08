@@ -76,7 +76,6 @@ export const NAV_ITEMS: NavMenuSection = {
       description:
         'Explore air quality monitoring infrastructure across Africa',
       href: '/solutions/network-coverage',
-      newTab: true,
     },
   ],
   About: [

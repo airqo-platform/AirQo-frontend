@@ -276,7 +276,9 @@ describe('Air Quality pages (end-to-end)', function () {
     ).to.be.true;
     expect(
       await visible(
-        By.xpath("//*[@role='radio' and normalize-space()='Worst first']")
+        By.xpath(
+          "//*[@role='radio' and normalize-space()='Most polluted first']"
+        )
       )
     ).to.be.true;
     expect(await visible(By.xpath("//select[@aria-label='Number of entries']")))
@@ -486,7 +488,9 @@ describe('Air Quality pages (end-to-end)', function () {
     ).to.be.false;
     expect(
       await visible(
-        By.xpath("//div[@role='dialog']//*[normalize-space()='Location colors']")
+        By.xpath(
+          "//div[@role='dialog']//*[normalize-space()='Location colors']"
+        )
       )
     ).to.be.false;
 
@@ -664,9 +668,7 @@ describe('Air Quality pages (end-to-end)', function () {
     ).to.be.true;
     expect(
       await visible(
-        By.xpath(
-          "//*[@role='menuitem' and normalize-space()='Refresh data']"
-        )
+        By.xpath("//*[@role='menuitem' and normalize-space()='Refresh data']")
       )
     ).to.be.true;
     expect(
@@ -778,7 +780,10 @@ describe('Air Quality pages (end-to-end)', function () {
 
     // Charts overview: grid/list toggle + overview card for the chart
     await click(By.xpath("//*[@role='radio' and normalize-space()='Charts']"));
-    await waitFor(By.xpath("//*[@role='radio' and normalize-space()='Grid']"), 30);
+    await waitFor(
+      By.xpath("//*[@role='radio' and normalize-space()='Grid']"),
+      30
+    );
     expect(
       await visible(By.xpath("//*[@role='radio' and normalize-space()='List']"))
     ).to.be.true;
