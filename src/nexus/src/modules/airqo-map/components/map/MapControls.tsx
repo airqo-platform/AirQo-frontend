@@ -67,7 +67,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
       disabled={control.disabled}
       aria-label={control['aria-label']}
       className={cn(
-        'min-w-[44px] min-h-[44px] sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200 rounded-full',
+        'relative min-w-[44px] min-h-[44px] sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200 rounded-full',
         'shadow-md hover:shadow-lg transition-all duration-200',
         'flex items-center justify-center text-gray-700 hover:text-gray-900',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
@@ -76,17 +76,17 @@ export const MapControls: React.FC<MapControlsProps> = ({
       )}
       title={control.label}
     >
-      <span className="relative flex items-center justify-center">
+      <span className="flex items-center justify-center">
         <control.icon size={18} />
-        {control.badge && (
-          <span
-            aria-hidden="true"
-            className="absolute -left-7 -top-2 z-10 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
-          >
-            {control.badge}
-          </span>
-        )}
       </span>
+      {control.badge && (
+        <span
+          aria-hidden="true"
+          className="absolute -left-2 -top-2 z-10 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
+        >
+          {control.badge}
+        </span>
+      )}
     </button>
   );
 
