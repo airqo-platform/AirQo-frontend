@@ -256,7 +256,8 @@ describe('siteUrl', () => {
       const savedWindow = global.window;
       // @ts-expect-error - testing server-side behavior without window
       delete global.window;
-      process.env.NODE_ENV = 'production';
+      const mutableEnv = process.env as { NODE_ENV?: string };
+      mutableEnv.NODE_ENV = 'production';
       jest.spyOn(console, 'warn').mockImplementation();
 
       expect(getPrimarySiteUrl()).toBe('https://airqo.net');
