@@ -254,16 +254,18 @@ The African AQI leaderboard, powered by the device-registry rankings endpoints
 (`GET /devices/readings/rankings`, `GET /devices/readings/rankings/history`,
 and `GET /devices/readings/rankings/countries`).
 
-- **Live rankings** — country or city leaderboard, worst/cleanest first, with
-  configurable entry count. Each row shows rank, flag, average PM2.5, derived
-  AQI index, a color-coded category badge (colored from the live AQI ranges
-  config) and how many sites contributed. Locations only appear once they have
-  a reading from the last 3 days. When the level is set to city, a country
-  filter dropdown appears (populated from the `/countries` endpoint) so the
-  leaderboard can be scoped to a single country. The response includes a
-  `meta` object with `total`, `limit`, and `skip` — the summary cards and
-  leaderboard use `meta.total` to show how many locations are ranked beyond
-  the current page.
+- **Live rankings** — country or city leaderboard, cleanest first by default,
+  with an explicit most-polluted-first view and configurable entry count. The
+  rank order is based on average PM2.5: lower is cleaner. Medals are reserved
+  for the cleanest-first view so a high-pollution result is never presented as
+  an award. Each row shows rank, flag, average PM2.5, derived AQI index, a
+  color-coded category badge (colored from the live AQI ranges config) and how
+  many sites contributed. Locations only appear once they have a reading from
+  the last 3 days. When the level is set to city, a country filter dropdown
+  appears (populated from the `/countries` endpoint) so the leaderboard can be
+  scoped to a single country. The response includes a `meta` object with
+  `total`, `limit`, and `skip` — the summary cards and leaderboard use
+  `meta.total` to show how many locations are ranked beyond the current page.
 - **Historical comparison** — year-by-year average PM2.5 per location
   (entities as rows, years as columns, capped at a 5-year span). Years with
   no usable data come back as `null` from the API and render as a grayed-out
