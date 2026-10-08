@@ -57,6 +57,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
     onClick?: () => void;
     'aria-label': string;
     disabled?: boolean;
+    badge?: string;
   }
 
   const renderControlButton = (control: ControlButton, index: number) => (
@@ -75,7 +76,17 @@ export const MapControls: React.FC<MapControlsProps> = ({
       )}
       title={control.label}
     >
-      <control.icon size={18} />
+      <span className="relative flex items-center justify-center">
+        <control.icon size={18} />
+        {control.badge && (
+          <span
+            aria-hidden="true"
+            className="absolute -left-7 -top-2 z-10 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
+          >
+            {control.badge}
+          </span>
+        )}
+      </span>
     </button>
   );
 
@@ -125,7 +136,8 @@ export const MapControls: React.FC<MapControlsProps> = ({
             icon: AqLayersThree01,
             label: 'Map styles',
             onClick: onMapStyleToggle,
-            'aria-label': 'Toggle map style options',
+            'aria-label': 'Toggle map style options; new heatmap available',
+            badge: 'New',
           },
           0
         )}

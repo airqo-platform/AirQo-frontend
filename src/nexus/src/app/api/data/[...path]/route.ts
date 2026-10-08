@@ -27,6 +27,7 @@ const ALLOWED_PATH_PREFIXES = [
   'devices/sites/summary',
   'devices/grids/summary',
   'devices/grids/countries',
+  'spatial/heatmaps',
   'devices/measurements',
   'analytics/data-download',
   'analytics/dashboard/chart/data',

@@ -10,7 +10,7 @@ export interface MapStyle {
   id: string;
   name: string;
   url: string;
-  nodeStyle: 'emoji' | 'node' | 'number';
+  nodeStyle: 'emoji' | 'heatmap' | 'node' | 'number';
   description?: string;
 }
 
@@ -70,6 +70,7 @@ interface MapStyleDialogProps {
   onClose: () => void;
   onStyleChange: (style: MapStyle) => void;
   currentStyle: string;
+  currentNodeType?: MapStyle['nodeStyle'];
   className?: string;
 }
 
@@ -78,13 +79,23 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
   onClose,
   onStyleChange,
   currentStyle,
+  currentNodeType = 'emoji',
   className,
 }) => {
-  const [selectedDetail, setSelectedDetail] = useState('emoji');
+  const [selectedDetail, setSelectedDetail] =
+    useState<MapStyle['nodeStyle']>(currentNodeType);
   const [selectedMapType, setSelectedMapType] = useState(() => {
     const current = defaultMapStyles.find(style => style.url === currentStyle);
     return current?.id || 'streets';
   });
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    setSelectedDetail(currentNodeType);
+    const current = defaultMapStyles.find(style => style.url === currentStyle);
+    setSelectedMapType(current?.id || 'streets');
+  }, [currentNodeType, currentStyle, isOpen]);
 
   const handleApply = () => {
     const selectedStyle = defaultMapStyles.find(
@@ -93,7 +104,7 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
     if (selectedStyle) {
       const updatedStyle = {
         ...selectedStyle,
-        nodeStyle: selectedDetail as 'emoji' | 'node' | 'number',
+        nodeStyle: selectedDetail,
       };
       onStyleChange(updatedStyle);
     }
@@ -123,22 +134,33 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
           <h3 className="text-sm font-medium text-gray-900 mb-4">
             Map Details
           </h3>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {mapDetailStyles.map(detail => (
               <button
                 key={detail.id}
                 onClick={() =>
-                  detail.id !== 'heatmap' && setSelectedDetail(detail.id)
+                  setSelectedDetail(detail.id as MapStyle['nodeStyle'])
                 }
-                disabled={detail.id === 'heatmap'}
+                aria-pressed={selectedDetail === detail.id}
                 className={`flex-shrink-0 flex flex-col items-center p-3 rounded-lg border transition-all duration-200 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px] ${
+                  selectedDetail === detail.id
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                } ${detail.id === 'heatmap' ? 'relative' : ''}`}
+                title={
                   detail.id === 'heatmap'
-                    ? 'opacity-50 cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
-                    : selectedDetail === detail.id
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
+                    ? 'New: explore spatial air-quality heatmaps'
+                    : detail.name
+                }
               >
+                {detail.id === 'heatmap' && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-1.5 top-1.5 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
+                  >
+                    New
+                  </span>
+                )}
                 <div className="w-12 h-8 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                   {detail.id === 'emoji' && (
                     <Image
@@ -198,7 +220,7 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
         {/* Map Type Section */}
         <div>
           <h3 className="text-sm font-medium text-gray-900 mb-4">Map Type</h3>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {defaultMapStyles.map(style => (
               <button
                 key={style.id}

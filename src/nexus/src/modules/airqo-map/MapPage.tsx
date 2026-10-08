@@ -5,7 +5,7 @@ import { useMediaQuery } from 'react-responsive';
 import { useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
-import { useMapReadings } from './hooks';
+import { useMapReadings, useSpatialHeatmaps } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocation,
@@ -14,6 +14,7 @@ import {
 import type { RootState } from '../../shared/store';
 import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
+import { selectNodeType } from '@/shared/store/selectors';
 import { normalizeMapReadings } from './utils/dataNormalization';
 import {
   DATA_PROVIDER_ALL,
@@ -190,6 +191,7 @@ const MapPage: React.FC<MapPageProps> = ({
         .find(Boolean) ?? ''
     );
   }, [cohortId]);
+  const selectedNodeType = useSelector(selectNodeType);
 
   const selectionContextKey = React.useMemo(
     () => `${isOrganizationFlow ? 'org' : 'user'}:${primaryCohortId || 'none'}`,
@@ -272,6 +274,12 @@ const MapPage: React.FC<MapPageProps> = ({
     isLoading: mapDataLoading,
     refetch,
   } = useMapReadings(mapCohortFilter);
+  const {
+    heatmaps: spatialHeatmaps,
+    isLoading: spatialHeatmapsLoading,
+    error: spatialHeatmapsError,
+    refetch: refetchSpatialHeatmaps,
+  } = useSpatialHeatmaps(selectedNodeType === 'heatmap');
   const {
     data: cohortData,
     isLoading: cohortLoading,
@@ -482,6 +490,10 @@ const MapPage: React.FC<MapPageProps> = ({
     onClusterClick: handleClusterClick,
     isLoading: mapDataLoading,
     onRefreshData: refetch,
+    onRefreshHeatmaps: refetchSpatialHeatmaps,
+    spatialHeatmaps,
+    isSpatialHeatmapLoading: spatialHeatmapsLoading,
+    spatialHeatmapError: spatialHeatmapsError,
     flyToLocation,
     selectedPollutant,
     aqiConfig: selectedAqiConfig,
