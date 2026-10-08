@@ -10,8 +10,10 @@ import { mapAqiCategoryToLevel } from '@/shared/utils/airQuality';
 import type { SiteData } from '../../types';
 
 interface RankingsSummaryCardsProps {
-  rankings: RankingEntry[];
+  cleanestRanking: RankingEntry | null;
+  mostPollutedRanking: RankingEntry | null;
   aqiConfig?: AqiConfig | null;
+  visibleCount: number;
   isLoading?: boolean;
   totalCount?: number | null;
   className?: string;
@@ -59,8 +61,10 @@ const buildExtraInfo = (entry: RankingEntry): React.ReactNode => (
  * card in the same visual language.
  */
 export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
-  rankings,
+  cleanestRanking,
+  mostPollutedRanking,
   aqiConfig,
+  visibleCount,
   isLoading = false,
   totalCount = null,
   className,
@@ -81,20 +85,9 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
     );
   }
 
-  const entriesWithValue = (rankings ?? []).filter(
-    entry => typeof entry.avg_pm2_5 === 'number'
-  );
-
-  if (entriesWithValue.length === 0) {
+  if (!cleanestRanking && !mostPollutedRanking) {
     return null;
   }
-
-  const worst = entriesWithValue.reduce((max, entry) =>
-    (entry.avg_pm2_5 as number) > (max.avg_pm2_5 as number) ? entry : max
-  );
-  const best = entriesWithValue.reduce((min, entry) =>
-    (entry.avg_pm2_5 as number) < (min.avg_pm2_5 as number) ? entry : min
-  );
 
   return (
     <div
@@ -103,26 +96,30 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
         className
       )}
     >
-      <AnalyticsCard
-        siteData={buildHighlightSiteData(worst)}
-        headerLabel="Most polluted"
-        extraInfo={buildExtraInfo(worst)}
-        aqiConfig={aqiConfig ?? null}
-        selectedPollutant="pm2_5"
-        showIcon
-        showTrend={false}
-        interactive={false}
-      />
-      <AnalyticsCard
-        siteData={buildHighlightSiteData(best)}
-        headerLabel="Cleanest air"
-        extraInfo={buildExtraInfo(best)}
-        aqiConfig={aqiConfig ?? null}
-        selectedPollutant="pm2_5"
-        showIcon
-        showTrend={false}
-        interactive={false}
-      />
+      {mostPollutedRanking && (
+        <AnalyticsCard
+          siteData={buildHighlightSiteData(mostPollutedRanking)}
+          headerLabel="Most polluted"
+          extraInfo={buildExtraInfo(mostPollutedRanking)}
+          aqiConfig={aqiConfig ?? null}
+          selectedPollutant="pm2_5"
+          showIcon
+          showTrend={false}
+          interactive={false}
+        />
+      )}
+      {cleanestRanking && (
+        <AnalyticsCard
+          siteData={buildHighlightSiteData(cleanestRanking)}
+          headerLabel="Cleanest air"
+          extraInfo={buildExtraInfo(cleanestRanking)}
+          aqiConfig={aqiConfig ?? null}
+          selectedPollutant="pm2_5"
+          showIcon
+          showTrend={false}
+          interactive={false}
+        />
+      )}
 
       {/* Locations ranked — count card in the same visual language */}
       <Card>
@@ -141,7 +138,7 @@ export const RankingsSummaryCards: React.FC<RankingsSummaryCardsProps> = ({
                 <span className="text-xs text-gray-600">Last 3 days</span>
               </div>
               <div className="text-3xl font-bold">
-                {totalCount ?? rankings.length}
+                {totalCount ?? visibleCount}
               </div>
             </div>
           </div>

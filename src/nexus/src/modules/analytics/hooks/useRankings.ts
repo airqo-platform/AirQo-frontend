@@ -31,7 +31,7 @@ export function useRankings(params: RankingsParams = {}, enabled = true) {
     'analytics',
     'rankings',
     params.level ?? 'country',
-    params.sort ?? 'worst',
+    params.sort ?? 'best',
     params.limit ?? 20,
     params.country ?? 'all',
   ];
@@ -62,7 +62,7 @@ export function useRankings(params: RankingsParams = {}, enabled = true) {
   return {
     rankings: sortRankingEntries(
       query.data?.entries ?? [],
-      params.sort ?? 'worst'
+      params.sort ?? 'best'
     ),
     rankingsMeta: query.data?.meta ?? null,
     isLoading: query.isLoading,

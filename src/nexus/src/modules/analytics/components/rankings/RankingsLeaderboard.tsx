@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import type { AqiConfig } from '@/shared/types/aqi';
-import type { RankingEntry } from '@/shared/types/api';
+import type { RankingEntry, RankingsSort } from '@/shared/types/api';
 import { formatRankingsGeneratedAt } from '../../utils/rankings';
 import AqiCategoryBadge from './AqiCategoryBadge';
 
@@ -19,6 +19,7 @@ interface RankingsLeaderboardProps {
   onSearchTermChange?: (search: string) => void;
   onClientPageChange?: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
+  sort: RankingsSort;
   className?: string;
 }
 
@@ -51,6 +52,7 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
   onSearchTermChange,
   onClientPageChange,
   onPageSizeChange,
+  sort,
   className,
 }) => {
   const generatedAt = rankings[0]?.generated_at;
@@ -79,13 +81,14 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
         width: '3.5rem',
         minWidth: '3.5rem',
         render: (_value: unknown, item: (typeof rows)[number]) => {
-          const isTopThree = item.rank >= 1 && item.rank <= 3;
+          const isTopThree =
+            sort === 'best' && item.rank >= 1 && item.rank <= 3;
           const medal = MEDAL_EMOJI[item.rank];
           return isTopThree ? (
             <span
               className="text-xl"
               role="img"
-              aria-label={`Rank ${item.rank}`}
+              aria-label={`Rank ${item.rank}, cleanest air`}
             >
               {medal}
             </span>
@@ -173,7 +176,12 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
         ),
       },
     ];
-  }, [aqiConfig]);
+  }, [aqiConfig, sort]);
+
+  const rankingOrderLabel =
+    sort === 'best'
+      ? 'Cleanest first · lower PM2.5 ranks higher'
+      : 'Most polluted first · higher PM2.5 ranks higher';
 
   return (
     <ServerSideTable
@@ -190,14 +198,19 @@ export const RankingsLeaderboard: React.FC<RankingsLeaderboardProps> = ({
       onPageSizeChange={onPageSizeChange}
       className={className}
       customHeader={
-        generatedAt ? (
-          <span className="text-xs text-muted-foreground">
-            Updated {formatRankingsGeneratedAt(generatedAt)}
-            {totalCount != null &&
-              totalCount > rankings.length &&
-              ` · Showing ${rankings.length} of ${totalCount}`}
+        <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs">
+          <span className="font-medium text-foreground">
+            {rankingOrderLabel}
           </span>
-        ) : undefined
+          {generatedAt && (
+            <span className="text-muted-foreground">
+              Updated {formatRankingsGeneratedAt(generatedAt)}
+              {totalCount != null &&
+                totalCount > rankings.length &&
+                ` · Showing ${rankings.length} of ${totalCount}`}
+            </span>
+          )}
+        </div>
       }
       emptyComponent={
         <EmptyState

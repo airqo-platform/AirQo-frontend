@@ -52,7 +52,7 @@ const LEVEL_OPTIONS: { value: RankingsLevel; label: string }[] = [
 ];
 
 const SORT_OPTIONS: { value: RankingsSort; label: string }[] = [
-  { value: 'worst', label: 'Worst first' },
+  { value: 'worst', label: 'Most polluted first' },
   { value: 'best', label: 'Cleanest first' },
 ];
 
@@ -95,7 +95,9 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
     return homeStart === 'view-rankings' ? 'live' : storedTab;
   });
   const [level, setLevel] = useState<RankingsLevel>('country');
-  const [sort, setSort] = useState<RankingsSort>('worst');
+  // The rankings entry point promises the cleanest locations first. Users can
+  // still switch to the most polluted view explicitly.
+  const [sort, setSort] = useState<RankingsSort>('best');
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [country, setCountry] = useState<string>('');
   const searchTrackingTimerRef = React.useRef<number | null>(null);
@@ -213,6 +215,39 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
     tab === 'live'
   );
 
+  // Fetch the two extremes independently from the visible page slice. This
+  // keeps the summary cards accurate when the table is limited to the
+  // cleanest or most polluted subset of locations.
+  const {
+    rankings: cleanestRankings,
+    isLoading: cleanestRankingsLoading,
+    isRefreshing: cleanestRankingsRefreshing,
+    refetch: refetchCleanestRankings,
+  } = useRankings(
+    {
+      level,
+      sort: 'best',
+      limit: 1,
+      country: level === 'city' && country ? country : undefined,
+    },
+    tab === 'live'
+  );
+
+  const {
+    rankings: mostPollutedRankings,
+    isLoading: mostPollutedRankingsLoading,
+    isRefreshing: mostPollutedRankingsRefreshing,
+    refetch: refetchMostPollutedRankings,
+  } = useRankings(
+    {
+      level,
+      sort: 'worst',
+      limit: 1,
+      country: level === 'city' && country ? country : undefined,
+    },
+    tab === 'live'
+  );
+
   const {
     history,
     isLoading: historyLoading,
@@ -261,21 +296,36 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
       });
 
       if (tab === 'live') {
-        await refetchRankings();
+        await Promise.all([
+          refetchRankings(),
+          refetchCleanestRankings(),
+          refetchMostPollutedRankings(),
+        ]);
       } else {
         await refetchHistory();
       }
     },
-    [tab, refetchHistory, refetchRankings]
+    [
+      tab,
+      refetchCleanestRankings,
+      refetchHistory,
+      refetchMostPollutedRankings,
+      refetchRankings,
+    ]
   );
 
-  const isRefreshingAny = tab === 'live' ? isRefreshing : historyRefreshing;
+  const isRefreshingAny =
+    tab === 'live'
+      ? isRefreshing ||
+        cleanestRankingsRefreshing ||
+        mostPollutedRankingsRefreshing
+      : historyRefreshing;
 
   return (
     <div className={cn('space-y-6', className)}>
       <PageHeading
         title="Air Quality Rankings"
-        subtitle="Compare average PM2.5 air quality across African countries and cities, ranked by their current AQI."
+        subtitle="Compare recent average PM2.5 across African countries and cities. Cleanest locations appear first by default, with an explicit most-polluted view when needed."
         infoLine="Only locations with a reading from the last 3 days are ranked. Years without data in the historical view are shown as a dash — not as clean air."
         action={
           <div className="flex items-center gap-2">
@@ -384,9 +434,16 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
           </Card>
 
           <RankingsSummaryCards
-            rankings={rankings}
+            cleanestRanking={cleanestRankings[0] ?? null}
+            mostPollutedRanking={mostPollutedRankings[0] ?? null}
             aqiConfig={aqiConfig ?? null}
-            isLoading={rankingsLoading || aqiConfigLoading}
+            visibleCount={rankings.length}
+            isLoading={
+              rankingsLoading ||
+              cleanestRankingsLoading ||
+              mostPollutedRankingsLoading ||
+              aqiConfigLoading
+            }
             totalCount={rankingsMeta?.total ?? null}
           />
 
@@ -398,6 +455,7 @@ export const AirQualityRankingsPage: React.FC<AirQualityRankingsPageProps> = ({
               error={rankingsError}
               onRetry={() => void handleRefresh('table')}
               totalCount={rankingsMeta?.total ?? null}
+              sort={sort}
               onSearchTermChange={handleLiveSearchChange}
               onClientPageChange={handleLivePageChange}
               onPageSizeChange={handleLivePageSizeChange}
