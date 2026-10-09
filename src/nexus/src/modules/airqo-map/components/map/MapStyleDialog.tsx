@@ -71,6 +71,8 @@ interface MapStyleDialogProps {
   onStyleChange: (style: MapStyle) => void;
   currentStyle: string;
   currentNodeType?: MapStyle['nodeStyle'];
+  heatmapOptionDisabled?: boolean;
+  heatmapOptionDisabledReason?: string;
   className?: string;
 }
 
@@ -80,6 +82,8 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
   onStyleChange,
   currentStyle,
   currentNodeType = 'emoji',
+  heatmapOptionDisabled = false,
+  heatmapOptionDisabledReason,
   className,
 }) => {
   const [selectedDetail, setSelectedDetail] =
@@ -135,85 +139,102 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
             Map Details
           </h3>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {mapDetailStyles.map(detail => (
-              <button
-                key={detail.id}
-                onClick={() =>
-                  setSelectedDetail(detail.id as MapStyle['nodeStyle'])
-                }
-                aria-pressed={selectedDetail === detail.id}
-                className={`flex-shrink-0 flex flex-col items-center p-3 rounded-lg border transition-all duration-200 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px] ${
-                  selectedDetail === detail.id
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                } ${detail.id === 'heatmap' ? 'relative' : ''}`}
-                title={
-                  detail.id === 'heatmap'
-                    ? 'New: explore spatial air-quality heatmaps'
-                    : detail.name
-                }
-              >
-                {detail.id === 'heatmap' && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute right-1.5 top-1.5 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
-                  >
-                    New
-                  </span>
-                )}
-                <div className="w-12 h-8 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
-                  {detail.id === 'emoji' && (
-                    <Image
-                      src="/images/map/Emoji.webp"
-                      alt="Emoji style"
-                      width={48}
-                      height={32}
-                      className="w-full h-full object-cover rounded-lg"
-                      loading="lazy"
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                    />
-                  )}
-                  {detail.id === 'node' && (
-                    <Image
-                      src="/images/map/Node.webp"
-                      alt="Node style"
-                      width={48}
-                      height={32}
-                      className="w-full h-full object-cover rounded-lg"
-                      loading="lazy"
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                    />
-                  )}
-                  {detail.id === 'number' && (
-                    <Image
-                      src="/images/map/Node_number.webp"
-                      alt="Number style"
-                      width={48}
-                      height={32}
-                      className="w-full h-full object-cover rounded-lg"
-                      loading="lazy"
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                    />
-                  )}
+            {mapDetailStyles.map(detail => {
+              const isHeatmapDisabled =
+                detail.id === 'heatmap' && heatmapOptionDisabled;
+
+              return (
+                <button
+                  key={detail.id}
+                  type="button"
+                  onClick={() => {
+                    if (isHeatmapDisabled) return;
+                    setSelectedDetail(detail.id as MapStyle['nodeStyle']);
+                  }}
+                  disabled={isHeatmapDisabled}
+                  aria-pressed={selectedDetail === detail.id}
+                  aria-disabled={isHeatmapDisabled}
+                  className={`relative flex-shrink-0 flex flex-col items-center p-3 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px] ${
+                    selectedDetail === detail.id
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-gray-200 text-gray-700 hover:border-primary/50 hover:bg-gray-50'
+                  } ${isHeatmapDisabled ? 'cursor-not-allowed opacity-60 grayscale' : ''}`}
+                  title={
+                    isHeatmapDisabled
+                      ? heatmapOptionDisabledReason ||
+                        'Heatmaps are unavailable for this selection'
+                      : detail.id === 'heatmap'
+                        ? 'New: explore spatial air-quality heatmaps'
+                        : detail.name
+                  }
+                >
                   {detail.id === 'heatmap' && (
-                    <Image
-                      src="/images/map/Heatmap.webp"
-                      alt="Heatmap style"
-                      width={48}
-                      height={32}
-                      className="w-full h-full object-cover rounded-lg"
-                      loading="lazy"
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute right-1.5 top-1.5 rounded-full bg-cyan-600 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-white shadow-sm"
+                    >
+                      New
+                    </span>
                   )}
-                </div>
-                <span className="text-xs font-medium">{detail.name}</span>
-              </button>
-            ))}
+                  <div className="w-12 h-8 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                    {detail.id === 'emoji' && (
+                      <Image
+                        src="/images/map/Emoji.webp"
+                        alt="Emoji style"
+                        width={48}
+                        height={32}
+                        className="w-full h-full object-cover rounded-lg"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                      />
+                    )}
+                    {detail.id === 'node' && (
+                      <Image
+                        src="/images/map/Node.webp"
+                        alt="Node style"
+                        width={48}
+                        height={32}
+                        className="w-full h-full object-cover rounded-lg"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                      />
+                    )}
+                    {detail.id === 'number' && (
+                      <Image
+                        src="/images/map/Node_number.webp"
+                        alt="Number style"
+                        width={48}
+                        height={32}
+                        className="w-full h-full object-cover rounded-lg"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                      />
+                    )}
+                    {detail.id === 'heatmap' && (
+                      <Image
+                        src="/images/map/Heatmap.webp"
+                        alt="Heatmap style"
+                        width={48}
+                        height={32}
+                        className="w-full h-full object-cover rounded-lg"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                      />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium">{detail.name}</span>
+                  {isHeatmapDisabled && (
+                    <span className="mt-1 text-center text-[9px] leading-tight text-gray-400">
+                      Unavailable for this selection
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 

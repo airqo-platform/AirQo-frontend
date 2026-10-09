@@ -11,6 +11,7 @@ import {
   setSelectedLocation,
   clearSelectedLocation,
 } from '../../shared/store/selectedLocationSlice';
+import { setNodeType } from '@/shared/store/mapSettingsSlice';
 import type { RootState } from '../../shared/store';
 import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
@@ -269,6 +270,14 @@ const MapPage: React.FC<MapPageProps> = ({
   const mapCohortFilter = isOrganizationFlow
     ? primaryCohortId || null
     : undefined;
+  const heatmapFeatureEnabled = !isOrganizationFlow;
+
+  React.useEffect(() => {
+    if (isOrganizationFlow && selectedNodeType === 'heatmap') {
+      dispatch(setNodeType('node'));
+    }
+  }, [dispatch, isOrganizationFlow, selectedNodeType]);
+
   const {
     readings,
     isLoading: mapDataLoading,
@@ -279,7 +288,9 @@ const MapPage: React.FC<MapPageProps> = ({
     isLoading: spatialHeatmapsLoading,
     error: spatialHeatmapsError,
     refetch: refetchSpatialHeatmaps,
-  } = useSpatialHeatmaps(selectedNodeType === 'heatmap');
+  } = useSpatialHeatmaps(
+    selectedNodeType === 'heatmap' && heatmapFeatureEnabled
+  );
   const {
     data: cohortData,
     isLoading: cohortLoading,
@@ -505,6 +516,9 @@ const MapPage: React.FC<MapPageProps> = ({
     onDataProviderChange: handleDataProviderChange,
     selectionContextKey,
     enableHoverTooltip: isMdUp,
+    heatmapOptionDisabled: !heatmapFeatureEnabled,
+    heatmapOptionDisabledReason:
+      'Heatmaps are temporarily unavailable on organization maps.',
   };
 
   const sidebarProps = {

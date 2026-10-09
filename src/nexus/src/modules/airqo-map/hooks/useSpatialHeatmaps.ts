@@ -57,7 +57,10 @@ export function useSpatialHeatmaps(enabled = true): UseSpatialHeatmapsResult {
 
   const refetch = useCallback(async () => {
     if (!requestEnabled) return;
-    await refetchQuery();
+    const result = await refetchQuery();
+    if (result.error && !isAbortError(result.error)) {
+      throw result.error;
+    }
   }, [refetchQuery, requestEnabled]);
 
   const noopRefetch = useCallback(async () => undefined, []);

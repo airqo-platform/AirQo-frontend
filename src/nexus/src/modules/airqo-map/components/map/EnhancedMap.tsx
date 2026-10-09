@@ -140,6 +140,8 @@ interface EnhancedMapProps {
   spatialHeatmaps?: SpatialHeatmap[];
   isSpatialHeatmapLoading?: boolean;
   spatialHeatmapError?: string | null;
+  heatmapOptionDisabled?: boolean;
+  heatmapOptionDisabledReason?: string;
   selectedPollutant?: PollutantType;
   aqiConfig?: AqiConfig | null;
   isAqiConfigLoading?: boolean;
@@ -172,6 +174,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   spatialHeatmaps = [],
   isSpatialHeatmapLoading = false,
   spatialHeatmapError = null,
+  heatmapOptionDisabled = false,
+  heatmapOptionDisabledReason,
   selectedPollutant = 'pm2_5',
   aqiConfig = null,
   isAqiConfigLoading = false,
@@ -225,10 +229,14 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-  const isSpatialHeatmapActive = currentNodeType === 'heatmap';
+  const effectiveNodeType =
+    heatmapOptionDisabled && currentNodeType === 'heatmap'
+      ? 'node'
+      : currentNodeType;
+  const isSpatialHeatmapActive = effectiveNodeType === 'heatmap';
   const hasSpatialHeatmapOverlay =
     isSpatialHeatmapActive && spatialHeatmaps.length > 0;
-  const markerNodeType = isSpatialHeatmapActive ? 'node' : currentNodeType;
+  const markerNodeType = isSpatialHeatmapActive ? 'node' : effectiveNodeType;
   const activeSpatialHeatmap = useMemo(
     () => spatialHeatmaps.find(heatmap => heatmap.id === activeHeatmapId),
     [activeHeatmapId, spatialHeatmaps]
@@ -862,7 +870,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           config={aqiConfig}
           isLoading={isAqiConfigLoading}
           error={aqiConfigError}
-          nodeType={currentNodeType}
+          nodeType={effectiveNodeType}
         />
       </div>
 
@@ -940,7 +948,9 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         onClose={() => setIsStyleDialogOpen(false)}
         onStyleChange={handleStyleChange}
         currentStyle={currentMapStyle}
-        currentNodeType={currentNodeType}
+        currentNodeType={effectiveNodeType}
+        heatmapOptionDisabled={heatmapOptionDisabled}
+        heatmapOptionDisabledReason={heatmapOptionDisabledReason}
       />
 
       <MapLoadingOverlay
