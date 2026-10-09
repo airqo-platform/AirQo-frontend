@@ -20,6 +20,7 @@ import type {
   GroupCohortsResponse,
   GridsSummaryResponse,
   GridsSummaryParams,
+  SpatialHeatmap,
   CountriesResponse,
   MapReadingsResponse,
   DailyForecastResponse,
@@ -806,6 +807,30 @@ export class DeviceService {
     }
 
     return data as MapReadingsResponse;
+  }
+
+  // Get all available city heatmaps - API token endpoint (direct backend call
+  // through the server-side BFF). The endpoint returns an array of base64 PNG
+  // images with geographic bounds, as documented by the Spatial Heatmaps API.
+  async getSpatialHeatmapsWithToken(
+    signal?: AbortSignal
+  ): Promise<SpatialHeatmap[]> {
+    const response = await this.serverClient.get<
+      SpatialHeatmap[] | ApiErrorResponse
+    >('/spatial/heatmaps', {
+      signal,
+      suppressErrorLogging: true,
+    });
+    const data = response.data;
+
+    if (!Array.isArray(data)) {
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to get spatial heatmaps');
+      }
+      throw new Error('Invalid spatial heatmaps response');
+    }
+
+    return data;
   }
 
   // ---- Measurements v2 endpoints (direct backend calls via API token) ----

@@ -224,6 +224,40 @@ describe('MapNodes memo comparator — category awareness', () => {
   });
 });
 
+describe('MapNodes cluster detail styles', () => {
+  const cluster: ClusterData = {
+    id: 'cluster-style-test',
+    longitude: 32.58,
+    latitude: 0.34,
+    pointCount: 2,
+    readings: [
+      { ...baseReading, id: 'low', siteId: 'low', pm25Value: 5 },
+      {
+        ...baseReading,
+        id: 'high',
+        siteId: 'high',
+        pm25Value: 80,
+        aqiCategory: 'hazardous',
+      },
+    ],
+  };
+
+  it('does not render emoji icons for node clusters', () => {
+    const view = render(<MapNodes cluster={cluster} nodeType="node" />);
+
+    expect(view.container.querySelectorAll('svg')).toHaveLength(0);
+    expect(view.container.textContent).toContain('2');
+  });
+
+  it('uses numeric values instead of emoji icons for number clusters', () => {
+    const view = render(<MapNodes cluster={cluster} nodeType="number" />);
+
+    expect(view.container.querySelectorAll('svg')).toHaveLength(0);
+    expect(view.container.textContent).toContain('5');
+    expect(view.container.textContent).toContain('80');
+  });
+});
+
 describe('MapNodes memo comparator — cluster member exchanges', () => {
   /**
    * Regression tests for the CodeRabbit finding: the old additive fingerprint

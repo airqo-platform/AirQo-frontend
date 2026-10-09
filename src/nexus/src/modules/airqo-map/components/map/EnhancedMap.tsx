@@ -7,7 +7,13 @@ import React, {
   useMemo,
   useEffect,
 } from 'react';
-import MapboxMap, { MapRef, ViewState, Marker } from 'react-map-gl/mapbox';
+import MapboxMap, {
+  Layer,
+  MapRef,
+  Source,
+  ViewState,
+  Marker,
+} from 'react-map-gl/mapbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -19,6 +25,7 @@ import { MapNodes } from './MapNodes';
 import { MapLoadingOverlay } from './MapLoadingOverlay';
 import { PollutantSelector } from './PollutantSelector';
 import { DataProviderFilter } from './DataProviderFilter';
+import { SpatialHeatmapMarker } from './SpatialHeatmapMarker';
 import { DATA_PROVIDER_ALL } from '@/modules/airqo-map/utils/dataProviders';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
@@ -26,6 +33,13 @@ import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
 import type { PollutantType } from '@/shared/utils/airQuality';
 import type { AqiConfig } from '@/shared/types/aqi';
+import type { SpatialHeatmap } from '@/shared/types/api';
+import {
+  getSpatialHeatmapCenter,
+  getSpatialHeatmapCoordinates,
+  getSpatialHeatmapFitBounds,
+  getSpatialHeatmapMapboxId,
+} from '@/modules/airqo-map/utils/spatialHeatmaps';
 import { toast } from '@/shared/components/ui';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -48,6 +62,24 @@ const INITIAL_VIEW_STATE: Partial<ViewState> = {
 };
 const RESET_FLY_TO_DURATION_MS = 1000;
 const REFRESH_TIMEOUT_MS = 10000;
+const SPATIAL_HEATMAP_OPACITY = 0.82;
+const SPATIAL_HEATMAP_FIT_PADDING = {
+  top: 96,
+  right: 96,
+  bottom: 96,
+  left: 96,
+};
+const SPATIAL_HEATMAP_FIT_DURATION_MS = 900;
+const SPATIAL_HEATMAP_MAX_FIT_ZOOM = 13;
+const SPATIAL_HEATMAP_CITY_FIT_PADDING = {
+  top: 128,
+  right: 128,
+  bottom: 128,
+  left: 128,
+};
+const SPATIAL_HEATMAP_CITY_MAX_FIT_ZOOM = 14;
+const SPATIAL_HEATMAP_OVERVIEW_ZOOM = 8.5;
+const SPATIAL_HEATMAP_DETAIL_ZOOM = 10.5;
 
 // ─── Module-level pure helpers ────────────────────────────────────────────────
 
@@ -103,7 +135,13 @@ interface EnhancedMapProps {
   onClusterClick?: (cluster: ClusterData) => void;
   isLoading?: boolean;
   onRefreshData?: () => Promise<void>;
+  onRefreshHeatmaps?: () => Promise<void>;
   flyToLocation?: { longitude: number; latitude: number; zoom?: number };
+  spatialHeatmaps?: SpatialHeatmap[];
+  isSpatialHeatmapLoading?: boolean;
+  spatialHeatmapError?: string | null;
+  heatmapOptionDisabled?: boolean;
+  heatmapOptionDisabledReason?: string;
   selectedPollutant?: PollutantType;
   aqiConfig?: AqiConfig | null;
   isAqiConfigLoading?: boolean;
@@ -131,7 +169,13 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   onClusterClick,
   isLoading = false,
   onRefreshData,
+  onRefreshHeatmaps,
   flyToLocation,
+  spatialHeatmaps = [],
+  isSpatialHeatmapLoading = false,
+  spatialHeatmapError = null,
+  heatmapOptionDisabled = false,
+  heatmapOptionDisabledReason,
   selectedPollutant = 'pm2_5',
   aqiConfig = null,
   isAqiConfigLoading = false,
@@ -159,7 +203,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const [pinnedTooltipId, setPinnedTooltipId] = useState<string | null>(null);
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [activeHeatmapId, setActiveHeatmapId] = useState<string | null>(null);
   const isRefreshingRef = useRef(false);
+  const heatmapFitKeyRef = useRef<string | null>(null);
 
   /**
    * clusterZoom — debounced and floor-quantised zoom for clustering.
@@ -182,6 +229,39 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const effectiveNodeType =
+    heatmapOptionDisabled && currentNodeType === 'heatmap'
+      ? 'node'
+      : currentNodeType;
+  const isSpatialHeatmapActive = effectiveNodeType === 'heatmap';
+  const hasSpatialHeatmapOverlay =
+    isSpatialHeatmapActive && spatialHeatmaps.length > 0;
+  const markerNodeType = isSpatialHeatmapActive ? 'node' : effectiveNodeType;
+  const activeSpatialHeatmap = useMemo(
+    () => spatialHeatmaps.find(heatmap => heatmap.id === activeHeatmapId),
+    [activeHeatmapId, spatialHeatmaps]
+  );
+  const isSpatialHeatmapOverview =
+    (viewState.zoom ?? INITIAL_VIEW_STATE.zoom ?? 3) <
+    SPATIAL_HEATMAP_OVERVIEW_ZOOM;
+  const isSpatialHeatmapDetailView =
+    (viewState.zoom ?? INITIAL_VIEW_STATE.zoom ?? 3) >=
+    SPATIAL_HEATMAP_DETAIL_ZOOM;
+  const visibleSpatialHeatmaps = useMemo(() => {
+    if (!activeSpatialHeatmap || isSpatialHeatmapOverview) {
+      return spatialHeatmaps;
+    }
+
+    return [activeSpatialHeatmap];
+  }, [activeSpatialHeatmap, isSpatialHeatmapOverview, spatialHeatmaps]);
+
+  const spatialHeatmapFitKey = useMemo(
+    () =>
+      spatialHeatmaps
+        .map(heatmap => `${heatmap.id}:${heatmap.bounds.flat().join(',')}`)
+        .join('|'),
+    [spatialHeatmaps]
+  );
 
   // ── Cleanup on unmount ───────────────────────────────────────────────────────
 
@@ -195,7 +275,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     setSelectedNodeId(null);
     setHoveredId(null);
     setPinnedTooltipId(null);
+    setActiveHeatmapId(null);
   }, [selectionContextKey]);
+
+  useEffect(() => {
+    if (!isSpatialHeatmapActive) setActiveHeatmapId(null);
+  }, [isSpatialHeatmapActive]);
 
   // ── Debounced cluster zoom ───────────────────────────────────────────────────
 
@@ -245,8 +330,68 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   }, [flyToLocation, applyFlyTo]);
 
   const handleMapLoad = useCallback(() => {
+    setIsMapReady(true);
     applyFlyTo();
   }, [applyFlyTo]);
+
+  const fitSpatialHeatmapCoverage = useCallback(() => {
+    const bounds = getSpatialHeatmapFitBounds(spatialHeatmaps);
+    if (!mapRef.current || !bounds) return;
+
+    mapRef.current.fitBounds(bounds, {
+      padding: SPATIAL_HEATMAP_FIT_PADDING,
+      duration: SPATIAL_HEATMAP_FIT_DURATION_MS,
+      maxZoom: SPATIAL_HEATMAP_MAX_FIT_ZOOM,
+    });
+  }, [spatialHeatmaps]);
+
+  const handleSpatialHeatmapClick = useCallback((heatmap: SpatialHeatmap) => {
+    setActiveHeatmapId(heatmap.id);
+
+    const bounds = getSpatialHeatmapFitBounds([heatmap]);
+    if (!mapRef.current || !bounds) return;
+
+    mapRef.current.fitBounds(bounds, {
+      padding: SPATIAL_HEATMAP_CITY_FIT_PADDING,
+      duration: SPATIAL_HEATMAP_FIT_DURATION_MS,
+      maxZoom: SPATIAL_HEATMAP_CITY_MAX_FIT_ZOOM,
+    });
+  }, []);
+
+  const handleFocusHeatmapCoverage = useCallback(() => {
+    setActiveHeatmapId(null);
+    fitSpatialHeatmapCoverage();
+  }, [fitSpatialHeatmapCoverage]);
+
+  // City heatmaps are intentionally bounded to their urban coverage. Fit the
+  // first active view to those bounds so the layer is immediately legible,
+  // while the user can still zoom out naturally afterward.
+  useEffect(() => {
+    if (!isSpatialHeatmapActive) {
+      heatmapFitKeyRef.current = null;
+      return;
+    }
+
+    if (
+      !isMapReady ||
+      !spatialHeatmapFitKey ||
+      heatmapFitKeyRef.current === spatialHeatmapFitKey
+    ) {
+      return;
+    }
+
+    const bounds = getSpatialHeatmapFitBounds(spatialHeatmaps);
+    if (!bounds) return;
+
+    fitSpatialHeatmapCoverage();
+    heatmapFitKeyRef.current = spatialHeatmapFitKey;
+  }, [
+    fitSpatialHeatmapCoverage,
+    isMapReady,
+    isSpatialHeatmapActive,
+    spatialHeatmapFitKey,
+    spatialHeatmaps,
+  ]);
 
   // ── Clustering ───────────────────────────────────────────────────────────────
 
@@ -373,7 +518,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     }, REFRESH_TIMEOUT_MS);
 
     try {
-      await onRefreshData();
+      const refreshTasks = [onRefreshData()];
+      if (isSpatialHeatmapActive && onRefreshHeatmaps) {
+        refreshTasks.push(onRefreshHeatmaps());
+      }
+      await Promise.all(refreshTasks);
       toast.success('Map refreshed');
     } catch (e) {
       // Cancellation/abort errors are expected (e.g. on unmount or cohort
@@ -394,16 +543,25 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       isRefreshingRef.current = false;
       setIsRefreshing(false);
     }
-  }, [onRefreshData]);
+  }, [isSpatialHeatmapActive, onRefreshData, onRefreshHeatmaps]);
 
   const handleResetView = useCallback(() => {
+    if (isSpatialHeatmapActive && hasSpatialHeatmapOverlay) {
+      handleFocusHeatmapCoverage();
+      return;
+    }
+
     mapRef.current?.flyTo({
       center: [INITIAL_VIEW_STATE.longitude!, INITIAL_VIEW_STATE.latitude!],
       zoom: INITIAL_VIEW_STATE.zoom,
       duration: RESET_FLY_TO_DURATION_MS,
       easing: t => t * (2 - t),
     });
-  }, []);
+  }, [
+    handleFocusHeatmapCoverage,
+    hasSpatialHeatmapOverlay,
+    isSpatialHeatmapActive,
+  ]);
 
   const handleMapStyleToggle = useCallback(
     () => setIsStyleDialogOpen(true),
@@ -592,54 +750,108 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         onClick={handleMapClick}
         onLoad={handleMapLoad}
       >
+        {hasSpatialHeatmapOverlay &&
+          spatialHeatmaps.map(heatmap => {
+            const coordinates = getSpatialHeatmapCoordinates(heatmap.bounds);
+            if (!coordinates) return null;
+
+            const sourceId = getSpatialHeatmapMapboxId(heatmap.id);
+            return (
+              <Source
+                key={heatmap.id}
+                id={sourceId}
+                type="image"
+                url={heatmap.image}
+                coordinates={coordinates}
+              >
+                <Layer
+                  id={`${sourceId}-layer`}
+                  type="raster"
+                  paint={{
+                    'raster-opacity': SPATIAL_HEATMAP_OPACITY,
+                    'raster-fade-duration': 0,
+                  }}
+                />
+              </Source>
+            );
+          })}
         {/* ── Cluster markers ──────────────────────────────────────────────── */}
-        {clusters.map(cluster => (
-          <Marker
-            key={cluster.id}
-            longitude={cluster.longitude}
-            latitude={cluster.latitude}
-            anchor="center"
-            style={getMarkerStyle(cluster.id)}
-          >
-            <MapNodes
-              cluster={cluster}
-              nodeType={currentNodeType}
-              onClick={handleNodeClick}
-              onHover={handleHover}
-              isHovered={hoveredId === cluster.id}
-              selectedPollutant={selectedPollutant}
-              aqiConfig={aqiConfig}
-              zoomLevel={viewState.zoom}
-              enableHoverTooltip={enableHoverTooltip}
-            />
-          </Marker>
-        ))}
+        {hasSpatialHeatmapOverlay &&
+          visibleSpatialHeatmaps.map(heatmap => {
+            const center = getSpatialHeatmapCenter(heatmap.bounds);
+            if (!center) return null;
+
+            const isSelected = heatmap.id === activeHeatmapId;
+            return (
+              <Marker
+                key={`heatmap-pointer-${heatmap.id}`}
+                longitude={center[0]}
+                latitude={center[1]}
+                anchor="bottom"
+                style={{
+                  zIndex: MAP_MARKER_Z_INDEX + (isSelected ? 30 : 15),
+                  pointerEvents: 'none',
+                }}
+              >
+                <SpatialHeatmapMarker
+                  heatmap={heatmap}
+                  isSelected={isSelected}
+                  isCompact={!isSpatialHeatmapOverview && !isSelected}
+                  isVisible={!isSpatialHeatmapDetailView}
+                  onClick={handleSpatialHeatmapClick}
+                />
+              </Marker>
+            );
+          })}
+        {!hasSpatialHeatmapOverlay &&
+          clusters.map(cluster => (
+            <Marker
+              key={cluster.id}
+              longitude={cluster.longitude}
+              latitude={cluster.latitude}
+              anchor="center"
+              style={getMarkerStyle(cluster.id)}
+            >
+              <MapNodes
+                cluster={cluster}
+                nodeType={markerNodeType}
+                onClick={handleNodeClick}
+                onHover={handleHover}
+                isHovered={hoveredId === cluster.id}
+                selectedPollutant={selectedPollutant}
+                aqiConfig={aqiConfig}
+                zoomLevel={viewState.zoom}
+                enableHoverTooltip={enableHoverTooltip}
+              />
+            </Marker>
+          ))}
 
         {/* ── Solo (unclustered) reading markers ───────────────────────────── */}
-        {soloReadings.map(reading => (
-          <Marker
-            key={reading.id}
-            longitude={reading.longitude}
-            latitude={reading.latitude}
-            anchor="center"
-            style={getMarkerStyle(reading.id)}
-          >
-            <MapNodes
-              reading={reading}
-              nodeType={currentNodeType}
-              onClick={handleNodeClick}
-              onHover={handleHover}
-              isSelected={selectedNodeId === reading.id}
-              isHovered={hoveredId === reading.id}
-              size="md"
-              selectedPollutant={selectedPollutant}
-              aqiConfig={aqiConfig}
-              isTooltipOpen={pinnedTooltipId === reading.id}
-              zoomLevel={viewState.zoom}
-              enableHoverTooltip={enableHoverTooltip}
-            />
-          </Marker>
-        ))}
+        {!hasSpatialHeatmapOverlay &&
+          soloReadings.map(reading => (
+            <Marker
+              key={reading.id}
+              longitude={reading.longitude}
+              latitude={reading.latitude}
+              anchor="center"
+              style={getMarkerStyle(reading.id)}
+            >
+              <MapNodes
+                reading={reading}
+                nodeType={markerNodeType}
+                onClick={handleNodeClick}
+                onHover={handleHover}
+                isSelected={selectedNodeId === reading.id}
+                isHovered={hoveredId === reading.id}
+                size="md"
+                selectedPollutant={selectedPollutant}
+                aqiConfig={aqiConfig}
+                isTooltipOpen={pinnedTooltipId === reading.id}
+                zoomLevel={viewState.zoom}
+                enableHoverTooltip={enableHoverTooltip}
+              />
+            </Marker>
+          ))}
       </MapboxMap>
 
       {/* ── UI Overlays ──────────────────────────────────────────────────────── */}
@@ -658,6 +870,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           config={aqiConfig}
           isLoading={isAqiConfigLoading}
           error={aqiConfigError}
+          nodeType={effectiveNodeType}
         />
       </div>
 
@@ -679,21 +892,86 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         </div>
       )}
 
+      {isSpatialHeatmapActive && (
+        <div
+          className="pointer-events-auto absolute left-1/2 top-4 z-[1100] flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-md backdrop-blur-sm"
+          role={
+            !hasSpatialHeatmapOverlay &&
+            (isSpatialHeatmapLoading || Boolean(spatialHeatmapError))
+              ? 'status'
+              : undefined
+          }
+          aria-live="polite"
+        >
+          <span
+            className="flex items-center gap-1.5"
+            title={
+              hasSpatialHeatmapOverlay
+                ? 'Click a city pointer to explore its heatmap coverage'
+                : undefined
+            }
+          >
+            {hasSpatialHeatmapOverlay && (
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_0_3px_rgba(6,182,212,0.18)]"
+              />
+            )}
+            {isSpatialHeatmapLoading && spatialHeatmaps.length === 0
+              ? 'Loading spatial heatmap…'
+              : hasSpatialHeatmapOverlay
+                ? `Spatial heatmap · ${spatialHeatmaps.length} ${spatialHeatmaps.length === 1 ? 'city' : 'cities'}`
+                : spatialHeatmapError
+                  ? 'Heatmap unavailable · showing stations'
+                  : 'No heatmap coverage · showing stations'}
+          </span>
+          {hasSpatialHeatmapOverlay && (
+            <span className="hidden text-[11px] font-medium text-gray-500 sm:inline">
+              Click a pointer to explore
+            </span>
+          )}
+          {hasSpatialHeatmapOverlay && (
+            <button
+              type="button"
+              onClick={handleFocusHeatmapCoverage}
+              className="rounded-full bg-gray-900 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+              aria-label="Zoom map to heatmap coverage"
+            >
+              Focus coverage
+            </button>
+          )}
+        </div>
+      )}
+
       <MapStyleDialog
         isOpen={isStyleDialogOpen}
         onClose={() => setIsStyleDialogOpen(false)}
         onStyleChange={handleStyleChange}
         currentStyle={currentMapStyle}
+        currentNodeType={effectiveNodeType}
+        heatmapOptionDisabled={heatmapOptionDisabled}
+        heatmapOptionDisabledReason={heatmapOptionDisabledReason}
       />
 
       <MapLoadingOverlay
-        isVisible={isLoading || isRefreshing || isAqiConfigLoading}
+        isVisible={
+          isLoading ||
+          isRefreshing ||
+          isAqiConfigLoading ||
+          (isSpatialHeatmapActive &&
+            isSpatialHeatmapLoading &&
+            spatialHeatmaps.length === 0)
+        }
         message={
-          isAqiConfigLoading
-            ? `Loading ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} ranges…`
-            : isLoading
-              ? 'Loading air quality data…'
-              : 'Refreshing air quality data…'
+          isSpatialHeatmapActive &&
+          isSpatialHeatmapLoading &&
+          spatialHeatmaps.length === 0
+            ? 'Loading city heatmaps…'
+            : isAqiConfigLoading
+              ? `Loading ${selectedPollutant === 'pm2_5' ? 'PM2.5' : 'PM10'} ranges…`
+              : isLoading
+                ? 'Loading air quality data…'
+                : 'Refreshing air quality data…'
         }
       />
     </div>
