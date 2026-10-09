@@ -130,7 +130,9 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 }) => {
   const isCluster = !!(cluster && cluster.pointCount > 1);
   const data = (cluster ?? reading) as
-    AirQualityReading | ClusterData | undefined;
+    | AirQualityReading
+    | ClusterData
+    | undefined;
 
   if (!data) return null;
 
@@ -172,14 +174,28 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         selectedPollutant === 'pm2_5' ? worst.pm25Value : worst.pm10Value;
       return val > worstVal ? r : worst;
     });
-    const BestIcon = getAirQualityIcon(
-      resolveReadingDisplayLevel(bestReading, selectedPollutant, aqiConfig)
-        .level
-    );
-    const WorstIcon = getAirQualityIcon(
-      resolveReadingDisplayLevel(worstReading, selectedPollutant, aqiConfig)
-        .level
-    );
+    const bestLevel = resolveReadingDisplayLevel(
+      bestReading,
+      selectedPollutant,
+      aqiConfig
+    ).level;
+    const worstLevel = resolveReadingDisplayLevel(
+      worstReading,
+      selectedPollutant,
+      aqiConfig
+    ).level;
+    const bestColor = getAirQualityColor(bestLevel, aqiConfig);
+    const worstColor = getAirQualityColor(worstLevel, aqiConfig);
+    const bestValue =
+      selectedPollutant === 'pm2_5'
+        ? bestReading.pm25Value
+        : bestReading.pm10Value;
+    const worstValue =
+      selectedPollutant === 'pm2_5'
+        ? worstReading.pm25Value
+        : worstReading.pm10Value;
+    const BestIcon = getAirQualityIcon(bestLevel);
+    const WorstIcon = getAirQualityIcon(worstLevel);
 
     // Use rounded zoom for styling decisions — avoids visual thrash during animations
     const isHighZoom = Math.round(zoomLevel) >= 12;
@@ -187,6 +203,62 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
       cluster.pointCount > 2
         ? `+${cluster.pointCount - 2}`
         : cluster.pointCount;
+
+    const clusterVisual =
+      nodeType === 'number' ? (
+        <div className="flex items-center gap-1">
+          <span
+            className={cn(
+              'flex items-center justify-center rounded-full border-2 border-white px-1.5 font-bold text-white shadow-sm',
+              isHighZoom ? 'h-6 min-w-6 text-[10px]' : 'h-7 min-w-7 text-xs'
+            )}
+            style={{ backgroundColor: bestColor }}
+          >
+            {roundDecimals(bestValue, 0)}
+          </span>
+          {pollutantValues.length > 1 && (
+            <span
+              className={cn(
+                'flex items-center justify-center rounded-full border-2 border-white px-1.5 font-bold text-white shadow-sm',
+                isHighZoom ? 'h-6 min-w-6 text-[10px]' : 'h-7 min-w-7 text-xs'
+              )}
+              style={{ backgroundColor: worstColor }}
+            >
+              {roundDecimals(worstValue, 0)}
+            </span>
+          )}
+        </div>
+      ) : nodeType === 'node' || nodeType === 'heatmap' ? (
+        <div className="flex items-center">
+          <span
+            aria-hidden="true"
+            className={cn(
+              'rounded-full border-2 border-white shadow-sm',
+              isHighZoom ? 'h-6 w-6' : 'h-7 w-7'
+            )}
+            style={{ backgroundColor: bestColor }}
+          />
+          {pollutantValues.length > 1 && (
+            <span
+              aria-hidden="true"
+              className={cn(
+                '-ml-3 rounded-full border-2 border-white shadow-sm',
+                isHighZoom ? 'h-6 w-6' : 'h-7 w-7'
+              )}
+              style={{ backgroundColor: worstColor }}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center">
+          <BestIcon className={isHighZoom ? 'h-6 w-6' : 'h-7 w-7'} />
+          {pollutantValues.length > 1 && (
+            <WorstIcon
+              className={cn(isHighZoom ? 'h-6 w-6' : 'h-7 w-7', '-ml-3')}
+            />
+          )}
+        </div>
+      );
 
     return (
       <CustomTooltip
@@ -215,14 +287,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="flex items-center">
-            <BestIcon className={isHighZoom ? 'w-6 h-6' : 'w-7 h-7'} />
-            {pollutantValues.length > 1 && (
-              <WorstIcon
-                className={cn(isHighZoom ? 'w-6 h-6' : 'w-7 h-7', '-ml-3')}
-              />
-            )}
-          </div>
+          {clusterVisual}
           <span
             className={cn(
               'font-black text-gray-800',
@@ -269,7 +334,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
           {roundDecimals(pollutantValue, 0)}
         </div>
       );
-    } else if (nodeType === 'node') {
+    } else if (nodeType === 'node' || nodeType === 'heatmap') {
       nodeVisual = (
         <div
           className={cn(

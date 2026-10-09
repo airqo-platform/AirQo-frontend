@@ -1155,6 +1155,20 @@ export interface GridsSummaryParams {
   search?: string;
 }
 
+/**
+ * A city-level spatial air-quality heatmap returned as a base64 PNG.
+ * Bounds are documented as [[southWestLat, southWestLng], [northEastLat,
+ * northEastLng]]. Mapbox consumers must convert this latitude/longitude
+ * ordering to its image-source coordinate ordering before rendering.
+ */
+export interface SpatialHeatmap {
+  bounds: [[number, number], [number, number]];
+  city: string;
+  id: string;
+  image: string;
+  message: string;
+}
+
 // Device category / summary-count types (Platform Overview)
 
 /** Category filter for `/devices/summary/count`. */

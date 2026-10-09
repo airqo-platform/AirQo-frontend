@@ -10,6 +10,9 @@ export type {
 export { useMapReadings } from './useMapReadings';
 export type { UseMapReadingsResult } from './useMapReadings';
 
+export { useSpatialHeatmaps } from './useSpatialHeatmaps';
+export type { UseSpatialHeatmapsResult } from './useSpatialHeatmaps';
+
 export { useForecast } from './useForecast';
 export type {
   UseForecastParams,

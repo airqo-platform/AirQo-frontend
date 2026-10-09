@@ -8,6 +8,7 @@ export { MapLoadingOverlay } from './MapLoadingOverlay';
 export { CustomTooltip } from './CustomTooltip';
 export { EnhancedMap } from './EnhancedMap';
 export { PollutantSelector } from './PollutantSelector';
+export { SpatialHeatmapMarker } from './SpatialHeatmapMarker';
 
 // Data
 export {
