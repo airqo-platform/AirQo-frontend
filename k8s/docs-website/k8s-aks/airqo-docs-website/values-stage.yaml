@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-stage-docs
-  tag: stage-94fc0cd2-1791356746
+  tag: stage-529888d6-1791608909
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
