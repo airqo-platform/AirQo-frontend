@@ -91,7 +91,7 @@ Select the menu button at the top-left of the header to open the global sidebar.
 
 - **Home** — takes you to the appropriate home page for your current workflow
 - **Dataset Visualizer** — upload your own CSV or Excel files and build custom charts
-- **Air Quality Rankings** — compare monitoring locations by air quality
+- **[Air Quality Rankings](../monitoring-air-quality/air-quality-rankings.md)** — compare countries and cities by air quality
 - **System Management** — visible only to platform administrators
 
 The links adapt to your current workflow, so an organization user opens the organization versions of these pages.
