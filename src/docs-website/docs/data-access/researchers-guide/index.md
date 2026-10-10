@@ -8,8 +8,22 @@ sidebar_label: Overview
 Comprehensive guidance on accessing, interpreting, and responsibly using AirQo air quality monitoring data for academic and scientific research across Africa.
 
 :::info Document version
-Version 1.0.3 — April 2026
+Version 1.0.4 — October 2026
 :::
+
+---
+
+## Quick Reference for Publications
+
+| Item | Summary | Details |
+|------|---------|---------|
+| **Timestamp convention** | Hourly and daily values are labelled with the start of the averaging interval | [Timestamps and Averaging](./data-quality-and-accuracy.md#timestamps-and-averaging) |
+| **Timezone** | UTC; exported timestamps end in `Z` | [Timestamps and Averaging](./data-quality-and-accuracy.md#timestamps-and-averaging) |
+| **Averaging method** | Arithmetic mean of all valid readings in the interval; no minimum number of readings | [Timestamps and Averaging](./data-quality-and-accuracy.md#timestamps-and-averaging) |
+| **Valid range** | 0 to 1000 μg/m³ inclusive for PM2.5 and PM10; values outside the range are removed | [Data Filtering Rules](./data-quality-and-accuracy.md#data-filtering-rules) |
+| **Quality flags** | No per-observation flag; removed readings appear as gaps | [Data Quality Flags](./data-quality-and-accuracy.md#data-quality-flags) |
+| **Available pollutants** | PM2.5 and PM10 | [Measurement Parameters](./data-quality-and-accuracy.md#measurement-parameters) |
+| **Calibration** | Separate machine-learning models for PM2.5 and PM10, applied to hourly averaged data | [How Calibration is Applied](./data-calibration-methodology.md#how-calibration-is-applied) |
 
 ---
 
@@ -48,6 +62,18 @@ Downloading data in batches (e.g., quarterly) costs you only a few extra minutes
 :::info See also
 For detailed guidance on batch download workflows, API access, and fair usage expectations, see the companion document: [AirQo Fair Usage Policy](../fair-usage-policy/index.md).
 :::
+
+---
+
+## Citing AirQo Data
+
+**Calibration methodology** — When describing how the data was calibrated, cite:
+
+> Adong, P., Bainomugisha, E., Okure, D., & Sserunjogi, R. (2022). Applying machine learning for large scale field calibration of low-cost PM2.5 and PM10 air pollution sensors. *Applied AI Letters*, 3(3), e76. [https://doi.org/10.1002/ail2.76](https://doi.org/10.1002/ail2.76)
+
+**Data citation** — When citing the data itself, use:
+
+> TODO(owner): approved data citation text
 
 
 *This document is prepared by AirQo, Makerere University. For the latest information: https://airqo.africa | Contact: [support@airqo.net](mailto:support@airqo.net)*
