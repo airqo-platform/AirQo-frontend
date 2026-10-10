@@ -71,9 +71,11 @@ For detailed guidance on batch download workflows, API access, and fair usage ex
 
 > Adong, P., Bainomugisha, E., Okure, D., & Sserunjogi, R. (2022). Applying machine learning for large scale field calibration of low-cost PM2.5 and PM10 air pollution sensors. *Applied AI Letters*, 3(3), e76. [https://doi.org/10.1002/ail2.76](https://doi.org/10.1002/ail2.76)
 
-**Data citation** — When citing the data itself, use:
+**Data citation** — When citing the data itself, use the suggested citation format:
 
-> TODO(owner): approved data citation text
+> AirQo. Air Quality Monitoring Data [City/Region], [Year Range]. Accessed via [platform] on [date]. https://airqo.africa
+
+See [Reporting and Publication](./best-practices-for-researchers.md#reporting-and-publication) for the suggested acknowledgment text and what to include in your methods section.
 
 
 *This document is prepared by AirQo, Makerere University. For the latest information: https://airqo.africa | Contact: [support@airqo.net](mailto:support@airqo.net)*
