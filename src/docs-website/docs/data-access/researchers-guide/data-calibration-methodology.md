@@ -14,6 +14,15 @@ AirQo monitors undergo rigorous calibration protocols to ensure data accuracy an
 - **Machine Learning Calibration** — Advanced algorithms are applied to sensor data to correct for environmental factors (temperature, humidity) and sensor drift over time.
 - **Continuous Quality Assurance** — Regular validation studies ensure our data maintains correlation with high-end reference-grade monitors.
 
+### How Calibration is Applied
+
+- **Separate models per pollutant** — PM2.5 and PM10 are calibrated by separate machine-learning models.
+- **Model inputs** — The mean PM2.5 and mean PM10 from the monitor's two sensors, temperature, relative humidity, hour of day, the absolute difference between the two sensors for each of PM2.5 and PM10, and the difference and ratio between PM2.5 and PM10.
+- **Location-specific models** — Models are location-specific (city or country) where one has been trained against a local reference monitor; otherwise a default model is used.
+- **Hourly data** — Calibration is applied to hourly averaged data.
+
+Both raw and calibrated values are available, as described below.
+
 ### Understanding Raw vs. Calibrated Data
 
 On the AirQo platform, you will find two data streams:
@@ -29,6 +38,6 @@ For research purposes, always use calibrated data. It provides the most accurate
 
 For detailed methodology on our calibration approach, refer to our published research:
 
-- **AirQo Calibration Methodology Paper**: https://onlinelibrary.wiley.com/doi/full/10.1002/ail2.76
+- **AirQo Calibration Methodology Paper**: Adong, P., Bainomugisha, E., Okure, D., & Sserunjogi, R. (2022). Applying machine learning for large scale field calibration of low-cost PM2.5 and PM10 air pollution sensors. *Applied AI Letters*, 3(3), e76. [https://doi.org/10.1002/ail2.76](https://doi.org/10.1002/ail2.76)
 
 This peer-reviewed publication provides comprehensive technical details on our sensor calibration, validation protocols, and performance evaluation.
