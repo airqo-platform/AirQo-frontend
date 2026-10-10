@@ -34,6 +34,7 @@ You will see these levels in several places:
 - **Interactive Map** — as marker colors and icons, and in the map legend
 - **Dataset Visualizer** — on map charts and reference lines
 - **Location Details Panel** — in the Current Air Quality card and forecast cards
+- **[Air Quality Rankings](./air-quality-rankings.md)** — in the Category column and the page legend
 
 ---
 
