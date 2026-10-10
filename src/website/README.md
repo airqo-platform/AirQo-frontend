@@ -1,4 +1,4 @@
-# Website.
+# Website
 
 [![CI](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml/badge.svg)](https://github.com/airqo-platform/AirQo-frontend/actions/workflows/website-ci.yml) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend) [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
