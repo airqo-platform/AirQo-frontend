@@ -22,6 +22,19 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@keyframes embed-option-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.embed-option-panel[data-state="active"] {
+  animation: embed-option-enter 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .embed-option-panel[data-state="active"] { animation: none; }
+}
+
 /* Map styles */
 
 /* Add these styles for the custom popup */

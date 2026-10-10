@@ -2,9 +2,14 @@
 import type React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, MapPin, Wind, BarChart3, BrainCircuit, Shield, Database, Cpu, LineChart } from "lucide-react"
+import { ArrowRight, Code2, MapPin, Wind, BarChart3, BrainCircuit, Shield, Database, Cpu, LineChart } from "lucide-react"
 import Navigation from "@/components/navigation/navigation"
 import { FeatureCard } from "@/components/feature-card"
+import EmbedInstructions from "@/components/map/EmbedInstructions"
+
+const actionClass = "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold shadow-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 motion-safe:hover:-translate-y-0.5 hover:shadow-lg sm:text-base"
+const mapActionClass = `${actionClass} border border-blue-200 bg-white text-blue-700 shadow-blue-100 hover:bg-blue-50 dark:border-slate-600 dark:bg-slate-800 dark:text-blue-300 dark:shadow-none dark:hover:bg-slate-700`
+const locatorActionClass = `${actionClass} border border-blue-600 bg-blue-600 text-white shadow-blue-200 hover:border-blue-700 hover:bg-blue-700 dark:shadow-none`
 
 const Home: React.FC = () => {
   return (
@@ -24,19 +29,21 @@ const Home: React.FC = () => {
                 AirQo AI provides advanced tools for monitoring, analyzing, and optimizing air quality across African
                 cities using artificial intelligence.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
                 <Link
                   href="/map"
-                  className="flex items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white px-6 py-3 font-medium text-blue-700 transition-colors hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700"
+                  className={`${mapActionClass} w-full !px-3`}
+                  style={{ borderRadius: "12px" }}
                 >
                   Explore Air Quality Map <ArrowRight size={18} />
                 </Link>
-                <Link
-                  href="/locate"
-                  className="bg-blue-700 text-white hover:bg-blue-600 border border-blue-500 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                <a
+                  href="#embed-map"
+                  className={`${mapActionClass} w-full !px-3`}
+                  style={{ borderRadius: "12px" }}
                 >
-                  Try Site Locator
-                </Link>
+                  <Code2 size={18} /> Embed on your website
+                </a>
               </div>
             </div>
             <div className="hidden md:block">
@@ -114,6 +121,8 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      <EmbedInstructions />
+
       {/* How It Works Section - Redesigned */}
       <section className="bg-gradient-to-b from-gray-50 to-blue-50 py-8 dark:from-slate-900 dark:to-slate-950 md:py-12">
         <div className="container mx-auto px-4">
@@ -166,15 +175,17 @@ const Home: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/map"
-              className="rounded-lg border border-blue-100 bg-white px-8 py-4 font-medium text-blue-700 transition-colors hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700"
+              className={mapActionClass}
+              style={{ borderRadius: "12px" }}
             >
-              Explore the Map
+              Explore the Map <ArrowRight size={18} />
             </Link>
             <Link
               href="/locate"
-              className="bg-blue-700 text-white hover:bg-blue-600 border border-blue-500 px-8 py-4 rounded-lg font-medium transition-colors"
+              className={locatorActionClass}
+              style={{ borderRadius: "12px" }}
             >
-              Try Site Locator
+              <MapPin size={18} /> Try Site Locator
             </Link>
           </div>
         </div>
