@@ -91,7 +91,7 @@ For the full response reference, see [Response Structure →](../reference/respo
 
 You have confirmed that your credentials work. Now choose the path that matches your use case:
 
-- **Want all of AirQo's data, or data from across the whole network?** → [Public Cohort →](../for-partners/public-cohort.md)
+- **Want network-wide data from the public cohort (a sample of public devices across AirQo's network)?** → [Public Cohort →](../for-partners/public-cohort.md)
 - **Partner or organisation using Cohort ID?** → [For Partners →](../for-partners/intro.md)
 - **City or municipality using Grid ID?** → [For Cities →](../for-cities/intro.md)
 - **Need historical or raw data?** → [Analytics API →](../analytics-api/raw-data.md)

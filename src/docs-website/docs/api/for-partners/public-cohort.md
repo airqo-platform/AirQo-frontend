@@ -40,7 +40,7 @@ Because membership changes, always request data by the cohort identifier `airqo-
 
 | Use case | How the public cohort helps |
 |----------|-----------------------------|
-| "All of AirQo's data" in one place | One identifier covers every area of the network |
+| Network-wide data in one place | One identifier covers every area of the network |
 | Network-wide dashboards and maps | A representative sample from each area, with one API call |
 | Regional or continental analysis | Consistent coverage without managing device lists |
 | Getting started quickly | No Cohort to request — `airqo-public` is the same for everyone |
@@ -159,6 +159,8 @@ for measurement in data['measurements']:
   ]
 }
 ```
+
+The `measurements` array above is abbreviated to one record for readability — a real page returns up to `limit` records, and `meta.total` counts every matching measurement across all pages.
 
 The response is identical to every other Cohort ID measurement response. See [Recent Measurements — response fields](./recent-measurements.md#response-fields) for the field-by-field reference, or [Response Structure →](../reference/response-structure.md) for the full schema.
 
