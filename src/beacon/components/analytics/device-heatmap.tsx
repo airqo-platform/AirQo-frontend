@@ -221,7 +221,7 @@ export function DeviceHeatmap({ devices, metric, title, description }: Readonly<
                                     hasValue ? colorClass : "bg-gray-100 text-gray-400"
                                   )}
                                 >
-                                  {hasValue ? numericValue.toFixed(2) : "—"}
+                                  {hasValue ? (isUptime ? numericValue.toFixed(2) : formatCompactNumber(numericValue, 2)) : "—"}
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -423,7 +423,7 @@ function DeviceHourHeatmap({ device, metric }: Readonly<DeviceHourHeatmapProps>)
                         label = "—"
                       } else {
                         cellClass = getErrorMarginColor(em)
-                        label = em.toFixed(1)
+                        label = formatCompactNumber(em, 1)
                       }
 
                       return (

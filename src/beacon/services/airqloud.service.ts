@@ -522,6 +522,31 @@ function toPerformanceData(entity: any): AirQloudPerformanceData {
   }
 }
 
+// Each site request computes hourly performance, so only a few run at once
+const SITE_REQUEST_CONCURRENCY = 6
+
+/** Like Promise.allSettled, but runs at most `limit` tasks at a time; results keep the input order. */
+async function allSettledLimited<T, R>(
+  items: T[],
+  limit: number,
+  task: (item: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = new Array(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++
+      try {
+        results[index] = { status: 'fulfilled', value: await task(items[index]) }
+      } catch (reason) {
+        results[index] = { status: 'rejected', reason }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
 class AirQloudService {
   private readonly baseUrl: string
   private readonly apiPrefix: string
@@ -1210,8 +1235,8 @@ class AirQloudService {
 
   /**
    * Get performance data for one or more sites. `/sites/` has no ID filter,
-   * so each selected site is fetched on its own; sites that fail (e.g. no
-   * AirQo devices) are skipped unless every one of them fails.
+   * so each selected site is fetched on its own, a few at a time; sites that
+   * fail (e.g. no AirQo devices) are skipped unless every one of them fails.
    */
   async getSitePerformance(params: {
     start: string
@@ -1223,8 +1248,8 @@ class AirQloudService {
       return []
     }
 
-    const results = await Promise.allSettled(
-      params.ids.map((id) => this.getSiteById(id, params.start, params.end, params.group))
+    const results = await allSettledLimited(params.ids, SITE_REQUEST_CONCURRENCY, (id) =>
+      this.getSiteById(id, params.start, params.end, params.group)
     )
     const sites = results
       .filter((result): result is PromiseFulfilledResult<AirQloudWithPerformance> => result.status === 'fulfilled')

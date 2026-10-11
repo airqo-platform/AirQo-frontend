@@ -18,6 +18,9 @@ import type {
 // A decoded value takes the most serious kind among its parts; an undefined part ranks below a fault.
 const STATUS_RANK: Record<Exclude<DecodedStatus, "invalid">, number> = { ok: 0, info: 1, unknown: 2, fault: 3 }
 
+// Whole numbers are only exact below 2^53 (beacon-api reads values as floats and rejects larger ones too)
+const MAX_VALUE = 2 ** 53
+
 const invalid = (value: number | null): StatusDecodeResult => ({ value, status: "invalid", codes: [], unknown_codes: [] })
 
 // Division instead of bitwise operators, which JavaScript limits to 32 bits.
@@ -34,13 +37,13 @@ const isSingleBit = (code: number): boolean => code > 0 && Number.isInteger(Math
 /**
  * Translate one reported value into its codes. With the `bitmask` rule the value is the sum of
  * its active codes (17 = 16 + 1); with `exact` it is one code. The value must be a non-negative
- * whole number (`17`, `17.0` or `"17"`), otherwise the result is `invalid`.
+ * whole number below 2^53 (`17`, `17.0` or `"17"`), otherwise the result is `invalid`.
  */
 export function decodeStatus(set: Pick<StatusCodeSet, "decode_rule" | "codes">, value: unknown): StatusDecodeResult {
   if ((typeof value !== "number" && typeof value !== "string") || value === "") return invalid(null)
   const number = Number(value)
   if (!Number.isFinite(number)) return invalid(null)
-  if (number < 0 || Math.abs(number - Math.round(number)) > 1e-6) return invalid(number)
+  if (number < 0 || number >= MAX_VALUE || Math.abs(number - Math.round(number)) > 1e-6) return invalid(number)
 
   const whole = Math.round(number)
   const byCode = new Map(set.codes.map((code) => [code.code, code]))

@@ -801,7 +801,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       const summaryData = [
         ["Metric", "Value", "Status"],
         ["Average Uptime", `${avgUptime.toFixed(1)}%`, avgUptime >= 90 ? "PASSED" : "REVIEW"],
-        ["Mean Error Margin", `±${formatCompactNumber(avgError, 2)}`, avgError <= 10 ? "PASSED" : "FAILED"],
+        ["Mean Error Margin", `±${avgError.toFixed(2)}`, avgError <= 10 ? "PASSED" : "FAILED"],
         ["Total Devices", data.device_count.toString(), "ACTIVE"],
       ]
 
@@ -864,7 +864,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
         const row = [new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })]
         data.devices.forEach(device => {
           const dayData = (deviceDailyMap.get(device.device_id) || []).find(d => d.date === ts)
-          row.push(dayData ? `±${formatCompactNumber(dayData.error_margin, 2)}` : "-")
+          row.push(dayData ? `±${dayData.error_margin.toFixed(2)}` : "-")
         })
         return row
       })
@@ -947,7 +947,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
         device.category,
         device.data?.[0]?.channel_id || "N/A",
         `${device.uptime?.toFixed(1) || 0}%`,
-        `±${formatCompactNumber(device.error_margin ?? 0, 2)}`,
+        `±${(device.error_margin ?? 0).toFixed(2)}`,
         (device.error_margin || 0) < 5 ? "Excellent" : "Good"
       ])
 

@@ -116,7 +116,14 @@ export function FleetHealthView({ group, canManage, title, description }: FleetH
   const [issuesLoading, setIssuesLoading] = useState<boolean>(false);
   const issuesRef = useRef<HTMLDivElement>(null);
 
+  // Each load takes a token; a response is applied only if no newer load started (for another
+  // group, day, filter or page) in the meantime.
+  const summaryRequestRef = useRef<number>(0);
+  const issuesRequestRef = useRef<number>(0);
+
   const fetchSummary = useCallback(async () => {
+    const token = ++summaryRequestRef.current;
+    const isCurrent = () => token === summaryRequestRef.current;
     try {
       setLoading(true);
       setError(null);
@@ -125,13 +132,14 @@ export function FleetHealthView({ group, canManage, title, description }: FleetH
         top_n: 10,
         group,
       });
-      setSummary(data);
+      if (isCurrent()) setSummary(data);
     } catch (err: any) {
+      if (!isCurrent()) return;
       console.error("Error fetching fleet daily summary:", err);
       setSummary(null);
       setError(err?.message || "Failed to load fleet diagnostics.");
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [selectedDate, group]);
 
@@ -142,6 +150,8 @@ export function FleetHealthView({ group, canManage, title, description }: FleetH
   const diagnosisDate = summary?.diagnosis_date || null;
 
   const fetchIssues = useCallback(async () => {
+    const token = ++issuesRequestRef.current;
+    const isCurrent = () => token === issuesRequestRef.current;
     if (!diagnosisDate) {
       setIssues([]);
       setHasMore(false);
@@ -165,9 +175,11 @@ export function FleetHealthView({ group, canManage, title, description }: FleetH
         // One extra row tells us whether there is a next page.
         limit: PAGE_SIZE + 1,
       });
+      if (!isCurrent()) return;
       setHasMore(result.length > PAGE_SIZE);
       setIssues(result.slice(0, PAGE_SIZE));
     } catch (err: any) {
+      if (!isCurrent()) return;
       console.error("Error fetching fleet issues:", err);
       setIssues([]);
       setHasMore(false);
@@ -177,7 +189,7 @@ export function FleetHealthView({ group, canManage, title, description }: FleetH
         variant: "destructive",
       });
     } finally {
-      setIssuesLoading(false);
+      if (isCurrent()) setIssuesLoading(false);
     }
   }, [diagnosisDate, filters, page, group]);
 
