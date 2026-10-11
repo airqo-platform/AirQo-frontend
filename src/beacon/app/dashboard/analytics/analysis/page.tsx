@@ -28,6 +28,7 @@ import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface DateRange {
   from: string
@@ -83,7 +84,18 @@ interface AirQloudDetailData {
   devices: DevicePerformanceRaw[]
 }
 
-type AnalysisType = "airqlouds" | "devices" | "grids"
+type AnalysisType = "airqlouds" | "devices" | "grids" | "sites"
+
+// Labels and performance-tab entity for the aggregate (non-device) analyses
+const ENTITY_DETAILS: Record<Exclude<AnalysisType, "devices">, {
+  label: string
+  plural: string
+  tabEntityType: "cohort" | "grid" | "site"
+}> = {
+  airqlouds: { label: "Cohort", plural: "Cohorts", tabEntityType: "cohort" },
+  grids: { label: "Grid", plural: "Grids", tabEntityType: "grid" },
+  sites: { label: "Site", plural: "Sites", tabEntityType: "site" },
+}
 
 const normalizePercentage = (value: number) => {
   if (value >= 0 && value <= 1) return value * 100
@@ -400,7 +412,7 @@ const ErrorMarginMiniGraph = ({
                     month: "short",
                     day: "numeric",
                   })}
-                  : ±{day.value.toFixed(2)}
+                  : ±{formatCompactNumber(day.value, 2)}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -456,6 +468,8 @@ export default function AnalysisResultsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<string>("")
   const syncActions = useSyncActions()
+  // Return to the analytics page with the analysed type still selected in "Filter By"
+  const backHref = `/dashboard/analytics?analysis=${analysisType === "airqlouds" ? "cohorts" : analysisType}`
 
   useEffect(() => {
     // Load data from sessionStorage
@@ -523,7 +537,7 @@ export default function AnalysisResultsPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/analytics">
+            <Link href={backHref}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Analytics
             </Link>
@@ -566,7 +580,7 @@ export default function AnalysisResultsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard/analytics">
+              <Link href={backHref}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Analytics
               </Link>
@@ -621,7 +635,7 @@ export default function AnalysisResultsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">±{overallAvgErrorMargin.toFixed(2)}</div>
+              <div className="text-2xl font-bold">±{formatCompactNumber(overallAvgErrorMargin, 2)}</div>
             </CardContent>
           </Card>
 
@@ -708,7 +722,7 @@ export default function AnalysisResultsPage() {
                           <div className="flex items-center gap-2">
                             <ErrorMarginMiniGraph data={device.error_margin_history} />
                             <span className="text-sm text-muted-foreground">
-                              ±{device.average_error_margin.toFixed(2)}
+                              ±{formatCompactNumber(device.average_error_margin, 2)}
                             </span>
                           </div>
                         </TableCell>
@@ -752,8 +766,9 @@ export default function AnalysisResultsPage() {
   const overallAvgErrorMargin = summaryStats.length > 0
     ? summaryStats.reduce((sum, aq) => sum + aq.stats.avgErrorMargin, 0) / summaryStats.length
     : 0
-  const entityLabel = analysisType === "grids" ? "Grid" : "Cohort"
-  const entityLabelPlural = analysisType === "grids" ? "Grids" : "Cohorts"
+  const entityDetails = ENTITY_DETAILS[analysisType === "devices" ? "airqlouds" : analysisType]
+  const entityLabel = entityDetails.label
+  const entityLabelPlural = entityDetails.plural
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -761,7 +776,7 @@ export default function AnalysisResultsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/analytics">
+            <Link href={backHref}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Analytics
             </Link>
@@ -816,7 +831,7 @@ export default function AnalysisResultsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">±{overallAvgErrorMargin.toFixed(2)}</div>
+            <div className="text-2xl font-bold">±{formatCompactNumber(overallAvgErrorMargin, 2)}</div>
           </CardContent>
         </Card>
 
@@ -864,7 +879,7 @@ export default function AnalysisResultsPage() {
                         <span>{aq.stats.avgUptime.toFixed(1)}%</span>
                       </div>
                     </TableCell>
-                    <TableCell>±{aq.stats.avgErrorMargin.toFixed(2)}</TableCell>
+                    <TableCell>±{formatCompactNumber(aq.stats.avgErrorMargin, 2)}</TableCell>
                     <TableCell>{aq.stats.daysOfData}</TableCell>
                     <TableCell>{getStatusBadge(aq.stats.avgUptime)}</TableCell>
                   </TableRow>
@@ -944,7 +959,7 @@ export default function AnalysisResultsPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="text-2xl font-bold">±{stats.avgErrorMargin.toFixed(2)}</div>
+                          <div className="text-2xl font-bold">±{formatCompactNumber(stats.avgErrorMargin, 2)}</div>
                         </CardContent>
                       </Card>
 
@@ -1022,7 +1037,7 @@ export default function AnalysisResultsPage() {
                                         <div className="flex items-center gap-2">
                                           <ErrorMarginMiniGraph data={device.error_margin_history} />
                                           <span className="text-sm text-muted-foreground">
-                                            ±{device.average_error_margin.toFixed(2)}
+                                            ±{formatCompactNumber(device.average_error_margin, 2)}
                                           </span>
                                         </div>
                                       </TableCell>
@@ -1056,7 +1071,7 @@ export default function AnalysisResultsPage() {
                           airqloudId={aq.id}
                           airqloudName={aq.name}
                           initialData={aq}
-                          entityType={analysisType === "grids" ? "grid" : "cohort"}
+                          entityType={entityDetails.tabEntityType}
                         />
                       </TabsContent>
                     </Tabs>

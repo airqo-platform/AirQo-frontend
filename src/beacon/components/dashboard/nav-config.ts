@@ -7,6 +7,7 @@ import {
   AqFile02,
   AqHomeSmile,
   AqLayersThree01,
+  AqLineChartUp01,
   AqMonitor,
   AqPackage,
   AqTool02,
@@ -79,31 +80,19 @@ const DEVICES_ITEM: NavItemConfig = {
     matchesRoute(pathname, ROUTES.DEVICES) && !matchesRoute(pathname, ROUTES.MY_DEVICES),
 }
 
+// Cohorts, grids, sites and devices are chosen with "Filter By" on the page itself.
 const ANALYTICS_ITEM: NavItemConfig = {
   id: "analytics",
   label: "Performance Analysis",
   href: ROUTES.ANALYTICS,
   icon: AqAirQlouds,
-  subroutes: [
-    {
-      id: "cohort-analysis",
-      label: "Cohort Analysis",
-      href: `${ROUTES.ANALYTICS}?analysis=cohorts`,
-      description: "Analyze performance across cohorts",
-    },
-    {
-      id: "grid-analysis",
-      label: "Grid Analysis",
-      href: `${ROUTES.ANALYTICS}?analysis=grids`,
-      description: "Spatial grid metrics & performance",
-    },
-    {
-      id: "device-data-analysis",
-      label: "Device Data Analysis",
-      href: ROUTES.VISUALISE,
-      description: "Explore raw sensor telemetry charts",
-    },
-  ],
+}
+
+const NETWORK_HEALTH_ITEM: NavItemConfig = {
+  id: "network-health",
+  label: "Network Health",
+  href: ROUTES.NETWORK_HEALTH,
+  icon: AqActivityHeart,
 }
 
 const MAINTENANCE_ITEM: NavItemConfig = {
@@ -127,6 +116,7 @@ const REPORTS_ITEM: NavItemConfig = {
 export function getDeviceNavSections(access: NavigationAccess): NavSection[] {
   const monitoringItems = [
     access.canAccessAnalytics ? ANALYTICS_ITEM : null,
+    access.canAccessNetworkHealth ? NETWORK_HEALTH_ITEM : null,
     access.canAccessMaintenance ? MAINTENANCE_ITEM : null,
     access.canAccessReports ? REPORTS_ITEM : null,
   ].filter((item): item is NavItemConfig => item !== null)
@@ -191,7 +181,20 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
         href: ROUTES.DIAGNOSTIC_TEMPLATES,
         description: "Manage symptom rules & evidential weighting templates",
       },
+      {
+        id: "admin-diagnostics-status-codes",
+        label: "Status Codes",
+        href: ROUTES.STATUS_CODES,
+        description: "Device status code sets and how reported values decode",
+      },
     ],
+  },
+  {
+    id: "admin-device-data-analysis",
+    label: "Device Data Analysis",
+    href: ROUTES.VISUALISE,
+    icon: AqLineChartUp01,
+    description: "Explore raw sensor telemetry charts",
   },
   {
     id: "admin-collocation",

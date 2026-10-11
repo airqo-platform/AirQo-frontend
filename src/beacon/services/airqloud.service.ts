@@ -5,6 +5,7 @@
 
 import { config } from '@/lib/config'
 import { isMockMode, getMockCohorts, getMockCohortPerformance } from '@/lib/mock-data'
+import type { DeviceDiagnostics, DiagnosticsSummary } from '@/types/diagnostics'
 
 export interface DevicePerformance {
   device_id: string
@@ -34,6 +35,8 @@ export interface Device {
   data_completeness?: number | null
   sensor_error_margin?: number | null
   data?: any[]
+  /** Latest stored daily diagnosis, present when requested with `includeDiagnostics`. */
+  diagnostics?: DeviceDiagnostics | null
 }
 
 export interface Cohort {
@@ -52,6 +55,8 @@ export interface Cohort {
   sensor_error_margin?: number | null
   error_margin?: number | number[] | null  // Single number in summary mode, array in raw mode
   data?: any[]
+  /** Roll-up of the devices' latest diagnoses, present when requested with `includeDiagnostics`. */
+  diagnostics_summary?: DiagnosticsSummary | null
   // Optional performance fields for compatibility
   freq?: number[]
   timestamp?: string[]
@@ -85,6 +90,7 @@ export interface Grid {
   error_margin?: number | number[] | null
   averages?: Record<string, any>
   data?: any[]
+  diagnostics_summary?: DiagnosticsSummary | null
   freq?: number[]
   timestamp?: string[]
 }
@@ -117,6 +123,8 @@ export interface AirQloudsQueryParams {
   frequency?: string
   summary?: boolean
   admin_level?: string
+  /** Attach each device's latest diagnosis and a per-entity `diagnostics_summary`. */
+  includeDiagnostics?: boolean
 }
 
 export interface AirQloudsMeta {
@@ -213,7 +221,7 @@ export interface AirQloudPerformanceData {
   }>
 }
 
-export type PerformanceEntityType = 'cohorts' | 'grids'
+export type PerformanceEntityType = 'cohorts' | 'grids' | 'sites' | 'devices'
 
 /**
  * Normalize a single data point from the new synced API shape
@@ -375,6 +383,35 @@ function normalizeSyncedGrid(grid: any): any {
   }
 }
 
+/**
+ * Normalize a site returned by `/sites/` into the legacy cohort-like shape
+ * consumed by the existing performance UI.
+ */
+function normalizeSyncedSite(site: any): any {
+  if (!site) return site
+
+  const id = site._id ?? site.site_id
+  const devices = Array.isArray(site.devices) ? site.devices.map(normalizeSyncedDevice) : []
+  const numberOfDevices = site.numberOfDevices ?? site.number_of_devices ?? devices.length
+  const data = Array.isArray(site.data) ? site.data.map(normalizeSyncedDataPoint) : []
+
+  return {
+    ...site,
+    _id: id,
+    id,
+    name: site.name || site.generated_name || id,
+    country: site.country ?? '',
+    visibility: true,
+    createdAt: site.createdAt ?? '',
+    numberOfDevices,
+    uptime: toLegacyFraction(site.uptime),
+    data_completeness: toLegacyFraction(site.data_completeness),
+    sensor_error_margin: site.sensor_error_margin ?? deriveSensorErrorMargin(site.averages),
+    devices,
+    data,
+  }
+}
+
 function appendParam(queryParams: URLSearchParams, key: string, value?: string | number | boolean | null) {
   if (value === undefined || value === null || value === '') return
   queryParams.append(key, String(value))
@@ -427,6 +464,61 @@ function mapSyncedGrid(raw: any): AirQloudWithPerformance {
     freq: grid.freq || [],
     error_margin: grid.error_margin ?? [],
     timestamp: grid.timestamp || [],
+  }
+}
+
+function mapSyncedSite(raw: any): AirQloudWithPerformance {
+  const site = normalizeSyncedSite(raw)
+  return {
+    ...site,
+    device_count: site.numberOfDevices,
+    is_active: true,
+    freq: site.freq || [],
+    error_margin: site.error_margin ?? [],
+    timestamp: site.timestamp || [],
+  }
+}
+
+/**
+ * Wrap a device returned by `/devices/synced` as a single-device entity, so it
+ * goes through the same performance UI as cohorts, grids and sites.
+ */
+function mapSyncedDeviceEntity(raw: any): AirQloudWithPerformance {
+  const device = normalizeSyncedDevice(raw)
+  const id = device._id || device.name
+  return {
+    ...device,
+    id,
+    name: device.name || id,
+    country: '',
+    visibility: true,
+    is_active: true,
+    createdAt: device.createdAt ?? '',
+    numberOfDevices: 1,
+    device_count: 1,
+    devices: [device],
+    groups: [],
+    cohort_tags: [],
+    cohort_codes: [],
+    freq: [],
+    error_margin: [],
+    timestamp: [],
+  }
+}
+
+function toPerformanceData(entity: any): AirQloudPerformanceData {
+  return {
+    id: entity._id || entity.name,
+    name: entity.name,
+    uptime: entity.uptime,
+    data_completeness: entity.data_completeness,
+    sensor_error_margin: entity.sensor_error_margin,
+    error_margin: entity.error_margin,
+    data: entity.data,
+    freq: entity.freq || [],
+    timestamp: entity.timestamp || [],
+    numberOfDevices: entity.numberOfDevices,
+    devices: entity.devices || [],
   }
 }
 
@@ -573,6 +665,7 @@ class AirQloudService {
     appendParam(queryParams, 'limit', params.limit)
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
+    appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
 
     const endpoint = this.getEndpoint('/cohorts/synced')
     const qs = queryParams.toString()
@@ -617,6 +710,7 @@ class AirQloudService {
     appendParam(queryParams, 'limit', params.limit)
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
+    appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
 
     const endpoint = this.getEndpoint('/grids/synced')
     const qs = queryParams.toString()
@@ -691,6 +785,7 @@ class AirQloudService {
       queryParams.append('endDateTime', endDateTime)
       queryParams.append('frequency', 'hourly')
     }
+    queryParams.append('includeDiagnostics', 'true')
 
     const qs = queryParams.toString()
     const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
@@ -751,6 +846,7 @@ class AirQloudService {
       queryParams.append('endDateTime', endDateTime)
       queryParams.append('frequency', 'hourly')
     }
+    queryParams.append('includeDiagnostics', 'true')
 
     const qs = queryParams.toString()
     const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
@@ -1016,6 +1112,161 @@ class AirQloudService {
       })
     } catch (error) {
       console.error('Error fetching Grids Performance:', error)
+      throw error
+    }
+  }
+
+  private async fetchJson(url: string): Promise<any> {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Get the group's sites, optionally with performance data.
+   *   GET /sites/?group=...&includePerformance=true&startDateTime=...&endDateTime=...&frequency=hourly&skip=&limit=
+   */
+  async getSites(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
+    const queryParams = new URLSearchParams()
+    appendParam(queryParams, 'includePerformance', params.includePerformance)
+    appendParam(queryParams, 'startDateTime', params.startDateTime)
+    appendParam(queryParams, 'endDateTime', params.endDateTime)
+    appendParam(queryParams, 'frequency', params.frequency)
+    appendParam(queryParams, 'skip', params.skip)
+    appendParam(queryParams, 'limit', params.limit)
+    appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
+    appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+
+    const endpoint = this.getEndpoint('/sites/')
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
+
+    try {
+      const data = await this.fetchJson(url)
+      const rawSites: any[] = Array.isArray(data?.sites) ? data.sites : []
+      const mappedSites = rawSites.map(mapSyncedSite)
+      const meta = buildSyncedMeta(data, mappedSites.length, params)
+
+      return { airqlouds: mappedSites, meta }
+    } catch (error) {
+      console.error('Error fetching synced Sites:', error)
+      throw error
+    }
+  }
+
+  async getSitesBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<MappedAirQloudsResponse> {
+    const { includePerformance: _ignored, ...rest } = params
+    return this.getSites(rest)
+  }
+
+  /**
+   * Get a specific site by ID, scoped to the group, with performance data.
+   */
+  async getSiteById(
+    siteId: string,
+    startDateTime?: string,
+    endDateTime?: string,
+    group?: string
+  ): Promise<AirQloudWithPerformance> {
+    const endpoint = this.getEndpoint(`/sites/${encodeURIComponent(siteId)}`)
+
+    const queryParams = new URLSearchParams()
+
+    appendParam(queryParams, 'group', group)
+
+    if (startDateTime && endDateTime) {
+      queryParams.append('includePerformance', 'true')
+      queryParams.append('startDateTime', startDateTime)
+      queryParams.append('endDateTime', endDateTime)
+      queryParams.append('frequency', 'hourly')
+    }
+    queryParams.append('includeDiagnostics', 'true')
+
+    const qs = queryParams.toString()
+    const url = qs ? `${this.baseUrl}${endpoint}?${qs}` : `${this.baseUrl}${endpoint}`
+
+    try {
+      const data = await this.fetchJson(url)
+
+      if (!data?.site) {
+        throw new Error(`Site ${siteId} not found`)
+      }
+
+      return mapSyncedSite(data.site)
+    } catch (error) {
+      console.error(`Error fetching Site ${siteId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Get performance data for one or more sites. `/sites/` has no ID filter,
+   * so each selected site is fetched on its own; sites that fail (e.g. no
+   * AirQo devices) are skipped unless every one of them fails.
+   */
+  async getSitePerformance(params: {
+    start: string
+    end: string
+    ids: string[]
+    group?: string
+  }): Promise<AirQloudPerformanceData[]> {
+    if (!params.ids || params.ids.length === 0) {
+      return []
+    }
+
+    const results = await Promise.allSettled(
+      params.ids.map((id) => this.getSiteById(id, params.start, params.end, params.group))
+    )
+    const sites = results
+      .filter((result): result is PromiseFulfilledResult<AirQloudWithPerformance> => result.status === 'fulfilled')
+      .map((result) => result.value)
+
+    if (sites.length === 0) {
+      const firstFailure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected')
+      throw firstFailure?.reason ?? new Error('Failed to fetch site performance')
+    }
+
+    return sites.map(toPerformanceData)
+  }
+
+  /**
+   * Get the group's devices with per-device performance data, each shaped as
+   * a single-device entity for the Performance Analysis table.
+   *   GET /devices/synced?group=...&includePerformance=true&startDateTime=...&endDateTime=...&frequency=hourly&skip=&limit=
+   */
+  async getDevicesWithPerformance(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
+    const queryParams = new URLSearchParams()
+    appendParam(queryParams, 'includePerformance', params.includePerformance)
+    appendParam(queryParams, 'startDateTime', params.startDateTime)
+    appendParam(queryParams, 'endDateTime', params.endDateTime)
+    appendParam(queryParams, 'frequency', params.frequency)
+    appendParam(queryParams, 'skip', params.skip)
+    appendParam(queryParams, 'limit', params.limit)
+    appendParam(queryParams, 'search', params.search)
+    appendParam(queryParams, 'group', params.group)
+    appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+
+    const endpoint = this.getEndpoint('/devices/synced')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+
+    try {
+      const data = await this.fetchJson(url)
+      const rawDevices: any[] = Array.isArray(data?.devices) ? data.devices : []
+      const mappedDevices = rawDevices.map(mapSyncedDeviceEntity)
+      const meta = buildSyncedMeta(data, mappedDevices.length, params)
+
+      return { airqlouds: mappedDevices, meta }
+    } catch (error) {
+      console.error('Error fetching synced Devices with performance:', error)
       throw error
     }
   }

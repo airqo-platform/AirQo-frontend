@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
 import { AqAirQo, AqHelpCircle, AqMenu01 } from "@airqo/icons-react"
 import { Button } from "@/components/ui/button"
@@ -66,8 +66,7 @@ export default function TopNav({
   onLogout,
 }: Readonly<TopNavProps>) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const pageTitle = getPageTitle(pathname, searchParams)
+  const pageTitle = getPageTitle(pathname)
   const isAdminMode = getModuleForPath(pathname) === "admin"
 
   const { toast } = useToast()

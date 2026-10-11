@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
+import { cn, formatCompactNumber, formatCompactTick } from "@/lib/utils"
 import { format, subDays } from "date-fns"
 import { airQloudService } from "@/services/airqloud.service"
 import { useToast } from "@/hooks/use-toast"
@@ -38,10 +38,16 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
+const ENTITY_LABELS: Record<"cohort" | "grid" | "site", string> = {
+  cohort: "Cohort",
+  grid: "Grid",
+  site: "Site",
+}
+
 interface AirQloudPerformanceTabProps {
   airqloudId: string
   airqloudName: string
-  entityType?: "cohort" | "grid"
+  entityType?: "cohort" | "grid" | "site"
   initialData?: {
     devices?: Array<{
       _id?: string
@@ -109,7 +115,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
   const [sensorHealthMode, setSensorHealthMode] = useState<"error" | "sensors" | "correlation">("correlation")
 
   const fetchPerformanceData = async () => {
-    if (entityType === "grid" && (groupLoading || !activeGroup)) {
+    if (entityType !== "cohort" && (groupLoading || !activeGroup)) {
       return
     }
 
@@ -149,11 +155,18 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
           endDate.toISOString(),
           activeGroup ?? undefined
         )
-        : await airQloudService.getAirQloudById(
-          airqloudId,
-          startDate.toISOString(),
-          endDate.toISOString()
-        )
+        : entityType === "site"
+          ? await airQloudService.getSiteById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString(),
+            activeGroup ?? undefined
+          )
+          : await airQloudService.getAirQloudById(
+            airqloudId,
+            startDate.toISOString(),
+            endDate.toISOString()
+          )
 
       if (response && Array.isArray(response.devices) && response.devices.length > 0) {
         // Transform the data to match PerformanceData interface
@@ -179,7 +192,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
       setError(err.message || "Failed to load performance data")
       toast({
         title: "Error",
-        description: `Failed to load ${entityType === "grid" ? "Grid" : "Cohort"} performance data`,
+        description: `Failed to load ${ENTITY_LABELS[entityType]} performance data`,
         variant: "destructive",
       })
     } finally {
@@ -372,7 +385,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{entityType === "grid" ? "Grid" : "Cohort"} Performance</CardTitle>
+              <CardTitle>{ENTITY_LABELS[entityType]} Performance</CardTitle>
               <CardDescription>
                 View performance metrics for {airqloudName}
               </CardDescription>
@@ -608,7 +621,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                             <TableRow key={summary.deviceId}>
                               <TableCell className="font-medium">{summary.deviceName}</TableCell>
                               <TableCell className="text-right">{summary.avgFrequency.toFixed(1)}</TableCell>
-                              <TableCell className="text-right">{summary.avgErrorMargin.toFixed(2)}</TableCell>
+                              <TableCell className="text-right">{formatCompactNumber(summary.avgErrorMargin, 2)}</TableCell>
                               <TableCell className="text-right">{summary.avgUptime.toFixed(1)}%</TableCell>
                               <TableCell className="text-right">{summary.avgBatteryVoltage > 0 ? `${summary.avgBatteryVoltage.toFixed(2)}V` : "N/A"}</TableCell>
                             </TableRow>
@@ -837,7 +850,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName, entit
                                     height={80}
                                     tick={{ fontSize: 9 }}
                                   />
-                                  <YAxis tick={{ fontSize: 10 }} />
+                                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatCompactTick} />
                                   <Tooltip />
                                   {sensorHealthMode === "sensors" && (
                                     <Legend wrapperStyle={{ fontSize: "12px" }} iconType="line" />

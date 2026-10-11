@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCategoryLabel } from "@/lib/utils"
+import { formatCategoryLabel, formatCompactNumber } from "@/lib/utils"
 import {
   Tooltip,
   TooltipContent,
@@ -253,7 +253,7 @@ const ErrorMarginMiniGraph = ({ dailyData, averageMargin }: { dailyData?: InlabD
   if (!dailyData || dailyData.length === 0) {
     return (
       <Badge className={getMarginBadgeColor(averageMargin || 0)}>
-        ±{averageMargin?.toFixed(2) || 0}
+        ±{formatCompactNumber(averageMargin ?? 0, 2)}
       </Badge>
     )
   }
@@ -281,7 +281,7 @@ const ErrorMarginMiniGraph = ({ dailyData, averageMargin }: { dailyData?: InlabD
     <TooltipProvider>
       <div className="flex items-center gap-2">
         <span className={`font-medium text-sm min-w-[55px] ${getTextColor(averageMargin)}`}>
-          ±{averageMargin?.toFixed(2) || 0}
+          ±{formatCompactNumber(averageMargin ?? 0, 2)}
         </span>
         <div className="flex items-end gap-[2px] h-6">
           {values.map((item, index) => (
@@ -295,7 +295,7 @@ const ErrorMarginMiniGraph = ({ dailyData, averageMargin }: { dailyData?: InlabD
               <TooltipContent className={`${getTipBg(item.error_margin)} text-white border-0`}>
                 <div className="text-xs font-medium">
                   <div>{new Date(item.date).toLocaleDateString()}</div>
-                  <div>Error Margin: ±{item.error_margin.toFixed(2)}</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.error_margin, 2)}</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -801,7 +801,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       const summaryData = [
         ["Metric", "Value", "Status"],
         ["Average Uptime", `${avgUptime.toFixed(1)}%`, avgUptime >= 90 ? "PASSED" : "REVIEW"],
-        ["Mean Error Margin", `±${avgError.toFixed(2)}`, avgError <= 10 ? "PASSED" : "FAILED"],
+        ["Mean Error Margin", `±${formatCompactNumber(avgError, 2)}`, avgError <= 10 ? "PASSED" : "FAILED"],
         ["Total Devices", data.device_count.toString(), "ACTIVE"],
       ]
 
@@ -864,7 +864,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
         const row = [new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })]
         data.devices.forEach(device => {
           const dayData = (deviceDailyMap.get(device.device_id) || []).find(d => d.date === ts)
-          row.push(dayData ? `±${dayData.error_margin.toFixed(2)}` : "-")
+          row.push(dayData ? `±${formatCompactNumber(dayData.error_margin, 2)}` : "-")
         })
         return row
       })
@@ -947,7 +947,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
         device.category,
         device.data?.[0]?.channel_id || "N/A",
         `${device.uptime?.toFixed(1) || 0}%`,
-        `±${device.error_margin?.toFixed(2) || 0}`,
+        `±${formatCompactNumber(device.error_margin ?? 0, 2)}`,
         (device.error_margin || 0) < 5 ? "Excellent" : "Good"
       ])
 
@@ -1039,7 +1039,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Avg Error Margin:</span>
-                      <span className="font-medium">±{avgError.toFixed(2)}</span>
+                      <span className="font-medium">±{formatCompactNumber(avgError, 2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Devices:</span>
@@ -1075,7 +1075,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
                     <div key={i} className="px-4 py-2 flex text-[10px] border-b last:border-0">
                       <div className="w-1/3 text-gray-700">{d.device_name}</div>
                       <div className="w-1/3 text-center text-gray-600">{d.uptime?.toFixed(1)}%</div>
-                      <div className="w-1/3 text-right text-gray-600">±{d.error_margin?.toFixed(2)}</div>
+                      <div className="w-1/3 text-right text-gray-600">±{formatCompactNumber(d.error_margin ?? 0, 2)}</div>
                     </div>
                   ))}
                   {data.devices.length > 5 && (
@@ -1212,7 +1212,7 @@ export default function CollocationBatchDetailPage() {
             <CardTitle className="text-sm font-medium text-gray-500">Error Margin</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">±{avgError.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-gray-900">±{formatCompactNumber(avgError, 2)}</div>
             <div className="text-xs text-gray-500 mt-1">Target: &lt; 10%</div>
           </CardContent>
         </Card>

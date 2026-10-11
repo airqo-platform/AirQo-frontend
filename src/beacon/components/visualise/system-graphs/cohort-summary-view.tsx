@@ -33,6 +33,7 @@ import {
   Gauge,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
+import { formatCompactNumber, formatCompactTick } from "@/lib/utils"
 
 interface CohortSummaryViewProps {
   records: StandardizedRecord[]
@@ -345,7 +346,7 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Inter-Sensor Error</p>
                 <h3 className="text-2xl font-bold text-slate-900 mt-1">
-                  {fleetSummary.fleetAvgError !== null ? `±${fleetSummary.fleetAvgError} µg/m³` : "N/A"}
+                  {fleetSummary.fleetAvgError !== null ? `±${formatCompactNumber(fleetSummary.fleetAvgError, 2)} µg/m³` : "N/A"}
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">Mean |S1 - S2| collocation delta</p>
               </div>
@@ -461,7 +462,7 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
                   <span className="font-mono font-semibold text-slate-800 truncate max-w-[120px]">{d.device}</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                  <span className="font-bold text-primary">±{d.avgError} µg/m³</span>
+                  <span className="font-bold text-primary">±{formatCompactNumber(d.avgError ?? 0, 2)} µg/m³</span>
                 </div>
               </div>
             ))}
@@ -492,7 +493,7 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
                 </div>
                 <div className="flex items-center gap-1.5 font-mono text-[11px]">
                   <span className={`font-bold ${d.avgError && d.avgError > 10 ? "text-rose-700" : "text-amber-700"}`}>
-                    ±{d.avgError} µg/m³
+                    ±{formatCompactNumber(d.avgError ?? 0, 2)} µg/m³
                   </span>
                 </div>
               </div>
@@ -537,10 +538,11 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
                     />
                     <YAxis
                       tick={{ fontSize: 11, fill: "#64748b" }}
+                      tickFormatter={formatCompactTick}
                       label={{ value: "Error Delta (µg/m³)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#64748b" }}
                     />
                     <Tooltip
-                      formatter={(val: any) => [`±${val} µg/m³`, "Avg |S1 - S2| Error"]}
+                      formatter={(val: any) => [`±${typeof val === "number" ? formatCompactNumber(val, 2) : val} µg/m³`, "Avg |S1 - S2| Error"]}
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
                     />
                     <ReferenceLine y={5.0} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: "5.0 µg/m³ Threshold", position: "right", fill: "#d97706", fontSize: 10 }} />
@@ -702,14 +704,14 @@ export function CohortSummaryView({ records }: CohortSummaryViewProps) {
                   <td className="py-2.5 px-4 text-right">
                     {d.avgError !== null ? (
                       <span className={`font-bold ${d.avgError > 10 ? "text-rose-600" : d.avgError > 5 ? "text-amber-600" : "text-slate-700"}`}>
-                        ±{d.avgError} µg/m³
+                        ±{formatCompactNumber(d.avgError, 2)} µg/m³
                       </span>
                     ) : (
                       <span className="text-slate-400">N/A</span>
                     )}
                   </td>
                   <td className="py-2.5 px-4 text-right text-slate-500">
-                    {d.maxError !== null ? `±${d.maxError}` : "—"}
+                    {d.maxError !== null ? `±${formatCompactNumber(d.maxError, 2)}` : "—"}
                   </td>
                   <td className="py-2.5 px-4 text-right text-slate-600">
                     {d.avgBattery !== null ? (

@@ -3,6 +3,7 @@
 import React from "react"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { Pentagon, X, Download, CheckSquare, Trash2, MapPin } from "lucide-react"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface PolygonAreaPanelProps {
   devices: MaintenanceMapItem[]
@@ -143,7 +144,7 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
                     {isOffline ? "0%" : `${uptimePct.toFixed(0)}%`}
                   </td>
                   <td className={`px-2 py-2 text-center text-[11px] ${errorColor}`}>
-                    {Number.isFinite(em) ? `±${em.toFixed(1)}` : "–"}
+                    {Number.isFinite(em) ? `±${formatCompactNumber(em, 1)}` : "–"}
                   </td>
                 </tr>
               )

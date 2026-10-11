@@ -2,16 +2,32 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import AnalyticsFilters, { FilterState } from "./analytics-filters"
+import AnalyticsFilters, { FilterState, type AnalyticsFilterType } from "./analytics-filters"
 import AirQloudsTable from "./airqlouds-table"
 import { useToast } from "@/components/ui/use-toast"
-import { airQloudService } from "@/services/airqloud.service"
+import { airQloudService, type PerformanceEntityType } from "@/services/airqloud.service"
 import { deviceApiService } from "@/services/device-api.service"
 import { useGroup } from "@/lib/group-context"
+import { ROUTES } from "@/lib/navigation"
+
+const ANALYTICS_FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "grids", "sites", "devices"]
+
+// The "Filter By" choice drives the table below it and is kept in
+// `?analysis=<entity>` so it survives reloads and back navigation.
+const FILTER_TO_ENTITY: Record<AnalyticsFilterType, PerformanceEntityType> = {
+  airqlouds: "cohorts",
+  grids: "grids",
+  sites: "sites",
+  devices: "devices",
+}
+
+const getFilterTypeFromParam = (value: string | null | undefined): AnalyticsFilterType =>
+  ANALYTICS_FILTER_TYPES.find((type) => FILTER_TO_ENTITY[type] === value) ?? "airqlouds"
 
 const getFilterLabel = (filterType: FilterState["filterType"]) => {
   if (filterType === "airqlouds") return "Cohort"
   if (filterType === "grids") return "Grid"
+  if (filterType === "sites") return "Site"
   return "Device"
 }
 
@@ -52,6 +68,15 @@ const fetchAnalysisData = async (filterState: FilterState, start: string, end: s
     })
   }
 
+  if (filterState.filterType === "sites") {
+    return airQloudService.getSitePerformance({
+      start,
+      end,
+      ids: filterState.selectedItems,
+      group,
+    })
+  }
+
   return deviceApiService.getDevicePerformanceData({
     start,
     end,
@@ -65,7 +90,7 @@ export default function AnalyticsPageClient() {
   const { activeGroup, loading: groupLoading } = useGroup()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const initialFilterType = searchParams?.get("analysis") === "grids" ? "grids" : "airqlouds"
+  const initialFilterType = getFilterTypeFromParam(searchParams?.get("analysis"))
   const [filters, setFilters] = useState<FilterState>({
     filterType: initialFilterType,
     selectedItems: [],
@@ -76,6 +101,13 @@ export default function AnalyticsPageClient() {
     includeTime: false,
   })
   const [isAnalysing, setIsAnalysing] = useState(false)
+
+  const handleFilterChange = (nextFilters: FilterState) => {
+    setFilters(nextFilters)
+    if (nextFilters.filterType !== initialFilterType) {
+      router.replace(`${ROUTES.ANALYTICS}?analysis=${FILTER_TO_ENTITY[nextFilters.filterType]}`, { scroll: false })
+    }
+  }
 
   const handleAnalyse = async (filterState: FilterState) => {
     if (groupLoading || !activeGroup) {
@@ -134,12 +166,13 @@ export default function AnalyticsPageClient() {
     <div className="space-y-6 p-6">
       <AnalyticsFilters
         initialFilterType={initialFilterType}
-        onFilterChange={setFilters}
+        filterTypes={ANALYTICS_FILTER_TYPES}
+        onFilterChange={handleFilterChange}
         onAnalyse={handleAnalyse}
         isAnalysing={isAnalysing}
       />
 
-      <AirQloudsTable entityType={filters.filterType === "grids" ? "grids" : "cohorts"} />
+      <AirQloudsTable entityType={FILTER_TO_ENTITY[filters.filterType]} />
     </div>
   )
 }

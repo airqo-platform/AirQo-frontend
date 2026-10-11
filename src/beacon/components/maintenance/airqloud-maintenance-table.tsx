@@ -3,6 +3,7 @@
 import React from "react"
 import { AirQloudMaintenanceStats } from "@/types/api.types"
 import { ChevronDown, ChevronUp, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface AirQloudMaintenanceTableProps {
     data: AirQloudMaintenanceStats[]
@@ -103,7 +104,7 @@ export default function AirQloudMaintenanceTable({
                                     {item.avg_uptime != null ? ((item.avg_uptime / 24) * 100).toFixed(1) : '—'}%
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {item.avg_error_margin != null ? item.avg_error_margin.toFixed(2) : '—'}%
+                                    {item.avg_error_margin != null ? formatCompactNumber(item.avg_error_margin, 2) : '—'}%
                                 </td>
                             </tr>
                         ))}

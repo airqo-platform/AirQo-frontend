@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
+import { cn, formatCompactNumber } from "@/lib/utils"
 
 export interface HourlyHeatmapPoint {
   date: string // ISO date (yyyy-MM-dd) or any date string parsable by Date
@@ -83,7 +83,7 @@ const buildTooltipValueLabel = (
   }
   return isUptime
     ? `Uptime: ${value.toFixed(2)}%`
-    : `Error Margin: ±${value.toFixed(2)}`
+    : `Error Margin: ±${formatCompactNumber(value, 2)}`
 }
 
 export function DeviceHeatmap({ devices, metric, title, description }: Readonly<DeviceHeatmapProps>) {
@@ -236,7 +236,7 @@ export function DeviceHeatmap({ devices, metric, title, description }: Readonly<
                         )
                       })}
                       <td className="px-2 py-1 text-center font-semibold bg-muted/40 rounded-sm">
-                        {isUptime ? `${avg.toFixed(2)}` : `±${avg.toFixed(2)}`}
+                        {isUptime ? `${avg.toFixed(2)}` : `±${formatCompactNumber(avg, 2)}`}
                       </td>
                       <td className="px-2 py-1 text-center">
                         <span
@@ -453,7 +453,7 @@ function DeviceHourHeatmap({ device, metric }: Readonly<DeviceHourHeatmapProps>)
                                 <div>Records: {count}</div>
                                 <div>
                                   Error Margin:{" "}
-                                  {em == null ? "No data" : `±${em.toFixed(2)}`}
+                                  {em == null ? "No data" : `±${formatCompactNumber(em, 2)}`}
                                 </div>
                               </div>
                             </TooltipContent>
