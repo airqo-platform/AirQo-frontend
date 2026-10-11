@@ -19,6 +19,10 @@ A Cohort ID groups your organisation's devices together. Cohorts are managed by 
 
 A Cohort ID looks like: `64b9c7d5e3f82b0014c5a123`
 
+:::tip Network-wide data without a Cohort of your own
+The public cohort has a fixed, readable Cohort ID — `airqo-public` — that you can use wherever an endpoint takes a Cohort ID. See [Public Cohort →](../for-partners/public-cohort.md).
+:::
+
 ---
 
 ## Grid ID

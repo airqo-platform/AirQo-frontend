@@ -14,6 +14,7 @@ The AirQo API gives you programmatic access to air quality measurements from Air
 
 | I am a... | I should use... |
 |-----------|-----------------|
+| **Partner or API consumer** who wants all of AirQo's data, or data from across the whole network | [Public Cohort (`airqo-public`) →](./for-partners/public-cohort.md) |
 | **Partner or organisation** managing devices across multiple locations | [Cohort ID Access →](./for-partners/intro.md) |
 | **City or municipality** monitoring a defined geographical area | [Grid ID Access →](./for-cities/intro.md) |
 | **Developer** who needs historical or raw sensor data at scale | [Analytics API →](./analytics-api/raw-data.md) |
@@ -49,6 +50,10 @@ All measurements can be fetched through four different grouping methods:
 
 :::tip Choosing the right method
 Partners and organisations typically use **Cohort ID** because it groups their devices across regions. Cities and municipalities typically use **Grid ID** because it captures all sensors within their administrative boundary.
+:::
+
+:::info Looking for all of AirQo's data?
+If you want data from all AirQo devices or from across the whole network, use the **public cohort**. It is a representative sample of public devices from every area AirQo covers, available through one fixed Cohort ID — `airqo-public` — so there are no device lists to manage. See [Public Cohort — Network-wide Access →](./for-partners/public-cohort.md).
 :::
 
 ---

@@ -7,6 +7,10 @@ sidebar_label: Overview
 
 This guide is for **organisations, NGOs, research networks, and corporate partners** who have a group of AirQo devices deployed across multiple locations. Cohort ID access lets you retrieve air quality data from all of your devices with a single API call, regardless of where they are physically located.
 
+:::tip Want data from across the whole AirQo network?
+You don't need your own Cohort for that. Use the **public cohort** — a representative sample of public AirQo devices from every area of the network, available to everyone under the fixed Cohort ID `airqo-public`. See [Public Cohort — Network-wide Access →](./public-cohort.md).
+:::
+
 ---
 
 ## What is a Cohort?
@@ -54,6 +58,7 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 
 ## Getting your Cohort ID
 
+- **Network-wide data:** Use the fixed Cohort ID `airqo-public` — see [Public Cohort →](./public-cohort.md)
 - **Public Cohorts:** Use the [Metadata API](../reference/metadata.md#list-all-public-cohorts) — call `GET /api/v2/devices/metadata/cohorts` to list all publicly visible cohorts
 - **Private Cohorts:** Contact [support@airqo.net](mailto:support@airqo.net) — your Cohort ID will be shared securely
 
@@ -75,5 +80,6 @@ To change the privacy setting of your Cohort, contact [support@airqo.net](mailto
 
 - [Fetch recent measurements →](./recent-measurements.md)
 - [Access historical data →](./historical-data.md)
+- [Get network-wide data with the public cohort →](./public-cohort.md)
 - [Get air quality forecasts →](../forecasts/overview.md)
 - [Set up your account →](../getting-started/authentication.md)
